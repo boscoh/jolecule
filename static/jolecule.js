@@ -555,13 +555,38 @@ var View = function() {
       ribbon: true,
   };
 
+  this.copy_distances = function() {
+    var new_distance_list = [];
+    for (var i=0; i<this.distances.length; i+= 1) {
+      var distance = this.distances[i];
+      new_distance_list.push({
+        'i_atom1': distance.i_atom1,
+        'i_atom2': distance.i_atom2,
+        'z': distance.z,
+      });
+    }
+    return new_distance_list;
+  }
+
+  this.copy_labels = function(label_list) {
+    var new_label_list = [];
+    for (var i=0; i<this.labels.length; i+= 1) {
+      var label = this.labels[i];
+      new_label_list.push({
+          'i_atom':label.i_atom,
+          'text':label.text,
+      })
+    }
+    return new_label_list;
+  }
+
   this.clone = function() {
     var v = new View();
     v.id = this.id;
     v.res_id = this.res_id;
     v.i_atom = this.i_atom;
-    v.labels = copy_labels(this.labels);
-    v.distances = copy_distances(this.distances);
+    v.labels = this.copy_labels();
+    v.distances = this.copy_distances();
     v.order = this.order;
     v.text = this.text;
     v.time = this.time;
@@ -571,12 +596,12 @@ var View = function() {
     v.show = clone_dict(this.show);
     return v;
   }
-  
+
   this.extract_show = function(in_view) {
     this.res_id = in_view.res_id;
     this.show = clone_dict(in_view.show);
-    this.labels = copy_labels(in_view.labels);
-    this.distances = copy_distances(in_view.distances);
+    this.labels = in_view.copy_labels();
+    this.distances = in_view.copy_distances();
     this.text = in_view.text;
     this.time = in_view.time;
     this.url = in_view.url;
@@ -2441,33 +2466,6 @@ function init_pdb(pdb_id) {
   create_loading_dialog(pdb_id);
   $.get('/pdb/' + pdb_id + '.js', success);
   $.get('/ajax/user', load_user);
-}
-
-
-function copy_labels(label_list) {
-  var new_label_list = [];
-  for (var i=0; i<label_list.length; i+= 1) {
-    var label = label_list[i];
-    new_label_list.push({
-        'i_atom':label.i_atom,
-        'text':label.text,
-    })
-  }
-  return new_label_list;
-}
-
-
-function copy_distances(distance_list) {
-  var new_distance_list = [];
-  for (var i=0; i<distance_list.length; i+= 1) {
-    var distance = distance_list[i];
-    new_distance_list.push({
-      'i_atom1': distance.i_atom1,
-      'i_atom2': distance.i_atom2,
-      'z': distance.z,
-    });
-  }
-  return new_distance_list;
 }
 
 
