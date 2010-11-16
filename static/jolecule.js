@@ -610,8 +610,8 @@ var View = function() {
     var s = "[";
     for (var i=0; i<this.distances.length; i+=1) {
       var distance = this.distances[i];
-      s += "[" + distance.atom1.i + ", ";
-      s += distance.atom2.i + "], ";
+      s += "[" + distance.i_atom1 + ", ";
+      s += distance.i_atom2 + "], ";
     }
     s += "];";
     return s;
@@ -622,10 +622,8 @@ var View = function() {
     this.distances = [];
     for (var i=0; i<flat_distances.length; i+=1) {
       var distance = {}
-      var j = flat_distances[i][0];
-      var k = flat_distances[i][1];
-      distance.atom1 = protein.atoms[j];
-      distance.atom2 = protein.atoms[k];
+      distance.i_atom1 = flat_distances[i][0];
+      distance.i_atom2 = flat_distances[i][1];
       distance.z = 0;
       this.distances.push(distance);
     }
@@ -754,8 +752,8 @@ var ProteinController = function(protein) {
   
   this.make_dist = function(atom1, atom2) {
     this.current_view.distances.push({
-      'atom1': atom1,
-      'atom2': atom2,
+      'i_atom1': atom1.i,
+      'i_atom2': atom2.i,
       'z': atom2.z});
     this.changed = true;
   }
@@ -822,9 +820,10 @@ var ProteinController = function(protein) {
     }
     this.origin.camera.transform(matrix);
     for (var i=0; i<this.current_view.distances.length; i+=1) {
+      var dist = this.current_view.distances[i];
       this.current_view.distances[i].z = Math.max(
-          this.current_view.distances[i].atom1.pos.z,
-          this.current_view.distances[i].atom2.pos.z);
+          this.protein.atoms[dist.i_atom1].pos.z,
+          this.protein.atoms[dist.i_atom2].pos.z);
     }
   }
 
@@ -1856,12 +1855,18 @@ var ProteinDisplay = function(controller, canvas) {
         }
       }
     }
-    for (var i=0; i<this.controller.current_view.distances.length; i+=1) {
-      var dist = this.controller.current_view.distances[i];
-      if (this.atom_filter(dist.atom1) && 
-          this.atom_filter(dist.atom2)) {
-        if (this.is_visible(dist.atom1.pos) &&
-            this.is_visible(dist.atom2.pos)) {
+    var distances = this.controller.current_view.distances;
+    for (var i=0; i<distances.length; i+=1) {
+      var atom1 = this.protein.atoms[distances[i].i_atom1];
+      var atom2 = this.protein.atoms[distances[i].i_atom2];
+      if (this.atom_filter(atom1) && 
+          this.atom_filter(atom2)) {
+        if (this.is_visible(atom1.pos) &&
+            this.is_visible(atom2.pos)) {
+          var dist = {}
+          dist.atom1 = atom1;
+          dist.atom2 = atom2;
+          dist.z = distances[i].z;
           dist.is_atom = false;
           dist.is_bond = false;
           dist.is_quad = false;
@@ -2457,8 +2462,8 @@ function copy_distances(distance_list) {
   for (var i=0; i<distance_list.length; i+= 1) {
     var distance = distance_list[i];
     new_distance_list.push({
-      'atom1': distance.atom1,
-      'atom2': distance.atom2,
+      'i_atom1': distance.i_atom1,
+      'i_atom2': distance.i_atom2,
       'z': distance.z,
     });
   }
