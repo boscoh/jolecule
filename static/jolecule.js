@@ -609,138 +609,6 @@ var View = function() {
     this.i_atom = in_view.i_atom;
   }
 
-  this.flatten_labels = function() {
-    var s = "[";
-    for (var i=0; i<this.labels.length; i+=1) {
-      var label = this.labels[i];
-      s += "[" + label.i_atom + ", ";
-      s += "'" + escape(label.text) + "'], ";
-    }
-    s += "];";
-    return s;
-  }
-  
-  this.restore_labels = function(flat_labels_string) {
-    var flat_labels = eval(flat_labels_string);
-    this.labels = [];
-    for (var i=0; i<flat_labels.length; i+=1) {
-      var label = {}
-      label.i_atom = flat_labels[i][0];
-      label.text = unescape(flat_labels[i][1]);
-      label.z = 0;
-      this.labels.push(label);
-    }
-  }
-  
-  this.flatten_distances = function() {
-    var s = "[";
-    for (var i=0; i<this.distances.length; i+=1) {
-      var distance = this.distances[i];
-      s += "[" + distance.i_atom1 + ", ";
-      s += distance.i_atom2 + "], ";
-    }
-    s += "];";
-    return s;
-  }
-
-  this.restore_distances = function(flat_distances_string) {
-    var flat_distances = eval(flat_distances_string);
-    this.distances = [];
-    for (var i=0; i<flat_distances.length; i+=1) {
-      var distance = {}
-      distance.i_atom1 = flat_distances[i][0];
-      distance.i_atom2 = flat_distances[i][1];
-      distance.z = 0;
-      this.distances.push(distance);
-    }
-  }
-  
-  this.flat_dict = function() {
-    return {
-      id: this.id,
-      'pdb_id': pdb_id,
-      order : this.order,
-      show_sidechain: this.show.sidechain,
-      show_hydrogen: this.show.hydrogen,
-      show_water: this.show.water,
-      show_ligands: this.show.ligands,
-      show_trace: this.show.trace,
-      show_ca_trace: this.show.trace,
-      show_ribbon: this.show.ribbon,
-      show_all_atom: this.show.all_atom,
-      text: this.text,
-      res_id: this.res_id,
-      i_atom: this.i_atom,
-      labels: this.flatten_labels(),
-      distances: this.flatten_distances(),
-      z_front: this.camera.z_front,
-      z_back: this.camera.z_back,
-      zoom: this.camera.zoom,
-      camera_pos_x: this.abs_camera.pos.x,
-      camera_pos_y: this.abs_camera.pos.y, 
-      camera_pos_z: this.abs_camera.pos.z, 
-      camera_up_x: this.abs_camera.up_v.x, 
-      camera_up_y: this.abs_camera.up_v.y, 
-      camera_up_z: this.abs_camera.up_v.z,
-      camera_in_x: this.abs_camera.in_v.x, 
-      camera_in_y: this.abs_camera.in_v.y, 
-      camera_in_z: this.abs_camera.in_v.z, 
-    }
-  }
-}
-
-
-function view_from_dict(flat_dict) {
-  this_view = new View();
-
-  this_view.id = flat_dict.id;
-  this_view.pdb_id = flat_dict.pdb_id;
-  this_view.lock = flat_dict.lock;
-  this_view.text = flat_dict.text;
-  this_view.time = flat_dict.time;
-  this_view.creator = flat_dict.creator;
-  this_view.modifier = flat_dict.modifier;
-  this_view.order = flat_dict.order;
-  this_view.res_id = flat_dict.res_id;
-  this_view.i_atom = flat_dict.i_atom;
-  if ('labels' in flat_dict) {
-    this_view.restore_labels(flat_dict.labels);
-  }
-  if ('distances' in flat_dict) {
-    this_view.restore_distances(flat_dict.distances);
-  }
-  
-  if ('show_all_atom' in flat_dict) {
-    this_view.show.all_atom = flat_dict.show_all_atom;
-  } else if ('show_backbone' in flat_dict) {
-    this_view.show.all_atom = flat_dict.backbone;
-  }
-  this_view.show.all_atom = flat_dict.show_all_atom;
-  this_view.show.sidechain = flat_dict.show_sidechain;
-  this_view.show.hydrogen = flat_dict.show_hydrogen;
-  this_view.show.trace = flat_dict.show_trace;
-  this_view.show.water = flat_dict.show_water;
-  this_view.show.ribbon = flat_dict.show_ribbon;
-  this_view.show.ligands = flat_dict.show_ligands;
-
-  this_view.abs_camera.pos.x = flat_dict.camera_pos_x;
-  this_view.abs_camera.pos.y = flat_dict.camera_pos_y; 
-  this_view.abs_camera.pos.z = flat_dict.camera_pos_z;
-  this_view.abs_camera.up_v.x = flat_dict.camera_up_x; 
-  this_view.abs_camera.up_v.y = flat_dict.camera_up_y; 
-  this_view.abs_camera.up_v.z = flat_dict.camera_up_z;
-  this_view.abs_camera.in_v.x = flat_dict.camera_in_x; 
-  this_view.abs_camera.in_v.y = flat_dict.camera_in_y; 
-  this_view.abs_camera.in_v.z = flat_dict.camera_in_z; 
-
-  this_view.camera.z_front = flat_dict.z_front;
-  this_view.camera.z_back = flat_dict.z_back;
-  this_view.camera.zoom = flat_dict.zoom;
-  this_view.abs_camera.z_front = flat_dict.z_front;
-  this_view.abs_camera.z_back = flat_dict.z_back;
-  this_view.abs_camera.zoom = flat_dict.zoom;
-
-  return this_view;
 }
 
 
@@ -1040,8 +908,64 @@ var Controller = function(scene) {
     this.scene.set_target_view(view);
   }
 
+  this.flatten_labels = function(view) {
+    var s = "[";
+    for (var i=0; i<view.labels.length; i+=1) {
+      var label = view.labels[i];
+      s += "[" + label.i_atom + ", ";
+      s += "'" + escape(label.text) + "'], ";
+    }
+    s += "];";
+    return s;
+  }
+  
+  this.flatten_distances = function(view) {
+    var s = "[";
+    for (var i=0; i<view.distances.length; i+=1) {
+      var distance = view.distances[i];
+      s += "[" + distance.i_atom1 + ", ";
+      s += distance.i_atom2 + "], ";
+    }
+    s += "];";
+    return s;
+  }
+
+  this.flat_dict_from_view = function(view) {
+    return {
+      id: view.id,
+      'pdb_id': pdb_id,
+      order : view.order,
+      show_sidechain: view.show.sidechain,
+      show_hydrogen: view.show.hydrogen,
+      show_water: view.show.water,
+      show_ligands: view.show.ligands,
+      show_trace: view.show.trace,
+      show_ca_trace: view.show.trace,
+      show_ribbon: view.show.ribbon,
+      show_all_atom: view.show.all_atom,
+      text: view.text,
+      res_id: view.res_id,
+      i_atom: view.i_atom,
+      labels: this.flatten_labels(view),
+      distances: this.flatten_distances(view),
+      z_front: view.camera.z_front,
+      z_back: view.camera.z_back,
+      zoom: view.camera.zoom,
+      camera_pos_x: view.abs_camera.pos.x,
+      camera_pos_y: view.abs_camera.pos.y, 
+      camera_pos_z: view.abs_camera.pos.z, 
+      camera_up_x: view.abs_camera.up_v.x, 
+      camera_up_y: view.abs_camera.up_v.y, 
+      camera_up_z: view.abs_camera.up_v.z,
+      camera_in_x: view.abs_camera.in_v.x, 
+      camera_in_y: view.abs_camera.in_v.y, 
+      camera_in_z: view.abs_camera.in_v.z, 
+    }
+  }
+  
   this.save_view_to_server = function(view) {
-    $.post('/ajax/new_view', view.flat_dict(), do_nothing);
+    var flat_dict = this.flat_dict_from_view(view)
+    $.post('/ajax/new_view', flat_dict, do_nothing);
   }
   
   this.save_current_view = function(new_id) {
@@ -1093,9 +1017,92 @@ var Controller = function(scene) {
       after_success(data);
     }
     $.post(
-         '/ajax/pdb/delete', {'pdb_id': pdb_id, 'id':id}, 
+         '/ajax/pdb/delete', 
+         {'pdb_id': pdb_id, 'id':id}, 
          success);
   }
+
+  this.restore_distances = function(flat_distances_string) {
+    var flat_distances = eval(flat_distances_string);
+    var distances = [];
+    for (var i=0; i<flat_distances.length; i+=1) {
+      var distance = {}
+      distance.i_atom1 = flat_distances[i][0];
+      distance.i_atom2 = flat_distances[i][1];
+      distance.z = 0;
+      distances.push(distance);
+    }
+    return distances;
+  }
+  
+  this.restore_labels = function(flat_labels_string) {
+    var flat_labels = eval(flat_labels_string);
+    var labels = [];
+    for (var i=0; i<flat_labels.length; i+=1) {
+      var label = {}
+      label.i_atom = flat_labels[i][0];
+      label.text = unescape(flat_labels[i][1]);
+      label.z = 0;
+      labels.push(label);
+    }
+    return labels
+  }
+  
+  this.view_from_dict = function(flat_dict) {
+    view = new View();
+
+    view.id = flat_dict.id;
+    view.pdb_id = flat_dict.pdb_id;
+    view.lock = flat_dict.lock;
+    view.text = flat_dict.text;
+    view.time = flat_dict.time;
+    view.creator = flat_dict.creator;
+    view.modifier = flat_dict.modifier;
+    view.order = flat_dict.order;
+    view.res_id = flat_dict.res_id;
+    view.i_atom = flat_dict.i_atom;
+    if ('labels' in flat_dict) {
+      view.labels = this.restore_labels(
+          flat_dict.labels);
+    }
+    if ('distances' in flat_dict) {
+      view.distances = this.restore_distances(
+          flat_dict.distances);
+    }
+  
+    if ('show_all_atom' in flat_dict) {
+      view.show.all_atom = flat_dict.show_all_atom;
+    } else if ('show_backbone' in flat_dict) {
+      view.show.all_atom = flat_dict.backbone;
+    }
+    view.show.all_atom = flat_dict.show_all_atom;
+    view.show.sidechain = flat_dict.show_sidechain;
+    view.show.hydrogen = flat_dict.show_hydrogen;
+    view.show.trace = flat_dict.show_trace;
+    view.show.water = flat_dict.show_water;
+    view.show.ribbon = flat_dict.show_ribbon;
+    view.show.ligands = flat_dict.show_ligands;
+
+    view.abs_camera.pos.x = flat_dict.camera_pos_x;
+    view.abs_camera.pos.y = flat_dict.camera_pos_y; 
+    view.abs_camera.pos.z = flat_dict.camera_pos_z;
+    view.abs_camera.up_v.x = flat_dict.camera_up_x; 
+    view.abs_camera.up_v.y = flat_dict.camera_up_y; 
+    view.abs_camera.up_v.z = flat_dict.camera_up_z;
+    view.abs_camera.in_v.x = flat_dict.camera_in_x; 
+    view.abs_camera.in_v.y = flat_dict.camera_in_y; 
+    view.abs_camera.in_v.z = flat_dict.camera_in_z; 
+
+    view.camera.z_front = flat_dict.z_front;
+    view.camera.z_back = flat_dict.z_back;
+    view.camera.zoom = flat_dict.zoom;
+    view.abs_camera.z_front = flat_dict.z_front;
+    view.abs_camera.z_back = flat_dict.z_back;
+    view.abs_camera.zoom = flat_dict.zoom;
+
+    return view;
+  }
+
 
   this.load_views_from_server = function(pdb_id, after_success) {
     var controller = this;
@@ -1109,7 +1116,7 @@ var Controller = function(scene) {
       var view_dicts = eval(data);
       for (var i=0; i<view_dicts.length; i+=1) {
         var view_dict = view_dicts[i];
-        var view = view_from_dict(view_dict);
+        var view = controller.view_from_dict(view_dict);
         if (view.id == default_id) {
           continue;
         }
@@ -1186,7 +1193,7 @@ var AnnotationsDisplay = function(scene, controller) {
     for (var j=0; j<this.scene.saved_views.length; j+=1) {
       var view = this.scene.saved_views[j];
       var j_id = view.id;
-      this.controller.set_view_order(j_id, j);
+      this.set_view_order(j_id, j);
     }
   }
   
@@ -2245,7 +2252,7 @@ function set_show_option(option, bool) {
 
 
 function toggle_show_option(option) {
-  set_show_option(option, !scene.get_show_option(option));
+  set_show_option(option, !controller.get_show_option(option));
 }
 
 
