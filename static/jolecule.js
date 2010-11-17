@@ -980,10 +980,11 @@ var Controller = function(scene) {
     } else {
       this.scene.saved_views.splice(j, 0, new_view);
     }
-    for (var i=this.scene.i_last_view; i<this.scene.saved_views.length; i+=1) {
-      this.scene.saved_views[i].order = i;
-    }
     this.save_view_to_server(new_view);
+    for (var i=j; i<this.scene.saved_views.length; i+=1) {
+      this.scene.saved_views[i].order = i;
+      this.save_view_to_server(this.scene.saved_views[i]);
+    }
   }
 
   this.resort_saved_views = function() {
@@ -2111,7 +2112,7 @@ var ProteinDisplay = function(scene, canvas, controller) {
     event.preventDefault();
     var camera = this.scene.current_view.camera;
     var zoom_dif = this.pinch_reference_zoom/event.scale - camera.zoom;
-    this.controller.adjust_zoom(y_diff);
+    this.controller.adjust_zoom(zoom_dif);
     return false;
   }
   
@@ -2395,8 +2396,8 @@ var SequenceDisplay = function(scene, controller) {
 
 
 function resize_window(event) {
-  var w = window.innerWidth - 550;
-  var h = window.innerHeight - 150;
+  var w = window.innerWidth - 500;
+  var h = window.innerHeight - 130;
   canvas.dom.width = w;
   canvas.dom.height = h;
   canvas.width = w;
@@ -2659,6 +2660,10 @@ function register_callacks() {
         resize_window(); 
         scene.changed = true;
       });
+  window.onorientationchange = function() { 
+      resize_window(); 
+      scene.changed = true;
+  }
   $("#save_view").click(
       function() {
         annotations_display.make_new_annotation();
