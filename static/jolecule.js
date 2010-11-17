@@ -20,6 +20,8 @@ var annotations_display;
 var sequence_display;
 var user = 'public';
 
+
+
 // Some generic utility functions
 
 function url() {
@@ -61,6 +63,15 @@ function clone_dict(d) {
     new_d[k] = d[k];
   };
   return new_d;
+}
+
+
+function clone_list_of_dicts(list_of_dicts) {
+  var new_list = [];
+  for (var i=0; i<list_of_dicts.length; i+= 1) {
+    new_list.push(clone_dict(list_of_dicts[i]));
+  }
+  return new_list;
 }
 
 
@@ -556,38 +567,13 @@ var View = function() {
       ribbon: true,
   };
 
-  this.copy_distances = function() {
-    var new_distance_list = [];
-    for (var i=0; i<this.distances.length; i+= 1) {
-      var distance = this.distances[i];
-      new_distance_list.push({
-        'i_atom1': distance.i_atom1,
-        'i_atom2': distance.i_atom2,
-        'z': distance.z,
-      });
-    }
-    return new_distance_list;
-  }
-
-  this.copy_labels = function() {
-    var new_label_list = [];
-    for (var i=0; i<this.labels.length; i+= 1) {
-      var label = this.labels[i];
-      new_label_list.push({
-          'i_atom':label.i_atom,
-          'text':label.text,
-      })
-    }
-    return new_label_list;
-  }
-
   this.clone = function() {
     var v = new View();
     v.id = this.id;
     v.res_id = this.res_id;
     v.i_atom = this.i_atom;
-    v.labels = this.copy_labels();
-    v.distances = this.copy_distances();
+    v.labels = clone_list_of_dicts(this.labels);
+    v.distances = clone_list_of_dicts(this.distances);
     v.order = this.order;
     v.text = this.text;
     v.time = this.time;
@@ -601,8 +587,8 @@ var View = function() {
   this.extract_show = function(in_view) {
     this.res_id = in_view.res_id;
     this.show = clone_dict(in_view.show);
-    this.labels = in_view.copy_labels();
-    this.distances = in_view.copy_distances();
+    this.labels = clone_list_of_dicts(in_view.labels);
+    this.distances = clone_list_of_dicts(in_view.distances);
     this.text = in_view.text;
     this.time = in_view.time;
     this.url = in_view.url;
@@ -682,15 +668,6 @@ var Scene = function(protein) {
     this.transform(v3.translation(d));
   }
 
-  this.translate(this.protein.center());
-  this.current_view = new View();
-  this.current_view.res_id = this.protein.residues[0].id;
-  this.current_view.camera.z_front = protein.min_z;
-  this.current_view.camera.z_back = protein.max_z;
-  this.current_view.camera.zoom = Math.abs(2*protein.max_length);
-  this.calculate_abs_camera(this.current_view);
-  this.changed = true;
-  
   this.set_target_view = function(view) {
     this.n_update_step = 12;
     this.target_view = view.clone();  
@@ -800,8 +777,15 @@ var Scene = function(protein) {
     this.n_update_step -= 1;
   }
 
-
-  
+  this.translate(this.protein.center());
+  this.current_view = new View();
+  this.current_view.res_id = this.protein.residues[0].id;
+  this.current_view.camera.z_front = protein.min_z;
+  this.current_view.camera.z_back = protein.max_z;
+  this.current_view.camera.zoom = 
+      Math.abs(2*protein.max_length);
+  this.calculate_abs_camera(this.current_view);
+  this.changed = true;
 }
 
 
