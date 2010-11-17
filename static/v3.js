@@ -177,6 +177,11 @@ var v3 = {
   },
 
 
+  is_aligned: function(v, w) {
+    return v3.is_near_zero(v3.angle(v, w));
+  },
+
+
   Matrix: function() {
     this.elem00 = 1.0;
     this.elem01 = 0.0;

@@ -463,11 +463,6 @@ function is_equal_camera(v, w) {
 }
 
 
-function is_aligned(v, w) {
-  return v3.is_near_zero(v3.angle(v, w));
-}
-
-
 function get_camera_transform(ref, mov, n_step) {
   var ref1 = ref.pos;
   var ref2 = ref.up_v;
@@ -482,7 +477,7 @@ function get_camera_transform(ref, mov, n_step) {
   var axis1, torsion1, r1;
   var mov12 = v3.diff(mov2, mov1);
   var ref12 = v3.diff(ref2, ref1);
-  if (is_aligned(mov12, ref12)) {
+  if (v3.is_aligned(mov12, ref12)) {
     r1 = new v3.Matrix();
     torsion1 = null;
   } else {
