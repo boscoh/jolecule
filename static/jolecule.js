@@ -13,6 +13,7 @@ var atom_radius = 0.3;
 var canvas;
 var pdb_id;
 var protein;
+var scene;
 var controller;
 var protein_display;
 var annotations_display;
@@ -568,7 +569,7 @@ var View = function() {
     return new_distance_list;
   }
 
-  this.copy_labels = function(label_list) {
+  this.copy_labels = function() {
     var new_label_list = [];
     for (var i=0; i<this.labels.length; i+= 1) {
       var label = this.labels[i];
@@ -759,7 +760,7 @@ function get_current_date() {
 }
 
 
-var ProteinController = function(protein) {
+var Scene = function(protein) {
   this.protein = protein;
   this.saved_views_by_id = {};
   this.saved_views = [];
@@ -770,49 +771,6 @@ var ProteinController = function(protein) {
   this.is_new_view_chosen = true;
   this.i_last_view = 0;
   this.saved_show = null;
- 
-  this.delete_dist = function(dist) {
-    del_from_array(dist, this.current_view.distances);
-  }
-  
-  this.make_dist = function(atom1, atom2) {
-    this.current_view.distances.push({
-      'i_atom1': atom1.i,
-      'i_atom2': atom2.i,
-      'z': atom2.z});
-    this.changed = true;
-  }
-  
-  this.make_label = function(i_atom, text) {
-    this.current_view.labels.push({
-        'i_atom': i_atom, 'text':text,
-    });
-    this.changed = true;
-  }
-  
-  this.delete_label = function(label) {
-    del_from_array(label, this.current_view.labels);
-  }
-  
-  this.hide_atomic_details_for_mousemove = function() {
-    if (this.is_too_much_atomic_detail()) {
-      this.saved_show = clone_dict(this.current_view.show);
-      this.current_view.show.ligands = false; 
-      this.current_view.show.hydrogen = false; 
-      this.current_view.show.sidechain = false; 
-      this.current_view.show.water = false; 
-      this.changed = true;
-    }
-  }
-  
-  this.restore_atomic_details_after_mousemove = function() {
-    if (this.saved_show === null) {
-      return;
-    }
-    this.current_view.show = clone_dict(this.saved_show);
-    this.saved_show = null;
-    this.changed = true;
-  }
   
   this.calculate_abs_camera = function(view) {
     var m_origin_view = this.origin.clone();
@@ -852,30 +810,6 @@ var ProteinController = function(protein) {
     }
   }
 
-  this.rotate_xy = function(x_angle, y_angle) {
-    x_axis = v3.create(1, 0, 0);
-    rot_along_x = v3.rotation(x_axis, x_angle);
-    y_axis = v3.create(0, 1, 0);
-    rot_along_y = v3.rotation(y_axis, y_angle);
-    matrix = v3.matrix_product(rot_along_x, rot_along_y);
-    this.transform(matrix);
-  }
-
-  this.rotate_z = function(z_angle) {
-    z_axis = v3.create(0, 0, 1);
-    rot_along_z = v3.rotation(z_axis, z_angle);
-    this.transform(rot_along_z);
-  }
-
-  this.adjust_zoom = function(zoom_diff) {
-    var camera = this.current_view.camera;
-    camera.zoom += zoom_diff;
-    if (camera.zoom < 8*atom_radius) {
-      camera.zoom = 8*atom_radius;
-    }
-    this.changed = true;
-  }
-  
   this.translate = function(d) {
     this.transform(v3.translation(d));
   }
@@ -892,30 +826,6 @@ var ProteinController = function(protein) {
   this.set_target_view = function(view) {
     this.n_update_step = 12;
     this.target_view = view.clone();  
-  }
-
-  this.set_target_view_by_id = function(id) {
-    var view = this.saved_views_by_id[id];
-    this.i_last_view = this.saved_views_by_id[id].order;
-    this.restore_camera_from_abs_camera(view);
-    this.set_target_view(view);
-  }
-
-  this.set_target_view_by_res_id = function(res_id) {
-    this.current_view.res_id = res_id;
-    this.current_view.i_atom = this.protein.res_by_id[res_id].target_view.i;
-    var view = this.current_view.clone();
-    var pos = protein.res_by_id[res_id].target_view.pos;
-    view.camera.transform(v3.translation(pos));
-    this.set_target_view(view);
-  }
-
-  this.set_target_view_by_atom = function(atom) {
-    var view = this.current_view.clone();
-    view.res_id = atom.res_id;
-    view.i_atom = atom.i;
-    view.camera.transform(v3.translation(atom.pos));
-    this.set_target_view(view);
   }
 
   this.centered_atom = function() {
@@ -940,6 +850,46 @@ var ProteinController = function(protein) {
       }
     }
     return -1;
+  }
+  
+  this.get_i_saved_view_from_id = function(id) {
+    var i = -1;
+    for (var j=0; j<this.saved_views.length; j+=1) {
+      if (this.saved_views[j].id == id) {
+        i = j;
+      }
+    }
+    return i;
+  }
+
+  this.remove_saved_view = function(id) {
+    var i = this.get_i_saved_view_from_id(id);
+    if (i<0) {
+      return;
+    }
+    this.saved_views.splice(i,1);
+    delete this.saved_views_by_id[id];
+  }
+  
+  this.save_view = function(view) {
+    var id = view.id;
+    this.saved_views_by_id[id] = view;
+    this.saved_views.push(view);
+  }
+
+  this.get_default_view = function() {
+    this.current_view.order = -1;
+    pdb_url = 'http://www.rcsb.org/pdb/explore' + 
+        '/explore.do?structureId=' + pdb_id;
+    pdb_wiki_url = "http://pdbwiki.org/index.php/" + 
+        pdb_id
+    this.current_view.text = 
+        'Default view in PDB structure ' +
+        "<a href='" + pdb_url +
+        "'>" + pdb_id.toUpperCase() + "</a>." +
+        " For more information, also check out the <a href='" + pdb_wiki_url +
+        "'>PDB-wiki</a>.";
+    return this.current_view.clone();
   }
   
   this.animate = function() {
@@ -977,51 +927,117 @@ var ProteinController = function(protein) {
           this.current_view.camera.z_back;
       this.current_view.camera.z_back += 
           z_back_diff/this.n_update_step;
-      if (this.is_too_much_atomic_detail()) {
-        this.current_view.show.ligands = false; 
-        this.current_view.show.hydrogen = false; 
-        this.current_view.show.sidechain = false; 
-        this.current_view.show.water = false; 
-      }
     }
     this.changed = true;
     this.n_update_step -= 1;
   }
 
+
+  
+}
+
+
+var Controller = function(scene) {
+  this.protein = scene.protein;
+  this.scene = scene;
+  
+ 
+  this.delete_dist = function(dist) {
+    del_from_array(dist, this.scene.current_view.distances);
+  }
+  
+  this.make_dist = function(atom1, atom2) {
+    this.scene.current_view.distances.push({
+      'i_atom1': atom1.i,
+      'i_atom2': atom2.i,
+      'z': atom2.z});
+    this.scene.changed = true;
+  }
+  
+  this.make_label = function(i_atom, text) {
+    this.scene.current_view.labels.push({
+        'i_atom': i_atom, 'text':text,
+    });
+    this.scene.changed = true;
+  }
+  
+  this.delete_label = function(label) {
+    del_from_array(label, this.scene.current_view.labels);
+  }
+  
   this.is_too_much_atomic_detail = function() {
     var n_aa = this.protein.residues.length;
-    var camera = this.current_view.camera;
+    var camera = this.scene.current_view.camera;
     var z = camera.z_back - camera.z_front;
     return ((n_aa > 100) && (z > 15));
   }
 
-  this.get_i_saved_view_from_id = function(id) {
-    var i = -1;
-    for (var j=0; j<this.saved_views.length; j+=1) {
-      if (this.saved_views[j].id == id) {
-        i = j;
-      }
+  this.hide_atomic_details_for_mousemove = function() {
+    if (this.is_too_much_atomic_detail()) {
+      this.saved_show = clone_dict(this.scene.current_view.show);
+      this.scene.current_view.show.ligands = false; 
+      this.scene.current_view.show.hydrogen = false; 
+      this.scene.current_view.show.sidechain = false; 
+      this.scene.current_view.show.water = false; 
+      this.scene.changed = true;
     }
-    return i;
-  }
-
-  this.get_saved_view_id_from_i = function(i) {
-    return this.saved_views[i].id;
-  }
-
-  this.remove_saved_view = function(id) {
-    var i = this.get_i_saved_view_from_id(id);
-    if (i<0) {
-      return;
-    }
-    this.saved_views.splice(i,1);
-    delete this.saved_views_by_id[id];
   }
   
-  this.save_view = function(view) {
-    var id = view.id;
-    this.saved_views_by_id[id] = view;
-    this.saved_views.push(view);
+  this.restore_atomic_details_after_mousemove = function() {
+    if (this.saved_show === null) {
+      return;
+    }
+    this.scene.current_view.show = clone_dict(this.saved_show);
+    this.saved_show = null;
+    this.scene.changed = true;
+  }
+  
+  this.rotate_xy = function(x_angle, y_angle) {
+    x_axis = v3.create(1, 0, 0);
+    rot_along_x = v3.rotation(x_axis, x_angle);
+    y_axis = v3.create(0, 1, 0);
+    rot_along_y = v3.rotation(y_axis, y_angle);
+    matrix = v3.matrix_product(rot_along_x, rot_along_y);
+    this.scene.transform(matrix);
+  }
+
+  this.rotate_z = function(z_angle) {
+    z_axis = v3.create(0, 0, 1);
+    rot_along_z = v3.rotation(z_axis, z_angle);
+    this.scene.transform(rot_along_z);
+  }
+
+  this.adjust_zoom = function(zoom_diff) {
+    var camera = this.scene.current_view.camera;
+    camera.zoom += zoom_diff;
+    if (camera.zoom < 8*atom_radius) {
+      camera.zoom = 8*atom_radius;
+    }
+    this.changed = true;
+  }
+  
+  this.set_target_view_by_id = function(id) {
+    var view = this.scene.saved_views_by_id[id];
+    this.i_last_view = this.scene.saved_views_by_id[id].order;
+    this.scene.restore_camera_from_abs_camera(view);
+    this.scene.set_target_view(view);
+  }
+
+  this.set_target_view_by_res_id = function(res_id) {
+    this.scene.current_view.res_id = res_id;
+    this.scene.current_view.i_atom = this.protein.res_by_id[res_id].target_view.i;
+    var view = this.scene.current_view.clone();
+    var pos = this.protein.res_by_id[res_id].target_view.pos;
+    view.camera.transform(v3.translation(pos));
+    this.scene.set_target_view(view);
+  }
+
+  this.set_target_view_by_atom = function(atom) {
+    var view = this.scene.current_view.clone();
+    view.res_id = atom.res_id;
+    view.i_atom = atom.i;
+    view.camera.transform(v3.translation(atom.pos));
+    this.scene.set_target_view(view);
   }
 
   this.save_view_to_server = function(view) {
@@ -1029,22 +1045,22 @@ var ProteinController = function(protein) {
   }
   
   this.save_current_view = function(new_id) {
-    var new_view = this.current_view.clone();
+    var new_view = this.scene.current_view.clone();
     new_view.text = 'Insert text here';
     new_view.creator = user;
     new_view.id = new_id;
     new_view.time = get_current_date();
-    this.calculate_abs_camera(new_view);
-    this.saved_views_by_id[new_id] = new_view;
-    this.i_last_view += 1;
-    if (this.i_last_view >= this.saved_views.length) {
-      this.saved_views.push(new_view);
+    this.scene.calculate_abs_camera(new_view);
+    this.scene.saved_views_by_id[new_id] = new_view;
+    this.scene.i_last_view += 1;
+    if (this.scene.i_last_view >= this.scene.saved_views.length) {
+      this.scene.saved_views.push(new_view);
     } else {
-      this.saved_views.splice(this.i_last_view, 0, new_view);
-      this.saved_views[this.i_last_view] = new_view;
+      this.scene.saved_views.splice(this.i_last_view, 0, new_view);
+      this.scene.saved_views[this.scene.i_last_view] = new_view;
     }
-    for (var i=this.i_last_view; i<this.saved_views.length; i+=1) {
-      this.saved_views[i].order = i;
+    for (var i=this.scene.i_last_view; i<this.scene.saved_views.length; i+=1) {
+      this.scene.saved_views[i].order = i;
     }
     this.save_view_to_server(new_view);
   }
@@ -1055,15 +1071,15 @@ var ProteinController = function(protein) {
       var y = b.order;
       return ((x < y) ? -1 : ((x > y) ? 1 : 0));
     }
-    this.saved_views.sort(cmp);
-    for (var i=0; i<this.saved_views.length; i+=1) {
-      this.saved_views[i].order = i;
+    this.scene.saved_views.sort(cmp);
+    for (var i=0; i<this.scene.saved_views.length; i+=1) {
+      this.scene.saved_views[i].order = i;
     }
   }
   
   this.is_saved_views_in_order = function() {
-    for (i=0; i<this.saved_views.length; i++) {
-      if (i != this.saved_views[i].order) {
+    for (i=0; i<this.scene.saved_views.length; i++) {
+      if (i != this.scene.saved_views[i].order) {
         return false;
       }
     }
@@ -1073,36 +1089,22 @@ var ProteinController = function(protein) {
   this.delete_view = function(id, after_success) {
     var controller = this;
     success = function(data) {
-      controller.remove_saved_view(id);
+      controller.scene.remove_saved_view(id);
       after_success(data);
     }
     $.post(
          '/ajax/pdb/delete', {'pdb_id': pdb_id, 'id':id}, 
          success);
   }
- 
-  this.get_default_view = function() {
-    this.current_view.order = -1;
-    pdb_url = 'http://www.rcsb.org/pdb/explore' + 
-        '/explore.do?structureId=' + pdb_id;
-    pdb_wiki_url = "http://pdbwiki.org/index.php/" + 
-        pdb_id
-    this.current_view.text = 
-        'Default view in PDB structure ' +
-        "<a href='" + pdb_url +
-        "'>" + pdb_id.toUpperCase() + "</a>." +
-        " For more information, also check out the <a href='" + pdb_wiki_url +
-        "'>PDB-wiki</a>.";
-    return this.current_view.clone();
-  }
-  
+
   this.load_views_from_server = function(pdb_id, after_success) {
     var controller = this;
+    var scene = this.scene
 
     function success(data, textStatus, XMLHttpRequest) {
-      var default_view = controller.get_default_view();
+      var default_view = scene.get_default_view();
       var default_id = default_view.id;
-      controller.save_view(default_view);
+      scene.save_view(default_view);
       controller.save_view_to_server(default_view);
       var view_dicts = eval(data);
       for (var i=0; i<view_dicts.length; i+=1) {
@@ -1114,12 +1116,12 @@ var ProteinController = function(protein) {
         if (typeof view.order == "undefined") {
           view.order = i+1;          
         }
-        controller.save_view(view);
+        scene.save_view(view);
       }
       if (!controller.is_saved_views_in_order()) {
         controller.resort_saved_views();
       }
-      controller.is_new_view_chosen = true;
+      scene.is_new_view_chosen = true;
       after_success();
     }
     
@@ -1127,31 +1129,32 @@ var ProteinController = function(protein) {
   }
 
   this.set_backbone_option = function(option) {
-    this.current_view.show.all_atom = false;
-    this.current_view.show.trace = false;
-    this.current_view.show.ribbon = false;
-    this.current_view.show[option] = true;
-    this.changed = true;
+    this.scene.current_view.show.all_atom = false;
+    this.scene.current_view.show.trace = false;
+    this.scene.current_view.show.ribbon = false;
+    this.scene.current_view.show[option] = true;
+    this.scene.changed = true;
   }
 
   this.set_show_option = function(option, bool) {
-    this.current_view.show[option] = bool;
-    this.changed = true;
+    this.scene.current_view.show[option] = bool;
+    this.scene.changed = true;
   }
 
   this.get_show_option = function(option) {
-    return this.current_view.show[option];
+    return this.scene.current_view.show[option];
   }
   
 }
 
 
-var AnnotationsDisplay = function(controller) {
+var AnnotationsDisplay = function(scene, controller) {
+  this.scene = scene;
   this.controller = controller;
   this.div = {}; 
   
   this.set_view_order = function(id, order) {
-    var view = this.controller.saved_views_by_id[id];
+    var view = this.scene.saved_views_by_id[id];
     var a = this.div[id].all.find('a').eq(0);
     view.order = order;
     a.text('['+view.order+']');
@@ -1160,7 +1163,7 @@ var AnnotationsDisplay = function(controller) {
 
   this.reset_borders = function() {
     for (var id in this.div) {
-      var last_id = this.controller.saved_views[this.controller.i_last_view].id;
+      var last_id = this.scene.saved_views[this.scene.i_last_view].id;
       if (last_id == id) {
         this.div[id].all.css(
             {"border":"1px dotted #CCC"});
@@ -1180,10 +1183,10 @@ var AnnotationsDisplay = function(controller) {
   }
   
   this.reset_goto_buttons = function() {
-    for (var j=0; j<this.controller.saved_views.length; j+=1) {
-      var view = this.controller.saved_views[j];
+    for (var j=0; j<this.scene.saved_views.length; j+=1) {
+      var view = this.scene.saved_views[j];
       var j_id = view.id;
-      this.set_view_order(j_id, j);
+      this.controller.set_view_order(j_id, j);
     }
   }
   
@@ -1192,8 +1195,8 @@ var AnnotationsDisplay = function(controller) {
     var success = function() {
       this_item.div[id].all.remove();
       delete this_item.div[id];
-      if (this_item.controller.i_last_view >= this_item.controller.saved_views.length) {
-        this_item.controller.i_last_view -= 1;
+      if (this_item.scene.i_last_view >= this_item.scene.saved_views.length) {
+        this_item.scene.i_last_view -= 1;
       }
       this_item.reset_goto_buttons();
       this_item.reset_borders();
@@ -1216,20 +1219,20 @@ var AnnotationsDisplay = function(controller) {
   }
 
   this.swap_up = function(i_id) {
-    var i = this.controller.get_i_saved_view_from_id(i_id);
+    var i = this.scene.get_i_saved_view_from_id(i_id);
     var j = i-1;
-    var j_id = this.controller.saved_views[j].id;
+    var j_id = this.scene.saved_views[j].id;
     if (i < 2) {
       return;
     }
     i_div = this.div[i_id].all;
     j_div = this.div[j_id].all;
-    this.controller.saved_views[j].order = i;
-    this.controller.saved_views[i].order = j;
+    this.scene.saved_views[j].order = i;
+    this.scene.saved_views[i].order = j;
     i_div.insertBefore(j_div);
     this.set_view_order(j_id, i);
     this.set_view_order(i_id, j);
-    this.controller.resort_saved_views();
+    this.controlller.resort_saved_views();
     if (j==1) {
       this.div[i_id].swap_up.hide();
       this.div[j_id].swap_up.show();
@@ -1250,7 +1253,7 @@ var AnnotationsDisplay = function(controller) {
 
   this.edit_box = function(id) {
     var this_item = this;
-    var view = this.controller.saved_views_by_id[id];
+    var view = this.scene.saved_views_by_id[id];
     this_item.div[id].edit_text = $("<textarea></textarea>")
       .css({"width":"100%", 
             "height":"8em",
@@ -1269,8 +1272,7 @@ var AnnotationsDisplay = function(controller) {
             this_item.div[id].edit.hide();
             this_item.div[id].show.show(); 
             view.text = text;
-            data = view.flat_dict();
-            $.post('/ajax/new_view', data, do_nothing);
+            this_item.controller.save_view_to_server(view);
             return false; 
           });
     var discard = $('<a></a>')
@@ -1297,7 +1299,7 @@ var AnnotationsDisplay = function(controller) {
 
   this.show_box = function(id) {
     var this_item = this;
-    var view = this.controller.saved_views_by_id[id];
+    var view = this.scene.saved_views_by_id[id];
     this_item.div[id].show_text = $('<div></div>')
         .css({"font-size":".75em"})
         .attr('style', 'display:block;')
@@ -1362,8 +1364,8 @@ var AnnotationsDisplay = function(controller) {
   }
 
   this.make_annotations_display = function(id) {
-    var i = this.controller.get_i_saved_view_from_id(id);
-    var view = this.controller.saved_views_by_id[id];
+    var i = this.scene.get_i_saved_view_from_id(id);
+    var view = this.scene.saved_views_by_id[id];
     var j = view.order;
     this.div[id] = {};
     this.div[id].all = $('<table></table>')
@@ -1381,34 +1383,35 @@ var AnnotationsDisplay = function(controller) {
 
   this.make_new_annotation = function() {
     new_id = random_id();
-    this.controller.save_current_view(new_id);
+    this.scene.save_current_view(new_id);
     var div = this.make_annotations_display(new_id);
-    if (this.controller.i_last_view == this.controller.saved_views.length - 1) {
+    if (this.scene.i_last_view == this.scene.saved_views.length - 1) {
       $("#views").append(div);
     } else {
-      var j = this.controller.i_last_view-1;
-      var j_id = this.controller.saved_views[j].id;
+      var j = this.scene.i_last_view-1;
+      var j_id = this.scene.saved_views[j].id;
       var j_div = this.div[j_id].all;
       div.insertAfter(j_div);
     }
-    var view = this.controller.saved_views_by_id[new_id];
+    var view = this.scene.saved_views_by_id[new_id];
     this.reset_goto_buttons();
     this.reset_borders();
     $("#views").scrollTo(this.div[new_id].all);
   }
 
   this.load_views_from_server = function(pdb_id) {
+    var controller = this.controller;
     var this_item = this;
-
+    
     function after_success() {
-      for (var i=0; i<this_item.controller.saved_views.length; i+=1) {
-        var id = this_item.controller.saved_views[i].id;
+      for (var i=0; i<this_item.scene.saved_views.length; i+=1) {
+        var id = this_item.scene.saved_views[i].id;
         var div = this_item.make_annotations_display(id);
         $('#views').append(div);
-        hash_tag = url().split('#')[1];
-        if (hash_tag in this_item.controller.saved_views_by_id) {
-          this_item.controller.set_target_view_by_id(hash_tag);
-        }
+      }
+      hash_tag = url().split('#')[1];
+      if (hash_tag in this_item.scene.saved_views_by_id) {
+        this_item.set_target_by_view_id(hash_tag);
       }
     }
     
@@ -1594,10 +1597,11 @@ var Canvas = function(canvas_dom) {
 //////////////////////////////////////////////////
 
 
-var ZSlabDisplay = function(canvas, controller) {
+var ZSlabDisplay = function(canvas, scene, controller) {
   this.canvas = canvas;
   this.controller = controller;
-  this.max_z_length = 2.0*this.controller.protein.max_length;
+  this.scene = scene;
+  this.max_z_length = 2.0*this.scene.protein.max_length;
 
   this.width = 30;
   this.height = function() { 
@@ -1635,7 +1639,7 @@ var ZSlabDisplay = function(canvas, controller) {
   }
 
   this.draw_protein_box = function() {
-    var protein = this.controller.protein;
+    var protein = this.scene.protein;
     var min_z = protein.min_z;
     var max_z = protein.max_z;
     var fraction = max_z/this.max_z_length;
@@ -1656,8 +1660,8 @@ var ZSlabDisplay = function(canvas, controller) {
     this.canvas.line(x1, ym, x2, ym, "#040", 1);
 
     var font = '14px serif';
-    var camera = this.controller.current_view.camera;
-    if (controller.is_too_much_atomic_detail()) {
+    var camera = this.scene.current_view.camera;
+    if (this.controller.is_too_much_atomic_detail()) {
       var color = "rgb(100, 120, 0)";
     } else {
       var color = "rgb(0, 150, 0)";
@@ -1698,13 +1702,13 @@ var ZSlabDisplay = function(canvas, controller) {
 
   this.mousemove_y = function(y) {
     var z = this.y_to_z(y);
-    var camera = this.controller.current_view.camera;
+    var camera = this.scene.current_view.camera;
     if (this.back) {
       camera.z_back = Math.max(2, z);
     } else if (this.front) {
       camera.z_front = Math.min(-2, z);
     }
-    this.controller.changed = true;
+    this.scene.changed = true;
   }
   
   this.mouseup = function() {
@@ -1782,9 +1786,10 @@ function z_rgb(z, rgb, camera) {
 }
 
 
-var ProteinDisplay = function(controller, canvas) {
+var ProteinDisplay = function(scene, canvas, controller) {
+  this.scene = scene;
   this.controller = controller;
-  this.protein = controller.protein;
+  this.protein = scene.protein;
   this.canvas = canvas;
   this.z_list = [];
 
@@ -1796,14 +1801,14 @@ var ProteinDisplay = function(controller, canvas) {
   this.is_mouse_pressed = false;
   this.pinch_reference_zoom = -1;
   
-  this.zslab_display = new ZSlabDisplay(canvas, controller);
+  this.zslab_display = new ZSlabDisplay(canvas, scene, controller);
 
   backbone_atoms = [
     'N', 'C', 'O', 'H', 'HA', 
     'P', 'OP1', "O5'", 'OP2', "C5'", "O5'", "O3'", "C4'"];
 
   this.atom_filter = function(a) {
-    var show = this.controller.current_view.show;
+    var show = this.scene.current_view.show;
     if (a.elem == "H" && !show.hydrogen) {
       return false;
     }
@@ -1824,7 +1829,7 @@ var ProteinDisplay = function(controller, canvas) {
   }
 
   this.is_visible = function(pos) {
-    return this.controller.current_view.camera.is_visible_z(pos.z);
+    return this.scene.current_view.camera.is_visible_z(pos.z);
   }
   
   this.make_z_list = function() {
@@ -1854,7 +1859,7 @@ var ProteinDisplay = function(controller, canvas) {
           }
       }
     }
-    if (this.controller.current_view.show.trace) {
+    if (this.scene.current_view.show.trace) {
       for (var j=0; j<this.protein.trace.length; j+=1) {
         var trace = this.protein.trace[j];
         if (this.is_visible(trace.atom1.pos) &&
@@ -1867,7 +1872,7 @@ var ProteinDisplay = function(controller, canvas) {
         }
       }
     }
-    if (this.controller.current_view.show.ribbon) {
+    if (this.scene.current_view.show.ribbon) {
       for (i=0; i<this.protein.ribbons.length; i+=1) {
         var ribbon = this.protein.ribbons[i];
         if (this.is_visible(ribbon.bond[0].pos) &&
@@ -1880,7 +1885,7 @@ var ProteinDisplay = function(controller, canvas) {
         }
       }
     }
-    var distances = this.controller.current_view.distances;
+    var distances = this.scene.current_view.distances;
     for (var i=0; i<distances.length; i+=1) {
       var atom1 = this.protein.atoms[distances[i].i_atom1];
       var atom2 = this.protein.atoms[distances[i].i_atom2];
@@ -1905,7 +1910,7 @@ var ProteinDisplay = function(controller, canvas) {
   }
 
   this.project_to_canvas = function(pos) {
-    var z = pos.z + this.controller.current_view.camera.zoom;
+    var z = pos.z + this.scene.current_view.camera.zoom;
     return v3.create(
       this.canvas.scale*pos.x/z + this.canvas.half_width,
       this.canvas.scale*pos.y/z + this.canvas.half_height,
@@ -1921,15 +1926,15 @@ var ProteinDisplay = function(controller, canvas) {
         a = this.z_list[i];
         proj = this.project_to_canvas(a.pos);
         i_atom = a.i;
-        for (var m=0; m<this.controller.current_view.labels.length; m+=1) {
-          var i_atom_label = this.controller.current_view.labels[m].i_atom;
+        for (var m=0; m<this.scene.current_view.labels.length; m+=1) {
+          var i_atom_label = this.scene.current_view.labels[m].i_atom;
           if (i_atom == i_atom_label) {
             var w = 100;
             var h = 20;
             var y1 = 30;
             if (x >= (proj.x-w/2) && x <= (proj.x+w/2) && 
                 y >= (proj.y-h-y1) && y <= (proj.y-y1)) {
-              this.hover_label = this.controller.current_view.labels[m];
+              this.hover_label = this.scene.current_view.labels[m];
             }
           }
         }
@@ -1973,8 +1978,8 @@ var ProteinDisplay = function(controller, canvas) {
   }
 
   this.i_atom_of_label = function(z_obj) {
-    for (var i=0; i<this.controller.current_view.labels.length; i+=1) {
-      var i_atom = this.controller.current_view.labels[i].i_atom;
+    for (var i=0; i<this.scene.current_view.labels.length; i+=1) {
+      var i_atom = this.scene.current_view.labels[i].i_atom;
       if (i_atom == z_obj.i) {
         return i;
       }
@@ -2005,10 +2010,10 @@ var ProteinDisplay = function(controller, canvas) {
       var z = z_obj.z;
       rgb = z_rgb(
           z_obj.z, this.rgb_from_z_obj(z_obj), 
-          this.controller.current_view.camera);
+          this.scene.current_view.camera);
       var color = rgb_to_string(rgb);
       var edge_color = rgb_to_string(fraction_rgb(rgb, 0.5));
-      var z_disp = z+this.controller.current_view.camera.zoom;
+      var z_disp = z+this.scene.current_view.camera.zoom;
       if (z_obj.is_atom) {
         r = this.canvas.scale*atom_radius/z_disp;
         proj = this.project_to_canvas(z_obj.pos);
@@ -2016,14 +2021,14 @@ var ProteinDisplay = function(controller, canvas) {
             proj.x, proj.y, r, color, edge_color);
         var m = this.i_atom_of_label(z_obj);
         if (m >= 0) {
-          if (this.controller.current_view.labels[m] == this.hover_label) {
+          if (this.scene.current_view.labels[m] == this.hover_label) {
             var in_rgb = [180, 100, 100];
           } else {
             var in_rgb = [180, 180, 180];
           }
-          rgb = z_rgb(z_obj.z, in_rgb, this.controller.current_view.camera);
+          rgb = z_rgb(z_obj.z, in_rgb, this.scene.current_view.camera);
           this.canvas.draw_popup(
-             proj.x, proj.y, '' + this.controller.current_view.labels[m].text,
+             proj.x, proj.y, '' + this.scene.current_view.labels[m].text,
              rgb_to_string(rgb));
         }   
       } else if (z_obj.is_bond) {
@@ -2048,7 +2053,7 @@ var ProteinDisplay = function(controller, canvas) {
         } else {
           var in_rgb = [100, 180, 100];
         }
-        rgb = z_rgb(z_obj.z, in_rgb, this.controller.current_view.camera);
+        rgb = z_rgb(z_obj.z, in_rgb, this.scene.current_view.camera);
         this.draw_distance(
             z_obj.atom1.pos, z_obj.atom2.pos, rgb_to_string(rgb));
       }
@@ -2075,7 +2080,7 @@ var ProteinDisplay = function(controller, canvas) {
     this.draw_hover_popup();
     this.zslab_display.draw();
     if (this.is_measuring_distance) {
-      var centered_atom = this.controller.centered_atom();
+      var centered_atom = this.scene.centered_atom();
       if (this.hover_atom == centered_atom) {
       } else if (this.hover_atom == null) {
         this.canvas.line(
@@ -2092,13 +2097,13 @@ var ProteinDisplay = function(controller, canvas) {
 
   this.gesturestart = function(event) {
     event.preventDefault();
-    this.pinch_reference_zoom = this.controller.current_view.camera.zoom;
+    this.pinch_reference_zoom = this.scene.current_view.camera.zoom;
     return false;
   }
   
   this.gesturechange = function(event) {
     event.preventDefault();
-    var camera = this.controller.current_view.camera;
+    var camera = this.scene.current_view.camera;
     var zoom_dif = this.pinch_reference_zoom/event.scale - camera.zoom;
     this.controller.adjust_zoom(y_diff);
     return false;
@@ -2117,7 +2122,7 @@ var ProteinDisplay = function(controller, canvas) {
     
     if (this.zslab_display.inside(x, y)) {
       this.zslab_display.mousedown(x, y);
-      this.controller.changed = true;
+      this.scene.changed = true;
       return false;
     }
 
@@ -2131,13 +2136,13 @@ var ProteinDisplay = function(controller, canvas) {
     } else if (this.hover_label != null) {
       this.controller.delete_label(this.hover_label);
     } else if (this.pressed_atom != null &&
-        this.controller.centered_atom() == this.pressed_atom) {
+        this.scene.centered_atom() == this.pressed_atom) {
       this.is_measuring_distance = true;
     } else {
       this.controller.hide_atomic_details_for_mousemove();
     }
     
-    this.controller.changed = true;
+    this.scene.changed = true;
     return false;
   }
   
@@ -2154,7 +2159,7 @@ var ProteinDisplay = function(controller, canvas) {
     var x = this.canvas.x_mouse;
     var y = this.canvas.y_mouse;
     this.scan_for_hover_atom(x, y);
-    this.controller.changed = true;
+    this.scene.changed = true;
 
     if (this.zslab_display.is_mouse_pressed()) {
       this.zslab_display.mousemove_y(y);
@@ -2181,7 +2186,7 @@ var ProteinDisplay = function(controller, canvas) {
     this.x_mouse_pressed = x;
     this.y_mouse_pressed = y;
 
-    this.controller.changed = true;
+    this.scene.changed = true;
     
     return false;
   }
@@ -2193,9 +2198,9 @@ var ProteinDisplay = function(controller, canvas) {
     } 
     if (this.is_measuring_distance) {
       if (this.hover_atom !== null &&
-          this.hover_atom !== this.controller.centered_atom()) {
+          this.hover_atom !== this.scene.centered_atom()) {
         this.controller.make_dist(
-          controller.centered_atom(), this.hover_atom);
+          scene.centered_atom(), this.hover_atom);
       }
       this.is_measuring_distance = false;
     } else {
@@ -2240,7 +2245,7 @@ function set_show_option(option, bool) {
 
 
 function toggle_show_option(option) {
-  set_show_option(option, !controller.get_show_option(option));
+  set_show_option(option, !scene.get_show_option(option));
 }
 
 
@@ -2249,10 +2254,10 @@ function create_option_display() {
     var check_id = 'input[name=' + name + ']';
     $(check_id).click(function() { 
       var v = $(check_id + ':checked').val();
-      controller.current_view.show[name] = v;
-      controller.changed = true;
+      scene.current_view.show[name] = v;
+      scene.changed = true;
     });
-    $(check_id).attr('checked', controller.current_view.show[name]);
+    $(check_id).attr('checked', scene.current_view.show[name]);
   }
   register_show_checkbox('sidechain');
   register_show_checkbox('water');
@@ -2268,13 +2273,13 @@ function create_option_display() {
 
 
 function update_option_display() {
-  set_show_option('ligands', controller.current_view.show.ligands);
-  set_show_option('hydrogen', controller.current_view.show.hydrogen);
-  set_show_option('sidechain', controller.current_view.show.sidechain);
-  set_show_option('water', controller.current_view.show.water);
-  if (controller.current_view.show.ribbon) {
+  set_show_option('ligands', scene.current_view.show.ligands);
+  set_show_option('hydrogen', scene.current_view.show.hydrogen);
+  set_show_option('sidechain', scene.current_view.show.sidechain);
+  set_show_option('water', scene.current_view.show.water);
+  if (scene.current_view.show.ribbon) {
     set_backbone_option('ribbon');
-  } else if (controller.current_view.show.trace) {
+  } else if (scene.current_view.show.trace) {
     set_backbone_option('trace');
   } else {
     set_backbone_option('all_atom');
@@ -2286,15 +2291,16 @@ function update_option_display() {
 // any chosen residues
 
 
-var SequenceDisplay = function(controller) {
+var SequenceDisplay = function(scene, controller) {
+  this.scene = scene;
+  this.protein = scene.protein;
   this.controller = controller;
-  this.protein = controller.protein;
   this.div = [];
 
   this.reset_borders = function() {
     for (var i=0; i<this.div.length; i+=1) {
       var res_id = this.protein.residues[i].id;
-      if (res_id == this.controller.current_view.res_id) {
+      if (res_id == this.scene.current_view.res_id) {
         this.div[i].css({"border":"1px dotted #CCC"});
         $("#sequence").scrollTo(this.div[i]);
       } else {
@@ -2313,7 +2319,7 @@ var SequenceDisplay = function(controller) {
   }
   
   this.goto_next_view = function() {
-    var res_id = this.controller.current_view.res_id;
+    var res_id = this.scene.current_view.res_id;
     var i = this.get_i_res_from_res_id(res_id);
     if (i>=this.protein.residues.length-1) {
       i = 0;
@@ -2326,7 +2332,7 @@ var SequenceDisplay = function(controller) {
   }
 
   this.goto_prev_view = function() {
-    var res_id = this.controller.current_view.res_id;
+    var res_id = this.scene.current_view.res_id;
     var i = this.get_i_res_from_res_id(res_id);
     if (i<=0) {
       i = this.protein.residues.length-1;
@@ -2370,7 +2376,7 @@ var SequenceDisplay = function(controller) {
     sequence_div.append(elem);
     this.div.push(elem);
   }
-  this.controller.current_view.res_id = this.protein.residues[0].id;
+  this.scene.current_view.res_id = this.protein.residues[0].id;
   hash_tag = url().split('#')[1];
   if (hash_tag in this.protein.res_by_id) {
     this.controller.set_target_view_by_res_id(hash_tag);
@@ -2450,11 +2456,12 @@ function init_pdb(pdb_id) {
     loading_dialog.remove();
     protein = new Protein();
     protein.load(lines, bond_pairs, max_length);
-    controller = new ProteinController(protein);
-    protein_display = new ProteinDisplay(controller, canvas);
-    annotations_display = new AnnotationsDisplay(controller);
+    scene = new Scene(protein);
+    controller = new Controller(scene)
+    protein_display = new ProteinDisplay(scene, canvas, controller);
+    annotations_display = new AnnotationsDisplay(scene, controller);
     annotations_display.load_views_from_server(pdb_id);
-    sequence_display = new SequenceDisplay(controller);
+    sequence_display = new SequenceDisplay(scene, controller);
     create_option_display();
   }
 
@@ -2470,7 +2477,7 @@ function init_pdb(pdb_id) {
 
 
 function add_label() {
-  if (protein_display.controller.current_view.i_atom < 0) {
+  if (protein_display.scene.current_view.i_atom < 0) {
     return;
   }
   keyboard_lock = true;
@@ -2505,8 +2512,8 @@ function add_label() {
     .click(
         function(event) { 
           var text = edit_text.val();
-          controller.make_label(
-              protein_display.controller.current_view.i_atom,
+          scene.make_label(
+              protein_display.scene.current_view.i_atom,
               text);
           keyboard_lock = false;
           dialog.remove();
@@ -2539,29 +2546,29 @@ function onkeydown(event) {
       annotations_display.make_new_annotation();
       return;
     } else if (event.keyCode == 38) {
-      controller.i_last_view -= 1;
-      if (controller.i_last_view < 0) {
-        controller.i_last_view = controller.saved_views.length - 1;
+      scene.i_last_view -= 1;
+      if (scene.i_last_view < 0) {
+        scene.i_last_view = scene.saved_views.length - 1;
       }
-      var id = controller.saved_views[controller.i_last_view].id;
+      var id = scene.saved_views[scene.i_last_view].id;
       annotations_display.set_target_by_view_id(id);
     } else if ((c == "K") || (event.keyCode == 37)) {
       sequence_display.goto_prev_view();
     } else if ((c == "J") || (event.keyCode == 39)) {
       sequence_display.goto_next_view();
     } else if (c == " " || event.keyCode == 40) {
-      controller.i_last_view += 1;
-      if (controller.i_last_view >= controller.saved_views.length) {
-        controller.i_last_view = 0;
+      scene.i_last_view += 1;
+      if (scene.i_last_view >= scene.saved_views.length) {
+        scene.i_last_view = 0;
       }
-      var id = controller.saved_views[controller.i_last_view].id;
+      var id = scene.saved_views[scene.i_last_view].id;
       annotations_display.set_target_by_view_id(id);
     } else if (c == 'B') {
-      if (controller.current_view.show.all_atom) {
+      if (scene.current_view.show.all_atom) {
         set_backbone_option('ribbon');
-      } else if (controller.current_view.show.ribbon) {
+      } else if (scene.current_view.show.ribbon) {
         set_backbone_option('trace');
-      } else if (controller.current_view.show.trace){
+      } else if (scene.current_view.show.trace){
         set_backbone_option('all_atom');
       }
     } else if (c == 'L') {
@@ -2576,12 +2583,12 @@ function onkeydown(event) {
       add_label();
     } else {
       var i = parseInt(c);
-      if ((i || i==0) && (i<controller.saved_views.length)) {
-        var id = controller.saved_views[i].id;
+      if ((i || i==0) && (i<scene.saved_views.length)) {
+        var id = scene.saved_views[i].id;
         annotations_display.set_target_by_view_id(id);
       }
     }
-    controller.changed = true;
+    scene.changed = true;
   }
 }
 
@@ -2644,7 +2651,7 @@ function register_callacks() {
   $(window).resize(
       function() { 
         resize_window(); 
-        controller.changed = true;
+        scene.changed = true;
       });
   $("#save_view").click(
       function() {
@@ -2655,17 +2662,17 @@ function register_callacks() {
 
 
 function loop() {
-  if (typeof controller !== 'undefined') {
-    controller.animate();
-    if (controller.changed) {
+  if (typeof scene !== 'undefined') {
+    scene.animate();
+    if (scene.changed) {
       update_option_display();
       protein_display.draw();
-      controller.changed = false;
+      scene.changed = false;
     }
-    if (controller.is_new_view_chosen) {
+    if (scene.is_new_view_chosen) {
       annotations_display.reset_borders();
       sequence_display.reset_borders();
-      controller.is_new_view_chosen = false;
+      scene.is_new_view_chosen = false;
     }
   }
   timer = setTimeout('loop()', 20)
