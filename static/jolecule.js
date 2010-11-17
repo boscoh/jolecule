@@ -579,7 +579,7 @@ var View = function() {
     return v;
   }
 
-  this.extract_show = function(in_view) {
+  this.copy_metadata_from_view = function(in_view) {
     this.res_id = in_view.res_id;
     this.show = clone_dict(in_view.show);
     this.labels = clone_list_of_dicts(in_view.labels);
@@ -619,7 +619,6 @@ var Scene = function(protein) {
   this.n_update_step = -1;
   this.is_new_view_chosen = true;
   this.i_last_view = 0;
-  this.saved_show = null;
   
   this.calculate_abs_camera = function(view) {
     var m_origin_view = this.origin.clone();
@@ -737,7 +736,7 @@ var Scene = function(protein) {
       return;
     }
     if (this.n_update_step == 0) {
-      this.current_view.extract_show(this.target_view);
+      this.current_view.copy_metadata_from_view(this.target_view);
       var i_atom = this.current_view.i_atom;
       if (i_atom == -1 || typeof i_atom == 'undefined') {
         this.current_view.i_atom = this.find_atom_nearest_to_origin();
@@ -787,7 +786,7 @@ var Scene = function(protein) {
 var Controller = function(scene) {
   this.protein = scene.protein;
   this.scene = scene;
-  
+  this.saved_show = null;
  
   this.delete_dist = function(dist) {
     del_from_array(dist, this.scene.current_view.distances);
@@ -819,18 +818,20 @@ var Controller = function(scene) {
     return ((n_aa > 100) && (z > 15));
   }
 
-  this.hide_atomic_details_for_mousemove = function() {
-    if (this.is_too_much_atomic_detail()) {
-      this.saved_show = clone_dict(this.scene.current_view.show);
-      this.scene.current_view.show.ligands = false; 
-      this.scene.current_view.show.hydrogen = false; 
-      this.scene.current_view.show.sidechain = false; 
-      this.scene.current_view.show.water = false; 
-      this.scene.changed = true;
+  this.hide_atomic_details_for_move = function() {
+    if (this.saved_show === null) {
+      if (this.is_too_much_atomic_detail()) {
+        this.saved_show = clone_dict(this.scene.current_view.show);
+        this.scene.current_view.show.ligands = false; 
+        this.scene.current_view.show.hydrogen = false; 
+        this.scene.current_view.show.sidechain = false; 
+        this.scene.current_view.show.water = false; 
+        this.scene.changed = true;
+      }
     }
   }
   
-  this.restore_atomic_details_after_mousemove = function() {
+  this.restore_atomic_details_after_move = function() {
     if (this.saved_show === null) {
       return;
     }
@@ -863,11 +864,16 @@ var Controller = function(scene) {
     this.changed = true;
   }
   
+  this.set_target_view = function(view) {
+    this.scene.set_target_view(view);
+    this.hide_atomic_details_for_move();
+  }
+  
   this.set_target_view_by_id = function(id) {
     var view = this.scene.saved_views_by_id[id];
-    this.i_last_view = this.scene.saved_views_by_id[id].order;
+    this.scene.i_last_view = this.scene.saved_views_by_id[id].order;
     this.scene.restore_camera_from_abs_camera(view);
-    this.scene.set_target_view(view);
+    this.set_target_view(view);
   }
 
   this.set_target_view_by_res_id = function(res_id) {
@@ -876,7 +882,7 @@ var Controller = function(scene) {
     var view = this.scene.current_view.clone();
     var pos = this.protein.res_by_id[res_id].target_view.pos;
     view.camera.transform(v3.translation(pos));
-    this.scene.set_target_view(view);
+    this.set_target_view(view);
   }
 
   this.set_target_view_by_atom = function(atom) {
@@ -884,7 +890,7 @@ var Controller = function(scene) {
     view.res_id = atom.res_id;
     view.i_atom = atom.i;
     view.camera.transform(v3.translation(atom.pos));
-    this.scene.set_target_view(view);
+    this.set_target_view(view);
   }
 
   this.flatten_labels = function(view) {
@@ -1398,6 +1404,7 @@ var AnnotationsDisplay = function(scene, controller) {
       hash_tag = url().split('#')[1];
       if (hash_tag in this_item.scene.saved_views_by_id) {
         this_item.set_target_by_view_id(hash_tag);
+        controller.scene.is_new_view_chosen = true;
       }
     }
     
@@ -2125,7 +2132,7 @@ var ProteinDisplay = function(scene, canvas, controller) {
         this.scene.centered_atom() == this.pressed_atom) {
       this.is_measuring_distance = true;
     } else {
-      this.controller.hide_atomic_details_for_mousemove();
+      this.controller.hide_atomic_details_for_move();
     }
     
     this.scene.changed = true;
@@ -2190,7 +2197,7 @@ var ProteinDisplay = function(scene, canvas, controller) {
       }
       this.is_measuring_distance = false;
     } else {
-      this.controller.restore_atomic_details_after_mousemove();
+      this.controller.restore_atomic_details_after_move();
       if (this.pressed_atom != null) {
         this.canvas.extract_mouse_xy(event);
         this.make_z_list();
@@ -2651,9 +2658,19 @@ function loop() {
   if (typeof scene !== 'undefined') {
     scene.animate();
     if (scene.changed) {
+      if (scene.n_update <= 1) {
+        controller.restore_atomic_details_after_move();
+      } else if (scene.n_update > 0) {
+        controller.hide_atomic_details_for_move();
+      }
       update_option_display();
       protein_display.draw();
       scene.changed = false;
+      if (scene.n_update_step == 0) {
+        controller.restore_atomic_details_after_move();
+      } else if (scene.n_update_step > 0) {
+        controller.hide_atomic_details_for_move();
+      }
     }
     if (scene.is_new_view_chosen) {
       annotations_display.reset_borders();
