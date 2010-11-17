@@ -788,8 +788,8 @@ var Controller = function(scene) {
   this.scene = scene;
   this.saved_show = null;
  
-  this.delete_dist = function(dist) {
-    del_from_array(dist, this.scene.current_view.distances);
+  this.delete_dist = function(i) {
+    this.scene.current_view.distances.splice(i, 1);
   }
   
   this.make_dist = function(atom1, atom2) {
@@ -807,8 +807,8 @@ var Controller = function(scene) {
     this.scene.changed = true;
   }
   
-  this.delete_label = function(label) {
-    del_from_array(label, this.scene.current_view.labels);
+  this.delete_label = function(i) {
+    this.scene.current_view.labels.splice(i, 1);
   }
   
   this.is_too_much_atomic_detail = function() {
@@ -821,7 +821,8 @@ var Controller = function(scene) {
   this.hide_atomic_details_for_move = function() {
     if (this.saved_show === null) {
       if (this.is_too_much_atomic_detail()) {
-        this.saved_show = clone_dict(this.scene.current_view.show);
+        this.saved_show = clone_dict(
+            this.scene.current_view.show);
         this.scene.current_view.show.ligands = false; 
         this.scene.current_view.show.hydrogen = false; 
         this.scene.current_view.show.sidechain = false; 
@@ -953,20 +954,31 @@ var Controller = function(scene) {
     $.post('/ajax/new_view', flat_dict, do_nothing);
   }
   
+  this.console_saved = function() {
+      console.log("----");
+      console.log(this.scene.saved_views);
+      for (k=0; k<this.scene.saved_views.length; k+=1) {
+        var v = this.scene.saved_views[k];
+        console.log("existing " + k + ' ' + v.order + ' ' + v.text);
+      }
+      console.log("^^^^^");
+  }
+  
   this.save_current_view = function(new_id) {
+    this.scene.i_last_view += 1;
+    var j = this.scene.i_last_view;
     var new_view = this.scene.current_view.clone();
     new_view.text = 'Insert text here';
     new_view.creator = user;
     new_view.id = new_id;
     new_view.time = get_current_date();
+    new_view.order = j;
     this.scene.calculate_abs_camera(new_view);
     this.scene.saved_views_by_id[new_id] = new_view;
-    this.scene.i_last_view += 1;
-    if (this.scene.i_last_view >= this.scene.saved_views.length) {
+    if (j >= this.scene.saved_views.length) {
       this.scene.saved_views.push(new_view);
     } else {
-      this.scene.saved_views.splice(this.i_last_view, 0, new_view);
-      this.scene.saved_views[this.scene.i_last_view] = new_view;
+      this.scene.saved_views.splice(j, 0, new_view);
     }
     for (var i=this.scene.i_last_view; i<this.scene.saved_views.length; i+=1) {
       this.scene.saved_views[i].order = i;
@@ -1188,7 +1200,7 @@ var AnnotationsDisplay = function(scene, controller) {
       this_item.div[id].all.remove();
       delete this_item.div[id];
       if (this_item.scene.i_last_view >= this_item.scene.saved_views.length) {
-        this_item.scene.i_last_view -= 1;
+        this_item.scene.i_last_view = this_item.scene.saved_views.length-1;
       }
       this_item.reset_goto_buttons();
       this_item.reset_borders();
@@ -1355,7 +1367,7 @@ var AnnotationsDisplay = function(scene, controller) {
     return this.div[id].text_box;
   }
 
-  this.make_annotations_display = function(id) {
+  this.make_annotation_div = function(id) {
     var i = this.scene.get_i_saved_view_from_id(id);
     var view = this.scene.saved_views_by_id[id];
     var j = view.order;
@@ -1376,8 +1388,8 @@ var AnnotationsDisplay = function(scene, controller) {
   this.make_new_annotation = function() {
     new_id = random_id();
     this.controller.save_current_view(new_id);
-    var div = this.make_annotations_display(new_id);
-    if (this.scene.i_last_view == this.scene.saved_views.length - 1) {
+    var div = this.make_annotation_div(new_id);
+    if (this.scene.i_last_view == this.scene.saved_views.length-1) {
       $("#views").append(div);
     } else {
       var j = this.scene.i_last_view-1;
@@ -1385,7 +1397,6 @@ var AnnotationsDisplay = function(scene, controller) {
       var j_div = this.div[j_id].all;
       div.insertAfter(j_div);
     }
-    var view = this.scene.saved_views_by_id[new_id];
     this.reset_goto_buttons();
     this.reset_borders();
     $("#views").scrollTo(this.div[new_id].all);
@@ -1398,7 +1409,7 @@ var AnnotationsDisplay = function(scene, controller) {
     function after_success() {
       for (var i=0; i<this_item.scene.saved_views.length; i+=1) {
         var id = this_item.scene.saved_views[i].id;
-        var div = this_item.make_annotations_display(id);
+        var div = this_item.make_annotation_div(id);
         $('#views').append(div);
       }
       hash_tag = url().split('#')[1];
@@ -1787,8 +1798,8 @@ var ProteinDisplay = function(scene, canvas, controller) {
   this.z_list = [];
 
   this.hover_atom = null;
-  this.hover_dist = null;
-  this.hover_label = null;
+  this.hover_i_distance = null;
+  this.hover_i_label = null;
   this.pressed_atom = null;
   this.is_measuring_distance = false;
   this.is_mouse_pressed = false;
@@ -1889,6 +1900,7 @@ var ProteinDisplay = function(scene, canvas, controller) {
           var dist = {}
           dist.atom1 = atom1;
           dist.atom2 = atom2;
+          dist.i = i;
           dist.z = distances[i].z;
           dist.is_atom = false;
           dist.is_bond = false;
@@ -1912,8 +1924,8 @@ var ProteinDisplay = function(scene, canvas, controller) {
 
   this.scan_for_hover_atom = function(x, y) {
     this.hover_atom = null;
-    this.hover_dist = null;
-    this.hover_label = null;
+    this.hover_i_distance = null;
+    this.hover_i_label = null;
     for (var i=0; i<this.z_list.length; i+=1) {
       if (this.z_list[i].is_atom) {
         a = this.z_list[i];
@@ -1927,7 +1939,7 @@ var ProteinDisplay = function(scene, canvas, controller) {
             var y1 = 30;
             if (x >= (proj.x-w/2) && x <= (proj.x+w/2) && 
                 y >= (proj.y-h-y1) && y <= (proj.y-y1)) {
-              this.hover_label = this.scene.current_view.labels[m];
+              this.hover_i_label = m;
             }
           }
         }
@@ -1950,7 +1962,7 @@ var ProteinDisplay = function(scene, canvas, controller) {
           ym = (proj1.y + proj2.y)/2;
           if (x >= xm-w/2 && x <= xm+w/2 &&
               y >= ym-h/2 && y <= ym+h/2) {
-              this.hover_dist = d;
+              this.hover_i_distance = d.i;
           }
         }
       } 
@@ -2014,7 +2026,7 @@ var ProteinDisplay = function(scene, canvas, controller) {
             proj.x, proj.y, r, color, edge_color);
         var m = this.i_atom_of_label(z_obj);
         if (m >= 0) {
-          if (this.scene.current_view.labels[m] == this.hover_label) {
+          if (m == this.hover_i_label) {
             var in_rgb = [180, 100, 100];
           } else {
             var in_rgb = [180, 180, 180];
@@ -2041,7 +2053,8 @@ var ProteinDisplay = function(scene, canvas, controller) {
             proj3.x, proj3.y, proj4.x, proj4.y, 
             color, edge_color);
       } else if (z_obj.is_dist) {
-        if (z_obj == this.hover_dist) {
+        if (z_obj.i == this.hover_i_distance) {
+          console.log("hover dist!");
           var in_rgb = [180, 100, 100];
         } else {
           var in_rgb = [100, 180, 100];
@@ -2124,10 +2137,10 @@ var ProteinDisplay = function(scene, canvas, controller) {
     this.pressed_atom = this.hover_atom;
     this.is_mouse_pressed = true;
 
-    if (this.hover_dist != null) {
-      this.controller.delete_dist(this.hover_dist);
-    } else if (this.hover_label != null) {
-      this.controller.delete_label(this.hover_label);
+    if (this.hover_i_distance != null) {
+      this.controller.delete_dist(this.hover_i_distance);
+    } else if (this.hover_i_label != null) {
+      this.controller.delete_label(this.hover_i_label);
     } else if (this.pressed_atom != null &&
         this.scene.centered_atom() == this.pressed_atom) {
       this.is_measuring_distance = true;
@@ -2505,7 +2518,7 @@ function add_label() {
     .click(
         function(event) { 
           var text = edit_text.val();
-          scene.make_label(
+          controller.make_label(
               protein_display.scene.current_view.i_atom,
               text);
           keyboard_lock = false;
