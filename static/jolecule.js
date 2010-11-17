@@ -22,7 +22,7 @@ var user = 'public';
 
 
 
-// Some generic utility functions
+// Utility functions
 
 function url() {
   return "" + window.location;
@@ -1374,7 +1374,7 @@ var AnnotationsDisplay = function(scene, controller) {
 
   this.make_new_annotation = function() {
     new_id = random_id();
-    this.scene.save_current_view(new_id);
+    this.controller.save_current_view(new_id);
     var div = this.make_annotations_display(new_id);
     if (this.scene.i_last_view == this.scene.saved_views.length - 1) {
       $("#views").append(div);
