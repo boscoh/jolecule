@@ -546,6 +546,7 @@ var View = function() {
   this.order = 0;
   this.camera = new Camera();
   this.abs_camera = new Camera();
+  this.selected = "";
   this.labels = [];
   this.distances = [];
   this.text = 'Default view of PDB file';
@@ -568,6 +569,7 @@ var View = function() {
     v.id = this.id;
     v.res_id = this.res_id;
     v.i_atom = this.i_atom;
+    v.selected = this.selected;
     v.labels = clone_list_of_dicts(this.labels);
     v.distances = clone_list_of_dicts(this.distances);
     v.order = this.order;
@@ -589,8 +591,10 @@ var View = function() {
     this.time = in_view.time;
     this.url = in_view.url;
     this.i_atom = in_view.i_atom;
+    this.selected = in_view.selected;
+    console.log('in ' + in_view.selected);
+    console.log('out ' + this.selected);
   }
-
 }
 
 
@@ -888,9 +892,10 @@ var Controller = function(scene) {
   }
 
   this.set_target_view_by_res_id = function(res_id) {
-    this.scene.current_view.res_id = res_id;
-    this.scene.current_view.i_atom = this.protein.res_by_id[res_id].target_view.i;
+    this.scene.current_view.selected = this.make_selected_str();
     var view = this.scene.current_view.clone();
+    view.res_id = res_id;
+    view.i_atom = this.protein.res_by_id[res_id].target_view.i;
     var pos = this.protein.res_by_id[res_id].target_view.pos;
     view.camera.transform(v3.translation(pos));
     this.set_target_view(view);
@@ -943,6 +948,7 @@ var Controller = function(scene) {
       res_id: view.res_id,
       i_atom: view.i_atom,
       labels: this.flatten_labels(view),
+      selected: view.selected,
       distances: this.flatten_distances(view),
       z_front: view.camera.z_front,
       z_back: view.camera.z_back,
@@ -974,6 +980,17 @@ var Controller = function(scene) {
       console.log("^^^^^");
   }
   
+  this.make_selected_str = function() {
+    var s = "[";
+    for (i=0; i<this.protein.residues.length; i+=1) {
+      if (protein.residues[i].selected) {
+        s += i + ',';
+      }
+    }
+    s += "];";
+    return s;
+  }
+  
   this.save_current_view = function(new_id) {
     this.scene.i_last_view += 1;
     var j = this.scene.i_last_view;
@@ -981,6 +998,7 @@ var Controller = function(scene) {
     new_view.text = 'Insert text here';
     new_view.creator = user;
     new_view.id = new_id;
+    new_view.selected = this.make_selected_str();
     new_view.time = get_current_date();
     new_view.order = j;
     this.scene.calculate_abs_camera(new_view);
@@ -991,6 +1009,8 @@ var Controller = function(scene) {
       this.scene.saved_views.splice(j, 0, new_view);
     }
     this.save_view_to_server(new_view);
+    console.log('freshly saved' + this.scene.saved_views[j].selected);
+    console.log('freshly new saved' + new_view.selected);
     for (var i=j; i<this.scene.saved_views.length; i+=1) {
       this.scene.saved_views[i].order = i;
       this.save_view_to_server(this.scene.saved_views[i]);
@@ -1072,6 +1092,9 @@ var Controller = function(scene) {
     if ('labels' in flat_dict) {
       view.labels = this.restore_labels(
           flat_dict.labels);
+    }
+    if ('selected' in flat_dict) {
+      view.selected = flat_dict.selected;
     }
     if ('distances' in flat_dict) {
       view.distances = this.restore_distances(
@@ -2741,6 +2764,31 @@ function loop() {
       } else if (scene.n_update > 0) {
         controller.hide_atomic_details_for_move();
       }
+      if (scene.is_new_view_chosen) {
+        annotations_display.reset_borders();
+        sequence_display.reset_borders();
+        for (i=0; i<protein.residues.length; i+=1) {
+          protein.residues[i].selected = false;
+        }
+        for (i=0; i<protein.residues.length; i+=1) {
+          sequence_display.div[i].select.removeAttr('checked');
+        }
+        if ('selected' in scene.current_view) {
+          if ((typeof scene.current_view.selected !== "undefined") 
+              && (scene.current_view.selected != "")) {
+            var selected_residues = eval(scene.current_view.selected);
+            if (selected_residues !== null) {
+              console.log(selected_residues);
+              for (i=0; i<selected_residues.length; i+=1) {
+                var j = selected_residues[i];
+                protein.residues[j].selected = true;
+                sequence_display.div[j].select.attr('checked', true);
+              }
+            }
+          }
+        }
+        scene.is_new_view_chosen = false;
+      }
       update_option_display();
       protein_display.draw();
       scene.changed = false;
@@ -2749,11 +2797,6 @@ function loop() {
       } else if (scene.n_update_step > 0) {
         controller.hide_atomic_details_for_move();
       }
-    }
-    if (scene.is_new_view_chosen) {
-      annotations_display.reset_borders();
-      sequence_display.reset_borders();
-      scene.is_new_view_chosen = false;
     }
   }
   timer = setTimeout('loop()', 20)

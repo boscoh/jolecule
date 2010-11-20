@@ -226,6 +226,7 @@ class View(db.Model):
   i_atom = db.IntegerProperty()
   labels = db.TextProperty()
   distances = db.TextProperty()
+  selected = db.TextProperty()
   text = db.TextProperty()
   z_front = db.FloatProperty()
   z_back = db.FloatProperty()
@@ -280,6 +281,8 @@ class SaveViewHandler(webapp.RequestHandler):
 
     view.labels = data['labels']
     view.distances = data['distances']
+    if 'selected' in data:
+      view.selected = data['selected']
     
     view.order = data['order']
     view.show_sidechain = data['show_sidechain']
