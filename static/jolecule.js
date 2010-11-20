@@ -186,6 +186,7 @@ var Protein = function() {
           'num': a.res_num,
           'type': a.res_type,
           'id': res_id,
+          'selected': false,
           'atoms': {},
         }
         new_r.is_water = a.res_type == "HOH";
@@ -593,10 +594,13 @@ var View = function() {
 }
 
 
+
+
 /////////////////////////////////////////////////
-// The Controller object of the MVC of the 
-// program. Includes all views necessary to
-// render the protein.
+// The Scene object contains the protein data
+// and all necessary data to display the protein
+// in the correct view with labels and distance
+// measures.
 /////////////////////////////////////////////////
 
 
@@ -783,6 +787,13 @@ var Scene = function(protein) {
 }
 
 
+
+/////////////////////////////////////////////////
+// The Controlller object that carries out the 
+// actions on the protein and the views in the
+// Scene, and also to interact with the server
+/////////////////////////////////////////////////
+
 var Controller = function(scene) {
   this.protein = scene.protein;
   this.scene = scene;
@@ -823,7 +834,6 @@ var Controller = function(scene) {
       if (this.is_too_much_atomic_detail()) {
         this.saved_show = clone_dict(
             this.scene.current_view.show);
-        this.scene.current_view.show.ligands = false; 
         this.scene.current_view.show.hydrogen = false; 
         this.scene.current_view.show.sidechain = false; 
         this.scene.current_view.show.water = false; 
@@ -1152,6 +1162,11 @@ var Controller = function(scene) {
   
 }
 
+
+///////////////////////////////////////////////
+// The annotations objects that keeps track of 
+// the HTML5 controls on the browswer
+///////////////////////////////////////////////
 
 var AnnotationsDisplay = function(scene, controller) {
   this.scene = scene;
@@ -1830,7 +1845,11 @@ var ProteinDisplay = function(scene, canvas, controller) {
     if (in_array(a.type, backbone_atoms)) {
       return show.all_atom;
     }
-    return show.sidechain;
+    if (show.sidechain) {
+      return true;
+    }
+    var res_id = a.res_id;
+    return this.protein.res_by_id[res_id].selected;
   }
 
   this.is_visible = function(pos) {
@@ -2308,10 +2327,10 @@ var SequenceDisplay = function(scene, controller) {
     for (var i=0; i<this.div.length; i+=1) {
       var res_id = this.protein.residues[i].id;
       if (res_id == this.scene.current_view.res_id) {
-        this.div[i].css({"border":"1px dotted #CCC"});
-        $("#sequence").scrollTo(this.div[i]);
+        this.div[i].target.css({"border":"1px dotted #CCC"});
+        $("#sequence").scrollTo(this.div[i].target);
       } else {
-        this.div[i].css({"border":"1px solid white"});
+        this.div[i].target.css({"border":"1px solid white"});
       }
     }
   }
@@ -2325,7 +2344,7 @@ var SequenceDisplay = function(scene, controller) {
     return i;
   }
   
-  this.goto_next_view = function() {
+  this.goto_next_residue = function() {
     var res_id = this.scene.current_view.res_id;
     var i = this.get_i_res_from_res_id(res_id);
     if (i>=this.protein.residues.length-1) {
@@ -2338,7 +2357,7 @@ var SequenceDisplay = function(scene, controller) {
     this.reset_borders();    
   }
 
-  this.goto_prev_view = function() {
+  this.goto_prev_residue = function() {
     var res_id = this.scene.current_view.res_id;
     var i = this.get_i_res_from_res_id(res_id);
     if (i<=0) {
@@ -2361,26 +2380,58 @@ var SequenceDisplay = function(scene, controller) {
     return padded_s;
   }
   
-  var sequence_div = $("#sequence");
-  var sequence_display = this;
-  for (var i=0; i<this.protein.residues.length; i+=1) {
+  this.set_residue_select = function(res_id, v) {
+    this.protein.res_by_id[res_id].selected = v;
+    var i = this.get_i_res_from_res_id(res_id);
+    if (v) {
+      this.div[i].select.attr('checked', true);
+    } else {
+      this.div[i].select.removeAttr('checked');
+    }
+    this.controller.scene.changed = true;
+  }
+  
+  this.toggle_residue_select = function(res_id) {
+    var r = this.protein.res_by_id[res_id]
+    this.set_residue_select(res_id, !r.selected);
+  }
+
+  this.create_residue_div = function(k) {
+    var controller = this.controller;
+    var sequence_display = this;
     var res_id = this.protein.residues[i].id;
     var res_type = this.protein.residues[i].type;
-    var html = html_pad(res_id, 7) + html_pad(res_type, 3)
+    var html = "&nbsp;" + html_pad(res_id, 7) + html_pad(res_type, 3)
+    var show_res_id = res_id + ":show";
+    var checkbox = $("<input>")
+        .attr({
+            type:'checkbox', id:show_res_id, name:show_res_id,
+            checked:false})
+        .click( 
+            function(event) {
+              var check_id = 'input[name="' + show_res_id + '"' + ']';
+              var v = $(check_id).is(':checked');
+              sequence_display.set_residue_select(res_id, v);
+            });
     var elem = $("<div></div>")
         .css({'display':'block'})
+        .append(checkbox)
         .append($("<a>")
           .attr("href", "#" + res_id)
-          .css({"display":"block",
-                "margin":"0",
+          .css({"margin":"0",
                 "padding":"0"})
           .html(html)
           .click(function() { 
-              var m = this.href.split('#')[1];
-              controller.set_target_view_by_res_id(m);
+              controller.set_target_view_by_res_id(res_id);
               sequence_display.reset_borders();
           }))
-    sequence_div.append(elem);
+    return { 'target':elem, 'select':checkbox };
+  }
+  
+  var sequence_div = $("#sequence");
+  for (var i=0; i<this.protein.residues.length; i+=1) {
+    elem = this.create_residue_div(i);
+    sequence_div.append(elem.target);
     this.div.push(elem);
   }
   this.scene.current_view.res_id = this.protein.residues[0].id;
@@ -2396,7 +2447,7 @@ var SequenceDisplay = function(scene, controller) {
 
 
 function resize_window(event) {
-  var w = window.innerWidth - 500;
+  var w = window.innerWidth - 520;
   var h = window.innerHeight - 130;
   canvas.dom.width = w;
   canvas.dom.height = h;
@@ -2560,9 +2611,15 @@ function onkeydown(event) {
       var id = scene.saved_views[scene.i_last_view].id;
       annotations_display.set_target_by_view_id(id);
     } else if ((c == "K") || (event.keyCode == 37)) {
-      sequence_display.goto_prev_view();
+      sequence_display.goto_prev_residue();
     } else if ((c == "J") || (event.keyCode == 39)) {
-      sequence_display.goto_next_view();
+      sequence_display.goto_next_residue();
+    } else if (c == "X") {
+      var i_atom = scene.current_view.i_atom;
+      if (i_atom >= 0) {
+        var res_id = controller.protein.atoms[i_atom].res_id;
+        sequence_display.toggle_residue_select(res_id);
+      }
     } else if (c == " " || event.keyCode == 40) {
       scene.i_last_view += 1;
       if (scene.i_last_view >= scene.saved_views.length) {
@@ -2581,6 +2638,9 @@ function onkeydown(event) {
     } else if (c == 'L') {
       toggle_show_option('ligands');
     } else if (c == 'S') {
+      for (i=0; i<protein.residues.length; i+=1) {
+        protein.residues[i].show = false;
+      }
       toggle_show_option('sidechain');
     } else if (c == 'W') {
       toggle_show_option('water');
