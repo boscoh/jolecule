@@ -892,7 +892,6 @@ var Controller = function(scene) {
   }
 
   this.set_target_view_by_res_id = function(res_id) {
-    this.scene.current_view.selected = this.make_selected_str();
     var view = this.scene.current_view.clone();
     view.res_id = res_id;
     view.i_atom = this.protein.res_by_id[res_id].target_view.i;
@@ -2411,6 +2410,7 @@ var SequenceDisplay = function(scene, controller) {
     } else {
       this.div[i].select.removeAttr('checked');
     }
+    this.scene.current_view.selected = this.controller.make_selected_str();
     this.controller.scene.changed = true;
   }
   
@@ -2546,14 +2546,8 @@ function init_pdb(pdb_id) {
     create_option_display();
   }
 
-  function load_user(data, textStatus, XMLHttpRequest) {
-    user = data;
-    // console.log('user = ' + user);
-  }
-
   create_loading_dialog(pdb_id);
   $.get('/pdb/' + pdb_id + '.js', success);
-  $.get('/ajax/user', load_user);
 }
 
 

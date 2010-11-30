@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 #
-# annotatr
-# Copyright 2009 - Bosco Ho and Mark Reid
+# Copyright 2010 - Bosco Ho 
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,6 +39,30 @@ class Structure(db.Model):
   n_text_block = db.IntegerProperty()
   i_text_block = db.IntegerProperty()
   
+
+"""
+
+class Structure(db.Model):
+  id = db.StringProperty(required=True)
+  n_text_block = db.IntegerProperty()
+
+
+result = []
+for i in range(structure.n_text_block):
+  key = Content.key_for(structure, i)
+  page = Content.get(key)
+  result.append(page.content)
+text = ''.join(result)
+
+class Content(db.Model):
+  page = db.IntegerProperty()
+  content = db.TextProperty()
+
+  @classmethod
+  def key_for(cls, structure, index):
+  key = db.Key.from_path(cls.kind(), '%s:%d' % (structure.key(), index), parent=structure.key())
+
+"""
   
 def make_js_loader_from_pdb(text):
   lines = text.splitlines() 
@@ -139,8 +162,10 @@ class PdbPageHandler(webapp.RequestHandler):
     user = users.get_current_user()
     if user is None:
       pdb_html = pdb_html.replace('user_status', 'login')
+      pdb_html = pdb_html.replace('user_nick_name', 'public')
     else:
       pdb_html = pdb_html.replace('user_status', user.nickname())
+      pdb_html = pdb_html.replace('user_nick_name', user.nickname())
     html = pdb_html 
     self.response.out.write(html)
  
@@ -204,7 +229,13 @@ class PdbJsHandler(webapp.RequestHandler):
     html = text
     self.response.out.write(html)
 
-     
+"""
+For creating unique ids.
+VIEW_ID = db.Key.from_path('Sequences', 'ViewId')
+unique_id = db.allocate_ids(VIEW_ID, 1)[0]
+"""
+
+
 class View(db.Model):
   pdb_id = db.StringProperty(required=True)
   id = db.StringProperty(required=True)
@@ -212,7 +243,6 @@ class View(db.Model):
   time = db.DateTimeProperty(auto_now_add=True)
   creator = db.UserProperty(auto_current_user_add=True)
   modifier = db.UserProperty(auto_current_user=True)
-  lock = db.BooleanProperty()
   show_sidechain = db.BooleanProperty()
   show_hydrogen = db.BooleanProperty()
   show_ca_trace = db.BooleanProperty()
@@ -222,7 +252,7 @@ class View(db.Model):
   show_backbone = db.BooleanProperty()
   show_all_atom = db.BooleanProperty()
   show_ligands = db.BooleanProperty()
-  res_id = db.StringProperty()
+  res_id = db.StringProperty()  # Residue ID
   i_atom = db.IntegerProperty()
   labels = db.TextProperty()
   distances = db.TextProperty()
@@ -257,55 +287,24 @@ class SaveViewHandler(webapp.RequestHandler):
   def post(self):
     user = users.get_current_user()
     data = {}
-    for a in self.request.arguments():
-      if 'show' in a:
-        data[a] = (self.request.get(a).lower() == 'true')
-      elif 'camera' in a or 'z_' in a or 'zoom' in a:
-        data[a] = float(self.request.get(a))
-      elif 'order' in a or 'i_atom' in a:
-        data[a] = int(self.request.get(a))
+    for name in self.request.arguments():
+      if 'show' in name:
+        data[name] = (self.request.get(name).lower() == 'true')
+      elif 'camera' in name or 'z_' in name or 'zoom' in name:
+        data[name] = float(self.request.get(name))
+      elif 'order' in name or 'i_atom' in name:
+        data[name] = int(self.request.get(name))
       else:
-        data[a] = self.request.get(a)
+        data[name] = self.request.get(name)
 
-    id = data['id']
+    view_id = data['id']
     pdb_id = data['pdb_id']
-    view = get_view(pdb_id, id)
+    view = get_view(pdb_id, view_id)
     if not view:
-      view = View(pdb_id=pdb_id, id=id)
-
-    view.id = data['id']
-    view.pdb_id = data['pdb_id']
-
-    view.res_id = data['res_id']
-    view.i_atom = data['i_atom']
-
-    view.labels = data['labels']
-    view.distances = data['distances']
-    if 'selected' in data:
-      view.selected = data['selected']
-    
-    view.order = data['order']
-    view.show_sidechain = data['show_sidechain']
-    view.show_hydrogen = data['show_hydrogen']
-    view.show_trace = data['show_trace']
-    view.show_water = data['show_water']
-    view.show_ribbon = data['show_ribbon']
-    view.show_all_atom = data['show_all_atom']
-    view.show_ligands = data['show_ligands']
-    view.text = data['text']
-    view.z_front = data['z_front']
-    view.z_back = data['z_back']
-    view.zoom = data['zoom']
-    view.camera_pos_x = data['camera_pos_x']
-    view.camera_pos_y = data['camera_pos_y']
-    view.camera_pos_z = data['camera_pos_z']
-    view.camera_up_x = data['camera_up_x']
-    view.camera_up_y = data['camera_up_y']
-    view.camera_up_z = data['camera_up_z']
-    view.camera_in_x = data['camera_in_x']
-    view.camera_in_y = data['camera_in_y']
-    view.camera_in_z = data['camera_in_z']
-
+      view = View(pdb_id=pdb_id, id=view_id)
+    view.selected = data.pop('selected', None)
+    for name in data.iterkeys():
+      setattr(view, name, data.get(name))
     view.put()
 
 
@@ -318,47 +317,33 @@ class DeleteViewHandler(webapp.RequestHandler):
       view.delete()
 
 
-class DisplayAllViewsHandler(webapp.RequestHandler):
-  def get(self):
-    properties = View.properties()
-    q = View.all()
-    results = q.fetch(10)
-    for result in results:
-      s = "------<br>"
-      for k in result.__dict__['_entity']:
-        s += str(k) + \
-             ": " + \
-             str(result.__dict__['_entity'][k]) + \
-             ',<br>'
-      s += '<br>'
-      self.response.out.write(s)
+def to_dict(model_instance):
+  # return model_instance.__dict__['_entity']
+  def iter_model(model_instance):
+    for name in model_instance.properties().iterkeys():
+      yield name, getattr(model_instance, name)
+  return dict(iter_model(model_instance))
 
-
-class UserHandler(webapp.RequestHandler):
-  def get(self):
-    user = users.get_current_user()
-    if user:
-      nickname = user.nickname()
-    else:
-      nickname = 'public'
-    self.response.out.write(nickname)
-
-
+ 
 class ReturnViewsHandler(webapp.RequestHandler):
   def get(self):
+    user = users.get_current_user()
     pdb_id = self.request.path.split('/')[-1]
-    # logging.info(pdb_id)
+
     q = View.all()
     q.filter('pdb_id =', pdb_id)
     results = q.fetch(1000)
+
     out_list = []
-    user = users.get_current_user()
 
     for result in results:
 
       changed = False
       if result.time is None:
         result.time = datetime.datetime.today()
+        changed = True
+      if result.i_atom is None:
+        result.i_atom = -1
         changed = True
       if result.distances is None:
         result.distances = "[];"
@@ -370,37 +355,30 @@ class ReturnViewsHandler(webapp.RequestHandler):
         result.put()
 
       entities = {}
-      raw_entities = result.__dict__['_entity'].items()
-      for k, v in raw_entities:
-        if k == 'time':
-          entities['time'] = v.strftime("%d/%m/%Y")
-        elif k == 'i_atom':
-          if v is None:
-            entities['i_atom'] = -1
-        elif k == 'creator':
-          if v is None:
-            entities['creator'] = 'public'
-          else:
-            entities['creator'] = v.nickname()
-        elif k == 'modifier':
-          if v is None:
-            entities['modifier'] = 'public'
-          else:
-            entities['modifier'] = v.nickname()
+
+      raw_entities = to_dict(result)
+
+      t = raw_entities.pop('time')
+      entities['time'] = t.strftime("%d/%m/%Y")
+
+      def set_nickname(name):
+        user = raw_entities.pop(name, None)
+        if user:
+           entities[name] = user.nickname()
         else:
-          entities[k] = v
-      if 'i_atom' not in entities:
-        entities['i_atom'] = -1
+          entities[name] = 'public'
+      set_nickname('creator')
+      set_nickname('modifier')
+      logging.info('user is ' + str(user))
+      logging.info('creator is ' + str(result.creator))
 
       entities['lock'] = False
       if result.creator is not None:
         if result.creator != user:
           entities['lock'] = True
-      
-      logging.info('lock is ' + str(result.lock))
-      logging.info('user is ' + str(user))
-      logging.info('creator is ' + str(result.creator))
-      
+      logging.info('lock is ' + str(entities['lock']))
+
+      entities.update(raw_entities)
       logging.info('-------')
       for k, v in entities.items():
         logging.info(unicode(k) + ": " + unicode(v))
@@ -414,13 +392,11 @@ def main():
   logging.getLogger().setLevel(logging.DEBUG)
   application = webapp.WSGIApplication(
       [('/', MainHandler), 
-       ('/view', DisplayAllViewsHandler),
        ('/ajax/pdb/delete', DeleteViewHandler),
        ('/ajax/pdb/.*', ReturnViewsHandler),
        ('/ajax/new_view', SaveViewHandler),
-       ('/ajax/user', UserHandler),
-       ('/pdb/.*[.]js', PdbJsHandler),
-       ('/pdb/.*', PdbPageHandler)],
+       ('/pdb/.*[.]js', PdbJsHandler),  # Javascript (data)
+       ('/pdb/.*', PdbPageHandler)],  # HTML
       debug=True)
   util.run_wsgi_app(application)
 
