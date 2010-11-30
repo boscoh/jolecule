@@ -26,8 +26,6 @@ import urllib
 import datetime
 import re
 
-from mako.template import Template
- 
 import pdbstruct
 import vector3d
 import math
@@ -146,30 +144,6 @@ def make_js_loader_from_pdb(text):
   return s
    
    
-class MainHandler(webapp.RequestHandler):
-  def get(self):
-    html = open('main.html', 'r').read()
-    self.response.out.write(html)
-
-
-class PdbPageHandler(webapp.RequestHandler):
-  def get(self):
-    pdb_id = self.request.path.split('/')[-1].replace('.js', '')
-    pdb_html = open('pdb.html', 'r').read()
-    pdb_html = pdb_html.replace(
-        'login_url', 
-        users.create_login_url(self.request.path))
-    user = users.get_current_user()
-    if user is None:
-      pdb_html = pdb_html.replace('user_status', 'login')
-      pdb_html = pdb_html.replace('user_nick_name', 'public')
-    else:
-      pdb_html = pdb_html.replace('user_status', user.nickname())
-      pdb_html = pdb_html.replace('user_nick_name', user.nickname())
-    html = pdb_html 
-    self.response.out.write(html)
- 
-    
 class PdbJsHandler(webapp.RequestHandler):
   def get(self):
     pdb_id = self.request.path.split('/')[-1].replace('.js', '')
@@ -229,6 +203,31 @@ class PdbJsHandler(webapp.RequestHandler):
     html = text
     self.response.out.write(html)
 
+
+class PdbPageHandler(webapp.RequestHandler):
+  def get(self):
+    pdb_id = self.request.path.split('/')[-1].replace('.js', '')
+    pdb_html = open('pdb.html', 'r').read()
+    pdb_html = pdb_html.replace(
+        'login_url', 
+        users.create_login_url(self.request.path))
+    user = users.get_current_user()
+    if user is None:
+      pdb_html = pdb_html.replace('user_status', 'login')
+      pdb_html = pdb_html.replace('user_nick_name', 'public')
+    else:
+      pdb_html = pdb_html.replace('user_status', user.nickname())
+      pdb_html = pdb_html.replace('user_nick_name', user.nickname())
+    html = pdb_html 
+    self.response.out.write(html)
+
+ 
+class MainHandler(webapp.RequestHandler):
+  def get(self):
+    html = open('main.html', 'r').read()
+    self.response.out.write(html)
+
+    
 """
 For creating unique ids.
 VIEW_ID = db.Key.from_path('Sequences', 'ViewId')
@@ -285,7 +284,6 @@ def get_view(pdb_id, id):
 
 class SaveViewHandler(webapp.RequestHandler):
   def post(self):
-    user = users.get_current_user()
     data = {}
     for name in self.request.arguments():
       if 'show' in name:
@@ -296,13 +294,11 @@ class SaveViewHandler(webapp.RequestHandler):
         data[name] = int(self.request.get(name))
       else:
         data[name] = self.request.get(name)
-
     view_id = data['id']
     pdb_id = data['pdb_id']
     view = get_view(pdb_id, view_id)
     if not view:
       view = View(pdb_id=pdb_id, id=view_id)
-    view.selected = data.pop('selected', None)
     for name in data.iterkeys():
       setattr(view, name, data.get(name))
     view.put()
@@ -390,6 +386,7 @@ class ReturnViewsHandler(webapp.RequestHandler):
 
 def main():
   logging.getLogger().setLevel(logging.DEBUG)
+
   application = webapp.WSGIApplication(
       [('/', MainHandler), 
        ('/ajax/pdb/delete', DeleteViewHandler),
@@ -398,6 +395,7 @@ def main():
        ('/pdb/.*[.]js', PdbJsHandler),  # Javascript (data)
        ('/pdb/.*', PdbPageHandler)],  # HTML
       debug=True)
+
   util.run_wsgi_app(application)
 
 
