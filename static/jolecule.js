@@ -966,7 +966,7 @@ var Controller = function(scene) {
   
   this.save_view_to_server = function(view) {
     var flat_dict = this.flat_dict_from_view(view)
-    $.post('/ajax/new_view', flat_dict, do_nothing);
+    $.post('/ajax/save_view', flat_dict, do_nothing);
   }
   
   this.console_saved = function() {
@@ -1044,7 +1044,7 @@ var Controller = function(scene) {
       after_success(data);
     }
     $.post(
-         '/ajax/pdb/delete', 
+         '/ajax/delete_view', 
          {'pdb_id': pdb_id, 'id':id}, 
          success);
   }
@@ -1133,10 +1133,9 @@ var Controller = function(scene) {
     return view;
   }
 
-
   this.load_views_from_server = function(pdb_id, after_success) {
     var controller = this;
-    var scene = this.scene
+    var scene = this.scene;
 
     function success(data, textStatus, XMLHttpRequest) {
       var default_view = scene.get_default_view();
@@ -1162,7 +1161,7 @@ var Controller = function(scene) {
       after_success();
     }
     
-    $.get('/ajax/pdb/' + pdb_id, success);
+    $.get('/ajax/load_views_of_pdb/' + pdb_id, success);
   }
 
   this.set_backbone_option = function(option) {

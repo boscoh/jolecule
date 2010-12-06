@@ -19,16 +19,53 @@ from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import util, template
 from google.appengine.api import urlfetch
+from google.appengine.ext import blobstore
+from google.appengine.ext.webapp import blobstore_handlers
+from google.appengine.ext.blobstore import BlobKey
+
 from django.utils import simplejson
 
 import logging
 import urllib
 import datetime
-import re
+import random
 
 import pdbstruct
-import vector3d
+from pdbstruct import vector3d
 import math
+
+
+class UserPreferences(db.Model):
+  user = db.UserProperty()
+  blobs = db.ListProperty(db.BlobKey)
+  url_id = db.StringProperty()
+  
+
+def random_string(n_char):
+	chars = "0123456789abcdefghiklmnopqrstuvwxyz";
+	s = ''
+	for i in range(n_char):
+		j = random.randint(0, len(chars)-1)
+		s += chars[j]
+	return s
+
+
+def get_user_prefs():
+  user = users.get_current_user()
+  q = UserPreferences.all()
+  q.filter('user =', user)
+  results = q.fetch(1)
+  if not results:
+    user_prefs = UserPreferences(user=user, required=True)
+    user_prefs.put()
+  else:
+    user_prefs = results[0]
+  if not user_prefs.url_id:
+    url_id = random_string(6)
+    user_prefs.url_id = url_id
+    logging.info('url_id' + user_prefs.url_id)
+    user_prefs.put()
+  return user_prefs  
 
 
 class Structure(db.Model):
@@ -39,11 +76,9 @@ class Structure(db.Model):
   
 
 """
-
 class Structure(db.Model):
   id = db.StringProperty(required=True)
   n_text_block = db.IntegerProperty()
-
 
 result = []
 for i in range(structure.n_text_block):
@@ -60,20 +95,14 @@ class Content(db.Model):
   def key_for(cls, structure, index):
   key = db.Key.from_path(cls.kind(), '%s:%d' % (structure.key(), index), parent=structure.key())
 
+For creating unique ids.
+VIEW_ID = db.Key.from_path('Sequences', 'ViewId')
+unique_id = db.allocate_ids(VIEW_ID, 1)[0]
 """
-  
-def make_js_loader_from_pdb(text):
-  lines = text.splitlines() 
 
-  new_lines = []
-  for l in lines:
-    if l.startswith("ATOM") or l.startswith("HETATM"):
-      new_lines.append(l[:-1])
-    if l.startswith("ENDMDL"):
-      break
-  new_text = '\n'.join(new_lines)
   
-  polymer = pdbstruct.Polymer(new_text)
+def extract_bonds_max_length(pdb_text):
+  polymer = pdbstruct.Polymer(pdb_text)
   atoms = polymer.atoms()
   for i, a in enumerate(atoms):
     a.i_atom = i
@@ -118,8 +147,25 @@ def make_js_loader_from_pdb(text):
             d_sq = vector3d.pos_distance_sq(a.pos, b.pos)
             if d_sq < cutoff:
               bonds.append([a.i_atom, b.i_atom])
+  return bonds, math.sqrt(max_sq)
+  
+  
+def make_js_loader_from_pdb(pdb_text):
+  lines = []
+  for l in pdb_text.splitlines() :
+    if l.startswith("ATOM") or l.startswith("HETATM"):
+      lines.append(l[:-1])
+    if l.startswith("ENDMDL"):
+      break
 
-  max_length = math.sqrt(max_sq)
+  lines_str = 'var lines = [' + "\n"
+  for l in lines:
+    lines_str += '"%s",\n' % l
+  lines_str += '];\n\n'
+
+  trimmed_pdb_text = '\n'.join(lines)
+  bonds, max_length = extract_bonds_max_length(
+      trimmed_pdb_text)
 
   bond_str = 'var bond_pairs = [' + '\n'
   for i, pair in enumerate(bonds):
@@ -129,19 +175,10 @@ def make_js_loader_from_pdb(text):
     if i % 6 == 5:
       bond_str += '\n'
   bond_str += '\n];\n\n'
-
-  lines_str = 'var lines = [' + "\n"
-  for l in lines:
-    if l.startswith("ATOM") or l.startswith("HETATM"):
-      lines_str += '"%s",\n' % l[:-1]
-    if l.startswith("ENDMDL"):
-      break
-  lines_str += '];\n\n'
   
   max_length_str = "var max_length = %f;" % max_length
 
-  s = lines_str + bond_str + max_length_str
-  return s
+  return lines_str + bond_str + max_length_str
    
    
 class PdbJsHandler(webapp.RequestHandler):
@@ -153,19 +190,14 @@ class PdbJsHandler(webapp.RequestHandler):
     block_size = 1000000
     if results:
       text = "// REMARK From database\n"
-      # logging.debug('Found %d pieces cached for %s' % \
-      #                (len(results), pdb_id))
       if len(results) == 1:
         text += results[0].text
       else:
         pairs = [(r.i_text_block, r) for r in results]
         pairs.sort()
         for i, s in pairs:
-          # logging.debug("appending %dth text [%d]: %s" % \
-          #      (i, len(s.text), s.text[-100:]))
           text += s.text
     else:
-      # logging.debug("Querying RCSB for: %s" % pdb_id)
       url = 'http://www.rcsb.org/pdb/files/%s.pdb' % pdb_id
       try:
         result = urlfetch.fetch(url, deadline=5)
@@ -182,7 +214,6 @@ class PdbJsHandler(webapp.RequestHandler):
            "in fetching files from sites such as the RCSB"
         else:
           raw_text = result.content
-          # logging.debug("Converting PDB into javascript object...")
           text = "// REMARK from " + url + '\n'
           text += make_js_loader_from_pdb(raw_text)
           string_len = len(text)
@@ -204,21 +235,31 @@ class PdbJsHandler(webapp.RequestHandler):
     self.response.out.write(html)
 
 
+def html_user_replace(html_template, request_path):
+  html_template = html_template.replace(
+      'login_url', 
+      users.create_login_url(request_path))
+  user_prefs = get_user_prefs()
+  user = user_prefs.user
+
+  if user is None:
+    html_template = html_template.replace('user_status', 'login')
+    html_template = html_template.replace('user_nickname', 'public')
+    html_template = html_template.replace('user_prefs', '')
+  else:
+    html_template = html_template.replace('user_status', 'logout')
+    html_template = html_template.replace('user_nickname', user.nickname())
+    s = '<a href="/user/%s">%s</a>' % (user_prefs.url_id, user_prefs.user.nickname())
+    html_template = html_template.replace('user_prefs', s)
+  return html_template
+  
+  
 class PdbPageHandler(webapp.RequestHandler):
   def get(self):
     pdb_id = self.request.path.split('/')[-1].replace('.js', '')
     pdb_html = open('pdb.html', 'r').read()
-    pdb_html = pdb_html.replace(
-        'login_url', 
-        users.create_login_url(self.request.path))
-    user = users.get_current_user()
-    if user is None:
-      pdb_html = pdb_html.replace('user_status', 'login')
-      pdb_html = pdb_html.replace('user_nick_name', 'public')
-    else:
-      pdb_html = pdb_html.replace('user_status', user.nickname())
-      pdb_html = pdb_html.replace('user_nick_name', user.nickname())
-    html = pdb_html 
+    user_prefs = get_user_prefs()
+    html = html_user_replace(pdb_html, self.request.path)
     self.response.out.write(html)
 
  
@@ -228,13 +269,6 @@ class MainHandler(webapp.RequestHandler):
     self.response.out.write(html)
 
     
-"""
-For creating unique ids.
-VIEW_ID = db.Key.from_path('Sequences', 'ViewId')
-unique_id = db.allocate_ids(VIEW_ID, 1)[0]
-"""
-
-
 class View(db.Model):
   pdb_id = db.StringProperty(required=True)
   id = db.StringProperty(required=True)
@@ -296,9 +330,7 @@ class SaveViewHandler(webapp.RequestHandler):
         data[name] = self.request.get(name)
     view_id = data['id']
     pdb_id = data['pdb_id']
-    view = get_view(pdb_id, view_id)
-    if not view:
-      view = View(pdb_id=pdb_id, id=view_id)
+    view = View(pdb_id=pdb_id, id=view_id)
     for name in data.iterkeys():
       setattr(view, name, data.get(name))
     view.put()
@@ -313,8 +345,30 @@ class DeleteViewHandler(webapp.RequestHandler):
       view.delete()
 
 
+def get_views(pdb_id, n=1000):
+  q = View.all()
+  q.filter('pdb_id =', pdb_id)
+  views = q.fetch(n)
+  for view in views:
+    changed = False
+    if view.time is None:
+      view.time = datetime.datetime.today()
+      changed = True
+    if view.i_atom is None:
+      view.i_atom = -1
+      changed = True
+    if view.distances is None:
+      view.distances = "[];"
+      changed = True
+    if view.labels is None:
+      view.labels = "[];"
+      changed = True
+    if changed:
+      view.put()
+  return views
+        
+        
 def to_dict(model_instance):
-  # return model_instance.__dict__['_entity']
   def iter_model(model_instance):
     for name in model_instance.properties().iterkeys():
       yield name, getattr(model_instance, name)
@@ -326,73 +380,94 @@ class ReturnViewsHandler(webapp.RequestHandler):
     user = users.get_current_user()
     pdb_id = self.request.path.split('/')[-1]
 
-    q = View.all()
-    q.filter('pdb_id =', pdb_id)
-    results = q.fetch(1000)
-
-    out_list = []
-
-    for result in results:
-
-      changed = False
-      if result.time is None:
-        result.time = datetime.datetime.today()
-        changed = True
-      if result.i_atom is None:
-        result.i_atom = -1
-        changed = True
-      if result.distances is None:
-        result.distances = "[];"
-        changed = True
-      if result.labels is None:
-        result.labels = "[];"
-        changed = True
-      if changed:
-        result.put()
-
+    entities_list = []
+    for view in get_views(pdb_id):
       entities = {}
-
-      raw_entities = to_dict(result)
+      raw_entities = to_dict(view)
 
       t = raw_entities.pop('time')
       entities['time'] = t.strftime("%d/%m/%Y")
 
       def set_nickname(name):
-        user = raw_entities.pop(name, None)
-        if user:
-           entities[name] = user.nickname()
+        this_user = raw_entities.pop(name, None)
+        if this_user:
+           entities[name] = this_user.nickname()
         else:
           entities[name] = 'public'
       set_nickname('creator')
       set_nickname('modifier')
-      logging.info('user is ' + str(user))
-      logging.info('creator is ' + str(result.creator))
 
       entities['lock'] = False
-      if result.creator is not None:
-        if result.creator != user:
+      if view.creator is not None:
+        if view.creator != user:
           entities['lock'] = True
       logging.info('lock is ' + str(entities['lock']))
 
       entities.update(raw_entities)
+
       logging.info('-------')
       for k, v in entities.items():
         logging.info(unicode(k) + ": " + unicode(v))
+      logging.info('-------')
 
-      out_list.append(entities)
+      entities_list.append(entities)
 
-    self.response.out.write(simplejson.dumps(out_list))
+    self.response.out.write(
+        simplejson.dumps(entities_list))
 
 
+class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
+  def post(self):
+    logging.info('start sucking in blob')
+    upload_files = self.get_uploads('file')  # 'file' is file upload field in the form
+    logging.info('blob loaded')
+    blob_info = upload_files[0]
+    user_prefs = get_user_prefs()
+    user_prefs.blobs.append(blob_info.key())
+    user_prefs.put()
+    logging.info('redirection ' + user_prefs.url_id)
+    self.redirect('/user/' + user_prefs.url_id)
+    logging.info('blob fucking saved ' + str(blob_info.key()))
+
+  
+class UserPageHandler(webapp.RequestHandler):
+  def get(self):
+    user_prefs = get_user_prefs()
+    if user_prefs.user:
+      logging.info('user_prefs of ' + user_prefs.user.nickname())
+    else:
+      logging.info('user_prefs none')
+    user_page_html = open('user.html', 'r').read()
+    upload_url = blobstore.create_upload_url('/upload')
+    user_page_html = user_page_html.replace(
+        'upload_url', upload_url)
+    user_page_html = html_user_replace(user_page_html, self.request.path)
+    blobs_str = ""
+    for i, blob_key in enumerate(user_prefs.blobs):
+      blobs_str += "<a href='/serve/%s'>structure %s</a><br>" % (blob_key, i)
+    user_page_html = user_page_html.replace('blobs', blobs_str)
+    self.response.out.write(user_page_html)
+
+
+class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
+    def get(self, resource):
+        resource = str(urllib.unquote(resource))
+        blob_info = blobstore.BlobInfo.get(resource)
+        self.send_blob(blob_info)
+        
+        
 def main():
   logging.getLogger().setLevel(logging.DEBUG)
 
   application = webapp.WSGIApplication(
       [('/', MainHandler), 
-       ('/ajax/pdb/delete', DeleteViewHandler),
-       ('/ajax/pdb/.*', ReturnViewsHandler),
-       ('/ajax/new_view', SaveViewHandler),
-       ('/pdb/.*[.]js', PdbJsHandler),  # Javascript (data)
+       ('/ajax/delete_view', DeleteViewHandler),
+       ('/ajax/load_views_of_pdb/.*', ReturnViewsHandler),
+       ('/ajax/save_view', SaveViewHandler),
+       ('/serve/([^/]+)?', ServeHandler),
+       ('/upload', UploadHandler),
+       ('/user/.*', UserPageHandler),
+       ('/pdb/.*\.js', PdbJsHandler),  # Javascript (data)
        ('/pdb/.*', PdbPageHandler)],  # HTML
       debug=True)
 
