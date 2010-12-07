@@ -38,6 +38,7 @@ import math
 class UserPreferences(db.Model):
   user = db.UserProperty()
   blobs = db.ListProperty(db.BlobKey)
+  pdb_ids = db.StringListProperty()
   url_id = db.StringProperty()
   
 
@@ -181,23 +182,49 @@ def make_js_loader_from_pdb(pdb_text):
   return lines_str + bond_str + max_length_str
    
    
+block_size = 1000000
+
+
+def save_structure(pdb_id, text):
+  string_len = len(text)
+  n_text_block = string_len/block_size
+  if n_text_block*block_size < string_len:
+    n_text_block += 1
+  logging.debug("Storing javascript text object [%d]" % len(text))
+  logging.debug("  in %d chunks" % n_text_block)
+  for i in range(n_text_block):
+    text_block = text[i*block_size:(i+1)*block_size]
+    logging.debug("Storing chunk %d" % i)
+    structure = Structure(
+       id=pdb_id,  
+       n_text_block=n_text_block,
+       i_text_block=i,
+       text=db.Text(text_block))
+    structure.put()
+
+
+def get_structure(pdb_id):
+  q = Structure.all()
+  q.filter("id =", pdb_id)
+  results = [r for r in q]
+  text = "// REMARK From database\n"
+  if len(results) == 0:
+    return None
+  elif len(results) == 1:
+    text += results[0].text
+  else:
+    pairs = [(r.i_text_block, r) for r in results]
+    pairs.sort()
+    for i, s in pairs:
+      text += s.text
+  return text
+  
+  
 class PdbJsHandler(webapp.RequestHandler):
   def get(self):
     pdb_id = self.request.path.split('/')[-1].replace('.js', '')
-    q = Structure.all()
-    q.filter("id =", pdb_id)
-    results = [r for r in q]
-    block_size = 1000000
-    if results:
-      text = "// REMARK From database\n"
-      if len(results) == 1:
-        text += results[0].text
-      else:
-        pairs = [(r.i_text_block, r) for r in results]
-        pairs.sort()
-        for i, s in pairs:
-          text += s.text
-    else:
+    response = get_structure(pdb_id)
+    if not response:
       url = 'http://www.rcsb.org/pdb/files/%s.pdb' % pdb_id
       try:
         result = urlfetch.fetch(url, deadline=5)
@@ -205,34 +232,16 @@ class PdbJsHandler(webapp.RequestHandler):
         text = "// Sorry, but Google has a 1MB restriction " + \
                "in fetching files from sites such as the RCSB"
         result = None
-
       if result:
         if result.status_code != 200:
           text = "// Downloading error from the RCSB website"
-        elif len(result.content) > block_size:
-          text = "// Sorry, but Google has a 1MB restriction " + \
-           "in fetching files from sites such as the RCSB"
         else:
           raw_text = result.content
           text = "// REMARK from " + url + '\n'
           text += make_js_loader_from_pdb(raw_text)
-          string_len = len(text)
-          n_text_block = string_len/block_size
-          if n_text_block*block_size < string_len:
-            n_text_block += 1
-          logging.debug("Storing javascript text object [%d]" % len(text))
-          logging.debug("  in %d chunks" % n_text_block)
-          for i in range(n_text_block):
-            text_block = text[i*block_size:(i+1)*block_size]
-            logging.debug("Storing chunk %d" % i)
-            structure = Structure(
-               id=pdb_id,  
-               n_text_block=n_text_block,
-               i_text_block=i,
-               text=db.Text(text_block))
-            structure.put()
-    html = text
-    self.response.out.write(html)
+          save_structure(pdb_id, text)
+      response = text
+    self.response.out.write(response)
 
 
 def html_user_replace(html_template, request_path):
@@ -241,7 +250,6 @@ def html_user_replace(html_template, request_path):
       users.create_login_url(request_path))
   user_prefs = get_user_prefs()
   user = user_prefs.user
-
   if user is None:
     html_template = html_template.replace('user_status', 'login')
     html_template = html_template.replace('user_nickname', 'public')
@@ -305,10 +313,10 @@ class View(db.Model):
   camera_in_z = db.FloatProperty()
 
 
-def get_view(pdb_id, id):
+def get_view(pdb_id, view_id):
   q = View.all()
   q.filter('pdb_id =', pdb_id)
-  q.filter('id =', id)
+  q.filter('id =', view_id)
   results = q.fetch(1)
   if results:
     return results[0]
@@ -320,17 +328,18 @@ class SaveViewHandler(webapp.RequestHandler):
   def post(self):
     data = {}
     for name in self.request.arguments():
+      value = self.request.get(name)
       if 'show' in name:
-        data[name] = (self.request.get(name).lower() == 'true')
+        data[name] = (value.lower() == 'true')
       elif 'camera' in name or 'z_' in name or 'zoom' in name:
-        data[name] = float(self.request.get(name))
+        data[name] = float(value)
       elif 'order' in name or 'i_atom' in name:
-        data[name] = int(self.request.get(name))
+        data[name] = int(value)
       else:
-        data[name] = self.request.get(name)
-    view_id = data['id']
-    pdb_id = data['pdb_id']
-    view = View(pdb_id=pdb_id, id=view_id)
+        data[name] = value
+    view = get_view(data['pdb_id'], data['id'])
+    if not view:
+      view = View(pdb_id=pdb_id, id=view_id)
     for name in data.iterkeys():
       setattr(view, name, data.get(name))
     view.put()
@@ -421,15 +430,31 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
     logging.info('start sucking in blob')
     upload_files = self.get_uploads('file')  # 'file' is file upload field in the form
     logging.info('blob loaded')
+
     blob_info = upload_files[0]
+    blob_key = blob_info.key()
+    pdb_id = 'custom' + random_string(6)
+
     user_prefs = get_user_prefs()
-    user_prefs.blobs.append(blob_info.key())
+    user_prefs.blobs.append(blob_key)
+    user_prefs.pdb_ids.append(pdb_id)
     user_prefs.put()
-    logging.info('redirection ' + user_prefs.url_id)
+
+    blobreader = blobstore.BlobReader(blob_key)
+    pdb_text = blobreader.read()
+    text = make_js_loader_from_pdb(pdb_text)
+    save_structure(pdb_id, text)
+
     self.redirect('/user/' + user_prefs.url_id)
-    logging.info('blob fucking saved ' + str(blob_info.key()))
 
   
+def get_user_views(user, n=1000):
+  q = View.all()
+  q.filter('creator =', user)
+  views = q.fetch(n)
+  return views
+
+
 class UserPageHandler(webapp.RequestHandler):
   def get(self):
     user_prefs = get_user_prefs()
@@ -437,15 +462,34 @@ class UserPageHandler(webapp.RequestHandler):
       logging.info('user_prefs of ' + user_prefs.user.nickname())
     else:
       logging.info('user_prefs none')
+
     user_page_html = open('user.html', 'r').read()
+
     upload_url = blobstore.create_upload_url('/upload')
     user_page_html = user_page_html.replace(
         'upload_url', upload_url)
-    user_page_html = html_user_replace(user_page_html, self.request.path)
+    user_page_html = html_user_replace(
+        user_page_html, self.request.path)
+
     blobs_str = ""
     for i, blob_key in enumerate(user_prefs.blobs):
-      blobs_str += "<a href='/serve/%s'>structure %s</a><br>" % (blob_key, i)
+      blobs_str += "<a href='/serve/%s'>structure %s</a> <br>" \
+          % (blob_key, i)
+    blobs_str += "<br><br>"
+    for i, pdb_id in enumerate(user_prefs.pdb_ids):
+      blobs_str += "<a href='/pdb/%s'>view %s</a> <br>" \
+          % (pdb_id, i)
+    blobs_str += "<br><br>"
+    views = get_user_views(user_prefs.user)
+    logging.info(views)
+    for view in views:
+      url = '/pdb/%s#%s' % (view.pdb_id, view.id)
+      s = "<a href='%s'>comment in %s</a><br>" \
+           % (url, view.pdb_id)
+      blobs_str += s
     user_page_html = user_page_html.replace('blobs', blobs_str)
+    
+    
     self.response.out.write(user_page_html)
 
 
