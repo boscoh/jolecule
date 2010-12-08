@@ -2469,8 +2469,8 @@ var SequenceDisplay = function(scene, controller) {
 
 
 function resize_window(event) {
-  var w = window.innerWidth - 520;
-  var h = window.innerHeight - 130;
+  var w = window.innerWidth - 530;
+  var h = window.innerHeight - 140;
   canvas.dom.width = w;
   canvas.dom.height = h;
   canvas.width = w;
@@ -2479,8 +2479,8 @@ function resize_window(event) {
   canvas.half_height = h/2;
   canvas.scale = Math.sqrt(h*h + w*w);
   $('#middle').width(w);
-  $('#views').height(h + 40);
-  $('#sequence').height(h + 40);
+  $('#views').height(h + 20);
+  $('#sequence').height(h + 20);
 }
 
 

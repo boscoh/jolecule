@@ -184,7 +184,6 @@ def make_js_loader_from_pdb(pdb_text):
    
 block_size = 1000000
 
-
 def save_structure(pdb_id, text):
   string_len = len(text)
   n_text_block = string_len/block_size
@@ -206,11 +205,11 @@ def save_structure(pdb_id, text):
 def get_structure(pdb_id):
   q = Structure.all()
   q.filter("id =", pdb_id)
-  results = [r for r in q]
-  text = "// REMARK From database\n"
+  results = q.fetch(1000)
   if len(results) == 0:
     return None
-  elif len(results) == 1:
+  text = "// REMARK From database\n"
+  if len(results) == 1:
     text += results[0].text
   else:
     pairs = [(r.i_text_block, r) for r in results]
@@ -219,6 +218,14 @@ def get_structure(pdb_id):
       text += s.text
   return text
   
+
+def delete_structure(pdb_id):
+  q = Structure.all()
+  q.filter("id =", pdb_id)
+  results = q.fetch(1)
+  for structure in results:
+    structure.delete()
+
   
 class PdbJsHandler(webapp.RequestHandler):
   def get(self):
@@ -245,17 +252,18 @@ class PdbJsHandler(webapp.RequestHandler):
 
 
 def html_user_replace(html_template, request_path):
-  html_template = html_template.replace(
-      'login_url', 
-      users.create_login_url(request_path))
   user_prefs = get_user_prefs()
   user = user_prefs.user
   if user is None:
     html_template = html_template.replace('user_status', 'login')
+    html_template = html_template.replace(
+        'login_url', users.create_login_url(request_path))
     html_template = html_template.replace('user_nickname', 'public')
     html_template = html_template.replace('user_prefs', '')
   else:
     html_template = html_template.replace('user_status', 'logout')
+    html_template = html_template.replace(
+        'login_url', users.create_logout_url(request_path))
     html_template = html_template.replace('user_nickname', user.nickname())
     s = '<a href="/user/%s">%s</a>' % (user_prefs.url_id, user_prefs.user.nickname())
     html_template = html_template.replace('user_prefs', s)
@@ -455,14 +463,19 @@ def get_user_views(user, n=1000):
   return views
 
 
+class DeletePdbHandler(webapp.RequestHandler):
+  def post(self):
+    pdb_id = self.request.get('pdb_id')
+    delete_structure(pdb_id)
+    user_prefs = get_user_prefs()
+    user_prefs.pdb_ids.remove(pdb_id)
+    user_prefs.put()
+    self.redirect('/user/' + user_prefs.url_id)
+
+
 class UserPageHandler(webapp.RequestHandler):
   def get(self):
     user_prefs = get_user_prefs()
-    if user_prefs.user:
-      logging.info('user_prefs of ' + user_prefs.user.nickname())
-    else:
-      logging.info('user_prefs none')
-
     user_page_html = open('user.html', 'r').read()
 
     upload_url = blobstore.create_upload_url('/upload')
@@ -473,31 +486,37 @@ class UserPageHandler(webapp.RequestHandler):
 
     blobs_str = ""
     for i, blob_key in enumerate(user_prefs.blobs):
-      blobs_str += "<a href='/serve/%s'>structure %s</a> <br>" \
+      blobs_str += "<a href='/serve/%s'>blob %s</a> <br>" \
           % (blob_key, i)
     blobs_str += "<br><br>"
     for i, pdb_id in enumerate(user_prefs.pdb_ids):
-      blobs_str += "<a href='/pdb/%s'>view %s</a> <br>" \
+      s = "<a href='/pdb/%s'>structure %s</a>" \
           % (pdb_id, i)
+      s += """
+      <FORM action="/ajax/delete_pdb" method="post">
+        <INPUT type="submit" name="pdb_id" value="%s"> 
+      </FORM>
+      """ % (pdb_id)
+      s += "<br>"
+      blobs_str += s
     blobs_str += "<br><br>"
     views = get_user_views(user_prefs.user)
-    logging.info(views)
     for view in views:
-      url = '/pdb/%s#%s' % (view.pdb_id, view.id)
-      s = "<a href='%s'>comment in %s</a><br>" \
-           % (url, view.pdb_id)
-      blobs_str += s
+      if '#00000' not in view.id:
+        url = '/pdb/%s#%s' % (view.pdb_id, view.id)
+        s = "<a href='%s'>comment %s</a><br>" \
+             % (url, view.pdb_id)
+        blobs_str += s
     user_page_html = user_page_html.replace('blobs', blobs_str)
-    
     
     self.response.out.write(user_page_html)
 
 
 class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
-    def get(self, resource):
-        resource = str(urllib.unquote(resource))
-        blob_info = blobstore.BlobInfo.get(resource)
-        self.send_blob(blob_info)
+  def get(self, resource):
+    resource = str(urllib.unquote(resource))
+    blob_info = blobstore.BlobInfo.get(resource)
+    self.send_blob(blob_info)
         
         
 def main():
@@ -506,6 +525,7 @@ def main():
   application = webapp.WSGIApplication(
       [('/', MainHandler), 
        ('/ajax/delete_view', DeleteViewHandler),
+       ('/ajax/delete_pdb', DeletePdbHandler),
        ('/ajax/load_views_of_pdb/.*', ReturnViewsHandler),
        ('/ajax/save_view', SaveViewHandler),
        ('/serve/([^/]+)?', ServeHandler),

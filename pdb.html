@@ -40,7 +40,7 @@ a, a:visited {
     &copy; 2010 <a href="http://boscoh.com">Bosco Ho</a>.
   </div>
   <div style="float:right">
-	user_prefs
+	user_prefs &nbsp; &nbsp;
   	<a href="login_url">user_status</a>
   </div>
 
@@ -48,7 +48,10 @@ a, a:visited {
 </div>  
 
 
-<div id="left" style="float:left; margin:0; background-color:#FFF;">
+<table>
+	
+<td id="left" style="
+    vertical-align:top; margin:0; background-color:#FFF;">
   <div style="
       font-size:.8em; color:#999; 
       text-align:center">
@@ -56,17 +59,16 @@ a, a:visited {
 	<br clear=all>
   </div>
   <div id="sequence" style="
-      height:400px; margin-left:0px; 
+      margin-left:0px; 
       padding-left:1em; padding-right:1em;
       font-family:monospace; font-size:1em;
       overflow-x:hidden; overflow-y:scroll;">
   </div>
-</div>
+</td>
 
-
-<div id="middle" style="
+<td id="middle" style="
     color:#DDD; font-size:0.75em; 
-    float:left; margin-left:10px; margin-right:10px">  
+    padding-left:10px; padding-right:10px">  
   <div id="central_pad">
 	<canvas id="imageView" width="400" height="600"
       style="background-color:#000;">
@@ -95,11 +97,10 @@ a, a:visited {
       <input type="checkbox" name="ligands"/>[L]igands
     </div>
   </div>
-</div>
+</td>
 
-
-<div id="right" style ="
-    float:right; width:300px; 
+<td id="right" style ="
+    vertical-align:top; width:300px; 
     background-color:#FFF; color:black;">
   <div style="
       font-size:.8em;
@@ -112,8 +113,8 @@ a, a:visited {
       padding-left:1em; padding-right:1em; 
       overflow-x:hidden; overflow-y:scroll;">
   </div>
-</div>
-
+</td>
+</table>
 
 </body>
 </html>        
