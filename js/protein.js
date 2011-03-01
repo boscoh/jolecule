@@ -31,8 +31,21 @@ var Protein = function() {
   this.residues = [];
   this.ribbons = [];
   this.trace = [];
-  
+
+  aa = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS',
+         'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN',
+         'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR'];
+  dna = ['DA', 'DT', 'DG', 'DC'];
+  rna = ['RA', 'RT', 'RG', 'RU'];
+  chonp = ['C', 'H', 'O', 'N', 'P'];
+
+  function delete_numbers(text) {
+    return text.replace(/\d/, '')
+  }
+
   this.make_atoms_from_pdb_lines = function(lines) {
+    var chains = [];
+    var i_chain = -1;
     for (var i=0; i<lines.length; i+=1) {
       if (lines[i].substr(0,4)=="ATOM" ||
            lines[i].substr(0,6)=="HETATM" ) {
@@ -41,23 +54,42 @@ var Protein = function() {
         var z = parseFloat(lines[i].substr(46,7));
         var chain = trim(lines[i][21]);
         var res_num = trim(lines[i].substr(22,5));
-        var res_type = lines[i].substr(17, 3);
+        var res_type = trim(lines[i].substr(17, 3));
         var atom_type = trim(lines[i].substr(12,4));
         var label = res_num + ' - ' + res_type +
                     ' - ' + atom_type;
         if (chain) {
           label = chain + ":" + label;
         }
+        if (chain == " ") {
+          i_chain = -1;
+        } else {
+          i_chain = chains.indexOf(chain);
+          if (i_chain == -1) {
+            chains.push(chain);
+            i_chain = chains.length - 1;
+          }
+        }
+        var is_protein_or_nucleotide = 
+            in_array(res_type, aa) ||
+            in_array(res_type, dna) ||
+            in_array(res_type, rna);
+        if (!is_protein_or_nucleotide) {
+          i_chain = -1;
+        }
         // var elem = trim(lines[i].substr(76,2));
         // console.log('elem ' + elem);
         var elem = "";
         if ((elem == "") || (elem == " ")) {
-          elem = trim(lines[i].substr(12,2));
+          elem = delete_numbers(trim(atom_type)).substr(0,1);
         }
+        var is_chonmp = in_array(elem, chonp);
         this.atoms.push({
           'pos': v3.create(x, y, z),
           'res_type': res_type,
           'chain': chain,
+          'i_chain': i_chain,
+          'is_chonmp': is_chonmp,
           'res_num': res_num,
           'elem': elem,
           'i': i,
@@ -83,15 +115,11 @@ var Protein = function() {
       var j = bond_pairs[i][0];
       var k = bond_pairs[i][1];
       this.bonds.push(
-          { atom1:this.atoms[j], atom2:this.atoms[k] });
+          { atom1:this.atoms[j], 
+            atom2:this.atoms[k],
+            i_chain:this.atoms[k].i_chain });
     }
   }
-
-  aa = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS',
-         'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN',
-         'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR'];
-  dna = ['DA', 'DT', 'DG', 'DC'];
-  rna = ['RA', 'RT', 'RG', 'RU'];
 
   this.make_residues = function() {
     this.res_by_id = {};
@@ -237,7 +265,9 @@ var Protein = function() {
               creases[j][1], creases[j][0]];
         }
         this.ribbons.push(
-            {'bond':bond, 'quad_coords':quad_coords})
+            {'bond':bond, 
+             'quad_coords':quad_coords,
+             'i_chain':crease_atoms[i].i_chain})
       }
     } 
   }

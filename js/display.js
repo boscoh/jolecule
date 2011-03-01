@@ -321,16 +321,6 @@ var ZSlabDisplay = function(canvas, scene, controller) {
 ///////////////////////////////////////////////////////
 
 
-element_rgb = {
-  "X": [100, 110, 100],
-  "C": [180, 180, 180],
-  "N": [100, 100, 255],
-  "O": [255, 100, 100],
-  "H": [200, 200, 180],
-  "S": [255, 255, 100],
-}
-
-
 function fraction_rgb(rgb, f) {
   return [ 
       Math.round(f*rgb[0]), 
@@ -462,6 +452,7 @@ var ProteinDisplay = function(scene, canvas, controller) {
           trace.is_atom = false;
           trace.is_bond = true;
           trace.is_dist = false;
+          trace.i_chain = trace.atom1.i_chain;
           trace.r = 1*atom_radius;
           this.z_list.push(trace);
         }
@@ -560,6 +551,14 @@ var ProteinDisplay = function(scene, canvas, controller) {
     }
   }
 
+  element_rgb = {
+    "C": [180, 180, 180],
+    "N": [100, 100, 255],
+    "O": [255, 100, 100],
+    "H": [200, 200, 180],
+    "S": [255, 255, 100],
+  }
+
   this.rgb_from_z_obj = function(z_obj) {
     if (z_obj.is_atom) {
       if (this.hover_atom === z_obj) {
@@ -568,9 +567,25 @@ var ProteinDisplay = function(scene, canvas, controller) {
       atom_elem = z_obj.elem;
       if (atom_elem in element_rgb) {
         return element_rgb[atom_elem];
+      } else {
+        return [224, 74, 202];
+      }      
+    } else if (z_obj.i_chain == -1) {
+      return [100, 110, 100];
+    } else {
+      var j = z_obj.i_chain % 5;
+      if (j == 0) {
+        return [115, 85, 100];
+      } else if (j == 1) {
+          return [95, 111, 87];
+      } else if (j == 2) {
+          return [95, 95, 111];
+      } else if (j == 3) {
+          return [110, 100, 70];
+      } else {
+          return [100, 90, 100];
       }
     }
-    return element_rgb['X'];
   }
 
   this.i_atom_of_label = function(z_obj) {
