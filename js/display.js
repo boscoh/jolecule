@@ -192,13 +192,13 @@ var ZSlabDisplay = function(canvas, scene, controller) {
 
   this.width = 30;
   this.height = function() { 
-    return this.canvas.height - 10; 
+    return this.canvas.height; 
   }
   
   this.x = function() {
     return this.canvas.width - this.width - 1;
   }
-  this.y = 5;
+  this.y = 0;
 
   this.inside = function(x, y) {
     if ((x >= this.x()) &&
@@ -370,7 +370,7 @@ var ProteinDisplay = function(scene, canvas, controller) {
   this.controller = controller;
   this.protein = scene.protein;
   this.canvas = canvas;
-
+  
   this.z_list = [];
 
   this.hover_atom = null;
@@ -380,6 +380,7 @@ var ProteinDisplay = function(scene, canvas, controller) {
   this.is_measuring_distance = false;
   this.is_mouse_pressed = false;
   this.pinch_reference_zoom = -1;
+  this.min_radius = 5;
   
   this.zslab_display = new ZSlabDisplay(
       canvas, scene, controller);
@@ -421,13 +422,18 @@ var ProteinDisplay = function(scene, canvas, controller) {
     this.z_list = [];
     for (i=0; i<this.protein.atoms.length; i+=1) {
       var a = this.protein.atoms[i];
-      if (this.atom_filter(a)) {
+      if (this.protein.atoms[i] === this.pressed_atom) {
+          this.protein.atoms[i].is_atom = true;
+          this.protein.atoms[i].is_bond = false;
+          this.protein.atoms[i].is_dist = false;
+          this.z_list.push(this.protein.atoms[i]);
+      } else if (this.atom_filter(a)) {
         if (this.is_visible(this.protein.atoms[i])) {
           this.protein.atoms[i].is_atom = true;
           this.protein.atoms[i].is_bond = false;
           this.protein.atoms[i].is_dist = false;
           this.z_list.push(this.protein.atoms[i]);
-        }
+        }  
       }
     }
     for (j=0; j<this.protein.bonds.length; j+=1) {
@@ -526,6 +532,9 @@ var ProteinDisplay = function(scene, canvas, controller) {
           }
         }
         r = this.canvas.scale*atom_radius/proj.z;
+        if (r < this.min_radius) {
+          r = this.min_radius;
+        }
         y_diff = proj.y - y;
         x_diff = proj.x - x;
         r_sq = y_diff*y_diff + x_diff*x_diff;
@@ -709,11 +718,18 @@ var ProteinDisplay = function(scene, canvas, controller) {
     this.draw_hover_popup();
     this.draw_distance_measure();
     this.zslab_display.draw();
+    if (this.pop_text) {
+      this.canvas.text(
+          this.pop_text, 50, 10, 
+          '20px sans-serif', 'grey', 'center');
+      this.pop_text = '';
+    }
   }
 
   this.gesturestart = function(event) {
     event.preventDefault();
     this.pinch_reference_zoom = this.scene.current_view.camera.zoom;
+    this.last_pinch_rotation = 0;
     return false;
   }
   
@@ -722,6 +738,9 @@ var ProteinDisplay = function(scene, canvas, controller) {
     var camera = this.scene.current_view.camera;
     var zoom_dif = this.pinch_reference_zoom/event.scale - camera.zoom;
     this.controller.adjust_zoom(zoom_dif);
+    var delta_rotation = event.rotation - this.last_pinch_rotation;
+    this.controller.rotate_z(delta_rotation/360*2*Math.PI);
+    this.last_pinch_rotation = event.rotation;
     return false;
   }
   
@@ -814,7 +833,6 @@ var ProteinDisplay = function(scene, canvas, controller) {
     } else {
       this.controller.restore_atomic_details_after_move();
       if (this.pressed_atom != null) {
-        this.canvas.extract_mouse_xy(event);
         this.make_z_list();
         var x = this.canvas.x_mouse;
         var y = this.canvas.y_mouse;
@@ -842,45 +860,60 @@ var ProteinDisplay = function(scene, canvas, controller) {
       false);
     this.canvas.dom.addEventListener(
       'mouseup', 
-      function(e) { protein_display.mouseup(e); }, 
+      function(e) { 
+          protein_display.mouseup(e); 
+      }, 
       false);
     this.canvas.dom.addEventListener(
       'touchstart', 
       function(e) { 
-          e.preventDefault();
-          protein_display.mousedown(e); 
+        e.preventDefault();
+        protein_display.mousedown(e); 
       }, 
       false);
     this.canvas.dom.addEventListener(
       'touchmove',
       function(e) { 
-          e.preventDefault();
-          protein_display.mousemove(e); 
+        e.preventDefault();
+        protein_display.mousemove(e); 
       }, 
       false);
     this.canvas.dom.addEventListener(
       'touchend', 
-      function(e) { protein_display.mouseup(e); }, 
+      function(e) { 
+        e.preventDefault();
+        protein_display.mouseup(e); 
+        protein_display.canvas.x_mouse = -1;
+        protein_display.canvas.y_mouse = -1;
+      }, 
       false);
     this.canvas.dom.addEventListener(
       'touchcancel', 
-      function(e) { protein_display.mouseup(e); }, 
+      function(e) { 
+        e.preventDefault();
+        protein_display.mouseup(e); 
+      }, 
       false);
     this.canvas.dom.addEventListener(
       'gesturestart',
       function(e) { 
-          protein_display.gesturestart(e);
+        e.preventDefault();
+        protein_display.gesturestart(e);
       }, 
       false);
     this.canvas.dom.addEventListener(
       'gesturechange',
       function(e) { 
-          protein_display.gesturechange(e); 
+        e.preventDefault();
+        protein_display.gesturechange(e); 
       }, 
       false);
     this.canvas.dom.addEventListener(
       'gestureend',
-      function(e) { protein_display.gestureend(e); }, 
+      function(e) { 
+        e.preventDefault();
+        protein_display.gestureend(e); 
+      }, 
       false);
     
   }

@@ -42,7 +42,7 @@ function init() {
   var ms = 25;
 
   var loop = function() {
-    if (!proteins) {
+    if (typeof proteins == 'undefined') {
       return;
     }
     var curr_time = (new Date).getTime();

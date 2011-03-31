@@ -42,7 +42,7 @@ var Protein = function() {
   function delete_numbers(text) {
     return text.replace(/\d/, '')
   }
-
+  
   this.make_atoms_from_pdb_lines = function(lines) {
     var chains = [];
     var i_chain = -1;
@@ -351,6 +351,12 @@ var Protein = function() {
     }
     return v3.create(
         -x_center/n, -y_center/n, -z_center/n);
+  }
+  
+  this.clear_selected = function() {
+    for (var i=0; i<this.residues.length; i+=1) {
+      this.residues[i].selected = false;
+    }
   }
 }
 
@@ -679,6 +685,19 @@ var Scene = function(protein) {
         this.current_view.res_id = this.protein.atoms[i_atom].res_id;
       } else {
         this.current_view.res_id = this.protein.residues[0].id;
+      }
+      this.protein.clear_selected();
+      if ('selected' in this.current_view) {
+        if ((typeof this.current_view.selected !== "undefined") 
+            && (this.current_view.selected != "")) {
+          var selected_residues = eval(this.current_view.selected);
+          if (selected_residues !== null) {
+            for (i=0; i<selected_residues.length; i+=1) {
+              var j = selected_residues[i];
+              this.protein.residues[j].selected = true;
+            }
+          }
+        }
       }
       this.is_new_view_chosen = true;
     } else {
@@ -1072,6 +1091,9 @@ var Controller = function(scene) {
     return this.scene.current_view.show[option];
   }
   
+  this.clear_selected = function() {
+    this.protein.clear_selected();
+  }
 }
 
 

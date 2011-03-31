@@ -145,8 +145,8 @@ var AnnotationsDisplay = function(scene, controller) {
   this.goto_button = function(id, text) {
     var this_item = this;
     return $('<a>')
+      .addClass('goto_button')
       .attr("href", "#"+id)
-      .addClass("goto_button")
       .html(text)
       .click(function () { 
         var id = this.href.split('#')[1];
@@ -280,9 +280,8 @@ var AnnotationsDisplay = function(scene, controller) {
     this.div[id].all = $('<table></table>')
         .addClass("full_width")
     this.div[id].all.append(
-        $('<td></td>').append($('<div>')
-            .css({"width":"30px"})
-            .append(this.goto_button(id, j))))
+        $('<td></td>').append(this.goto_button(id, j))
+)
     this.div[id].all.append(
         $('<td></td>').append($('<div>')
             .css({"width":"240",
@@ -582,16 +581,16 @@ var SequenceDisplay = function(scene, controller) {
 
 
 function resize_all_displays_in_window(event) {
-  var w = window.innerWidth - 515;
-  var h = window.innerHeight - 115;
+  var w = window.innerWidth - 530;
+  var h = window.innerHeight - 120;
   var canvas = $('#imageView')[0];
   canvas.width = w;
   canvas.height = h;
   $('#central_pad').width(w);
   var h_sequence = $('#sequence_header').outerHeight();
-  $('#sequence').height(h - h_sequence);
+  $('#sequence').height(h - h_sequence + 20);
   var h_header = $('#views_header').outerHeight();
-  $('#views').height(h - h_header);
+  $('#views').height(h - h_header + 20);
 }
 
 
@@ -609,13 +608,13 @@ function load_protein_onto_page(canvas_tag, pdb_id) {
     var c = $('#central_pad');
     var offset = c.position()
     loading_dialog = $('<div></div>')
+      .attr('id', 'loading_message')
       .append('Loading ' + pdb_id + ' from server.<br><br>' +
               'If for the first time, the structure needs <br>' +
               'to be downloaded from rcsb.org, and bonds <br>' +
               'need to be calculated. This may take several <br>' +
               'minutes for large structures. <br><br>' +
               'After, the structure is cached on the server.')
-      .attr('id', 'loading_message')
       .css({
           'position':'absolute',
           'z-index':9000,
@@ -662,10 +661,55 @@ function load_protein_onto_page(canvas_tag, pdb_id) {
 }
 
 
-function add_label() {
-  if (protein_display.scene.current_view.i_atom < 0) {
-    return;
+function are_close_residues(j, k) {
+  var res_j = protein.residues[j];
+  var res_k = protein.residues[k];
+  var atom_j = protein.atoms[res_j.target_view.i];
+  var atom_k = protein.atoms[res_k.target_view.i];
+  if (v3.distance(atom_j.pos, atom_k.pos) > 17) {
+    return false;
   }
+  console.log('close enough res ' + j + ' ' + k);
+  for (var l in res_j.atoms) {
+    var atom_l = res_j.atoms[l];
+    for (var m in res_k.atoms) {
+      var atom_m = res_k.atoms[m];
+      console.log('atoms ' + atom_l + ' ' + atom_m);
+      if (v3.distance(atom_l.pos, atom_m.pos) < 4) {
+        return true;
+        console.log('haha');
+      }
+    }
+  }
+  return false;
+}
+
+
+function clear_residues() {
+  for (var res_id_i in protein.res_by_id) {
+    sequence_display.set_residue_select(res_id_i, false);
+  }
+}
+
+
+function decorate_centered_atom() {
+  clear_residues();
+  var res_id = protein_display.scene.current_view.res_id;
+  var i_res = sequence_display.get_i_res_from_res_id(res_id);
+  sequence_display.set_residue_select(res_id, true);
+  for (var j=0; j<protein.residues.length; j+=1) {
+    if (j != i_res) {
+      if (are_close_residues(j, i_res)) {
+        var res_id_j = protein.residues[j].id;
+        sequence_display.set_residue_select(res_id_j, true);
+      }
+    }
+  }
+  controller.scene.changed = true;
+}
+
+
+function add_label() {
   keyboard_lock = true;
   var c = $('#central_pad');
   var t = c.position().top;
@@ -717,13 +761,21 @@ function add_label() {
           dialog.remove();
           return false;
         });
-  c.append(dialog
-      .click(do_nothing)
-      .append(edit_text)
-      .append('<br>')
-      .append(save)
-      .append(' ')
-      .append(discard));
+  if (protein_display.scene.current_view.i_atom < 0) {
+    dialog
+       .text('Click on an atom before adding a label.')
+       .append('<br>')
+       .append(discard)
+    c.append(dialog)
+  } else {
+    c.append(dialog
+        .click(do_nothing)
+        .append(edit_text)
+        .append('<br>')
+        .append(save)
+        .append(' ')
+        .append(discard));
+  }
 }
 
 
@@ -759,14 +811,13 @@ function onkeydown(event) {
     } else if (c == 'L') {
       option_display.toggle('ligands');
     } else if (c == 'S') {
-      for (i=0; i<protein.residues.length; i+=1) {
-        protein.residues[i].show = false;
-      }
       option_display.toggle('sidechain');
     } else if (c == 'W') {
       option_display.toggle('water');
     } else if (c == 'H') {
       option_display.toggle('hydrogen');
+    } else if (c == 'N') {
+      decorate_centered_atom();
     } else if (c == 'A') {
       add_label();
     } else {
@@ -793,6 +844,16 @@ function register_callacks() {
       resize_all_displays_in_window(); 
       scene.changed = true;
   }
+  $("#clear_residue").click(
+      function() {
+        clear_residues();
+        return false;
+      });  
+  $("#neighbourhood").click(
+      function() {
+        decorate_centered_atom();
+        return false;
+      });  
   $("#save_view").click(
       function() {
         annotations_display.make_new_annotation();
@@ -830,22 +891,10 @@ function redraw_other_displays() {
   annotations_display.reset_borders();
   sequence_display.reset_borders();
   for (i=0; i<protein.residues.length; i+=1) {
-    protein.residues[i].selected = false;
-  }
-  for (i=0; i<protein.residues.length; i+=1) {
-    sequence_display.div[i].select.removeAttr('checked');
-  }
-  if ('selected' in scene.current_view) {
-    if ((typeof scene.current_view.selected !== "undefined") 
-        && (scene.current_view.selected != "")) {
-      var selected_residues = eval(scene.current_view.selected);
-      if (selected_residues !== null) {
-        for (i=0; i<selected_residues.length; i+=1) {
-          var j = selected_residues[i];
-          protein.residues[j].selected = true;
-          sequence_display.div[j].select.attr('checked', true);
-        }
-      }
+    if (protein.residues[i].selected) {
+      sequence_display.div[i].select.attr('checked', true);
+    } else {
+      sequence_display.div[i].select.attr('checked', false);
     }
   }
 }
