@@ -1,0 +1,62 @@
+#mobile-body {
+  width:320px;
+  height:422px;
+	font-size:12px;
+  font-family:helvetica; 
+  letter-spacing:0.1em;
+  line-height:1.2em;
+  color:#666;
+}
+#mobile-header {
+  width:auto;
+  background-color:#222;
+  font-family:helvetica; 
+  letter-spacing:0.1em;
+  padding:5px;
+  height:16px;
+  font-size:12px;
+}
+#mobile-header, #mobile-header a {
+	color:#777;
+	text-decoration: none;
+}
+#mobile-view {
+  text-align: left;
+  width:auto;
+  padding:10px;
+  overflow:auto;
+  background-color:#222;
+	color:#777;
+	font-size:12px;
+	font-family:Helvetica, sans-serif;
+	letter-spacing:0.1em;
+	line-height:1em;
+}
+#mobile-view a, #mobile-view a:visited { 
+  text-decoration:none;
+	color:#77A;
+}
+.button, a.button:link, 
+a.button:visited {
+	color:#666;
+  text-decoration:none;
+}
+.button {
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+	background-color:#888;
+  text-align: center;
+  padding-top:2px;
+  padding-bottom:2px;
+	padding-left: 10px;
+	padding-right: 10px;
+	font-weight: normal;
+  font-size:12px;
+}
+.author {
+	font-size:10px;
+	letter-spacing:0.1em;
+	color:#555;
+	padding-left:15px;
+	margin-top: 5px;
+}
