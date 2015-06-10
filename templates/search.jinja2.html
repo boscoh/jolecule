@@ -1,0 +1,38 @@
+<style>
+  #jolecule-body {
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 30px 20px 80px 20px;
+  }
+  ul { 
+    margin-top: 0;
+  }
+  li {
+    margin: 0;
+  }
+</style>
+
+<h1>Searching {{search_words}}</h1>
+
+{% for entry in entries %}
+<table>
+  <td valign="top" style="padding-top:5px">
+    <a class="jolecule-button" href="/pdb/{{entry['pdb_id']}}">{{entry['pdb_id']}}</a>
+  </td>
+  <td>
+    <ul>
+      <li>
+        {{entry['n_residue']}} aa - {{entry['experiment']}}
+      </li>
+      <li>
+        {{entry['year']}} - {{entry['title']}}
+      </li>
+      <li>
+        <i>{{entry['authors']}}</i>
+      </li>
+    </ul>
+  </td>
+</table>
+{% endfor %}
+

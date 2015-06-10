@@ -1,0 +1,33 @@
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+  <link rel="stylesheet" type="text/css" href="/jolecule.css" />
+</head>
+
+<body>
+  <div id="jolecule-container">
+    <div id="jolecule-header">
+      <div id="jolecule-tagline">
+        <a href="/">jolecule</a> 
+      </div>
+      <form method="get" action="/search">
+        <input class="jolecule-search-box" type="search" name="q"
+               onfocus="window.keyboard_lock = true;"
+               onblur="window.keyboard_lock = false;">
+      </form>
+      <div id="jolecule-menu">
+        {{user_prefs}}
+        <a href="{{login_url}}">
+          {{user_status}}
+        </a>
+      </div>
+    </div>
+    <div id="jolecule-body">
+      {{body}}
+    </div>
+  </div>
+</body>
+
+</html>
+

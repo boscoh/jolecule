@@ -1,0 +1,54 @@
+<style>
+  #jolecule-body {
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 30px 20px 80px 20px;
+  }
+</style>
+
+<script type="text/javascript" src="/js/jquery-2.0.3.js"></script>
+
+<script>
+delete_pdb = function(pdb_id) {
+    $.post(
+        '/delete/pdb', 
+        { 'pdb_id': pdb_id }, 
+        function() { 
+            window.location.reload(); 
+        }
+    )
+}
+</script>            
+
+<h1>User: {{nickname}}</h1>
+
+Upload a PDB File:
+
+<div style="display: block; padding-top: 10px; padding-left: 20px;">
+    <form action="{{upload_url}}" method="POST" enctype="multipart/form-data">
+     <input type="file" name="file">
+     <br>
+     <input type="submit" name="submit" value="Submit">
+  </form>
+</div>
+
+Uploaded Structures:
+<ol>
+{% for pdb in pdbs %}
+    <li> 
+        <a href='/pdb/{{pdb['pdb_id']}}'>{{pdb['name']}}</a> 
+        <a href="javascript:delete_pdb('{{pdb['pdb_id']}}')">[x]</a>
+    </li>
+{% endfor %}
+</ol>
+
+Views:
+<ol>   
+{% for view in views %}
+    <li>
+        <a href='{{view['url']}}'>{{view['name']}}</a>: 
+        {{view['text']}}...
+    </li>
+{% endfor %}
+</ol>

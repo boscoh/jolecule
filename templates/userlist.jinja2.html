@@ -1,0 +1,42 @@
+<style> 
+  #jolecule-body {
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 30px 20px 80px 20px;
+  }
+</style>
+
+<h1>Active User List</h1>
+
+<ol>
+  {% for user in workers %}
+    <li>
+      <a href='/user/{{user['url']}}'>{{user['nickname']}}</a>
+      {% if user['n_view'] > 0 %}
+          {{user['n_view']}} views,
+      {% endif %}
+      {% if user['n_pdb'] > 0 %}
+          {{user['n_pdb']}} structures,
+      {% endif %}
+    </li>
+  {% endfor %}
+</ol>
+
+
+<h1>Passive User List</h1>
+
+<ol>
+  {% for user in lurkers %}
+    <li>
+      <a href='/user/{{user['url']}}'>{{user['nickname']}}</a>
+      {% if user['n_view'] > 0 %}
+          {{user['n_view']}} views,
+      {% endif %}
+      {% if user['n_pdb'] > 0 %}
+          {{user['n_pdb']}} structures,
+      {% endif %}
+    </li>
+  {% endfor %}
+</ol>
+

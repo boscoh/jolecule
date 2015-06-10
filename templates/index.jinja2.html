@@ -1,0 +1,246 @@
+
+<style>
+.pane1-container {
+    background: #000;
+    background-image:url('/cloud.jpg');
+    background-size: 100% auto;
+    color: #777;
+}
+.pane2-container {
+    background: #000;
+    color: #666;
+}
+.central-slab {
+    margin-left: auto;
+    margin-right: auto;
+    width: 1200px;
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+.container {
+    display: flex;
+    display: -webkit-flex;
+    flex-direction: row;
+    -webkit-flex-direction: row;
+}
+.fill-box {
+    padding: 0px 15px;
+    text-align: center;
+    flex: 1;
+    -webkit-flex: 1;
+}
+.title {
+    width: 850px;
+}
+.big-title {
+    text-align: left;
+    font-size: 60px;
+    font-weight: 200;
+    letter-spacing: 0.1em;
+    padding-top: 180px;
+}
+.sub-title {
+    text-align: left;
+    font-weight: 200;
+    font-size: 25px;
+    letter-spacing: 0.1em;
+    padding-top: 30px;
+}
+#jolecule-embed {
+    width: 370px; 
+    height: 350px;
+}
+.central-slab form input {
+    width: 600px;
+}
+.central-slab form {
+  text-align: center;
+}
+h2 {
+  text-align: center;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+ul {
+  text-align: left;
+}
+.icon {
+  display: block;
+  height: 100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media screen and (max-width: 900px) {
+    .central-slab {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 20px 10px;
+    }
+    .container {
+        flex-direction: column;
+        -webkit-flex-direction: column;
+    }
+    .central-slab form input {
+        width: 100%;
+    }
+    #jolecule-embed {
+        width: 100%;
+        height: 300px;
+    }
+    .big-title {
+        text-align: center;
+        font-size: 25px;
+        padding-top: 5px;
+        padding-bottom: 0px;
+    }
+    .sub-title {
+        text-align: center;
+        font-size: 18px;
+        padding-top: 5px;
+        padding-bottom: 10px;
+    }
+}
+
+</style>
+
+<div class="pane1-container"><div class="central-slab title">
+  <div class="container">
+    <div class="fill-box">
+      <div class="big-title">Jolecule</div>
+      <div class="sub-title">the protein viewer in the cloud</div>
+    </div>
+
+    {{embed_js}}
+
+  </div>
+</div></div>
+
+<div class="pane2-container"><div class="central-slab">
+  <div class="container">
+
+    <div class="fill-box">
+      <img src="images/gpcr.png" class="icon">
+      <h2>No install</h2>
+      <p>Web-based HTML5 - iOS friendly
+    </div>
+
+    <div class="fill-box">
+      <img src="images/hairpin.png" class="icon">
+      <h2>Practical</h2>
+      <p>Focuses on residues in a structure
+    </div>
+    <div class="fill-box">
+      <img src="images/dnabinding.png" class="icon">
+      <h2>Permanent</h2>
+      <p>Every structure has it's own <a href="/pdb/1mbo">URL</a>
+    </div>
+
+  </div>
+
+  <div class="container">
+
+    <div class="fill-box">
+      <img src="images/dnabinding.png" class="icon">
+      <h2>Embedding</h2>
+      <p>Click <a href="/embed/pdb?pdb_id=1mbo">embed</a> to put jolecule on any page
+    </div>
+
+    <div class="fill-box">
+      <img src="images/gpcr.png" class="icon">
+      <h2>Store</h2>
+      <p>Login and upload your structures
+    </div>
+
+    <div class="fill-box">
+      <img src="images/hairpin.png" class="icon">
+      <h2>Animate</h2>
+      <p>Easy set-up for animated slide-shows
+    </div>
+
+  </div>
+
+</div></div>
+
+<div class="pane1-container"><div class="central-slab">
+
+    <h2>Enter PDB-ID or search with key-words:</h2>
+
+    <form method="get" action="/search">
+      <input class="jolecule-search-box" type="search" name="q">
+    </form>
+
+</div></div>
+
+<div class="pane2-container"><div class="central-slab">
+  <center>
+    <h2>Annotated Structures</h2>
+
+      <p><a href="/pdb/1mbo">1MBO</a><br> Myoglobin, the oxygen grabber
+      
+      <p>
+      <a href="/pdb/1ce1">1CE1</a><br>  Antibody, the foreign particle detector
+      
+      <p>
+      <a href="/pdb/9rub">9RUB</a><br>  Rubisco, the carbon fixer
+      
+      <!-- <p>
+      <a href="/pdb/1pth">1pth</a> - Cyclooxygenase, the site of pain-killing
+      
+      <p>
+      <a href="/pdb/2ptc">2ptc</a> - Trypsin &amp; its inhibitor
+      
+      <p>
+      <a href="/pdb/3fyl">3fyl</a> - Gluccortocoid Receptor, stress and DNA
+      
+      <p>
+      <a href="/pdb/2rn2">2rn2</a> - Rbonuclease, RNA digestion (thanks K. Stafford)
+      
+      <p>
+      <a href="/pdb/1e7g">1e7g</a>- Human Serum Albumin (thanks S. Curry) 
+       -->
+  </center>
+</div></div>
+
+<div class="pane1-container"><div class="central-slab">
+  <center>
+  </center>
+</div></div>
+
+<div class="pane2-container"><div class="central-slab">
+  <center>
+    <h2>Keyboard Shortcuts</h2>
+
+    <p>A - add atom label</p>
+
+    <p>S - show all sidechains<br>
+       C - hide all sidechains<br>
+       N - show neighbour sidechains around central atom</p>
+
+    <p>B - cycle through backbone representations<br>
+       H - hide/show hydrogens<br>
+       W - hide/show waters<br>
+       L - hide/show ligands</p>
+
+    <p>[numbers] - choose view<br>
+       J/K - center to prev/next residue<br>
+       [up]/[down] - select prev/next view<br>
+       ' ' - next view<p>
+
+    <br>
+    
+      <h2>Distance Labels</h2>
+    
+    <p>Simply drag from the central atom to another atom.</p>
+</center>
+
+</div></div>
+
+<div class="pane1-container"><div class="central-slab">
+  <center>
+    Designed by <a href="http://boscoh.com">Bosco Ho</a>
+  </center>
+</div></div>
+
+</div>

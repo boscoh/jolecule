@@ -24,6 +24,24 @@ var user = 'public'; // will be overriden by server
 var atom_radius = 0.3;
 
 
+
+function extract_atom_lines(data) {
+  var lines = data.split(/\r?\n/);
+  var pdb_lines = [];
+  for (var i=0; i<lines.length; i++) {
+    var line = lines[i];
+    if ((line.slice(0,4) === "ATOM") ||
+        (line.slice(0,6) === "HETATM")) {
+           pdb_lines.push(line);
+    }
+    if (line.slice(0,3) == "END") {
+      break;
+    }
+  }
+  return pdb_lines;
+}
+
+
 var Protein = function() { 
   this.atoms = []; 
   this.bonds = [];
@@ -58,6 +76,14 @@ var Protein = function() {
         var atom_type = trim(lines[i].substr(12,4));
         var label = res_num + ' - ' + res_type +
                     ' - ' + atom_type;
+        var elem = trim(lines[i].substr(76,2));
+        if (elem == "") {
+          elem = delete_numbers(trim(atom_type)).substr(0,1);
+        }
+        var is_chonmp = in_array(elem, chonp);
+
+        var alt = trim(lines[i].substr(16,1));
+
         if (chain) {
           label = chain + ":" + label;
         }
@@ -77,16 +103,10 @@ var Protein = function() {
         if (!is_protein_or_nucleotide) {
           i_chain = -1;
         }
-        // var elem = trim(lines[i].substr(76,2));
-        // console.log('elem ' + elem);
-        var elem = "";
-        if ((elem == "") || (elem == " ")) {
-          elem = delete_numbers(trim(atom_type)).substr(0,1);
-        }
-        var is_chonmp = in_array(elem, chonp);
         this.atoms.push({
           'pos': v3.create(x, y, z),
           'res_type': res_type,
+          'alt': alt,
           'chain': chain,
           'i_chain': i_chain,
           'is_chonmp': is_chonmp,
@@ -107,6 +127,26 @@ var Protein = function() {
     }
     s += atom.res_num;
     return s;
+  }
+  
+  this.get_prev_res_id = function(res_id) {
+    var i = this.get_i_res_from_res_id(res_id);
+    if (i<=0) {
+      i = this.residues.length-1;
+    } else {
+      i -= 1;
+    };
+    return this.residues[i].id
+  }
+
+  this.get_next_res_id = function(res_id) {
+    var i = this.get_i_res_from_res_id(res_id);
+    if (i>=this.residues.length-1) {
+      i = 0;
+    } else {
+      i += 1;
+    };
+    return this.residues[i].id
   }
 
   this.make_bonds = function(bond_pairs) {
@@ -278,29 +318,187 @@ var Protein = function() {
       if (this.has_aa_bb(j-1) && this.has_aa_bb(j)) {
         var ca1 = this.residues[j-1].atoms["CA"];
         var ca2 = this.residues[j].atoms["CA"];
-        if (v3.distance(ca1.pos, ca2.pos) < 8) {
+        if ((ca1.chain == ca2.chain) &&
+           (v3.distance(ca1.pos, ca2.pos) < 8)) {
           this.trace.push({atom1:ca1, atom2:ca2});
         }
       }
       if (this.has_nuc_bb(j-1) && this.has_nuc_bb(j)) {
         var c31 = this.residues[j-1].atoms["C3'"];
         var c32 = this.residues[j].atoms["C3'"];
-        if (v3.distance(c31.pos, c32.pos) < 8) {
+        if ((c31.chain == c32.chain) &&
+           (v3.distance(c31.pos, c32.pos) < 8)) {
           this.trace.push({atom1:c31, atom2:c32});
         }
       }
     }
   }
 
-  this.load = function(pdb_id, lines, bond_pairs, max_length, filename) {
-    this.pdb_id = pdb_id;
-    this.make_atoms_from_pdb_lines(lines);
+  this.calc_max_length = function() {
+    var maxima = [0.0, 0.0, 0.0];
+    var minima = [0.0, 0.0, 0.0];
+    var spans = [0.0, 0.0, 0.0];
+    function comp(v,i) {
+      if (i==0) return v.x;
+      if (i==1) return v.y;
+      if (i==2) return v.z;
+    }
+    for (var j=0; j<3; j++) {
+      for (var i=0; i<this.atoms.length; i+=1) {
+        if (minima[j] > comp(this.atoms[i].pos, j)) {
+          minima[j] = comp(this.atoms[i].pos, j);
+        }
+        if (maxima[j] < comp(this.atoms[i].pos, j)) {
+          maxima[j] = comp(this.atoms[i].pos, j);
+        }
+      }
+      spans[j] = maxima[j] - minima[j];
+    }
+    return Math.max(spans[0], spans[1], spans[2]);
+  }
+
+  this.get_close_pairs = function(vertices) {
+    var padding = 0.05;
+    var div = 5.0;
+    var inv_div = 1.0/div;
+    var maxima = [0.0, 0.0, 0.0];
+    var minima = [0.0, 0.0, 0.0];
+    var spans = [0.0, 0.0, 0.0];
+    var sizes = [0, 0, 0];
+
+    for (var i_dim=0; i_dim<3; i_dim++) {
+      for (var i=0; i<vertices.length; i+=1) {
+        if (minima[i_dim] > vertices[i][i_dim]) {
+          minima[i_dim] =  vertices[i][i_dim];
+        }
+        if (maxima[i_dim] <  vertices[i][i_dim]) {
+          maxima[i_dim] =  vertices[i][i_dim];
+        }
+      }
+      minima[i_dim] -= padding;
+      maxima[i_dim] += padding;
+      spans[i_dim] = maxima[i_dim] - minima[i_dim];
+      sizes[i_dim] = Math.ceil(spans[i_dim]*inv_div);
+    }
+
+    function vertex_to_space(v) {
+      var result = []
+      for (var j=0; j<3; j++) {
+        result.push(Math.round((v[j]-minima[j])*inv_div));
+      }
+      return result
+    }
+
+    function space_to_hash(s) {
+      return s[0]*sizes[1]*sizes[2] + s[1]*sizes[2] + s[2];
+    }
+
+    var cells = {};
+    var spaces = [];
+    for (var i=0; i<vertices.length; i++) {
+      var vertex = vertices[i];
+      var space = vertex_to_space(vertex);
+      spaces.push(space);
+      space_hash = space_to_hash(space);
+      if (!(space_hash in cells)) {
+        cells[space_hash] = [];
+      }
+      cells[space_hash].push(i);
+    }
+
+    function neighbourhood_in_dim(space, i_dim) {
+      var start = Math.max(0, space[i_dim] - 1);
+      var end = Math.min(sizes[i_dim], space[i_dim] + 2);
+      var result = [];
+      for (var i=start; i<end; i++) {
+        result.push(i);
+      }
+      return result;
+    }
+
+    function space_neighbourhood(space) {
+      var result = [];
+      var neighbourhood0 = neighbourhood_in_dim(space,0);
+      var neighbourhood1 = neighbourhood_in_dim(space,1);
+      var neighbourhood2 = neighbourhood_in_dim(space,2);
+      for (var s0=0; s0<neighbourhood0.length; s0++) {
+        for (var s1=0; s1<neighbourhood1.length; s1++) {
+          for (var s2=0; s2<neighbourhood2.length; s2++) {
+            result.push([neighbourhood0[s0],
+                         neighbourhood1[s1],
+                         neighbourhood2[s2]]);
+          }
+        }
+      } 
+      return result;
+    }
+
+    pairs = [];
+    for (var i=0; i<vertices.length; i++) {
+      var neighbourhood = space_neighbourhood(spaces[i]);
+      for (var j_neigh=0; j_neigh<neighbourhood.length; j_neigh++) {
+        var hash = space_to_hash(neighbourhood[j_neigh]);
+        if (hash in cells) {
+          var cell = cells[hash]
+          for (var j_cell=0; j_cell<cell.length; j_cell++) {
+            var j = cell[j_cell];
+            if (i<j) {
+              pairs.push([i,j]);
+            }
+          }
+        }
+      }
+    }
+    return pairs;
+  }
+
+  this.calc_bonds = function() {
+
+    var vertices = [];
+    for (var i=0; i<this.atoms.length; i++) {
+      var atom = this.atoms[i]
+      vertices.push([atom.pos.x, atom.pos.y, atom.pos.z]);
+    }
+    var close_pairs = this.get_close_pairs(vertices);
+
+    var result = [];
+    var small_cutoff = 1.2;
+    var medium_cutoff = 1.9;
+    var large_cutoff = 2.4;
+    var CHONPS = ['C', 'H', 'O', 'N', 'P', 'S'];
+    for (var i_pair=0; i_pair<close_pairs.length; i_pair++) {
+      var a0 = this.atoms[pairs[i_pair][0]];
+      var a1 = this.atoms[pairs[i_pair][1]];
+      var dist = v3.distance(a0.pos, a1.pos);
+      var cutoff;
+      if ((a0.alt != "") && (a1.alt != "")) {
+        if (a0.alt != a1.alt) {
+          continue;
+        }
+      }
+      if ((a0.elem == "H") || (a1.elem == "H")) {
+        cutoff = small_cutoff;
+      } else if (in_array(a0.elem, CHONPS) && in_array(a1.elem, CHONPS)) {
+        cutoff = medium_cutoff;
+      } else {
+        cutoff = large_cutoff;
+      }
+      if (dist <= cutoff) {
+        result.push(pairs[i_pair]);
+      }
+    }
+    return result;
+  }
+
+  this.load = function(protein_data) {
+    this.pdb_id = protein_data['pdb_id'];
+    atom_lines = extract_atom_lines(protein_data['pdb_text'])
+    this.make_atoms_from_pdb_lines(atom_lines);
     this.make_residues();
-    this.make_bonds(bond_pairs);
+    this.make_bonds(this.calc_bonds());
     this.make_plates();
     this.make_trace();
-    this.max_length = max_length;
-    this.filename = filename;
+    this.max_length = this.calc_max_length();
   }
 
   this.transform = function(matrix) {
@@ -353,11 +551,52 @@ var Protein = function() {
         -x_center/n, -y_center/n, -z_center/n);
   }
   
+  this.get_i_res_from_res_id = function(res_id) {
+    for (var i=0; i<this.residues.length; i+= 1) {
+      if (this.residues[i].id == res_id) {
+        return i;
+      }
+    }
+    return i;
+  }
+  
   this.clear_selected = function() {
     for (var i=0; i<this.residues.length; i+=1) {
       this.residues[i].selected = false;
     }
   }
+
+  this.are_close_residues = function(j, k) {
+    var res_j = this.residues[j];
+    var res_k = this.residues[k];
+    var atom_j = this.atoms[res_j.target_view.i];
+    var atom_k = this.atoms[res_k.target_view.i];
+    if (v3.distance(atom_j.pos, atom_k.pos) > 17) {
+      return false;
+    }
+    for (var l in res_j.atoms) {
+      var atom_l = res_j.atoms[l];
+      for (var m in res_k.atoms) {
+        var atom_m = res_k.atoms[m];
+        if (v3.distance(atom_l.pos, atom_m.pos) < 4) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  this.select_neighbors = function(i_res) {
+    this.residues[i_res].selected = true;
+    for (var j=0; j<this.residues.length; j+=1) {
+      if (j != i_res) {
+        if (this.are_close_residues(j, i_res)) {
+          this.residues[j].selected = true;
+        }
+      }
+    }
+  }
+
 }
 
 
@@ -500,16 +739,14 @@ var View = function() {
   this.id = 'view:000000';
   this.res_id = "";
   this.i_atom = -1;
-  this.order = 0;
+  this.order = 1;
   this.camera = new Camera();
   this.abs_camera = new Camera();
   this.selected = "";
   this.labels = [];
   this.distances = [];
   this.text = 'Default view of PDB file';
-  this.time = "";
   this.creator = "";
-  this.modifier = "";
   this.url = url();
   this.show = {  
       sidechain: true,
@@ -654,6 +891,20 @@ var Scene = function(protein) {
     return i;
   }
 
+  this.insert_view = function(j, new_id, new_view) {
+    this.calculate_abs_camera(new_view);
+    this.saved_views_by_id[new_id] = new_view;
+    if (j >= this.saved_views.length) {
+      this.saved_views.push(new_view);
+    } else {
+      this.saved_views.splice(j, 0, new_view);
+    }
+    this.i_last_view = j;
+    for (var i=0; i<this.saved_views.length; i++) {
+      this.saved_views[i].order = i;
+    }
+  }
+
   this.remove_saved_view = function(id) {
     var i = this.get_i_saved_view_from_id(id);
     if (i<0) {
@@ -661,6 +912,14 @@ var Scene = function(protein) {
     }
     this.saved_views.splice(i,1);
     delete this.saved_views_by_id[id];
+    for (var i=0; i<this.saved_views.length; i++) {
+      this.saved_views[i].order = i;
+    }
+    if (this.i_last_view >= this.saved_views.length) {
+      this.i_last_view = this.saved_views.length-1;
+    }
+    this.changed = true;
+    this.is_new_view_chosen = true;
   }
   
   this.save_view = function(view) {
@@ -672,8 +931,7 @@ var Scene = function(protein) {
   this.animate = function() {
     if (this.n_update_step < 0) {
       return;
-    }
-    if (this.n_update_step == 0) {
+    } else if (this.n_update_step == 0) {
       this.restore_atomic_details_after_move();
       this.current_view.copy_metadata_from_view(this.target_view);
       var i_atom = this.current_view.i_atom;
@@ -687,17 +945,9 @@ var Scene = function(protein) {
         this.current_view.res_id = this.protein.residues[0].id;
       }
       this.protein.clear_selected();
-      if ('selected' in this.current_view) {
-        if ((typeof this.current_view.selected !== "undefined") 
-            && (this.current_view.selected != "")) {
-          var selected_residues = eval(this.current_view.selected);
-          if (selected_residues !== null) {
-            for (i=0; i<selected_residues.length; i+=1) {
-              var j = selected_residues[i];
-              this.protein.residues[j].selected = true;
-            }
-          }
-        }
+      for (i=0; i<this.current_view.selected.length; i+=1) {
+        var j = this.current_view.selected[i];
+        this.protein.residues[j].selected = true;
       }
       this.is_new_view_chosen = true;
     } else {
@@ -752,40 +1002,30 @@ var Scene = function(protein) {
     this.changed = true;
   }
 
-  // Initialization after functions defined
-  
-  this.translate(this.protein.center());
-  this.current_view = new View();
-  this.current_view.res_id = this.protein.residues[0].id;
-  this.current_view.camera.z_front = protein.min_z;
-  this.current_view.camera.z_back = protein.max_z;
-  this.current_view.camera.zoom = 
-      Math.abs(2*protein.max_length);
-  this.calculate_abs_camera(this.current_view);
+  this.make_default_view = function(default_html) {
 
-  var default_view = this.current_view.clone();
-  default_view.order = 0;
-  if (this.protein.filename) {
-    default_view.text = 
-       'Uploaded file "' + 
-       this.protein.filename +
-       '".';
-  }
-  else {
-    pdb_url = 'http://www.rcsb.org/pdb/explore' + 
-        '/explore.do?structureId=' + this.protein.pdb_id;
-    pdb_wiki_url = "http://pdbwiki.org/index.php/" + 
-        this.protein.pdb_id
-    default_view.text = 
-        'Default view in PDB structure ' +
-        "<a href='" + pdb_url +
-        "'>" + this.protein.pdb_id.toUpperCase() + "</a>." +
-        " For more information, also check out the <a href='" + pdb_wiki_url +
-        "'>PDB-wiki</a>.";
-  }
+    this.translate(this.protein.center());
+    
+    this.current_view = new View();
+    this.current_view.res_id = this.protein.residues[0].id;
+    this.current_view.camera.z_front = protein.min_z;
+    this.current_view.camera.z_back = protein.max_z;
+    this.current_view.camera.zoom = 
+        Math.abs(2*protein.max_length);
+    this.calculate_abs_camera(this.current_view);
 
-  this.save_view(default_view);
-  this.changed = true;
+    if (this.protein.residues.length > 100) {
+      this.current_view.show.sidechain = false;
+    }
+
+    var default_view = this.current_view.clone();
+    default_view.order = 0;
+    default_view.text = default_html;
+    default_view.pdb_id = this.protein.pdb_id;
+
+    this.save_view(default_view);
+    this.changed = true;
+  }
 }
 
 
@@ -889,92 +1129,153 @@ var Controller = function(scene) {
     this.set_target_view(view);
   }
 
-  this.flatten_labels = function(view) {
-    var s = "[";
-    for (var i=0; i<view.labels.length; i+=1) {
-      var label = view.labels[i];
-      s += "[" + label.i_atom + ", ";
-      s += "'" + escape(label.text) + "'], ";
+  this.set_target_prev_residue = function() {
+    var curr_res_id;
+    if (this.scene.n_update_step >= 0) {
+      curr_res_id = this.scene.target_view.res_id;
+    } else {
+      curr_res_id = this.scene.current_view.res_id;
     }
-    s += "];";
-    return s;
-  }
-  
-  this.flatten_distances = function(view) {
-    var s = "[";
-    for (var i=0; i<view.distances.length; i+=1) {
-      var distance = view.distances[i];
-      s += "[" + distance.i_atom1 + ", ";
-      s += distance.i_atom2 + "], ";
-    }
-    s += "];";
-    return s;
+    var res_id = this.protein.get_prev_res_id(curr_res_id);
+    this.set_target_view_by_res_id(res_id);
   }
 
-  this.flat_dict_from_view = function(view) {
+  this.set_target_next_residue = function() {
+    var curr_res_id;
+    if (this.scene.n_update_step >= 0) {
+      curr_res_id = this.scene.target_view.res_id;
+    } else {
+      curr_res_id = this.scene.current_view.res_id;
+    }
+    var res_id = this.protein.get_next_res_id(curr_res_id);
+    this.set_target_view_by_res_id(res_id);
+  }
+  
+  this.set_target_prev_view = function() {
+    var scene = this.scene;
+    scene.i_last_view -= 1;
+    if (scene.i_last_view < 0) {
+      scene.i_last_view = scene.saved_views.length - 1;
+    }
+    var id = scene.saved_views[scene.i_last_view].id;
+    this.set_target_view_by_id(id);
+    return id;
+  }
+  
+  this.set_target_next_view = function() {
+    var scene = this.scene;
+    scene.i_last_view += 1;
+    if (scene.i_last_view >= scene.saved_views.length) {
+      scene.i_last_view = 0;
+    }
+    var id = scene.saved_views[scene.i_last_view].id;
+    this.set_target_view_by_id(id);
+    return id;
+  }
+
+  this.swap_views = function(i, j) {
+    this.scene.saved_views[j].order = i;
+    this.scene.saved_views[i].order = j;
+    var dummy = this.scene.saved_views[j];
+    this.scene.saved_views[j] = this.scene.saved_views[i];
+    this.scene.saved_views[i] = dummy
+  }
+
+  this.get_view_dict = function(view) {
     return {
-      id: view.id,
-      'pdb_id': this.protein.pdb_id,
+      version: 2,
+      view_id: view.id,
+      creator: view.creator,
+      pdb_id: view.pdb_id,
       order : view.order,
-      show_sidechain: view.show.sidechain,
-      show_hydrogen: view.show.hydrogen,
-      show_water: view.show.water,
-      show_ligands: view.show.ligands,
-      show_trace: view.show.trace,
-      show_ca_trace: view.show.trace,
-      show_ribbon: view.show.ribbon,
-      show_all_atom: view.show.all_atom,
+      show: view.show,
       text: view.text,
       res_id: view.res_id,
       i_atom: view.i_atom,
-      labels: this.flatten_labels(view),
+      labels: view.labels,
       selected: view.selected,
-      distances: this.flatten_distances(view),
-      z_front: view.camera.z_front,
-      z_back: view.camera.z_back,
-      zoom: view.camera.zoom,
-      camera_pos_x: view.abs_camera.pos.x,
-      camera_pos_y: view.abs_camera.pos.y, 
-      camera_pos_z: view.abs_camera.pos.z, 
-      camera_up_x: view.abs_camera.up_v.x, 
-      camera_up_y: view.abs_camera.up_v.y, 
-      camera_up_z: view.abs_camera.up_v.z,
-      camera_in_x: view.abs_camera.in_v.x, 
-      camera_in_y: view.abs_camera.in_v.y, 
-      camera_in_z: view.abs_camera.in_v.z, 
+      distances: view.distances,
+      camera: {
+        slab: {
+            z_front: view.camera.z_front,
+            z_back: view.camera.z_back,
+            zoom: view.camera.zoom,
+        },
+        pos: [
+          view.abs_camera.pos.x,
+          view.abs_camera.pos.y, 
+          view.abs_camera.pos.z
+        ], 
+        up: [
+          view.abs_camera.up_v.x, 
+          view.abs_camera.up_v.y, 
+          view.abs_camera.up_v.z,
+        ],
+        in: [
+          view.abs_camera.in_v.x, 
+          view.abs_camera.in_v.y, 
+          view.abs_camera.in_v.z, 
+        ],
+      }
     }
   }
   
-  this.make_selected_str = function() {
-    var s = "[";
+  this.get_view_dicts = function() {
+    var view_dicts = [];
+    for (var i=1; i<this.scene.saved_views.length; i+=1) {
+      var view = this.scene.saved_views[i];
+      view_dicts.push(this.get_view_dict(view));
+    }
+    return view_dicts;
+  }
+
+  this.make_selected = function() {
+    var result = [];
     for (i=0; i<this.protein.residues.length; i+=1) {
-      if (protein.residues[i].selected) {
-        s += i + ',';
+      if (this.protein.residues[i].selected) {
+        result.push(i);
       }
     }
-    s += "];";
-    return s;
+    return result;
+  }
+
+  this.clear_selected = function() {
+    this.protein.clear_selected();
+    this.scene.current_view.selected = this.make_selected();
+    this.scene.changed = true;
+    this.scene.is_new_view_chosen = true;
+  }
+  
+  this.select_residue = function(i, v) {
+    this.protein.residues[i].selected = v;
+    this.scene.current_view.selected = this.make_selected();
+    this.scene.is_new_view_chosen = true;
+    this.scene.changed = true;
+  }
+  
+  this.select_neighbors = function() {
+    var res_id = this.scene.current_view.res_id;
+    var i_res = this.protein.get_i_res_from_res_id(res_id);
+    this.protein.select_neighbors(i_res);
+    this.scene.current_view.selected = this.make_selected();
+    this.scene.changed = true;
+    this.scene.is_new_view_chosen = true;
   }
   
   this.save_current_view = function(new_id) {
-    this.scene.i_last_view += 1;
-    var j = this.scene.i_last_view;
+    var j = this.scene.i_last_view + 1;
     var new_view = this.scene.current_view.clone();
-    new_view.text = 'Insert text here';
-    new_view.creator = user;
-    new_view.id = new_id;
-    new_view.selected = this.make_selected_str();
-    new_view.time = get_current_date();
-    this.scene.calculate_abs_camera(new_view);
-    this.scene.saved_views_by_id[new_id] = new_view;
-    if (j >= this.scene.saved_views.length) {
-      this.scene.saved_views.push(new_view);
+    new_view.text = 'Click edit to change this text.';
+    new_view.pdb_id = this.protein.pdb_id;
+    var time = get_current_date();
+    if (user == '' || typeof user == 'undefined') {
+      new_view.creator = '~ [public] @' + time;
     } else {
-      this.scene.saved_views.splice(j, 0, new_view);
-      for (var i=j; i<this.scene.saved_views.length; i+=1) {
-        this.scene.saved_views[i].order = i;
-      }
+      new_view.creator = '~ ' + user + ' @' + time;
     }
+    new_view.id = new_id;
+    new_view.selected = this.make_selected();
+    this.scene.insert_view(j, new_id, new_view)
     return j;
   }
 
@@ -982,95 +1283,70 @@ var Controller = function(scene) {
     this.scene.remove_saved_view(id);
   }
 
-  this.restore_distances = function(flat_distances_string) {
-    var flat_distances = eval(flat_distances_string);
-    var distances = [];
-    for (var i=0; i<flat_distances.length; i+=1) {
-      var distance = {}
-      distance.i_atom1 = flat_distances[i][0];
-      distance.i_atom2 = flat_distances[i][1];
-      distance.z = 0;
-      distances.push(distance);
-    }
-    return distances;
-  }
-  
-  this.restore_labels = function(flat_labels_string) {
-    var flat_labels = eval(flat_labels_string);
-    var labels = [];
-    for (var i=0; i<flat_labels.length; i+=1) {
-      var label = {}
-      label.i_atom = flat_labels[i][0];
-      label.text = unescape(flat_labels[i][1]);
-      label.z = 0;
-      labels.push(label);
-    }
-    return labels
-  }
-  
   this.view_from_dict = function(flat_dict) {
     view = new View();
 
-    view.id = flat_dict.id;
+    view.id = flat_dict.view_id;
+    view.view_id = flat_dict.view_id;
     view.pdb_id = flat_dict.pdb_id;
     view.lock = flat_dict.lock;
     view.text = flat_dict.text;
-    view.time = flat_dict.time;
     view.creator = flat_dict.creator;
-    view.modifier = flat_dict.modifier;
     view.order = flat_dict.order;
     view.res_id = flat_dict.res_id;
     view.i_atom = flat_dict.i_atom;
-    if ('labels' in flat_dict) {
-      view.labels = this.restore_labels(
-          flat_dict.labels);
-    }
-    if ('selected' in flat_dict) {
-      view.selected = flat_dict.selected;
-    }
-    if ('distances' in flat_dict) {
-      view.distances = this.restore_distances(
-          flat_dict.distances);
-    }
-  
-    if ('show_all_atom' in flat_dict) {
-      view.show.all_atom = flat_dict.show_all_atom;
-    } else if ('show_backbone' in flat_dict) {
-      view.show.all_atom = flat_dict.backbone;
-    }
-    view.show.all_atom = flat_dict.show_all_atom;
-    view.show.sidechain = flat_dict.show_sidechain;
-    view.show.hydrogen = flat_dict.show_hydrogen;
-    view.show.trace = flat_dict.show_trace;
-    view.show.water = flat_dict.show_water;
-    view.show.ribbon = flat_dict.show_ribbon;
-    view.show.ligands = flat_dict.show_ligands;
 
-    view.abs_camera.pos.x = flat_dict.camera_pos_x;
-    view.abs_camera.pos.y = flat_dict.camera_pos_y; 
-    view.abs_camera.pos.z = flat_dict.camera_pos_z;
-    view.abs_camera.up_v.x = flat_dict.camera_up_x; 
-    view.abs_camera.up_v.y = flat_dict.camera_up_y; 
-    view.abs_camera.up_v.z = flat_dict.camera_up_z;
-    view.abs_camera.in_v.x = flat_dict.camera_in_x; 
-    view.abs_camera.in_v.y = flat_dict.camera_in_y; 
-    view.abs_camera.in_v.z = flat_dict.camera_in_z; 
+    view.labels = flat_dict.labels;
+    view.selected = flat_dict.selected;
+    view.distances = flat_dict.distances;
 
-    view.camera.z_front = flat_dict.z_front;
-    view.camera.z_back = flat_dict.z_back;
-    view.camera.zoom = flat_dict.zoom;
-    view.abs_camera.z_front = flat_dict.z_front;
-    view.abs_camera.z_back = flat_dict.z_back;
-    view.abs_camera.zoom = flat_dict.zoom;
+    view.show = flat_dict.show;
+    if (!(view.show.all_atom || view.show.trace || view.show.ribbon)) {
+      view.show.ribbon = true;
+    }
+
+    view.abs_camera.pos.x = flat_dict.camera.pos[0];
+    view.abs_camera.pos.y = flat_dict.camera.pos[1]; 
+    view.abs_camera.pos.z = flat_dict.camera.pos[2];
+
+    view.abs_camera.up_v.x = flat_dict.camera.up[0]; 
+    view.abs_camera.up_v.y = flat_dict.camera.up[1]; 
+    view.abs_camera.up_v.z = flat_dict.camera.up[2];
+
+    view.abs_camera.in_v.x = flat_dict.camera.in[0]; 
+    view.abs_camera.in_v.y = flat_dict.camera.in[1]; 
+    view.abs_camera.in_v.z = flat_dict.camera.in[2]; 
+
+    view.camera.z_front = flat_dict.camera.slab.z_front;
+    view.camera.z_back = flat_dict.camera.slab.z_back;
+    view.camera.zoom = flat_dict.camera.slab.zoom;
+
+    view.abs_camera.z_front = flat_dict.camera.slab.z_front;
+    view.abs_camera.z_back = flat_dict.camera.slab.z_back;
+    view.abs_camera.zoom = flat_dict.camera.slab.zoom;
 
     return view;
+  }
+
+  this.sort_views_by_order = function() {
+    var order_sort = function(a, b) {
+      return a.order - b.order;
+    }
+    this.scene.saved_views.sort(order_sort);
+    for (var i=0; i<this.scene.saved_views.length; i+=1) {
+      this.scene.saved_views[i].order = i;
+    }
   }
 
   this.load_views_from_flat_views = function(view_dicts) {
     for (var i=0; i<view_dicts.length; i+=1) {
       var view = this.view_from_dict(view_dicts[i]);
-      scene.save_view(view);
+      if (view.id === "view:000000") {
+        continue;
+      }
+      this.scene.save_view(view);
     }
+    this.sort_views_by_order();
     scene.is_new_view_chosen = true;
   }
 
@@ -1091,9 +1367,11 @@ var Controller = function(scene) {
     return this.scene.current_view.show[option];
   }
   
-  this.clear_selected = function() {
-    this.protein.clear_selected();
+  this.toggle_show_option = function(option) {
+    var val = this.get_show_option(option);
+    this.set_show_option(option, !val);
   }
+
 }
 
 
