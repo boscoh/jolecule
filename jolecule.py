@@ -13,13 +13,15 @@ import subprocess
 import tkform
 import tkFileDialog
 
+import _version
 
 __doc__ = """\
-jolecule.py - local version of the joleucle protein viewer in
-the browser.
+
+jolecule.py %s - local version of the joleucle protein viewer in the browser.
 
 usage: jolecule.py pdb
-"""
+
+""" % _version.__version__
 
 
 root_dir = os.path.dirname(__file__)
@@ -50,7 +52,7 @@ class JoleculeForm(tkform.Form):
   def __init__(self, width=700, height=800, parent=None):
     tkform.Form.__init__(self, parent, width, height)
     self.title('Local Jolecule PDB Viewer')
-    self.push_text("Jolecule PDB Viewer", 20)
+    self.push_text("Jolecule PDB Viewer %s" % _version.__version__, 20)
     self.push_line()
     self.push_spacer()
 

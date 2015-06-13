@@ -18,9 +18,6 @@ handlers:
 - url: /robots.txt
   static_files: static/robots.txt
   upload: static/robots.txt
-- url: /cloud.jpg
-  static_files: static/cloud.jpg
-  upload: static/cloud.jpg
 - url: /js/jolecule.js
   script: gae_server.py
 - url: /js
