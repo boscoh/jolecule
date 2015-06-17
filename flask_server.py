@@ -103,7 +103,9 @@ def get_js_file(path):
 
 @app.route('/pdbtext', methods=['GET'])
 def get_pdb_file():
-    return read_pdb_text(request.args.get('file'))
+    filename = request.args.get('file')
+    text = read_pdb_text(filename)
+    return text
 
 
 @app.route('/views', methods=['GET'])
@@ -172,7 +174,8 @@ def get_structure():
     return jinja_it(
         os.path.join(root_dir, 'templates', 'local_structure.jinja2.html'),
         {
-            'pdb_id': filename
+            'pdb_id': filename,
+            'escaped_pdb_id': urllib.quote(filename)
         }
     )
 
@@ -235,7 +238,6 @@ def make_embed_page():
     open(jolecule_js, 'w').write(compile_jolecule_js())
 
     full_index_html = "file://" + os.path.abspath(index_html)
-    app.logger.info('redirect: ' + full_index_html)
 
     return make_embed_pdb_html_text(
         filename, 

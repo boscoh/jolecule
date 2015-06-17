@@ -127,24 +127,25 @@
     return {
       get_protein_data: function(load_protein_data) {
         var success = function(data) {
+          console.log(data);
           load_protein_data({
             'pdb_id': '{{pdb_id}}',
             'pdb_text': data,
           });
         }
-        var url = '/pdbtext?file=' + encodeURIComponent(pdb_id);
+        var url = '/pdbtext?file={{escaped_pdb_id}}';
         $.get(url, success);
       },
       get_views: function(load_view_dicts) {
-        var url = '/views?file=' + encodeURIComponent(pdb_id);
+        var url = '/views?file={{escaped_pdb_id}}';
         $.getJSON(url, load_view_dicts);
       },
       save_views: function(views, success) {
-        var url =  '/save/views?file=' + encodeURIComponent(pdb_id);
+        var url =  '/save/views?file={{escaped_pdb_id}}';
         $.post(url, JSON.stringify(views), success);
       },
       delete_protein_view: function(view_id, success) {
-        var url =  '/delete/view?file=' + encodeURIComponent(pdb_id);
+        var url =  '/delete/view?file={{escaped_pdb_id}}';
         var data = { 'pdb_id': pdb_id, 'view_id': view_id };
         $.post(url, data, success);
       },

@@ -43,9 +43,10 @@ def start_server():
 def open_pdb(fname):
     if not is_server_running():
         start_server()
+    fname =  os.path.abspath(fname)
     url = open(os.path.join(root_dir, 'flask_server.url')).read()
     url += '/structure?'
-    url += urllib.urlencode({'file': os.path.abspath(fname)})
+    url += urllib.urlencode({'file': fname})
     webbrowser.open(url)
 
 
