@@ -1,1 +1,1 @@
-python jolecule.py -i
+start python jolecule.py -i

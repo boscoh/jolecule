@@ -100,6 +100,7 @@ var SequenceDisplay = function(div_tag, controller) {
                 controller.set_target_view_by_res_id(res_id);
                 _this.redraw();
             }))
+        .append("<br>")
     return { 'target':elem, 'select':checkbox };
   }
   
