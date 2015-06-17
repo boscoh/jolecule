@@ -29,14 +29,15 @@ server = os.path.join(root_dir, 'flask_server.py')
 
 
 def is_server_running():
-    p = subprocess.Popen([server, 'status'], stdout=subprocess.PIPE)
+    p = subprocess.Popen(['python', server, 'status'], stdout=subprocess.PIPE)
     out = p.stdout.read()
     return out.strip().lower().startswith('running')
 
 
 def start_server():
-    os.system('python ' + server + ' start %> /dev/null ' + ' & ')
-    time.sleep(1)
+    subprocess.Popen(['python', server, 'start'])
+    while not is_server_running():
+        time.sleep(0.2)
 
 
 def open_pdb(fname):
