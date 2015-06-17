@@ -1,1 +1,1 @@
-python jolecule.py %1 %2 %3
+python jolecule.py -i
