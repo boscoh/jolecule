@@ -37,7 +37,7 @@ def is_server_running():
 def start_server():
     subprocess.Popen(['python', server, 'start'])
     while not is_server_running():
-        time.sleep(0.2)
+        time.sleep(0.1)
 
 
 def open_pdb(fname):
