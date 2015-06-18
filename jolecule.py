@@ -51,11 +51,11 @@ def open_pdb(fname):
 
 
 class JoleculeForm(tkform.Form):
-  def __init__(self, width=700, height=800, parent=None):
+  def __init__(self, width=500, height=400, parent=None):
     tkform.Form.__init__(self, parent, width, height)
     self.title('Local Jolecule PDB Viewer')
     self.push_text("Jolecule PDB Viewer %s" % _version.__version__, 20)
-    self.push_line()
+    self.push_line(width=400)
     self.push_spacer()
 
     def ask_for_pdb():
@@ -65,7 +65,7 @@ class JoleculeForm(tkform.Form):
     self.push_button('Load PDB into browser', ask_for_pdb)
 
     self.push_spacer(height=1)
-    self.push_output()
+    self.push_output(width=50)
 
     url_fname = os.path.join(root_dir, 'flask_server.url')
     url = open(url_fname).read().split()[-1]
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         print(__doc__)
     elif sys.argv[1] == '-i':
-        form = JoleculeForm(500, 400)
+        form = JoleculeForm()
         form.mainloop()
     else:
         for pdb in sys.argv[1:]:
