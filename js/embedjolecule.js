@@ -13,6 +13,11 @@ function EmbedJolecule(params) {
   this.load_protein_data = function(protein_data) {
     this.loading_message_div.text("Calculating bonds...");
     this.protein.load(protein_data);
+    if (this.protein.parsing_error) {
+      this.loading_message_div.text(
+        "Error parsing protein: " + this.protein.parsing_error);
+      return;
+    }
     var data = protein_data['pdb_text']
     var lines = data.split(/\r?\n/);
     var default_text = "";

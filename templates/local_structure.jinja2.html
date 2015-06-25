@@ -131,7 +131,6 @@
     return {
       get_protein_data: function(load_protein_data) {
         var success = function(data) {
-          console.log(data);
           load_protein_data({
             'pdb_id': '{{pdb_id}}',
             'pdb_text': data,
