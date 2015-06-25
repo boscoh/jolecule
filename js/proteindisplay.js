@@ -631,7 +631,6 @@ var ProteinDisplay = function(scene, canvas_widget, controller) {
       var editbox = create_edit_box_div('', "100%", got_text, cleanup, label);
       dialog.append(editbox);
     }
-    console.log(this.canvas_widget.parent);
     stick_in_center(this.canvas_widget.parent, dialog, 0, 70);
     if (i_atom > 0) {
       var textarea = editbox.find('textarea')

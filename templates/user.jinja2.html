@@ -38,6 +38,7 @@ Uploaded Structures:
 {% for pdb in pdbs %}
     <li> 
         <a href='/pdb/{{pdb['pdb_id']}}'>{{pdb['name']}}</a> 
+        [<a href='/pdb/{{pdb['pdb_id']}}.txt'>download</a>] 
         <a href="javascript:delete_pdb('{{pdb['pdb_id']}}')">[x]</a>
     </li>
 {% endfor %}

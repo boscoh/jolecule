@@ -58,9 +58,13 @@ var Protein = function() {
   chonp = ['C', 'H', 'O', 'N', 'P'];
 
   function delete_numbers(text) {
-    return text.replace(/\d/, '')
+    return text.replace(/\d+/, '')
   }
   
+  this.make_atom_from_pdb_line = function(line) {
+    
+  }
+
   this.make_atoms_from_pdb_lines = function(lines) {
     var chains = [];
     var i_chain = -1;
@@ -76,7 +80,7 @@ var Protein = function() {
         var atom_type = trim(lines[i].substr(12,4));
         var label = res_num + ' - ' + res_type +
                     ' - ' + atom_type;
-        var elem = trim(lines[i].substr(76,2));
+        var elem = delete_numbers(trim(lines[i].substr(76,2)));
         if (elem == "") {
           elem = delete_numbers(trim(atom_type)).substr(0,1);
         }
@@ -164,15 +168,16 @@ var Protein = function() {
   this.make_residues = function() {
     this.res_by_id = {};
     this.residues = [];
+    var res_id = '';
     for (var i=0; i<this.atoms.length; i+=1) {
       var a = this.atoms[i];
-      res_id = this.get_res_id_from_atom(a);
-      if (!(res_id in this.res_by_id)) {
+      var new_res_id = this.get_res_id_from_atom(a);
+      if (new_res_id != res_id) {
         var new_r = {
           'chain': a.chain,
           'num': a.res_num,
           'type': a.res_type,
-          'id': res_id,
+          'id': new_res_id,
           'selected': false,
           'atoms': {},
         }
@@ -183,9 +188,10 @@ var Protein = function() {
            in_array(r_type, dna) ||
            in_array(r_type, rna);
         new_r.is_ligands = !new_r.is_water && !new_r.is_protein;
-        this.res_by_id[res_id] = new_r;
+        this.res_by_id[new_res_id] = new_r;
         this.residues.push(new_r);
       }
+      res_id = new_res_id;
       this.res_by_id[res_id].atoms[a.type] = a;
       a.res_id = new_r.id;
       a.is_water = new_r.is_water;
