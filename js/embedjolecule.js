@@ -191,38 +191,6 @@ function EmbedJolecule(params) {
     this.residue_selector.change(change_fn);
   }
 
-  this.show_help_dialog = function() {
-    var help_div = $('<div>');
-
-    var cancel_button = link_button(
-      'cancel', 'clear', 'jolecule-button', 
-      function() { help_div.remove(); });
-
-    help_div
-      .addClass('jolecule-dialog')
-      .css('width', Math.min(350, this.div.width()-40))
-      .append("<br>")
-      .append("<a href='http://jolecule.appspot.com'>JOLECULE</a> ")
-      .append("(c) 2012, <a href='http://boscoh.com'>Bosco Ho</a>")
-      .append("<br>")
-      .append("<br>")
-      .append("<ul>")
-      .append("<li>[shift]-mouse/right-mouse: zoom/rotate</li>")
-      .append("<li>click on atom: center on atom</li>")
-      .append("<li>drag on center atom: add a distance label</li>")
-      .append("<li>double-click on center atom: add atom label</li>")
-      .append("<li>[neigh]: show all neighbouring residues of center atom</li>")
-      .append("</ul>")
-      .append("<br>")
-      .append("<br>")
-      .append(cancel_button)
-      .append("<br>")
-      .append('<br>')
-    ;
-
-    stick_in_center(this.div, help_div, 0, 0);
-  }
-
   this.create_header_div = function() {
     var _this = this;
 

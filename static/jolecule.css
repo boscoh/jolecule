@@ -102,8 +102,8 @@ h1, h2, h3, h4, h5, h6, h7 {
     letter-spacing: 0.3em;
     line-height: 2em;
     color: #555;
-    flex: 0 0;
-    -webkit-flex: 0 0;
+    flex: 50px 0 0;
+    -webkit-flex: 50px 0 0;
 }
 .jolecule-selected-box {
     border: 1px dotted #D66;

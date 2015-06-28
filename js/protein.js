@@ -54,8 +54,8 @@ var Protein = function() {
   aa = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS',
          'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN',
          'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR'];
-  dna = ['DA', 'DT', 'DG', 'DC'];
-  rna = ['RA', 'RT', 'RG', 'RU'];
+  dna = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C'];
+  rna = ['RA', 'RU', 'RC', 'RG', 'A', 'T', 'G', 'C', 'U'];
   chonp = ['C', 'H', 'O', 'N', 'P'];
 
   function delete_numbers(text) {
@@ -993,25 +993,25 @@ var Scene = function(protein) {
   }
 
   this.hide_atomic_details_for_move = function() {
-    if (this.saved_show === null) {
-      if (this.is_too_much_atomic_detail()) {
-        this.saved_show = clone_dict(
-            this.current_view.show);
-        this.current_view.show.hydrogen = false; 
-        this.current_view.show.sidechain = false; 
-        this.current_view.show.water = false; 
-        this.changed = true;
-      }
-    }
+    // if (this.saved_show === null) {
+    //   if (this.is_too_much_atomic_detail()) {
+    //     this.saved_show = clone_dict(
+    //         this.current_view.show);
+    //     this.current_view.show.hydrogen = false; 
+    //     this.current_view.show.sidechain = false; 
+    //     this.current_view.show.water = false; 
+    //     this.changed = true;
+    //   }
+    // }
   }
   
   this.restore_atomic_details_after_move = function() {
-    if (this.saved_show === null) {
-      return;
-    }
-    this.current_view.show = clone_dict(this.saved_show);
-    this.saved_show = null;
-    this.changed = true;
+    // if (this.saved_show === null) {
+    //   return;
+    // }
+    // this.current_view.show = clone_dict(this.saved_show);
+    // this.saved_show = null;
+    // this.changed = true;
   }
 
   this.make_default_view = function(default_html) {

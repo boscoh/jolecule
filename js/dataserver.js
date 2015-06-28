@@ -4,15 +4,18 @@ jolecule_server = function(pdb_id) {
   return {
     pdb_id: pdb_id,
     get_protein_data: function(process_protein_data) {
-        $.get(
-            '/pdb/' + pdb_id + '.txt',
-            // 'http://www.rcsb.org/pdb/files/' + pdb_id + '.pdb', 
-            function(data) {
-                process_protein_data({
-                    'pdb_id': pdb_id,
-                    'pdb_text': data,
-                });
+        if (pdb_id.length == 4) {
+            var url = 'http://www.rcsb.org/pdb/files/' + pdb_id + '.pdb'
+        } else {
+            var url = '/pdb/' + pdb_id + '.txt'
+        }
+        var success = function(data) {
+            process_protein_data({
+                'pdb_id': pdb_id,
+                'pdb_text': data,
             });
+        }
+        $.get(url, success);
     },
     get_views: function(process_views) {
         $.getJSON('/pdb/' + pdb_id + '.views.json', process_views);
