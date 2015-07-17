@@ -943,7 +943,6 @@ var Scene = function(protein) {
     if (this.n_update_step < 0) {
       return;
     } else if (this.n_update_step == 0) {
-      this.restore_atomic_details_after_move();
       this.current_view.copy_metadata_from_view(this.target_view);
       var i_atom = this.current_view.i_atom;
       if (i_atom == -1 || typeof i_atom == 'undefined') {
@@ -982,35 +981,6 @@ var Scene = function(protein) {
     }
     this.changed = true;
     this.n_update_step -= 1;
-  }
-
-  this.is_too_much_atomic_detail = function() {
-    var n_aa = this.protein.residues.length;
-    var camera = this.current_view.camera;
-    var z = camera.z_back - camera.z_front;
-    return ((n_aa > 100) && (z > 15));
-  }
-
-  this.hide_atomic_details_for_move = function() {
-    // if (this.saved_show === null) {
-    //   if (this.is_too_much_atomic_detail()) {
-    //     this.saved_show = clone_dict(
-    //         this.current_view.show);
-    //     this.current_view.show.hydrogen = false; 
-    //     this.current_view.show.sidechain = false; 
-    //     this.current_view.show.water = false; 
-    //     this.changed = true;
-    //   }
-    // }
-  }
-  
-  this.restore_atomic_details_after_move = function() {
-    // if (this.saved_show === null) {
-    //   return;
-    // }
-    // this.current_view.show = clone_dict(this.saved_show);
-    // this.saved_show = null;
-    // this.changed = true;
   }
 
   this.make_default_view = function(default_html) {
@@ -1113,7 +1083,6 @@ var Controller = function(scene) {
   
   this.set_target_view = function(view) {
     this.scene.set_target_view(view);
-    this.hide_atomic_details_for_move();
   }
   
   this.set_target_view_by_id = function(id) {

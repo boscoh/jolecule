@@ -79,11 +79,7 @@ var ZSlabDisplay = function(canvas_widget, scene, controller) {
 
     var font = '12px sans-serif';
     var camera = this.scene.current_view.camera;
-    if (this.controller.is_too_much_atomic_detail()) {
-      var color = "rgb(100, 120, 0)";
-    } else {
-      var color = "rgb(0, 150, 0)";
-    }
+    var color = "rgb(0, 150, 0)";
 
     var x1 = this.x();
     var x2 = this.x()+this.width;
@@ -678,8 +674,6 @@ var ProteinDisplay = function(scene, canvas_widget, controller) {
       }
       this.is_measuring_distance = true;
       centre_pressed = true;
-    } else {
-      this.controller.hide_atomic_details_for_move();
     }
 
     this.centre_pressed = centre_pressed;
@@ -754,7 +748,6 @@ var ProteinDisplay = function(scene, canvas_widget, controller) {
       }
       this.is_measuring_distance = false;
     } else {
-      this.controller.restore_atomic_details_after_move();
       var time_released = (new Date).getTime();
       var time_elapsed = (time_released - this.time_pressed);
       var click_time_in_ms = 500;
