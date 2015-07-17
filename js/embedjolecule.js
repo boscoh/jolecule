@@ -54,6 +54,7 @@ function EmbedJolecule(params) {
 
   this.save_curr_view = function() {
     var new_id = random_id();
+    this.controller.calculate_current_abs_camera();
     this.controller.save_current_view(new_id);
     this.update_view()
     this.view_div.css('background-color', 'lightgray');

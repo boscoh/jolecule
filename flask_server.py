@@ -249,6 +249,20 @@ def make_embed_page():
         '<h3>A local version has been created for you at <br> %s</h3>' % full_index_html)
 
 
+@app.route('/gl_structure', methods=['GET'])
+def get_gl_structure():
+    filename = request.args.get('file')
+    return jinja_it(
+        os.path.join(root_dir, 'templates', 'local_gl_structure.jinja2.html'),
+        {
+            'pdb_id': filename,
+            'escaped_pdb_id': urllib.quote(filename),
+            'data_server_url': '/data_server.js?file=%s&name=%s' % (filename, 'data_server'),
+
+        }
+    )
+
+
 @app.route('/isrunning', methods=['GET'])
 def isrunning():
     return "true"

@@ -824,7 +824,7 @@ var Scene = function(protein) {
   
   this.calculate_abs_camera = function(view) {
     var m_origin_view = this.origin.clone();
-    var m_current_view = this.current_view.clone();
+    var m_current_view = view.clone();
     var m = get_camera_transform(
         m_current_view.camera, m_origin_view.camera, 1);
     m_current_view.camera.transform(m);
@@ -904,7 +904,6 @@ var Scene = function(protein) {
   }
 
   this.insert_view = function(j, new_id, new_view) {
-    this.calculate_abs_camera(new_view);
     this.saved_views_by_id[new_id] = new_view;
     if (j >= this.saved_views.length) {
       this.saved_views.push(new_view);
@@ -1274,6 +1273,11 @@ var Controller = function(scene) {
     this.scene.is_new_view_chosen = true;
   }
   
+  this.calculate_current_abs_camera = function() {
+    var view = this.scene.current_view;
+    this.scene.calculate_abs_camera(view);
+  }
+
   this.save_current_view = function(new_id) {
     var j = this.scene.i_last_view + 1;
     var new_view = this.scene.current_view.clone();

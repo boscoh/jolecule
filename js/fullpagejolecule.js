@@ -324,7 +324,8 @@ var ViewsDisplay = function(div_tag, controller, protein_display, data_server) {
 
   this.make_new_view = function() {
     new_id = random_id();
-    var j = this.controller.save_current_view(new_id);
+    this.controller.calculate_current_abs_camera();
+    this.controller.save_current_view(new_id);
     this.insert_new_view_div(new_id);
     this.update_views();
     this.view_piece[new_id].div.css('background-color', 'lightgray');
