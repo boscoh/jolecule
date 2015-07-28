@@ -351,12 +351,7 @@ function stick_in_center(parent, target, x_offset, y_offset) {
 
 
 function in_array(v, w_list) {
-  for (var k=0; k<w_list.length; k+=1) {
-    if (v == w_list[k]) {
-      return true;
-    }
-  }
-  return false;
+  return w_list.indexOf(v) >= 0;
 }
 
 

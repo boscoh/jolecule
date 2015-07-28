@@ -502,15 +502,150 @@ var Protein = function() {
     return result;
   }
 
+  this.find_bb_hb_partners = function(self) {
+
+    // Find backbone hydrogen bonds for secondary structure
+    // analysis
+    var vertices = [];
+    var atoms = [];
+    for (var j=0; j<this.residues.length; j+=1) {
+      var residue = this.residues[j];
+      residue.hb_partners = [];
+      residue.i = j;
+      if (!residue.is_protein) {
+        continue;
+      }
+      if ("O" in residue.atoms) {
+        var a = residue.atoms["O"];
+        vertices.push([a.pos.x, a.pos.y, a.pos.z])
+        atoms.push(a);
+      }
+      if ("N" in residue.atoms) {
+        var a = residue.atoms["N"];
+        vertices.push([a.pos.x, a.pos.y, a.pos.z])
+        atoms.push(a);
+      }
+    }  
+
+    var cutoff = 3.5;
+    var close_pairs = this.get_close_pairs(vertices);
+    for (var i_pair=0; i_pair<close_pairs.length; i_pair++) {
+      var a0 = atoms[pairs[i_pair][0]];
+      var a1 = atoms[pairs[i_pair][1]];
+      var dist = v3.distance(a0.pos, a1.pos);
+      if (dist <= cutoff) {
+        var res0 = this.res_by_id[a0.res_id];
+        var res1 = this.res_by_id[a1.res_id];
+        if (!in_array(res1.i, res0.hb_partners)) {
+          res0.hb_partners.push(res1.i);
+        }
+        if (!in_array(res0.i, res1.hb_partners)) {
+          res1.hb_partners.push(res0.i);
+        }
+      }
+    }
+  }
+
+  this.is_hb = function(i_res0, i_res1) {
+    if ((i_res0 < 0) || (i_res0 >= this.residues.length)) {
+      return false;
+    }
+    if ((i_res1 < 0) || (i_res1 >= this.residues.length)) {
+      return false;
+    }
+    var i_res0 = this.residues[i_res0].i
+    return in_array(i_res0, this.residues[i_res1].hb_partners);
+  }
+
+
+  this.find_ss = function() {
+
+    this.find_bb_hb_partners();
+
+    // Find Secondary Structure...
+    for (var j=0; j<this.residues.length; j+=1) {
+      var residue = this.residues[j].ss = "C";
+      if (this.has_nuc_bb(j)) {
+        this.residues[j].ss = "D";
+      }
+    }
+
+    var n_res = this.residues.length;
+    for (var i_res1=0; i_res1<this.residues.length; i_res1+=1) {
+
+      // alpha-helix
+      if (this.is_hb(i_res1, i_res1+4) && this.is_hb(i_res1+1, i_res1+5)) {
+        for (var i_res2=i_res1+1; i_res2<i_res1+5; i_res2+=1) {
+          this.residues[i_res2].ss = 'H';
+        }
+      }
+
+      // 3-10 helix
+      if (this.is_hb(i_res1, i_res1+3) && this.is_hb(i_res1+1, i_res1+4)) {
+        for (var i_res2=i_res1+1; i_res2<i_res1+4; i_res2+=1) {
+          this.residues[i_res2].ss = 'H';
+        }
+      }
+
+      for (var i_res2=i_res1+1; i_res2<this.residues.length; i_res2+=1) {
+
+        if ((Math.abs(i_res1-i_res2) <= 5) || (!this.is_hb(i_res1, i_res2))) {
+          continue;
+        }
+
+        var beta_residues = [];
+
+        // parallel beta sheet pairs
+        if (this.is_hb(i_res1-2, i_res2-2)) {
+          beta_residues = beta_residues.concat(
+              [i_res1-2, i_res1-1, i_res1, i_res2-2, i_res2-1, i_res2])
+        }
+        if (this.is_hb(i_res1+2, i_res2+2)) {
+          beta_residues = beta_residues.concat(
+              [i_res1+2, i_res1+1, i_res1, i_res2+2, i_res2+1, i_res2])
+        }
+
+        // anti-parallel beta sheet pairs
+        if (this.is_hb(i_res1-2, i_res2+2)) {
+          beta_residues = beta_residues.concat(
+              [i_res1-2, i_res1-1, i_res1, i_res2+2, i_res2+1, i_res2])
+        }
+        if (this.is_hb(i_res1+2, i_res2-2)) {
+          beta_residues = beta_residues.concat(
+              [i_res1+2, i_res1+1, i_res1, i_res2-2, i_res2-1, i_res2])
+        }
+
+        for (var i=0; i<beta_residues.length; i+=1) {
+          var i_res = beta_residues[i];
+          this.residues[i_res].ss = "E";
+        }
+
+      }
+
+    }
+
+  }
+
   this.load = function(protein_data) {
     this.pdb_id = protein_data['pdb_id'];
     atom_lines = extract_atom_lines(protein_data['pdb_text'])
+    console.log("parse pdb");
     this.make_atoms_from_pdb_lines(atom_lines);
     this.make_residues();
+    console.log("find bonds");
     this.make_bonds(this.calc_bonds());
+    console.log("make z objects");
     this.make_plates();
     this.make_trace();
     this.max_length = this.calc_max_length();
+    console.log("find secondary structure");
+    this.find_ss();
+    var ss = "";
+    for (var j=0; j<this.residues.length; j+=1) {
+      ss += this.residues[j].ss;
+    }
+    console.log(ss);
+    console.log("buidl mesh");
   }
 
   this.transform = function(matrix) {
@@ -560,7 +695,7 @@ var Protein = function() {
       z_center += this.atoms[i].pos.z;
     }
     return v3.create(
-        -x_center/n, -y_center/n, -z_center/n);
+        x_center/n, y_center/n, z_center/n);
   }
   
   this.get_i_res_from_res_id = function(res_id) {
@@ -985,7 +1120,7 @@ var Scene = function(protein) {
 
   this.make_default_view = function(default_html) {
 
-    this.translate(this.protein.center());
+    this.translate(v3.scaled(this.protein.center(), -1));
     
     this.current_view = new View();
     this.current_view.res_id = this.protein.residues[0].id;
@@ -1043,18 +1178,6 @@ var Controller = function(scene) {
   
   this.delete_label = function(i) {
     this.scene.current_view.labels.splice(i, 1);
-  }
-  
-  this.is_too_much_atomic_detail = function() {
-    return this.scene.is_too_much_atomic_detail();
-  }
-
-  this.hide_atomic_details_for_move = function() {
-    this.scene.hide_atomic_details_for_move();
-  }
-  
-  this.restore_atomic_details_after_move = function() {
-    this.scene.restore_atomic_details_after_move();
   }
   
   this.rotate_xy = function(x_angle, y_angle) {
