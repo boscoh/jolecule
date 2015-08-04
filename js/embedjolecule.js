@@ -30,6 +30,7 @@ function EmbedJolecule(params) {
     if (!default_text) {
       default_text = "";
     }
+    this.scene.move_origin_to_center();
     this.scene.make_default_view(default_text);
     this.populate_residue_selector();
     this.loading_message_div.remove();

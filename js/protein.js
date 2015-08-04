@@ -213,8 +213,12 @@ var Protein = function() {
       } else {
         for (var k in res.atoms) {
           res.target_view = res.atoms[k];
+          // todo central atom of residue
           break;
         }
+      }
+      if ( this.has_nuc_bb(i) || this.has_aa_bb(i) ) {
+        res.is_polymer = true;
       }
     }
   }
@@ -532,21 +536,28 @@ var Protein = function() {
     for (var i_pair=0; i_pair<close_pairs.length; i_pair++) {
       var a0 = atoms[pairs[i_pair][0]];
       var a1 = atoms[pairs[i_pair][1]];
+      if (a0.res_id == a1.res_id) { 
+        continue;
+      }
       var dist = v3.distance(a0.pos, a1.pos);
       if (dist <= cutoff) {
         var res0 = this.res_by_id[a0.res_id];
         var res1 = this.res_by_id[a1.res_id];
         if (!in_array(res1.i, res0.hb_partners)) {
-          res0.hb_partners.push(res1.i);
+          if ((a0.elem == "O") && (a1.elem == "N")) {
+            res0.hb_partners.push(res1.i);
+          } 
         }
         if (!in_array(res0.i, res1.hb_partners)) {
-          res1.hb_partners.push(res0.i);
+          if ((a1.elem == "O") && (a0.elem == "N")) {
+            res1.hb_partners.push(res0.i);
+          } 
         }
       }
     }
   }
 
-  this.is_hb = function(i_res0, i_res1) {
+  this.is_conh = function(i_res1, i_res0) {
     if ((i_res0 < 0) || (i_res0 >= this.residues.length)) {
       return false;
     }
@@ -558,61 +569,100 @@ var Protein = function() {
   }
 
 
+  this.is_double_hb = function(i_res0, i_res1) {
+    if ((i_res0 < 0) || (i_res0 >= this.residues.length)) {
+      return false;
+    }
+    if ((i_res1 < 0) || (i_res1 >= this.residues.length)) {
+      return false;
+    }
+    var i_res0 = this.residues[i_res0].i
+    return in_array(i_res0, this.residues[i_res1].hb_partners);
+  }
+
+  this.res_diff = function(i_res0, i_res1) {
+    var res0 = this.residues[i_res0];
+    var res1 = this.residues[i_res1];
+    return v3.diff(res1.target_view.pos, res0.target_view.pos);
+  }
+
   this.find_ss = function() {
 
     this.find_bb_hb_partners();
 
     // Find Secondary Structure...
     for (var j=0; j<this.residues.length; j+=1) {
-      var residue = this.residues[j].ss = "C";
+      var residue = this.residues[j];
+      residue.ss = "C";
       if (this.has_nuc_bb(j)) {
-        this.residues[j].ss = "D";
+        residue.ss = "D";
       }
+      residue.normals = [];
     }
 
     var n_res = this.residues.length;
     for (var i_res1=0; i_res1<this.residues.length; i_res1+=1) {
 
       // alpha-helix
-      if (this.is_hb(i_res1, i_res1+4) && this.is_hb(i_res1+1, i_res1+5)) {
+      if (this.is_conh(i_res1, i_res1+4) && this.is_conh(i_res1+1, i_res1+5)) {
+        var normal1 = this.res_diff(i_res1, i_res1+4);
+        var normal2 = this.res_diff(i_res1, i_res1+5);
         for (var i_res2=i_res1+1; i_res2<i_res1+5; i_res2+=1) {
           this.residues[i_res2].ss = 'H';
+          this.residues[i_res2].normals.push(normal1);
+          this.residues[i_res2].normals.push(normal2);
         }
       }
 
       // 3-10 helix
-      if (this.is_hb(i_res1, i_res1+3) && this.is_hb(i_res1+1, i_res1+4)) {
+      if (this.is_conh(i_res1, i_res1+3) && this.is_conh(i_res1+1, i_res1+4)) {
+        var normal1 = this.res_diff(i_res1, i_res1+3);
+        var normal2 = this.res_diff(i_res1, i_res1+4);
         for (var i_res2=i_res1+1; i_res2<i_res1+4; i_res2+=1) {
           this.residues[i_res2].ss = 'H';
+          this.residues[i_res2].normals.push(normal1);
+          this.residues[i_res2].normals.push(normal2);
         }
       }
 
       for (var i_res2=i_res1+1; i_res2<this.residues.length; i_res2+=1) {
 
-        if ((Math.abs(i_res1-i_res2) <= 5) || (!this.is_hb(i_res1, i_res2))) {
+        if ((Math.abs(i_res1-i_res2) <= 5)) {
           continue;
         }
 
         var beta_residues = [];
 
         // parallel beta sheet pairs
-        if (this.is_hb(i_res1-2, i_res2-2)) {
+        if (this.is_conh(i_res1, i_res2+1) &&
+            this.is_conh(i_res2-1, i_res1)) {
           beta_residues = beta_residues.concat(
-              [i_res1-2, i_res1-1, i_res1, i_res2-2, i_res2-1, i_res2])
+              [i_res1, i_res2])
         }
-        if (this.is_hb(i_res1+2, i_res2+2)) {
+        if (this.is_conh(i_res1-1, i_res2) &&
+            this.is_conh(i_res2, i_res1+1)) {
           beta_residues = beta_residues.concat(
-              [i_res1+2, i_res1+1, i_res1, i_res2+2, i_res2+1, i_res2])
+              [i_res1, i_res2])
         }
 
-        // anti-parallel beta sheet pairs
-        if (this.is_hb(i_res1-2, i_res2+2)) {
+        // anti-parallel hbonded beta sheet pairs
+        if (this.is_conh(i_res1, i_res2) &&
+            this.is_conh(i_res2, i_res1)) {
           beta_residues = beta_residues.concat(
-              [i_res1-2, i_res1-1, i_res1, i_res2+2, i_res2+1, i_res2])
+              [i_res1, i_res2])
+          var normal = this.res_diff(i_res1, i_res2);
+          this.residues[i_res1].normals.push(normal);
+          this.residues[i_res2].normals.push(v3.scaled(normal, -1));
         }
-        if (this.is_hb(i_res1+2, i_res2-2)) {
+
+        // anti-parallel non-hbonded beta sheet pairs
+        if (this.is_conh(i_res1-1, i_res2+1) && 
+            this.is_conh(i_res2-1, i_res1+1)) {
           beta_residues = beta_residues.concat(
-              [i_res1+2, i_res1+1, i_res1, i_res2-2, i_res2-1, i_res2])
+              [i_res1, i_res2])
+          var normal = this.res_diff(i_res1, i_res2);
+          this.residues[i_res1].normals.push(v3.scaled(normal, -1));
+          this.residues[i_res2].normals.push(normal);
         }
 
         for (var i=0; i<beta_residues.length; i+=1) {
@@ -623,6 +673,21 @@ var Protein = function() {
       }
 
     }
+
+    for (var i_res1=0; i_res1<this.residues.length; i_res1+=1) {
+      var res = this.residues[i_res1];
+      if (res.normals.length == 0) {
+        res.normal = null;
+      } else {
+        var normal = new v3.Vector(0, 0, 0);
+        for (var i=0; i<res.normals.length; i+=1) {
+          normal = v3.sum(normal, res.normals[i]);
+        }
+        res.normal = v3.normalized(normal);
+      }
+    }
+
+
 
   }
 
@@ -958,13 +1023,11 @@ var Scene = function(protein) {
   this.saved_show = null;
   
   this.calculate_abs_camera = function(view) {
-    var m_origin_view = this.origin.clone();
-    var m_current_view = view.clone();
     var m = get_camera_transform(
-        m_current_view.camera, m_origin_view.camera, 1);
-    m_current_view.camera.transform(m);
-    m_origin_view.camera.transform(m);
-    view.abs_camera = m_current_view.camera;
+        view.camera, this.origin.camera, 1);
+    var view_wrt_origin = view.clone();
+    view_wrt_origin.camera.transform(m);
+    view.abs_camera = view_wrt_origin.camera;
   }
   
   this.restore_camera_from_abs_camera = function(view) {
@@ -1118,11 +1181,13 @@ var Scene = function(protein) {
     this.n_update_step -= 1;
   }
 
+  this.move_origin_to_center = function() {
+    this.translate(v3.scaled(this.protein.center(), -1));
+  }
+
   this.make_default_view = function(default_html) {
 
-    this.translate(v3.scaled(this.protein.center(), -1));
-    
-    this.current_view = new View();
+    // this.current_view = new View();
     this.current_view.res_id = this.protein.residues[0].id;
     this.current_view.camera.z_front = protein.min_z;
     this.current_view.camera.z_back = protein.max_z;
@@ -1480,6 +1545,14 @@ var Controller = function(scene) {
     this.set_show_option(option, !val);
   }
 
+  this.flag_changed = function() {
+    this.scene.changed = true;
+  }
+
+  this.set_current_view = function(view) {
+    this.scene.current_view = view;
+    this.scene.changed = true;
+  }
 }
 
 

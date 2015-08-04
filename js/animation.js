@@ -8,7 +8,7 @@ window.keyboard_lock = false;
 // widgets to be animated in the same global event loop.
 
 window.register_global_animation_loop = function (new_display) {
-  var ms_per_step = 25;
+  var ms_per_step = 20;
 
   var loop = function() {
     if (global_displays == []) {
