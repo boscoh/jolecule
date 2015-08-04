@@ -801,10 +801,8 @@ var Protein = function() {
   this.select_neighbors = function(i_res, b) {
     this.residues[i_res].selected = true;
     for (var j=0; j<this.residues.length; j+=1) {
-      if (j != i_res) {
-        if (this.are_close_residues(j, i_res)) {
-          this.residues[j].selected = b;
-        }
+      if (this.are_close_residues(j, i_res)) {
+        this.residues[j].selected = b;
       }
     }
   }
