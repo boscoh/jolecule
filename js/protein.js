@@ -207,12 +207,12 @@ var Protein = function() {
     for (var i=0; i<this.residues.length; i+=1) {
       var res = this.residues[i];
       if (this.has_aa_bb(i)) {
-        res.target_view = res.atoms["CA"];
+        res.central_atom = res.atoms["CA"];
       } else if (this.has_nuc_bb(i)) {
-        res.target_view = res.atoms["C3'"];
+        res.central_atom = res.atoms["C3'"];
       } else {
         for (var k in res.atoms) {
-          res.target_view = res.atoms[k];
+          res.central_atom = res.atoms[k];
           // todo central atom of residue
           break;
         }
@@ -583,7 +583,7 @@ var Protein = function() {
   this.res_diff = function(i_res0, i_res1) {
     var res0 = this.residues[i_res0];
     var res1 = this.residues[i_res1];
-    return v3.diff(res1.target_view.pos, res0.target_view.pos);
+    return v3.diff(res1.central_atom.pos, res0.central_atom.pos);
   }
 
   this.find_ss = function() {
@@ -781,8 +781,8 @@ var Protein = function() {
   this.are_close_residues = function(j, k) {
     var res_j = this.residues[j];
     var res_k = this.residues[k];
-    var atom_j = this.atoms[res_j.target_view.i];
-    var atom_k = this.atoms[res_k.target_view.i];
+    var atom_j = this.atoms[res_j.central_atom.i];
+    var atom_k = this.atoms[res_k.central_atom.i];
     if (v3.distance(atom_j.pos, atom_k.pos) > 17) {
       return false;
     }
@@ -1075,7 +1075,7 @@ var Scene = function(protein) {
   this.find_atom_nearest_to_origin = function() {
     for (var i=0; i< this.protein.residues.length; i+= 1) {
       var res = this.protein.residues[i];
-      var p = res.target_view.pos;
+      var p = res.central_atom.pos;
       var d = p.x*p.x + p.y*p.y + p.z*p.z;
       if (d > 400) {
         continue;
