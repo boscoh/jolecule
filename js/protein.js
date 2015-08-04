@@ -1419,9 +1419,16 @@ var Controller = function(scene) {
     this.scene.changed = true;
   }
   
-  this.select_neighbors = function(b) {
+  this.toggle_neighbors = function() {
     var res_id = this.scene.current_view.res_id;
     var i_res = this.protein.get_i_res_from_res_id(res_id);
+    if ( this.last_neighbour_res_id == res_id ) {
+        var b = false;
+        this.last_neighbour_res_id = null;
+    } else {
+        var b = true;
+        this.last_neighbour_res_id = res_id;
+    }
     this.protein.select_neighbors(i_res, b);
     this.scene.current_view.selected = this.make_selected();
     this.scene.changed = true;

@@ -234,7 +234,7 @@ function EmbedJolecule(params) {
       });
     var neighbour = link_button(
       '', 'neig', 'jolecule-button', 
-      function() { _this.controller.select_neighbors(); });
+      function() { _this.controller.toggle_neighbors(); });
 
     this.header_div = $('<div>')
       .addClass('jolecule-embed-header')

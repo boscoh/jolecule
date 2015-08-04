@@ -461,7 +461,7 @@ var FullPageJolecule = function(
           this.views_display.div[view_id].edit_fn();
         }
       } else if (c == 'N') {
-        this.protein_display.controller.select_neighbors();
+        this.protein_display.controller.toggle_neighbors();
       } else if (c == 'A') {
         this.protein_display.atom_label_dialog();
       } else {
