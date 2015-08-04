@@ -798,12 +798,12 @@ var Protein = function() {
     return false;
   }
 
-  this.select_neighbors = function(i_res) {
+  this.select_neighbors = function(i_res, b) {
     this.residues[i_res].selected = true;
     for (var j=0; j<this.residues.length; j+=1) {
       if (j != i_res) {
         if (this.are_close_residues(j, i_res)) {
-          this.residues[j].selected = true;
+          this.residues[j].selected = b;
         }
       }
     }
@@ -1421,10 +1421,10 @@ var Controller = function(scene) {
     this.scene.changed = true;
   }
   
-  this.select_neighbors = function() {
+  this.select_neighbors = function(b) {
     var res_id = this.scene.current_view.res_id;
     var i_res = this.protein.get_i_res_from_res_id(res_id);
-    this.protein.select_neighbors(i_res);
+    this.protein.select_neighbors(i_res, b);
     this.scene.current_view.selected = this.make_selected();
     this.scene.changed = true;
     this.scene.is_new_view_chosen = true;
