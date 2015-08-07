@@ -206,19 +206,34 @@ var Protein = function() {
     }
     for (var i=0; i<this.residues.length; i+=1) {
       var res = this.residues[i];
+      if ( this.has_nuc_bb(i) || this.has_aa_bb(i) ) {
+        res.is_polymer = true;
+      }
       if (this.has_aa_bb(i)) {
         res.central_atom = res.atoms["CA"];
       } else if (this.has_nuc_bb(i)) {
         res.central_atom = res.atoms["C3'"];
       } else {
+        var pos = v3.create(0, 0, 0);
+        var n = 0;
         for (var k in res.atoms) {
-          res.central_atom = res.atoms[k];
-          // todo central atom of residue
-          break;
+          pos = v3.sum(pos, res.atoms[k].pos);
+          n += 1;
         }
-      }
-      if ( this.has_nuc_bb(i) || this.has_aa_bb(i) ) {
-        res.is_polymer = true;
+        pos.scale(1/n);
+        res.central_atom = null
+        min_d = 1E6
+        for (var k in res.atoms) {
+          if (res.central_atom == null) {
+            res.central_atom = res.atoms[k];
+            continue;
+          }
+          var d = v3.distance(pos, res.atoms[k].pos);
+          if (d < min_d) {
+            res.central_atom = res.atoms[k];
+            min_d = d;
+          }
+        }
       }
     }
   }
@@ -568,18 +583,6 @@ var Protein = function() {
     return in_array(i_res0, this.residues[i_res1].hb_partners);
   }
 
-
-  this.is_double_hb = function(i_res0, i_res1) {
-    if ((i_res0 < 0) || (i_res0 >= this.residues.length)) {
-      return false;
-    }
-    if ((i_res1 < 0) || (i_res1 >= this.residues.length)) {
-      return false;
-    }
-    var i_res0 = this.residues[i_res0].i
-    return in_array(i_res0, this.residues[i_res1].hb_partners);
-  }
-
   this.res_diff = function(i_res0, i_res1) {
     var res0 = this.residues[i_res0];
     var res1 = this.residues[i_res1];
@@ -603,10 +606,20 @@ var Protein = function() {
     var n_res = this.residues.length;
     for (var i_res1=0; i_res1<this.residues.length; i_res1+=1) {
 
+      var residue = this.residues[i_res1];
+      var atoms = residue.atoms;
+
+      if (residue.ss == "D") {
+        var forward = v3.diff(atoms["C3'"].pos, atoms["C5'"].pos);
+        var up = v3.diff(atoms["C1'"].pos, atoms["C3'"].pos);
+        var normal = v3.cross_product(forward, up);
+        residue.normals.push(normal);
+      }
+
       // alpha-helix
       if (this.is_conh(i_res1, i_res1+4) && this.is_conh(i_res1+1, i_res1+5)) {
         var normal1 = this.res_diff(i_res1, i_res1+4);
-        var normal2 = this.res_diff(i_res1, i_res1+5);
+        var normal2 = this.res_diff(i_res1+1, i_res1+5);
         for (var i_res2=i_res1+1; i_res2<i_res1+5; i_res2+=1) {
           this.residues[i_res2].ss = 'H';
           this.residues[i_res2].normals.push(normal1);
@@ -617,7 +630,7 @@ var Protein = function() {
       // 3-10 helix
       if (this.is_conh(i_res1, i_res1+3) && this.is_conh(i_res1+1, i_res1+4)) {
         var normal1 = this.res_diff(i_res1, i_res1+3);
-        var normal2 = this.res_diff(i_res1, i_res1+4);
+        var normal2 = this.res_diff(i_res1+1, i_res1+4);
         for (var i_res2=i_res1+1; i_res2<i_res1+4; i_res2+=1) {
           this.residues[i_res2].ss = 'H';
           this.residues[i_res2].normals.push(normal1);
@@ -705,12 +718,6 @@ var Protein = function() {
     this.max_length = this.calc_max_length();
     console.log("find secondary structure");
     this.find_ss();
-    var ss = "";
-    for (var j=0; j<this.residues.length; j+=1) {
-      ss += this.residues[j].ss;
-    }
-    console.log(ss);
-    console.log("buidl mesh");
   }
 
   this.transform = function(matrix) {
@@ -1008,7 +1015,7 @@ var View = function() {
 /////////////////////////////////////////////////
 
 var Scene = function(protein) {
-  this.max_update_step = 25;
+  this.max_update_step = 10;
   this.protein = protein;
   this.saved_views_by_id = {};
   this.saved_views = [];
@@ -1281,8 +1288,8 @@ var Controller = function(scene) {
   this.set_target_view_by_res_id = function(res_id) {
     var view = this.scene.current_view.clone();
     view.res_id = res_id;
-    view.i_atom = this.protein.res_by_id[res_id].target_view.i;
-    var pos = this.protein.res_by_id[res_id].target_view.pos.clone();
+    view.i_atom = this.protein.res_by_id[res_id].central_atom.i;
+    var pos = this.protein.res_by_id[res_id].central_atom.pos.clone();
     view.camera.transform(v3.translation(pos));
     this.set_target_view(view);
   }
