@@ -42,6 +42,34 @@ function extract_atom_lines(data) {
 }
 
 
+function get_central_atom_from_atom_dict(atom_dict) {
+  var pos = v3.create(0, 0, 0);
+  var n = 0;
+  for (var k in atom_dict) {
+    pos = v3.sum(pos, atom_dict[k].pos);
+    n += 1;
+  }
+  pos.scale(1/n);
+  var central_atom = null
+  min_d = 1E6
+  for (var k in atom_dict) {
+    if (central_atom == null) {
+      central_atom = atom_dict[k];
+      continue;
+    }
+    var d = v3.distance(pos, atom_dict[k].pos);
+    if (d < min_d) {
+      central_atom = atom_dict[k];
+      min_d = d;
+    }
+  }
+  return central_atom;
+}
+
+  
+
+
+
 var Protein = function() { 
   this.atoms = []; 
   this.bonds = [];
@@ -55,7 +83,7 @@ var Protein = function() {
          'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN',
          'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR'];
   dna = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C'];
-  rna = ['RA', 'RU', 'RC', 'RG', 'A', 'T', 'G', 'C', 'U'];
+  rna = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
   chonp = ['C', 'H', 'O', 'N', 'P'];
 
   function delete_numbers(text) {
@@ -113,6 +141,7 @@ var Protein = function() {
             'pos': v3.create(x, y, z),
             'res_type': res_type,
             'alt': alt,
+            'is_alt': false,
             'chain': chain,
             'i_chain': i_chain,
             'is_chonmp': is_chonmp,
@@ -128,6 +157,24 @@ var Protein = function() {
         return;
       }
     }
+  }
+
+  this.get_central_atom = function() {
+    var center = this.center();
+    var central_atom = null;
+    min_d = 1E6
+    for (var i=0; i<this.atoms.length; i+=1) {
+      if (central_atom == null) {
+        central_atom = this.atoms[i];
+        continue;
+      }
+      var d = v3.distance(center, this.atoms[i].pos);
+      if (d < min_d) {
+        central_atom = this.atoms[i];
+        min_d = d;
+      }
+    }
+    return central_atom;
   }
 
   this.get_res_id_from_atom = function(atom) {
@@ -171,6 +218,25 @@ var Protein = function() {
     }
   }
 
+  this.make_residue = function(a, res_id) {
+    var new_r = {
+      'chain': a.chain,
+      'num': a.res_num,
+      'type': a.res_type,
+      'id': res_id,
+      'selected': false,
+      'atoms': {},
+    }
+    new_r.is_water = a.res_type == "HOH";
+    var r_type = trim(new_r.type)
+    new_r.is_protein = in_array(r_type, aa);
+    new_r.is_nuc = in_array(r_type, dna) || in_array(r_type, rna);
+    new_r.is_protein_or_nuc = new_r.is_protein || new_r.is_nuc;
+    new_r.is_ligands = !new_r.is_water && !new_r.is_protein_or_nuc;
+    this.res_by_id[res_id] = new_r;
+    this.residues.push(new_r);
+  }
+
   this.make_residues = function() {
     this.res_by_id = {};
     this.residues = [];
@@ -179,61 +245,30 @@ var Protein = function() {
       var a = this.atoms[i];
       var new_res_id = this.get_res_id_from_atom(a);
       if (new_res_id != res_id) {
-        var new_r = {
-          'chain': a.chain,
-          'num': a.res_num,
-          'type': a.res_type,
-          'id': new_res_id,
-          'selected': false,
-          'atoms': {},
-        }
-        new_r.is_water = a.res_type == "HOH";
-        var r_type = trim(new_r.type)
-        new_r.is_protein = 
-           in_array(r_type, aa) || 
-           in_array(r_type, dna) ||
-           in_array(r_type, rna);
-        new_r.is_ligands = !new_r.is_water && !new_r.is_protein;
-        this.res_by_id[new_res_id] = new_r;
-        this.residues.push(new_r);
+        this.make_residue(a, new_res_id);
+        res_id = new_res_id;
       }
-      res_id = new_res_id;
-      this.res_by_id[res_id].atoms[a.type] = a;
-      a.res_id = new_r.id;
-      a.is_water = new_r.is_water;
-      a.is_protein = new_r.is_protein;
-      a.is_ligands = new_r.is_ligands;
+      var res = this.res_by_id[res_id];
+      if ( a.type in res.atoms) {
+        a.is_alt = true;
+      } else {
+        res.atoms[a.type] = a;
+        a.is_alt = false;
+      }
+      a.res_id = res.id;
+      a.is_water = res.is_water;
+      a.is_protein_or_nuc = res.is_protein_or_nuc;
+      a.is_ligands = res.is_ligands;
     }
     for (var i=0; i<this.residues.length; i+=1) {
       var res = this.residues[i];
-      if ( this.has_nuc_bb(i) || this.has_aa_bb(i) ) {
-        res.is_polymer = true;
-      }
+      res.i = i;
       if (this.has_aa_bb(i)) {
         res.central_atom = res.atoms["CA"];
       } else if (this.has_nuc_bb(i)) {
         res.central_atom = res.atoms["C3'"];
       } else {
-        var pos = v3.create(0, 0, 0);
-        var n = 0;
-        for (var k in res.atoms) {
-          pos = v3.sum(pos, res.atoms[k].pos);
-          n += 1;
-        }
-        pos.scale(1/n);
-        res.central_atom = null
-        min_d = 1E6
-        for (var k in res.atoms) {
-          if (res.central_atom == null) {
-            res.central_atom = res.atoms[k];
-            continue;
-          }
-          var d = v3.distance(pos, res.atoms[k].pos);
-          if (d < min_d) {
-            res.central_atom = res.atoms[k];
-            min_d = d;
-          }
-        }
+        res.central_atom = get_central_atom_from_atom_dict(res.atoms);
       }
     }
   }
@@ -243,7 +278,11 @@ var Protein = function() {
       return false;
     }
     if (("C3'" in this.residues[i].atoms) &&
+        ("O3'" in this.residues[i].atoms) &&
+        ("C2'" in this.residues[i].atoms) &&
+        ("C5'" in this.residues[i].atoms) &&
         ("C4'" in this.residues[i].atoms) &&
+        ("O4'" in this.residues[i].atoms) &&
         ("C1'" in this.residues[i].atoms)) {
       return true;
     }
@@ -524,14 +563,14 @@ var Protein = function() {
   this.find_bb_hb_partners = function(self) {
 
     // Find backbone hydrogen bonds for secondary structure
-    // analysis
+
     var vertices = [];
     var atoms = [];
     for (var j=0; j<this.residues.length; j+=1) {
       var residue = this.residues[j];
       residue.hb_partners = [];
       residue.i = j;
-      if (!residue.is_protein) {
+      if (!residue.is_protein_or_nuc) {
         continue;
       }
       if ("O" in residue.atoms) {
@@ -591,17 +630,32 @@ var Protein = function() {
 
   this.find_ss = function() {
 
-    this.find_bb_hb_partners();
+    // Find Secondary Structure
+    // H - alpha-helix/3-10-helix
+    // E - beta-sheet
+    // C - coil
+    // - - ligand
+    // W - water
+    // D - DNA or RNA
 
-    // Find Secondary Structure...
     for (var j=0; j<this.residues.length; j+=1) {
       var residue = this.residues[j];
-      residue.ss = "C";
-      if (this.has_nuc_bb(j)) {
-        residue.ss = "D";
+      residue.ss = "-";
+      if (residue.is_water) {
+        residue.ss = "W";
+      } 
+      if (residue.is_protein_or_nuc) {
+        if (this.has_nuc_bb(j)) {
+          residue.ss = "D";
+        } 
+        if (this.has_aa_bb(j)) {
+          residue.ss = "C";
+        }
       }
       residue.normals = [];
     }
+
+    this.find_bb_hb_partners();
 
     var n_res = this.residues.length;
     for (var i_res1=0; i_res1<this.residues.length; i_res1+=1) {
@@ -699,9 +753,6 @@ var Protein = function() {
         res.normal = v3.normalized(normal);
       }
     }
-
-
-
   }
 
   this.load = function(protein_data) {
@@ -712,12 +763,10 @@ var Protein = function() {
     this.make_residues();
     console.log("find bonds");
     this.make_bonds(this.calc_bonds());
-    console.log("make z objects");
-    this.make_plates();
-    this.make_trace();
     this.max_length = this.calc_max_length();
     console.log("find secondary structure");
     this.find_ss();
+    console.log("finish protein analysis");
   }
 
   this.transform = function(matrix) {
@@ -959,7 +1008,7 @@ var View = function() {
   this.order = 1;
   this.camera = new Camera();
   this.abs_camera = new Camera();
-  this.selected = "";
+  this.selected = [];
   this.labels = [];
   this.distances = [];
   this.text = 'Default view of PDB file';
@@ -967,6 +1016,7 @@ var View = function() {
   this.url = url();
   this.show = {  
       sidechain: true,
+      peptide: true,
       hydrogen: false,
       water: false,
       ligands: true,
@@ -1015,7 +1065,7 @@ var View = function() {
 /////////////////////////////////////////////////
 
 var Scene = function(protein) {
-  this.max_update_step = 10;
+  this.max_update_step = 20;
   this.protein = protein;
   this.saved_views_by_id = {};
   this.saved_views = [];
@@ -1229,6 +1279,7 @@ var Controller = function(scene) {
  
   this.delete_dist = function(i) {
     this.scene.current_view.distances.splice(i, 1);
+    this.scene.changed = true;
   }
   
   this.make_dist = function(atom1, atom2) {
@@ -1248,6 +1299,7 @@ var Controller = function(scene) {
   
   this.delete_label = function(i) {
     this.scene.current_view.labels.splice(i, 1);
+    this.scene.changed = true;
   }
   
   this.rotate_xy = function(x_angle, y_angle) {
@@ -1370,9 +1422,9 @@ var Controller = function(scene) {
       distances: view.distances,
       camera: {
         slab: {
-            z_front: view.camera.z_front,
-            z_back: view.camera.z_back,
-            zoom: view.camera.zoom,
+            z_front: view.abs_camera.z_front,
+            z_back: view.abs_camera.z_back,
+            zoom: view.abs_camera.zoom,
         },
         pos: [
           view.abs_camera.pos.x,
@@ -1397,7 +1449,8 @@ var Controller = function(scene) {
     var view_dicts = [];
     for (var i=1; i<this.scene.saved_views.length; i+=1) {
       var view = this.scene.saved_views[i];
-      view_dicts.push(this.get_view_dict(view));
+      var view_dict = this.get_view_dict(view);
+      view_dicts.push(view_dict);
     }
     return view_dicts;
   }

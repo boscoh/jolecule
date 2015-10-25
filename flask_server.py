@@ -76,6 +76,7 @@ def compile_jolecule_js():
     js_fnames = """
         util v3 animation canvaswidget protein proteindisplay
         embedjolecule fullpagejolecule dataserver
+        glgeometry glproteindisplay
         """.split()
     js_fnames = [
         os.path.join(

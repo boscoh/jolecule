@@ -30,8 +30,7 @@ function EmbedJolecule(params) {
     if (!default_text) {
       default_text = "";
     }
-    this.scene.move_origin_to_center();
-    this.scene.make_default_view(default_text);
+    this.protein_display.post_load(default_text);
     this.populate_residue_selector();
     this.loading_message_div.remove();
   }
@@ -108,17 +107,17 @@ function EmbedJolecule(params) {
   }
 
   this.is_changed = function() {
-    if (!this.scene) {
+    if (!exists(this.protein_display)) {
       return false;
     }
-    return this.scene.changed;
+    return this.protein_display.is_changed();
   }
 
   this.animate = function() {
-    if (this.protein_display) {
-      this.protein_display.scene.animate();
+    if (exists(this.protein_display)) {
+      this.protein_display.animate();
       if (this.is_loop) {
-        if (this.scene.n_update_step < 0) {
+        if (this.scene.n_update_step <= 0) {
           // loop started
           this.scene.n_update_step -= 1;
           if (this.scene.n_update_step < -100) {
@@ -130,12 +129,14 @@ function EmbedJolecule(params) {
     }
   }
 
-  this.draw =function() { 
-    if (this.scene.changed) {
-      this.residue_selector.val(this.scene.current_view.res_id);
-      this.update_view();
-      this.protein_display.draw();
-      this.scene.changed = false;
+  this.draw = function() { 
+    if (exists(this.protein_display)) {
+      if (this.scene.changed) {
+        this.residue_selector.val(this.scene.current_view.res_id);
+        this.update_view();
+        this.protein_display.draw();
+        this.scene.changed = false;
+      }
     }
   }
 
@@ -214,11 +215,11 @@ function EmbedJolecule(params) {
       function() { return _this.controller.get_show_option('water'); },
       function(b) { _this.controller.set_show_option('water', b); }
     );
-    this.hyd = toggle_button(
-      '', 'h', 'jolecule-button', 
-      function() { return _this.controller.get_show_option('hydrogen'); },
-      function(b) { _this.controller.set_show_option('hydrogen', b); }
-    );
+    // this.hyd = toggle_button(
+    //   '', 'h', 'jolecule-button', 
+    //   function() { return _this.controller.get_show_option('hydrogen'); },
+    //   function(b) { _this.controller.set_show_option('hydrogen', b); }
+    // );
 
     var backbone = link_button(
       '', 'bb', 'jolecule-button', 
@@ -249,7 +250,7 @@ function EmbedJolecule(params) {
           .append(this.residue_selector)
           .append(' ')
           .append(this.lig)
-          .append(this.hyd)
+          // .append(this.hyd)
           .append(this.wat)
           .append(' ')
           .append(backbone)
@@ -269,7 +270,9 @@ function EmbedJolecule(params) {
         this.h_annotation_view;
     this.protein_div = 
       $('<div>')
+        .attr('id', 'jolecule-protein-display')
         .addClass('jolecule-embed-body')
+        .css('overflow', 'hidden')
         .css('width', this.div.outerWidth())
         .css('height', height);
     this.div.append(this.protein_div);
@@ -322,7 +325,6 @@ function EmbedJolecule(params) {
           .append(save_button)
           .append(text_button)
       )
-      .append('<br clear=all>')
 
     this.div.append(this.status_div);
   }
@@ -343,7 +345,7 @@ function EmbedJolecule(params) {
       save_change: function(text) { _this.change_text(text); },
       pick: do_nothing,
       embed_view: function() {
-        window.location.href = '/embed/pdb/' + view.pdb_id + '?view=' + view.id;
+        window.location.href = '/embed/pdb/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id;
       },
     });
     this.real_view_div = view_piece.div;
@@ -355,7 +357,7 @@ function EmbedJolecule(params) {
       .append(this.real_view_div)
     this.lig.redraw();
     this.wat.redraw();
-    this.hyd.redraw();
+    // this.hyd.redraw();
   }
 
   this.create_view_div = function() {
@@ -366,14 +368,18 @@ function EmbedJolecule(params) {
 
   this.resize = function(event) {
     this.protein_div.width(this.div.outerWidth());
-    this.protein_div.height(
-      this.div.outerHeight()
+    var new_height = this.div.outerHeight()
         - this.header_div.outerHeight()
         - this.view_div.outerHeight()
-        - this.status_div.outerHeight());
-    if (typeof this.scene !== "undefined") {
+        - this.status_div.outerHeight();
+    if (exists(this.protein_display)) {
+      if (exists(this.protein_display.renderer)) {
+        this.protein_display.renderer.domElement.style.height = new_height;
+        this.protein_display.resize();
+      }
       this.scene.changed = true;
     }
+    this.protein_div.css('height', new_height);
   }
 
   this.init = function(params) {
@@ -381,7 +387,7 @@ function EmbedJolecule(params) {
     this.is_loop = this.params.is_loop;
 
     this.div_tag = this.params.div_tag;
-    this.div = $(this.params.div_tag)
+    this.div = $(this.params.div_tag);
 
     this.div[0].oncontextmenu = do_nothing;
 
@@ -398,10 +404,9 @@ function EmbedJolecule(params) {
     this.create_status_div();
     this.create_view_div();
 
-    this.canvas_widget = new CanvasWidget(
-        this.protein_div, 'black');
-    this.protein_display = new ProteinDisplay(
-        this.scene, this.canvas_widget, this.controller);
+    this.protein_display = new GlProteinDisplay(
+      this.scene, '#jolecule-protein-display', this.controller);
+
     this.protein_display.min_radius = 10;
 
     var blink_text = $('<div>').html(this.params.loading_html);
@@ -440,6 +445,7 @@ function EmbedJolecule(params) {
         _this.load_protein_data(protein_data); 
         _this.resize();
         _this.data_server.get_views(load_view_dicts);
+        _this.residue_selector.val(_this.scene.current_view.res_id);
       }
     }
 

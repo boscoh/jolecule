@@ -311,7 +311,8 @@ class JoleculeJsHandler(webapp.RequestHandler):
         if not hasattr(self, 'js'):
             js_fnames = """
             util v3 animation canvaswidget protein proteindisplay
-            embedjolecule fullpagejolecule dataserver
+            embedjolecule fullpagejolecule dataserver 
+            glgeometry glproteindisplay
             """.split()
             js_fnames = ['js/%s.js' % f for f in js_fnames]
             js_list = [open(f).read() for f in js_fnames]

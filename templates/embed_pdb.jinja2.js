@@ -1,8 +1,10 @@
 <!-- jolecule widget will be inserted, style this yourself -->
 <div id="jolecule-embed"></div> 
 
-<link rel="stylesheet" type="text/css" href="{{css_dir}}/jolecule.css" />
+<link rel="stylesheet" type="text/css" href="{{css_dir}}/embed-jolecule.css" />
 <script type="text/javascript" src="{{js_dir}}/jquery-2.0.3.js"></script>
+<script type="text/javascript" src="{{js_dir}}/three.min.js"></script> 
+<script type="text/javascript" src="{{js_dir}}/underscore-min.js"></script> 
 <script type="text/javascript" src="{{js_dir}}/jolecule.js"></script> 
 <script type="text/javascript" src="{{data_server_url}}"></script> 
 

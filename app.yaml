@@ -28,5 +28,8 @@ handlers:
 - url: /jolecule.css
   static_files: static/jolecule.css
   upload: static/jolecule.css
+- url: /embed-jolecule.css
+  static_files: static/embed-jolecule.css
+  upload: static/embed-jolecule.css
 - url: /.*
   script: gae_server.py

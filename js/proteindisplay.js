@@ -193,11 +193,15 @@ function z_rgb(z, rgb, camera) {
 }
 
 
-var ProteinDisplay = function(scene, canvas_widget, controller) {
+var ProteinDisplay = function(scene, selector, controller) {
+
+  this.parent_div = $(selector);
+  this.canvas_widget = new CanvasWidget(
+      this.parent_div, 'black');
+
   this.controller = controller;
   this.scene = scene;
   this.protein = scene.protein;
-  this.canvas_widget = canvas_widget;
   
   this.z_list = [];
 
@@ -211,7 +215,7 @@ var ProteinDisplay = function(scene, canvas_widget, controller) {
   this.min_radius = 5;
   
   this.zslab_display = new ZSlabDisplay(
-      canvas_widget, scene, controller);
+      this.canvas_widget, scene, controller);
 
   if (is_ipad()) {
     this.min_radius = 10;
@@ -255,6 +259,13 @@ var ProteinDisplay = function(scene, canvas_widget, controller) {
     } else {
       return residue.selected;
     }
+  }
+
+  this.post_load = function(default_text) {
+    this.protein.make_plates();
+    this.protein.make_trace();
+    this.scene.move_origin_to_center();
+    this.scene.make_default_view(default_text);
   }
 
   this.is_visible = function(pos) {
@@ -567,6 +578,17 @@ var ProteinDisplay = function(scene, canvas_widget, controller) {
           '20px sans-serif', 'grey', 'center');
       this.pop_text = '';
     }
+  }
+
+  this.animate = function() {
+    this.scene.animate();
+  }
+  
+  this.is_changed = function() {
+    if (!this.scene) { 
+      return false;
+    }
+    return this.scene.changed;
   }
 
   this.gesturestart = function(event) {

@@ -24,7 +24,9 @@ var SequenceDisplay = function(div_tag, controller) {
       if (res_id == this.scene.current_view.res_id) {
         this.res_div[i].target.removeClass("jolecule-unselected-box");
         this.res_div[i].target.addClass("jolecule-selected-box");
-        $('#jolecule-sequence').scrollTo(this.res_div[i].target, 1000, {offset:{top:-80}});
+        $('#jolecule-sequence').stop();
+        $('#jolecule-sequence').scrollTo(
+          this.res_div[i].target, 1000, {offset:{top:-80}});
       } else {
         this.res_div[i].target.removeClass("jolecule-selected-box");
         this.res_div[i].target.addClass("jolecule-unselected-box");
@@ -32,9 +34,9 @@ var SequenceDisplay = function(div_tag, controller) {
     }
     for (var i=0; i<this.protein.residues.length; i+=1) {
       if (this.protein.residues[i].selected) {
-        this.res_div[i].select.attr('checked', true);
+        this.res_div[i].select.prop('checked', true);
       } else {
-        this.res_div[i].select.attr('checked', false);
+        this.res_div[i].select.prop('checked', false);
       }
     }
   }
@@ -200,6 +202,7 @@ var ViewsDisplay = function(div_tag, controller, protein_display, data_server) {
 
   this.redraw_selected_view_id = function(id) {
     this.update_views();
+    $("#jolecule-views").stop();
     $("#jolecule-views").scrollTo(
       this.view_piece[id].div, 1000, {offset:{top:-80}});
   }
@@ -333,6 +336,7 @@ var ViewsDisplay = function(div_tag, controller, protein_display, data_server) {
     var _this = this;
     var success = function() {
       _this.view_piece[new_id].div.css('background-color', '');
+      $("#jolecule-views").stop();
       $("#jolecule-views").scrollTo(
         _this.view_piece[new_id].div, 
         1000, 
@@ -450,8 +454,8 @@ var FullPageJolecule = function(
         this.controller.toggle_show_option('sidechain');
       } else if (c == 'W') {
         this.controller.toggle_show_option('water');
-      } else if (c == 'H') {
-        this.controller.toggle_show_option('hydrogen');
+      // } else if (c == 'H') {
+      //   this.controller.toggle_show_option('hydrogen');
       } else if (c == 'C') {
         this.protein_display.controller.clear_selected();
       } else if (c == 'E') {
@@ -513,7 +517,8 @@ var FullPageJolecule = function(
     hash_tag = url().split('#')[1];
     if (hash_tag in this.scene.saved_views_by_id) {
       this.views_display.set_target_by_view_id(hash_tag);
-      this.scene.is_new_view_chosen = true;
+    } else {
+      this.views_display.set_target_by_view_id('view:000000');
     }
     this.views_display.update_views();
 

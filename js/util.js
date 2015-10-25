@@ -23,6 +23,26 @@ function get_pdb_id_from_url(loc) {
 }
 
 
+function pos_dom(in_dom) {
+  var curr_dom = in_dom;
+  var curr_left = curr_top = 0;
+  if (curr_dom.offsetParent) {
+    curr_left = curr_dom.offsetLeft;
+    curr_top = curr_dom.offsetTop;
+    while (curr_dom = curr_dom.offsetParent) {
+      curr_left += curr_dom.offsetLeft;
+      curr_top += curr_dom.offsetTop;
+    }
+  }
+  curr_dom = in_dom;
+  do {
+    curr_left -= curr_dom.scrollLeft || 0;
+    curr_top -= curr_dom.scrollTop || 0;
+  } while (curr_dom = curr_dom.parentNode);
+  return [curr_left, curr_top];
+}
+
+
 blink = function(selector) {
   $(selector).animate(
     {opacity:0}, 50, "linear",
@@ -51,10 +71,11 @@ link_button = function(id_tag, html_text, class_tag, click) {
   }
 
   if (click) {
-    item.click(
+    item.on(' click touch ',
       function(e) { 
+        console.log( 'clickity click ');
+        e.preventDefault();
         click(); 
-        return false; 
       }
     );
   }
@@ -72,9 +93,9 @@ toggle_button = function(id_tag, html_text, class_tag, get_toggle, toggle) {
 
   var color = function() {
     if (get_toggle()) {
-      item.css('background', '#444')
+      item.addClass('jolecule-button-toggle-on');
     } else {
-      item.css('background', '#777')
+      item.removeClass('jolecule-button-toggle-on');
     }
 
   }
@@ -340,7 +361,7 @@ function stick_in_center(parent, target, x_offset, y_offset) {
   var left = parent.position().left;
   var w_parent = parent.outerWidth();
   var h_parent = parent.outerHeight();
-  parent.append(target);
+  parent.prepend(target);
   var w_target = target.outerWidth();
   var h_target = target.outerHeight();
   target.css({
