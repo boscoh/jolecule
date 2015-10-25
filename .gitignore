@@ -1,7 +1,10 @@
-*pyc 
 */*pyc
 */*/*pyc
 misc
 *log
 *url
 *.pdb
+*.json
+touchchrome.sh
+test.html
+*.pyc 
