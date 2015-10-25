@@ -455,7 +455,7 @@ DistanceLabel = function (
             'top': 0,
             'left': 0,
             'z-index': 100,
-            'background': 'lightblue',
+            'background-color': '#FFDDDD',
             'padding': '5',
             'opacity': 0.7,
             'font-family': 'sans-serif'
@@ -466,7 +466,7 @@ DistanceLabel = function (
     geometry.vertices.push( new TV3( 1, 1, 1 ) );
 
     var material = new THREE.LineDashedMaterial( {
-        color: 0x7777FF,
+        color: 0xFF7777,
         dashSize: 3,
         gapSize: 4,
         linewidth: 2
@@ -1108,26 +1108,28 @@ ZSlabBar.prototype.draw = function () {
     var yFront = this.zToY( camera.z_front );
     var yMid = this.zToY( 0 );
 
-    this.rect(
-        0, 0, this.width(), this.height(),
-        "rgba(40, 40, 40, 0.75)" );
+    var grey = "rgba(40, 40, 40, 0.75)";
+    var dark = "rgba(100, 70, 70, 0.75)";
+    var light = "rgba(150, 90, 90, 0.75)";
 
     this.rect(
-        0, yBack, this.width(), yMid - yBack,
-        "rgba(60, 40, 40, 0.75)" );
+        0, 0, this.width(), this.height(), grey);
 
     this.rect(
-        0, yMid, this.width(), yFront - yMid,
-        "rgba(40, 60, 40, 0.75)" );
+        0, yBack, this.width(), yMid - yBack, dark );
+
+    this.rect(
+        0, yMid, this.width(), yFront - yMid, light );
 
     var font = '12px sans-serif';
     var xm = this.width() / 2;
 
-    this.text( 'zslab', xm, 7, font, "rgb(40, 90, 40)", 'center' )
-    this.text( 'back', xm, yBack - 7, font, "rgb(90, 40, 40)",
-        'center' )
-    this.text( 'front', xm, yFront + 7, font, "rgb(40, 90, 40)",
-        'center' )
+    this.text( 
+        'zslab', xm, 7, font, light, 'center' )
+    this.text( 
+        'back', xm, yBack - 7, font, dark, 'center' )
+    this.text( 
+        'front', xm, yFront + 7, font, light, 'center' )
 }
 
 
@@ -1279,7 +1281,7 @@ GlProteinDisplay = function ( scene, selector, controller ) {
     this.sequenceWidget = new SequenceWidget( this.selector, this.scene, this );
 
     this.distancePartnerPointer = new LineElement(
-        this.selector, "#7777FF" );
+        this.selector, "#FF7777" );
 
     var _this = this;
 
