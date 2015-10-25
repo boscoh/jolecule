@@ -1,19 +1,22 @@
 
 
-# jolecule - a javascript protein viewer
+# jolecule - a javascript/WebGL viewer for proteins and DNA
 
-`jolecule` is a HTML5 viewer for protein molecules. It can be accessed via the public website <http://jolecule.com> or run locally on PDB files.
+`jolecule` is a WebGL protein viewer for proteins and DNA. It can used:
 
-`jolecule` provides a stylized view of a protein with a small number of visual options designed to highlight residues and atomic interactions. You can easily create views that highlight specific interactions, which can be easily strung together into an interactive slideshow.
+- through the public website <http://jolecule.com> 
+- on your smartphone
+- as a local webapp for your PDB files
+- as an embeded widget on your website
 
-`jolecule` is web-responsive, adapts to smartphones, and uses the same code-base for web, local, and mobile. It is easy to embed `jolecule` as a widget in other webpages.
+The download here is for using `jolecule` as a local webapp, or building embedded `jolecule` widgets in  your website.
 
 
 ## Installation
 
 Download this [package](https://github.com/boscoh/jolecule/archive/master.zip).
 
-The actual viewer is written in javascript/HTML5 and runs in a webbrowser. To run `jolecule` locally, you also need Python and some libraries.
+The viewer is written in javascript/HTML5 and runs in a webbrowser. To run `jolecule` locally, you also need Python and some libraries.
 
 The requirements are:
 
@@ -42,6 +45,11 @@ Once the GUI is started, click on `Load PDB`. This will start the local web-serv
 _On the command line_, you can put `jolecule.py` on the path, and then:
 
     jolecule.py 1abc.pdb
+
+
+## Visual/GUI Design 
+
+`jolecule` optimizes a simple but rich interface that focuses on stereochemistry. The focus is on Richardson ribbons that join with sidechains correctly. Ligands are rendered as balls-and-sticks to allow the stereochemistry to be seen clearly. As well arrows are used indicate directionality on both protein and DNA chains.
 
 
 ## Views and Animated Slideshows
@@ -111,6 +119,12 @@ The parameters in `EmbedJolecule` controls how the widget is displayed:
 
 ## Changelog
 
+- 3.0 (Oct 2015)
+    - switched rendering to three.js/WebGL
+    - DNA ribbon representation
+    - arrow for Calphas
+    - sequence-bar 
+    - peptide-bond block representation
 - 2.0 (June 2015)
 	- bond detector 
 	- global animation loop
@@ -123,4 +137,5 @@ The parameters in `EmbedJolecule` controls how the widget is displayed:
 	- generation of self-contained webapp
 	- single codebase for appengine/local-web/self-contained
 	- responsive/iOS-touch web design
-- 1.0 (May 2011) - original release
+- 1.0 (May 2011) 
+    - original release
