@@ -1,5 +1,12 @@
+import THREE from "three";
+
 var TV3 = THREE.Vector3;
 var TCo = THREE.Color;
+
+
+function exists(x) {
+    return typeof x !== 'undefined';
+}
 
 
 function catmulRomSpline( t, p1, p2, p3, p4 ) {
@@ -163,14 +170,14 @@ function BlockArrowGeometry() {
             new TV3( 0, 0.3, 0 )
         ] );
 
-    THREE.ExtrudeGeometry.call( 
-        this, 
-        shape, 
+    THREE.ExtrudeGeometry.call(
+        this,
+        shape,
         {
             steps: 2,
             bevelEnabled: false,
             extrudePath: path,
-        } 
+        }
     );
 
     this.type = 'BlockArrowGeometry';
@@ -236,7 +243,7 @@ function drawCylinder( from, to, radius, color, cap ) {
 function drawBlockArrow( point, tangent, normal, color ) {
 
     if ( typeof blockArrowGeometry == 'undefined' ) {
-        blockArrowGeometry = new BlockArrowGeometry();
+        var blockArrowGeometry = new BlockArrowGeometry();
     }
 
     var mesh = new THREE.Mesh(
@@ -336,6 +343,7 @@ function RaisedShapeGeometry( vertices, thickness ) {
     }
 
     for ( var i = 0; i < nVertex; i += 1 ) {
+        var j;
         if ( i == nVertex - 1 ) {
             j = 0;
         } else {
@@ -592,3 +600,20 @@ function setGeometryVerticesColor( geom, color ) {
 
 //     return new THREE.Mesh( geometry, material );
 // }
+
+
+export {
+    PathAndFrenetFrames,
+    BlockArrowGeometry,
+    UnitCylinderGeometry,
+    drawCylinder,
+    drawBlockArrow,
+    setVisible,
+    expandPath,
+    perpVector,
+    RaisedShapeGeometry,
+    RibbonGeometry,
+    getUnitVectorRotation,
+    getFractionRotation,
+    setGeometryVerticesColor
+}

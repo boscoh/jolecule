@@ -1,3 +1,7 @@
+
+import $ from "jquery";
+
+
 // Utility functions
 
 
@@ -25,7 +29,8 @@ function get_pdb_id_from_url(loc) {
 
 function pos_dom(in_dom) {
   var curr_dom = in_dom;
-  var curr_left = curr_top = 0;
+  var curr_left = 0;
+  var curr_top = 0;
   if (curr_dom.offsetParent) {
     curr_left = curr_dom.offsetLeft;
     curr_top = curr_dom.offsetTop;
@@ -43,7 +48,7 @@ function pos_dom(in_dom) {
 }
 
 
-blink = function(selector) {
+function blink(selector) {
   $(selector).animate(
     {opacity:0}, 50, "linear",
     function() {
@@ -59,7 +64,7 @@ blink = function(selector) {
 }
 
 
-link_button = function(id_tag, html_text, class_tag, click) {
+function link_button(id_tag, html_text, class_tag, click) {
   var item = 
     $('<a>')
       .attr('id', id_tag)
@@ -84,7 +89,7 @@ link_button = function(id_tag, html_text, class_tag, click) {
 }
 
 
-toggle_button = function(id_tag, html_text, class_tag, get_toggle, toggle) {
+function toggle_button(id_tag, html_text, class_tag, get_toggle, toggle) {
   var item = 
     $('<a>')
       .attr('id', id_tag)
@@ -120,7 +125,7 @@ toggle_button = function(id_tag, html_text, class_tag, get_toggle, toggle) {
 }
 
 
-create_message_div = function(text, width, cleanup) {
+function create_message_div(text, width, cleanup) {
   var edit_div = $('<div>')
     .addClass('jolecule-textbox')
     .css({'width':width});
@@ -137,7 +142,7 @@ create_message_div = function(text, width, cleanup) {
 }
 
 
-create_edit_box_div = function(init_text, width, change, cleanup, label) {
+function create_edit_box_div(init_text, width, change, cleanup, label) {
 
   var accept_edit = function() { 
     change(textarea.val());
@@ -184,7 +189,7 @@ create_edit_box_div = function(init_text, width, change, cleanup, label) {
 }
 
 
-var ViewPiece = function(params) {
+function ViewPiece(params) {
 
   this.save_change = function() {
      var changed_text = this.edit_textarea.val();
@@ -438,3 +443,27 @@ function get_current_date() {
 }
 
 
+export {
+    exists,
+    is_ipad,
+    url,
+    get_pdb_id_from_url,
+    pos_dom,
+    blink,
+    link_button,
+    toggle_button,
+    create_message_div,
+    create_edit_box_div,
+    ViewPiece,
+    stick_in_top_left,
+    stick_in_center,
+    in_array,
+    del_from_array,
+    trim,
+    do_nothing,
+    clone_dict,
+    clone_list_of_dicts,
+    random_string,
+    random_id,
+    get_current_date,
+}

@@ -1,3 +1,34 @@
+import scrollTo from "jquery.scrollto";
+import $ from "jquery";
+import _ from "underscore";
+import {is_canvas_supported, CanvasWidget} from "./canvaswidget";
+import { EmbedJolecule } from "./embedjolecule";
+import {
+    exists,
+    is_ipad,
+    url,
+    get_pdb_id_from_url,
+    pos_dom,
+    blink,
+    link_button,
+    toggle_button,
+    create_message_div,
+    create_edit_box_div,
+    ViewPiece,
+    stick_in_top_left,
+    stick_in_center,
+    in_array,
+    del_from_array,
+    trim,
+    do_nothing,
+    clone_dict,
+    clone_list_of_dicts,
+    random_string,
+    random_id,
+    get_current_date,
+} from "./util";
+
+
 //////////////////////////////////////////////////////////
 // 
 // jolecule - the javascript based protein/dna viewer
@@ -109,13 +140,13 @@ var SequenceDisplay = function(div_tag, controller) {
   this.build_divs = function() {
     var sequence_div = $("#jolecule-sequence");
     for (var i=0; i<this.protein.residues.length; i+=1) {
-      elem = this.create_residue_div(i);
+      var elem = this.create_residue_div(i);
       sequence_div.append(elem.target);
       this.res_div.push(elem);
     }
     
     this.scene.current_view.res_id = this.protein.residues[0].id;
-    hash_tag = url().split('#')[1];
+    var hash_tag = url().split('#')[1];
     if (hash_tag in this.protein.res_by_id) {
       this.controller.set_target_view_by_res_id(hash_tag);
     }
@@ -514,7 +545,7 @@ var FullPageJolecule = function(
         this.sequence_display_tag, this.controller);
     this.sequence_display.build_divs();
 
-    hash_tag = url().split('#')[1];
+    var hash_tag = url().split('#')[1];
     if (hash_tag in this.scene.saved_views_by_id) {
       this.views_display.set_target_by_view_id(hash_tag);
     } else {
@@ -550,7 +581,7 @@ var FullPageJolecule = function(
 }
 
 
-
+export { FullPageJolecule }
 
 
 

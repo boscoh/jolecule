@@ -1,23 +1,79 @@
+import THREE from "three";
+import $ from "jquery";
+import _ from "underscore";
+import v3 from "./vthree";
+import {is_canvas_supported, CanvasWidget} from "./canvaswidget";
+import {
+    atom_radius,
+    Protein,
+    Camera,
+    is_equal_camera,
+    get_camera_transform,
+    View,
+    Controller,
+    Scene
+} from "./protein";
+import {
+    PathAndFrenetFrames,
+    BlockArrowGeometry,
+    UnitCylinderGeometry,
+    drawCylinder,
+    perpVector,
+    expandPath,
+    drawBlockArrow,
+    setVisible,
+    RaisedShapeGeometry,
+    RibbonGeometry,
+    getUnitVectorRotation,
+    getFractionRotation,
+    setGeometryVerticesColor
+} from "./glgeometry";
+import {
+  exists,
+  is_ipad,
+  url,
+  get_pdb_id_from_url,
+  pos_dom,
+  blink,
+  link_button,
+  toggle_button,
+  create_message_div,
+  create_edit_box_div,
+  ViewPiece,
+  stick_in_top_left,
+  stick_in_center,
+  in_array,
+  del_from_array,
+  trim,
+  do_nothing,
+  clone_dict,
+  clone_list_of_dicts,
+  random_string,
+  random_id,
+  get_current_date,
+} from "./util";
+
+var TV3 = THREE.Vector3;
 
 
 // Color constants
 
-green = new THREE.Color( 0x66CC66 );
-blue = new THREE.Color( 0x6666CC )
-yellow = new THREE.Color( 0xCCCC44 );
-purple = new THREE.Color( 0xCC44CC );
-grey = new THREE.Color( 0xBBBBBB );
-red = new THREE.Color( 0x993333 );
+var green = new THREE.Color( 0x66CC66 );
+var blue = new THREE.Color( 0x6666CC )
+var yellow = new THREE.Color( 0xCCCC44 );
+var purple = new THREE.Color( 0xCC44CC );
+var grey = new THREE.Color( 0xBBBBBB );
+var red = new THREE.Color( 0x993333 );
 
-darkGreen = new THREE.Color( 0x226622 );
-darkBlue = new THREE.Color( 0x333399 )
-darkYellow = new THREE.Color( 0x999922 );
-darkPurple = new THREE.Color( 0x992299 );
-darkGrey = new THREE.Color( 0x555555 );
-darkRed = new THREE.Color( 0x662222 );
+var darkGreen = new THREE.Color( 0x226622 );
+var darkBlue = new THREE.Color( 0x333399 )
+var darkYellow = new THREE.Color( 0x999922 );
+var darkPurple = new THREE.Color( 0x992299 );
+var darkGrey = new THREE.Color( 0x555555 );
+var darkRed = new THREE.Color( 0x662222 );
 
 
-ElementColors = {
+var ElementColors = {
     "H": 0xCCCCCC,
     "C": 0xAAAAAA,
     "O": 0xCC0000,
@@ -34,7 +90,7 @@ ElementColors = {
 
 
 
-getSsColor = function ( ss ) {
+var getSsColor = function ( ss ) {
 
     if ( ss == "E" ) {
         return yellow;
@@ -52,7 +108,7 @@ getSsColor = function ( ss ) {
 }
 
 
-getDarkSsColor = function ( ss ) {
+var getDarkSsColor = function ( ss ) {
 
     if ( ss == "E" ) {
         return darkYellow;
@@ -72,7 +128,7 @@ getDarkSsColor = function ( ss ) {
 
 // Backbone atom names
 
-backbone_atoms = [
+var backbone_atoms = [
     "N", "C", "O", "H", "HA", "CA", "OXT",
     "C3'", "P", "OP1", "O5'", "OP2",
     "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'",
@@ -138,7 +194,7 @@ function getVerticesFromAtomDict( atoms, atomTypes ) {
     var vertices = [];
 
     for ( var i = 0; i < atomTypes.length; i += 1 ) {
-        aType = atomTypes[ i ];
+        var aType = atomTypes[ i ];
         vertices.push( toT3v( atoms[ aType ].pos ) );
     }
 
@@ -155,7 +211,7 @@ function fraction( reference, target, t ) {
 
 
 
-text_dialog = function ( parentDiv, label, success ) {
+var text_dialog = function ( parentDiv, label, success ) {
 
     window.keyboard_lock = true;
 
@@ -185,7 +241,7 @@ text_dialog = function ( parentDiv, label, success ) {
 }
 
 
-convertViewToTarget = function ( view ) {
+var convertViewToTarget = function ( view ) {
     // - camera
     //     - pos: scene center, camera focus
     //     - up: gives the direction of the y vector from pos
@@ -216,7 +272,7 @@ convertViewToTarget = function ( view ) {
         .sub( scenePosition )
         .negate();
 
-    target = {
+    var target = {
         scenePosition: scenePosition,
         cameraPosition: cameraPosition,
         cameraUp: cameraUp,
@@ -230,7 +286,7 @@ convertViewToTarget = function ( view ) {
 }
 
 
-convertTargetToView = function ( target ) {
+var convertTargetToView = function ( target ) {
 
     var view = new View();
 
@@ -268,7 +324,7 @@ convertTargetToView = function ( target ) {
 ////////////////////////////////////////////////////////////////////
 
 
-MessageBar = function ( selector ) {
+var MessageBar = function ( selector ) {
 
     this.div = $( "<div>" )
         .css( {
@@ -306,7 +362,7 @@ MessageBar.prototype.html = function ( text ) {
 // PopupText
 ////////////////////////////////////////////////////////////////////
 
-PopupText = function ( selector ) {
+var PopupText = function ( selector ) {
 
     this.div = $( "<div>" )
         .css( {
@@ -396,7 +452,7 @@ PopupText.prototype.remove = function () {
 // AtomLabel
 ////////////////////////////////////////////////////////////////////
 
-AtomLabel = function ( selector, controller, parentList ) {
+var AtomLabel = function ( selector, controller, parentList ) {
 
     this.popup = new PopupText( selector );
     this.controller = controller;
@@ -442,7 +498,7 @@ AtomLabel.prototype.hide = function () {
 // DistanceLabel
 ////////////////////////////////////////////////////////////////////
 
-DistanceLabel = function (
+var DistanceLabel = function (
     selector, threeJsScene, controller, parentList ) {
 
     this.threeJsScene = threeJsScene;
@@ -538,7 +594,7 @@ DistanceLabel.prototype.hide = function () {
 // LineElement
 ////////////////////////////////////////////////////////////////////
 
-LineElement = function ( selector, color ) {
+var LineElement = function ( selector, color ) {
 
     /* This DOM object is to draw a line between (x1, y1) and
     (x2, y2) within a jquery div */
@@ -605,10 +661,10 @@ LineElement.prototype.move = function ( x1, y1, x2, y2 ) {
 // CanvasWrapper - abstract class to wrap a canvas element
 ////////////////////////////////////////////////////////////////////
 
-CanvasWrapper = function( selector ) {
+var CanvasWrapper = function( selector ) {
 
     this.parentDiv = $( selector );
-    parentDiv = this.parentDiv;
+    var parentDiv = this.parentDiv;
 
     this.div = $( "<div>" )
         .css( 'position', 'absolute' )
@@ -769,11 +825,11 @@ CanvasWrapper.prototype.mouseup = function ( event ) {
 CanvasWrapper.prototype.getPointer = function ( event ) {
 
     if ( event.touches ) {
-        x = event.touches[ 0 ].clientX;
-        y = event.touches[ 0 ].clientY;
+        var x = event.touches[ 0 ].clientX;
+        var y = event.touches[ 0 ].clientY;
     } else {
-        x = event.clientX;
-        y = event.clientY;
+        var x = event.clientX;
+        var y = event.clientY;
     }
 
     this.pointerX = x + document.body.scrollLeft
@@ -792,7 +848,7 @@ CanvasWrapper.prototype.getPointer = function ( event ) {
 ////////////////////////////////////////////////////////////////////
 
 
-resToAa = {
+var resToAa = {
     "ALA":"A", "CYS":"C", "ASP":"D",
     "GLU":"E", "PHE":"F", "GLY":"G",
     "HIS":"H", "ILE":"I", "LYS":"K",
@@ -866,9 +922,9 @@ SequenceBar.prototype.draw = function () {
         i_end += 1
         if ( i_end == this.n_residue || residues[ i_end ].ss != ss ) {
 
-            x1 = this.iToX( i_start );
-            x2 = this.iToX( i_end );
-            color = getSsColor( ss ).getStyle();
+            var x1 = this.iToX( i_start );
+            var x2 = this.iToX( i_end );
+            var color = getSsColor( ss ).getStyle();
             this.rect(
                 x1, 
                 0, 
@@ -921,7 +977,7 @@ SequenceBar.prototype.mousemove = function ( event ) {
 ////////////////////////////////////////////////////////////////////
 
 
-SequenceWidget = function( selector, scene, proteinDisplay ) {
+var SequenceWidget = function( selector, scene, proteinDisplay ) {
 
     this.parentDiv = $(selector);
     this.scene = scene;
@@ -998,7 +1054,7 @@ SequenceWidget.prototype.draw = function () {
     var resId = this.scene.current_view.res_id;
     var iRes = this.scene.protein.res_by_id[resId].i;
 
-    s = "";
+    var s = "";
 
     for (var i=iRes-10; i<iRes+11; i+=1) {
         if ( (i<0)  || (i>=residues.length) ) {
@@ -1035,7 +1091,7 @@ SequenceWidget.prototype.draw = function () {
 // ZSlabBar
 ////////////////////////////////////////////////////////////////////
 
-ZSlabBar = function ( selector, scene ) {
+var ZSlabBar = function ( selector, scene ) {
 
     this.scene = scene;
     this.maxZLength = 0.0;
@@ -1208,7 +1264,7 @@ webGL threeJs object.
 */
 
 
-GlProteinDisplay = function ( scene, selector, controller ) {
+var GlProteinDisplay = function ( scene, selector, controller ) {
 
     this.selector = selector;
     this.scene = scene;
@@ -1311,11 +1367,6 @@ GlProteinDisplay = function ( scene, selector, controller ) {
         'DOMMouseScroll',
         function ( e ) {
             _this.mousewheel( e )
-        } );
-    dom.addEventListener(
-        'mouseout',
-        function ( e ) {
-            _this.mouseup( e )
         } );
     dom.addEventListener(
         'touchstart',
@@ -1895,7 +1946,7 @@ GlProteinDisplay.prototype.buildArrows = function () {
             var color = getDarkSsColor( piece.ss );
             for ( var i = piece.iStart; i < piece.iEnd; i += 1 ) {
 
-                arrow = drawBlockArrow(
+                var arrow = drawBlockArrow(
                     this.trace.points[ i ],
                     this.trace.tangents[ i ],
                     this.trace.binormals[ i ],
@@ -2402,7 +2453,7 @@ GlProteinDisplay.prototype.buildCrossHairs = function() {
     segments = 60,
     material = new THREE.LineDashedMaterial( 
         { color: 0xFF7777, linewidth: 2 } );
-    geometry = new THREE.CircleGeometry( radius, segments );
+    var geometry = new THREE.CircleGeometry( radius, segments );
     
     // Remove center vertex
     geometry.vertices.shift();
@@ -3370,4 +3421,30 @@ GlProteinDisplay.prototype.animate = function () {
     this.controller.set_current_view( view );
 
     this.updateHover();
+}
+
+
+export {
+    backbone_atoms,
+    ribbonFace,
+    coilFace,
+    fatCoilFace,
+    degToRad,
+    toT3v,
+    toV3,
+    getVerticesFromAtomDict,
+    fraction,
+    text_dialog,
+    convertViewToTarget,
+    convertTargetToView,
+    MessageBar,
+    PopupText,
+    AtomLabel,
+    DistanceLabel,
+    LineElement,
+    CanvasWrapper,
+    SequenceBar,
+    SequenceWidget,
+    ZSlabBar,
+    GlProteinDisplay,
 }
