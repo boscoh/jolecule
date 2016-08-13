@@ -1,31 +1,14 @@
 import scrollTo from "jquery.scrollto";
 import $ from "jquery";
 import _ from "underscore";
-import {is_canvas_supported, CanvasWidget} from "./canvaswidget";
 import { EmbedJolecule } from "./embedjolecule";
 import {
-    exists,
-    is_ipad,
     url,
-    get_pdb_id_from_url,
-    pos_dom,
-    blink,
     link_button,
-    toggle_button,
-    create_message_div,
-    create_edit_box_div,
     ViewPiece,
-    stick_in_top_left,
-    stick_in_center,
-    in_array,
-    del_from_array,
     trim,
     do_nothing,
-    clone_dict,
-    clone_list_of_dicts,
-    random_string,
     random_id,
-    get_current_date,
 } from "./util";
 
 
@@ -357,7 +340,7 @@ var ViewsDisplay = function(div_tag, controller, protein_display, data_server) {
   }
 
   this.make_new_view = function() {
-    new_id = random_id();
+    var new_id = random_id();
     this.controller.calculate_current_abs_camera();
     this.controller.save_current_view(new_id);
     this.insert_new_view_div(new_id);

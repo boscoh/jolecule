@@ -20,50 +20,21 @@
 ////////////////////////////////////////////////////
 
 
-import v3 from "./vthree.js";
+import v3 from "./v3";
+
+import {
+  url,
+  in_array,
+  trim,
+  clone_dict,
+  clone_list_of_dicts,
+  get_current_date,
+} from "./util.js";
 
 
 var user = 'public'; // will be overriden by server
 
 var atom_radius = 0.3;
-
-
-function in_array(v, w_list) {
-    return w_list.indexOf(v) >= 0;
-}
-
-
-function trim(text) {
-    return text.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
-}
-
-
-function clone_dict(d) {
-    var new_d = {};
-    for (var k in d) {
-        new_d[k] = d[k];
-    }
-    ;
-    return new_d;
-}
-
-
-function clone_list_of_dicts(list_of_dicts) {
-    var new_list = [];
-    for (var i = 0; i < list_of_dicts.length; i += 1) {
-        new_list.push(clone_dict(list_of_dicts[i]));
-    }
-    return new_list;
-}
-
-
-function get_current_date() {
-    var current_view = new Date();
-    var month = current_view.getMonth() + 1;
-    var day = current_view.getDate();
-    var year = current_view.getFullYear();
-    return day + "/" + month + "/" + year;
-}
 
 
 function extract_atom_lines(data) {
@@ -90,7 +61,7 @@ function get_central_atom_from_atom_dict(atom_dict) {
         pos = v3.sum(pos, atom_dict[k].pos);
         n += 1;
     }
-    pos.scale(1 / n);
+    pos.divideScalar(n);
     var central_atom = null
     var min_d = 1E6
     for (var k in atom_dict) {
@@ -794,7 +765,7 @@ var Protein = function () {
             if (res.normals.length == 0) {
                 res.normal = null;
             } else {
-                var normal = new v3.Vector(0, 0, 0);
+                var normal = v3.create(0, 0, 0);
                 for (var i = 0; i < res.normals.length; i += 1) {
                     normal = v3.sum(normal, res.normals[i]);
                 }
@@ -819,12 +790,12 @@ var Protein = function () {
 
     this.transform = function (matrix) {
         for (var i = 0; i < this.atoms.length; i += 1) {
-            this.atoms[i].pos.transform(matrix);
+            this.atoms[i].pos.applyMatrix4(matrix);
             this.atoms[i].z = this.atoms[i].pos.z
         }
         for (i = 0; i < this.ribbons.length; i += 1) {
             for (j = 0; j < 4; j += 1) {
-                this.ribbons[i].quad_coords[j].transform(matrix);
+                this.ribbons[i].quad_coords[j].applyMatrix4(matrix);
                 this.ribbons[i].z = max_z_of_list(
                     this.ribbons[i].quad_coords)
             }
@@ -954,9 +925,9 @@ var Camera = function () {
     }
 
     this.transform = function (matrix) {
-        this.pos.transform(matrix);
-        this.up_v.transform(matrix);
-        this.in_v.transform(matrix);
+        this.pos.applyMatrix4(matrix);
+        this.up_v.applyMatrix4(matrix);
+        this.in_v.applyMatrix4(matrix);
     }
 }
 
@@ -989,7 +960,7 @@ function get_camera_transform(ref, mov, n_step) {
     var mov12 = v3.diff(mov2, mov1);
     var ref12 = v3.diff(ref2, ref1);
     if (v3.is_aligned(mov12, ref12)) {
-        r1 = new v3.Matrix();
+        r1 = new v3.Matrix4();
         torsion1 = null;
     } else {
         axis1 = v3.cross_product(mov12, ref12);
@@ -1000,9 +971,9 @@ function get_camera_transform(ref, mov, n_step) {
     var axis2, torsion2, r2;
     var ref13 = v3.diff(ref3, ref1);
     var mov13 = v3.diff(mov3, mov1);
-    mov13.transform(r1);
+    mov13.applyMatrix4(r1);
     if (v3.is_near_zero(v3.angle(ref13, mov13))) {
-        r2 = new v3.Matrix();
+        r2 = new v3.Matrix4();
         torsion2 = null;
     } else {
         axis2 = v3.cross_product(ref13, mov13);
@@ -1048,10 +1019,6 @@ function get_camera_transform(ref, mov, n_step) {
 //
 ////////////////////////////////////////////////////
 
-
-export function url() {
-    return "" + window.location;
-}
 
 var View = function () {
     this.id = 'view:000000';

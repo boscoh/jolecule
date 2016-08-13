@@ -1,18 +1,8 @@
 import THREE from "three";
 import $ from "jquery";
 import _ from "underscore";
-import v3 from "./vthree";
-import {is_canvas_supported, CanvasWidget} from "./canvaswidget";
-import {
-    atom_radius,
-    Protein,
-    Camera,
-    is_equal_camera,
-    get_camera_transform,
-    View,
-    Controller,
-    Scene
-} from "./protein";
+import v3 from "./v3";
+import { View } from "./protein";
 import {
     PathAndFrenetFrames,
     BlockArrowGeometry,
@@ -30,27 +20,11 @@ import {
 } from "./glgeometry";
 import {
   exists,
-  is_ipad,
-  url,
-  get_pdb_id_from_url,
   pos_dom,
-  blink,
-  link_button,
-  toggle_button,
-  create_message_div,
   create_edit_box_div,
-  ViewPiece,
-  stick_in_top_left,
   stick_in_center,
   in_array,
-  del_from_array,
-  trim,
-  do_nothing,
-  clone_dict,
-  clone_list_of_dicts,
-  random_string,
   random_id,
-  get_current_date,
 } from "./util";
 
 var TV3 = THREE.Vector3;
@@ -166,25 +140,9 @@ var fatCoilFace = new THREE.Shape( [
 ] );
 
 
-
-
 function degToRad( deg ) {
 
     return deg * Math.PI / 180.;
-
-}
-
-
-function toT3v( v ) {
-
-    return new TV3( v.x, v.y, v.z );
-
-}
-
-
-function toV3( v ) {
-
-    return v3.create( v.x, v.y, v.z );
 
 }
 
@@ -195,7 +153,7 @@ function getVerticesFromAtomDict( atoms, atomTypes ) {
 
     for ( var i = 0; i < atomTypes.length; i += 1 ) {
         var aType = atomTypes[ i ];
-        vertices.push( toT3v( atoms[ aType ].pos ) );
+        vertices.push( v3.clone( atoms[ aType ].pos ) );
     }
 
     return vertices;
@@ -258,22 +216,22 @@ var convertViewToTarget = function ( view ) {
     //     - that is positive Z direction is out of the screen 
     //     - box -1to +1
 
-    var scenePosition = toT3v( view.abs_camera.pos );
+    var cameraTarget = v3.clone( view.abs_camera.pos );
 
-    var cameraDirection = toT3v( view.abs_camera.in_v )
-        .sub( scenePosition )
+    var cameraDirection = v3.clone( view.abs_camera.in_v )
+        .sub( cameraTarget )
         .multiplyScalar( view.abs_camera.zoom )
         .negate();
 
-    var cameraPosition = scenePosition.clone()
+    var cameraPosition = cameraTarget.clone()
         .add( cameraDirection );
 
-    var cameraUp = toT3v( view.abs_camera.up_v )
-        .sub( scenePosition )
+    var cameraUp = v3.clone( view.abs_camera.up_v )
+        .sub( cameraTarget )
         .negate();
 
     var target = {
-        scenePosition: scenePosition,
+        cameraTarget: cameraTarget,
         cameraPosition: cameraPosition,
         cameraUp: cameraUp,
         zFront: view.abs_camera.z_front,
@@ -291,7 +249,7 @@ var convertTargetToView = function ( target ) {
     var view = new View();
 
     var cameraDirection = target.cameraPosition.clone()
-        .sub( target.scenePosition )
+        .sub( target.cameraTarget )
         .negate();
     var zoom = cameraDirection.length()
 
@@ -299,18 +257,18 @@ var convertTargetToView = function ( target ) {
     view.abs_camera.z_front = target.zFront;
     view.abs_camera.z_back = target.zBack;
 
-    view.abs_camera.pos = toV3( target.scenePosition );
+    view.abs_camera.pos = v3.clone( target.cameraTarget );
 
     var up = target.cameraUp.clone()
         .negate()
 
-    view.abs_camera.up_v = toV3(
-        target.scenePosition.clone()
+    view.abs_camera.up_v = v3.clone(
+        target.cameraTarget.clone()
         .add( up ) );
 
     cameraDirection.normalize()
-    view.abs_camera.in_v = toV3(
-        target.scenePosition.clone()
+    view.abs_camera.in_v = v3.clone(
+        target.cameraTarget.clone()
         .add( cameraDirection ) );
 
     return view;
@@ -926,10 +884,10 @@ SequenceBar.prototype.draw = function () {
             var x2 = this.iToX( i_end );
             var color = getSsColor( ss ).getStyle();
             this.rect(
-                x1, 
-                0, 
+                x1,
+                0,
                 x2 - x1,
-                20, 
+                20,
                 color );
 
             if ( i_end <= this.n_residue-1 ) {
@@ -966,7 +924,7 @@ SequenceBar.prototype.mousemove = function ( event ) {
     this.getPointer( event );
 
     var iRes = this.xToI( this.pointerX );
-    this.proteinDisplay.setTargetFromAtom( 
+    this.proteinDisplay.setTargetFromAtom(
         this.scene.protein.residues[iRes].central_atom );
 
 }
@@ -990,7 +948,7 @@ var SequenceWidget = function( selector, scene, proteinDisplay ) {
 
     this.parentDiv.append(this.div);
 
-    this.sequenceBar = new SequenceBar( 
+    this.sequenceBar = new SequenceBar(
         '#sequence-widget', scene, proteinDisplay );
 
     this.textDiv = $("<div>")
@@ -1080,7 +1038,7 @@ SequenceWidget.prototype.draw = function () {
     this.textDiv.css({ 'top': 19 });
     this.textDiv.html(s);
     this.textDiv.css(
-        'left', 
+        'left',
         this.sequenceBar.iToX( iRes ) - this.textDiv.width() * 0.5 - 3);
 
 
@@ -1180,11 +1138,11 @@ ZSlabBar.prototype.draw = function () {
     var font = '12px sans-serif';
     var xm = this.width() / 2;
 
-    this.text( 
+    this.text(
         'zslab', xm, 7, font, light, 'center' )
-    this.text( 
+    this.text(
         'back', xm, yBack - 7, font, dark, 'center' )
-    this.text( 
+    this.text(
         'front', xm, yFront + 7, font, light, 'center' )
 }
 
@@ -1192,7 +1150,7 @@ ZSlabBar.prototype.draw = function () {
 ZSlabBar.prototype.getZ = function ( event ) {
 
     this.getPointer( event );
-         
+
     this.z = this.yToZ( this.pointerY );
 
 }
@@ -1256,7 +1214,7 @@ ZSlabBar.prototype.mouseup = function ( event ) {
 // GlProteinDisplay
 ////////////////////////////////////////////////////////////////////
 
-/* 
+/*
 
 GlProteinDisplay: The main window for the jolecule
 webGL threeJs object.
@@ -1312,6 +1270,8 @@ var GlProteinDisplay = function ( scene, selector, controller ) {
     this.threeJsScene.fog.near = this.zoom + 1;
     this.threeJsScene.fog.far = this.zoom + this.zBack;
 
+    this.cameraTarget = new THREE.Vector3(0, 0, 0);
+
     this.setLights();
 
     this.camera = new THREE.PerspectiveCamera(
@@ -1319,8 +1279,6 @@ var GlProteinDisplay = function ( scene, selector, controller ) {
         this.width() / this.height(),
         this.zFront + this.zoom,
         this.zBack + this.zoom );
-
-    this.projector = new THREE.Projector();
 
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setClearColor( 0x000000 );
@@ -1411,17 +1369,9 @@ GlProteinDisplay.prototype.post_load = function ( default_html ) {
 
     this.buildScene();
 
-    this.threeJsScene.position = toT3v( this.protein.center() );
-
-    this.camera.position
-        .set( 0, 0, this.zoom )
-        .add( this.threeJsScene.position );
-    this.camera.lookAt(
-        this.threeJsScene.position );
-
     // this is some mangling to link openGL
-    // with the coordinate system that I had 
-    // chosen unwittingly when I first designed 
+    // with the coordinate system that I had
+    // chosen unwittingly when I first designed
     // the raster jolecule library
 
     var current_view = this.scene.current_view;
@@ -1461,11 +1411,11 @@ GlProteinDisplay.prototype.post_load = function ( default_html ) {
 
     this.scene.save_view( default_view );
 
-    this.threeJsScene.position = toT3v( this.protein.center() );
+    this.cameraTarget.copy( center );
     this.camera.position
         .set( 0, 0, this.zoom )
-        .add( this.threeJsScene.position );
-    this.camera.lookAt( this.threeJsScene.position );
+        .add( this.cameraTarget );
+    this.camera.lookAt( this.cameraTarget );
 
     this.threeJsScene.fog.near = this.zoom + 1;
     this.threeJsScene.fog.far = this.zoom + this.zBack;
@@ -1483,7 +1433,7 @@ GlProteinDisplay.prototype.isPeptideConnected = function ( i0, i1 ) {
 
     if ( ( "C" in res0.atoms )
      && ( "N" in res1.atoms )
-     && ( "CA" in res0.atoms ) 
+     && ( "CA" in res0.atoms )
      && ( "CA" in res1.atoms )  ) {
 
         // detect a potential peptide bond
@@ -1504,13 +1454,13 @@ GlProteinDisplay.prototype.isSugarPhosphateConnected = function ( i0, i1 ) {
     var res0 = this.protein.residues[i0];
     var res1 = this.protein.residues[i1];
 
-    if ( ( "C3'" in res0.atoms ) 
-        && ( "C1'" in res0.atoms ) 
-        && ( "C5'" in res0.atoms ) 
-        && ( "O3'" in res0.atoms ) 
-        && ( "P" in res1.atoms ) 
+    if ( ( "C3'" in res0.atoms )
+        && ( "C1'" in res0.atoms )
+        && ( "C5'" in res0.atoms )
+        && ( "O3'" in res0.atoms )
+        && ( "P" in res1.atoms )
         && ( "C3'" in res1.atoms )
-        && ( "C1'" in res1.atoms ) 
+        && ( "C1'" in res1.atoms )
         && ( "C5'" in res1.atoms ) ) {
 
         // detect nucloetide phosphate sugar bond
@@ -1519,7 +1469,7 @@ GlProteinDisplay.prototype.isSugarPhosphateConnected = function ( i0, i1 ) {
         if ( v3.distance( o3.pos, p.pos ) < 2.5 ) {
             return true;
         }
-        
+
     }
 
     return false;
@@ -1533,8 +1483,8 @@ GlProteinDisplay.prototype.getNormalOfNuc = function ( res ) {
     var forward = v3.diff(atoms["C3'"].pos, atoms["C5'"].pos);
     var up = v3.diff(atoms["C1'"].pos, atoms["C3'"].pos);
     var normal = v3.cross_product(forward, up);
-    return normal; 
-   
+    return normal;
+
 }
 
 GlProteinDisplay.prototype.findChainsAndPieces = function () {
@@ -1587,9 +1537,9 @@ GlProteinDisplay.prototype.findChainsAndPieces = function () {
 
         if ( isProteinNucOrConnected ) {
             this.trace.residues.push( residue );
-            this.trace.points.push( toT3v(residue.central_atom.pos ) );
+            this.trace.points.push( v3.clone(residue.central_atom.pos ) );
 
-        } 
+        }
 
     }
 
@@ -1608,7 +1558,7 @@ GlProteinDisplay.prototype.findChainsAndPieces = function () {
             var iRes0 = this.trace.residues[ iEnd - 1].i;
             var iRes1 = this.trace.residues[ iEnd].i;
             isBreak = !this.isPeptideConnected(iRes0, iRes1) &&
-                !this.isSugarPhosphateConnected(iRes0, iRes1); 
+                !this.isSugarPhosphateConnected(iRes0, iRes1);
         }
 
         if ( !isBreak ) {
@@ -1703,7 +1653,7 @@ GlProteinDisplay.prototype.calcContinuousTangents = function ( trace,
             if ( trace.residues[ i ].normal !== null ) {
                 trace.normals[ i ] = perpVector(
                         trace.tangents[ i ],
-                        toT3v( trace.residues[ i ].normal )
+                        v3.clone( trace.residues[ i ].normal )
                     )
                     .normalize();
             } else {
@@ -1734,7 +1684,7 @@ GlProteinDisplay.prototype.calcContinuousTangents = function ( trace,
             if ( trace.residues[ i ].normal !== null ) {
                 trace.normals[ i ] = perpVector(
                         trace.tangents[ i ],
-                        toT3v( trace.residues[ i ].normal )
+                        v3.clone( trace.residues[ i ].normal )
                     )
                     .normalize();
             } else {
@@ -1783,9 +1733,9 @@ GlProteinDisplay.prototype.setLights = function () {
 
     var directionalLight =
         new THREE.DirectionalLight( 0xFFFFFF );
-    directionalLight.position =
+    directionalLight.position.copy(
         new TV3( 0.2, 0.2, 100 )
-        .normalize();
+        .normalize() );
     directionalLight.intensity = 1.2;
     this.lights.push( directionalLight );
 
@@ -1976,15 +1926,15 @@ GlProteinDisplay.prototype.mergeBond = function (
 
         var obj = new THREE.Object3D();
         obj.scale.set( radius, radius, from.distanceTo( to ) );
-        obj.position = midpoint;
+        obj.position.copy( midpoint );
         obj.lookAt( to );
         obj.updateMatrix();
         return obj.matrix;
 
     }
 
-    var p1 = toT3v( bond.atom1.pos );
-    var p2 = toT3v( bond.atom2.pos );
+    var p1 = v3.clone( bond.atom1.pos );
+    var p2 = v3.clone( bond.atom2.pos );
 
     var res1 = this.protein.res_by_id[ bond.atom1.res_id ];
     var res2 = this.protein.res_by_id[ bond.atom2.res_id ];
@@ -2030,7 +1980,7 @@ GlProteinDisplay.prototype.mergeAtom = function ( totalGeom, atom ) {
         return;
     }
 
-    var pos = toT3v( atom.pos );
+    var pos = v3.clone( atom.pos );
     var color = this.getAtomColor( atom );
     var geom = this.unitSphereGeom;
     setGeometryVerticesColor( geom, color );
@@ -2038,7 +1988,7 @@ GlProteinDisplay.prototype.mergeAtom = function ( totalGeom, atom ) {
     var radius = 0.35;
     var obj = new THREE.Object3D();
     obj.scale.set( radius, radius, radius );
-    obj.position = pos;
+    obj.position.copy( pos );
     obj.updateMatrix();
 
     totalGeom.merge( geom, obj.matrix );
@@ -2048,14 +1998,14 @@ GlProteinDisplay.prototype.mergeAtom = function ( totalGeom, atom ) {
 
 GlProteinDisplay.prototype.pushAtom = function ( object, atom ) {
 
-    var pos = toT3v( atom.pos );
+    var pos = v3.clone( atom.pos );
     var material = new THREE.MeshLambertMaterial( {
         color: this.getAtomColor( atom )
     } );
     var radius = 0.35;
     var mesh = new THREE.Mesh( this.unitSphereGeom, material );
     mesh.scale.set( radius, radius, radius );
-    mesh.position = pos;
+    mesh.position.copy( pos );
     mesh.atom = atom;
     object.add( mesh );
     this.clickMeshes.push( mesh );
@@ -2451,13 +2401,13 @@ GlProteinDisplay.prototype.buildNucleotides = function () {
 GlProteinDisplay.prototype.buildCrossHairs = function() {
     var radius = 1.2,
     segments = 60,
-    material = new THREE.LineDashedMaterial( 
+    material = new THREE.LineDashedMaterial(
         { color: 0xFF7777, linewidth: 2 } );
     var geometry = new THREE.CircleGeometry( radius, segments );
-    
+
     // Remove center vertex
     geometry.vertices.shift();
-    
+
     this.crossHairs = new THREE.Line( geometry, material );
     this.threeJsScene.add( this.crossHairs );
 }
@@ -2465,9 +2415,8 @@ GlProteinDisplay.prototype.buildCrossHairs = function() {
 
 GlProteinDisplay.prototype.moveCrossHairs = function() {
 
-    this.crossHairs.position.copy(this.threeJsScene.position);
-    this.crossHairs.lookAt( 
-        this.camera.position );
+    this.crossHairs.position.copy(this.cameraTarget);
+    this.crossHairs.lookAt(this.camera.position );
     this.crossHairs.updateMatrix();
 }
 
@@ -2518,12 +2467,12 @@ GlProteinDisplay.prototype.setTargetFromResId = function ( resId ) {
 GlProteinDisplay.prototype.setTargetFromAtom = function (
     atom ) {
 
-    var position = toT3v( atom.pos );
+    var position = v3.clone( atom.pos );
     var sceneDisplacement = position.clone()
-        .sub( this.threeJsScene.position );
+        .sub( this.cameraTarget );
 
     var view = convertTargetToView( {
-        scenePosition: position,
+        cameraTarget: position,
         cameraPosition: this.camera.position.clone()
             .add( sceneDisplacement ),
         cameraUp: this.camera.up.clone(),
@@ -2550,11 +2499,11 @@ GlProteinDisplay.prototype.setCameraFromCurrentView = function () {
     );
 
     var cameraDirection = this.camera.position.clone()
-        .sub( this.threeJsScene.position )
+        .sub( this.cameraTarget )
         .normalize();
 
     var targetCameraDirection = target.cameraPosition.clone()
-        .sub( target.scenePosition );
+        .sub( target.cameraTarget );
     this.zoom = targetCameraDirection.length();
     targetCameraDirection.normalize();
 
@@ -2565,9 +2514,9 @@ GlProteinDisplay.prototype.setCameraFromCurrentView = function () {
         this.lights[ i ].position.applyQuaternion( rotation );
     }
 
-    this.threeJsScene.position = target.scenePosition.clone();
-    this.camera.position = target.cameraPosition.clone();
-    this.camera.up = target.cameraUp.clone();
+    this.cameraTarget.copy( target.cameraTarget );
+    this.camera.position.copy( target.cameraPosition );
+    this.camera.up.copy( target.cameraUp );
 
     this.zFront = target.zFront;
     this.zBack = target.zBack;
@@ -2580,8 +2529,8 @@ GlProteinDisplay.prototype.setCameraFromCurrentView = function () {
 
     this.camera.near = near;
     this.camera.far = far;
-    this.camera.lookAt( this.threeJsScene.position );
-    this.camera.updateProjectionMatrix();
+    this.camera.lookAt( this.cameraTarget );
+    // this.camera.updateProjectionMatrix();
 
     this.threeJsScene.fog.near = near;
     this.threeJsScene.fog.far = far;
@@ -2631,14 +2580,14 @@ GlProteinDisplay.prototype.adjustCamera = function (
     }
 
     var cameraPosition = this.camera.position.clone()
-        .sub( this.threeJsScene.position )
+        .sub( this.cameraTarget )
         .applyQuaternion( rotation )
         .normalize()
         .multiplyScalar( newZoom )
-        .add( this.threeJsScene.position );
+        .add( this.cameraTarget );
 
     var view = convertTargetToView( {
-        scenePosition: this.threeJsScene.position.clone(),
+        cameraTarget: this.cameraTarget.clone(),
         cameraPosition: cameraPosition,
         cameraUp: this.camera.up.clone()
             .applyQuaternion( rotation ),
@@ -2744,7 +2693,7 @@ GlProteinDisplay.prototype.saveMouse = function () {
 
 GlProteinDisplay.prototype.getZ = function ( pos ) {
 
-    var origin = this.threeJsScene.position;
+    var origin = this.cameraTarget.clone();
 
     var cameraDir = origin.clone()
         .sub( this.camera.position )
@@ -2805,12 +2754,12 @@ GlProteinDisplay.prototype.getHoverAtom = function () {
     }
 
     var vector = new THREE.Vector3(
-        ( x / this.width() ) * 2 - 1, 
+        ( x / this.width() ) * 2 - 1,
         -( y / this.height() ) * 2 + 1,
         0.5
     );
 
-    this.projector.unprojectVector( vector, this.camera );
+    vector.unproject( this.camera );
 
     var raycaster = new THREE.Raycaster(
         this.camera.position,
@@ -2846,7 +2795,7 @@ GlProteinDisplay.prototype.getHoverAtom = function () {
             continue;
         }
 
-        if ( this.inZlab( toT3v( intersect.object.atom.pos ) ) ) {
+        if ( this.inZlab( v3.clone( intersect.object.atom.pos ) ) ) {
             return intersects[ i ].object.atom;
         }
 
@@ -2862,13 +2811,13 @@ GlProteinDisplay.prototype.posXY = function ( pos ) {
     var widthHalf = 0.5 * this.width();
     var heightHalf = 0.5 * this.height();
 
-    var vector = this.projector.projectVector(
-        pos.clone(), this.camera );
+    var vector = pos.project( this.camera );
 
-    vector.x = ( vector.x * widthHalf ) + widthHalf;
-    vector.y = -( vector.y * heightHalf ) + heightHalf;
+    var result = {
+        x: ( vector.x * widthHalf ) + widthHalf,
+        y: -( vector.y * heightHalf ) + heightHalf }
 
-    return vector;
+    return result;
 }
 
 
@@ -2905,7 +2854,7 @@ GlProteinDisplay.prototype.updateHover = function () {
                 "<br>[drag distances]<br>[double-click labels]</center>"
         }
         this.hover.html( text );
-        var vector = this.posXY( toT3v( this.hoverAtom.pos ) );
+        var vector = this.posXY( v3.clone( this.hoverAtom.pos ) );
         this.hover.move( vector.x, vector.y );
 
     } else {
@@ -2973,8 +2922,7 @@ GlProteinDisplay.prototype.mousemove = function ( event ) {
     if ( this.isDraggingCentralAtom ) {
 
         var mainDivPos = this.mainDiv.position()
-
-        var v = this.posXY( toT3v( this.downAtom.pos ) );
+        var v = this.posXY( v3.clone( this.downAtom.pos ) );
 
         this.distancePartnerPointer.move( this.mouseX, this.mouseY,
             v.x,
@@ -3048,7 +2996,7 @@ GlProteinDisplay.prototype.mouseup = function ( event ) {
 
         if ( this.hoverAtom !== null ) {
 
-            centralAtom = this.scene.centered_atom();
+            var centralAtom = this.scene.centered_atom();
 
             if ( this.hoverAtom !== centralAtom ) {
                 this.controller.make_dist( this.hoverAtom,
@@ -3254,8 +3202,8 @@ GlProteinDisplay.prototype.drawDistanceLabels = function () {
 
         var distance = distances[ i ];
 
-        var p1 = toT3v( atoms[ distance.i_atom1 ].pos );
-        var p2 = toT3v( atoms[ distance.i_atom2 ].pos );
+        var p1 = v3.clone( atoms[ distance.i_atom1 ].pos );
+        var p2 = v3.clone( atoms[ distance.i_atom2 ].pos );
         var m = p1.clone()
             .add( p2 )
             .multiplyScalar( 0.5 );
@@ -3312,7 +3260,7 @@ GlProteinDisplay.prototype.drawAtomLabels = function () {
     for ( var i = 0; i < labels.length; i += 1 ) {
 
         var atom = atoms[ labels[ i ].i_atom ];
-        var pos = toT3v( atom.pos );
+        var pos = v3.clone( atom.pos );
         var v = this.posXY( pos );
         var opacity = 0.7 * this.opacity( pos ) + 0.2;
 
@@ -3367,7 +3315,7 @@ GlProteinDisplay.prototype.animate = function () {
     var t = 1.0 / nStep
 
     var old = {
-        scenePosition: this.threeJsScene.position.clone(),
+        cameraTarget: this.cameraTarget.clone(),
         cameraPosition: this.camera.position.clone(),
         cameraUp: this.camera.up.clone(),
         zFront: this.zFront,
@@ -3375,14 +3323,14 @@ GlProteinDisplay.prototype.animate = function () {
     }
 
     var oldCameraDirection = old.cameraPosition.clone()
-        .sub( old.scenePosition );
+        .sub( old.cameraTarget );
     var oldZoom = oldCameraDirection.length();
     oldCameraDirection.normalize();
 
     var target = convertViewToTarget( this.scene.target_view );
     var targetCameraDirection =
         target.cameraPosition.clone()
-        .sub( target.scenePosition );
+        .sub( target.cameraTarget );
     var targetZoom = targetCameraDirection.length();
     targetCameraDirection.normalize();
 
@@ -3400,16 +3348,16 @@ GlProteinDisplay.prototype.animate = function () {
         newCameraRotation, t );
 
     var current = {};
-    var disp = target.scenePosition.clone()
-        .sub( old.scenePosition )
+    var disp = target.cameraTarget.clone()
+        .sub( old.cameraTarget )
         .multiplyScalar( t )
-    current.scenePosition = old.scenePosition.clone()
+    current.cameraTarget = old.cameraTarget.clone()
         .add( disp );
     var zoom = fraction( oldZoom, targetZoom, t );
     var disp = oldCameraDirection.clone()
         .applyQuaternion( newCameraRotation )
         .multiplyScalar( zoom )
-    current.cameraPosition = current.scenePosition.clone()
+    current.cameraPosition = current.cameraTarget.clone()
         .add( disp );
     current.cameraUp = old.cameraUp.clone()
         .applyQuaternion( newCameraRotation );
@@ -3430,8 +3378,6 @@ export {
     coilFace,
     fatCoilFace,
     degToRad,
-    toT3v,
-    toV3,
     getVerticesFromAtomDict,
     fraction,
     text_dialog,

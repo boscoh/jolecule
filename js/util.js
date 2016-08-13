@@ -78,7 +78,6 @@ function link_button(id_tag, html_text, class_tag, click) {
   if (click) {
     item.on(' click touch ',
       function(e) { 
-        console.log( 'clickity click ');
         e.preventDefault();
         click(); 
       }

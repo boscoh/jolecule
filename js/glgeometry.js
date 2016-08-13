@@ -12,9 +12,9 @@ function exists(x) {
 function catmulRomSpline( t, p1, p2, p3, p4 ) {
 
     return new TV3(
-        THREE.Curve.Utils.interpolate( p1.x, p2.x, p3.x, p4.x, t ),
-        THREE.Curve.Utils.interpolate( p1.y, p2.y, p3.y, p4.y, t ),
-        THREE.Curve.Utils.interpolate( p1.z, p2.z, p3.z, p4.z, t )
+        THREE.CurveUtils.interpolate( p1.x, p2.x, p3.x, p4.x, t ),
+        THREE.CurveUtils.interpolate( p1.y, p2.y, p3.y, p4.y, t ),
+        THREE.CurveUtils.interpolate( p1.z, p2.z, p3.z, p4.z, t )
     );
 
 }
@@ -232,7 +232,7 @@ function drawCylinder( from, to, radius, color, cap ) {
 
     var mesh = new THREE.Mesh( cylinderGeometry, material );
     mesh.scale.set( radius, radius, from.distanceTo( to ) );
-    mesh.position = midpoint;
+    mesh.position.copy( midpoint );
     mesh.lookAt( to );
 
     return mesh;
@@ -254,8 +254,8 @@ function drawBlockArrow( point, tangent, normal, color ) {
         } )
     );
 
-    mesh.position = point;
-    mesh.up = normal;
+    mesh.position.copy( point );
+    mesh.up.copy( normal );
     mesh.lookAt( point.clone()
         .add( tangent ) );
 

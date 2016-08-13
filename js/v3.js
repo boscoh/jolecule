@@ -1,54 +1,39 @@
 
+
+/*
+
+v3.js - is a simple function based wrapper library around the vector
+portion of THREE.js. THREE.Vector3 are created and manipulated using
+factory functions, which was the original approach used in a deprecated
+vector library. This was replaced with the fully-featured vector library
+in THREE.js
+
+*/
+
 import THREE from "three";
 
-function consoleLogMethods(myObject) {
-  var myPrototype = Object.getPrototypeOf(myObject);
-  for (let name of Object.getOwnPropertyNames(myPrototype)) {
-    let method = myObject[name];
-    console.log(method, name);
-  }
-}
 
 var SMALL = 1E-6;
 
-class Vector extends THREE.Vector3 {
-
-  // length() already defined
-  // clone() already defined
-
-  toString() {
-    return '(' +
-      this.x + ',' +
-      this.y + ',' +
-      this.z + ')';
-  }
-
-  transform(m) {
-    this.applyMatrix4(m);
-  }
-
-  scale(s) {
-    this.x *= s;
-    this.y *= s;
-    this.z *= s;
-  }
-
-  clone() {
-    return new Vector(this.x, this.y, this.z);
-  }
-}
 
 function is_near_zero(a) {
   return Math.abs(a) < SMALL;
 }
 
+
 function create(x, y, z) {
-  return new Vector(x, y, z);
+  return new THREE.Vector3(x, y, z);
 }
+
+
+function clone( v ) {
+  return v.clone();
+}
+
 
 function scaled(v, s) {
   var w = create(v.x, v.y, v.z);
-  w.scale(s);
+  w.multiplyScalar(s);
   return w;
 }
 
@@ -86,7 +71,7 @@ function perpendicular(v, axis) {
 }
 
 function cross_product(a, b) {
-  return new Vector().crossVectors(a, b);
+  return new THREE.Vector3().crossVectors(a, b);
 }
 
 function dot_product(a, b) {
@@ -155,35 +140,29 @@ function is_aligned(v, w) {
   return is_near_zero(angle(v, w));
 }
 
-var Matrix = THREE.Matrix4;
+var Matrix4 = THREE.Matrix4;
 
 function matrix_product(lhs, rhs) {
-  var c = new Matrix();
+  var c = new Matrix4();
   c.multiplyMatrices(lhs, rhs);
   return c;
 }
 
 function rotation(axis, theta) {
   var a = axis.clone().normalize();
-  return new Matrix().makeRotationAxis(a, theta);
+  return new Matrix4().makeRotationAxis(a, theta);
 }
 
 function translation(p) {
-  var c = new Matrix();
+  var c = new Matrix4();
   return c.makeTranslation(p.x, p.y, p.z);
 }
 
-function transformed(v, m) {
-  var w = v.clone();
-  w.transform(m);
-  return w;
-}
-
-var v3 = {
+export default {
   SMALL,
   is_near_zero,
-  Vector,
   create,
+  clone,
   scaled,
   normalized,
   diff,
@@ -199,11 +178,9 @@ var v3 = {
   random,
   is_equal,
   is_aligned,
-  Matrix,
+  Matrix4,
   matrix_product,
   rotation,
   translation,
-  transformed
 };
 
-export default v3;
