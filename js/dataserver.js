@@ -5,7 +5,7 @@ jolecule_server = function(pdb_id) {
     pdb_id: pdb_id,
     get_protein_data: function(process_protein_data) {
         if (pdb_id.length == 4) {
-            var url = 'http://www.rcsb.org/pdb/files/' + pdb_id + '.pdb'
+            var url = '//files.rcsb.org/view/' + pdb_id + '.pdb'
         } else {
             var url = '/pdb/' + pdb_id + '.txt'
         }
