@@ -92,6 +92,7 @@ def compile_jolecule_js():
 @app.route('/js/<path:path>')
 def get_js_file(path):
     fname = os.path.join(root_dir, 'js', path)
+    text = None
     if fname.endswith('jolecule.js'):
         text = compile_jolecule_js()
     elif os.path.isfile(fname):
