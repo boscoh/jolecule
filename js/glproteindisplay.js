@@ -1313,11 +1313,6 @@ GlProteinDisplay = function ( scene, selector, controller ) {
             _this.mousewheel( e )
         } );
     dom.addEventListener(
-        'mouseout',
-        function ( e ) {
-            _this.mouseup( e )
-        } );
-    dom.addEventListener(
         'touchstart',
         function ( e ) {
             _this.mousedown( e );

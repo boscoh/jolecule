@@ -127,7 +127,7 @@ def filter_atom_lines(text):
 
 
 def get_text_from_rcsb_org(pdb_id):
-    url = 'http://www.rcsb.org/pdb/files/%s.pdb' % pdb_id
+    url = 'https://files.rcsb.org/download/%s.pdb1' % pdb_id
     try:
         result = urlfetch.fetch(url, deadline=5)
     except urlfetch.ResponseTooLargeError:
