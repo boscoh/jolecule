@@ -781,7 +781,7 @@ var Protein = function () {
         this.make_atoms_from_pdb_lines(atom_lines);
         this.make_residues();
         console.log("find bonds");
-        this.make_bonds(this.calc_bonds());
+        // this.make_bonds(this.calc_bonds());
         this.max_length = this.calc_max_length();
         console.log("find secondary structure");
         this.find_ss();
@@ -1616,6 +1616,7 @@ var Controller = function (scene) {
     }
 
     this.set_show_option = function (option, bool) {
+        console.log('set_show_option', option, bool);
         this.scene.current_view.show[option] = bool;
         this.scene.changed = true;
     }

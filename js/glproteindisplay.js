@@ -282,36 +282,30 @@ var convertTargetToView = function ( target ) {
 ////////////////////////////////////////////////////////////////////
 
 
-var MessageBar = function ( selector ) {
+class MessageBar {
 
-    this.div = $( "<div>" )
-        .css( {
-            'position': 'absolute',
-            'top': 40,
-            'left': 40,
-            'z-index': 2000,
-            'color': 'white',
-            'padding': '5',
-            'opacity': 0.7,
-        } );
+    constructor( selector ) {
+        this.div = $( "<div>" )
+            .css( {
+                'position': 'absolute',
+                'top': 40,
+                'left': 40,
+                'z-index': 2000,
+                'color': 'white',
+                'padding': '5',
+                'opacity': 0.7,
+            } );
 
-    this.parentDiv = $( selector );
-    this.parentDiv.append( this.div );
+        this.parentDiv = $( selector );
+        this.parentDiv.append( this.div );
+    }
 
-}
+    hide() { this.div.css( 'display', 'none' ); }
 
-
-MessageBar.prototype.hide = function () {
-
-    this.div.css( 'display', 'none' );
-
-}
-
-
-MessageBar.prototype.html = function ( text ) {
-
-    this.div.css( 'display', 'block' );
-    this.div.html( text );
+    html( text ) {
+        this.div.css('display', 'block');
+        this.div.html(text);
+    }
 
 }
 
@@ -619,187 +613,165 @@ LineElement.prototype.move = function ( x1, y1, x2, y2 ) {
 // CanvasWrapper - abstract class to wrap a canvas element
 ////////////////////////////////////////////////////////////////////
 
-var CanvasWrapper = function( selector ) {
+class CanvasWrapper {
 
-    this.parentDiv = $( selector );
-    var parentDiv = this.parentDiv;
+    constructor(selector) {
 
-    this.div = $( "<div>" )
-        .css( 'position', 'absolute' )
-        .css( 'z-index', 100 );
+        this.parentDiv = $(selector);
 
-    this.parentDiv.append( this.div );
+        this.div = $("<div>")
+          .css('position', 'absolute')
+          .css('z-index', 100);
 
-    this.canvas = $( '<canvas>' );
+        this.parentDiv.append(this.div);
 
-    this.div.append( this.canvas );
-    this.canvasDom = this.canvas[ 0 ];
-    this.drawContext = this.canvasDom.getContext( '2d' );
+        this.canvas = $('<canvas>');
 
-    this.draw();
+        this.div.append(this.canvas);
+        this.canvasDom = this.canvas[0];
+        this.drawContext = this.canvasDom.getContext('2d');
 
-    this.mousePressed = false;
+        this.mousePressed = false;
 
-    var _this = this;
+        this.draw();
 
-    this.canvasDom.addEventListener(
-        'mousedown', function ( e ) { _this.mousedown( e ) }
-    );
-    this.canvasDom.addEventListener(
-        'mousemove', function ( e ) { _this.mousemove( e ) }
-    );
-    this.canvasDom.addEventListener(
-        'mouseup', function ( e ) { _this.mouseup( e ) }
-    );
-    this.canvasDom.addEventListener(
-        'mouseout', function ( e ) { _this.mouseup( e ) }
-    );
-    this.canvasDom.addEventListener(
-        'touchstart', function ( e ) { _this.mousedown( e ) }
-    );
-    this.canvasDom.addEventListener(
-        'touchmove', function ( e ) { _this.mousemove( e ) }
-    );
-    this.canvasDom.addEventListener(
-        'touchend', function ( e ) { _this.mouseup( e ) }
-    );
-    this.canvasDom.addEventListener(
-        'touchcancel', function ( e ) { _this.mouseup( e ) }
-    );
+        var bind = ( eventType, callback ) => {
+            this.canvasDom.addEventListener( eventType, callback );
+        };
 
-}
+        bind( 'mousedown', e => this.mousedown( e ) );
+        bind( 'mousemove', e => this.mousemove( e ) );
+        bind( 'mouseup', e => this.mouseup( e ) );
+        bind( 'mouseout', e => this.mouseup( e ) );
+        bind( 'touchstart', e => this.mousedown( e ) );
+        bind( 'touchmove', e => this.mousemove( e ) );
+        bind( 'touchend', e => this.mouseup( e ) );
+        bind( 'touchcancel', e => this.mouseup( e ) );
 
-
-CanvasWrapper.prototype.width = function () {
-    return this.parentDiv.width();
-}
-
-
-CanvasWrapper.prototype.height = function () {
-    return this.parentDiv.height();
-}
-
-
-CanvasWrapper.prototype.x = function () {
-    var parentDivPos = this.parentDiv.position();
-    return parentDivPos.left;
-}
-
-
-CanvasWrapper.prototype.y = function () {
-    var parentDivPos = this.parentDiv.position();
-    return parentDivPos.top;
-}
-
-
-CanvasWrapper.prototype.inside = function ( x, y ) {
-    if ( ( x >= this.x() ) &&
-        ( x <= this.x() + this.width() ) &&
-        ( y >= this.y() ) &&
-        ( y <= this.y() + this.height() ) ) {
-        return true;
-    }
-    return false;
-}
-
-
-CanvasWrapper.prototype.draw = function () {
-}
-
-
-CanvasWrapper.prototype.resize = function () {
-
-    var parentDivPos = this.parentDiv.position();
-    this.canvasDom.width = this.width();
-    this.canvasDom.height = this.height();
-
-}
-
-
-CanvasWrapper.prototype.rect = function ( x, y, w, h, fillStyle ) {
-
-    this.drawContext.fillStyle = fillStyle;
-    this.drawContext.fillRect( x, y, w, h );
-
-}
-
-
-CanvasWrapper.prototype.text = function (
-    text, x, y, font, color, align ) {
-
-    this.drawContext.fillStyle = color;
-    this.drawContext.font = font;
-    this.drawContext.textAlign = align;
-    this.drawContext.textBaseline = 'middle';
-    this.drawContext.fillText( text, x, y );
-
-}
-
-
-CanvasWrapper.prototype.textWidth = function ( text, font ) {
-
-    this.drawContext.font = font;
-    this.drawContext.textAlign = 'center';
-    return this.drawContext.measureText( text ).width;
-
-}
-
-CanvasWrapper.prototype.mousedown = function ( event ) {
-
-    event.preventDefault();
-
-    this.mousePressed = true;
-
-    this.mousemove( event );
-
-}
-
-CanvasWrapper.prototype.mousemove = function ( event ) {
-
-    event.preventDefault();
-
-    if ( !this.mousePressed ) {
-        return;
     }
 
-}
 
-CanvasWrapper.prototype.mouseup = function ( event ) {
-
-    event.preventDefault();
-
-    this.mousePressed = false;
-
-}
-
-CanvasWrapper.prototype.mouseup = function ( event ) {
-
-    event.preventDefault();
-
-    this.mousePressed = false;
-
-}
-
-CanvasWrapper.prototype.getPointer = function ( event ) {
-
-    if ( event.touches ) {
-        var x = event.touches[ 0 ].clientX;
-        var y = event.touches[ 0 ].clientY;
-    } else {
-        var x = event.clientX;
-        var y = event.clientY;
+    width() {
+        return this.parentDiv.width();
     }
 
-    this.pointerX = x + document.body.scrollLeft
-         + document.documentElement.scrollLeft
-         - this.x();
 
-    this.pointerY = y + document.body.scrollTop
-         + document.documentElement.scrollTop
-         - this.y();
+    height() {
+        return this.parentDiv.height();
+    }
 
+
+    x() {
+        var parentDivPos = this.parentDiv.position();
+        return parentDivPos.left;
+    }
+
+
+    y() {
+        var parentDivPos = this.parentDiv.position();
+        return parentDivPos.top;
+    }
+
+
+    inside(x, y) {
+        if ( ( x >= this.x() )
+          && ( x <= this.x() + this.width() )
+          && ( y >= this.y() )
+          && ( y <= this.y() + this.height() )) {
+            return true;
+        }
+        return false;
+    }
+
+
+    draw() { }
+
+
+    resize() {
+
+        var parentDivPos = this.parentDiv.position();
+        this.canvasDom.width = this.width();
+        this.canvasDom.height = this.height();
+
+    }
+
+
+    rect(x, y, w, h, fillStyle) {
+
+        this.drawContext.fillStyle = fillStyle;
+        this.drawContext.fillRect(x, y, w, h);
+
+    }
+
+
+    text(text, x, y, font, color, align) {
+
+        this.drawContext.fillStyle = color;
+        this.drawContext.font = font;
+        this.drawContext.textAlign = align;
+        this.drawContext.textBaseline = 'middle';
+        this.drawContext.fillText(text, x, y);
+
+    }
+
+
+    textWidth(text, font) {
+
+        this.drawContext.font = font;
+        this.drawContext.textAlign = 'center';
+        return this.drawContext.measureText(text).width;
+
+    }
+
+    mousedown(event) {
+
+        event.preventDefault();
+
+        this.mousePressed = true;
+
+        this.mousemove(event);
+
+    }
+
+    mousemove(event) {
+
+        event.preventDefault();
+
+        if (!this.mousePressed) {
+            return;
+        }
+
+    }
+
+    mouseup(event) {
+
+        event.preventDefault();
+
+        this.mousePressed = false;
+
+    }
+
+    getPointer(event) {
+
+        var x, y;
+        if (event.touches) {
+            x = event.touches[0].clientX;
+            y = event.touches[0].clientY;
+        } else {
+            x = event.clientX;
+            y = event.clientY;
+        }
+
+        this.pointerX = x + document.body.scrollLeft
+          + document.documentElement.scrollLeft
+          - this.x();
+
+        this.pointerY = y + document.body.scrollTop
+          + document.documentElement.scrollTop
+          - this.y();
+
+    }
 }
-
 
 ////////////////////////////////////////////////////////////////////
 // SequenceBar
@@ -1224,6 +1196,7 @@ webGL threeJs object.
 
 var GlProteinDisplay = function ( scene, selector, controller ) {
 
+    console.log('init GlProteinDisplay');
     this.selector = selector;
     this.scene = scene;
     this.protein = scene.protein;
@@ -1241,10 +1214,10 @@ var GlProteinDisplay = function ( scene, selector, controller ) {
     // stores light objects to rotate with camera motion
     this.lights = [];
 
-    this.saveMouseX;
-    this.saveMouseY;
-    this.saveMouseR;
-    this.saveMouseT;
+    this.saveMouseX = null;
+    this.saveMouseY = null;
+    this.saveMouseR = null;
+    this.saveMouseT = null;
     this.mouseX = null;
     this.mouseY = null;
     this.mouseR = null;
@@ -1739,6 +1712,14 @@ GlProteinDisplay.prototype.setLights = function () {
     directionalLight.intensity = 1.2;
     this.lights.push( directionalLight );
 
+    var directionalLight2 =
+      new THREE.DirectionalLight( 0xFFFFFF );
+    directionalLight2.position.copy(
+      new TV3( 0.2, 0.2, -100 )
+        .normalize() );
+    directionalLight2.intensity = 1.2;
+    this.lights.push( directionalLight2 );
+
     var ambientLight = new THREE.AmbientLight( 0x202020 );
     this.lights.push( ambientLight );
 
@@ -2123,6 +2104,8 @@ GlProteinDisplay.prototype.buildLigands = function () {
 
 GlProteinDisplay.prototype.buildWaters = function () {
 
+    console.log('buildWaters');
+
     this.objects.water = new THREE.Object3D();
     this.threeJsScene.add( this.objects.water );
 
@@ -2435,11 +2418,11 @@ GlProteinDisplay.prototype.buildScene = function () {
 
     this.messageBar.html( 'Building cartoon...' );
 
-    this.buildTube();
+    // this.buildTube();
 
     this.buildCartoon();
 
-    this.buildNucleotides();
+    // this.buildNucleotides();
     this.buildArrows();
     for ( var k in this.objects ) {
         this.threeJsScene.add( this.objects[ k ] );
@@ -2551,9 +2534,12 @@ GlProteinDisplay.prototype.setCameraFromCurrentView = function () {
 GlProteinDisplay.prototype.adjustCamera = function (
     xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio ) {
 
+    console.log('xRotationAngle', xRotationAngle);
+    console.log('yRotationAngle', yRotationAngle);
+    console.log('zRotationAngle', zRotationAngle);
     var y = this.camera.up;
     var z = this.camera.position.clone()
-        .sub( this.threeJsScene.position )
+        .sub( this.cameraTarget )
         .normalize();
     var x = ( new TV3() )
         .crossVectors( y, z )
@@ -3277,7 +3263,9 @@ GlProteinDisplay.prototype.drawAtomLabels = function () {
 
 
 GlProteinDisplay.prototype.draw = function () {
-
+    if (_.isUndefined(this.objects)) {
+        return;
+    }
     if ( !this.is_changed() ) {
         return;
     }
@@ -3288,7 +3276,6 @@ GlProteinDisplay.prototype.draw = function () {
     this.drawDistanceLabels();
     this.moveCrossHairs();
     this.renderer.render( this.threeJsScene, this.camera );
-    // this.crossBar.draw();
     this.drawAtomLabels();
     this.drawDistanceLabels();
     this.zSlab.draw();

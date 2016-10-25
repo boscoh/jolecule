@@ -576,6 +576,24 @@ function setGeometryVerticesColor( geom, color ) {
 }
 
 
+export {
+    PathAndFrenetFrames,
+    BlockArrowGeometry,
+    UnitCylinderGeometry,
+    drawCylinder,
+    drawBlockArrow,
+    setVisible,
+    expandPath,
+    perpVector,
+    RaisedShapeGeometry,
+    RibbonGeometry,
+    getUnitVectorRotation,
+    getFractionRotation,
+    setGeometryVerticesColor
+}
+
+
+
 // function drawExtrusion( shape, pathAndFrenetFrames, color ) {
 
 //     var steps = pathAndFrenetFrames.points.length - 1;
@@ -600,20 +618,3 @@ function setGeometryVerticesColor( geom, color ) {
 
 //     return new THREE.Mesh( geometry, material );
 // }
-
-
-export {
-    PathAndFrenetFrames,
-    BlockArrowGeometry,
-    UnitCylinderGeometry,
-    drawCylinder,
-    drawBlockArrow,
-    setVisible,
-    expandPath,
-    perpVector,
-    RaisedShapeGeometry,
-    RibbonGeometry,
-    getUnitVectorRotation,
-    getFractionRotation,
-    setGeometryVerticesColor
-}
