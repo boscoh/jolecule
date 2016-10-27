@@ -1090,6 +1090,8 @@ ZSlabBar.prototype.draw = function () {
     var camera = this.scene.current_view.abs_camera;
     this.maxZLength = 2.0 * protein.max_length;
 
+    console.log('zslabbar draw', this.maxZLength, camera.z_back, camera.z_front);
+
     var yBack = this.zToY( camera.z_back );
     var yFront = this.zToY( camera.z_front );
     var yMid = this.zToY( 0 );
@@ -2513,7 +2515,7 @@ GlProteinDisplay.prototype.setCameraFromCurrentView = function () {
     this.camera.near = near;
     this.camera.far = far;
     this.camera.lookAt( this.cameraTarget );
-    // this.camera.updateProjectionMatrix();
+    this.camera.updateProjectionMatrix();
 
     this.threeJsScene.fog.near = near;
     this.threeJsScene.fog.far = far;
@@ -2534,9 +2536,6 @@ GlProteinDisplay.prototype.setCameraFromCurrentView = function () {
 GlProteinDisplay.prototype.adjustCamera = function (
     xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio ) {
 
-    console.log('xRotationAngle', xRotationAngle);
-    console.log('yRotationAngle', yRotationAngle);
-    console.log('zRotationAngle', zRotationAngle);
     var y = this.camera.up;
     var z = this.camera.position.clone()
         .sub( this.cameraTarget )
