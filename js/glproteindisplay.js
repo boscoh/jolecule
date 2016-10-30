@@ -237,7 +237,7 @@ var convertViewToTarget = function ( view ) {
         zFront: view.abs_camera.z_front,
         zBack: view.abs_camera.z_back,
         zoom: view.abs_camera.zoom
-    }
+    };
 
     return target;
 
@@ -251,7 +251,7 @@ var convertTargetToView = function ( target ) {
     var cameraDirection = target.cameraPosition.clone()
         .sub( target.cameraTarget )
         .negate();
-    var zoom = cameraDirection.length()
+    var zoom = cameraDirection.length();
 
     view.abs_camera.zoom = zoom;
     view.abs_camera.z_front = target.zFront;
@@ -259,14 +259,13 @@ var convertTargetToView = function ( target ) {
 
     view.abs_camera.pos = v3.clone( target.cameraTarget );
 
-    var up = target.cameraUp.clone()
-        .negate()
+    var up = target.cameraUp.clone().negate();
 
     view.abs_camera.up_v = v3.clone(
         target.cameraTarget.clone()
         .add( up ) );
 
-    cameraDirection.normalize()
+    cameraDirection.normalize();
     view.abs_camera.in_v = v3.clone(
         target.cameraTarget.clone()
         .add( cameraDirection ) );
@@ -314,300 +313,301 @@ class MessageBar {
 // PopupText
 ////////////////////////////////////////////////////////////////////
 
-var PopupText = function ( selector ) {
+class PopupText {
 
-    this.div = $( "<div>" )
-        .css( {
-            'position': 'absolute',
-            'top': 0,
-            'left': 0,
-            'z-index': 100,
-            'background': 'white',
-            'padding': '5',
-            'opacity': 0.7,
-            'display': 'none',
-        } );
+    constructor(selector) {
 
-    this.arrow = $( "<div>" )
-        .css( {
-            'position': 'absolute',
-            'top': 0,
-            'left': 0,
-            'z-index': 100,
-            'width': 0,
-            'height': 0,
-            'border-left': '5px solid transparent',
-            'border-right': '5px solid transparent',
-            'border-top': '50px solid white',
-            'opacity': 0.7,
-            'display': 'none',
-        } );
+        this.div = $("<div>")
+          .css({
+              'position': 'absolute',
+              'top': 0,
+              'left': 0,
+              'z-index': 100,
+              'background': 'white',
+              'padding': '5',
+              'opacity': 0.7,
+              'display': 'none',
+          });
 
-    this.parentDiv = $( selector );
-    this.parentDiv.append( this.div );
-    this.parentDiv.append( this.arrow );
+        this.arrow = $("<div>")
+          .css({
+              'position': 'absolute',
+              'top': 0,
+              'left': 0,
+              'z-index': 100,
+              'width': 0,
+              'height': 0,
+              'border-left': '5px solid transparent',
+              'border-right': '5px solid transparent',
+              'border-top': '50px solid white',
+              'opacity': 0.7,
+              'display': 'none',
+          });
 
-}
+        this.parentDiv = $(selector);
+        this.parentDiv.append(this.div);
+        this.parentDiv.append(this.arrow);
 
-
-PopupText.prototype.move = function ( x, y ) {
-
-    var parentDivPos = this.parentDiv.position();
-    var width = this.div.innerWidth();
-    var height = this.div.innerHeight();
-
-    if ( ( x < 0 ) || ( x > this.parentDiv.width() ) || ( y < 0 ) ||
-        ( y > this.parentDiv.height() ) ) {
-        this.hide();
-        return;
     }
 
-    this.div.css( {
-        'top': y - height - 50 + parentDivPos.top,
-        'left': x - width / 2 + parentDivPos.left,
-        'display': 'block',
-        'font-family': 'sans-serif',
-        'cursor': 'pointer'
-    } );
+    move(x, y) {
 
-    this.arrow.css( {
-        'top': y - 50 + parentDivPos.top,
-        'left': x - 5 + parentDivPos.left,
-        'display': 'block',
-    } );
+        var parentDivPos = this.parentDiv.position();
+        var width = this.div.innerWidth();
+        var height = this.div.innerHeight();
+
+        if (( x < 0 ) || ( x > this.parentDiv.width() ) || ( y < 0 ) ||
+          ( y > this.parentDiv.height() )) {
+            this.hide();
+            return;
+        }
+
+        this.div.css({
+            'top': y - height - 50 + parentDivPos.top,
+            'left': x - width / 2 + parentDivPos.left,
+            'display': 'block',
+            'font-family': 'sans-serif',
+            'cursor': 'pointer'
+        });
+
+        this.arrow.css({
+            'top': y - 50 + parentDivPos.top,
+            'left': x - 5 + parentDivPos.left,
+            'display': 'block',
+        });
+
+    }
+
+    hide() {
+
+        this.div.css('display', 'none');
+        this.arrow.css('display', 'none');
+
+    }
+
+    html(text) {
+
+        this.div.html(text);
+
+    }
+
+    remove() {
+
+        this.div.remove();
+        this.arrow.remove();
+
+    }
 
 }
-
-
-PopupText.prototype.hide = function () {
-
-    this.div.css( 'display', 'none' );
-    this.arrow.css( 'display', 'none' );
-
-}
-
-
-PopupText.prototype.html = function ( text ) {
-
-    this.div.html( text );
-
-}
-
-
-PopupText.prototype.remove = function () {
-    this.div.remove();
-    this.arrow.remove();
-}
-
 
 ////////////////////////////////////////////////////////////////////
 // AtomLabel
 ////////////////////////////////////////////////////////////////////
 
-var AtomLabel = function ( selector, controller, parentList ) {
+class AtomLabel {
 
-    this.popup = new PopupText( selector );
-    this.controller = controller;
-    this.parentList = parentList;
+    constructor(selector, controller, parentList) {
 
-    var _this = this;
+        this.popup = new PopupText(selector);
+        this.controller = controller;
+        this.parentList = parentList;
 
-    this.popup.div.click( function () {
-        _this.remove()
-    } );
+        var _this = this;
+
+        this.popup.div.click(function () {
+            _this.remove()
+        });
+    }
+
+    update(i, text, x, y, opacity) {
+
+        this.i = i;
+        this.popup.html(text);
+        this.popup.div.css('opacity', opacity);
+        this.popup.arrow.css('opacity', opacity);
+        this.popup.move(x, y);
+
+    }
+
+    remove() {
+
+        this.popup.remove();
+        this.controller.delete_label(this.i);
+        this.parentList.splice(this.i, 1);
+
+    }
+
+    hide() {
+
+        this.popup.div.css('display', 'none');
+        this.popup.arrow.css('display', 'none');
+
+    }
+
 }
-
-
-AtomLabel.prototype.update = function ( i, text, x, y, opacity ) {
-
-    this.i = i;
-    this.popup.html( text );
-    this.popup.div.css( 'opacity', opacity );
-    this.popup.arrow.css( 'opacity', opacity );
-    this.popup.move( x, y );
-
-}
-
-
-AtomLabel.prototype.remove = function () {
-
-    this.popup.remove();
-    this.controller.delete_label( this.i );
-    this.parentList.splice( this.i, 1 );
-
-}
-
-
-AtomLabel.prototype.hide = function () {
-
-    this.popup.div.css( 'display', 'none' );
-    this.popup.arrow.css( 'display', 'none' );
-
-}
-
 
 ////////////////////////////////////////////////////////////////////
 // DistanceLabel
 ////////////////////////////////////////////////////////////////////
 
-var DistanceLabel = function (
-    selector, threeJsScene, controller, parentList ) {
+class DistanceLabel  {
 
-    this.threeJsScene = threeJsScene;
-    this.controller = controller;
-    this.parentList = parentList;
+    constructor(selector, threeJsScene, controller, parentList) {
 
-    this.div = $( "<div>" )
-        .css( {
-            'position': 'absolute',
-            'top': 0,
-            'left': 0,
-            'z-index': 100,
-            'background-color': '#FFDDDD',
-            'padding': '5',
-            'opacity': 0.7,
-            'font-family': 'sans-serif'
-        } );
+        this.threeJsScene = threeJsScene;
+        this.controller = controller;
+        this.parentList = parentList;
 
-    var geometry = new THREE.Geometry();
-    geometry.vertices.push( new TV3( 0, 0, 0 ) );
-    geometry.vertices.push( new TV3( 1, 1, 1 ) );
+        this.div = $("<div>")
+          .css({
+              'position': 'absolute',
+              'top': 0,
+              'left': 0,
+              'z-index': 100,
+              'background-color': '#FFDDDD',
+              'padding': '5',
+              'opacity': 0.7,
+              'font-family': 'sans-serif'
+          });
 
-    var material = new THREE.LineDashedMaterial( {
-        color: 0xFF7777,
-        dashSize: 3,
-        gapSize: 4,
-        linewidth: 2
-    } );
+        var geometry = new THREE.Geometry();
+        geometry.vertices.push(new TV3(0, 0, 0));
+        geometry.vertices.push(new TV3(1, 1, 1));
 
-    this.line = new THREE.Line( geometry, material );
+        var material = new THREE.LineDashedMaterial({
+            color: 0xFF7777,
+            dashSize: 3,
+            gapSize: 4,
+            linewidth: 2
+        });
 
-    this.threeJsScene.add( this.line );
+        this.line = new THREE.Line(geometry, material);
 
-    this.parentDiv = $( selector );
-    this.parentDiv.append( this.div );
+        this.threeJsScene.add(this.line);
 
-    var _this = this;
-    this.div.click( function ( event ) {
-        _this.remove()
-    } );
+        this.parentDiv = $(selector);
+        this.parentDiv.append(this.div);
 
-}
+        var _this = this;
+        this.div.click(function (event) {
+            _this.remove()
+        });
 
-DistanceLabel.prototype.update = function (
-    i, text, x, y, p1, p2, opacity ) {
-
-    this.i = i;
-
-    if ( ( x < 0 ) || ( x > this.parentDiv.width() ) || ( y < 0 ) ||
-        ( y > this.parentDiv.height() ) ) {
-        this.hide();
-        return;
     }
 
-    var parentDivPos = this.parentDiv.position();
+    update(i, text, x, y, p1, p2, opacity) {
 
-    this.div.text( text );
+        this.i = i;
 
-    var width = this.div.innerHeight();
-    var height = this.div.innerWidth();
+        if (( x < 0 ) || ( x > this.parentDiv.width() ) || ( y < 0 ) ||
+          ( y > this.parentDiv.height() )) {
+            this.hide();
+            return;
+        }
 
-    this.div.css( {
-        'top': y - width / 2 + parentDivPos.top,
-        'left': x - height / 2 + parentDivPos.left,
-        'display': 'block',
-        'cursor': 'pointer',
-        'opacity': opacity
-    } );
+        var parentDivPos = this.parentDiv.position();
 
-    this.line.geometry.vertices[ 0 ].copy( p1 );
-    this.line.geometry.vertices[ 1 ].copy( p2 );
+        this.div.text(text);
+
+        var width = this.div.innerHeight();
+        var height = this.div.innerWidth();
+
+        this.div.css({
+            'top': y - width / 2 + parentDivPos.top,
+            'left': x - height / 2 + parentDivPos.left,
+            'display': 'block',
+            'cursor': 'pointer',
+            'opacity': opacity
+        });
+
+        this.line.geometry.vertices[0].copy(p1);
+        this.line.geometry.vertices[1].copy(p2);
+
+    }
+
+    remove() {
+
+        this.threeJsScene.remove(this.line);
+        this.div.remove();
+        this.controller.delete_dist(this.i);
+        this.parentList.splice(this.i, 1);
+
+    }
+
+    hide() {
+
+        this.div.css('display', 'none');
+
+    }
 
 }
-
-DistanceLabel.prototype.remove = function () {
-
-    this.threeJsScene.remove( this.line );
-    this.div.remove();
-    this.controller.delete_dist( this.i );
-    this.parentList.splice( this.i, 1 );
-
-}
-
-
-DistanceLabel.prototype.hide = function () {
-
-    this.div.css( 'display', 'none' );
-
-}
-
 
 ////////////////////////////////////////////////////////////////////
 // LineElement
 ////////////////////////////////////////////////////////////////////
 
-var LineElement = function ( selector, color ) {
+class LineElement {
 
-    /* This DOM object is to draw a line between (x1, y1) and
-    (x2, y2) within a jquery div */
+    constructor(selector, color) {
 
-    this.color = color;
+        /* This DOM object is to draw a line between (x1, y1) and
+         (x2, y2) within a jquery div */
 
-    this.div = $( "<canvas>" )
-        .css( {
-            "position": "absolute",
-            "z-index": "1000",
-            "display": "none",
-            "pointer-events": "none",
-        } );
+        this.color = color;
 
-    this.canvas = this.div[ 0 ]
-    this.context2d = this.canvas.getContext( '2d' )
+        this.div = $("<canvas>")
+          .css({
+              "position": "absolute",
+              "z-index": "1000",
+              "display": "none",
+              "pointer-events": "none",
+          });
 
-    this.parentDiv = $( selector );
-    this.parentDiv.append( this.div );
+        this.canvas = this.div[0]
+        this.context2d = this.canvas.getContext('2d')
+
+        this.parentDiv = $(selector);
+        this.parentDiv.append(this.div);
+
+    }
+
+    hide() {
+
+        this.div.css("display", "none");
+
+    }
+
+    move(x1, y1, x2, y2) {
+
+        var parentDivPos = this.parentDiv.position();
+
+        var width = Math.abs(x1 - x2);
+        var height = Math.abs(y1 - y2);
+
+        var left = Math.min(x1, x2);
+        var top = Math.min(y1, y2);
+
+        this.div
+          .css("display", "block")
+          .css("width", width)
+          .css("height", height)
+          .css("top", top + parentDivPos.top)
+          .css("left", left + parentDivPos.left);
+
+        this.canvas.width = width;
+        this.canvas.height = height;
+
+        this.context2d.clearRect(0, 0, width, height);
+        this.context2d.beginPath();
+        this.context2d.moveTo(x1 - left, y1 - top);
+        this.context2d.lineTo(x2 - left, y2 - top);
+        this.context2d.lineWidth = 2;
+        this.context2d.strokeStyle = this.color;
+        this.context2d.stroke();
+
+    }
 
 }
-
-
-LineElement.prototype.hide = function () {
-
-    this.div.css( "display", "none" );
-
-}
-
-
-LineElement.prototype.move = function ( x1, y1, x2, y2 ) {
-
-    var parentDivPos = this.parentDiv.position();
-
-    var width = Math.abs( x1 - x2 );
-    var height = Math.abs( y1 - y2 );
-
-    var left = Math.min( x1, x2 );
-    var top = Math.min( y1, y2 );
-
-    this.div
-        .css( "display", "block" )
-        .css( "width", width )
-        .css( "height", height )
-        .css( "top", top + parentDivPos.top )
-        .css( "left", left + parentDivPos.left );
-
-    this.canvas.width = width;
-    this.canvas.height = height;
-
-    this.context2d.clearRect( 0, 0, width, height );
-    this.context2d.beginPath();
-    this.context2d.moveTo( x1 - left, y1 - top );
-    this.context2d.lineTo( x2 - left, y2 - top );
-    this.context2d.lineWidth = 2;
-    this.context2d.strokeStyle = this.color;
-    this.context2d.stroke();
-
-}
-
-
 
 ////////////////////////////////////////////////////////////////////
 // CanvasWrapper - abstract class to wrap a canvas element
@@ -1089,8 +1089,6 @@ ZSlabBar.prototype.draw = function () {
     var protein = this.scene.protein;
     var camera = this.scene.current_view.abs_camera;
     this.maxZLength = 2.0 * protein.max_length;
-
-    console.log('zslabbar draw', this.maxZLength, camera.z_back, camera.z_front);
 
     var yBack = this.zToY( camera.z_back );
     var yFront = this.zToY( camera.z_front );
