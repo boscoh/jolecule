@@ -5,7 +5,6 @@ import v3 from "./v3";
 import { View } from "./protein";
 import {
     PathAndFrenetFrames,
-    BlockArrowGeometry,
     UnitCylinderGeometry,
     drawCylinder,
     perpVector,
@@ -33,14 +32,14 @@ var TV3 = THREE.Vector3;
 // Color constants
 
 var green = new THREE.Color( 0x66CC66 );
-var blue = new THREE.Color( 0x6666CC )
+var blue = new THREE.Color( 0x6666CC );
 var yellow = new THREE.Color( 0xCCCC44 );
 var purple = new THREE.Color( 0xCC44CC );
 var grey = new THREE.Color( 0xBBBBBB );
 var red = new THREE.Color( 0x993333 );
 
 var darkGreen = new THREE.Color( 0x226622 );
-var darkBlue = new THREE.Color( 0x333399 )
+var darkBlue = new THREE.Color( 0x333399 );
 var darkYellow = new THREE.Color( 0x999922 );
 var darkPurple = new THREE.Color( 0x992299 );
 var darkGrey = new THREE.Color( 0x555555 );
@@ -173,7 +172,7 @@ function text_dialog( parentDiv, label, success ) {
 
     window.keyboard_lock = true;
 
-    var cleanup = function () {
+    function cleanup() {
         dialog.remove();
         window.keyboard_lock = false;
     }
@@ -198,23 +197,26 @@ function text_dialog( parentDiv, label, success ) {
 
 }
 
+/**
+ * - camera
+ *     - pos: scene center, camera focus
+ *     - up: gives the direction of the y vector from pos
+ *     - in: gives the positive z-axis direction
+ *     - scene is from 0 to positive z; since canvasjolecule draws +z into screen
+ *     - as opengl +z is out of screen, need to flip z direction
+ *     - in opengl, the box is -1 to 1 that gets projected on screen + perspective
+ *     - by adding a i distance to move the camera further into -z
+ *     - z_front and z_back define cutoffs
+ * - opengl:
+ *     - x right -> left
+ *     - y bottom -> top (inverse of classic 2D coordinate)
+ *     - z far -> near
+ *     - that is positive Z direction is out of the screen
+ *     - box -1to +1
+**/
+
 
 function convertViewToTarget( view ) {
-    // - camera
-    //     - pos: scene center, camera focus
-    //     - up: gives the direction of the y vector from pos
-    //     - in: gives the positive z-axis direction
-    //     - scene is from 0 to positive z; since canvasjolecule draws +z into screen
-    //     - as opengl +z is out of screen, need to flip z direction
-    //     - in opengl, the box is -1 to 1 that gets projected on screen + perspective
-    //     - by adding a i distance to move the camera further into -z
-    //     - z_front and z_back define cutoffs
-    // - opengl:
-    //     - x right -> left
-    //     - y bottom -> top (inverse of classic 2D coordinate)
-    //     - z far -> near 
-    //     - that is positive Z direction is out of the screen 
-    //     - box -1to +1
 
     var cameraTarget = v3.clone( view.abs_camera.pos );
 
@@ -230,7 +232,7 @@ function convertViewToTarget( view ) {
         .sub( cameraTarget )
         .negate();
 
-    var target = {
+    return {
         cameraTarget: cameraTarget,
         cameraPosition: cameraPosition,
         cameraUp: cameraUp,
@@ -238,8 +240,6 @@ function convertViewToTarget( view ) {
         zBack: view.abs_camera.z_back,
         zoom: view.abs_camera.zoom
     };
-
-    return target;
 
 }
 
@@ -251,9 +251,8 @@ function convertTargetToView( target ) {
     var cameraDirection = target.cameraPosition.clone()
         .sub( target.cameraTarget )
         .negate();
-    var zoom = cameraDirection.length();
 
-    view.abs_camera.zoom = zoom;
+    view.abs_camera.zoom = cameraDirection.length();
     view.abs_camera.z_front = target.zFront;
     view.abs_camera.z_back = target.zBack;
 
@@ -318,31 +317,31 @@ class PopupText {
     constructor(selector) {
 
         this.div = $("<div>")
-          .css({
-              'position': 'absolute',
-              'top': 0,
-              'left': 0,
-              'z-index': 100,
-              'background': 'white',
-              'padding': '5',
-              'opacity': 0.7,
-              'display': 'none',
-          });
+            .css({
+                'position': 'absolute',
+                'top': 0,
+                'left': 0,
+                'z-index': 100,
+                'background': 'white',
+                'padding': '5',
+                'opacity': 0.7,
+                'display': 'none',
+            });
 
         this.arrow = $("<div>")
-          .css({
-              'position': 'absolute',
-              'top': 0,
-              'left': 0,
-              'z-index': 100,
-              'width': 0,
-              'height': 0,
-              'border-left': '5px solid transparent',
-              'border-right': '5px solid transparent',
-              'border-top': '50px solid white',
-              'opacity': 0.7,
-              'display': 'none',
-          });
+            .css({
+                'position': 'absolute',
+                'top': 0,
+                'left': 0,
+                'z-index': 100,
+                'width': 0,
+                'height': 0,
+                'border-left': '5px solid transparent',
+                'border-right': '5px solid transparent',
+                'border-top': '50px solid white',
+                'opacity': 0.7,
+                'display': 'none',
+            });
 
         this.parentDiv = $(selector);
         this.parentDiv.append(this.div);
@@ -557,8 +556,8 @@ class LineElement {
               "pointer-events": "none",
           });
 
-        this.canvas = this.div[0]
-        this.context2d = this.canvas.getContext('2d')
+        this.canvas = this.div[0];
+        this.context2d = this.canvas.getContext('2d');
 
         this.parentDiv = $(selector);
         this.parentDiv.append(this.div);
@@ -666,13 +665,11 @@ class CanvasWrapper {
 
 
     inside(x, y) {
-        if ( ( x >= this.x() )
+        return (
+             ( x >= this.x() )
           && ( x <= this.x() + this.width() )
           && ( y >= this.y() )
-          && ( y <= this.y() + this.height() )) {
-            return true;
-        }
-        return false;
+          && ( y <= this.y() + this.height() ));
     }
 
 
@@ -681,7 +678,6 @@ class CanvasWrapper {
 
     resize() {
 
-        var parentDivPos = this.parentDiv.position();
         this.canvasDom.width = this.width();
         this.canvasDom.height = this.height();
 
@@ -725,15 +721,7 @@ class CanvasWrapper {
 
     }
 
-    mousemove(event) {
-
-        event.preventDefault();
-
-        if (!this.mousePressed) {
-            return;
-        }
-
-    }
+    mousemove(event) { }
 
     mouseup(event) {
 
@@ -794,8 +782,8 @@ class SequenceBar extends CanvasWrapper {
 
         super(selector);
         this.scene = scene;
-        this.iSelected = 0;
         this.proteinDisplay = proteinDisplay;
+        this.iRes = 0;
 
     }
 
@@ -803,7 +791,7 @@ class SequenceBar extends CanvasWrapper {
 
         this.div.css({
             'width': this.parentDiv.width(),
-            'height': 40,
+            'height': 80,
             'top': 0,
             'left': 0,
         });
@@ -814,13 +802,13 @@ class SequenceBar extends CanvasWrapper {
 
     iToX(iRes) {
 
-        return parseInt(iRes / this.n_residue * this.width());
+        return parseInt(iRes / this.nResidue * this.width());
 
     }
 
     xToI(x) {
 
-        return parseInt(x * this.n_residue / this.width());
+        return parseInt(x * this.nResidue / this.width());
 
     }
 
@@ -830,19 +818,31 @@ class SequenceBar extends CanvasWrapper {
             return;
         }
 
-        var residues = this.scene.protein.residues;
+        this.residues = [];
 
-        this.n_residue = residues.length;
+        let nResidue = this.scene.protein.residues.length
 
-        var ss = residues[0].ss;
+        for (let iRes=0; iRes < nResidue; iRes+=1) {
+            let residue = this.scene.protein.residues[iRes];
+            if (_.contains(['-', 'W'], residue.ss)) {
+                continue;
+            };
+            this.residues.push({
+                i: iRes,
+                ss: residue.ss
+            })
+        }
 
-        var i_start = 0;
-        var i_end = 0;
+        this.nResidue = this.residues.length;
 
-        while (i_end < this.n_residue) {
+        let ss = this.residues[0].ss;
+        let i_start = 0;
+        let i_end = 0;
 
-            i_end += 1
-            if (i_end == this.n_residue || residues[i_end].ss != ss) {
+        while (i_end < this.nResidue) {
+
+            i_end += 1;
+            if (i_end == this.nResidue || this.residues[i_end].ss != ss) {
 
                 var x1 = this.iToX(i_start);
                 var x2 = this.iToX(i_end);
@@ -854,9 +854,9 @@ class SequenceBar extends CanvasWrapper {
                   20,
                   color);
 
-                if (i_end <= this.n_residue - 1) {
+                if (i_end <= this.nResidue - 1) {
                     i_start = i_end;
-                    ss = residues[i_end].ss;
+                    ss = this.residues[i_end].ss;
                 }
 
             }
@@ -880,6 +880,10 @@ class SequenceBar extends CanvasWrapper {
 
     }
 
+    getFullIRes() {
+        return this.residues[this.iRes].i;
+    }
+
     mousemove(event) {
 
         if (!this.mousePressed) {
@@ -887,9 +891,9 @@ class SequenceBar extends CanvasWrapper {
         }
         this.getPointer(event);
 
-        var iRes = this.xToI(this.pointerX);
+        this.iRes = this.xToI(this.pointerX);
         this.proteinDisplay.setTargetFromAtom(
-          this.scene.protein.residues[iRes].central_atom);
+          this.scene.protein.residues[this.getFullIRes()].central_atom);
 
     }
 
@@ -906,6 +910,7 @@ class SequenceWidget {
         this.parentDiv = $(selector);
         this.scene = scene;
         this.proteinDisplay = proteinDisplay;
+        this.iRes = 0;
 
         this.div = $("<div>")
           .css('position', 'absolute')
@@ -972,21 +977,18 @@ class SequenceWidget {
         }
 
         var residues = this.scene.protein.residues;
-
-        this.n_residue = residues.length;
-
-        var resId = this.scene.current_view.res_id;
-        var iRes = this.scene.protein.res_by_id[resId].i;
+        this.nResidue = residues.length;
+        this.iRes = this.sequenceBar.getFullIRes();
 
         var s = "";
 
-        for (var i = iRes - 10; i < iRes + 11; i += 1) {
+        for (var i = this.iRes - 10; i < this.iRes + 11; i += 1) {
             if ((i < 0) || (i >= residues.length)) {
                 s += "&nbsp;";
             } else {
-                var residue = residues[i]
+                var residue = residues[i];
                 var style = "color:" + getSsColor(residue.ss).getStyle();
-                if (iRes == i) {
+                if (this.iRes == i) {
                     style += ";border:1px solid #AAA";
                 }
                 s += '<span style="' + style + '">';
@@ -1005,7 +1007,7 @@ class SequenceWidget {
         this.textDiv.html(s);
         this.textDiv.css(
           'left',
-          this.sequenceBar.iToX(iRes) - this.textDiv.width() * 0.5 - 3);
+          this.sequenceBar.iToX(this.iRes) - this.textDiv.width() * 0.5 - 3);
 
 
     }
@@ -1028,7 +1030,6 @@ class ZSlabBar extends CanvasWrapper{
 
     resize() {
 
-        var parentDivPos = this.parentDiv.position();
         this.div.css({
             'width': this.width(),
             'height': this.parentDiv.height(),
@@ -1095,9 +1096,9 @@ class ZSlabBar extends CanvasWrapper{
         var xm = this.width() / 2;
 
         this.text(
-          'zslab', xm, 7, font, light, 'center')
+          'zslab', xm, 7, font, light, 'center');
         this.text(
-          'back', xm, yBack - 7, font, dark, 'center')
+          'back', xm, yBack - 7, font, dark, 'center');
         this.text(
           'front', xm, yFront + 7, font, light, 'center')
     }
@@ -1184,12 +1185,9 @@ class GlProteinDisplay {
         this.protein = scene.protein;
         this.controller = controller;
 
-        var _this = this;
-        this.controller.set_target_view_by_res_id = function (resId) {
-            _this.setTargetFromResId(resId);
-        }
-        this.controller.calculate_current_abs_camera = function () {
-        }
+        this.controller.set_target_view_by_res_id =
+          (resId) => { this.setTargetFromResId(resId); };
+        this.controller.calculate_current_abs_camera = function () {};
 
         // stores any meshes that can be clicked
         this.clickMeshes = [];
@@ -1253,70 +1251,32 @@ class GlProteinDisplay {
         this.distancePartnerPointer = new LineElement(
           this.selector, "#FF7777");
 
-        var _this = this;
-
         var dom = this.renderer.domElement;
 
         dom.addEventListener(
-          'mousedown',
-          function (e) {
-              _this.mousedown(e)
-          });
+          'mousedown', (e) => { this.mousedown(e) });
         dom.addEventListener(
-          'mousemove',
-          function (e) {
-              _this.mousemove(e)
-          });
+          'mousemove', (e) => { this.mousemove(e) });
         dom.addEventListener(
-          'mouseup',
-          function (e) {
-              _this.mouseup(e)
-          });
+          'mouseup', (e) => { this.mouseup(e) });
         dom.addEventListener(
-          'mousewheel',
-          function (e) {
-              _this.mousewheel(e)
-          });
+          'mousewheel', (e) => { this.mousewheel(e) });
         dom.addEventListener(
-          'DOMMouseScroll',
-          function (e) {
-              _this.mousewheel(e)
-          });
+          'DOMMouseScroll', (e) => { this.mousewheel(e) });
         dom.addEventListener(
-          'touchstart',
-          function (e) {
-              _this.mousedown(e);
-          });
+          'touchstart', (e) => { this.mousedown(e); });
         dom.addEventListener(
-          'touchmove',
-          function (e) {
-              _this.mousemove(e);
-          });
+          'touchmove', (e) => { this.mousemove(e); });
         dom.addEventListener(
-          'touchend',
-          function (e) {
-              _this.mouseup(e);
-          });
+          'touchend', (e) => { this.mouseup(e); });
         dom.addEventListener(
-          'touchcancel',
-          function (e) {
-              _this.mouseup(e);
-          });
+          'touchcancel', (e) => { this.mouseup(e); });
         dom.addEventListener(
-          'gesturestart',
-          function (e) {
-              _this.gesturestart(e);
-          });
+          'gesturestart', (e) => { this.gesturestart(e); });
         dom.addEventListener(
-          'gesturechange',
-          function (e) {
-              _this.gesturechange(e);
-          });
+          'gesturechange', (e) => { this.gesturechange(e); });
         dom.addEventListener(
-          'gestureend',
-          function (e) {
-              _this.gestureend(e);
-          });
+          'gestureend', (e) => { this.gestureend(e); });
 
     }
 
@@ -1438,8 +1398,7 @@ class GlProteinDisplay {
         var atoms = res.atoms;
         var forward = v3.diff(atoms["C3'"].pos, atoms["C5'"].pos);
         var up = v3.diff(atoms["C1'"].pos, atoms["C3'"].pos);
-        var normal = v3.cross_product(forward, up);
-        return normal;
+        return v3.cross_product(forward, up);
 
     }
 
@@ -1453,7 +1412,7 @@ class GlProteinDisplay {
 
         this.trace.residues = [];
 
-        var n_residue = this.protein.residues.length
+        var n_residue = this.protein.residues.length;
         for (var j = 0; j < n_residue; j += 1) {
 
             var residue = this.protein.residues[j];
@@ -1534,7 +1493,6 @@ class GlProteinDisplay {
 
             var ss = this.trace.residues[iStart].ss;
             var iPieceStart = iStart;
-            var lenPiece = iEnd - iStart;
 
             for (var iPieceEnd = iStart + 1; iPieceEnd < iEnd + 1; iPieceEnd +=
               1) {
@@ -1588,13 +1546,15 @@ class GlProteinDisplay {
 
         var iLast = iEnd - 1;
 
+        var i;
+
         if (( iEnd - iStart ) > 2) {
 
             trace.tangents[iStart] = points[iStart + 1].clone()
               .sub(points[iStart])
               .normalize();
 
-            for (var i = iStart + 1; i < iLast; i += 1) {
+            for (i = iStart + 1; i < iLast; i += 1) {
                 trace.tangents[i] = points[i + 1].clone()
                   .sub(points[i - 1])
                   .normalize();
@@ -1604,7 +1564,7 @@ class GlProteinDisplay {
               .sub(points[iLast - 1])
               .normalize();
 
-            for (var i = iStart + 1; i < iLast; i += 1) {
+            for (i = iStart + 1; i < iLast; i += 1) {
                 if (trace.residues[i].normal !== null) {
                     trace.normals[i] = perpVector(
                       trace.tangents[i],
@@ -1630,12 +1590,12 @@ class GlProteinDisplay {
             // for 2 point loops
             var tangent = points[iLast].clone()
               .sub(points[iStart])
-              .normalize()
+              .normalize();
 
             trace.tangents[iStart] = tangent;
             trace.tangents[iLast] = tangent;
 
-            for (var i = iStart; i <= iLast; i += 1) {
+            for (i = iStart; i <= iLast; i += 1) {
                 if (trace.residues[i].normal !== null) {
                     trace.normals[i] = perpVector(
                       trace.tangents[i],
@@ -1643,7 +1603,7 @@ class GlProteinDisplay {
                     )
                       .normalize();
                 } else {
-                    var randomDir = points[i]
+                    var randomDir = points[i];
                     trace.normals[i] = new TV3()
                       .crossVectors(randomDir, tangent)
                       .normalize();
@@ -1652,7 +1612,7 @@ class GlProteinDisplay {
 
         }
 
-        for (var i = iStart + 1; i < iEnd; i += 1) {
+        for (i = iStart + 1; i < iEnd; i += 1) {
             if (trace.residues[i].ss != "D" && trace.residues[i -
               1].ss != "D") {
                 if (trace.normals[i].dot(trace.normals[i - 1]) <
@@ -1662,7 +1622,7 @@ class GlProteinDisplay {
             }
         }
 
-        for (var i = iStart; i < iEnd; i += 1) {
+        for (i = iStart; i < iEnd; i += 1) {
             trace.binormals[i] = new TV3()
               .crossVectors(
                 trace.tangents[i], trace.normals[i]);
@@ -1862,7 +1822,7 @@ class GlProteinDisplay {
                       this.trace.points[i],
                       this.trace.tangents[i],
                       this.trace.binormals[i],
-                      color)
+                      color);
 
                     arrow.atom = this.trace.residues[i].central_atom;
                     arrow.atom.is_central = true;
@@ -1976,12 +1936,12 @@ class GlProteinDisplay {
 
     assignBonds() {
 
-        for (var j = 0; j < this.protein.residues.length; j += 1) {
+        for (let j = 0; j < this.protein.residues.length; j += 1) {
             var res = this.protein.residues[j];
             res.bonds = [];
         }
 
-        for (var j = 0; j < this.protein.bonds.length; j += 1) {
+        for (let j = 0; j < this.protein.bonds.length; j += 1) {
 
             var bond = this.protein.bonds[j];
             var atom1 = bond.atom1;
@@ -2013,7 +1973,7 @@ class GlProteinDisplay {
 
         for (var i = 0; i < this.protein.residues.length; i += 1) {
 
-            var residue = this.protein.residues[i]
+            var residue = this.protein.residues[i];
             if (!residue.is_protein_or_nuc) {
                 continue;
             }
@@ -2056,7 +2016,7 @@ class GlProteinDisplay {
 
         for (var i = 0; i < this.protein.residues.length; i += 1) {
 
-            var residue = this.protein.residues[i]
+            var residue = this.protein.residues[i];
 
             if (!residue.is_ligands) {
                 continue;
@@ -2093,7 +2053,7 @@ class GlProteinDisplay {
 
         for (var i = 0; i < this.protein.residues.length; i += 1) {
 
-            var residue = this.protein.residues[i]
+            var residue = this.protein.residues[i];
 
             if (!residue.is_water) {
                 continue;
@@ -2177,7 +2137,7 @@ class GlProteinDisplay {
 
         function isProtein(iRes) {
 
-            var residue = residues[iRes]
+            var residue = residues[iRes];
             return residue.ss != "D" && residue.is_protein_or_nuc;
 
         }
@@ -2189,12 +2149,10 @@ class GlProteinDisplay {
                 continue;
             }
 
-            var geom = new THREE.Geometry()
+            var geom = new THREE.Geometry();
 
             var residue0 = this.protein.residues[iRes - 1];
             var residue1 = this.protein.residues[iRes];
-
-            var vertices;
 
             var vertices = getVerticesFromAtomDict(
               residue0.atoms, ["CA", "O", "C"]);
@@ -2264,13 +2222,13 @@ class GlProteinDisplay {
         for (var iRes = 0; iRes < this.protein.residues.length; iRes +=
           1) {
 
-            var residue = this.protein.residues[iRes]
+            var residue = this.protein.residues[iRes];
 
             if (residue.ss != "D" || !residue.is_protein_or_nuc) {
                 continue;
             }
 
-            var geom = new THREE.Geometry()
+            var geom = new THREE.Geometry();
             var atomTypes, bondTypes;
 
             if (residue.type == "DA" || residue.type == "A") {
@@ -2393,7 +2351,7 @@ class GlProteinDisplay {
 
         this.unitSphereGeom = new THREE.SphereGeometry(1, 8, 8);
 
-        this.objects = {}
+        this.objects = {};
 
         this.messageBar.html('Building cartoon...');
 
@@ -2470,7 +2428,7 @@ class GlProteinDisplay {
         var rotation = getUnitVectorRotation(
           cameraDirection, targetCameraDirection);
 
-        for (var i = 0; i < this.lights.length; i += 1) {
+        for (let i = 0; i < this.lights.length; i += 1) {
             this.lights[i].position.applyQuaternion(rotation);
         }
 
@@ -2497,10 +2455,10 @@ class GlProteinDisplay {
 
         var residues = this.protein.residues;
         var view = this.scene.current_view;
-        for (var i = 0; i < residues.length; i += 1) {
+        for (let i = 0; i < residues.length; i += 1) {
             residues[i].selected = false;
         }
-        for (var i = 0; i < view.selected.length; i += 1) {
+        for (let i = 0; i < view.selected.length; i += 1) {
             var i_res = view.selected[i];
             residues[i_res].selected = true;
         }
@@ -2669,15 +2627,7 @@ class GlProteinDisplay {
 
         var z = this.getZ(pos);
 
-        if (( z >= this.zFront ) && ( z <= this.zBack )) {
-
-            return true;
-
-        } else {
-
-            return false;
-
-        }
+        return (( z >= this.zFront ) && ( z <= this.zBack ));
 
     }
 
@@ -2694,9 +2644,7 @@ class GlProteinDisplay {
             return 0.0;
         }
 
-        var depth = 1 - ( z - this.zFront ) / ( this.zBack - this.zFront );
-
-        return depth;
+        return 1 - ( z - this.zFront ) / ( this.zBack - this.zFront );
 
     }
 
@@ -2769,12 +2717,11 @@ class GlProteinDisplay {
 
         var vector = pos.project(this.camera);
 
-        var result = {
+        return {
             x: ( vector.x * widthHalf ) + widthHalf,
             y: -( vector.y * heightHalf ) + heightHalf
-        }
+        };
 
-        return result;
     }
 
 
@@ -2805,9 +2752,9 @@ class GlProteinDisplay {
 
             var text = this.hoverAtom.label;
             if (this.hoverAtom == this.scene.centered_atom()) {
-                text = "<center>" + text
+                text = "<center>" + text;
                 text = text +
-                  "<br>[drag distances]<br>[double-click labels]</center>"
+                  "<br>[drag distances]<br>[double-click labels]</center>";
             }
             this.hover.html(text);
             var vector = this.posXY(v3.clone(this.hoverAtom.pos));
@@ -2877,7 +2824,7 @@ class GlProteinDisplay {
 
         if (this.isDraggingCentralAtom) {
 
-            var mainDivPos = this.mainDiv.position()
+            var mainDivPos = this.mainDiv.position();
             var v = this.posXY(v3.clone(this.downAtom.pos));
 
             this.distancePartnerPointer.move(this.mouseX, this.mouseY,
@@ -2929,11 +2876,12 @@ class GlProteinDisplay {
 
         event.preventDefault();
 
+        var wheel;
         if (exists(event.wheelDelta)) {
-            var wheel = event.wheelDelta / 120;
+            wheel = event.wheelDelta / 120;
         } else {
             // for Firefox
-            var wheel = -event.detail / 12;
+            wheel = -event.detail / 12;
         }
         zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1);
 
@@ -3037,7 +2985,7 @@ class GlProteinDisplay {
             var i_atom = this.scene.current_view.i_atom;
             if (i_atom >= 0) {
                 var res_id = this.protein.atoms[i_atom].res_id;
-                var res = this.protein.res_by_id[res_id]
+                var res = this.protein.res_by_id[res_id];
                 var i = this.protein.get_i_res_from_res_id(res_id);
                 this.controller.select_residue(i, !res.selected);
             }
@@ -3199,13 +3147,13 @@ class GlProteinDisplay {
         var labels = this.scene.current_view.labels;
         var atomLabels = this.labels;
 
-        for (var i = atomLabels.length; i < labels.length; i += 1) {
+        for (let i = atomLabels.length; i < labels.length; i += 1) {
             var atomLabel = new AtomLabel(
               this.selector, this.controller, atomLabels);
             atomLabels.push(atomLabel);
         }
 
-        for (var i = atomLabels.length - 1; i >= 0; i -= 1) {
+        for (let i = atomLabels.length - 1; i >= 0; i -= 1) {
             if (i >= labels.length) {
                 atomLabels[i].remove();
             }
@@ -3213,7 +3161,7 @@ class GlProteinDisplay {
 
         var atoms = this.protein.atoms;
 
-        for (var i = 0; i < labels.length; i += 1) {
+        for (let i = 0; i < labels.length; i += 1) {
 
             var atom = atoms[labels[i].i_atom];
             var pos = v3.clone(atom.pos);
@@ -3269,7 +3217,7 @@ class GlProteinDisplay {
             return;
         }
 
-        var t = 1.0 / nStep
+        var t = 1.0 / nStep;
 
         var old = {
             cameraTarget: this.cameraTarget.clone(),
@@ -3277,7 +3225,7 @@ class GlProteinDisplay {
             cameraUp: this.camera.up.clone(),
             zFront: this.zFront,
             zBack: this.zBack
-        }
+        };
 
         var oldCameraDirection = old.cameraPosition.clone()
           .sub(old.cameraTarget);
@@ -3292,10 +3240,10 @@ class GlProteinDisplay {
         targetCameraDirection.normalize();
 
         var targetCameraDirRotation = getUnitVectorRotation(
-          oldCameraDirection, targetCameraDirection)
+          oldCameraDirection, targetCameraDirection);
 
         var rotatedCameraUp = old.cameraUp.clone()
-          .applyQuaternion(targetCameraDirRotation)
+          .applyQuaternion(targetCameraDirRotation);
 
         var newCameraRotation = getUnitVectorRotation(
           rotatedCameraUp, target.cameraUp);
@@ -3305,15 +3253,16 @@ class GlProteinDisplay {
           newCameraRotation, t);
 
         var current = {};
-        var disp = target.cameraTarget.clone()
+        var disp;
+        disp = target.cameraTarget.clone()
           .sub(old.cameraTarget)
-          .multiplyScalar(t)
+          .multiplyScalar(t);
         current.cameraTarget = old.cameraTarget.clone()
           .add(disp);
         var zoom = fraction(oldZoom, targetZoom, t);
-        var disp = oldCameraDirection.clone()
+        disp = oldCameraDirection.clone()
           .applyQuaternion(newCameraRotation)
-          .multiplyScalar(zoom)
+          .multiplyScalar(zoom);
         current.cameraPosition = current.cameraTarget.clone()
           .add(disp);
         current.cameraUp = old.cameraUp.clone()

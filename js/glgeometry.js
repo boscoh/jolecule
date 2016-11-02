@@ -165,7 +165,7 @@ function BlockArrowGeometry() {
         new THREE.Vector2( +0.4, -0.5 )
     ] );
 
-    var path = new THREE.SplineCurve3(
+    var path = new THREE.CatmullRomCurve3(
         [ new TV3( 0, -0.3, 0 ),
             new TV3( 0, 0.3, 0 )
         ] );
