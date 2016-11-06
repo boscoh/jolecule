@@ -602,9 +602,13 @@ class LineElement {
 
 }
 
-////////////////////////////////////////////////////////////////////
-// CanvasWrapper - abstract class to wrap a canvas element
-////////////////////////////////////////////////////////////////////
+/**
+ * CanvasWrapper
+ *   - abstract class to wrap a canvas element
+ *   - instantiates an absolute div that fits the $(selector)
+ *   - attaches a canvas to this div
+ *   - creates methods that redirects mouse commands to that canvas
+ **/
 
 class CanvasWrapper {
 
@@ -684,7 +688,7 @@ class CanvasWrapper {
     }
 
 
-    rect(x, y, w, h, fillStyle) {
+    fillRect(x, y, w, h, fillStyle) {
 
         this.drawContext.fillStyle = fillStyle;
         this.drawContext.fillRect(x, y, w, h);
@@ -755,10 +759,6 @@ class CanvasWrapper {
     }
 }
 
-////////////////////////////////////////////////////////////////////
-// SequenceBar
-////////////////////////////////////////////////////////////////////
-
 
 var resToAa = {
     "ALA":"A", "CYS":"C", "ASP":"D",
@@ -776,40 +776,86 @@ var resToAa = {
 };
 
 
-class SequenceBar extends CanvasWrapper {
+// Calculate width of text from DOM element or
+// string. By Phil Freo <http://philfreo.com>
+$.fn.textWidth = function(text, font) {
+    if (!$.fn.textWidth.fakeEl) {
+        $.fn.textWidth.fakeEl = $('<span>')
+          .hide()
+          .appendTo(document.body);
+    }
+    $.fn.textWidth.fakeEl
+        .text(text || this.val() || this.text())
+        .css('font', font || this.css('font'));
+    return $.fn.textWidth.fakeEl.width();
+};
+
+
+/**
+ * SequenceWidget
+ *   - creates a dual band across the top of the selected div for glProteinDisplay
+ *   - the first band is a sequence bar widget
+ *   - the second band is a sequence text widget
+ *   - these two are integrated so that they share state
+ **/
+
+class SequenceWidget extends CanvasWrapper {
 
     constructor(selector, scene, proteinDisplay) {
 
         super(selector);
+
         this.scene = scene;
         this.proteinDisplay = proteinDisplay;
         this.iRes = 0;
 
+        this.div.attr('id', 'sequence-widget');
+        this.div.css({
+            'width': this.parentDiv.width(),
+            'height': this.height(),
+            'top': this.y()});
+
+        this.heightBar = 20;
+
+        this.textDiv = $("<div>").css({
+            'position': 'absolute',
+            'top': this.heightBar + 10,
+            'left': 0,
+            'z-index': 100,
+            'background': '#333',
+            'overflow': 'hidden',
+            'padding': '5',
+            'font-family': 'monospace',
+        });
+
+        this.div.append(this.textDiv);
+
+        let testString = 'abcdef';
+        this.textDiv.html(testString);
+        this.charWidth = this.textDiv.textWidth() / testString.length;
+
+        this.resize();
+    }
+
+    width() {
+        return this.parentDiv.width() - 40;
+    }
+
+    height() {
+        return 80;
     }
 
     resize() {
-
-        this.div.css({
-            'width': this.parentDiv.width(),
-            'height': 80,
-            'top': 0,
-            'left': 0,
-        });
-        this.canvasDom.width = this.width();
-        this.canvasDom.height = this.height();
-
-    }
-
-    iToX(iRes) {
-
-        return parseInt(iRes / this.nResidue * this.width());
-
+        super.resize();
+        this.textDiv.css('width', this.width());
     }
 
     xToI(x) {
-
         return parseInt(x * this.nResidue / this.width());
+    }
 
+    iToX(iRes) {
+        return parseInt(iRes / this.nResidue * this.width());
     }
 
     draw() {
@@ -820,13 +866,13 @@ class SequenceBar extends CanvasWrapper {
 
         this.residues = [];
 
-        let nResidue = this.scene.protein.residues.length
+        let nRawResidue = this.scene.protein.residues.length;
 
-        for (let iRes=0; iRes < nResidue; iRes+=1) {
+        for (let iRes=0; iRes < nRawResidue; iRes+=1) {
             let residue = this.scene.protein.residues[iRes];
             if (_.contains(['-', 'W'], residue.ss)) {
                 continue;
-            };
+            }
             this.residues.push({
                 i: iRes,
                 ss: residue.ss
@@ -836,47 +882,64 @@ class SequenceBar extends CanvasWrapper {
         this.nResidue = this.residues.length;
 
         let ss = this.residues[0].ss;
-        let i_start = 0;
-        let i_end = 0;
+        let iStart = 0;
+        let iEnd = 0;
 
-        while (i_end < this.nResidue) {
+        while (iEnd < this.nResidue) {
 
-            i_end += 1;
-            if (i_end == this.nResidue || this.residues[i_end].ss != ss) {
+            iEnd += 1;
+            if (iEnd == this.nResidue || this.residues[iEnd].ss != ss) {
 
-                var x1 = this.iToX(i_start);
-                var x2 = this.iToX(i_end);
-                var color = getSsColor(ss).getStyle();
-                this.rect(
+                let x1 = this.iToX(iStart);
+                let x2 = this.iToX(iEnd);
+                let color = getSsColor(ss).getStyle();
+                this.fillRect(
                   x1,
-                  0,
+                  3,
                   x2 - x1,
-                  20,
+                  this.heightBar,
                   color);
 
-                if (i_end <= this.nResidue - 1) {
-                    i_start = i_end;
-                    ss = this.residues[i_end].ss;
+                if (iEnd <= this.nResidue - 1) {
+                    iStart = iEnd;
+                    ss = this.residues[iEnd].ss;
                 }
 
             }
 
         }
 
-    }
+        this.nChar = this.width() / this.charWidth;
 
-    mousedown(event) {
+        iStart = Math.max(parseInt(this.iRes - 0.5*this.nChar), 0);
+        iEnd = Math.min(iStart + this.nChar, this.nResidue);
 
-        event.preventDefault();
-        this.mousePressed = true;
-        this.mousemove(event);
+        console.log('residues', iStart, iEnd, this.residues.length, this.scene.protein.residues.length);
 
-    }
+        let textHtml = "";
+        for (var i = iStart; i < iEnd; i += 1) {
+            let iRawRes = this.residues[i].i;
+            let residue = this.scene.protein.residues[iRawRes];
+            var style = "color:" + getSsColor(residue.ss).getStyle();
+            if (this.iRes == i) {
+                style += ";border:1px solid #AAA";
+            }
+            textHtml += '<span style="' + style + '">';
+            var resType = residue.type;
+            if (resType in resToAa) {
+                textHtml += resToAa[resType];
+            } else {
+                textHtml += ".";
+            }
+            textHtml += '</span>';
+        }
 
-    mouseup(event) {
+        this.textDiv.html(textHtml);
 
-        event.preventDefault();
-        this.mousePressed = false;
+        let x1 = this.iToX(iStart);
+        let x2 = this.iToX(iEnd);
+        this.fillRect(
+          x1, 0, x2 - x1, this.heightBar + 8, "rgba(40, 40, 40, 0.5)");
 
     }
 
@@ -890,127 +953,13 @@ class SequenceBar extends CanvasWrapper {
             return;
         }
         this.getPointer(event);
-
         this.iRes = this.xToI(this.pointerX);
         this.proteinDisplay.setTargetFromAtom(
           this.scene.protein.residues[this.getFullIRes()].central_atom);
 
     }
 
-}
 
-////////////////////////////////////////////////////////////////////
-// SequenceWidget
-////////////////////////////////////////////////////////////////////
-
-class SequenceWidget {
-
-    constructor(selector, scene, proteinDisplay) {
-
-        this.parentDiv = $(selector);
-        this.scene = scene;
-        this.proteinDisplay = proteinDisplay;
-        this.iRes = 0;
-
-        this.div = $("<div>")
-          .css('position', 'absolute')
-          .css('overflow', 'hidden')
-          .attr('id', 'sequence-widget');
-
-        this.parentDiv.append(this.div);
-
-        this.sequenceBar = new SequenceBar(
-          '#sequence-widget', scene, proteinDisplay);
-
-        this.textDiv = $("<div>")
-          .css({
-              'position': 'absolute',
-              'top': 0,
-              'left': 0,
-              'z-index': 100,
-              'background': '#333',
-              'padding': '5',
-              'opacity': 0.5,
-              'font-family': 'monospace',
-              'user-select': 'none',
-              'pointer-events': 'none',
-          });
-
-        this.div.append(this.textDiv);
-
-        this.resize();
-    }
-
-    x() {
-
-        var parentDivPos = this.parentDiv.position();
-        return parentDivPos.left;
-
-    }
-
-    y() {
-
-        var parentDivPos = this.parentDiv.position();
-        return parentDivPos.top;
-
-    }
-
-    resize() {
-
-        this.div.css({
-            'width': this.parentDiv.width() - 40,
-            'height': 40,
-            'top': this.y(),
-            'left': this.x(),
-        });
-
-        this.sequenceBar.resize();
-
-    }
-
-    draw() {
-
-        this.sequenceBar.draw();
-
-        if (!exists(this.scene)) {
-            return;
-        }
-
-        var residues = this.scene.protein.residues;
-        this.nResidue = residues.length;
-        this.iRes = this.sequenceBar.getFullIRes();
-
-        var s = "";
-
-        for (var i = this.iRes - 10; i < this.iRes + 11; i += 1) {
-            if ((i < 0) || (i >= residues.length)) {
-                s += "&nbsp;";
-            } else {
-                var residue = residues[i];
-                var style = "color:" + getSsColor(residue.ss).getStyle();
-                if (this.iRes == i) {
-                    style += ";border:1px solid #AAA";
-                }
-                s += '<span style="' + style + '">';
-                var resType = residue.type;
-                if (resType in resToAa) {
-                    s += resToAa[resType];
-                } else {
-                    s += ".";
-                }
-                s += '</span>';
-            }
-
-        }
-
-        this.textDiv.css({'top': 19});
-        this.textDiv.html(s);
-        this.textDiv.css(
-          'left',
-          this.sequenceBar.iToX(this.iRes) - this.textDiv.width() * 0.5 - 3);
-
-
-    }
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -1083,13 +1032,13 @@ class ZSlabBar extends CanvasWrapper{
         var dark = "rgba(100, 70, 70, 0.75)";
         var light = "rgba(150, 90, 90, 0.75)";
 
-        this.rect(
+        this.fillRect(
           0, 0, this.width(), this.height(), grey);
 
-        this.rect(
+        this.fillRect(
           0, yBack, this.width(), yMid - yBack, dark);
 
-        this.rect(
+        this.fillRect(
           0, yMid, this.width(), yFront - yMid, light);
 
         var font = '12px sans-serif';
