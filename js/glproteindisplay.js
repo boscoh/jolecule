@@ -776,8 +776,11 @@ var resToAa = {
 };
 
 
-// Calculate width of text from DOM element or
-// string. By Phil Freo <http://philfreo.com>
+/**
+ * Calculate width of text from DOM element or
+ * string. By Phil Freo <http://philfreo.com>
+ */
+
 $.fn.textWidth = function(text, font) {
     if (!$.fn.textWidth.fakeEl) {
         $.fn.textWidth.fakeEl = $('<span>')
@@ -914,8 +917,6 @@ class SequenceWidget extends CanvasWrapper {
         iStart = Math.max(parseInt(this.iRes - 0.5*this.nChar), 0);
         iEnd = Math.min(iStart + this.nChar, this.nResidue);
 
-        console.log('residues', iStart, iEnd, this.residues.length, this.scene.protein.residues.length);
-
         let textHtml = "";
         for (var i = iStart; i < iEnd; i += 1) {
             let iRawRes = this.residues[i].i;
@@ -985,23 +986,17 @@ class ZSlabBar extends CanvasWrapper{
             'top': this.y(),
             'left': this.x(),
         });
-        this.canvasDom.width = this.width();
-        this.canvasDom.height = this.height();
+        super.resize();
 
     }
 
     width() {
-        return 40
+        return 40;
     }
 
     x() {
         var parentDivPos = this.parentDiv.position();
         return this.parentDiv.width() - this.width() + parentDivPos.left;
-    }
-
-    y() {
-        var parentDivPos = this.parentDiv.position();
-        return parentDivPos.top;
     }
 
     yToZ(y) {
@@ -1062,8 +1057,6 @@ class ZSlabBar extends CanvasWrapper{
 
     mousedown(event) {
 
-        event.preventDefault();
-
         this.getZ(event);
 
         if (this.z > 0) {
@@ -1074,9 +1067,7 @@ class ZSlabBar extends CanvasWrapper{
             this.back = false;
         }
 
-        this.mousePressed = true;
-
-        this.mousemove(event);
+        super.mousedown(event);
 
     }
 
@@ -1102,27 +1093,14 @@ class ZSlabBar extends CanvasWrapper{
 
     }
 
-    mouseup(event) {
-
-        event.preventDefault();
-
-        this.mousePressed = false;
-
-    }
-
 }
 
-////////////////////////////////////////////////////////////////////
-// GlProteinDisplay
-////////////////////////////////////////////////////////////////////
 
-/*
-
-GlProteinDisplay: The main window for the jolecule
-webGL threeJs object.
-
-*/
-
+/**
+ *
+ * GlProteinDisplay: The main window for the jolecule
+ * webGL threeJs object.
+ */
 
 class GlProteinDisplay {
 
@@ -2718,14 +2696,28 @@ class GlProteinDisplay {
     }
 
 
+    doubleclick() {
+
+        console.log('doubleclick');
+        if (this.hoverAtom !== null) {
+            if (this.hoverAtom == this.scene.centered_atom()) {
+                this.atom_label_dialog();
+            } else {
+                this.setTargetFromAtom(this.hoverAtom);
+            }
+            this.isDraggingCentralAtom = false;
+        }
+
+    }
+
+
     mousedown(event) {
 
         this.getMouse(event);
 
         event.preventDefault();
 
-        var now = ( new Date )
-          .getTime();
+        var now = ( new Date ).getTime();
 
         var isDoubleClick = ( now - this.timePressed ) < 500;
 
@@ -2733,22 +2725,23 @@ class GlProteinDisplay {
 
         this.downAtom = this.getHoverAtom();
 
-        this.isDraggingCentralAtom = false;
+        if (isDoubleClick) {
 
-        if (this.downAtom !== null) {
+            this.doubleclick();
 
-            if (this.downAtom == this.scene.centered_atom()) {
+        } else {
 
-                this.isDraggingCentralAtom = true;
+            this.isDraggingCentralAtom = false;
 
-                if (isDoubleClick) {
+            if (this.downAtom !== null) {
 
-                    this.atom_label_dialog();
+                if (this.downAtom == this.scene.centered_atom()) {
 
-                    this.isDraggingCentralAtom = false;
+                    this.isDraggingCentralAtom = true;
+
                 }
-            }
 
+            }
         }
 
         this.timePressed = now;
@@ -2810,8 +2803,10 @@ class GlProteinDisplay {
                 }
 
                 this.adjustCamera(
-                  xRotationAngle, yRotationAngle,
-                  zRotationAngle, zoomRatio);
+                  xRotationAngle,
+                  yRotationAngle,
+                  zRotationAngle,
+                  zoomRatio);
 
                 this.saveMouse();
 
@@ -2861,13 +2856,6 @@ class GlProteinDisplay {
             this.distancePartnerPointer.hide();
 
             this.isDraggingCentralAtom = false;
-
-        } else if (this.hoverAtom !== null) {
-
-            if (this.hoverAtom == this.downAtom) {
-
-                this.setTargetFromAtom(this.hoverAtom);
-            }
 
         }
 
@@ -3246,7 +3234,6 @@ export {
     DistanceLabel,
     LineElement,
     CanvasWrapper,
-    SequenceBar,
     SequenceWidget,
     ZSlabBar,
     GlProteinDisplay,
