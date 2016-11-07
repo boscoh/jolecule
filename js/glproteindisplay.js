@@ -2698,7 +2698,6 @@ class GlProteinDisplay {
 
     doubleclick() {
 
-        console.log('doubleclick');
         if (this.hoverAtom !== null) {
             if (this.hoverAtom == this.scene.centered_atom()) {
                 this.atom_label_dialog();
@@ -2827,7 +2826,7 @@ class GlProteinDisplay {
             // for Firefox
             wheel = -event.detail / 12;
         }
-        zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1);
+        let zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1);
 
         this.adjustCamera(0, 0, 0, zoom);
 
