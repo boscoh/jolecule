@@ -2,7 +2,6 @@ import $ from "jquery";
 import _ from "underscore";
 import {Protein, Controller, Scene} from "./protein";
 import {GlProteinDisplay} from "./glproteindisplay";
-
 import {
   exists,
   blink,

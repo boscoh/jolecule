@@ -168,7 +168,7 @@ function fraction( reference, target, t ) {
 
 
 
-function text_dialog( parentDiv, label, success ) {
+function showTextDialog( parentDiv, label, success ) {
 
     window.keyboard_lock = true;
 
@@ -399,9 +399,9 @@ class PopupText {
 
 }
 
-////////////////////////////////////////////////////////////////////
-// AtomLabel
-////////////////////////////////////////////////////////////////////
+/**
+ * AtomLabel
+ */
 
 class AtomLabel {
 
@@ -441,9 +441,9 @@ class AtomLabel {
 
 }
 
-////////////////////////////////////////////////////////////////////
-// DistanceLabel
-////////////////////////////////////////////////////////////////////
+/**
+ * DistanceLabel
+ */
 
 class DistanceLabel  {
 
@@ -535,16 +535,16 @@ class DistanceLabel  {
 
 }
 
-////////////////////////////////////////////////////////////////////
-// LineElement
-////////////////////////////////////////////////////////////////////
+/**
+ * LineElement
+ * - instantiates a DOM object is to draw a line between (x1, y1) and
+ *   (x2, y2) within a jquery div
+ * - used to display the mouse tool for making distance labels
+*/
 
 class LineElement {
 
     constructor(selector, color) {
-
-        /* This DOM object is to draw a line between (x1, y1) and
-         (x2, y2) within a jquery div */
 
         this.color = color;
 
@@ -688,6 +688,13 @@ class CanvasWrapper {
     }
 
 
+    strokeRect(x, y, w, h, strokeStyle) {
+
+        this.drawContext.strokeStyle = strokeStyle;
+        this.drawContext.strokeRect(x, y, w, h);
+
+    }
+
     fillRect(x, y, w, h, fillStyle) {
 
         this.drawContext.fillStyle = fillStyle;
@@ -695,6 +702,16 @@ class CanvasWrapper {
 
     }
 
+
+    line(x1, y1, x2, y2, lineWidth, color) {
+
+        this.drawContext.moveTo(x1, y1);
+        this.drawContext.lineTo(x2, y2);
+        this.drawContext.lineWidth = lineWidth;
+        this.drawContext.strokeStyle = color;
+        this.drawContext.stroke();
+
+    }
 
     text(text, x, y, font, color, align) {
 
@@ -794,9 +811,23 @@ $.fn.textWidth = function(text, font) {
 };
 
 
+$.fn.textHeight = function(text, font) {
+    if (!$.fn.textWidth.fakeEl) {
+        $.fn.textWidth.fakeEl = $('<span>')
+          .hide()
+          .appendTo(document.body);
+    }
+    $.fn.textWidth.fakeEl
+      .text(text || this.val() || this.text())
+      .css('font', font || this.css('font'));
+    return $.fn.textWidth.fakeEl.height();
+};
+
+
 /**
  * SequenceWidget
- *   - creates a dual band across the top of the selected div for glProteinDisplay
+ *   - creates a dual band across the top of the selected div
+ *     for glProteinDisplay
  *   - the first band is a sequence bar widget
  *   - the second band is a sequence text widget
  *   - these two are integrated so that they share state
@@ -812,30 +843,32 @@ class SequenceWidget extends CanvasWrapper {
         this.proteinDisplay = proteinDisplay;
         this.iRes = 0;
 
+        this.heightBar = 16;
+
+        this.spacingY = 5;
+
         this.div.attr('id', 'sequence-widget');
         this.div.css({
             'width': this.parentDiv.width(),
             'height': this.height(),
             'top': this.y()});
 
-        this.heightBar = 20;
-
         this.textDiv = $("<div>").css({
             'position': 'absolute',
-            'top': this.heightBar + 10,
+            'top': this.heightBar + this.spacingY * 3,
             'left': 0,
             'z-index': 100,
-            'background': '#333',
             'overflow': 'hidden',
-            'padding': '5',
             'font-family': 'monospace',
         });
 
-        this.div.append(this.textDiv);
+        this.charWidth = 14;
+        this.charHeight = 14;
 
-        let testString = 'abcdef';
-        this.textDiv.html(testString);
-        this.charWidth = this.textDiv.textWidth() / testString.length;
+        this.residues = null;
+        this.iRes = null;
+        this.iStartChar = null;
+        this.iEndChar = null;
 
         this.resize();
     }
@@ -845,7 +878,7 @@ class SequenceWidget extends CanvasWrapper {
     }
 
     height() {
-        return 80;
+        return this.heightBar + this.spacingY * 5 + this.charHeight;
     }
 
     resize() {
@@ -861,33 +894,64 @@ class SequenceWidget extends CanvasWrapper {
         return parseInt(iRes / this.nResidue * this.width());
     }
 
+    xToIChar(x) {
+        return parseInt(x * this.nChar / this.width()) + this.iStartChar;
+    }
+
+    iCharToX(iRes) {
+        return parseInt((iRes - this.iStartChar)/ this.nChar * this.width());
+    }
+
     draw() {
 
         if (!exists(this.scene)) {
             return;
         }
 
-        this.residues = [];
+        this.nChar = Math.ceil(this.width() / this.charWidth);
 
-        let nRawResidue = this.scene.protein.residues.length;
+        if (this.residues == null) {
 
-        for (let iRes=0; iRes < nRawResidue; iRes+=1) {
-            let residue = this.scene.protein.residues[iRes];
-            if (_.contains(['-', 'W'], residue.ss)) {
-                continue;
+            let nRawResidue = this.scene.protein.residues.length;
+
+            this.residues = [];
+            for (let iRes = 0; iRes < nRawResidue; iRes += 1) {
+                let residue = this.scene.protein.residues[iRes];
+                if (_.contains(['-', 'W'], residue.ss)) {
+                    continue;
+                }
+
+                let entry = {
+                    i: iRes,
+                    ss: residue.ss,
+                };
+
+                let resType = residue.type;
+                if (resType in resToAa) {
+                    entry.c = resToAa[resType];
+                } else {
+                    entry.c = ".";
+                }
+
+                this.residues.push(entry);
             }
-            this.residues.push({
-                i: iRes,
-                ss: residue.ss
-            })
+
+            this.nResidue = this.residues.length;
+
+            this.iRes = this.nChar/2;
+            this.iStartChar = 0;
+            this.iEndChar = this.nChar;
+
         }
 
-        this.nResidue = this.residues.length;
+        // draw background
+        this.fillRect(
+          0, 0, this.width(), this.height(), "rgba(70, 70, 70, 1)");
 
+        // draw secondary-structure color bars
         let ss = this.residues[0].ss;
         let iStart = 0;
         let iEnd = 0;
-
         while (iEnd < this.nResidue) {
 
             iEnd += 1;
@@ -898,7 +962,7 @@ class SequenceWidget extends CanvasWrapper {
                 let color = getSsColor(ss).getStyle();
                 this.fillRect(
                   x1,
-                  3,
+                  this.spacingY,
                   x2 - x1,
                   this.heightBar,
                   color);
@@ -912,35 +976,54 @@ class SequenceWidget extends CanvasWrapper {
 
         }
 
-        this.nChar = this.width() / this.charWidth;
-
-        iStart = Math.max(parseInt(this.iRes - 0.5*this.nChar), 0);
-        iEnd = Math.min(iStart + this.nChar, this.nResidue);
-
-        let textHtml = "";
-        for (var i = iStart; i < iEnd; i += 1) {
-            let iRawRes = this.residues[i].i;
-            let residue = this.scene.protein.residues[iRawRes];
-            var style = "color:" + getSsColor(residue.ss).getStyle();
-            if (this.iRes == i) {
-                style += ";border:1px solid #AAA";
-            }
-            textHtml += '<span style="' + style + '">';
-            var resType = residue.type;
-            if (resType in resToAa) {
-                textHtml += resToAa[resType];
-            } else {
-                textHtml += ".";
-            }
-            textHtml += '</span>';
+        // draw characters for sequence
+        let y = this.heightBar + this.spacingY * 3;
+        for (var iChar = this.iStartChar; iChar < this.iEndChar; iChar += 1) {
+            let residue = this.residues[iChar];
+            let x1 = this.iCharToX(iChar);
+            let colorStyle = getSsColor(residue.ss).getStyle();
+            this.fillRect(
+              x1, y, this.charWidth, this.charHeight, colorStyle);
+            var style = `color:black; background-color:${colorStyle}`;
+            this.text(
+              residue.c,
+              x1 + this.charWidth/2, y + this.charHeight/2,
+              "8pt Monospace", "black", "center");
         }
 
-        this.textDiv.html(textHtml);
+        if ((this.iStartChar <= this.iRes) && (this.iRes < this.iEndChar)) {
+          this.strokeRect(
+            this.iCharToX(this.iRes), this.heightBar + this.spacingY * 2,
+            this.charWidth, this.charHeight + this.spacingY * 2,
+            "white");
+        }
 
-        let x1 = this.iToX(iStart);
-        let x2 = this.iToX(iEnd);
-        this.fillRect(
-          x1, 0, x2 - x1, this.heightBar + 8, "rgba(40, 40, 40, 0.5)");
+        // draw containers to indicate window
+        let x1 = this.iToX(this.iStartChar);
+        let x2 = this.iToX(this.iEndChar);
+        this.line(
+          x1, 0, x2, 0,
+          1, "rgb(255, 255, 255)");
+        this.line(
+          x1, 0,
+          x1, this.heightBar + this.spacingY*2,
+          1, "rgb(255, 255, 255)");
+        this.line(
+          x2, 0,
+          x2, this.heightBar + this.spacingY*2,
+          1, "rgb(255, 255, 255)");
+        this.line(
+          x1, this.heightBar + this.spacingY*2,
+          0, this.heightBar + this.spacingY*2,
+          1, "rgb(255, 255, 255)");
+        this.line(
+          x2, this.heightBar + this.spacingY*2,
+          this.width(), this.heightBar + this.spacingY*2,
+          1, "rgb(255, 255, 255)");
+        this.line(
+          0, this.heightBar + this.spacingY*4 + this.charHeight,
+          this.width(), this.heightBar + this.spacingY*4 + this.charHeight,
+          1, "rgb(255, 255, 255)");
 
     }
 
@@ -954,9 +1037,22 @@ class SequenceWidget extends CanvasWrapper {
             return;
         }
         this.getPointer(event);
-        this.iRes = this.xToI(this.pointerX);
-        this.proteinDisplay.setTargetFromAtom(
-          this.scene.protein.residues[this.getFullIRes()].central_atom);
+        if (this.pointerY < (this.heightBar + this.spacingY*2)) {
+            this.iRes = this.xToI(this.pointerX);
+
+            // reset sequence window
+            this.iStartChar = Math.max(this.iRes - 0.5*this.nChar, 0);
+            this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar);
+            this.iStartChar = parseInt(this.iStartChar);
+            this.iEndChar = this.iStartChar + this.nChar;
+
+            this.proteinDisplay.setTargetFromAtom(
+              this.scene.protein.residues[this.getFullIRes()].central_atom);
+        } else {
+            this.iRes = this.xToIChar(this.pointerX);
+            this.proteinDisplay.setTargetFromAtom(
+              this.scene.protein.residues[this.getFullIRes()].central_atom);
+        }
 
     }
 
@@ -1335,7 +1431,6 @@ class GlProteinDisplay {
         // Pieces are continuous pieces of secondary structure
 
         this.trace = new PathAndFrenetFrames();
-        var trace = this.trace;
 
         this.trace.residues = [];
 
@@ -1435,10 +1530,6 @@ class GlProteinDisplay {
                         //     continue;
                         // }
                         isBreak = true;
-                    }
-                    if (iPieceEnd > 0) {
-                        var res0 = this.trace.residues[iPieceEnd - 1];
-                        var res1 = this.trace.residues[iPieceEnd];
                     }
                 }
 
@@ -2665,7 +2756,7 @@ class GlProteinDisplay {
             var atom = this.protein.atoms[i_atom];
             var label = 'Label atom : ' + atom.label;
 
-            text_dialog(this.mainDiv, label, success);
+            showTextDialog(this.mainDiv, label, success);
         }
 
     }
@@ -3216,24 +3307,4 @@ class GlProteinDisplay {
 }
 
 
-export {
-    backbone_atoms,
-    ribbonFace,
-    coilFace,
-    fatCoilFace,
-    degToRad,
-    getVerticesFromAtomDict,
-    fraction,
-    text_dialog,
-    convertViewToTarget,
-    convertTargetToView,
-    MessageBar,
-    PopupText,
-    AtomLabel,
-    DistanceLabel,
-    LineElement,
-    CanvasWrapper,
-    SequenceWidget,
-    ZSlabBar,
-    GlProteinDisplay,
-}
+export { GlProteinDisplay };
