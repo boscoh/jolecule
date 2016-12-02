@@ -843,9 +843,10 @@ class SequenceWidget extends CanvasWrapper {
         this.proteinDisplay = proteinDisplay;
         this.iRes = 0;
 
-        this.heightBar = 16;
-
-        this.spacingY = 5;
+        this.heightBar = 12;
+        this.spacingY = 3;
+        this.darkColor = "rgba(70, 70, 70, 0.7)";
+        this.mediumColor = "rgba(180, 140, 140, 0.7)";
 
         this.div.attr('id', 'sequence-widget');
         this.div.css({
@@ -863,7 +864,7 @@ class SequenceWidget extends CanvasWrapper {
         });
 
         this.charWidth = 14;
-        this.charHeight = 14;
+        this.charHeight = 12;
 
         this.residues = null;
         this.iRes = null;
@@ -940,13 +941,24 @@ class SequenceWidget extends CanvasWrapper {
 
             this.iRes = this.nChar/2;
             this.iStartChar = 0;
-            this.iEndChar = this.nChar;
-
         }
+
+        this.iEndChar = this.iStartChar + this.nChar;
 
         // draw background
         this.fillRect(
-          0, 0, this.width(), this.height(), "rgba(70, 70, 70, 1)");
+          0, 0, this.width(), this.heightBar + this.spacingY*2, this.darkColor);
+
+        this.fillRect(
+          0, this.heightBar + this.spacingY*2,
+          this.width(), this.charHeight + this.spacingY*2, this.mediumColor);
+
+        let x1 = this.iToX(this.iStartChar);
+        let x2 = this.iToX(this.iEndChar);
+
+        this.fillRect(
+          x1, 0, x2 - x1, this.heightBar + this.spacingY*2,
+          1, this.mediumColor);
 
         // draw secondary-structure color bars
         let ss = this.residues[0].ss;
@@ -999,31 +1011,16 @@ class SequenceWidget extends CanvasWrapper {
         }
 
         // draw containers to indicate window
-        let x1 = this.iToX(this.iStartChar);
-        let x2 = this.iToX(this.iEndChar);
-        this.line(
-          x1, 0, x2, 0,
-          1, "rgb(255, 255, 255)");
+        x1 = this.iToX(this.iStartChar);
+        x2 = this.iToX(this.iEndChar);
         this.line(
           x1, 0,
           x1, this.heightBar + this.spacingY*2,
-          1, "rgb(255, 255, 255)");
+          1, this.mediumColor);
         this.line(
           x2, 0,
           x2, this.heightBar + this.spacingY*2,
-          1, "rgb(255, 255, 255)");
-        this.line(
-          x1, this.heightBar + this.spacingY*2,
-          0, this.heightBar + this.spacingY*2,
-          1, "rgb(255, 255, 255)");
-        this.line(
-          x2, this.heightBar + this.spacingY*2,
-          this.width(), this.heightBar + this.spacingY*2,
-          1, "rgb(255, 255, 255)");
-        this.line(
-          0, this.heightBar + this.spacingY*4 + this.charHeight,
-          this.width(), this.heightBar + this.spacingY*4 + this.charHeight,
-          1, "rgb(255, 255, 255)");
+          1, this.mediumColor);
 
     }
 
@@ -1044,7 +1041,6 @@ class SequenceWidget extends CanvasWrapper {
             this.iStartChar = Math.max(this.iRes - 0.5*this.nChar, 0);
             this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar);
             this.iStartChar = parseInt(this.iStartChar);
-            this.iEndChar = this.iStartChar + this.nChar;
 
             this.proteinDisplay.setTargetFromAtom(
               this.scene.protein.residues[this.getFullIRes()].central_atom);
@@ -1242,8 +1238,10 @@ class GlProteinDisplay {
 
         this.messageBar = new MessageBar(this.selector);
 
+        this.backgroundColor = 0xFFFFFF;
+
         this.threeJsScene = new THREE.Scene();
-        this.threeJsScene.fog = new THREE.Fog(0x000000, 1, 100);
+        this.threeJsScene.fog = new THREE.Fog(this.backgroundColor, 1, 100);
         this.threeJsScene.fog.near = this.zoom + 1;
         this.threeJsScene.fog.far = this.zoom + this.zBack;
 
@@ -1258,7 +1256,7 @@ class GlProteinDisplay {
           this.zBack + this.zoom);
 
         this.renderer = new THREE.WebGLRenderer();
-        this.renderer.setClearColor(0x000000);
+        this.renderer.setClearColor(this.backgroundColor);
         this.renderer.setSize(this.width(), this.height());
 
         this.mainDiv[0].appendChild(this.renderer.domElement);
@@ -2662,7 +2660,11 @@ class GlProteinDisplay {
             return 0.0;
         }
 
-        return 1 - ( z - this.zFront ) / ( this.zBack - this.zFront );
+        var opacity = 1 - ( z - this.zFront ) / ( this.zBack - this.zFront );
+
+        console.log(pos.z, z, opacity);
+
+        return opacity;
 
     }
 
@@ -2733,7 +2735,7 @@ class GlProteinDisplay {
         var widthHalf = 0.5 * this.width();
         var heightHalf = 0.5 * this.height();
 
-        var vector = pos.project(this.camera);
+        var vector = pos.clone().project(this.camera);
 
         return {
             x: ( vector.x * widthHalf ) + widthHalf,
@@ -2825,11 +2827,7 @@ class GlProteinDisplay {
 
             if (this.downAtom !== null) {
 
-                if (this.downAtom == this.scene.centered_atom()) {
-
-                    this.isDraggingCentralAtom = true;
-
-                }
+                this.isDraggingCentralAtom = true;
 
             }
         }
@@ -2936,9 +2934,9 @@ class GlProteinDisplay {
 
                 var centralAtom = this.scene.centered_atom();
 
-                if (this.hoverAtom !== centralAtom) {
-                    this.controller.make_dist(this.hoverAtom,
-                      centralAtom);
+                if (this.hoverAtom !== this.downAtom) {
+                    this.controller.make_dist(
+                        this.hoverAtom, this.downAtom);
                 }
 
             }
@@ -3138,7 +3136,7 @@ class GlProteinDisplay {
             var m = p1.clone()
               .add(p2)
               .multiplyScalar(0.5);
-            var opacity = 0.7 * this.opacity(m) + 0.2;
+            var opacity = 0.7 * this.opacity(m) + 0.3;
 
             var v = this.posXY(m);
             var text = p1.distanceTo(p2)
