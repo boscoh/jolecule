@@ -845,8 +845,8 @@ class SequenceWidget extends CanvasWrapper {
 
         this.heightBar = 12;
         this.spacingY = 3;
-        this.darkColor = "rgba(70, 70, 70, 0.7)";
-        this.mediumColor = "rgba(180, 140, 140, 0.7)";
+        this.darkColor = "rgba(0, 0, 0, 0.3)";
+        this.mediumColor = "rgba(230, 200, 200, 0.5)";
 
         this.div.attr('id', 'sequence-widget');
         this.div.css({
@@ -1013,14 +1013,14 @@ class SequenceWidget extends CanvasWrapper {
         // draw containers to indicate window
         x1 = this.iToX(this.iStartChar);
         x2 = this.iToX(this.iEndChar);
-        this.line(
-          x1, 0,
-          x1, this.heightBar + this.spacingY*2,
-          1, this.mediumColor);
-        this.line(
-          x2, 0,
-          x2, this.heightBar + this.spacingY*2,
-          1, this.mediumColor);
+        this.fillRect(
+            0, this.spacingY,
+            x1, this.heightBar,
+            "rgba(0, 0, 0, 0.3)");
+        this.fillRect(
+            x2, this.spacingY,
+            this.width() - x2, this.heightBar,
+            "rgba(0, 0, 0, 0.3)");
 
     }
 
@@ -2376,6 +2376,7 @@ class GlProteinDisplay {
         this.buildCartoon();
 
         // this.buildNucleotides();
+
         this.buildArrows();
         for (var k in this.objects) {
             this.threeJsScene.add(this.objects[k]);
