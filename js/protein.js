@@ -558,6 +558,11 @@ var Protein = function () {
         for (var i_pair = 0; i_pair < close_pairs.length; i_pair++) {
             var a0 = this.atoms[close_pairs[i_pair][0]];
             var a1 = this.atoms[close_pairs[i_pair][1]];
+            // HACK: to avoid the water grid bond calculation
+            // step that kills the rendering
+            if ((a0.res_type == "HOH") || (a1.res_type == "HOH")) {
+                continue;
+            }
             var dist = v3.distance(a0.pos, a1.pos);
             var cutoff;
             if ((a0.alt != "") && (a1.alt != "")) {
@@ -781,7 +786,7 @@ var Protein = function () {
         this.make_atoms_from_pdb_lines(atom_lines);
         this.make_residues();
         console.log("find bonds");
-        // this.make_bonds(this.calc_bonds());
+        this.make_bonds(this.calc_bonds());
         this.max_length = this.calc_max_length();
         console.log("find secondary structure");
         this.find_ss();

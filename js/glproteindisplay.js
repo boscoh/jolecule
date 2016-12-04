@@ -1238,7 +1238,7 @@ class GlProteinDisplay {
 
         this.messageBar = new MessageBar(this.selector);
 
-        this.backgroundColor = 0xFFFFFF;
+        this.backgroundColor = 0x000000;
 
         this.threeJsScene = new THREE.Scene();
         this.threeJsScene.fog = new THREE.Fog(this.backgroundColor, 1, 100);
@@ -2371,7 +2371,7 @@ class GlProteinDisplay {
 
         this.messageBar.html('Building cartoon...');
 
-        // this.buildTube();
+        this.buildTube();
 
         this.buildCartoon();
 
