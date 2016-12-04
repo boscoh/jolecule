@@ -1,17 +1,18 @@
 #!/usr/bin/env node
-
 "use strict";
+
+
+const doc = `
+Creates a static jolecule page for a given pdb file.
+
+Usage: jol-static.js [-o out-html] pdb
+`;
+
 
 const fs = require('fs');
 const nopt = require('nopt')
 const mustache = require('mustache');
 const spawn = require('child_process').spawn;
-
-const doc = `
-Creates a static jolecule page for a given pdb file.
-
-Usage: staticj.js [-o out-html] pdb
-`;
 
 const localServerMustache = `
 var localServer = {
@@ -27,8 +28,8 @@ var localServer = {
 };
   
 var pdbLines = [
-  {{#pdbLines}}
-  "{{.}}",
+  {{#pdbLines}} 
+    "{{{.}}}", 
   {{/pdbLines}}
 ];
 `;
@@ -69,7 +70,6 @@ const indexHtmlMustache = `
     </script>
 </body>
 `;
-
 
 let knownOpts = {"out": [String, null]};
 let shortHands = {"o": ["--out"]};
