@@ -844,9 +844,9 @@ class SequenceWidget extends CanvasWrapper {
         this.iRes = 0;
 
         this.heightBar = 12;
-        this.spacingY = 3;
+        this.spacingY = 2;
         this.darkColor = "rgba(0, 0, 0, 0.3)";
-        this.mediumColor = "rgba(230, 200, 200, 0.5)";
+        this.mediumColor = "rgba(230, 200, 200, 0.3)";
 
         this.div.attr('id', 'sequence-widget');
         this.div.css({
@@ -2662,8 +2662,6 @@ class GlProteinDisplay {
         }
 
         var opacity = 1 - ( z - this.zFront ) / ( this.zBack - this.zFront );
-
-        console.log(pos.z, z, opacity);
 
         return opacity;
 

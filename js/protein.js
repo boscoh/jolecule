@@ -1546,7 +1546,7 @@ var Controller = function (scene) {
     }
 
     this.view_from_dict = function (flat_dict) {
-        view = new View();
+        var view = new View();
 
         view.id = flat_dict.view_id;
         view.view_id = flat_dict.view_id;

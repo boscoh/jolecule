@@ -139,3 +139,17 @@ The parameters in `EmbedJolecule` controls how the widget is displayed:
 	- responsive/iOS-touch web design
 - 1.0 (May 2011) 
     - original release
+
+- new dependencies
+    - babel 
+    - babel-core 
+    - babel-loader 
+    - babel-preset-es2015 
+    - jquery 
+    - underscore 
+    - three@0.79.0
+    - requirejs
+    - mustache
+    - lodash
+    - nopt
+- compiled with webpack

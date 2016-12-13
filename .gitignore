@@ -9,3 +9,5 @@ misc
 touchchrome.sh
 test.html
 .idea
+electron/node_modules
+node_modules

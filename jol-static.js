@@ -14,24 +14,44 @@ const nopt = require('nopt')
 const mustache = require('mustache');
 const spawn = require('child_process').spawn;
 
-const localServerMustache = `
-var localServer = {
-  get_protein_data: function(loadProteinData) {
-    loadProteinData({
-      pdb_id: "{{pdbId}}",
-      pdb_text: pdbLines.join('\\n'),
-    });
-  },
-  get_views: function(loadViewDicts) {loadViewDicts({})},
-  save_views: function(views, success) {},
-  delete_protein_view: function(viewId, success) {},
-};
-  
-var pdbLines = [
-  {{#pdbLines}} 
-    "{{{.}}}", 
-  {{/pdbLines}}
-];
+const dataServerMustache = `
+
+define(function() {
+
+    var result = {
+      get_protein_data: function(loadProteinData) {
+        loadProteinData({
+          pdb_id: "{{pdbId}}",
+          pdb_text: getPdbLines(),
+        });
+      },
+      get_views: function(loadViewDicts) {
+        loadViewDicts(getViewDicts());
+      },
+      save_views: function(views, success) {},
+      delete_protein_view: function(viewId, success) {},
+    };
+      
+    function getPdbLines() {
+        return pdbLines.join('\\n');
+    }  
+    
+    function getViewDicts() {
+        return views;
+    }  
+    
+    var views = {{{viewsJsonStr}}};
+    
+    var pdbLines = [
+      {{#pdbLines}} 
+        "{{{.}}}", 
+      {{/pdbLines}}
+    ];
+    
+    return result;
+    
+});
+
 `;
 
 const indexHtmlMustache = `
@@ -63,10 +83,17 @@ const indexHtmlMustache = `
         }
     </style>
     
-    <script type="text/javascript" src="./jolecule.bundle.js"></script>
-    <script type="text/javascript" src="./{{dataJs}}"></script>
+    <script type="text/javascript" src="./node_modules/requirejs/require.js"></script>
     <script>
-        initEmbedJolecule('#jolecule-views-container', localServer);
+        require(
+            ['./jolecule.lib', './jolecule-data-server'], 
+            function(jolecule, dataServer) {
+                jolecule.initEmbedJolecule({
+                    div_tag: '#jolecule-views-container',
+                    data_server: dataServer
+                });
+            }
+        );
     </script>
 </body>
 `;
@@ -81,15 +108,28 @@ if ( remain.length < 1 ) {
 }
 else {
     const pdb = remain[0];
+    
     let html = "index.html";
-    if (parsed.out) { html = parsed.out; }
+    if (parsed.out) { 
+        html = parsed.out; 
+    }
 
-    const dataJs = 'local-server.js';
+    let base = pdb.replace('.pdb', '');
+    let viewsJson = base + '.views.json';
+    let views = {};
+    if (fs.existsSync(viewsJson)) {
+        let text = fs.readFileSync(viewsJson, 'utf8');;
+        views = JSON.parse(text);
+    }
+    let viewsJsonStr = JSON.stringify(views, null, 2);
+
+    const dataJs = 'jolecule-data-server.js';
     const pdbText = fs.readFileSync(pdb, 'utf8');
     let pdbLines = pdbText.split(/\r?\n/);
     let pdbId = "1mbo";
     let dataJsText = mustache.render(
-        localServerMustache, {pdbId, pdbLines});
+        dataServerMustache,
+        {pdbId, pdbLines, viewsJsonStr});
     fs.writeFileSync(dataJs, dataJsText);
 
     let title = "jolecule - 1mbo";
