@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 "use strict";
 
-
 const doc = `
 Creates a static jolecule page for a given pdb file.
 
@@ -13,7 +12,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const nopt = require('nopt');
 const mustache = require('mustache');
-const spawn = require('child_process').spawn;
+const opener = require('opener');
 
 const dataServerMustache = `
 
@@ -146,7 +145,7 @@ else {
             path.join(targetDir, path.basename(fname)));
     }
 
-    spawn('open', [html]);
+    opener(html);
 }
 
 

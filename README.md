@@ -36,7 +36,7 @@ UMD in ES5. To use, you can:
 
 ## Jol-electron native GUI
 
-Run an electron app that opens a PDB via a native app.
+Run a native-GUI electron app to open PDB files:
 
        ./jol-electron.sh
 
