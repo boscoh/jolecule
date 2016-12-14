@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 "use strict";
 
 const doc = `
@@ -60,28 +61,26 @@ const indexHtmlMustache = `<html>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="stylesheet" type="text/css" href="jolecule.css"/>
-    <title>{{title}}</title>
 </head>
 <style>
     body {
         overflow: hidden;
     }
-    #jolecule-container,
-    #jolecule-body,
-    #jolecule-views-container {
+    .full {
         width: 100%;
         height: 100%;
     }
 </style>
 <body>
-    <div id="jolecule-container">
-        <div id="jolecule-body">
-            <div id="jolecule-views-container"></div>
+    <div id="jolecule-container" class="full">
+        <div id="jolecule-body" class="full">
+            <div id="jolecule-views-container" class="full"></div>
         </div>
     </div>
     <script src="require.js"></script>
     <script>
         require( ['jolecule', 'data-server'], function(jolecule, dataServer) {
+            document.title = "{{title}}";
             jolecule.initEmbedJolecule({
                 div_tag: '#jolecule-views-container',
                 data_server: dataServer
@@ -96,12 +95,11 @@ let shortHands = {"o": ["--out"]};
 let parsed = nopt(knownOpts, shortHands, process.argv, 2);
 let remain = parsed.argv.remain;
 
-if ( remain.length < 1 ) {
+if (remain.length < 1) {
     console.log(doc);
-}
-else {
+} else {
     const pdb = remain[0];
-    
+
     let base = path.basename(pdb.replace('.pdb', ''));
 
     let targetDir = path.join(path.dirname(pdb), base + '-jol');
@@ -124,7 +122,7 @@ else {
     let pdbId = base;
     let dataJsText = mustache.render(
         dataServerMustache,
-        { pdbId, pdbLines, viewsJsonStr });
+        {pdbId, pdbLines, viewsJsonStr});
     fs.writeFileSync(dataJs, dataJsText);
 
     let html = path.join(targetDir, 'index.html');

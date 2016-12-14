@@ -87,66 +87,115 @@ on both protein and DNA chains.
 
 A key concept in `jolecule` is a `view` of the molecule. A `view` stores:
 
-- a specific camera angle
-- the magnification
-- the z-slab settings
-- atom labels
-- distance labels
-- rendering options
-- selected residues
-- some explanatory text
+      {
+        "camera": {
+          "in": [ # position of camera target direction
+            20.75720932831459,
+            11.068200781142572,
+            6.5859819544366776
+          ],
+          "pos": [ # position of camera
+            20.86,
+            11.27,
+            7.56
+          ],
+          "slab": { # the z slab relative to camera.pos
+            "z_back": 16.38124031007752,
+            "z_front": -3.947286821705422,
+            "zoom": 32.03436948308024 # how close to the camera.pos
+          },
+          "up": [ # position of viewer up relative to camera.pos
+            20.17884846971397,
+            10.570683536097107,
+            7.776769638333817
+          ]
+        },
+        "creator": "~ public @9/12/2016",
+        "distances": [
+          {
+            "i_atom1": 213,
+            "i_atom2": 90
+          }
+        ],
+        "i_atom": 920,
+        "labels": [
+          {
+            "i_atom": 920,
+            "text": "hello"
+          }
+        ],
+        "order": 1, # the order of the view in a list of views
+        "pdb_id": "1mbo",
+        "res_id": "A:115",
+        "selected": [],
+        "show": { # rendering options
+          "all_atom": false,
+          "hydrogen": false,
+          "ligands": true,
+          "peptide": true,
+          "ribbon": true,
+          "sidechain": false,
+          "trace": false,
+          "water": false
+        },
+        "text": "Click edit to change this text.",
+        "version": 2,
+        "view_id": "view:a1l45z"
+      },
 
-`views` are internally stored as a `json` file. Locally, a PDB file `1mbo.pdb` will have the views saved as `1mbo.views.json`. On the public server, the views of <http://jolecule.com/pdb/1mbo> will be accessible at <http://jolecule.com/pdb/1mbo.views.json>.
+`views` are internally stored as a `json` file. Locally, a PDB file
+`1mbo.pdb` will have the views saved as `1mbo.views.json`. On the public
+server, the views of <http://jolecule.com/pdb/1mbo> will be
+accessible at <http://jolecule.com/pdb/1mbo.views.json>.
 
- `Jolecule` knows how to animate smoothly between views. So a slide-show is activated by clicking on `loop` for a list of `views`.
+`Jolecule` knows how to animate smoothly between views. So a slide-show
+ is activated by clicking on `loop` for a list of `views`.
 
 
 ## Embedding jolecule widgets
 
-`jolecule` is designed to be easily embeddable as widgets in an external web-page. You can link to the public website or create a self-contained local version that can zipped and stuffed into an email attachment.
+`jolecule` is designed to be easily embeddable as widgets in an external
+web-page. You can link to the public website or create a self-contained
+local version that can zipped and stuffed into an email attachment.
 
-In the view, click on the `embed` button, you will be directed to the embedding page. This will give the instructions on how to link an embedded `jolecule` page.
+An example is given in `examples/1mbo-jol`. It contians:
 
-If you are running the local version to the local web-server, it is important to note the link at the top of the page. This gives a `file:\\` location. Because of the security model of webbrowsers, we can't directly link to it. But this will point to a specially created directory that holds a complete self-contained version of `jolecule` that embeds the protein in question.
+- index.html - generic html that looks for the following files
+- require.js - the module loader
+- jolecule.js - the bundled jolecule UMD module
+- jolecule.css - common stylings
+- data-server.js - specific data for your structure.
 
-Browse the `index.html` page and see how the widget is embedded. Edit this page, or rip out the embeded code on your page. Essentially, four files are needed to run a `jolecule` widget:
+This is the loading code in `index.html`:
 
-- jolecule.js
-- jolecule.css
-- require.js
-- data-server.js
+    <script src="require.js"></script>
+    <script>
+        require( ['jolecule', 'data-server'], function(jolecule, dataServer) {
+            document.title = "jolecule - 1mbo";
+            jolecule.initEmbedJolecule({
+                div_tag: '#jolecule-views-container',
+                data_server: dataServer
+            });
+        });
+    </script>
 
-In your code, you'll need to enter some javascript, the heart of which is something like this:
+For multiple widgets in a single page, you can load multiple times, using
+different values for `data_server` and `div_tag`.
 
-     register_global_animation_loop(
-        new EmbedJolecule({
-          div_tag: '#jolecule-embed, 
-          data_server: data_server,
-          loading_html: 'Loading PDB from RCSB web-site...', 
-          loading_failure_html: 'Failed to load PDB.', 
-          view_id: '',  
-          view_height: 60, 
-          is_view_text_shown: false,
-          is_loop: false,
-          is_editable: false,
-        })
-     );
+The parameters in `initEmbedJolecule` controls how the widget is displayed:
 
-The widget must must be registered with the function `register_global_animation_loop` . This is to ensure there is one single animation loop for the whole page, thus allowing multiple widgets to work. 
-
-For multiple widgets, different `data_server` names and different `<div>` tags must be used. You'll have to edit this yourself.
-
-The parameters in `EmbedJolecule` controls how the widget is displayed:
-
-- div_tag: which HTML `<div>` tag that the widget is attached to. You can size this `<div>` yourself, but make sure there is no padding or margin.
-- data_server: the name of the variable for the data in `data_server.js`. A unique name is crucial for multiple widgets.
-- loading_html: the text shown when the widget is loading
-- loading_failure_html: the text shown if PDB fails to load
-- view_id: the id of the view you want to start with, by default it's the PDB's view
-- view_height: the size of the text window for the view text
-- is_view_text_shown: determines if the view text is shown or hidden
-- is_loop: turns loopin on/off for slideshow
-- is_editable: shows editing buttons, not really used for embedding
+- `div_tag`: which HTML `<div>` tag that the widget is attached to.
+  You can size this `<div>` yourself, but make sure there is no
+  padding or margin.
+- `data_server`: the name of the variable for the data in `data_server.js`.
+  A unique name is crucial for multiple widgets.
+- `loading_html`: the text shown when the widget is loading
+- `loading_failure_html`: the text shown if PDB fails to load
+- `view_id`: the id of the view you want to start with, by default it's the PDB's view
+- `view_height`: the size of the text window for the view text
+- `is_view_text_shown`: determines if the view text is shown or hidden
+- `is_loop`: turns loopin on/off for slideshow
+- `is_editable`: shows editing buttons, not really used for embedding
 
 ## Changelog
 
