@@ -1,0 +1,35 @@
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" type="text/css" href="jolecule.css"/>
+    <title>jolecule - 1mbo</title>
+</head>
+<style>
+    body {
+        overflow: hidden;
+    }
+    #jolecule-container,
+    #jolecule-body,
+    #jolecule-views-container {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+<body>
+    <div id="jolecule-container">
+        <div id="jolecule-body">
+            <div id="jolecule-views-container"></div>
+        </div>
+    </div>
+    <script src="require.js"></script>
+    <script>
+        require( ['jolecule', 'data-server'], function(jolecule, dataServer) {
+            jolecule.initEmbedJolecule({
+                div_tag: '#jolecule-views-container',
+                data_server: dataServer
+            });
+        });
+    </script>
+</body>

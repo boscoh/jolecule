@@ -1,13 +1,9 @@
-*.pyc
-*/*.pyc
-*/*/*.pyc
-misc
+*pyc
 *log
 *url
-*.pdb
-*.json
 touchchrome.sh
-test.html
 .idea
 electron/node_modules
+electron/renderer.js
+electron/index.html
 node_modules

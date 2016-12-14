@@ -1,0 +1,272 @@
+a,
+a:visited {
+    text-decoration: none;
+    color: #779;
+}
+a:hover {
+    text-decoration: underline;
+}
+html,
+body {
+    background-color: black;
+    padding: 0;
+    margin: 0;
+}
+body, li, td {
+    font-size: 14px;
+    line-height: 1.5em;
+    letter-spacing: 0.1em;
+    font-weight: normal;
+    font-family: "Helvetica Neue", Helvetica, sans-serif;
+    color: #888;
+
+}
+h1, h2, h3, h4, h5, h6, h7 {
+    font-weight: 200;
+    color: #886;
+
+}
+#jolecule-container {
+    display: flex;
+    display: -webkit-flex;
+    flex-direction: column;
+    -webkit-flex-direction: column;
+    width: 100%;
+}
+#jolecule-header {
+    padding: 5px 5px;
+    background-color: black;
+    display: flex;
+    display: -webkit-flex;
+    flex-direction: row;
+    -webkit-flex-direction: row;
+    align-items: center;
+    -webkit-align-items: center;
+    font-size: 12px;
+    font-family: helvetica;
+    letter-spacing: 0.1em;
+}
+#jolecule-header,
+#jolecule-header a {
+    color: #777;
+    text-decoration: none;
+}
+#jolecule-header form {
+    -webkit-flex: 1;
+    flex: 1;
+    text-align: right;
+    margin: 0;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+.jolecule-search-box {
+    background: #888;
+    padding: 3px 5px;
+    border: 0px;
+}
+#jolecule-footer {
+    width: auto;
+    vertical-align: bottom;
+    text-align: right;
+    color: #666;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    margin: 0;
+    padding: 12px 5px 5px 5px;
+}
+
+.jolecule-view {
+    display: flex;
+    display: -webkit-flex;
+    flex-direction: row;
+    -webkit-flex-direction: row;
+    background-color: #222;
+    padding: 2px 5px 15px 5px;
+    box-sizing: border-box;
+}
+.jolecule-view,
+.jolecule-view-text {
+    font-size: 12px;
+    font-family: Helvetica, sans-serif;
+    letter-spacing: 0.1em;
+    line-height: 1.5em;
+}
+.jolecule-sub-header {
+    padding-top: 10px;
+    padding-left: 20px;
+    padding-bottom: 15px;
+    text-align: left;
+    line-height: 25px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3em;
+    line-height: 2em;
+    color: #555;
+    flex: 50px 0 0;
+    -webkit-flex: 50px 0 0;
+}
+.jolecule-selected-box {
+    border: 1px dotted #D66;
+}
+.jolecule-unselected-box {
+    border: 1px solid #222;
+}
+.jolecule-residue-selector,
+.jolecule-button {
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-align: center;
+    margin-right: 2px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 5px;
+    padding-right: 5px;
+    background-color: #777;
+    font-size: 10px;
+    font-weight: normal;
+    letter-spacing: 0.1em;
+}
+a.jolecule-button-toggle-on,
+a.jolecule-button-toggle-on:link,
+a.jolecule-button-toggle-on:visited {
+    background-color: #444; 
+    color: #9A9 !important;
+}
+a.jolecule-button input a,
+a.jolecule-button,
+a.jolecule-button:link,
+a.jolecule-button:visited {
+    color: #333;
+    text-decoration: none;
+}
+.jolecule-large-button,
+a.jolecule-large-button:link,
+a.jolecule-large-button:visited {
+    background-color: #777;
+    color: #333!important;
+    text-decoration: none;
+    font-size: 14px;
+}
+.jolecule-large-button {
+    display: block;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    text-align: center;
+    width: 20px;
+    padding-top: 4px;
+    padding-bottom: 6px;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-right: 10px;
+    height: 1em;
+    font-weight: normal;
+}
+.jolecule-small-button,
+a.jolecule-small-button,
+a.jolecule-small-button:visited {
+    padding: 0;
+    font-size: 10px;
+    color: #779;
+    letter-spacing: 0.1em;
+    font-weight: normal;
+}
+a.jolecule-button:active,
+a.jolecule-small-button:active,
+a.jolecule-large-button:active {
+    background-color: #F99;
+}
+.jolecule-author {
+    padding-top: 0em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: #776;
+    padding-left: 15px;
+    font-weight: normal;
+}
+.jolecule-dialog {
+    background-color: #222;
+    padding: 10px;
+    border: 2px solid #444;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    line-height: 1.5em;
+}
+.jolecule-textbox {
+    font-size: 12px;
+    font-family: Helvetica, sans-serif;
+    letter-spacing: 0.1em;
+    line-height: 1em;
+}
+.jolecule-edit-textarea {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    font-family: Helvetica, sans-serif;
+    font-color: #333;
+    background-color: #888;
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+}
+.jolecule-embed-view a,
+.jolecule-embed-view a:visited,
+.jolecule-dialog a,
+.jolecule-dialog a:visited {
+    text-decoration: none;
+    color: #77A;
+}
+.jolecule-embed-header,
+.jolecule-embed-view-bar  {
+    padding: 5px 5px;
+    background-color: #222;
+    color: #666;
+    font-family: helvetica;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    overflow: hidden;
+}
+.jolecule-embed-header,
+.jolecule-embed-header a {
+    color: #777;
+    text-decoration: none;
+}
+.jolecule-embed-body {
+    flex: 1;
+    -webkit-flex: 1;
+    font-size: 12px;
+    font-family: helvetica;
+    letter-spacing: 0.1em;
+    line-height: 1.2em;
+    color: #666;
+}
+.jolecule-embed-header, 
+.jolecule-embed-view-bar {
+    height: 21px;
+}
+.jolecule-embed-view-bar {
+    padding: 5px;
+    overflow: hidden;
+}
+.jolecule-embed-view {
+    background-color: #222;
+    color: #777;
+    font-size: 12px;
+    font-family: Helvetica, sans-serif;
+    letter-spacing: 0.1em;
+    line-height: 1em;
+}
+
+@media screen and (max-width: 1200px) {
+  html, body {
+    font-size: 14px;
+    line-height: 1.3em;
+  }
+  #jolecule-header form {
+    width: 100%;
+  }
+  #jolecule-header .jolecule-search-box {
+    width: 100%;
+  }
+}
+
+
+
+

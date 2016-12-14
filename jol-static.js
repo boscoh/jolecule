@@ -5,12 +5,13 @@
 const doc = `
 Creates a static jolecule page for a given pdb file.
 
-Usage: jol-static.js [-o out-html] pdb
+Usage: jol-static.js [-o out-html-dir] pdb
 `;
 
 
-const fs = require('fs');
-const nopt = require('nopt')
+const fs = require('fs-extra');
+const path = require('path');
+const nopt = require('nopt');
 const mustache = require('mustache');
 const spawn = require('child_process').spawn;
 
@@ -18,82 +19,75 @@ const dataServerMustache = `
 
 define(function() {
 
-    var result = {
-      get_protein_data: function(loadProteinData) {
-        loadProteinData({
-          pdb_id: "{{pdbId}}",
-          pdb_text: getPdbLines(),
-        });
-      },
-      get_views: function(loadViewDicts) {
-        loadViewDicts(getViewDicts());
-      },
-      save_views: function(views, success) {},
-      delete_protein_view: function(viewId, success) {},
-    };
-      
-    function getPdbLines() {
-        return pdbLines.join('\\n');
-    }  
-    
-    function getViewDicts() {
-        return views;
-    }  
-    
-    var views = {{{viewsJsonStr}}};
-    
-    var pdbLines = [
-      {{#pdbLines}} 
-        "{{{.}}}", 
-      {{/pdbLines}}
-    ];
-    
-    return result;
+var result = {
+  get_protein_data: function(loadProteinData) {
+    loadProteinData({
+      pdb_id: "{{pdbId}}",
+      pdb_text: getPdbLines(),
+    });
+  },
+  get_views: function(loadViewDicts) {
+    loadViewDicts(getViewDicts());
+  },
+  save_views: function(views, success) {},
+  delete_protein_view: function(viewId, success) {},
+};
+  
+function getPdbLines() {
+    return pdbLines.join('\\n');
+}  
+
+function getViewDicts() {
+    return views;
+}  
+
+var views = {{{viewsJsonStr}}};
+
+var pdbLines = [
+  {{#pdbLines}} 
+    "{{{.}}}", 
+  {{/pdbLines}}
+];
+
+return result;
     
 });
 
 `;
 
-const indexHtmlMustache = `
-<html>
+const indexHtmlMustache = `<html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <link rel="stylesheet" type="text/css" href="./jolecule.css"/>
+    <link rel="stylesheet" type="text/css" href="jolecule.css"/>
     <title>{{title}}</title>
 </head>
+<style>
+    body {
+        overflow: hidden;
+    }
+    #jolecule-container,
+    #jolecule-body,
+    #jolecule-views-container {
+        width: 100%;
+        height: 100%;
+    }
+</style>
 <body>
     <div id="jolecule-container">
         <div id="jolecule-body">
             <div id="jolecule-views-container"></div>
         </div>
     </div>
-    
-    <style>
-        body {
-            overflow: hidden;
-        }
-    
-        #jolecule-container,
-        #jolecule-body,
-        #jolecule-views-container {
-            width: 100%;
-            height: 100%;
-        }
-    </style>
-    
-    <script type="text/javascript" src="./node_modules/requirejs/require.js"></script>
+    <script src="require.js"></script>
     <script>
-        require(
-            ['./jolecule.lib', './jolecule-data-server'], 
-            function(jolecule, dataServer) {
-                jolecule.initEmbedJolecule({
-                    div_tag: '#jolecule-views-container',
-                    data_server: dataServer
-                });
-            }
-        );
+        require( ['jolecule', 'data-server'], function(jolecule, dataServer) {
+            jolecule.initEmbedJolecule({
+                div_tag: '#jolecule-views-container',
+                data_server: dataServer
+            });
+        });
     </script>
 </body>
 `;
@@ -109,33 +103,48 @@ if ( remain.length < 1 ) {
 else {
     const pdb = remain[0];
     
-    let html = "index.html";
-    if (parsed.out) { 
-        html = parsed.out; 
-    }
+    let base = path.basename(pdb.replace('.pdb', ''));
 
-    let base = pdb.replace('.pdb', '');
+    let targetDir = path.join(path.dirname(pdb), base + '-jol');
+    if (parsed.out) {
+        targetDir = parsed.out;
+    }
+    fs.ensureDir(targetDir);
+
     let viewsJson = base + '.views.json';
     let views = {};
     if (fs.existsSync(viewsJson)) {
-        let text = fs.readFileSync(viewsJson, 'utf8');;
+        let text = fs.readFileSync(viewsJson, 'utf8');
         views = JSON.parse(text);
     }
     let viewsJsonStr = JSON.stringify(views, null, 2);
 
-    const dataJs = 'jolecule-data-server.js';
+    const dataJs = path.join(targetDir, 'data-server.js');
     const pdbText = fs.readFileSync(pdb, 'utf8');
     let pdbLines = pdbText.split(/\r?\n/);
-    let pdbId = "1mbo";
+    let pdbId = base;
     let dataJsText = mustache.render(
         dataServerMustache,
-        {pdbId, pdbLines, viewsJsonStr});
+        { pdbId, pdbLines, viewsJsonStr });
     fs.writeFileSync(dataJs, dataJsText);
 
+    let html = path.join(targetDir, 'index.html');
     let title = "jolecule - 1mbo";
     let htmlText = mustache.render(
         indexHtmlMustache, {title, dataJs});
     fs.writeFileSync(html, htmlText);
+
+    let fnames = [
+        'jolecule.js',
+        'jolecule.js.map',
+        'jolecule.css',
+        'node_modules/requirejs/require.js'];
+
+    for (let fname of fnames) {
+        fs.copySync(
+            path.join(__dirname, fname),
+            path.join(targetDir, path.basename(fname)));
+    }
 
     spawn('open', [html]);
 }
