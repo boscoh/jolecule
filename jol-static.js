@@ -75,7 +75,7 @@ const indexHtmlMustache = `<html>
     <script src="require.js"></script>
     <script>
         require( ['jolecule', 'data-server'], function(jolecule, dataServer) {
-            document.title = "{{title}}";
+            document.title = "{{{title}}}";
             jolecule.initEmbedJolecule({
                 div_tag: '#jolecule',
                 data_server: dataServer

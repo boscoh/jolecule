@@ -62,7 +62,7 @@ function getPdbLines() {
   return lines;
 }
 
-document.title = {{title}};   
+document.title = "{{{title}}}";   
 
 jolecule.initEmbedJolecule({
     div_tag: '#jolecule',
@@ -136,45 +136,48 @@ function createWindow () {
 }
 
 function openPdbWindow(pdb) {
-    let base = pdb.replace('.pdb', '');
+  let base = pdb.replace('.pdb', '');
+  let pdbId = path.basename(pdb).replace('.pdb', '');
+  let title = `jolecule - ${pdbId}`;
 
-    makeHtml(pdb, `jolecule - ${base}`);
+  makeHtml(pdb, title);
 
-    createWindow();
+  createWindow();
 
-    viewsJson = base + '.views.json';
-    console.log(viewsJson);
-    ipcMain.on('get-view-dicts', (event, arg) => {
-        console.log('get-view-dicts');
-        let views = {};
-        if (fs.existsSync(viewsJson)) {
-            let text = fs.readFileSync(viewsJson, 'utf8');;
-            views = JSON.parse(text);
-        }
-        event.sender.send('get-view-dicts', views);
-    });
+  viewsJson = base + '.views.json';
+  console.log(viewsJson);
+  ipcMain.on('get-view-dicts', (event, arg) => {
+    console.log('get-view-dicts');
+    let views = {};
+    if (fs.existsSync(viewsJson)) {
+      let text = fs.readFileSync(viewsJson, 'utf8');
+      views = JSON.parse(text);
+    }
+    event.sender.send('get-view-dicts', views);
+  });
 
-    ipcMain.on('save-view-dicts', (event, views) => {
-        console.log('save-view-dicts')  // prints "ping"
-        fs.writeFileSync(viewsJson, JSON.stringify(views, null, 2));
-        event.sender.send('save-view-dicts', "success");
-    });
+  ipcMain.on('save-view-dicts', (event, views) => {
+    console.log('save-view-dicts');  // prints "ping"
+    fs.writeFileSync(viewsJson, JSON.stringify(views, null, 2));
+    event.sender.send('save-view-dicts', "success");
+  });
 
-    ipcMain.on('delete-protein-view', (event, viewId) => {
-        console.log('delete-protein-view')  // prints "ping"
-        if (fs.existsSync(viewsJson)) {
-            let text = fs.readFileSync(viewsJson, 'utf8');;
-            views = JSON.parse(text);
-            console.log('before', JSON.stringify(views, null, 2));
-            _.unset(views, viewId);
-            console.log('after', JSON.stringify(views, null, 2));
-            fs.writeFileSync(viewsJson, JSON.stringify(views, null, 2));
-            event.sender.send('delete-protein-view', "success");
-            return;
-        }
-        fs.writeFileSync(viewsJson, JSON.stringify(arg, null, 2));
-        event.sender.send('delete-protein-view', "success");
-    });
+  ipcMain.on('delete-protein-view', (event, viewId) => {
+    console.log('delete-protein-view');  // prints "ping"
+    if (fs.existsSync(viewsJson)) {
+      let text = fs.readFileSync(viewsJson, 'utf8');
+      ;
+      views = JSON.parse(text);
+      console.log('before', JSON.stringify(views, null, 2));
+      _.unset(views, viewId);
+      console.log('after', JSON.stringify(views, null, 2));
+      fs.writeFileSync(viewsJson, JSON.stringify(views, null, 2));
+      event.sender.send('delete-protein-view', "success");
+      return;
+    }
+    fs.writeFileSync(viewsJson, JSON.stringify(arg, null, 2));
+    event.sender.send('delete-protein-view', "success");
+  });
 
 }
 
@@ -226,7 +229,17 @@ function init() {
   const menu = Menu.buildFromTemplate(menuTemplate);
   Menu.setApplicationMenu(menu);
 
-  openPdbWindow('../examples/1mbo.pdb', '1mbo');
+  let knownOpts = {"out": [String, null]};
+  let shortHands = {"o": ["--out"]};
+  let parsed = nopt(knownOpts, shortHands, process.argv, 2);
+  let remain = parsed.argv.remain;
+
+  let pdb = '../examples/1mbo.pdb';
+  if (remain.length > 0) {
+    pdb = remain[0];
+  }
+  console.log(pdb, process.argv);
+  openPdbWindow(pdb);
 }
 
 // This method will be called when Electron has finished
