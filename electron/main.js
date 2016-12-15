@@ -63,7 +63,7 @@ function getPdbLines() {
 }
 
 jolecule.initEmbedJolecule({
-    div_tag: '#jolecule-views-container',
+    div_tag: '#jolecule',
     data_server: dataServer
 });
 
@@ -78,23 +78,16 @@ const indexHtmlMustache = `
     <link rel="stylesheet" type="text/css" href="../jolecule.css"/>
     <title>{{title}}</title>
     <style>
-        body {
+        body, #jolecule {
+            margin: 0;
             overflow: hidden;
-        }
-        #jolecule-container,
-        #jolecule-body,
-        #jolecule-views-container {
             width: 100%;
             height: 100%;
         }
     </style>
 </head>
 <body>
-    <div id="jolecule-container">
-        <div id="jolecule-body">
-            <div id="jolecule-views-container"></div>
-        </div>
-    </div>
+    <div id="jolecule"></div>
     <script type="text/javascript" src="./{{rendererJs}}"></script>
 </body>
 `;

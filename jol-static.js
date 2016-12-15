@@ -60,29 +60,24 @@ const indexHtmlMustache = `<html>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <link rel="stylesheet" type="text/css" href="jolecule.css"/>
+    <link type="text/css" href="jolecule.css"/>
 </head>
 <style>
-    body {
+    body, #jolecule {
+        margin: 0;
         overflow: hidden;
-    }
-    .full {
         width: 100%;
         height: 100%;
     }
 </style>
 <body>
-    <div id="jolecule-container" class="full">
-        <div id="jolecule-body" class="full">
-            <div id="jolecule-views-container" class="full"></div>
-        </div>
-    </div>
+    <div id="jolecule"></div>
     <script src="require.js"></script>
     <script>
         require( ['jolecule', 'data-server'], function(jolecule, dataServer) {
             document.title = "{{title}}";
             jolecule.initEmbedJolecule({
-                div_tag: '#jolecule-views-container',
+                div_tag: '#jolecule',
                 data_server: dataServer
             });
         });
