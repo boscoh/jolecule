@@ -7,5 +7,10 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 cd $DIR/electron
 
-electron . "$targetdir"/"$@"
+if [ $# -eq 0 ]
+  then
+    electron .
+  else
+    electron . "$targetdir"/"$@"
+fi
 

@@ -93,26 +93,24 @@ const indexHtmlMustache = `
 </body>
 `;
 
-function makeHtml(pdb, title) {
-    const rendererJs = 'renderer.js';
-    let pdbId = path.basename(pdb).replace('.pdb', '');
+function createWindow(pdb, title) {
+  const rendererJs = 'renderer.js';
+  let pdbId = path.basename(pdb).replace('.pdb', '');
 
-    const pdbText = fs.readFileSync(pdb, 'utf8');
-    let pdbLines = pdbText.split(/\r?\n/);
-    pdbLines = _.map(pdbLines, (l) => l.replace('"', '\"'));
+  const pdbText = fs.readFileSync(pdb, 'utf8');
+  let pdbLines = pdbText.split(/\r?\n/);
+  pdbLines = _.map(pdbLines, (l) => l.replace('"', '\"'));
 
-    // const localServerMustache = fs.readFileSync('renderer.mustache.js', 'utf8');
-    let dataJsText = mustache.render(
-        localServerMustache, {pdbId, pdbLines, title});
-    fs.writeFileSync(rendererJs, dataJsText);
+  // const localServerMustache = fs.readFileSync('renderer.mustache.js', 'utf8');
+  let dataJsText = mustache.render(
+    localServerMustache, {pdbId, pdbLines, title});
+  fs.writeFileSync(rendererJs, dataJsText);
 
-    html = 'index.html';
-    let htmlText = mustache.render(
-        indexHtmlMustache, {title, rendererJs});
-    fs.writeFileSync(html, htmlText);
-} 
+  html = 'index.html';
+  let htmlText = mustache.render(
+    indexHtmlMustache, {title, rendererJs});
+  fs.writeFileSync(html, htmlText);
 
-function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 800, height: 600});
 
@@ -140,9 +138,7 @@ function openPdbWindow(pdb) {
   let pdbId = path.basename(pdb).replace('.pdb', '');
   let title = `jolecule - ${pdbId}`;
 
-  makeHtml(pdb, title);
-
-  createWindow();
+  createWindow(pdb, title);
 
   viewsJson = base + '.views.json';
   console.log(viewsJson);
@@ -234,11 +230,11 @@ function init() {
   let parsed = nopt(knownOpts, shortHands, process.argv, 2);
   let remain = parsed.argv.remain;
 
-  let pdb = '../examples/1mbo.pdb';
+  let pdb = path.join(__dirname, '../examples/1mbo.pdb');
   if (remain.length > 0) {
     pdb = remain[0];
   }
-  console.log(pdb, process.argv);
+  console.log(process.argv, remain);
   openPdbWindow(pdb);
 }
 
