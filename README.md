@@ -20,10 +20,13 @@ The requirements are:
 - a modern webbrowser - Chrome, Safari, Firefox
 - node.js - the javascript runtime
 - yarn - a javascript package manager
+- electron - gui library
 
 Download this [package](https://github.com/boscoh/jolecule/archive/master.zip).
 
 Then run `yarn` to install all required modules.
+
+To install `electron`: `yarn add -g electron`
 
 ## Display a PDB file
 
