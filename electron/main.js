@@ -62,6 +62,8 @@ function getPdbLines() {
   return lines;
 }
 
+document.title = {{title}};   
+
 jolecule.initEmbedJolecule({
     div_tag: '#jolecule',
     data_server: dataServer
@@ -76,7 +78,6 @@ const indexHtmlMustache = `
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="stylesheet" type="text/css" href="../jolecule.css"/>
-    <title>{{title}}</title>
     <style>
         body, #jolecule {
             margin: 0;
@@ -102,7 +103,7 @@ function makeHtml(pdb, title) {
 
     // const localServerMustache = fs.readFileSync('renderer.mustache.js', 'utf8');
     let dataJsText = mustache.render(
-        localServerMustache, {pdbId, pdbLines});
+        localServerMustache, {pdbId, pdbLines, title});
     fs.writeFileSync(rendererJs, dataJsText);
 
     html = 'index.html';
