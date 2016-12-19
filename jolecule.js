@@ -149,20 +149,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	
-	
-	// This is a separate file to allow multiple jolecule
-	// widgets to be animated in the same global event loop.
-	// the interface to a widget is:
-	//
-	// class Widget {
-	//   animate() {}
-	//   is_changed: boolean
-	//   draw() {}
-	// }
-	//
-	// global storage
-	// - window.global_displays
-	// - window.last_time
+	/**
+	 * This is a separate file to allow multiple jolecule
+	 * widgets to be animated in the same global event loop.
+	 * the interface to a widget is:
+	 *
+	 * class Widget {
+	 *   animate() {}
+	 *   is_changed: boolean
+	 *   draw() {}
+	 * }
+	 *
+	 * global storage
+	 * - window.global_displays
+	 * - window.last_time
+	 **/
 	
 	var ms_per_step = 25;
 	
@@ -194,9 +195,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  window.last_time = curr_time;
 	}
 	
+	/**
+	 * run loop() as a singleton by using the global
+	 * window space to lock one single copy of loop
+	 **/
 	function register_global_animation_loop(new_display) {
-	  // run loop() as a singleton by using the global
-	  // window space to lock one single copy of loop
 	  if (typeof window.global_displays == 'undefined') {
 	    window.global_displays = [];
 	    loop();
@@ -463,7 +466,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.controller.toggle_neighbors();
 	    });
 	
-	    this.header_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-header').append((0, _jquery2.default)('<span>').css('float', 'left').append(help)).append((0, _jquery2.default)('<span>').css('float', 'right').append(this.residue_selector).append(' ').append(this.lig)
+	    this.header_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-header').append((0, _jquery2.default)('<div>').addClass('flex-left').append(help)).append((0, _jquery2.default)('<div>').addClass('flex-right').append(this.residue_selector).append(' ').append(this.lig)
 	    // .append(this.hyd)
 	    .append(this.wat).append(' ').append(backbone).append(' ').append(all).append(clear).append(neighbour));
 	
@@ -509,7 +512,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.toggle_text_state();
 	    });
 	
-	    this.status_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<span>').css('float', 'left').append(prev_button).append(this.status_text).append(next_button)).append((0, _jquery2.default)('<span>').css('float', 'right').append(loop_button).append(save_button).append(text_button));
+	    this.status_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div>').addClass('flex-left').append(prev_button).append(this.status_text).append(next_button)).append((0, _jquery2.default)('<div>').addClass('flex-right').append(loop_button).append(save_button).append(text_button));
 	
 	    this.div.append(this.status_div);
 	  };
@@ -29522,15 +29525,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var SMALL = 1E-6;
 	
-	/*
-	
-	v3.js - is a simple function based wrapper library around the vector
-	portion of THREE.js. THREE.Vector3 are created and manipulated using
-	factory functions, which was the original approach used in a deprecated
-	vector library. This was replaced with the fully-featured vector library
-	in THREE.js
-	
-	*/
+	/**
+	 * 
+	 * v3.js - is a simple function based wrapper library around the vector
+	 * portion of THREE.js. THREE.Vector3 are created and manipulated using
+	 * factory functions, which was the original approach used in a deprecated
+	 * vector library. This was replaced with the fully-featured vector library
+	 * in THREE.js
+	 * 
+	 **/
 	
 	function is_near_zero(a) {
 	  return Math.abs(a) < SMALL;
