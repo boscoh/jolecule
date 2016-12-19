@@ -845,8 +845,8 @@ class SequenceWidget extends CanvasWrapper {
 
         this.heightBar = 16;
         this.spacingY = 2;
-        this.darkColor = "rgba(0, 0, 0, 0.3)";
-        this.mediumColor = "rgba(230, 200, 200, 0.3)";
+        this.darkColor = "rgb(0, 0, 0)";
+        this.mediumColor = "rgb(230, 200, 200)";
 
         this.div.attr('id', 'sequence-widget');
         this.div.css({

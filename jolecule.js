@@ -73364,8 +73364,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        _this4.heightBar = 16;
 	        _this4.spacingY = 2;
-	        _this4.darkColor = "rgba(0, 0, 0, 0.3)";
-	        _this4.mediumColor = "rgba(230, 200, 200, 0.3)";
+	        _this4.darkColor = "rgb(0, 0, 0)";
+	        _this4.mediumColor = "rgb(230, 200, 200)";
 	
 	        _this4.div.attr('id', 'sequence-widget');
 	        _this4.div.css({
