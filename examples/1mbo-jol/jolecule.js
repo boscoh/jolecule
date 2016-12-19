@@ -267,8 +267,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.create_protein_div();
 	    this.protein_display = new _glproteindisplay.GlProteinDisplay(this.scene, '#jolecule-protein-display', this.controller);
 	    this.protein_display.min_radius = 10;
-	    this.residue_selector = (0, _jquery2.default)('<select>').attr('id', this.div_tag.slice(1) + '-residue_selector').addClass('jolecule-residue-selector');
-	    (0, _jquery2.default)('#jolecule-protein-display').append(this.residue_selector);
 	
 	    this.create_status_div();
 	    this.create_view_div();
@@ -310,7 +308,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.load_protein_data(protein_data);
 	        _this.resize();
 	        _this.data_server.get_views(load_view_dicts);
-	        _this.residue_selector.val(_this.scene.current_view.res_id);
 	      }
 	    };
 	
@@ -337,7 +334,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      default_text = "";
 	    }
 	    this.protein_display.post_load(default_text);
-	    this.populate_residue_selector();
 	    this.loading_message_div.remove();
 	  };
 	
@@ -435,7 +431,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.draw = function () {
 	    if ((0, _util.exists)(this.protein_display)) {
 	      if (this.scene.changed) {
-	        this.residue_selector.val(this.scene.current_view.res_id);
 	        this.update_view();
 	        this.protein_display.draw();
 	        this.scene.changed = false;
@@ -479,21 +474,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.goto_next_view = function () {
 	    this.controller.set_target_next_view();
 	    this.update_view();
-	  };
-	
-	  this.populate_residue_selector = function () {
-	    var residues = this.protein.residues;
-	    for (var i = 0; i < residues.length; i++) {
-	      var value = residues[i].id;
-	      var text = residues[i].id + '-' + residues[i].type;
-	      this.residue_selector.append((0, _jquery2.default)('<option>').attr('value', value).text(text));
-	    }
-	    var _this = this;
-	    var change_fn = function change_fn() {
-	      var res_id = _this.residue_selector.find(":selected").val();
-	      _this.controller.set_target_view_by_res_id(res_id);
-	    };
-	    this.residue_selector.change(change_fn);
 	  };
 	
 	  this.create_protein_div = function () {
@@ -570,7 +550,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.status_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div>').addClass('flex-left').append('Views: ').append(prev_button).append(this.status_text).append(next_button).append(save_button).append(loop_button)).append((0, _jquery2.default)('<div>').addClass('flex-right').append(this.lig_button)
 	    // .append(this.hyd)
-	    .append(this.wat_button).append(' ').append(backbone_button).append(' ').append(all_button).append(clear_button).append(neighbour_button).append(' &nbsp; &nbsp; ').append(text_button));
+	    .append(this.wat_button).append(' ').append(backbone_button).append(' ').append(all_button).append(clear_button).append(neighbour_button).append(' &nbsp;').append(text_button));
 	
 	    this.div.append(this.status_div);
 	  };
@@ -73359,13 +73339,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var _this4 = _possibleConstructorReturn(this, (SequenceWidget.__proto__ || Object.getPrototypeOf(SequenceWidget)).call(this, selector));
 	
 	        _this4.scene = scene;
+	        _this4.protein = scene.protein;
+	
 	        _this4.proteinDisplay = proteinDisplay;
 	        _this4.iRes = 0;
 	
 	        _this4.heightBar = 16;
-	        _this4.spacingY = 2;
-	        _this4.darkColor = "rgba(0, 0, 0, 0.3)";
-	        _this4.mediumColor = "rgba(230, 200, 200, 0.3)";
+	        _this4.spacingY = 4;
+	        _this4.darkColor = "rgb(0, 0, 0)";
+	        _this4.mediumColor = "rgb(155, 155, 155)";
 	
 	        _this4.div.attr('id', 'sequence-widget');
 	        _this4.div.css({
@@ -73382,6 +73364,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this4.iRes = null;
 	        _this4.iStartChar = null;
 	        _this4.iEndChar = null;
+	
+	        _this4.residue_selector = (0, _jquery2.default)('<select>')
+	        // .attr('id', this.div_tag.slice(1) + '-residue_selector')
+	        .addClass('jolecule-residue-selector');
+	        _this4.div.append(_this4.residue_selector);
 	
 	        _this4.resize();
 	        return _this4;
@@ -73467,7 +73454,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	                this.iRes = this.nChar / 2;
 	                this.iStartChar = 0;
+	
+	                this.residue_selector.val(this.scene.current_view.res_id);
+	
+	                this.populateResidueSelector();
 	            }
+	
+	            this.residue_selector.val(this.scene.current_view.res_id);
 	
 	            this.iEndChar = this.iStartChar + this.nChar;
 	
@@ -73524,6 +73517,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.fillRect(x2, this.spacingY, this.width() - x2, this.heightBar, "rgba(0, 0, 0, 0.3)");
 	        }
 	    }, {
+	        key: "populateResidueSelector",
+	        value: function populateResidueSelector() {
+	            var _this5 = this;
+	
+	            var residues = this.protein.residues;
+	            for (var i = 0; i < residues.length; i++) {
+	                var value = residues[i].id;
+	                var text = residues[i].id + '-' + residues[i].type;
+	                this.residue_selector.append((0, _jquery2.default)('<option>').attr('value', value).text(text));
+	            }
+	            this.residue_selector.change(function () {
+	                var res_id = _this5.residue_selector.find(":selected").val();
+	                _this5.proteinDisplay.setTargetFromAtom(_this5.scene.protein.res_by_id[res_id].central_atom);
+	            });
+	        }
+	    }, {
 	        key: "getFullIRes",
 	        value: function getFullIRes() {
 	            return this.residues[this.iRes].i;
@@ -73565,13 +73574,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function ZSlabBar(selector, scene) {
 	        _classCallCheck(this, ZSlabBar);
 	
-	        var _this5 = _possibleConstructorReturn(this, (ZSlabBar.__proto__ || Object.getPrototypeOf(ZSlabBar)).call(this, selector));
+	        var _this6 = _possibleConstructorReturn(this, (ZSlabBar.__proto__ || Object.getPrototypeOf(ZSlabBar)).call(this, selector));
 	
 	        console.log('initialize zslabar with scene', scene);
-	        _this5.scene = scene;
-	        _this5.maxZLength = 0.0;
-	        _this5.div.attr('id', 'zslab');
-	        return _this5;
+	        _this6.scene = scene;
+	        _this6.maxZLength = 0.0;
+	        _this6.div.attr('id', 'zslab');
+	        return _this6;
 	    }
 	
 	    _createClass(ZSlabBar, [{
@@ -73699,7 +73708,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var GlProteinDisplay = function () {
 	    function GlProteinDisplay(scene, selector, controller) {
-	        var _this6 = this;
+	        var _this7 = this;
 	
 	        _classCallCheck(this, GlProteinDisplay);
 	
@@ -73710,7 +73719,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.controller = controller;
 	
 	        this.controller.set_target_view_by_res_id = function (resId) {
-	            _this6.setTargetFromResId(resId);
+	            _this7.setTargetFromResId(resId);
 	        };
 	        this.controller.calculate_current_abs_camera = function () {};
 	
@@ -73776,40 +73785,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var dom = this.renderer.domElement;
 	
 	        dom.addEventListener('mousedown', function (e) {
-	            _this6.mousedown(e);
+	            _this7.mousedown(e);
 	        });
 	        dom.addEventListener('mousemove', function (e) {
-	            _this6.mousemove(e);
+	            _this7.mousemove(e);
 	        });
 	        dom.addEventListener('mouseup', function (e) {
-	            _this6.mouseup(e);
+	            _this7.mouseup(e);
 	        });
 	        dom.addEventListener('mousewheel', function (e) {
-	            _this6.mousewheel(e);
+	            _this7.mousewheel(e);
 	        });
 	        dom.addEventListener('DOMMouseScroll', function (e) {
-	            _this6.mousewheel(e);
+	            _this7.mousewheel(e);
 	        });
 	        dom.addEventListener('touchstart', function (e) {
-	            _this6.mousedown(e);
+	            _this7.mousedown(e);
 	        });
 	        dom.addEventListener('touchmove', function (e) {
-	            _this6.mousemove(e);
+	            _this7.mousemove(e);
 	        });
 	        dom.addEventListener('touchend', function (e) {
-	            _this6.mouseup(e);
+	            _this7.mouseup(e);
 	        });
 	        dom.addEventListener('touchcancel', function (e) {
-	            _this6.mouseup(e);
+	            _this7.mouseup(e);
 	        });
 	        dom.addEventListener('gesturestart', function (e) {
-	            _this6.gesturestart(e);
+	            _this7.gesturestart(e);
 	        });
 	        dom.addEventListener('gesturechange', function (e) {
-	            _this6.gesturechange(e);
+	            _this7.gesturechange(e);
 	        });
 	        dom.addEventListener('gestureend', function (e) {
-	            _this6.gestureend(e);
+	            _this7.gestureend(e);
 	        });
 	    }
 	

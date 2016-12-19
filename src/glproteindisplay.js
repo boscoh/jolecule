@@ -840,13 +840,15 @@ class SequenceWidget extends CanvasWrapper {
         super(selector);
 
         this.scene = scene;
+        this.protein = scene.protein;
+
         this.proteinDisplay = proteinDisplay;
         this.iRes = 0;
 
         this.heightBar = 16;
-        this.spacingY = 2;
+        this.spacingY = 4;
         this.darkColor = "rgb(0, 0, 0)";
-        this.mediumColor = "rgb(230, 200, 200)";
+        this.mediumColor = "rgb(155, 155, 155)";
 
         this.div.attr('id', 'sequence-widget');
         this.div.css({
@@ -863,6 +865,11 @@ class SequenceWidget extends CanvasWrapper {
         this.iRes = null;
         this.iStartChar = null;
         this.iEndChar = null;
+
+        this.residue_selector = $('<select>')
+            // .attr('id', this.div_tag.slice(1) + '-residue_selector')
+            .addClass('jolecule-residue-selector');
+        this.div.append(this.residue_selector);
 
         this.resize();
     }
@@ -941,7 +948,13 @@ class SequenceWidget extends CanvasWrapper {
 
             this.iRes = this.nChar/2;
             this.iStartChar = 0;
+
+            this.residue_selector.val(this.scene.current_view.res_id);
+
+            this.populateResidueSelector();
         }
+
+        this.residue_selector.val(this.scene.current_view.res_id);
 
         this.iEndChar = this.iStartChar + this.nChar;
 
@@ -1022,6 +1035,21 @@ class SequenceWidget extends CanvasWrapper {
             this.width() - x2, this.heightBar,
             "rgba(0, 0, 0, 0.3)");
 
+    }
+
+    populateResidueSelector() {
+      var residues = this.protein.residues;
+      for (var i=0; i<residues.length; i++) {
+        var value = residues[i].id;
+        var text = residues[i].id + '-' + residues[i].type;
+        this.residue_selector.append(
+          $('<option>').attr('value',value).text(text));
+      }
+      this.residue_selector.change(() => {
+        var res_id = this.residue_selector.find(":selected").val();
+        this.proteinDisplay.setTargetFromAtom(
+          this.scene.protein.res_by_id[res_id].central_atom);
+      });
     }
 
     getFullIRes() {

@@ -71,7 +71,9 @@ const indexHtmlMustache = `<html>
     }
 </style>
 <body>
-    <div id="jolecule"></div>
+    <div style="padding: 20px; height: 70%">
+        <div id="jolecule"></div>
+    </div>
     <script src="require.js"></script>
     <script>
         require( ['jolecule', 'data-server'], function(jolecule, dataServer) {

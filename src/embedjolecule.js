@@ -45,11 +45,6 @@ function EmbedJolecule(params) {
     this.protein_display = new GlProteinDisplay(
       this.scene, '#jolecule-protein-display', this.controller);
     this.protein_display.min_radius = 10;
-    this.residue_selector = $('<select>')
-      .attr('id', this.div_tag.slice(1) + '-residue_selector')
-      .addClass('jolecule-residue-selector');
-    $('#jolecule-protein-display')
-      .append(this.residue_selector);
 
     this.create_status_div();
     this.create_view_div();
@@ -90,7 +85,6 @@ function EmbedJolecule(params) {
         _this.load_protein_data(protein_data);
         _this.resize();
         _this.data_server.get_views(load_view_dicts);
-        _this.residue_selector.val(_this.scene.current_view.res_id);
       }
     }
 
@@ -119,7 +113,6 @@ function EmbedJolecule(params) {
       default_text = "";
     }
     this.protein_display.post_load(default_text);
-    this.populate_residue_selector();
     this.loading_message_div.remove();
   }
 
@@ -220,7 +213,6 @@ function EmbedJolecule(params) {
   this.draw = function() { 
     if (exists(this.protein_display)) {
       if (this.scene.changed) {
-        this.residue_selector.val(this.scene.current_view.res_id);
         this.update_view();
         this.protein_display.draw();
         this.scene.changed = false;
@@ -264,22 +256,6 @@ function EmbedJolecule(params) {
   this.goto_next_view = function() {
     this.controller.set_target_next_view();
     this.update_view();
-  }
-
-  this.populate_residue_selector = function() {
-    var residues = this.protein.residues;
-    for (var i=0; i<residues.length; i++) {
-      var value = residues[i].id;
-      var text = residues[i].id + '-' + residues[i].type;
-      this.residue_selector.append(
-        $('<option>').attr('value',value).text(text));
-    }
-    var _this = this;
-    var change_fn = function() {
-      var res_id = _this.residue_selector.find(":selected").val();
-      _this.controller.set_target_view_by_res_id(res_id);
-    }
-    this.residue_selector.change(change_fn);
   }
 
   this.create_protein_div = function() {
@@ -385,7 +361,7 @@ function EmbedJolecule(params) {
           .append(all_button)
           .append(clear_button)
           .append(neighbour_button)
-          .append(' &nbsp; &nbsp; ')
+          .append(' &nbsp;')
           .append(text_button)
       );
 
