@@ -1,18 +1,19 @@
 
-
-// This is a separate file to allow multiple jolecule
-// widgets to be animated in the same global event loop.
-// the interface to a widget is:
-//
-// class Widget {
-//   animate() {}
-//   is_changed: boolean
-//   draw() {}
-// }
-//
-// global storage
-// - window.global_displays
-// - window.last_time
+/**
+ * This is a separate file to allow multiple jolecule
+ * widgets to be animated in the same global event loop.
+ * the interface to a widget is:
+ *
+ * class Widget {
+ *   animate() {}
+ *   is_changed: boolean
+ *   draw() {}
+ * }
+ *
+ * global storage
+ * - window.global_displays
+ * - window.last_time
+ **/
 
 var ms_per_step = 25;
 
@@ -44,10 +45,11 @@ function loop() {
   window.last_time = curr_time;
 }
 
-
+/**
+ * run loop() as a singleton by using the global
+ * window space to lock one single copy of loop
+ **/
 function register_global_animation_loop(new_display) {
-  // run loop() as a singleton by using the global
-  // window space to lock one single copy of loop
   if (typeof window.global_displays == 'undefined') {
     window.global_displays = [];
     loop();

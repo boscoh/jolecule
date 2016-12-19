@@ -71,28 +71,6 @@ jolecule.initEmbedJolecule({
 
 `;
 
-const indexHtmlMustache = `
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="stylesheet" type="text/css" href="../jolecule.css"/>
-    <style>
-        body, #jolecule {
-            margin: 0;
-            overflow: hidden;
-            width: 100%;
-            height: 100%;
-        }
-    </style>
-</head>
-<body>
-    <div id="jolecule"></div>
-    <script type="text/javascript" src="./{{rendererJs}}"></script>
-</body>
-`;
-
 function createWindow(pdb, title) {
   const rendererJs = 'renderer.js';
   let pdbId = path.basename(pdb).replace('.pdb', '');
@@ -105,11 +83,6 @@ function createWindow(pdb, title) {
   let dataJsText = mustache.render(
     localServerMustache, {pdbId, pdbLines, title});
   fs.writeFileSync(rendererJs, dataJsText);
-
-  html = 'index.html';
-  let htmlText = mustache.render(
-    indexHtmlMustache, {title, rendererJs});
-  fs.writeFileSync(html, htmlText);
 
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 800, height: 600});

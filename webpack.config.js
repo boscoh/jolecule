@@ -1,16 +1,16 @@
 var path = require('path');
 module.exports = {
-    entry: './src/main.js',
+    entry: 'main.js',
     devtool: 'source-map',
     output: {
         path: __dirname,
-        filename: 'jolecule.js',
-        library: 'jolecule',
-        libraryTarget: 'umd'
+        filename: 'main.bundled.js',
+        // library: 'main',
+        // libraryTarget: 'umd'
     },
     module: {
         loaders: [
-            { test: path.join(__dirname, 'src'),
+            { test: path.join(__dirname, '.'),
               loader: 'babel-loader' }
         ]
     },

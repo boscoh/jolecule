@@ -1,14 +1,14 @@
 
 
-/*
-
-v3.js - is a simple function based wrapper library around the vector
-portion of THREE.js. THREE.Vector3 are created and manipulated using
-factory functions, which was the original approach used in a deprecated
-vector library. This was replaced with the fully-featured vector library
-in THREE.js
-
-*/
+/**
+ * 
+ * v3.js - is a simple function based wrapper library around the vector
+ * portion of THREE.js. THREE.Vector3 are created and manipulated using
+ * factory functions, which was the original approach used in a deprecated
+ * vector library. This was replaced with the fully-featured vector library
+ * in THREE.js
+ * 
+ **/
 
 import THREE from "three";
 

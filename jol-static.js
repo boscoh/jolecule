@@ -103,7 +103,8 @@ if (remain.length < 1) {
     }
     fs.ensureDir(targetDir);
 
-    let viewsJson = base + '.views.json';
+    let viewsJson = pdb.replace('.pdb', '') + '.views.json';
+    console.log(`Checking ${viewsJson}`);
     let views = {};
     if (fs.existsSync(viewsJson)) {
         let text = fs.readFileSync(viewsJson, 'utf8');
