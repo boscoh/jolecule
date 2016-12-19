@@ -875,7 +875,7 @@ class SequenceWidget extends CanvasWrapper {
     }
 
     width() {
-        return this.parentDiv.width() - 40;
+        return this.parentDiv.width();
     }
 
     height() {
@@ -1114,6 +1114,15 @@ class ZSlabBar extends CanvasWrapper{
         return 40;
     }
 
+    y() {
+      var parentDivPos = this.parentDiv.position();
+      return parentDivPos.top + 52;
+    }
+
+    height() {
+        return this.parentDiv.height() - 52;
+    }
+    
     x() {
         var parentDivPos = this.parentDiv.position();
         return this.parentDiv.width() - this.width() + parentDivPos.left;

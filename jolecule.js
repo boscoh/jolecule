@@ -548,9 +548,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.controller.toggle_neighbors();
 	    });
 	
-	    this.status_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div>').addClass('flex-left').append('Views: ').append(prev_button).append(this.status_text).append(next_button).append(save_button).append(loop_button)).append((0, _jquery2.default)('<div>').addClass('flex-right').append(this.lig_button)
+	    this.status_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div>').append(prev_button).append(this.status_text).append(next_button).append(save_button).append(loop_button)).append((0, _jquery2.default)('<div>').addClass('flex-right').append(this.lig_button)
 	    // .append(this.hyd)
-	    .append(this.wat_button).append(' ').append(backbone_button).append(' ').append(all_button).append(clear_button).append(neighbour_button).append(' &nbsp;').append(text_button));
+	    .append(this.wat_button).append(' ').append(backbone_button).append(' ').append(all_button).append(clear_button).append(neighbour_button).append(' ').append(text_button));
 	
 	    this.div.append(this.status_div);
 	  };
@@ -73377,7 +73377,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _createClass(SequenceWidget, [{
 	        key: "width",
 	        value: function width() {
-	            return this.parentDiv.width() - 40;
+	            return this.parentDiv.width();
 	        }
 	    }, {
 	        key: "height",
@@ -73599,6 +73599,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: "width",
 	        value: function width() {
 	            return 40;
+	        }
+	    }, {
+	        key: "y",
+	        value: function y() {
+	            var parentDivPos = this.parentDiv.position();
+	            return parentDivPos.top + 52;
+	        }
+	    }, {
+	        key: "height",
+	        value: function height() {
+	            return this.parentDiv.height() - 52;
 	        }
 	    }, {
 	        key: "x",

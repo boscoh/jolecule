@@ -341,8 +341,6 @@ function EmbedJolecule(params) {
       .addClass('jolecule-embed-view-bar')
       .append(
         $('<div>')
-          .addClass('flex-left')
-          .append('Views: ')
           .append(prev_button)
           .append(this.status_text)
           .append(next_button)
@@ -361,7 +359,7 @@ function EmbedJolecule(params) {
           .append(all_button)
           .append(clear_button)
           .append(neighbour_button)
-          .append(' &nbsp;')
+          .append(' ')
           .append(text_button)
       );
 
