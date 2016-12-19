@@ -843,7 +843,7 @@ class SequenceWidget extends CanvasWrapper {
         this.proteinDisplay = proteinDisplay;
         this.iRes = 0;
 
-        this.heightBar = 12;
+        this.heightBar = 16;
         this.spacingY = 2;
         this.darkColor = "rgba(0, 0, 0, 0.3)";
         this.mediumColor = "rgba(230, 200, 200, 0.3)";
@@ -854,17 +854,10 @@ class SequenceWidget extends CanvasWrapper {
             'height': this.height(),
             'top': this.y()});
 
-        this.textDiv = $("<div>").css({
-            'position': 'absolute',
-            'top': this.heightBar + this.spacingY * 3,
-            'left': 0,
-            'z-index': 100,
-            'overflow': 'hidden',
-            'font-family': 'monospace',
-        });
-
         this.charWidth = 14;
-        this.charHeight = 12;
+        this.charHeight = 16;
+
+        this.textXOffset = 106;
 
         this.residues = null;
         this.iRes = null;
@@ -884,7 +877,6 @@ class SequenceWidget extends CanvasWrapper {
 
     resize() {
         super.resize();
-        this.textDiv.css('width', this.width());
     }
 
     xToI(x) {
@@ -895,12 +887,20 @@ class SequenceWidget extends CanvasWrapper {
         return parseInt(iRes / this.nResidue * this.width());
     }
 
+    textWidth() {
+        return this.width() - this.textXOffset;
+    }
+
     xToIChar(x) {
-        return parseInt(x * this.nChar / this.width()) + this.iStartChar;
+        return parseInt((x - this.textXOffset)* this.nChar / this.textWidth()) + this.iStartChar;
     }
 
     iCharToX(iRes) {
-        return parseInt((iRes - this.iStartChar)/ this.nChar * this.width());
+        return parseInt(
+          (iRes - this.iStartChar)
+          / this.nChar
+          * this.textWidth()
+          + this.textXOffset);
     }
 
     draw() {

@@ -123,4 +123,11 @@ a.jolecule-large-button:active {
     letter-spacing: 0.1em;
     line-height: 1em;
 }
+.jolecule-residue-selector {
+    position: absolute;
+    top: 22px;
+    left: 3px;
+    z-index: 2000;
+    width: 100px;
+}
 
