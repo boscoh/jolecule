@@ -486,11 +486,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.create_status_div = function () {
 	    var _this = this;
 	
+	    this.status_text = (0, _jquery2.default)('<span>');
+	
+	    this.lig_button = (0, _util.toggle_button)('', 'lig', 'jolecule-button', function () {
+	      return _this.controller.get_show_option('ligands');
+	    }, function (b) {
+	      _this.controller.set_show_option('ligands', b);
+	    });
+	
+	    this.wat_button = (0, _util.toggle_button)('', 'wat', 'jolecule-button', function () {
+	      return _this.controller.get_show_option('water');
+	    }, function (b) {
+	      _this.controller.set_show_option('water', b);
+	    });
+	
 	    var prev_button = (0, _util.link_button)('prev_view', '<', 'jolecule-button', function () {
 	      _this.goto_prev_view();
 	    });
-	
-	    this.status_text = (0, _jquery2.default)('<span>');
 	
 	    var next_button = (0, _util.link_button)('prev_view', '>', 'jolecule-button', function () {
 	      _this.goto_next_view();
@@ -515,22 +527,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.toggle_text_state();
 	    });
 	
-	    this.lig_button = (0, _util.toggle_button)('', 'lig', 'jolecule-button', function () {
-	      return _this.controller.get_show_option('ligands');
+	    this.hyd_button = (0, _util.toggle_button)('', 'h', 'jolecule-button', function () {
+	      return _this.controller.get_show_option('hydrogen');
 	    }, function (b) {
-	      _this.controller.set_show_option('ligands', b);
+	      _this.controller.set_show_option('hydrogen', b);
 	    });
-	
-	    this.wat_button = (0, _util.toggle_button)('', 'wat', 'jolecule-button', function () {
-	      return _this.controller.get_show_option('water');
-	    }, function (b) {
-	      _this.controller.set_show_option('water', b);
-	    });
-	    // this.hyd = toggle_button(
-	    //   '', 'h', 'jolecule-button',
-	    //   function() { return _this.controller.get_show_option('hydrogen'); },
-	    //   function(b) { _this.controller.set_show_option('hydrogen', b); }
-	    // );
+	    this.hyd_button = '';
 	
 	    var backbone_button = (0, _util.link_button)('', 'bb', 'jolecule-button', function () {
 	      _this.cycle_backbone();
@@ -549,9 +551,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.controller.toggle_neighbors();
 	    });
 	
-	    this.status_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div>').append(prev_button).append(this.status_text).append(next_button).append(save_button).append(loop_button)).append((0, _jquery2.default)('<div>').addClass('flex-right').append(this.lig_button)
-	    // .append(this.hyd)
-	    .append(this.wat_button).append(' ').append(backbone_button).append(' ').append(all_button).append(clear_button).append(neighbour_button).append(' ').append(text_button));
+	    this.status_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div>').append(prev_button).append(this.status_text).append(next_button).append(save_button).append(loop_button)).append((0, _jquery2.default)('<div>').addClass('flex-right').append(this.lig_button).append(this.hyd_button).append(this.wat_button).append(' ').append(backbone_button).append(' ').append(all_button).append(clear_button).append(neighbour_button).append(' ').append(text_button));
 	
 	    this.div.append(this.status_div);
 	  };
@@ -72629,7 +72629,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this4.iStartChar = null;
 	        _this4.iEndChar = null;
 	
-	        _this4.residueSelector = (0, _jquery2.default)('<select>').addClass('jolecule-residue-selector').css({ "outline": "none" });
+	        _this4.residueSelector = (0, _jquery2.default)('<select>').addClass('jolecule-residue-selector').css({
+	            "outline": "none",
+	            "-moz-appearance": "none"
+	        });
 	        _this4.div.append(_this4.residueSelector);
 	
 	        _this4.resize();
@@ -72981,13 +72984,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	
 	var GlProteinDisplay = function () {
-	    function GlProteinDisplay(scene, selector, controller) {
+	    function GlProteinDisplay(scene, divTag, controller) {
 	        var _this7 = this;
 	
 	        _classCallCheck(this, GlProteinDisplay);
 	
 	        console.log('init GlProteinDisplay');
-	        this.selector = selector;
+	        this.divTag = divTag;
 	        this.scene = scene;
 	        this.protein = scene.protein;
 	        this.controller = controller;
@@ -73023,9 +73026,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // determines how far away the camera is from the scene
 	        this.zoom = 50.0;
 	
-	        this.mainDiv = (0, _jquery2.default)(this.selector);
+	        this.mainDiv = (0, _jquery2.default)(this.divTag);
 	
-	        this.messageBar = new MessageBar(this.selector);
+	        this.messageBar = new MessageBar(this.divTag);
 	
 	        this.backgroundColor = 0x000000;
 	
@@ -73043,18 +73046,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.renderer = new _three2.default.WebGLRenderer();
 	        this.renderer.setClearColor(this.backgroundColor);
 	        this.renderer.setSize(this.width(), this.height());
+	        this.webglDivId = this.mainDiv.attr('id') + '-canvas-wrapper';
+	        this.webglDivTag = '#' + this.webglDivId;
+	        this.webglDiv = (0, _jquery2.default)("<div>").attr('id', this.webglDivId);
+	        this.mainDiv.append(this.webglDiv);
+	        this.webglDiv[0].appendChild(this.renderer.domElement);
 	
-	        this.mainDiv[0].appendChild(this.renderer.domElement);
-	
-	        this.hover = new PopupText(this.selector, "lightblue");
+	        this.hover = new PopupText(this.divTag, "lightblue");
 	        this.hover.div.css("pointer-events", "none");
 	        this.hover.arrow.css("pointer-events", "none");
 	
-	        this.zSlab = new ZSlabBar(this.selector, this.scene);
+	        this.zSlab = new ZSlabBar(this.divTag, this.scene);
 	
-	        this.sequenceWidget = new SequenceWidget(this.selector, this.scene, this);
+	        this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
 	
-	        this.distancePartnerPointer = new LineElement(this.selector, "#FF7777");
+	        this.distancePartnerPointer = new LineElement(this.webglDivTag, "#FF7777");
 	
 	        var dom = this.renderer.domElement;
 	
@@ -74675,7 +74681,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var text = p1.distanceTo(p2).toFixed(1);
 	
 	                if (i >= distanceLabels.length) {
-	                    this.distanceLabels.push(new DistanceLabel(this.selector, this.threeJsScene, this.controller, this.distanceLabels));
+	                    this.distanceLabels.push(new DistanceLabel(this.webglDivTag, this.threeJsScene, this.controller, this.distanceLabels));
 	                }
 	
 	                distanceLabels[i].update(i, text, v.x, v.y, p1, p2, opacity);
@@ -74699,7 +74705,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var atomLabels = this.labels;
 	
 	            for (var i = atomLabels.length; i < labels.length; i += 1) {
-	                var atomLabel = new AtomLabel(this.selector, this.controller, atomLabels);
+	                var atomLabel = new AtomLabel(this.webglDivTag, this.controller, atomLabels);
 	                atomLabels.push(atomLabel);
 	            }
 	

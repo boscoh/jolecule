@@ -868,7 +868,10 @@ class SequenceWidget extends CanvasWrapper {
 
         this.residueSelector = $('<select>')
             .addClass('jolecule-residue-selector')
-            .css({"outline": "none"});
+            .css({
+                "outline": "none",
+                "-moz-appearance": "none",
+            });
         this.div.append(this.residueSelector);
 
         this.resize();
@@ -1234,10 +1237,10 @@ class ZSlabBar extends CanvasWrapper{
 
 class GlProteinDisplay {
 
-    constructor(scene, selector, controller) {
+    constructor(scene, divTag, controller) {
 
         console.log('init GlProteinDisplay');
-        this.selector = selector;
+        this.divTag = divTag;
         this.scene = scene;
         this.protein = scene.protein;
         this.controller = controller;
@@ -1272,9 +1275,9 @@ class GlProteinDisplay {
         // determines how far away the camera is from the scene
         this.zoom = 50.0;
 
-        this.mainDiv = $(this.selector);
+        this.mainDiv = $(this.divTag);
 
-        this.messageBar = new MessageBar(this.selector);
+        this.messageBar = new MessageBar(this.divTag);
 
         this.backgroundColor = 0x000000;
 
@@ -1296,19 +1299,22 @@ class GlProteinDisplay {
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setClearColor(this.backgroundColor);
         this.renderer.setSize(this.width(), this.height());
+        this.webglDivId = this.mainDiv.attr('id') + '-canvas-wrapper';
+        this.webglDivTag = '#' + this.webglDivId;
+        this.webglDiv = $("<div>").attr('id', this.webglDivId);
+        this.mainDiv.append(this.webglDiv);
+        this.webglDiv[0].appendChild(this.renderer.domElement);
 
-        this.mainDiv[0].appendChild(this.renderer.domElement);
-
-        this.hover = new PopupText(this.selector, "lightblue");
+        this.hover = new PopupText(this.divTag, "lightblue");
         this.hover.div.css("pointer-events", "none");
         this.hover.arrow.css("pointer-events", "none");
 
-        this.zSlab = new ZSlabBar(this.selector, this.scene);
+        this.zSlab = new ZSlabBar(this.divTag, this.scene);
 
-        this.sequenceWidget = new SequenceWidget(this.selector, this.scene, this);
+        this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
 
         this.distancePartnerPointer = new LineElement(
-          this.selector, "#FF7777");
+          this.webglDivTag, "#FF7777");
 
         var dom = this.renderer.domElement;
 
@@ -3182,7 +3188,7 @@ class GlProteinDisplay {
             if (i >= distanceLabels.length) {
                 this.distanceLabels.push(
                   new DistanceLabel(
-                    this.selector, this.threeJsScene,
+                    this.webglDivTag, this.threeJsScene,
                     this.controller, this.distanceLabels));
             }
 
@@ -3211,7 +3217,7 @@ class GlProteinDisplay {
 
         for (let i = atomLabels.length; i < labels.length; i += 1) {
             var atomLabel = new AtomLabel(
-              this.selector, this.controller, atomLabels);
+              this.webglDivTag, this.controller, atomLabels);
             atomLabels.push(atomLabel);
         }
 

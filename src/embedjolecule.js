@@ -276,11 +276,23 @@ function EmbedJolecule(params) {
   this.create_status_div = function() {
     var _this = this;
 
-    var prev_button = link_button(
-        'prev_view', '<', 'jolecule-button',
-        function() { _this.goto_prev_view() });
-
     this.status_text = $('<span>');
+
+    this.lig_button = toggle_button(
+      '', 'lig', 'jolecule-button',
+      function() { return _this.controller.get_show_option('ligands'); },
+      function(b) { _this.controller.set_show_option('ligands', b); }
+    );
+
+    this.wat_button = toggle_button(
+      '', 'wat', 'jolecule-button',
+      function() { return _this.controller.get_show_option('water'); },
+      function(b) { _this.controller.set_show_option('water', b); }
+    );
+
+    var prev_button = link_button(
+      'prev_view', '<', 'jolecule-button',
+      function() { _this.goto_prev_view() });
 
     var next_button = link_button(
         'prev_view', '>', 'jolecule-button', 
@@ -303,22 +315,12 @@ function EmbedJolecule(params) {
         function() { return _this.is_view_text_shown },
         function(b) { _this.toggle_text_state(); });
 
-    this.lig_button = toggle_button(
-      '', 'lig', 'jolecule-button',
-      function() { return _this.controller.get_show_option('ligands'); },
-      function(b) { _this.controller.set_show_option('ligands', b); }
+    this.hyd_button = toggle_button(
+      '', 'h', 'jolecule-button',
+      function() { return _this.controller.get_show_option('hydrogen'); },
+      function(b) { _this.controller.set_show_option('hydrogen', b); }
     );
-
-    this.wat_button = toggle_button(
-      '', 'wat', 'jolecule-button',
-      function() { return _this.controller.get_show_option('water'); },
-      function(b) { _this.controller.set_show_option('water', b); }
-    );
-    // this.hyd = toggle_button(
-    //   '', 'h', 'jolecule-button',
-    //   function() { return _this.controller.get_show_option('hydrogen'); },
-    //   function(b) { _this.controller.set_show_option('hydrogen', b); }
-    // );
+    this.hyd_button = '';
 
     var backbone_button = link_button(
       '', 'bb', 'jolecule-button',
@@ -352,7 +354,7 @@ function EmbedJolecule(params) {
         $('<div>')
           .addClass('flex-right')
           .append(this.lig_button)
-          // .append(this.hyd)
+          .append(this.hyd_button)
           .append(this.wat_button)
           .append(' ')
           .append(backbone_button)
