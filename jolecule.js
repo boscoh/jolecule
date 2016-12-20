@@ -72083,7 +72083,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            'position': 'absolute',
 	            'top': 0,
 	            'left': 0,
-	            'z-index': 100,
+	            // 'z-index': 100,
 	            'background': 'white',
 	            'padding': '5',
 	            'opacity': 0.7,
@@ -72094,7 +72094,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            'position': 'absolute',
 	            'top': 0,
 	            'left': 0,
-	            'z-index': 100,
+	            // 'z-index': 100,
 	            'width': 0,
 	            'height': 0,
 	            'border-left': '5px solid transparent',
@@ -72227,7 +72227,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            'position': 'absolute',
 	            'top': 0,
 	            'left': 0,
-	            'z-index': 100,
+	            // 'z-index': 100,
 	            'background-color': '#FFDDDD',
 	            'padding': '5',
 	            'opacity': 0.7,
@@ -72694,15 +72694,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var nRawResidue = this.scene.protein.residues.length;
 	
 	                this.residues = [];
-	                for (var iRes = 0; iRes < nRawResidue; iRes += 1) {
-	                    var residue = this.scene.protein.residues[iRes];
+	                for (var _iRes = 0; _iRes < nRawResidue; _iRes += 1) {
+	                    var residue = this.scene.protein.residues[_iRes];
 	                    if (_lodash2.default.includes(['-', 'W'], residue.ss)) {
 	                        continue;
 	                    }
 	
 	                    var entry = {
-	                        i: iRes,
-	                        ss: residue.ss
+	                        i: _iRes,
+	                        ss: residue.ss,
+	                        resId: residue.id
 	                    };
 	
 	                    var resType = residue.type;
@@ -72771,8 +72772,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.text(_residue.c, _x3 + this.charWidth / 2, y + this.charHeight / 2, "8pt Monospace", "black", "center");
 	            }
 	
-	            if (this.iStartChar <= this.iRes && this.iRes < this.iEndChar) {
-	                this.strokeRect(this.iCharToX(this.iRes), this.heightBar + this.spacingY * 2, this.charWidth, this.charHeight + this.spacingY * 2, "white");
+	            var currResId = this.scene.current_view.res_id;
+	            for (var iRes = this.iStartChar; iRes < this.iEndChar; iRes++) {
+	                if (this.residues[iRes].resId == currResId) {
+	                    this.strokeRect(this.iCharToX(iRes), this.heightBar + this.spacingY * 2, this.charWidth, this.charHeight + this.spacingY * 2, "white");
+	                    break;
+	                }
 	            }
 	
 	            // draw containers to indicate window
@@ -73027,6 +73032,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.zoom = 50.0;
 	
 	        this.mainDiv = (0, _jquery2.default)(this.divTag);
+	        this.mainDiv.css('overflow', 'hidden');
 	
 	        this.messageBar = new MessageBar(this.divTag);
 	
@@ -73048,7 +73054,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.renderer.setSize(this.width(), this.height());
 	        this.webglDivId = this.mainDiv.attr('id') + '-canvas-wrapper';
 	        this.webglDivTag = '#' + this.webglDivId;
-	        this.webglDiv = (0, _jquery2.default)("<div>").attr('id', this.webglDivId);
+	        this.webglDiv = (0, _jquery2.default)("<div>").attr('id', this.webglDivId).css('overflow', 'hidden');
 	        this.mainDiv.append(this.webglDiv);
 	        this.webglDiv[0].appendChild(this.renderer.domElement);
 	
