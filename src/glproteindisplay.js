@@ -866,10 +866,10 @@ class SequenceWidget extends CanvasWrapper {
         this.iStartChar = null;
         this.iEndChar = null;
 
-        this.residue_selector = $('<select>')
-            // .attr('id', this.div_tag.slice(1) + '-residue_selector')
-            .addClass('jolecule-residue-selector');
-        this.div.append(this.residue_selector);
+        this.residueSelector = $('<select>')
+            .addClass('jolecule-residue-selector')
+            .css({"outline": "none"});
+        this.div.append(this.residueSelector);
 
         this.resize();
     }
@@ -949,12 +949,12 @@ class SequenceWidget extends CanvasWrapper {
             this.iRes = this.nChar/2;
             this.iStartChar = 0;
 
-            this.residue_selector.val(this.scene.current_view.res_id);
+            this.residueSelector.val(this.scene.current_view.res_id);
 
             this.populateResidueSelector();
         }
 
-        this.residue_selector.val(this.scene.current_view.res_id);
+        this.residueSelector.val(this.scene.current_view.res_id);
 
         this.iEndChar = this.iStartChar + this.nChar;
 
@@ -1042,13 +1042,13 @@ class SequenceWidget extends CanvasWrapper {
       for (var i=0; i<residues.length; i++) {
         var value = residues[i].id;
         var text = residues[i].id + '-' + residues[i].type;
-        this.residue_selector.append(
+        this.residueSelector.append(
           $('<option>').attr('value',value).text(text));
       }
-      this.residue_selector.change(() => {
-        var res_id = this.residue_selector.find(":selected").val();
+      this.residueSelector.change(() => {
+        var resId = this.residueSelector.find(":selected").val();
         this.proteinDisplay.setTargetFromAtom(
-          this.scene.protein.res_by_id[res_id].central_atom);
+          this.scene.protein.res_by_id[resId].central_atom);
       });
     }
 

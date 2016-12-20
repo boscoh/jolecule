@@ -72629,10 +72629,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this4.iStartChar = null;
 	        _this4.iEndChar = null;
 	
-	        _this4.residue_selector = (0, _jquery2.default)('<select>')
-	        // .attr('id', this.div_tag.slice(1) + '-residue_selector')
-	        .addClass('jolecule-residue-selector');
-	        _this4.div.append(_this4.residue_selector);
+	        _this4.residueSelector = (0, _jquery2.default)('<select>').addClass('jolecule-residue-selector').css({ "outline": "none" });
+	        _this4.div.append(_this4.residueSelector);
 	
 	        _this4.resize();
 	        return _this4;
@@ -72719,12 +72717,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.iRes = this.nChar / 2;
 	                this.iStartChar = 0;
 	
-	                this.residue_selector.val(this.scene.current_view.res_id);
+	                this.residueSelector.val(this.scene.current_view.res_id);
 	
 	                this.populateResidueSelector();
 	            }
 	
-	            this.residue_selector.val(this.scene.current_view.res_id);
+	            this.residueSelector.val(this.scene.current_view.res_id);
 	
 	            this.iEndChar = this.iStartChar + this.nChar;
 	
@@ -72789,11 +72787,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            for (var i = 0; i < residues.length; i++) {
 	                var value = residues[i].id;
 	                var text = residues[i].id + '-' + residues[i].type;
-	                this.residue_selector.append((0, _jquery2.default)('<option>').attr('value', value).text(text));
+	                this.residueSelector.append((0, _jquery2.default)('<option>').attr('value', value).text(text));
 	            }
-	            this.residue_selector.change(function () {
-	                var res_id = _this5.residue_selector.find(":selected").val();
-	                _this5.proteinDisplay.setTargetFromAtom(_this5.scene.protein.res_by_id[res_id].central_atom);
+	            this.residueSelector.change(function () {
+	                var resId = _this5.residueSelector.find(":selected").val();
+	                _this5.proteinDisplay.setTargetFromAtom(_this5.scene.protein.res_by_id[resId].central_atom);
 	            });
 	        }
 	    }, {
