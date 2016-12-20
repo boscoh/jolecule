@@ -65,13 +65,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _embedjolecule = __webpack_require__(2);
 	
-	var _fullpagejolecule = __webpack_require__(3);
+	var _fullpagejolecule = __webpack_require__(12);
 	
-	var _lodash = __webpack_require__(6);
+	var _lodash = __webpack_require__(4);
 	
 	var _lodash2 = _interopRequireDefault(_lodash);
 	
-	var _jquery = __webpack_require__(5);
+	var _jquery = __webpack_require__(3);
 	
 	var _jquery2 = _interopRequireDefault(_jquery);
 	
@@ -221,19 +221,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.EmbedJolecule = undefined;
 	
-	var _jquery = __webpack_require__(5);
+	var _jquery = __webpack_require__(3);
 	
 	var _jquery2 = _interopRequireDefault(_jquery);
 	
-	var _lodash = __webpack_require__(6);
+	var _lodash = __webpack_require__(4);
 	
 	var _lodash2 = _interopRequireDefault(_lodash);
 	
-	var _protein = __webpack_require__(9);
+	var _protein = __webpack_require__(6);
 	
-	var _glproteindisplay = __webpack_require__(12);
+	var _glproteindisplay = __webpack_require__(10);
 	
-	var _util = __webpack_require__(8);
+	var _util = __webpack_require__(9);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -449,6 +449,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  this.set_text_state = function () {
+	    console.log('set_text_state', this.is_view_text_shown);
 	    var h_padding = this.view_div.outerHeight() - this.view_div.height();
 	    if (this.is_view_text_shown) {
 	      this.view_div.height(this.h_annotation_view);
@@ -501,13 +502,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.is_loop = b;
 	    });
 	
+	    var save_button = '';
 	    if (_this.params.is_editable) {
-	      var save_button = (0, _util.link_button)('save_view', '+', 'jolecule-button', function () {
+	      save_button = (0, _util.link_button)('save_view', '+', 'jolecule-button', function () {
 	        _this.save_curr_view();
 	      });
-	    } else {
-	      var save_button = '';
-	    }
+	    };
 	
 	    var text_button = (0, _util.toggle_button)('toggle_text', 'text', 'jolecule-button', function () {
 	      return _this.is_view_text_shown;
@@ -520,6 +520,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, function (b) {
 	      _this.controller.set_show_option('ligands', b);
 	    });
+	
 	    this.wat_button = (0, _util.toggle_button)('', 'wat', 'jolecule-button', function () {
 	      return _this.controller.get_show_option('water');
 	    }, function (b) {
@@ -611,743 +612,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.FullPageJolecule = undefined;
-	
-	var _jquery = __webpack_require__(4);
-	
-	var _jquery2 = _interopRequireDefault(_jquery);
-	
-	var _jquery3 = __webpack_require__(5);
-	
-	var _jquery4 = _interopRequireDefault(_jquery3);
-	
-	var _lodash = __webpack_require__(6);
-	
-	var _lodash2 = _interopRequireDefault(_lodash);
-	
-	var _embedjolecule = __webpack_require__(2);
-	
-	var _util = __webpack_require__(8);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	//////////////////////////////////////////////////////////
-	// 
-	// jolecule - the javascript based protein/dna viewer
-	//
-	// relies on data_server jolecule.appspot.com, which, in turn
-	// relies on the RCSB website http://www.pdb.org.
-	//
-	///////////////////////////////////////////////////////////
-	
-	
-	/////////////////////////////////////
-	// SequenceDisplay
-	/////////////////////////////////////
-	
-	var SequenceDisplay = function SequenceDisplay(div_tag, controller) {
-	  this.controller = controller;
-	  this.scene = controller.scene;
-	  this.protein = controller.scene.protein;
-	  this.res_div = [];
-	
-	  this.redraw = function () {
-	    for (var i = 0; i < this.res_div.length; i += 1) {
-	      var res_id = this.protein.residues[i].id;
-	      if (res_id == this.scene.current_view.res_id) {
-	        this.res_div[i].target.removeClass("jolecule-unselected-box");
-	        this.res_div[i].target.addClass("jolecule-selected-box");
-	        (0, _jquery4.default)('#jolecule-sequence').stop();
-	        (0, _jquery4.default)('#jolecule-sequence').scrollTo(this.res_div[i].target, 1000, { offset: { top: -80 } });
-	      } else {
-	        this.res_div[i].target.removeClass("jolecule-selected-box");
-	        this.res_div[i].target.addClass("jolecule-unselected-box");
-	      }
-	    }
-	    for (var i = 0; i < this.protein.residues.length; i += 1) {
-	      if (this.protein.residues[i].selected) {
-	        this.res_div[i].select.prop('checked', true);
-	      } else {
-	        this.res_div[i].select.prop('checked', false);
-	      }
-	    }
-	  };
-	
-	  this.goto_prev_residue = function () {
-	    this.controller.set_target_prev_residue();
-	    window.location.hash = this.scene.target_view.res_id;
-	  };
-	
-	  this.goto_next_residue = function () {
-	    this.controller.set_target_next_residue();
-	    window.location.hash = this.scene.target_view.res_id;
-	  };
-	
-	  function html_pad(s, n_padded) {
-	    var trim_s = (0, _util.trim)(s);
-	    var n = n_padded - trim_s.length;
-	    var padded_s = trim_s;
-	    for (var k = 0; k < n; k++) {
-	      padded_s += '&nbsp;';
-	    }
-	    return padded_s;
-	  }
-	
-	  this.set_residue_select = function (res_id, v) {
-	    var i = this.protein.get_i_res_from_res_id(res_id);
-	    this.controller.select_residue(i, v);
-	  };
-	
-	  this.toggle_residue_select = function (res_id) {
-	    var r = this.protein.res_by_id[res_id];
-	    this.set_residue_select(res_id, !r.selected);
-	  };
-	
-	  this.create_residue_div = function (i) {
-	    var controller = this.controller;
-	    var _this = this;
-	    var res_id = this.protein.residues[i].id;
-	    var res_type = this.protein.residues[i].type;
-	    var html = "&nbsp;" + html_pad(res_id, 7) + html_pad(res_type, 3) + "&nbsp;";
-	    var show_res_id = res_id + ":show";
-	    var checkbox = (0, _jquery4.default)("<input>").attr('type', 'checkbox').attr('id', show_res_id).attr('name', show_res_id).attr('checked', false).click(function (event) {
-	      var check_id = 'input[name="' + show_res_id + '"' + ']';
-	      var v = (0, _jquery4.default)(check_id).is(':checked');
-	      _this.set_residue_select(res_id, v);
-	    });
-	    var elem = (0, _jquery4.default)("<div>").addClass("jolecule-residue").append(checkbox).append((0, _jquery4.default)("<a>").addClass('jolecule-button').attr("href", "#" + res_id).html(html).click(function () {
-	      controller.set_target_view_by_res_id(res_id);
-	      _this.redraw();
-	    })).append("<br>");
-	    return { 'target': elem, 'select': checkbox };
-	  };
-	
-	  this.build_divs = function () {
-	    var sequence_div = (0, _jquery4.default)("#jolecule-sequence");
-	    for (var i = 0; i < this.protein.residues.length; i += 1) {
-	      var elem = this.create_residue_div(i);
-	      sequence_div.append(elem.target);
-	      this.res_div.push(elem);
-	    }
-	
-	    this.scene.current_view.res_id = this.protein.residues[0].id;
-	    var hash_tag = (0, _util.url)().split('#')[1];
-	    if (hash_tag in this.protein.res_by_id) {
-	      this.controller.set_target_view_by_res_id(hash_tag);
-	    }
-	    this.redraw();
-	  };
-	
-	  var _this = this;
-	  this.div = (0, _jquery4.default)(div_tag).append((0, _jquery4.default)("<div>").addClass('jolecule-sub-header').append("RESIDUES").append("<br>").append((0, _util.link_button)("", 'prev[k]', 'jolecule-button', function () {
-	    _this.goto_prev_residue();
-	  })).append((0, _util.link_button)("", 'next[j]', 'jolecule-button', function () {
-	    _this.goto_next_residue();
-	  }))).append((0, _jquery4.default)("<div>").attr("id", 'jolecule-sequence'));
-	};
-	
-	///////////////////////////////////////////////
-	// ViewsDisplay keeps track of the views
-	///////////////////////////////////////////////
-	
-	
-	var ViewsDisplay = function ViewsDisplay(div_tag, controller, protein_display, data_server) {
-	  this.div_tag = div_tag;
-	  this.protein_display = protein_display;
-	  this.scene = controller.scene;
-	  this.controller = controller;
-	  this.data_server = data_server;
-	  this.view_piece = {};
-	
-	  this.save_views_to_server = function (success) {
-	    this.data_server.save_views(this.controller.get_view_dicts(), success);
-	  };
-	
-	  this.update_views = function () {
-	    for (var id in this.view_piece) {
-	      if (!(id in this.scene.saved_views_by_id)) {
-	        this.view_piece[id].div.remove();
-	        delete this.view_piece[id];
-	      }
-	    }
-	    for (var i = 0; i < this.scene.saved_views.length; i++) {
-	      var view = this.scene.saved_views[i];
-	      var id = view.id;
-	
-	      if (!(view.id in this.view_piece)) {
-	        this.insert_new_view_div(view.id);
-	      }
-	
-	      var i_last_view = this.scene.i_last_view;
-	      var last_id = this.scene.saved_views[i_last_view].id;
-	
-	      if (last_id == id) {
-	        this.view_piece[id].div.removeClass("jolecule-unselected-box");
-	        this.view_piece[id].div.addClass("jolecule-selected-box");
-	      } else {
-	        this.view_piece[id].div.removeClass("jolecule-selected-box");
-	        this.view_piece[id].div.addClass("jolecule-unselected-box");
-	      }
-	
-	      var view_piece = this.view_piece[id];
-	      if (view.text != view_piece.show_text_div.html()) {
-	        view_piece.show_text_div.html(view.text);
-	      }
-	
-	      var a = view_piece.div.find('a').eq(0);
-	      a.text(view.order + 1);
-	    }
-	  };
-	
-	  this.redraw_selected_view_id = function (id) {
-	    this.update_views();
-	    (0, _jquery4.default)("#jolecule-views").stop();
-	    (0, _jquery4.default)("#jolecule-views").scrollTo(this.view_piece[id].div, 1000, { offset: { top: -80 } });
-	  };
-	
-	  this.set_target_by_view_id = function (id) {
-	    this.controller.set_target_view_by_id(id);
-	    this.redraw_selected_view_id(id);
-	    window.location.hash = id;
-	  };
-	
-	  this.goto_prev_view = function () {
-	    var id = this.controller.set_target_prev_view();
-	    this.redraw_selected_view_id(id);
-	    window.location.hash = id;
-	  };
-	
-	  this.goto_next_view = function () {
-	    var id = this.controller.set_target_next_view();
-	    this.redraw_selected_view_id(id);
-	    window.location.hash = id;
-	  };
-	
-	  this.remove_view = function (id) {
-	    var _this = this;
-	    var success = function success() {
-	      _this.controller.delete_view(id);
-	      _this.view_piece[id].div.remove();
-	      delete _this.view_piece[id];
-	      _this.update_views();
-	    };
-	    this.view_piece[id].div.css('background-color', 'lightgray');
-	    this.data_server.delete_protein_view(id, success);
-	  };
-	
-	  this.swap_views = function (i, j) {
-	    var i_id = this.scene.saved_views[i].id;
-	    var j_id = this.scene.saved_views[j].id;
-	    var i_div = this.view_piece[i_id].div;
-	    var j_div = this.view_piece[j_id].div;
-	
-	    this.controller.swap_views(i, j);
-	
-	    i_div.css('background-color', 'lightgray');
-	    j_div.css('background-color', 'lightgray');
-	
-	    var _this = this;
-	    var success = function success() {
-	      j_div.insertBefore(i_div);
-	      _this.update_views();
-	      i_div.css('background-color', '');
-	      j_div.css('background-color', '');
-	    };
-	    this.save_views_to_server(success);
-	  };
-	
-	  this.swap_up = function (view_id) {
-	    var i = this.scene.get_i_saved_view_from_id(view_id);
-	    if (i < 2) {
-	      return;
-	    }
-	    this.swap_views(i - 1, i);
-	  };
-	
-	  this.swap_down = function (view_id) {
-	    var i = this.scene.get_i_saved_view_from_id(view_id);
-	    if (i > this.scene.saved_views.length - 2) {
-	      return;
-	    }
-	    this.swap_views(i, i + 1);
-	  };
-	
-	  this.make_view_div = function (id) {
-	    var view = this.scene.saved_views_by_id[id];
-	    var _this = this;
-	
-	    this.view_piece[id] = new _util.ViewPiece({
-	      view: view,
-	      is_editable: true,
-	      delete_view: function delete_view() {
-	        _this.remove_view(id);
-	      },
-	      save_change: function save_change(changed_text, sucess) {
-	        view.text = changed_text;
-	        _this.view_piece[id].div.css('background-color', 'lightgray');
-	        var success = function success() {
-	          _this.view_piece[id].div.css('background-color', '');
-	        };
-	        _this.save_views_to_server(success);
-	        _this.scene.changed = true;
-	      },
-	      pick: function pick() {
-	        _this.set_target_by_view_id(id);
-	      },
-	      goto: view.order + 1,
-	      swap_up: function swap_up() {
-	        _this.swap_up(id);
-	      },
-	      swap_down: function swap_down() {
-	        _this.swap_down(id);
-	      },
-	      embed_view: function embed_view() {
-	        window.location.href = '/embed/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id;
-	      }
-	    });
-	    return this.view_piece[id].div;
-	  };
-	
-	  this.make_all_views = function () {
-	    for (var i = 0; i < this.scene.saved_views.length; i += 1) {
-	      var id = this.scene.saved_views[i].id;
-	      var div = this.make_view_div(id);
-	      (0, _jquery4.default)('#jolecule-views').append(div);
-	    }
-	  };
-	
-	  this.insert_new_view_div = function (new_id) {
-	    var div = this.make_view_div(new_id);
-	
-	    if (this.scene.i_last_view == this.scene.saved_views.length - 1) {
-	      (0, _jquery4.default)("#jolecule-views").append(div);
-	    } else {
-	      var j = this.scene.i_last_view - 1;
-	      var j_id = this.scene.saved_views[j].id;
-	      var j_div = this.view_piece[j_id].div;
-	      div.insertAfter(j_div);
-	    }
-	  };
-	
-	  this.make_new_view = function () {
-	    var new_id = (0, _util.random_id)();
-	    this.controller.calculate_current_abs_camera();
-	    this.controller.save_current_view(new_id);
-	    this.insert_new_view_div(new_id);
-	    this.update_views();
-	    this.view_piece[new_id].div.css('background-color', 'lightgray');
-	
-	    var _this = this;
-	    var success = function success() {
-	      _this.view_piece[new_id].div.css('background-color', '');
-	      (0, _jquery4.default)("#jolecule-views").stop();
-	      (0, _jquery4.default)("#jolecule-views").scrollTo(_this.view_piece[new_id].div, 1000, { offset: { top: -80 } });
-	    };
-	    this.save_views_to_server(success);
-	  };
-	
-	  var _this = this;
-	  this.top_div = (0, _jquery4.default)(this.div_tag).append((0, _jquery4.default)("<div>").addClass("jolecule-sub-header").append("VIEWS OF PROTEIN").append("<br>").append((0, _util.link_button)('', 'create [v]iew', 'jolecule-button', function () {
-	    _this.make_new_view();
-	  })).append((0, _util.link_button)('', 'prev[&uarr;]', 'jolecule-button', function () {
-	    _this.goto_prev_view();
-	  })).append((0, _util.link_button)('', 'next[&darr;]', 'jolecule-button', function () {
-	    _this.goto_next_view();
-	  })).append((0, _util.link_button)('', '[a]dd label', 'jolecule-button', function () {
-	    _this.protein_display.atom_label_dialog();
-	  }))).append((0, _jquery4.default)("<div>").attr("id", "jolecule-views"));
-	};
-	
-	/////////////////////////////////////
-	// FullPageJolecule
-	/////////////////////////////////////
-	
-	var FullPageJolecule = function FullPageJolecule(protein_display_tag, sequence_display_tag, views_display_tag, data_server, pdb_id) {
-	
-	  this.is_changed = function () {
-	    if (typeof this.scene !== "undefined") {
-	      return this.scene.changed;
-	    }
-	    return false;
-	  };
-	
-	  this.draw = function () {
-	    if (this.scene.changed) {
-	      this.views_display.update_views();
-	      if (this.scene.is_new_view_chosen) {
-	        this.sequence_display.redraw();
-	        this.scene.is_new_view_chosen = false;
-	      }
-	      this.embed_jolecule.draw();
-	      this.scene.changed = false;
-	    }
-	  };
-	
-	  this.animate = function () {
-	    if (typeof this.embed_jolecule !== "undefined") {
-	      this.embed_jolecule.animate();
-	    }
-	  };
-	
-	  this.resize = function (event) {
-	    if (typeof this.scene !== "undefined") {
-	      this.scene.changed = true;
-	    }
-	  };
-	
-	  this.onkeydown = function (event) {
-	    if (!window.keyboard_lock) {
-	      var c = String.fromCharCode(event.keyCode).toUpperCase();
-	      var s = "[" + c + "]";
-	      if (c == 'V') {
-	        this.views_display.make_new_view();
-	        return;
-	      } else if (c == "K" || event.keyCode == 37) {
-	        this.sequence_display.goto_prev_residue();
-	      } else if (c == "J" || event.keyCode == 39) {
-	        this.sequence_display.goto_next_residue();
-	      } else if (c == "X") {
-	        var i_atom = this.scene.current_view.i_atom;
-	        if (i_atom >= 0) {
-	          var res_id = this.controller.protein.atoms[i_atom].res_id;
-	          this.sequence_display.toggle_residue_select(res_id);
-	        }
-	      } else if (event.keyCode == 38) {
-	        this.views_display.goto_prev_view();
-	      } else if (c == " " || event.keyCode == 40) {
-	        this.views_display.goto_next_view();
-	      } else if (c == 'B') {
-	        if (this.scene.current_view.show.all_atom) {
-	          this.controller.set_backbone_option('ribbon');
-	        } else if (this.scene.current_view.show.ribbon) {
-	          this.controller.set_backbone_option('trace');
-	        } else if (this.scene.current_view.show.trace) {
-	          this.controller.set_backbone_option('all_atom');
-	        }
-	      } else if (c == 'L') {
-	        this.controller.toggle_show_option('ligands');
-	      } else if (c == 'S') {
-	        this.controller.toggle_show_option('sidechain');
-	      } else if (c == 'W') {
-	        this.controller.toggle_show_option('water');
-	        // } else if (c == 'H') {
-	        //   this.controller.toggle_show_option('hydrogen');
-	      } else if (c == 'C') {
-	        this.protein_display.controller.clear_selected();
-	      } else if (c == 'E') {
-	        var i_view = this.protein_display.scene.i_last_view;
-	        if (i_view > 0) {
-	          var view_id = this.protein_display.scene.saved_views[i_view].id;
-	          this.views_display.div[view_id].edit_fn();
-	        }
-	      } else if (c == 'N') {
-	        this.protein_display.controller.toggle_neighbors();
-	      } else if (c == 'A') {
-	        this.protein_display.atom_label_dialog();
-	      } else {
-	        var i = parseInt(c) - 1;
-	        if ((i || i == 0) && i < this.scene.saved_views.length) {
-	          var id = this.scene.saved_views[i].id;
-	          this.views_display.set_target_by_view_id(id);
-	        }
-	      }
-	      this.protein_display.scene.changed = true;
-	    }
-	  };
-	
-	  this.register_callacks = function () {
-	    var _this = this;
-	
-	    document.oncontextmenu = _util.do_nothing;
-	    document.onkeydown = function (e) {
-	      _this.onkeydown(e);
-	    };
-	    var resize_fn = function resize_fn() {
-	      _this.resize();
-	    };
-	    (0, _jquery4.default)(window).resize(resize_fn);
-	    window.onorientationchange = resize_fn;
-	  };
-	
-	  this.onload = function (embed_jolecule) {
-	    this.embed_jolecule = embed_jolecule;
-	
-	    this.data_server = embed_jolecule.data_server;
-	    this.scene = this.embed_jolecule.scene;
-	    this.controller = this.embed_jolecule.controller;
-	    this.protein_display = this.embed_jolecule.protein_display;
-	
-	    // add decorators to DOM and data
-	
-	    this.views_display_tag = views_display_tag;
-	    this.views_display = new ViewsDisplay(this.views_display_tag, this.controller, this.protein_display, this.data_server);
-	    this.views_display.make_all_views();
-	
-	    this.sequence_display_tag = sequence_display_tag;
-	    this.sequence_display = new SequenceDisplay(this.sequence_display_tag, this.controller);
-	    this.sequence_display.build_divs();
-	
-	    var hash_tag = (0, _util.url)().split('#')[1];
-	    if (hash_tag in this.scene.saved_views_by_id) {
-	      this.views_display.set_target_by_view_id(hash_tag);
-	    } else {
-	      this.views_display.set_target_by_view_id('view:000000');
-	    }
-	    this.views_display.update_views();
-	
-	    this.register_callacks();
-	    this.resize();
-	    this.embed_jolecule.resize();
-	  };
-	
-	  // Initialization
-	
-	  var _this = this;
-	  var onload = function onload(instantiated_embed_jolecule) {
-	    _this.onload(instantiated_embed_jolecule);
-	  };
-	
-	  new _embedjolecule.EmbedJolecule({
-	    div_tag: protein_display_tag,
-	    data_server: data_server,
-	    loading_html: 'Loading PDB from RCSB web-site...',
-	    loading_failure_html: 'Failed to load PDB.',
-	    view_id: '',
-	    view_height: 170,
-	    is_view_text_shown: false,
-	    is_editable: true,
-	    is_loop: false,
-	    onload: onload
-	  });
-	};
-	
-	exports.FullPageJolecule = FullPageJolecule;
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	 * jQuery.scrollTo
-	 * Copyright (c) 2007-2015 Ariel Flesler - aflesler<a>gmail<d>com | http://flesler.blogspot.com
-	 * Licensed under MIT
-	 * http://flesler.blogspot.com/2007/10/jqueryscrollto.html
-	 * @projectDescription Lightweight, cross-browser and highly customizable animated scrolling with jQuery
-	 * @author Ariel Flesler
-	 * @version 2.1.2
-	 */
-	;(function(factory) {
-		'use strict';
-		if (true) {
-			// AMD
-			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-		} else if (typeof module !== 'undefined' && module.exports) {
-			// CommonJS
-			module.exports = factory(require('jquery'));
-		} else {
-			// Global
-			factory(jQuery);
-		}
-	})(function($) {
-		'use strict';
-	
-		var $scrollTo = $.scrollTo = function(target, duration, settings) {
-			return $(window).scrollTo(target, duration, settings);
-		};
-	
-		$scrollTo.defaults = {
-			axis:'xy',
-			duration: 0,
-			limit:true
-		};
-	
-		function isWin(elem) {
-			return !elem.nodeName ||
-				$.inArray(elem.nodeName.toLowerCase(), ['iframe','#document','html','body']) !== -1;
-		}		
-	
-		$.fn.scrollTo = function(target, duration, settings) {
-			if (typeof duration === 'object') {
-				settings = duration;
-				duration = 0;
-			}
-			if (typeof settings === 'function') {
-				settings = { onAfter:settings };
-			}
-			if (target === 'max') {
-				target = 9e9;
-			}
-	
-			settings = $.extend({}, $scrollTo.defaults, settings);
-			// Speed is still recognized for backwards compatibility
-			duration = duration || settings.duration;
-			// Make sure the settings are given right
-			var queue = settings.queue && settings.axis.length > 1;
-			if (queue) {
-				// Let's keep the overall duration
-				duration /= 2;
-			}
-			settings.offset = both(settings.offset);
-			settings.over = both(settings.over);
-	
-			return this.each(function() {
-				// Null target yields nothing, just like jQuery does
-				if (target === null) return;
-	
-				var win = isWin(this),
-					elem = win ? this.contentWindow || window : this,
-					$elem = $(elem),
-					targ = target, 
-					attr = {},
-					toff;
-	
-				switch (typeof targ) {
-					// A number will pass the regex
-					case 'number':
-					case 'string':
-						if (/^([+-]=?)?\d+(\.\d+)?(px|%)?$/.test(targ)) {
-							targ = both(targ);
-							// We are done
-							break;
-						}
-						// Relative/Absolute selector
-						targ = win ? $(targ) : $(targ, elem);
-						/* falls through */
-					case 'object':
-						if (targ.length === 0) return;
-						// DOMElement / jQuery
-						if (targ.is || targ.style) {
-							// Get the real position of the target
-							toff = (targ = $(targ)).offset();
-						}
-				}
-	
-				var offset = $.isFunction(settings.offset) && settings.offset(elem, targ) || settings.offset;
-	
-				$.each(settings.axis.split(''), function(i, axis) {
-					var Pos	= axis === 'x' ? 'Left' : 'Top',
-						pos = Pos.toLowerCase(),
-						key = 'scroll' + Pos,
-						prev = $elem[key](),
-						max = $scrollTo.max(elem, axis);
-	
-					if (toff) {// jQuery / DOMElement
-						attr[key] = toff[pos] + (win ? 0 : prev - $elem.offset()[pos]);
-	
-						// If it's a dom element, reduce the margin
-						if (settings.margin) {
-							attr[key] -= parseInt(targ.css('margin'+Pos), 10) || 0;
-							attr[key] -= parseInt(targ.css('border'+Pos+'Width'), 10) || 0;
-						}
-	
-						attr[key] += offset[pos] || 0;
-	
-						if (settings.over[pos]) {
-							// Scroll to a fraction of its width/height
-							attr[key] += targ[axis === 'x'?'width':'height']() * settings.over[pos];
-						}
-					} else {
-						var val = targ[pos];
-						// Handle percentage values
-						attr[key] = val.slice && val.slice(-1) === '%' ?
-							parseFloat(val) / 100 * max
-							: val;
-					}
-	
-					// Number or 'number'
-					if (settings.limit && /^\d+$/.test(attr[key])) {
-						// Check the limits
-						attr[key] = attr[key] <= 0 ? 0 : Math.min(attr[key], max);
-					}
-	
-					// Don't waste time animating, if there's no need.
-					if (!i && settings.axis.length > 1) {
-						if (prev === attr[key]) {
-							// No animation needed
-							attr = {};
-						} else if (queue) {
-							// Intermediate animation
-							animate(settings.onAfterFirst);
-							// Don't animate this axis again in the next iteration.
-							attr = {};
-						}
-					}
-				});
-	
-				animate(settings.onAfter);
-	
-				function animate(callback) {
-					var opts = $.extend({}, settings, {
-						// The queue setting conflicts with animate()
-						// Force it to always be true
-						queue: true,
-						duration: duration,
-						complete: callback && function() {
-							callback.call(elem, targ, settings);
-						}
-					});
-					$elem.animate(attr, opts);
-				}
-			});
-		};
-	
-		// Max scrolling position, works on quirks mode
-		// It only fails (not too badly) on IE, quirks mode.
-		$scrollTo.max = function(elem, axis) {
-			var Dim = axis === 'x' ? 'Width' : 'Height',
-				scroll = 'scroll'+Dim;
-	
-			if (!isWin(elem))
-				return elem[scroll] - $(elem)[Dim.toLowerCase()]();
-	
-			var size = 'client' + Dim,
-				doc = elem.ownerDocument || elem.document,
-				html = doc.documentElement,
-				body = doc.body;
-	
-			return Math.max(html[scroll], body[scroll]) - Math.min(html[size], body[size]);
-		};
-	
-		function both(val) {
-			return $.isFunction(val) || $.isPlainObject(val) ? val : { top:val, left:val };
-		}
-	
-		// Add special hooks so that window scroll properties can be animated
-		$.Tween.propHooks.scrollLeft = 
-		$.Tween.propHooks.scrollTop = {
-			get: function(t) {
-				return $(t.elem)[t.prop]();
-			},
-			set: function(t) {
-				var curr = this.get(t);
-				// If interrupt is true and user scrolled, stop animating
-				if (t.options.interrupt && t._last && t._last !== curr) {
-					return $(t.elem).stop();
-				}
-				var next = Math.round(t.now);
-				// Don't waste CPU
-				// Browsers don't render floating point scroll
-				if (curr !== next) {
-					$(t.elem)[t.prop](next);
-					t._last = this.get(t);
-				}
-			}
-		};
-	
-		// AMD requirement
-		return $scrollTo;
-	});
-
-
-/***/ },
-/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -11573,7 +10837,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {/**
@@ -28642,10 +27906,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	}.call(this));
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(7)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(5)(module)))
 
 /***/ },
-/* 7 */
+/* 5 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -28661,386 +27925,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.get_current_date = exports.random_id = exports.random_string = exports.clone_list_of_dicts = exports.clone_dict = exports.do_nothing = exports.trim = exports.del_from_array = exports.in_array = exports.stick_in_center = exports.stick_in_top_left = exports.ViewPiece = exports.create_edit_box_div = exports.create_message_div = exports.toggle_button = exports.link_button = exports.blink = exports.pos_dom = exports.get_pdb_id_from_url = exports.url = exports.is_ipad = exports.exists = undefined;
-	
-	var _jquery = __webpack_require__(5);
-	
-	var _jquery2 = _interopRequireDefault(_jquery);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	// Utility functions
-	
-	
-	function exists(x) {
-	  return typeof x !== 'undefined';
-	}
-	
-	function is_ipad() {
-	  return navigator.userAgent.match(/iPad/i) != null;
-	}
-	
-	function url() {
-	  return "" + window.location;
-	}
-	
-	function get_pdb_id_from_url(loc) {
-	  var pieces = loc.split('#')[0].split('/');
-	  var i = pieces.length - 1;
-	  return pieces[i];
-	}
-	
-	function pos_dom(in_dom) {
-	  var curr_dom = in_dom;
-	  var curr_left = 0;
-	  var curr_top = 0;
-	  if (curr_dom.offsetParent) {
-	    curr_left = curr_dom.offsetLeft;
-	    curr_top = curr_dom.offsetTop;
-	    while (curr_dom = curr_dom.offsetParent) {
-	      curr_left += curr_dom.offsetLeft;
-	      curr_top += curr_dom.offsetTop;
-	    }
-	  }
-	  curr_dom = in_dom;
-	  do {
-	    curr_left -= curr_dom.scrollLeft || 0;
-	    curr_top -= curr_dom.scrollTop || 0;
-	  } while (curr_dom = curr_dom.parentNode);
-	  return [curr_left, curr_top];
-	}
-	
-	function blink(selector) {
-	  (0, _jquery2.default)(selector).animate({ opacity: 0 }, 50, "linear", function () {
-	    (0, _jquery2.default)(this).delay(800);
-	    (0, _jquery2.default)(this).animate({ opacity: 1 }, 50, function () {
-	      blink(this);
-	    });
-	    (0, _jquery2.default)(this).delay(800);
-	  });
-	}
-	
-	function link_button(id_tag, html_text, class_tag, click) {
-	  var item = (0, _jquery2.default)('<a>').attr('id', id_tag).attr('href', '').html(html_text);
-	
-	  if (class_tag) {
-	    item.addClass(class_tag);
-	  }
-	
-	  if (click) {
-	    item.on(' click touch ', function (e) {
-	      e.preventDefault();
-	      click();
-	    });
-	  }
-	
-	  return item;
-	}
-	
-	function toggle_button(id_tag, html_text, class_tag, get_toggle, toggle) {
-	  var item = (0, _jquery2.default)('<a>').attr('id', id_tag).attr('href', '').html(html_text);
-	
-	  var color = function color() {
-	    if (get_toggle()) {
-	      item.addClass('jolecule-button-toggle-on');
-	    } else {
-	      item.removeClass('jolecule-button-toggle-on');
-	    }
-	  };
-	
-	  color();
-	
-	  if (class_tag) {
-	    item.addClass(class_tag);
-	  }
-	
-	  item.click(function (e) {
-	    toggle(!get_toggle());
-	    color();
-	    return false;
-	  });
-	
-	  item.redraw = color;
-	
-	  return item;
-	}
-	
-	function create_message_div(text, width, cleanup) {
-	  var edit_div = (0, _jquery2.default)('<div>').addClass('jolecule-textbox').css({ 'width': width });
-	
-	  var okay = link_button('okay', 'okay', 'jolecule-button', function () {
-	    cleanup();return false;
-	  });
-	
-	  edit_div.append(text).append("<br><br>").append(okay);
-	  return edit_div;
-	}
-	
-	function create_edit_box_div(init_text, width, change, cleanup, label) {
-	
-	  var accept_edit = function accept_edit() {
-	    change(textarea.val());
-	    cleanup();
-	    window.keyboard_lock = false;
-	  };
-	
-	  var discard_edit = function discard_edit() {
-	    cleanup();
-	    window.keyboard_lock = false;
-	  };
-	
-	  var save_button = link_button('okay', 'okay', 'jolecule-small-button', accept_edit);
-	
-	  var discard_button = link_button('discard', 'discard', 'jolecule-small-button', discard_edit);
-	
-	  var textarea = (0, _jquery2.default)("<textarea>").css('width', width).addClass('jolecule-view-text').text(init_text).keydown(function (e) {
-	    if (e.keyCode == 27) {
-	      discard_edit();
-	      return true;
-	    }
-	  });
-	
-	  if (!label) {
-	    label = '';
-	  }
-	
-	  window.keyboard_lock = true;
-	
-	  return (0, _jquery2.default)('<div>').css('width', width).append(label).append(textarea).append(save_button).append(' ').append(discard_button);
-	}
-	
-	function ViewPiece(params) {
-	
-	  this.save_change = function () {
-	    var changed_text = this.edit_textarea.val();
-	    this.edit_div.hide();
-	    this.show_div.show();
-	    this.show_text_div.html(changed_text);
-	    this.params.save_change(changed_text);
-	    window.keyboard_lock = false;
-	  };
-	
-	  this.start_edit = function () {
-	    this.params.pick();
-	    this.edit_textarea.text(this.params.view.text);
-	    this.edit_div.show();
-	    this.show_div.hide();
-	    var textarea = this.edit_textarea.find('textarea');
-	    setTimeout(function () {
-	      textarea.focus();
-	    }, 100);
-	    window.keyboard_lock = true;
-	  };
-	
-	  this.discard_change = function () {
-	    this.edit_div.hide();
-	    this.show_div.show();
-	    window.keyboard_lock = false;
-	  };
-	
-	  this.make_edit_div = function () {
-	    var _this = this;
-	
-	    this.edit_textarea = (0, _jquery2.default)("<textarea>").addClass('jolecule-view-text').css('width', '100%').css('height', '5em').click(do_nothing);
-	
-	    this.edit_div = (0, _jquery2.default)('<div>').css('width', '100%').click(do_nothing).append(this.edit_textarea).append('<br><br>').append(link_button("", "save", "jolecule-small-button", function (event) {
-	      _this.save_change();
-	    })).append(' &nbsp; ').append(link_button("", "discard", "jolecule-small-button", function (event) {
-	      _this.discard_change();
-	    })).hide();
-	
-	    this.div.append(this.edit_div);
-	  };
-	
-	  this.make_show_div = function () {
-	    var view = this.params.view;
-	
-	    var _this = this;
-	
-	    var edit_button = link_button("", "edit", "jolecule-small-button", function () {
-	      _this.start_edit();
-	    });
-	
-	    var embed_button = link_button("", "embed", "jolecule-small-button", function () {
-	      _this.params.embed_view();
-	    });
-	
-	    var delete_button = link_button("", "delete", "jolecule-small-button", function () {
-	      _this.params.delete_view();
-	    });
-	
-	    this.show_text_div = (0, _jquery2.default)('<div>').addClass("jolecule-view-text").html(params.view.text);
-	
-	    this.show_div = (0, _jquery2.default)('<div>').css('width', '100%').append(this.show_text_div);
-	
-	    if (view.id != 'view:000000') {
-	      this.show_div.append((0, _jquery2.default)('<div>').addClass("jolecule-author").html(view.creator));
-	    }
-	
-	    if (this.params.is_editable) {
-	
-	      this.show_div.append(embed_button).append(' ');
-	
-	      if (!view.lock) {
-	        this.show_div.append(edit_button);
-	
-	        if (exists(this.params.swap_up) && this.params.swap_up) this.show_div.append(" ").append(link_button("", "up", "jolecule-small-button", function () {
-	          _this.params.swap_up();
-	        }));
-	
-	        if (exists(this.params.swap_up) && this.params.swap_down) this.show_div.append(" ").append(link_button("", "down", "jolecule-small-button", function () {
-	          _this.params.swap_down();
-	        }));
-	
-	        this.show_div.append((0, _jquery2.default)("<div>").css("float", "right").append(delete_button));
-	      }
-	    }
-	
-	    this.div.append(this.show_div);
-	  };
-	
-	  this.init = function (params) {
-	    this.params = params;
-	    this.div = (0, _jquery2.default)('<div>').addClass("jolecule-view");
-	
-	    if (exists(params.goto)) {
-	      this.div.append(link_button("", this.params.goto, 'jolecule-large-button', this.params.pick));
-	    }
-	    this.params = params;
-	    this.make_edit_div();
-	    this.make_show_div();
-	  };
-	
-	  this.init(params);
-	}
-	
-	function stick_in_top_left(parent, target, x_offset, y_offset) {
-	  target.css({
-	    'position': 'absolute',
-	    'z-index': '9000'
-	  });
-	  var top = parent.position().top;
-	  var left = parent.position().left;
-	  parent.append(target);
-	  var w_parent = parent.outerWidth();
-	  var h_parent = parent.outerHeight();
-	  target.width(w_parent - 2 * x_offset);
-	  target.height(h_parent - 2 * y_offset);
-	  target.css({
-	    'top': top + y_offset,
-	    'left': left + x_offset
-	  });
-	}
-	
-	function stick_in_center(parent, target, x_offset, y_offset) {
-	  target.css({
-	    'position': 'absolute',
-	    'z-index': '9000'
-	  });
-	  var top = parent.position().top;
-	  var left = parent.position().left;
-	  var w_parent = parent.outerWidth();
-	  var h_parent = parent.outerHeight();
-	  parent.prepend(target);
-	  var w_target = target.outerWidth();
-	  var h_target = target.outerHeight();
-	  target.css({
-	    'top': top + h_parent / 2 - h_target / 2 - y_offset,
-	    'left': left + w_parent / 2 - w_target / 2 - x_offset
-	  });
-	}
-	
-	function in_array(v, w_list) {
-	  return w_list.indexOf(v) >= 0;
-	}
-	
-	function del_from_array(x, x_list) {
-	  for (var i = 0; i <= x_list.length; i += 1) {
-	    if (x == x_list[i]) {
-	      x_list.splice(i, 1);
-	    }
-	  }
-	}
-	
-	function trim(text) {
-	  return text.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
-	}
-	
-	function do_nothing() {
-	  return false;
-	}
-	
-	function clone_dict(d) {
-	  var new_d = {};
-	  for (var k in d) {
-	    new_d[k] = d[k];
-	  };
-	  return new_d;
-	}
-	
-	function clone_list_of_dicts(list_of_dicts) {
-	  var new_list = [];
-	  for (var i = 0; i < list_of_dicts.length; i += 1) {
-	    new_list.push(clone_dict(list_of_dicts[i]));
-	  }
-	  return new_list;
-	}
-	
-	function random_string(n_char) {
-	  var chars = "0123456789abcdefghiklmnopqrstuvwxyz";
-	  var s = '';
-	  for (var i = 0; i < n_char; i++) {
-	    var j = Math.floor(Math.random() * chars.length);
-	    s += chars.substring(j, j + 1);
-	  }
-	  return s;
-	}
-	
-	function random_id() {
-	  return 'view:' + random_string(6);
-	}
-	
-	function get_current_date() {
-	  var current_view = new Date();
-	  var month = current_view.getMonth() + 1;
-	  var day = current_view.getDate();
-	  var year = current_view.getFullYear();
-	  return day + "/" + month + "/" + year;
-	}
-	
-	exports.exists = exists;
-	exports.is_ipad = is_ipad;
-	exports.url = url;
-	exports.get_pdb_id_from_url = get_pdb_id_from_url;
-	exports.pos_dom = pos_dom;
-	exports.blink = blink;
-	exports.link_button = link_button;
-	exports.toggle_button = toggle_button;
-	exports.create_message_div = create_message_div;
-	exports.create_edit_box_div = create_edit_box_div;
-	exports.ViewPiece = ViewPiece;
-	exports.stick_in_top_left = stick_in_top_left;
-	exports.stick_in_center = stick_in_center;
-	exports.in_array = in_array;
-	exports.del_from_array = del_from_array;
-	exports.trim = trim;
-	exports.do_nothing = do_nothing;
-	exports.clone_dict = clone_dict;
-	exports.clone_list_of_dicts = clone_list_of_dicts;
-	exports.random_string = random_string;
-	exports.random_id = random_id;
-	exports.get_current_date = get_current_date;
-
-/***/ },
-/* 9 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -29050,11 +27935,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.Scene = exports.Controller = exports.View = exports.get_camera_transform = exports.is_equal_camera = exports.Camera = exports.Protein = exports.atom_radius = undefined;
 	
-	var _v = __webpack_require__(10);
+	var _v = __webpack_require__(7);
 	
 	var _v2 = _interopRequireDefault(_v);
 	
-	var _util = __webpack_require__(8);
+	var _util = __webpack_require__(9);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -30592,7 +29477,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Scene = Scene;
 
 /***/ },
-/* 10 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -30601,7 +29486,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	
-	var _three = __webpack_require__(11);
+	var _three = __webpack_require__(8);
 	
 	var _three2 = _interopRequireDefault(_three);
 	
@@ -30775,7 +29660,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 11 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;// File:src/Three.js
@@ -72542,7 +71427,386 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 12 */
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.get_current_date = exports.random_id = exports.random_string = exports.clone_list_of_dicts = exports.clone_dict = exports.do_nothing = exports.trim = exports.del_from_array = exports.in_array = exports.stick_in_center = exports.stick_in_top_left = exports.ViewPiece = exports.create_edit_box_div = exports.create_message_div = exports.toggle_button = exports.link_button = exports.blink = exports.pos_dom = exports.get_pdb_id_from_url = exports.url = exports.is_ipad = exports.exists = undefined;
+	
+	var _jquery = __webpack_require__(3);
+	
+	var _jquery2 = _interopRequireDefault(_jquery);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	// Utility functions
+	
+	
+	function exists(x) {
+	  return typeof x !== 'undefined';
+	}
+	
+	function is_ipad() {
+	  return navigator.userAgent.match(/iPad/i) != null;
+	}
+	
+	function url() {
+	  return "" + window.location;
+	}
+	
+	function get_pdb_id_from_url(loc) {
+	  var pieces = loc.split('#')[0].split('/');
+	  var i = pieces.length - 1;
+	  return pieces[i];
+	}
+	
+	function pos_dom(in_dom) {
+	  var curr_dom = in_dom;
+	  var curr_left = 0;
+	  var curr_top = 0;
+	  if (curr_dom.offsetParent) {
+	    curr_left = curr_dom.offsetLeft;
+	    curr_top = curr_dom.offsetTop;
+	    while (curr_dom = curr_dom.offsetParent) {
+	      curr_left += curr_dom.offsetLeft;
+	      curr_top += curr_dom.offsetTop;
+	    }
+	  }
+	  curr_dom = in_dom;
+	  do {
+	    curr_left -= curr_dom.scrollLeft || 0;
+	    curr_top -= curr_dom.scrollTop || 0;
+	  } while (curr_dom = curr_dom.parentNode);
+	  return [curr_left, curr_top];
+	}
+	
+	function blink(selector) {
+	  (0, _jquery2.default)(selector).animate({ opacity: 0 }, 50, "linear", function () {
+	    (0, _jquery2.default)(this).delay(800);
+	    (0, _jquery2.default)(this).animate({ opacity: 1 }, 50, function () {
+	      blink(this);
+	    });
+	    (0, _jquery2.default)(this).delay(800);
+	  });
+	}
+	
+	function link_button(id_tag, html_text, class_tag, click) {
+	  var item = (0, _jquery2.default)('<a>').attr('id', id_tag).attr('href', '').html(html_text);
+	
+	  if (class_tag) {
+	    item.addClass(class_tag);
+	  }
+	
+	  if (click) {
+	    item.on(' click touch ', function (e) {
+	      e.preventDefault();
+	      click();
+	    });
+	  }
+	
+	  return item;
+	}
+	
+	function toggle_button(id_tag, html_text, class_tag, get_toggle, toggle) {
+	  var item = (0, _jquery2.default)('<a>').attr('id', id_tag).attr('href', '').html(html_text);
+	
+	  var color = function color() {
+	    if (get_toggle()) {
+	      item.addClass('jolecule-button-toggle-on');
+	    } else {
+	      item.removeClass('jolecule-button-toggle-on');
+	    }
+	  };
+	
+	  color();
+	
+	  if (class_tag) {
+	    item.addClass(class_tag);
+	  }
+	
+	  item.click(function (e) {
+	    toggle(!get_toggle());
+	    color();
+	    return false;
+	  });
+	
+	  item.redraw = color;
+	
+	  return item;
+	}
+	
+	function create_message_div(text, width, cleanup) {
+	  var edit_div = (0, _jquery2.default)('<div>').addClass('jolecule-textbox').css({ 'width': width });
+	
+	  var okay = link_button('okay', 'okay', 'jolecule-button', function () {
+	    cleanup();return false;
+	  });
+	
+	  edit_div.append(text).append("<br><br>").append(okay);
+	  return edit_div;
+	}
+	
+	function create_edit_box_div(init_text, width, change, cleanup, label) {
+	
+	  var accept_edit = function accept_edit() {
+	    change(textarea.val());
+	    cleanup();
+	    window.keyboard_lock = false;
+	  };
+	
+	  var discard_edit = function discard_edit() {
+	    cleanup();
+	    window.keyboard_lock = false;
+	  };
+	
+	  var save_button = link_button('okay', 'okay', 'jolecule-small-button', accept_edit);
+	
+	  var discard_button = link_button('discard', 'discard', 'jolecule-small-button', discard_edit);
+	
+	  var textarea = (0, _jquery2.default)("<textarea>").css('width', width).addClass('jolecule-view-text').text(init_text).keydown(function (e) {
+	    if (e.keyCode == 27) {
+	      discard_edit();
+	      return true;
+	    }
+	  });
+	
+	  if (!label) {
+	    label = '';
+	  }
+	
+	  window.keyboard_lock = true;
+	
+	  return (0, _jquery2.default)('<div>').css('width', width).append(label).append(textarea).append(save_button).append(' ').append(discard_button);
+	}
+	
+	function ViewPiece(params) {
+	
+	  this.save_change = function () {
+	    var changed_text = this.edit_textarea.val();
+	    this.edit_div.hide();
+	    this.show_div.show();
+	    this.show_text_div.html(changed_text);
+	    this.params.save_change(changed_text);
+	    window.keyboard_lock = false;
+	  };
+	
+	  this.start_edit = function () {
+	    this.params.pick();
+	    this.edit_textarea.text(this.params.view.text);
+	    this.edit_div.show();
+	    this.show_div.hide();
+	    var textarea = this.edit_textarea.find('textarea');
+	    setTimeout(function () {
+	      textarea.focus();
+	    }, 100);
+	    window.keyboard_lock = true;
+	  };
+	
+	  this.discard_change = function () {
+	    this.edit_div.hide();
+	    this.show_div.show();
+	    window.keyboard_lock = false;
+	  };
+	
+	  this.make_edit_div = function () {
+	    var _this = this;
+	
+	    this.edit_textarea = (0, _jquery2.default)("<textarea>").addClass('jolecule-view-text').css('width', '100%').css('height', '5em').click(do_nothing);
+	
+	    this.edit_div = (0, _jquery2.default)('<div>').css('width', '100%').click(do_nothing).append(this.edit_textarea).append('<br><br>').append(link_button("", "save", "jolecule-small-button", function (event) {
+	      _this.save_change();
+	    })).append(' &nbsp; ').append(link_button("", "discard", "jolecule-small-button", function (event) {
+	      _this.discard_change();
+	    })).hide();
+	
+	    this.div.append(this.edit_div);
+	  };
+	
+	  this.make_show_div = function () {
+	    var view = this.params.view;
+	
+	    var _this = this;
+	
+	    var edit_button = link_button("", "edit", "jolecule-small-button", function () {
+	      _this.start_edit();
+	    });
+	
+	    var embed_button = link_button("", "embed", "jolecule-small-button", function () {
+	      _this.params.embed_view();
+	    });
+	
+	    var delete_button = link_button("", "delete", "jolecule-small-button", function () {
+	      _this.params.delete_view();
+	    });
+	
+	    this.show_text_div = (0, _jquery2.default)('<div>').addClass("jolecule-view-text").html(params.view.text);
+	
+	    this.show_div = (0, _jquery2.default)('<div>').css('width', '100%').append(this.show_text_div);
+	
+	    if (view.id != 'view:000000') {
+	      this.show_div.append((0, _jquery2.default)('<div>').addClass("jolecule-author").html(view.creator));
+	    }
+	
+	    if (this.params.is_editable) {
+	
+	      this.show_div.append(embed_button).append(' ');
+	
+	      if (!view.lock) {
+	        this.show_div.append(edit_button);
+	
+	        if (exists(this.params.swap_up) && this.params.swap_up) this.show_div.append(" ").append(link_button("", "up", "jolecule-small-button", function () {
+	          _this.params.swap_up();
+	        }));
+	
+	        if (exists(this.params.swap_up) && this.params.swap_down) this.show_div.append(" ").append(link_button("", "down", "jolecule-small-button", function () {
+	          _this.params.swap_down();
+	        }));
+	
+	        this.show_div.append((0, _jquery2.default)("<div>").css("float", "right").append(delete_button));
+	      }
+	    }
+	
+	    this.div.append(this.show_div);
+	  };
+	
+	  this.init = function (params) {
+	    this.params = params;
+	    this.div = (0, _jquery2.default)('<div>').addClass("jolecule-view");
+	
+	    if (exists(params.goto)) {
+	      this.div.append(link_button("", this.params.goto, 'jolecule-large-button', this.params.pick));
+	    }
+	    this.params = params;
+	    this.make_edit_div();
+	    this.make_show_div();
+	  };
+	
+	  this.init(params);
+	}
+	
+	function stick_in_top_left(parent, target, x_offset, y_offset) {
+	  target.css({
+	    'position': 'absolute',
+	    'z-index': '9000'
+	  });
+	  var top = parent.position().top;
+	  var left = parent.position().left;
+	  parent.append(target);
+	  var w_parent = parent.outerWidth();
+	  var h_parent = parent.outerHeight();
+	  target.width(w_parent - 2 * x_offset);
+	  target.height(h_parent - 2 * y_offset);
+	  target.css({
+	    'top': top + y_offset,
+	    'left': left + x_offset
+	  });
+	}
+	
+	function stick_in_center(parent, target, x_offset, y_offset) {
+	  target.css({
+	    'position': 'absolute',
+	    'z-index': '9000'
+	  });
+	  var top = parent.position().top;
+	  var left = parent.position().left;
+	  var w_parent = parent.outerWidth();
+	  var h_parent = parent.outerHeight();
+	  parent.prepend(target);
+	  var w_target = target.outerWidth();
+	  var h_target = target.outerHeight();
+	  target.css({
+	    'top': top + h_parent / 2 - h_target / 2 - y_offset,
+	    'left': left + w_parent / 2 - w_target / 2 - x_offset
+	  });
+	}
+	
+	function in_array(v, w_list) {
+	  return w_list.indexOf(v) >= 0;
+	}
+	
+	function del_from_array(x, x_list) {
+	  for (var i = 0; i <= x_list.length; i += 1) {
+	    if (x == x_list[i]) {
+	      x_list.splice(i, 1);
+	    }
+	  }
+	}
+	
+	function trim(text) {
+	  return text.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+	}
+	
+	function do_nothing() {
+	  return false;
+	}
+	
+	function clone_dict(d) {
+	  var new_d = {};
+	  for (var k in d) {
+	    new_d[k] = d[k];
+	  };
+	  return new_d;
+	}
+	
+	function clone_list_of_dicts(list_of_dicts) {
+	  var new_list = [];
+	  for (var i = 0; i < list_of_dicts.length; i += 1) {
+	    new_list.push(clone_dict(list_of_dicts[i]));
+	  }
+	  return new_list;
+	}
+	
+	function random_string(n_char) {
+	  var chars = "0123456789abcdefghiklmnopqrstuvwxyz";
+	  var s = '';
+	  for (var i = 0; i < n_char; i++) {
+	    var j = Math.floor(Math.random() * chars.length);
+	    s += chars.substring(j, j + 1);
+	  }
+	  return s;
+	}
+	
+	function random_id() {
+	  return 'view:' + random_string(6);
+	}
+	
+	function get_current_date() {
+	  var current_view = new Date();
+	  var month = current_view.getMonth() + 1;
+	  var day = current_view.getDate();
+	  var year = current_view.getFullYear();
+	  return day + "/" + month + "/" + year;
+	}
+	
+	exports.exists = exists;
+	exports.is_ipad = is_ipad;
+	exports.url = url;
+	exports.get_pdb_id_from_url = get_pdb_id_from_url;
+	exports.pos_dom = pos_dom;
+	exports.blink = blink;
+	exports.link_button = link_button;
+	exports.toggle_button = toggle_button;
+	exports.create_message_div = create_message_div;
+	exports.create_edit_box_div = create_edit_box_div;
+	exports.ViewPiece = ViewPiece;
+	exports.stick_in_top_left = stick_in_top_left;
+	exports.stick_in_center = stick_in_center;
+	exports.in_array = in_array;
+	exports.del_from_array = del_from_array;
+	exports.trim = trim;
+	exports.do_nothing = do_nothing;
+	exports.clone_dict = clone_dict;
+	exports.clone_list_of_dicts = clone_list_of_dicts;
+	exports.random_string = random_string;
+	exports.random_id = random_id;
+	exports.get_current_date = get_current_date;
+
+/***/ },
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -72556,27 +71820,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _three = __webpack_require__(11);
+	var _three = __webpack_require__(8);
 	
 	var _three2 = _interopRequireDefault(_three);
 	
-	var _jquery = __webpack_require__(5);
+	var _jquery = __webpack_require__(3);
 	
 	var _jquery2 = _interopRequireDefault(_jquery);
 	
-	var _lodash = __webpack_require__(6);
+	var _lodash = __webpack_require__(4);
 	
 	var _lodash2 = _interopRequireDefault(_lodash);
 	
-	var _v = __webpack_require__(10);
+	var _v = __webpack_require__(7);
 	
 	var _v2 = _interopRequireDefault(_v);
 	
-	var _protein = __webpack_require__(9);
+	var _protein = __webpack_require__(6);
 	
-	var _glgeometry = __webpack_require__(13);
+	var _glgeometry = __webpack_require__(11);
 	
-	var _util = __webpack_require__(8);
+	var _util = __webpack_require__(9);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -73579,6 +72843,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        console.log('initialize zslabar with scene', scene);
 	        _this6.scene = scene;
 	        _this6.maxZLength = 0.0;
+	        _this6.yOffset = 52;
 	        _this6.div.attr('id', 'zslab');
 	        return _this6;
 	    }
@@ -73589,7 +72854,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	            this.div.css({
 	                'width': this.width(),
-	                'height': this.parentDiv.height(),
+	                'height': this.height(),
 	                'top': this.y(),
 	                'left': this.x()
 	            });
@@ -73604,12 +72869,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: "y",
 	        value: function y() {
 	            var parentDivPos = this.parentDiv.position();
-	            return parentDivPos.top + 52;
+	            return parentDivPos.top + this.yOffset;
 	        }
 	    }, {
 	        key: "height",
 	        value: function height() {
-	            return this.parentDiv.height() - 52;
+	            return this.parentDiv.height() - this.yOffset;
 	        }
 	    }, {
 	        key: "x",
@@ -75552,7 +74817,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.GlProteinDisplay = GlProteinDisplay;
 
 /***/ },
-/* 13 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -75562,7 +74827,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.setGeometryVerticesColor = exports.getFractionRotation = exports.getUnitVectorRotation = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.perpVector = exports.expandPath = exports.setVisible = exports.drawBlockArrow = exports.drawCylinder = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = exports.PathAndFrenetFrames = undefined;
 	
-	var _three = __webpack_require__(11);
+	var _three = __webpack_require__(8);
 	
 	var _three2 = _interopRequireDefault(_three);
 	
@@ -76052,6 +75317,743 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	//     return new THREE.Mesh( geometry, material );
 	// }
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.FullPageJolecule = undefined;
+	
+	var _jquery = __webpack_require__(13);
+	
+	var _jquery2 = _interopRequireDefault(_jquery);
+	
+	var _jquery3 = __webpack_require__(3);
+	
+	var _jquery4 = _interopRequireDefault(_jquery3);
+	
+	var _lodash = __webpack_require__(4);
+	
+	var _lodash2 = _interopRequireDefault(_lodash);
+	
+	var _embedjolecule = __webpack_require__(2);
+	
+	var _util = __webpack_require__(9);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	//////////////////////////////////////////////////////////
+	// 
+	// jolecule - the javascript based protein/dna viewer
+	//
+	// relies on data_server jolecule.appspot.com, which, in turn
+	// relies on the RCSB website http://www.pdb.org.
+	//
+	///////////////////////////////////////////////////////////
+	
+	
+	/////////////////////////////////////
+	// SequenceDisplay
+	/////////////////////////////////////
+	
+	var SequenceDisplay = function SequenceDisplay(div_tag, controller) {
+	  this.controller = controller;
+	  this.scene = controller.scene;
+	  this.protein = controller.scene.protein;
+	  this.res_div = [];
+	
+	  this.redraw = function () {
+	    for (var i = 0; i < this.res_div.length; i += 1) {
+	      var res_id = this.protein.residues[i].id;
+	      if (res_id == this.scene.current_view.res_id) {
+	        this.res_div[i].target.removeClass("jolecule-unselected-box");
+	        this.res_div[i].target.addClass("jolecule-selected-box");
+	        (0, _jquery4.default)('#jolecule-sequence').stop();
+	        (0, _jquery4.default)('#jolecule-sequence').scrollTo(this.res_div[i].target, 1000, { offset: { top: -80 } });
+	      } else {
+	        this.res_div[i].target.removeClass("jolecule-selected-box");
+	        this.res_div[i].target.addClass("jolecule-unselected-box");
+	      }
+	    }
+	    for (var i = 0; i < this.protein.residues.length; i += 1) {
+	      if (this.protein.residues[i].selected) {
+	        this.res_div[i].select.prop('checked', true);
+	      } else {
+	        this.res_div[i].select.prop('checked', false);
+	      }
+	    }
+	  };
+	
+	  this.goto_prev_residue = function () {
+	    this.controller.set_target_prev_residue();
+	    window.location.hash = this.scene.target_view.res_id;
+	  };
+	
+	  this.goto_next_residue = function () {
+	    this.controller.set_target_next_residue();
+	    window.location.hash = this.scene.target_view.res_id;
+	  };
+	
+	  function html_pad(s, n_padded) {
+	    var trim_s = (0, _util.trim)(s);
+	    var n = n_padded - trim_s.length;
+	    var padded_s = trim_s;
+	    for (var k = 0; k < n; k++) {
+	      padded_s += '&nbsp;';
+	    }
+	    return padded_s;
+	  }
+	
+	  this.set_residue_select = function (res_id, v) {
+	    var i = this.protein.get_i_res_from_res_id(res_id);
+	    this.controller.select_residue(i, v);
+	  };
+	
+	  this.toggle_residue_select = function (res_id) {
+	    var r = this.protein.res_by_id[res_id];
+	    this.set_residue_select(res_id, !r.selected);
+	  };
+	
+	  this.create_residue_div = function (i) {
+	    var controller = this.controller;
+	    var _this = this;
+	    var res_id = this.protein.residues[i].id;
+	    var res_type = this.protein.residues[i].type;
+	    var html = "&nbsp;" + html_pad(res_id, 7) + html_pad(res_type, 3) + "&nbsp;";
+	    var show_res_id = res_id + ":show";
+	    var checkbox = (0, _jquery4.default)("<input>").attr('type', 'checkbox').attr('id', show_res_id).attr('name', show_res_id).attr('checked', false).click(function (event) {
+	      var check_id = 'input[name="' + show_res_id + '"' + ']';
+	      var v = (0, _jquery4.default)(check_id).is(':checked');
+	      _this.set_residue_select(res_id, v);
+	    });
+	    var elem = (0, _jquery4.default)("<div>").addClass("jolecule-residue").append(checkbox).append((0, _jquery4.default)("<a>").addClass('jolecule-button').attr("href", "#" + res_id).html(html).click(function () {
+	      controller.set_target_view_by_res_id(res_id);
+	      _this.redraw();
+	    })).append("<br>");
+	    return { 'target': elem, 'select': checkbox };
+	  };
+	
+	  this.build_divs = function () {
+	    var sequence_div = (0, _jquery4.default)("#jolecule-sequence");
+	    for (var i = 0; i < this.protein.residues.length; i += 1) {
+	      var elem = this.create_residue_div(i);
+	      sequence_div.append(elem.target);
+	      this.res_div.push(elem);
+	    }
+	
+	    this.scene.current_view.res_id = this.protein.residues[0].id;
+	    var hash_tag = (0, _util.url)().split('#')[1];
+	    if (hash_tag in this.protein.res_by_id) {
+	      this.controller.set_target_view_by_res_id(hash_tag);
+	    }
+	    this.redraw();
+	  };
+	
+	  var _this = this;
+	  this.div = (0, _jquery4.default)(div_tag).append((0, _jquery4.default)("<div>").addClass('jolecule-sub-header').append("RESIDUES").append("<br>").append((0, _util.link_button)("", 'prev[k]', 'jolecule-button', function () {
+	    _this.goto_prev_residue();
+	  })).append((0, _util.link_button)("", 'next[j]', 'jolecule-button', function () {
+	    _this.goto_next_residue();
+	  }))).append((0, _jquery4.default)("<div>").attr("id", 'jolecule-sequence'));
+	};
+	
+	///////////////////////////////////////////////
+	// ViewsDisplay keeps track of the views
+	///////////////////////////////////////////////
+	
+	
+	var ViewsDisplay = function ViewsDisplay(div_tag, controller, protein_display, data_server) {
+	  this.div_tag = div_tag;
+	  this.protein_display = protein_display;
+	  this.scene = controller.scene;
+	  this.controller = controller;
+	  this.data_server = data_server;
+	  this.view_piece = {};
+	
+	  this.save_views_to_server = function (success) {
+	    this.data_server.save_views(this.controller.get_view_dicts(), success);
+	  };
+	
+	  this.update_views = function () {
+	    for (var id in this.view_piece) {
+	      if (!(id in this.scene.saved_views_by_id)) {
+	        this.view_piece[id].div.remove();
+	        delete this.view_piece[id];
+	      }
+	    }
+	    for (var i = 0; i < this.scene.saved_views.length; i++) {
+	      var view = this.scene.saved_views[i];
+	      var id = view.id;
+	
+	      if (!(view.id in this.view_piece)) {
+	        this.insert_new_view_div(view.id);
+	      }
+	
+	      var i_last_view = this.scene.i_last_view;
+	      var last_id = this.scene.saved_views[i_last_view].id;
+	
+	      if (last_id == id) {
+	        this.view_piece[id].div.removeClass("jolecule-unselected-box");
+	        this.view_piece[id].div.addClass("jolecule-selected-box");
+	      } else {
+	        this.view_piece[id].div.removeClass("jolecule-selected-box");
+	        this.view_piece[id].div.addClass("jolecule-unselected-box");
+	      }
+	
+	      var view_piece = this.view_piece[id];
+	      if (view.text != view_piece.show_text_div.html()) {
+	        view_piece.show_text_div.html(view.text);
+	      }
+	
+	      var a = view_piece.div.find('a').eq(0);
+	      a.text(view.order + 1);
+	    }
+	  };
+	
+	  this.redraw_selected_view_id = function (id) {
+	    this.update_views();
+	    (0, _jquery4.default)("#jolecule-views").stop();
+	    (0, _jquery4.default)("#jolecule-views").scrollTo(this.view_piece[id].div, 1000, { offset: { top: -80 } });
+	  };
+	
+	  this.set_target_by_view_id = function (id) {
+	    this.controller.set_target_view_by_id(id);
+	    this.redraw_selected_view_id(id);
+	    window.location.hash = id;
+	  };
+	
+	  this.goto_prev_view = function () {
+	    var id = this.controller.set_target_prev_view();
+	    this.redraw_selected_view_id(id);
+	    window.location.hash = id;
+	  };
+	
+	  this.goto_next_view = function () {
+	    var id = this.controller.set_target_next_view();
+	    this.redraw_selected_view_id(id);
+	    window.location.hash = id;
+	  };
+	
+	  this.remove_view = function (id) {
+	    var _this = this;
+	    var success = function success() {
+	      _this.controller.delete_view(id);
+	      _this.view_piece[id].div.remove();
+	      delete _this.view_piece[id];
+	      _this.update_views();
+	    };
+	    this.view_piece[id].div.css('background-color', 'lightgray');
+	    this.data_server.delete_protein_view(id, success);
+	  };
+	
+	  this.swap_views = function (i, j) {
+	    var i_id = this.scene.saved_views[i].id;
+	    var j_id = this.scene.saved_views[j].id;
+	    var i_div = this.view_piece[i_id].div;
+	    var j_div = this.view_piece[j_id].div;
+	
+	    this.controller.swap_views(i, j);
+	
+	    i_div.css('background-color', 'lightgray');
+	    j_div.css('background-color', 'lightgray');
+	
+	    var _this = this;
+	    var success = function success() {
+	      j_div.insertBefore(i_div);
+	      _this.update_views();
+	      i_div.css('background-color', '');
+	      j_div.css('background-color', '');
+	    };
+	    this.save_views_to_server(success);
+	  };
+	
+	  this.swap_up = function (view_id) {
+	    var i = this.scene.get_i_saved_view_from_id(view_id);
+	    if (i < 2) {
+	      return;
+	    }
+	    this.swap_views(i - 1, i);
+	  };
+	
+	  this.swap_down = function (view_id) {
+	    var i = this.scene.get_i_saved_view_from_id(view_id);
+	    if (i > this.scene.saved_views.length - 2) {
+	      return;
+	    }
+	    this.swap_views(i, i + 1);
+	  };
+	
+	  this.make_view_div = function (id) {
+	    var view = this.scene.saved_views_by_id[id];
+	    var _this = this;
+	
+	    this.view_piece[id] = new _util.ViewPiece({
+	      view: view,
+	      is_editable: true,
+	      delete_view: function delete_view() {
+	        _this.remove_view(id);
+	      },
+	      save_change: function save_change(changed_text, sucess) {
+	        view.text = changed_text;
+	        _this.view_piece[id].div.css('background-color', 'lightgray');
+	        var success = function success() {
+	          _this.view_piece[id].div.css('background-color', '');
+	        };
+	        _this.save_views_to_server(success);
+	        _this.scene.changed = true;
+	      },
+	      pick: function pick() {
+	        _this.set_target_by_view_id(id);
+	      },
+	      goto: view.order + 1,
+	      swap_up: function swap_up() {
+	        _this.swap_up(id);
+	      },
+	      swap_down: function swap_down() {
+	        _this.swap_down(id);
+	      },
+	      embed_view: function embed_view() {
+	        window.location.href = '/embed/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id;
+	      }
+	    });
+	    return this.view_piece[id].div;
+	  };
+	
+	  this.make_all_views = function () {
+	    for (var i = 0; i < this.scene.saved_views.length; i += 1) {
+	      var id = this.scene.saved_views[i].id;
+	      var div = this.make_view_div(id);
+	      (0, _jquery4.default)('#jolecule-views').append(div);
+	    }
+	  };
+	
+	  this.insert_new_view_div = function (new_id) {
+	    var div = this.make_view_div(new_id);
+	
+	    if (this.scene.i_last_view == this.scene.saved_views.length - 1) {
+	      (0, _jquery4.default)("#jolecule-views").append(div);
+	    } else {
+	      var j = this.scene.i_last_view - 1;
+	      var j_id = this.scene.saved_views[j].id;
+	      var j_div = this.view_piece[j_id].div;
+	      div.insertAfter(j_div);
+	    }
+	  };
+	
+	  this.make_new_view = function () {
+	    var new_id = (0, _util.random_id)();
+	    this.controller.calculate_current_abs_camera();
+	    this.controller.save_current_view(new_id);
+	    this.insert_new_view_div(new_id);
+	    this.update_views();
+	    this.view_piece[new_id].div.css('background-color', 'lightgray');
+	
+	    var _this = this;
+	    var success = function success() {
+	      _this.view_piece[new_id].div.css('background-color', '');
+	      (0, _jquery4.default)("#jolecule-views").stop();
+	      (0, _jquery4.default)("#jolecule-views").scrollTo(_this.view_piece[new_id].div, 1000, { offset: { top: -80 } });
+	    };
+	    this.save_views_to_server(success);
+	  };
+	
+	  var _this = this;
+	  this.top_div = (0, _jquery4.default)(this.div_tag).append((0, _jquery4.default)("<div>").addClass("jolecule-sub-header").append("VIEWS OF PROTEIN").append("<br>").append((0, _util.link_button)('', 'create [v]iew', 'jolecule-button', function () {
+	    _this.make_new_view();
+	  })).append((0, _util.link_button)('', 'prev[&uarr;]', 'jolecule-button', function () {
+	    _this.goto_prev_view();
+	  })).append((0, _util.link_button)('', 'next[&darr;]', 'jolecule-button', function () {
+	    _this.goto_next_view();
+	  })).append((0, _util.link_button)('', '[a]dd label', 'jolecule-button', function () {
+	    _this.protein_display.atom_label_dialog();
+	  }))).append((0, _jquery4.default)("<div>").attr("id", "jolecule-views"));
+	};
+	
+	/////////////////////////////////////
+	// FullPageJolecule
+	/////////////////////////////////////
+	
+	var FullPageJolecule = function FullPageJolecule(protein_display_tag, sequence_display_tag, views_display_tag, data_server, pdb_id) {
+	
+	  this.is_changed = function () {
+	    if (typeof this.scene !== "undefined") {
+	      return this.scene.changed;
+	    }
+	    return false;
+	  };
+	
+	  this.draw = function () {
+	    if (this.scene.changed) {
+	      this.views_display.update_views();
+	      if (this.scene.is_new_view_chosen) {
+	        this.sequence_display.redraw();
+	        this.scene.is_new_view_chosen = false;
+	      }
+	      this.embed_jolecule.draw();
+	      this.scene.changed = false;
+	    }
+	  };
+	
+	  this.animate = function () {
+	    if (typeof this.embed_jolecule !== "undefined") {
+	      this.embed_jolecule.animate();
+	    }
+	  };
+	
+	  this.resize = function (event) {
+	    if (typeof this.scene !== "undefined") {
+	      this.scene.changed = true;
+	    }
+	  };
+	
+	  this.onkeydown = function (event) {
+	    if (!window.keyboard_lock) {
+	      var c = String.fromCharCode(event.keyCode).toUpperCase();
+	      var s = "[" + c + "]";
+	      if (c == 'V') {
+	        this.views_display.make_new_view();
+	        return;
+	      } else if (c == "K" || event.keyCode == 37) {
+	        this.sequence_display.goto_prev_residue();
+	      } else if (c == "J" || event.keyCode == 39) {
+	        this.sequence_display.goto_next_residue();
+	      } else if (c == "X") {
+	        var i_atom = this.scene.current_view.i_atom;
+	        if (i_atom >= 0) {
+	          var res_id = this.controller.protein.atoms[i_atom].res_id;
+	          this.sequence_display.toggle_residue_select(res_id);
+	        }
+	      } else if (event.keyCode == 38) {
+	        this.views_display.goto_prev_view();
+	      } else if (c == " " || event.keyCode == 40) {
+	        this.views_display.goto_next_view();
+	      } else if (c == 'B') {
+	        if (this.scene.current_view.show.all_atom) {
+	          this.controller.set_backbone_option('ribbon');
+	        } else if (this.scene.current_view.show.ribbon) {
+	          this.controller.set_backbone_option('trace');
+	        } else if (this.scene.current_view.show.trace) {
+	          this.controller.set_backbone_option('all_atom');
+	        }
+	      } else if (c == 'L') {
+	        this.controller.toggle_show_option('ligands');
+	      } else if (c == 'S') {
+	        this.controller.toggle_show_option('sidechain');
+	      } else if (c == 'W') {
+	        this.controller.toggle_show_option('water');
+	        // } else if (c == 'H') {
+	        //   this.controller.toggle_show_option('hydrogen');
+	      } else if (c == 'C') {
+	        this.protein_display.controller.clear_selected();
+	      } else if (c == 'E') {
+	        var i_view = this.protein_display.scene.i_last_view;
+	        if (i_view > 0) {
+	          var view_id = this.protein_display.scene.saved_views[i_view].id;
+	          this.views_display.div[view_id].edit_fn();
+	        }
+	      } else if (c == 'N') {
+	        this.protein_display.controller.toggle_neighbors();
+	      } else if (c == 'A') {
+	        this.protein_display.atom_label_dialog();
+	      } else {
+	        var i = parseInt(c) - 1;
+	        if ((i || i == 0) && i < this.scene.saved_views.length) {
+	          var id = this.scene.saved_views[i].id;
+	          this.views_display.set_target_by_view_id(id);
+	        }
+	      }
+	      this.protein_display.scene.changed = true;
+	    }
+	  };
+	
+	  this.register_callacks = function () {
+	    var _this = this;
+	
+	    document.oncontextmenu = _util.do_nothing;
+	    document.onkeydown = function (e) {
+	      _this.onkeydown(e);
+	    };
+	    var resize_fn = function resize_fn() {
+	      _this.resize();
+	    };
+	    (0, _jquery4.default)(window).resize(resize_fn);
+	    window.onorientationchange = resize_fn;
+	  };
+	
+	  this.onload = function (embed_jolecule) {
+	    this.embed_jolecule = embed_jolecule;
+	
+	    this.data_server = embed_jolecule.data_server;
+	    this.scene = this.embed_jolecule.scene;
+	    this.controller = this.embed_jolecule.controller;
+	    this.protein_display = this.embed_jolecule.protein_display;
+	
+	    // add decorators to DOM and data
+	
+	    this.views_display_tag = views_display_tag;
+	    this.views_display = new ViewsDisplay(this.views_display_tag, this.controller, this.protein_display, this.data_server);
+	    this.views_display.make_all_views();
+	
+	    this.sequence_display_tag = sequence_display_tag;
+	    this.sequence_display = new SequenceDisplay(this.sequence_display_tag, this.controller);
+	    this.sequence_display.build_divs();
+	
+	    var hash_tag = (0, _util.url)().split('#')[1];
+	    if (hash_tag in this.scene.saved_views_by_id) {
+	      this.views_display.set_target_by_view_id(hash_tag);
+	    } else {
+	      this.views_display.set_target_by_view_id('view:000000');
+	    }
+	    this.views_display.update_views();
+	
+	    this.register_callacks();
+	    this.resize();
+	    this.embed_jolecule.resize();
+	  };
+	
+	  // Initialization
+	
+	  var _this = this;
+	  var onload = function onload(instantiated_embed_jolecule) {
+	    _this.onload(instantiated_embed_jolecule);
+	  };
+	
+	  new _embedjolecule.EmbedJolecule({
+	    div_tag: protein_display_tag,
+	    data_server: data_server,
+	    loading_html: 'Loading PDB from RCSB web-site...',
+	    loading_failure_html: 'Failed to load PDB.',
+	    view_id: '',
+	    view_height: 170,
+	    is_view_text_shown: false,
+	    is_editable: true,
+	    is_loop: false,
+	    onload: onload
+	  });
+	};
+	
+	exports.FullPageJolecule = FullPageJolecule;
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+	 * jQuery.scrollTo
+	 * Copyright (c) 2007-2015 Ariel Flesler - aflesler<a>gmail<d>com | http://flesler.blogspot.com
+	 * Licensed under MIT
+	 * http://flesler.blogspot.com/2007/10/jqueryscrollto.html
+	 * @projectDescription Lightweight, cross-browser and highly customizable animated scrolling with jQuery
+	 * @author Ariel Flesler
+	 * @version 2.1.2
+	 */
+	;(function(factory) {
+		'use strict';
+		if (true) {
+			// AMD
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(3)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		} else if (typeof module !== 'undefined' && module.exports) {
+			// CommonJS
+			module.exports = factory(require('jquery'));
+		} else {
+			// Global
+			factory(jQuery);
+		}
+	})(function($) {
+		'use strict';
+	
+		var $scrollTo = $.scrollTo = function(target, duration, settings) {
+			return $(window).scrollTo(target, duration, settings);
+		};
+	
+		$scrollTo.defaults = {
+			axis:'xy',
+			duration: 0,
+			limit:true
+		};
+	
+		function isWin(elem) {
+			return !elem.nodeName ||
+				$.inArray(elem.nodeName.toLowerCase(), ['iframe','#document','html','body']) !== -1;
+		}		
+	
+		$.fn.scrollTo = function(target, duration, settings) {
+			if (typeof duration === 'object') {
+				settings = duration;
+				duration = 0;
+			}
+			if (typeof settings === 'function') {
+				settings = { onAfter:settings };
+			}
+			if (target === 'max') {
+				target = 9e9;
+			}
+	
+			settings = $.extend({}, $scrollTo.defaults, settings);
+			// Speed is still recognized for backwards compatibility
+			duration = duration || settings.duration;
+			// Make sure the settings are given right
+			var queue = settings.queue && settings.axis.length > 1;
+			if (queue) {
+				// Let's keep the overall duration
+				duration /= 2;
+			}
+			settings.offset = both(settings.offset);
+			settings.over = both(settings.over);
+	
+			return this.each(function() {
+				// Null target yields nothing, just like jQuery does
+				if (target === null) return;
+	
+				var win = isWin(this),
+					elem = win ? this.contentWindow || window : this,
+					$elem = $(elem),
+					targ = target, 
+					attr = {},
+					toff;
+	
+				switch (typeof targ) {
+					// A number will pass the regex
+					case 'number':
+					case 'string':
+						if (/^([+-]=?)?\d+(\.\d+)?(px|%)?$/.test(targ)) {
+							targ = both(targ);
+							// We are done
+							break;
+						}
+						// Relative/Absolute selector
+						targ = win ? $(targ) : $(targ, elem);
+						/* falls through */
+					case 'object':
+						if (targ.length === 0) return;
+						// DOMElement / jQuery
+						if (targ.is || targ.style) {
+							// Get the real position of the target
+							toff = (targ = $(targ)).offset();
+						}
+				}
+	
+				var offset = $.isFunction(settings.offset) && settings.offset(elem, targ) || settings.offset;
+	
+				$.each(settings.axis.split(''), function(i, axis) {
+					var Pos	= axis === 'x' ? 'Left' : 'Top',
+						pos = Pos.toLowerCase(),
+						key = 'scroll' + Pos,
+						prev = $elem[key](),
+						max = $scrollTo.max(elem, axis);
+	
+					if (toff) {// jQuery / DOMElement
+						attr[key] = toff[pos] + (win ? 0 : prev - $elem.offset()[pos]);
+	
+						// If it's a dom element, reduce the margin
+						if (settings.margin) {
+							attr[key] -= parseInt(targ.css('margin'+Pos), 10) || 0;
+							attr[key] -= parseInt(targ.css('border'+Pos+'Width'), 10) || 0;
+						}
+	
+						attr[key] += offset[pos] || 0;
+	
+						if (settings.over[pos]) {
+							// Scroll to a fraction of its width/height
+							attr[key] += targ[axis === 'x'?'width':'height']() * settings.over[pos];
+						}
+					} else {
+						var val = targ[pos];
+						// Handle percentage values
+						attr[key] = val.slice && val.slice(-1) === '%' ?
+							parseFloat(val) / 100 * max
+							: val;
+					}
+	
+					// Number or 'number'
+					if (settings.limit && /^\d+$/.test(attr[key])) {
+						// Check the limits
+						attr[key] = attr[key] <= 0 ? 0 : Math.min(attr[key], max);
+					}
+	
+					// Don't waste time animating, if there's no need.
+					if (!i && settings.axis.length > 1) {
+						if (prev === attr[key]) {
+							// No animation needed
+							attr = {};
+						} else if (queue) {
+							// Intermediate animation
+							animate(settings.onAfterFirst);
+							// Don't animate this axis again in the next iteration.
+							attr = {};
+						}
+					}
+				});
+	
+				animate(settings.onAfter);
+	
+				function animate(callback) {
+					var opts = $.extend({}, settings, {
+						// The queue setting conflicts with animate()
+						// Force it to always be true
+						queue: true,
+						duration: duration,
+						complete: callback && function() {
+							callback.call(elem, targ, settings);
+						}
+					});
+					$elem.animate(attr, opts);
+				}
+			});
+		};
+	
+		// Max scrolling position, works on quirks mode
+		// It only fails (not too badly) on IE, quirks mode.
+		$scrollTo.max = function(elem, axis) {
+			var Dim = axis === 'x' ? 'Width' : 'Height',
+				scroll = 'scroll'+Dim;
+	
+			if (!isWin(elem))
+				return elem[scroll] - $(elem)[Dim.toLowerCase()]();
+	
+			var size = 'client' + Dim,
+				doc = elem.ownerDocument || elem.document,
+				html = doc.documentElement,
+				body = doc.body;
+	
+			return Math.max(html[scroll], body[scroll]) - Math.min(html[size], body[size]);
+		};
+	
+		function both(val) {
+			return $.isFunction(val) || $.isPlainObject(val) ? val : { top:val, left:val };
+		}
+	
+		// Add special hooks so that window scroll properties can be animated
+		$.Tween.propHooks.scrollLeft = 
+		$.Tween.propHooks.scrollTop = {
+			get: function(t) {
+				return $(t.elem)[t.prop]();
+			},
+			set: function(t) {
+				var curr = this.get(t);
+				// If interrupt is true and user scrolled, stop animating
+				if (t.options.interrupt && t._last && t._last !== curr) {
+					return $(t.elem).stop();
+				}
+				var next = Math.round(t.now);
+				// Don't waste CPU
+				// Browsers don't render floating point scroll
+				if (curr !== next) {
+					$(t.elem)[t.prop](next);
+					t._last = this.get(t);
+				}
+			}
+		};
+	
+		// AMD requirement
+		return $scrollTo;
+	});
+
 
 /***/ }
 /******/ ])

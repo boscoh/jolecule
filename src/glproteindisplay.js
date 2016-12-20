@@ -1095,6 +1095,7 @@ class ZSlabBar extends CanvasWrapper{
         console.log('initialize zslabar with scene', scene);
         this.scene = scene;
         this.maxZLength = 0.0;
+        this.yOffset = 52;
         this.div.attr('id', 'zslab');
     }
 
@@ -1102,7 +1103,7 @@ class ZSlabBar extends CanvasWrapper{
 
         this.div.css({
             'width': this.width(),
-            'height': this.parentDiv.height(),
+            'height': this.height(),
             'top': this.y(),
             'left': this.x(),
         });
@@ -1116,13 +1117,13 @@ class ZSlabBar extends CanvasWrapper{
 
     y() {
       var parentDivPos = this.parentDiv.position();
-      return parentDivPos.top + 52;
+      return parentDivPos.top + this.yOffset;
     }
 
     height() {
-        return this.parentDiv.height() - 52;
+        return this.parentDiv.height() - this.yOffset;
     }
-    
+
     x() {
         var parentDivPos = this.parentDiv.position();
         return this.parentDiv.width() - this.width() + parentDivPos.left;

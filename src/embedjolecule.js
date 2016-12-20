@@ -231,6 +231,7 @@ function EmbedJolecule(params) {
   }
 
   this.set_text_state = function() {
+    console.log('set_text_state', this.is_view_text_shown);
     var h_padding = this.view_div.outerHeight() - this.view_div.height();
     if (this.is_view_text_shown) {
       this.view_div.height(this.h_annotation_view);
@@ -290,13 +291,12 @@ function EmbedJolecule(params) {
         function() { return _this.is_loop; },
         function(b) { _this.is_loop = b });
 
+    var save_button = '';
     if (_this.params.is_editable) {
-      var save_button = link_button(
+      save_button = link_button(
           'save_view', '+', 'jolecule-button',
            function() { _this.save_curr_view() });
-    } else {
-      var save_button = '';
-    }
+    };
 
     var text_button = toggle_button(
         'toggle_text', 'text', 'jolecule-button', 
@@ -308,6 +308,7 @@ function EmbedJolecule(params) {
       function() { return _this.controller.get_show_option('ligands'); },
       function(b) { _this.controller.set_show_option('ligands', b); }
     );
+
     this.wat_button = toggle_button(
       '', 'wat', 'jolecule-button',
       function() { return _this.controller.get_show_option('water'); },
