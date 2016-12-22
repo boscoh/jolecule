@@ -521,7 +521,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    };
 	
-	    var text_button = (0, _util.toggle_button)('toggle_text', 'text', 'jolecule-button', function () {
+	    var text_button = (0, _util.toggle_button)('toggle_text', 'txt', 'jolecule-button', function () {
 	      return _this.is_view_text_shown;
 	    }, function (b) {
 	      _this.toggle_text_state();

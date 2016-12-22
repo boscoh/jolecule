@@ -311,7 +311,7 @@ function EmbedJolecule(params) {
     };
 
     var text_button = toggle_button(
-        'toggle_text', 'text', 'jolecule-button', 
+        'toggle_text', 'txt', 'jolecule-button',
         function() { return _this.is_view_text_shown },
         function(b) { _this.toggle_text_state(); });
 
