@@ -4,12 +4,13 @@
     border-radius: 3px;
     text-align: center;
     margin-right: 2px;
-    padding: 6px 10px;
+    margin-bottom: 5px;
+    padding: 6px 6px;
     background-color: #777;
     font-size: 12px;
     font-weight: normal;
     letter-spacing: 0.1em;
-    line-height: 25px;
+    line-height: 30px;
 }
 .jolecule-residue-selector {
     height:16px;
@@ -17,7 +18,7 @@
     border: 0;
     padding: 0;
     font-family: Courier;
-    font-size: 11px;
+    font-size: 10px;
 }
 a.jolecule-button-toggle-on,
 a.jolecule-button-toggle-on:link,

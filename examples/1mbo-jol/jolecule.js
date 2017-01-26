@@ -221,6 +221,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.EmbedJolecule = undefined;
 	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
 	var _jquery = __webpack_require__(3);
 	
 	var _jquery2 = _interopRequireDefault(_jquery);
@@ -237,6 +239,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
 	//////////////////////////////////////////////////////////
 	// 
 	// EmbedJolecule - the widget that shows proteins and 
@@ -245,9 +249,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	///////////////////////////////////////////////////////////
 	
 	
-	function EmbedJolecule(params) {
+	var EmbedJolecule = function () {
+	  function EmbedJolecule(params) {
+	    _classCallCheck(this, EmbedJolecule);
 	
-	  this.init = function (params) {
 	    this.params = params;
 	    this.is_loop = this.params.is_loop;
 	
@@ -285,11 +290,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.resize();
 	    });
 	
-	    var load_failure = function load_failure() {
+	    function load_failure() {
 	      _this.loading_message_div.html(_this.params.loading_failure_html);
-	    };
+	    }
 	
-	    var load_view_dicts = function load_view_dicts(view_dicts) {
+	    function load_view_dicts(view_dicts) {
 	      _this.load_views_from_server(view_dicts);
 	      if (_this.params.view_id in _this.scene.saved_views_by_id) {
 	        _this.controller.set_target_view_by_id(_this.params.view_id);
@@ -298,9 +303,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (_this.params.onload) {
 	        _this.params.onload(_this);
 	      }
-	    };
+	    }
 	
-	    var load_protein_data = function load_protein_data(protein_data) {
+	    function load_protein_data(protein_data) {
 	      _this.loading_message_div.empty();
 	      if (protein_data['pdb_text'].length == 0) {
 	        load_failure();
@@ -309,304 +314,326 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.resize();
 	        _this.data_server.get_views(load_view_dicts);
 	      }
-	    };
+	    }
 	
 	    this.data_server.get_protein_data(load_protein_data, load_failure);
-	  };
+	  }
 	
-	  this.load_protein_data = function (protein_data) {
-	    this.loading_message_div.text("Calculating bonds...");
-	    this.protein.load(protein_data);
-	    if (this.protein.parsing_error) {
-	      this.loading_message_div.text("Error parsing protein: " + this.protein.parsing_error);
-	      return;
+	  _createClass(EmbedJolecule, [{
+	    key: "load_protein_data",
+	    value: function load_protein_data(protein_data) {
+	      this.loading_message_div.text("Calculating bonds...");
+	      this.protein.load(protein_data);
+	      if (this.protein.parsing_error) {
+	        this.loading_message_div.text("Error parsing protein: " + this.protein.parsing_error);
+	        return;
+	      }
+	      var data = protein_data['pdb_text'];
+	      var lines = data.split(/\r?\n/);
+	      var default_text = "";
+	      for (var i = 0; i < lines.length; i++) {
+	        var line = lines[i];
+	        if (line.substring(0, 5) == 'TITLE') {
+	          default_text += line.substring(10);
+	        }
+	      }
+	      if (!default_text) {
+	        default_text = "";
+	      }
+	      this.protein_display.post_load(default_text);
+	      this.loading_message_div.remove();
 	    }
-	    var data = protein_data['pdb_text'];
-	    var lines = data.split(/\r?\n/);
-	    var default_text = "";
-	    for (var i = 0; i < lines.length; i++) {
-	      var line = lines[i];
-	      if (line.substring(0, 5) == 'TITLE') {
-	        default_text += line.substring(10);
+	  }, {
+	    key: "load_views_from_server",
+	    value: function load_views_from_server(view_dicts) {
+	      this.controller.load_views_from_flat_views(view_dicts);
+	      var view_id = this.scene.current_view.id;
+	      if (this.init_view_id) {
+	        if (this.init_view_id in this.scene.saved_views_by_id) {
+	          view_id = this.init_view_id;
+	        }
+	      }
+	      this.update_view();
+	    }
+	  }, {
+	    key: "save_views_to_server",
+	    value: function save_views_to_server(success) {
+	      this.data_server.save_views(this.controller.get_view_dicts(), success);
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: "save_curr_view",
+	    value: function save_curr_view() {
+	      var new_id = (0, _util.random_id)();
+	      this.controller.calculate_current_abs_camera();
+	      this.controller.save_current_view(new_id);
+	      this.update_view();
+	      this.view_div.css('background-color', 'lightgray');
+	      var _this = this;
+	      this.save_views_to_server(function () {
+	        _this.view_div.css('background-color', '');
+	      });
+	    }
+	  }, {
+	    key: "get_curr_view",
+	    value: function get_curr_view() {
+	      var i = this.scene.i_last_view;
+	      if (i in this.scene.saved_views) {
+	        var id = this.scene.saved_views[i].id;
+	        return this.scene.saved_views_by_id[id];
+	      } else {
+	        return this.scene.saved_views[0];
 	      }
 	    }
-	    if (!default_text) {
-	      default_text = "";
+	  }, {
+	    key: "change_text",
+	    value: function change_text(changed_text) {
+	      var view = this.get_curr_view();
+	      view.text = changed_text;
+	      this.view_div.css('background-color', 'lightgray');
+	      var _this = this;
+	      var success = function success() {
+	        _this.view_div.css('background-color', '');
+	      };
+	      this.save_views_to_server(success);
+	      this.scene.changed = true;
 	    }
-	    this.protein_display.post_load(default_text);
-	    this.loading_message_div.remove();
-	  };
-	
-	  this.load_views_from_server = function (view_dicts) {
-	    this.controller.load_views_from_flat_views(view_dicts);
-	    var view_id = this.scene.current_view.id;
-	    if (this.init_view_id) {
-	      if (this.init_view_id in this.scene.saved_views_by_id) {
-	        view_id = this.init_view_id;
+	  }, {
+	    key: "delete_curr_view",
+	    value: function delete_curr_view() {
+	      var i = this.scene.i_last_view;
+	      if (i == 0) {
+	        // skip default view:000000
+	        return;
 	      }
-	    }
-	    this.update_view();
-	  };
-	
-	  this.save_views_to_server = function (success) {
-	    this.data_server.save_views(this.controller.get_view_dicts(), success);
-	    this.scene.changed = true;
-	  };
-	
-	  this.save_curr_view = function () {
-	    var new_id = (0, _util.random_id)();
-	    this.controller.calculate_current_abs_camera();
-	    this.controller.save_current_view(new_id);
-	    this.update_view();
-	    this.view_div.css('background-color', 'lightgray');
-	    var _this = this;
-	    this.save_views_to_server(function () {
-	      _this.view_div.css('background-color', '');
-	    });
-	  };
-	
-	  this.get_curr_view = function () {
-	    var i = this.scene.i_last_view;
-	    if (i in this.scene.saved_views) {
 	      var id = this.scene.saved_views[i].id;
-	      return this.scene.saved_views_by_id[id];
-	    } else {
-	      return this.scene.saved_views[0];
+	      this.controller.delete_view(id);
+	      this.view_div.css('background-color', 'lightgray');
+	
+	      var _this = this;
+	      var success = function success() {
+	        _this.update_view();
+	        _this.view_div.css('background-color', '');
+	      };
+	      this.data_server.delete_protein_view(id, success);
 	    }
-	  };
-	
-	  this.change_text = function (changed_text) {
-	    var view = this.get_curr_view();
-	    view.text = changed_text;
-	    this.view_div.css('background-color', 'lightgray');
-	    var _this = this;
-	    var success = function success() {
-	      _this.view_div.css('background-color', '');
-	    };
-	    this.save_views_to_server(success);
-	    this.scene.changed = true;
-	  };
-	
-	  this.delete_curr_view = function () {
-	    var i = this.scene.i_last_view;
-	    if (i == 0) {
-	      // skip default view:000000
-	      return;
+	  }, {
+	    key: "is_changed",
+	    value: function is_changed() {
+	      if (!(0, _util.exists)(this.protein_display)) {
+	        return false;
+	      }
+	      return this.protein_display.is_changed();
 	    }
-	    var id = this.scene.saved_views[i].id;
-	    this.controller.delete_view(id);
-	    this.view_div.css('background-color', 'lightgray');
-	
-	    var _this = this;
-	    var success = function success() {
-	      _this.update_view();
-	      _this.view_div.css('background-color', '');
-	    };
-	    this.data_server.delete_protein_view(id, success);
-	  };
-	
-	  this.is_changed = function () {
-	    if (!(0, _util.exists)(this.protein_display)) {
-	      return false;
-	    }
-	    return this.protein_display.is_changed();
-	  };
-	
-	  this.animate = function () {
-	    if ((0, _util.exists)(this.protein_display)) {
-	      this.protein_display.animate();
-	      if (this.is_loop) {
-	        if (this.scene.n_update_step <= 0) {
-	          // loop started
-	          this.scene.n_update_step -= 1;
-	          if (this.scene.n_update_step < -100) {
-	            this.controller.set_target_next_view();
-	            this.scene.changed = true;
+	  }, {
+	    key: "animate",
+	    value: function animate() {
+	      if ((0, _util.exists)(this.protein_display)) {
+	        this.protein_display.animate();
+	        if (this.is_loop) {
+	          if (this.scene.n_update_step <= 0) {
+	            // loop started
+	            this.scene.n_update_step -= 1;
+	            if (this.scene.n_update_step < -100) {
+	              this.controller.set_target_next_view();
+	              this.scene.changed = true;
+	            }
 	          }
 	        }
 	      }
 	    }
-	  };
-	
-	  this.draw = function () {
-	    if ((0, _util.exists)(this.protein_display)) {
-	      if (this.scene.changed) {
-	        this.update_view();
-	        this.protein_display.draw();
-	        this.scene.changed = false;
+	  }, {
+	    key: "draw",
+	    value: function draw() {
+	      if ((0, _util.exists)(this.protein_display)) {
+	        if (this.scene.changed) {
+	          this.update_view();
+	          this.protein_display.draw();
+	          this.scene.changed = false;
+	        }
 	      }
 	    }
-	  };
-	
-	  this.cycle_backbone = function () {
-	    if (this.scene.current_view.show.all_atom) {
-	      this.controller.set_backbone_option('ribbon');
-	    } else if (this.scene.current_view.show.ribbon) {
-	      this.controller.set_backbone_option('trace');
-	    } else if (this.scene.current_view.show.trace) {
-	      this.controller.set_backbone_option('all_atom');
+	  }, {
+	    key: "cycle_backbonefunction",
+	    value: function cycle_backbonefunction() {
+	      if (this.scene.current_view.show.all_atom) {
+	        this.controller.set_backbone_option('ribbon');
+	      } else if (this.scene.current_view.show.ribbon) {
+	        this.controller.set_backbone_option('trace');
+	      } else if (this.scene.current_view.show.trace) {
+	        this.controller.set_backbone_option('all_atom');
+	      }
 	    }
-	  };
-	
-	  this.set_text_state = function () {
-	    console.log('set_text_state', this.is_view_text_shown);
-	    var h_padding = this.view_div.outerHeight() - this.view_div.height();
-	    if (this.is_view_text_shown) {
-	      this.view_div.height(this.h_annotation_view);
-	      this.view_div.css('visibility', 'visible');
-	    } else {
-	      this.view_div.height(0);
-	      this.view_div.css('visibility', 'hidden');
+	  }, {
+	    key: "set_text_state",
+	    value: function set_text_state() {
+	      console.log('set_text_state', this.is_view_text_shown);
+	      var h_padding = this.view_div.outerHeight() - this.view_div.height();
+	      if (this.is_view_text_shown) {
+	        this.view_div.height(this.h_annotation_view);
+	        this.view_div.css('visibility', 'visible');
+	      } else {
+	        this.view_div.height(0);
+	        this.view_div.css('visibility', 'hidden');
+	      }
+	      this.resize();
+	      this.controller.scene.changed = true;
 	    }
-	    this.resize();
-	    this.controller.scene.changed = true;
-	  };
+	  }, {
+	    key: "toggle_text_state",
+	    value: function toggle_text_state() {
+	      this.is_view_text_shown = !this.is_view_text_shown;
+	      this.set_text_state();
+	    }
+	  }, {
+	    key: "goto_prev_view",
+	    value: function goto_prev_view() {
+	      this.controller.set_target_prev_view();
+	      this.update_view();
+	    }
+	  }, {
+	    key: "goto_next_view",
+	    value: function goto_next_view() {
+	      this.controller.set_target_next_view();
+	      this.update_view();
+	    }
+	  }, {
+	    key: "create_protein_div",
+	    value: function create_protein_div() {
+	      var height = this.div.outerHeight() - this.h_annotation_view;
+	      this.protein_div = (0, _jquery2.default)('<div>').attr('id', 'jolecule-protein-display').addClass('jolecule-embed-body').css('overflow', 'hidden').css('width', this.div.outerWidth()).css('height', height);
+	      this.div.append(this.protein_div);
+	    }
+	  }, {
+	    key: "create_status_div",
+	    value: function create_status_div() {
+	      var _this = this;
 	
-	  this.toggle_text_state = function () {
-	    this.is_view_text_shown = !this.is_view_text_shown;
-	    this.set_text_state();
-	  };
+	      this.status_text = (0, _jquery2.default)('<span>');
 	
-	  this.goto_prev_view = function () {
-	    this.controller.set_target_prev_view();
-	    this.update_view();
-	  };
-	
-	  this.goto_next_view = function () {
-	    this.controller.set_target_next_view();
-	    this.update_view();
-	  };
-	
-	  this.create_protein_div = function () {
-	    var height = this.div.outerHeight() - this.h_annotation_view;
-	    this.protein_div = (0, _jquery2.default)('<div>').attr('id', 'jolecule-protein-display').addClass('jolecule-embed-body').css('overflow', 'hidden').css('width', this.div.outerWidth()).css('height', height);
-	    this.div.append(this.protein_div);
-	  };
-	
-	  this.create_status_div = function () {
-	    var _this = this;
-	
-	    this.status_text = (0, _jquery2.default)('<span>');
-	
-	    this.lig_button = (0, _util.toggle_button)('', 'lig', 'jolecule-button', function () {
-	      return _this.controller.get_show_option('ligands');
-	    }, function (b) {
-	      _this.controller.set_show_option('ligands', b);
-	    });
-	
-	    this.wat_button = (0, _util.toggle_button)('', 'wat', 'jolecule-button', function () {
-	      return _this.controller.get_show_option('water');
-	    }, function (b) {
-	      _this.controller.set_show_option('water', b);
-	    });
-	
-	    var prev_button = (0, _util.link_button)('prev_view', '<', 'jolecule-button', function () {
-	      _this.goto_prev_view();
-	    });
-	
-	    var next_button = (0, _util.link_button)('prev_view', '>', 'jolecule-button', function () {
-	      _this.goto_next_view();
-	    });
-	
-	    var loop_button = (0, _util.toggle_button)('loop', '&orarr;', 'jolecule-button', function () {
-	      return _this.is_loop;
-	    }, function (b) {
-	      _this.is_loop = b;
-	    });
-	
-	    var save_button = '';
-	    if (_this.params.is_editable) {
-	      save_button = (0, _util.link_button)('save_view', '+', 'jolecule-button', function () {
-	        _this.save_curr_view();
+	      var text_button = (0, _util.toggle_button)('toggle_text', 'T', 'jolecule-button', function () {
+	        return _this.is_view_text_shown;
+	      }, function (b) {
+	        _this.toggle_text_state();
 	      });
-	    };
 	
-	    var text_button = (0, _util.toggle_button)('toggle_text', 'txt', 'jolecule-button', function () {
-	      return _this.is_view_text_shown;
-	    }, function (b) {
-	      _this.toggle_text_state();
-	    });
+	      var prev_button = (0, _util.link_button)('prev_view', '<', 'jolecule-button', function () {
+	        _this.goto_prev_view();
+	      });
 	
-	    this.hyd_button = (0, _util.toggle_button)('', 'h', 'jolecule-button', function () {
-	      return _this.controller.get_show_option('hydrogen');
-	    }, function (b) {
-	      _this.controller.set_show_option('hydrogen', b);
-	    });
-	    this.hyd_button = '';
+	      var next_button = (0, _util.link_button)('prev_view', '>', 'jolecule-button', function () {
+	        _this.goto_next_view();
+	      });
 	
-	    var backbone_button = (0, _util.link_button)('', 'bb', 'jolecule-button', function () {
-	      _this.cycle_backbone();
-	    });
+	      var loop_button = (0, _util.toggle_button)('loop', '&orarr;', 'jolecule-button', function () {
+	        return _this.is_loop;
+	      }, function (b) {
+	        _this.is_loop = b;
+	      });
 	
-	    var all_button = (0, _util.link_button)('', 'sc', 'jolecule-button', function () {
-	      _this.controller.set_show_option('sidechain', true);
-	    });
+	      var save_button = '';
+	      if (_this.params.is_editable) {
+	        save_button = (0, _util.link_button)('save_view', '+', 'jolecule-button', function () {
+	          _this.save_curr_view();
+	        });
+	      };
 	
-	    var clear_button = (0, _util.link_button)('', 'clr', 'jolecule-button', function () {
-	      _this.controller.set_show_option('sidechain', false);
-	      _this.controller.clear_selected();
-	    });
+	      this.lig_button = (0, _util.toggle_button)('', 'lig', 'jolecule-button', function () {
+	        return _this.controller.get_show_option('ligands');
+	      }, function (b) {
+	        _this.controller.set_show_option('ligands', b);
+	      });
 	
-	    var neighbour_button = (0, _util.link_button)('', 'neig', 'jolecule-button', function () {
-	      _this.controller.toggle_neighbors();
-	    });
+	      this.wat_button = (0, _util.toggle_button)('', 'h2o', 'jolecule-button', function () {
+	        return _this.controller.get_show_option('water');
+	      }, function (b) {
+	        _this.controller.set_show_option('water', b);
+	      });
 	
-	    this.status_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div>').append(prev_button).append(this.status_text).append(next_button).append(save_button).append(loop_button)).append((0, _jquery2.default)('<div>').addClass('flex-right').append(this.lig_button).append(this.hyd_button).append(this.wat_button).append(' ').append(backbone_button).append(' ').append(all_button).append(clear_button).append(neighbour_button).append(' ').append(text_button));
+	      this.hyd_button = (0, _util.toggle_button)('', 'h', 'jolecule-button', function () {
+	        return _this.controller.get_show_option('hydrogen');
+	      }, function (b) {
+	        _this.controller.set_show_option('hydrogen', b);
+	      });
+	      this.hyd_button = '';
 	
-	    this.div.append(this.status_div);
-	  };
+	      var backbone_button = (0, _util.link_button)('', 'backbone', 'jolecule-button', function () {
+	        _this.cycle_backbone();
+	      });
 	
-	  this.update_view = function () {
-	    var _this = this;
-	    var view = this.get_curr_view();
-	    if (view == null) {
-	      return;
+	      var all_button = (0, _util.link_button)('', 'all', 'jolecule-button', function () {
+	        _this.controller.set_show_option('sidechain', true);
+	      });
+	
+	      var clear_button = (0, _util.link_button)('', 'x', 'jolecule-button', function () {
+	        _this.controller.set_show_option('sidechain', false);
+	        _this.controller.clear_selected();
+	      });
+	
+	      var neighbour_button = (0, _util.link_button)('', 'near', 'jolecule-button', function () {
+	        _this.controller.toggle_neighbors();
+	      });
+	
+	      this.status_div = (0, _jquery2.default)('<div style="flex-wrap: wrap; justify-content: flex-end">').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap;">').append(loop_button).append(text_button).append(prev_button).append(this.status_text).append(next_button).append(save_button)).append((0, _jquery2.default)('<div style="margin-left: 0.75em; white-space: nowrap;">').append(backbone_button)).append((0, _jquery2.default)('<div style="margin-left: 0.75em; white-space: nowrap;">').append(this.lig_button).append(this.hyd_button).append(this.wat_button)).append((0, _jquery2.default)('<div style="margin-left: 0.75em; white-space: nowrap; align-self: flex-end">').append(' sidechain:').append(all_button).append(clear_button).append(neighbour_button).append(' '));
+	
+	      this.div.append(this.status_div);
 	    }
-	    var n_view = this.scene.saved_views.length;
-	    var i_view = view.order + 1;
-	    this.status_text.text(' ' + i_view + '/' + n_view + ' ');
-	    var view_piece = new _util.ViewPiece({
-	      view: view,
-	      is_editable: _this.params.is_editable,
-	      delete_view: function delete_view() {
-	        _this.delete_curr_view();
-	      },
-	      save_change: function save_change(text) {
-	        _this.change_text(text);
-	      },
-	      pick: _util.do_nothing,
-	      embed_view: function embed_view() {
-	        window.location.href = '/embed/pdb/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id;
+	  }, {
+	    key: "update_view",
+	    value: function update_view() {
+	      var _this = this;
+	      var view = this.get_curr_view();
+	      if (view == null) {
+	        return;
 	      }
-	    });
-	    this.real_view_div = view_piece.div;
-	    this.real_view_div.css('overflow-y', 'auto').css('height', '100%');
-	    this.view_div.empty().append(this.real_view_div);
-	    this.lig_button.redraw();
-	    this.wat_button.redraw();
-	    // this.hyd.redraw();
-	  };
-	
-	  this.create_view_div = function () {
-	    this.view_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view');
-	    this.div.append(this.view_div);
-	  };
-	
-	  this.resize = function (event) {
-	    this.protein_div.width(this.div.outerWidth());
-	    var new_height = this.div.outerHeight() - this.view_div.outerHeight() - this.status_div.outerHeight();
-	    if ((0, _util.exists)(this.protein_display)) {
-	      if ((0, _util.exists)(this.protein_display.renderer)) {
-	        this.protein_display.renderer.domElement.style.height = new_height;
-	        this.protein_display.resize();
-	      }
-	      this.scene.changed = true;
+	      var n_view = this.scene.saved_views.length;
+	      var i_view = view.order + 1;
+	      this.status_text.text(' ' + i_view + '/' + n_view + ' ');
+	      var view_piece = new _util.ViewPiece({
+	        view: view,
+	        is_editable: _this.params.is_editable,
+	        delete_view: function delete_view() {
+	          _this.delete_curr_view();
+	        },
+	        save_change: function save_change(text) {
+	          _this.change_text(text);
+	        },
+	        pick: _util.do_nothing,
+	        embed_view: function embed_view() {
+	          window.location.href = '/embed/pdb/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id;
+	        }
+	      });
+	      this.real_view_div = view_piece.div;
+	      this.real_view_div.css('overflow-y', 'auto').css('height', '100%');
+	      this.view_div.empty().append(this.real_view_div);
+	      this.lig_button.redraw();
+	      this.wat_button.redraw();
+	      // this.hyd.redraw();
 	    }
-	    this.protein_div.css('height', new_height);
-	  };
+	  }, {
+	    key: "create_view_div",
+	    value: function create_view_div() {
+	      this.view_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view');
+	      this.div.append(this.view_div);
+	    }
+	  }, {
+	    key: "resize",
+	    value: function resize(event) {
+	      this.protein_div.width(this.div.outerWidth());
+	      var new_height = this.div.outerHeight() - this.view_div.outerHeight() - this.status_div.outerHeight();
+	      if ((0, _util.exists)(this.protein_display)) {
+	        if ((0, _util.exists)(this.protein_display.renderer)) {
+	          this.protein_display.renderer.domElement.style.height = new_height;
+	          this.protein_display.resize();
+	        }
+	        this.scene.changed = true;
+	      }
+	      this.protein_div.css('height', new_height);
+	    }
+	  }]);
 	
-	  this.init(params);
-	}
+	  return EmbedJolecule;
+	}();
 	
 	exports.EmbedJolecule = EmbedJolecule;
 
@@ -72071,9 +72098,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return MessageBar;
 	}();
 	
-	////////////////////////////////////////////////////////////////////
-	// PopupText
-	////////////////////////////////////////////////////////////////////
+	/**
+	 * PopupText
+	 **/
 	
 	var PopupText = function () {
 	    function PopupText(selector) {
@@ -72834,9 +72861,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return SequenceWidget;
 	}(CanvasWrapper);
 	
-	////////////////////////////////////////////////////////////////////
-	// ZSlabBar
-	////////////////////////////////////////////////////////////////////
+	/**
+	 * ZSlabBar
+	 **/
 	
 	var ZSlabBar = function (_CanvasWrapper2) {
 	    _inherits(ZSlabBar, _CanvasWrapper2);

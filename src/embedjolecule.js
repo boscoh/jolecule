@@ -22,9 +22,9 @@ import {
 ///////////////////////////////////////////////////////////
 
 
-function EmbedJolecule(params) {
+class EmbedJolecule {
 
-  this.init = function(params) {
+  constructor (params) {
     this.params = params;
     this.is_loop = this.params.is_loop;
 
@@ -61,12 +61,12 @@ function EmbedJolecule(params) {
 
     $(window).resize(function() { _this.resize(); });
 
-    var load_failure = function() {
+    function load_failure() {
       _this.loading_message_div.html(
         _this.params.loading_failure_html);
     }
 
-    var load_view_dicts = function(view_dicts) {
+    function load_view_dicts(view_dicts) {
       _this.load_views_from_server(view_dicts);
       if (_this.params.view_id in _this.scene.saved_views_by_id) {
         _this.controller.set_target_view_by_id(_this.params.view_id);
@@ -77,7 +77,7 @@ function EmbedJolecule(params) {
       }
     }
 
-    var load_protein_data = function(protein_data) {
+    function load_protein_data(protein_data) {
       _this.loading_message_div.empty();
       if (protein_data['pdb_text'].length == 0) {
         load_failure();
@@ -90,9 +90,9 @@ function EmbedJolecule(params) {
 
     this.data_server.get_protein_data(
       load_protein_data, load_failure);
-  }
+  };
 
-  this.load_protein_data = function(protein_data) {
+  load_protein_data(protein_data) {
     this.loading_message_div.text("Calculating bonds...");
     this.protein.load(protein_data);
     if (this.protein.parsing_error) {
@@ -116,7 +116,7 @@ function EmbedJolecule(params) {
     this.loading_message_div.remove();
   }
 
-  this.load_views_from_server = function(view_dicts) {
+  load_views_from_server(view_dicts) {
     this.controller.load_views_from_flat_views(view_dicts);
     var view_id = this.scene.current_view.id;
     if (this.init_view_id) {
@@ -127,13 +127,13 @@ function EmbedJolecule(params) {
     this.update_view();
   }
 
-  this.save_views_to_server = function(success) {
+  save_views_to_server(success) {
     this.data_server.save_views(
       this.controller.get_view_dicts(), success);
     this.scene.changed = true;
   }
 
-  this.save_curr_view = function() {
+  save_curr_view() {
     var new_id = random_id();
     this.controller.calculate_current_abs_camera();
     this.controller.save_current_view(new_id);
@@ -147,7 +147,7 @@ function EmbedJolecule(params) {
     );
   }
 
-  this.get_curr_view = function() {
+  get_curr_view() {
     var i = this.scene.i_last_view;
     if (i in this.scene.saved_views) {
       var id = this.scene.saved_views[i].id;
@@ -157,7 +157,7 @@ function EmbedJolecule(params) {
     }
   }
 
-  this.change_text = function(changed_text) {
+  change_text(changed_text) {
     var view = this.get_curr_view();
     view.text = changed_text;
     this.view_div.css('background-color', 'lightgray');
@@ -169,7 +169,7 @@ function EmbedJolecule(params) {
     this.scene.changed = true;
   }
 
-  this.delete_curr_view = function() {
+  delete_curr_view() {
     var i = this.scene.i_last_view;
     if (i == 0) {
       // skip default view:000000
@@ -187,14 +187,14 @@ function EmbedJolecule(params) {
     this.data_server.delete_protein_view(id, success);
   }
 
-  this.is_changed = function() {
+  is_changed() {
     if (!exists(this.protein_display)) {
       return false;
     }
     return this.protein_display.is_changed();
   }
 
-  this.animate = function() {
+  animate() {
     if (exists(this.protein_display)) {
       this.protein_display.animate();
       if (this.is_loop) {
@@ -208,9 +208,9 @@ function EmbedJolecule(params) {
         }
       }
     }
-  }
+  };
 
-  this.draw = function() { 
+  draw() {
     if (exists(this.protein_display)) {
       if (this.scene.changed) {
         this.update_view();
@@ -220,7 +220,7 @@ function EmbedJolecule(params) {
     }
   }
 
-  this.cycle_backbone = function() {
+  cycle_backbonefunction() {
     if (this.scene.current_view.show.all_atom) {
       this.controller.set_backbone_option('ribbon');
     } else if (this.scene.current_view.show.ribbon) {
@@ -230,7 +230,7 @@ function EmbedJolecule(params) {
     }
   }
 
-  this.set_text_state = function() {
+  set_text_state() {
     console.log('set_text_state', this.is_view_text_shown);
     var h_padding = this.view_div.outerHeight() - this.view_div.height();
     if (this.is_view_text_shown) {
@@ -244,22 +244,22 @@ function EmbedJolecule(params) {
     this.controller.scene.changed = true;
   }
 
-  this.toggle_text_state = function() {
+  toggle_text_state() {
     this.is_view_text_shown = !this.is_view_text_shown;
     this.set_text_state();
   }
   
-  this.goto_prev_view = function() {
+  goto_prev_view() {
     this.controller.set_target_prev_view();
     this.update_view();
   }
   
-  this.goto_next_view = function() {
+  goto_next_view() {
     this.controller.set_target_next_view();
     this.update_view();
   }
 
-  this.create_protein_div = function() {
+  create_protein_div() {
     var height = 
         this.div.outerHeight() - 
         this.h_annotation_view;
@@ -273,22 +273,15 @@ function EmbedJolecule(params) {
     this.div.append(this.protein_div);
   }
 
-  this.create_status_div = function() {
+  create_status_div() {
     var _this = this;
 
     this.status_text = $('<span>');
 
-    this.lig_button = toggle_button(
-      '', 'lig', 'jolecule-button',
-      function() { return _this.controller.get_show_option('ligands'); },
-      function(b) { _this.controller.set_show_option('ligands', b); }
-    );
-
-    this.wat_button = toggle_button(
-      '', 'wat', 'jolecule-button',
-      function() { return _this.controller.get_show_option('water'); },
-      function(b) { _this.controller.set_show_option('water', b); }
-    );
+    var text_button = toggle_button(
+        'toggle_text', 'T', 'jolecule-button',
+        function() { return _this.is_view_text_shown },
+        function(b) { _this.toggle_text_state(); });
 
     var prev_button = link_button(
       'prev_view', '<', 'jolecule-button',
@@ -310,10 +303,17 @@ function EmbedJolecule(params) {
            function() { _this.save_curr_view() });
     };
 
-    var text_button = toggle_button(
-        'toggle_text', 'txt', 'jolecule-button',
-        function() { return _this.is_view_text_shown },
-        function(b) { _this.toggle_text_state(); });
+    this.lig_button = toggle_button(
+      '', 'lig', 'jolecule-button',
+      function() { return _this.controller.get_show_option('ligands'); },
+      function(b) { _this.controller.set_show_option('ligands', b); }
+    );
+
+    this.wat_button = toggle_button(
+      '', 'h2o', 'jolecule-button',
+      function() { return _this.controller.get_show_option('water'); },
+      function(b) { _this.controller.set_show_option('water', b); }
+    );
 
     this.hyd_button = toggle_button(
       '', 'h', 'jolecule-button',
@@ -323,53 +323,57 @@ function EmbedJolecule(params) {
     this.hyd_button = '';
 
     var backbone_button = link_button(
-      '', 'bb', 'jolecule-button',
+      '', 'backbone', 'jolecule-button',
       function() { _this.cycle_backbone(); });
 
-    var all_button = link_button('', 'sc', 'jolecule-button',
+    var all_button = link_button('', 'all', 'jolecule-button',
       function() { _this.controller.set_show_option('sidechain', true); });
 
     var clear_button = link_button(
-      '', 'clr', 'jolecule-button',
+      '', 'x', 'jolecule-button',
       function() {
         _this.controller.set_show_option('sidechain', false);
         _this.controller.clear_selected();
       });
 
     var neighbour_button = link_button(
-      '', 'neig', 'jolecule-button',
+      '', 'near', 'jolecule-button',
       function() { _this.controller.toggle_neighbors(); });
 
-    this.status_div = $('<div>')
+    this.status_div = $('<div style="flex-wrap: wrap; justify-content: flex-end">')
       .addClass('jolecule-embed-view-bar')
       .append(
-        $('<div>')
+        $('<div style="flex: 1; white-space: nowrap;">')
+          .append(loop_button)
+          .append(text_button)
           .append(prev_button)
           .append(this.status_text)
           .append(next_button)
           .append(save_button)
-          .append(loop_button)
       )
       .append(
-        $('<div>')
-          .addClass('flex-right')
+        $('<div style="margin-left: 0.75em; white-space: nowrap;">')
+          .append(backbone_button)
+      )
+      .append(
+        $('<div style="margin-left: 0.75em; white-space: nowrap;">')
           .append(this.lig_button)
           .append(this.hyd_button)
           .append(this.wat_button)
-          .append(' ')
-          .append(backbone_button)
-          .append(' ')
+      ) 
+      .append(
+        $('<div style="margin-left: 0.75em; white-space: nowrap; align-self: flex-end">')
+          .append(' sidechain:')
           .append(all_button)
           .append(clear_button)
           .append(neighbour_button)
           .append(' ')
-          .append(text_button)
-      );
+      ) ;
 
     this.div.append(this.status_div);
   }
 
-  this.update_view = function() {
+  update_view() {
     var _this = this;
     var view = this.get_curr_view();
     if (view == null) {
@@ -400,13 +404,13 @@ function EmbedJolecule(params) {
     // this.hyd.redraw();
   }
 
-  this.create_view_div = function() {
+  create_view_div() {
     this.view_div = $('<div>')
       .addClass('jolecule-embed-view');
     this.div.append(this.view_div);
   }
 
-  this.resize = function(event) {
+  resize(event) {
     this.protein_div.width(this.div.outerWidth());
     var new_height = this.div.outerHeight()
         - this.view_div.outerHeight()
@@ -421,9 +425,6 @@ function EmbedJolecule(params) {
     this.protein_div.css('height', new_height);
   }
 
-
-
-  this.init(params);
 }
 
 
