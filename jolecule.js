@@ -81,6 +81,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var defaultArgs = {
 	    div_tag: '',
 	    data_server: '',
+	    second_data_server: '',
 	    loading_html: 'Loading PDB from RCSB web-site...',
 	    loading_failure_html: 'Failed to load PDB.',
 	    view_id: '',
@@ -90,8 +91,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    is_loop: false,
 	    onload: onload
 	  };
+	  console.log('initEmbedJolecule');
 	  var args = _lodash2.default.merge(defaultArgs, userArgs);
-	  (0, _animation.register_global_animation_loop)(new _embedjolecule.EmbedJolecule(args));
+	  var j = new _embedjolecule.EmbedJolecule(args);
+	  (0, _animation.register_global_animation_loop)(j);
+	  if (userArgs.second_data_server) {
+	    console.log('add second data_server');
+	    j.addDataServer(userArgs.second_data_server);
+	  }
 	}
 	
 	/**
@@ -233,7 +240,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _protein = __webpack_require__(6);
 	
-	var _glproteindisplay = __webpack_require__(10);
+	var _proteindisplay = __webpack_require__(10);
 	
 	var _util = __webpack_require__(9);
 	
@@ -241,16 +248,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	//////////////////////////////////////////////////////////
-	// 
-	// EmbedJolecule - the widget that shows proteins and 
-	// annotations
-	//
-	///////////////////////////////////////////////////////////
-	
+	/**
+	 *
+	 * EmbedJolecule - the widget that shows proteins and
+	 * annotations
+	 *
+	 **/
 	
 	var EmbedJolecule = function () {
 	  function EmbedJolecule(params) {
+	    var _this2 = this;
+	
 	    _classCallCheck(this, EmbedJolecule);
 	
 	    this.params = params;
@@ -270,7 +278,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.controller = new _protein.Controller(this.scene);
 	
 	    this.create_protein_div();
-	    this.protein_display = new _glproteindisplay.GlProteinDisplay(this.scene, '#jolecule-protein-display', this.controller);
+	    this.protein_display = new _proteindisplay.ProteinDisplay(this.scene, '#jolecule-protein-display', this.controller);
 	    this.protein_display.min_radius = 10;
 	
 	    this.create_status_div();
@@ -284,69 +292,88 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.is_view_text_shown = this.params.is_view_text_shown;
 	    this.set_text_state();
 	
-	    var _this = this;
-	
 	    (0, _jquery2.default)(window).resize(function () {
-	      _this.resize();
+	      return _this2.resize();
 	    });
 	
-	    function load_failure() {
-	      _this.loading_message_div.html(_this.params.loading_failure_html);
-	    }
+	    this.data_server.get_protein_data(function (protein_data) {
 	
-	    function load_view_dicts(view_dicts) {
-	      _this.load_views_from_server(view_dicts);
-	      if (_this.params.view_id in _this.scene.saved_views_by_id) {
-	        _this.controller.set_target_view_by_id(_this.params.view_id);
-	        _this.update_view();
-	      }
-	      if (_this.params.onload) {
-	        _this.params.onload(_this);
-	      }
-	    }
+	      _this2.load_protein_data(protein_data);
 	
-	    function load_protein_data(protein_data) {
-	      _this.loading_message_div.empty();
-	      if (protein_data['pdb_text'].length == 0) {
-	        load_failure();
-	      } else {
-	        _this.load_protein_data(protein_data);
-	        _this.resize();
-	        _this.data_server.get_views(load_view_dicts);
-	      }
-	    }
+	      _this2.data_server.get_views(function (view_dicts) {
 	
-	    this.data_server.get_protein_data(load_protein_data, load_failure);
+	        _this2.load_views_from_server(view_dicts);
+	
+	        if (_this2.params.onload) {
+	          _this2.params.onload(_this2);
+	        }
+	      });
+	    });
 	  }
 	
 	  _createClass(EmbedJolecule, [{
 	    key: "load_protein_data",
 	    value: function load_protein_data(protein_data) {
-	      this.loading_message_div.text("Calculating bonds...");
+	
+	      this.loading_message_div.text("Parsing protein " + protein_data.pdb_id);
+	
+	      if (protein_data['pdb_text'].length == 0) {
+	        console.log(this.params.loading_failure_html);
+	        this.loading_message_div.html(this.params.loading_failure_html);
+	        return;
+	      }
+	
 	      this.protein.load(protein_data);
+	
 	      if (this.protein.parsing_error) {
 	        this.loading_message_div.text("Error parsing protein: " + this.protein.parsing_error);
 	        return;
 	      }
-	      var data = protein_data['pdb_text'];
-	      var lines = data.split(/\r?\n/);
-	      var default_text = "";
-	      for (var i = 0; i < lines.length; i++) {
-	        var line = lines[i];
-	        if (line.substring(0, 5) == 'TITLE') {
-	          default_text += line.substring(10);
-	        }
-	      }
-	      if (!default_text) {
-	        default_text = "";
-	      }
-	      this.protein_display.post_load(default_text);
+	
+	      this.protein_display.buildAfterDataLoad();
+	
 	      this.loading_message_div.remove();
+	
+	      this.resize();
+	    }
+	  }, {
+	    key: "addDataServer",
+	    value: function addDataServer(data_server) {
+	      var _this3 = this;
+	
+	      data_server.get_protein_data(function (protein_data) {
+	        if (protein_data['pdb_text'].length == 0) {
+	          _this3.loading_message_div.html(_this3.params.loading_failure_html);
+	          return;
+	        }
+	        _this3.loading_message_div.text("Parsing protein " + protein_data.pdb_id);
+	        console.log("EmbedJolecule.addDataServer", protein_data.pdb_id);
+	
+	        _this3.protein.load(protein_data);
+	        function empty(elem) {
+	          while (elem.lastChild) {
+	            elem.removeChild(elem.lastChild);
+	          }
+	        }
+	        // let scene = this.protein_display.threeJsScene;
+	        // for (let i = scene.children.length - 1; i >= 0 ; i--) {
+	        //   let child = scene.children[ i ];
+	        //
+	        //   if ( child !== plane && child !== camera ) { // plane & camera are stored earlier
+	        //     scene.remove(child);
+	        //   }
+	        // }
+	        // this.protein_display.setLights();
+	        _this3.protein_display.buildScene();
+	        _this3.protein_display.sequenceWidget.resetResidues();
+	      });
 	    }
 	  }, {
 	    key: "load_views_from_server",
 	    value: function load_views_from_server(view_dicts) {
+	
 	      this.controller.load_views_from_flat_views(view_dicts);
+	
 	      var view_id = this.scene.current_view.id;
 	      if (this.init_view_id) {
 	        if (this.init_view_id in this.scene.saved_views_by_id) {
@@ -354,6 +381,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 	      this.update_view();
+	
+	      if (this.params.view_id in this.scene.saved_views_by_id) {
+	        this.controller.set_target_view_by_id(this.params.view_id);
+	        this.update_view();
+	      }
 	    }
 	  }, {
 	    key: "save_views_to_server",
@@ -454,8 +486,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "cycle_backbonefunction",
-	    value: function cycle_backbonefunction() {
+	    key: "cycle_backbone",
+	    value: function cycle_backbone() {
 	      if (this.scene.current_view.show.all_atom) {
 	        this.controller.set_backbone_option('ribbon');
 	      } else if (this.scene.current_view.show.ribbon) {
@@ -467,7 +499,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "set_text_state",
 	    value: function set_text_state() {
-	      console.log('set_text_state', this.is_view_text_shown);
 	      var h_padding = this.view_div.outerHeight() - this.view_div.height();
 	      if (this.is_view_text_shown) {
 	        this.view_div.height(this.h_annotation_view);
@@ -618,7 +649,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: "resize",
-	    value: function resize(event) {
+	    value: function resize() {
 	      this.protein_div.width(this.div.outerWidth());
 	      var new_height = this.div.outerHeight() - this.view_div.outerHeight() - this.status_div.outerHeight();
 	      if ((0, _util.exists)(this.protein_display)) {
@@ -27958,7 +27989,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	exports.Scene = exports.Controller = exports.View = exports.get_camera_transform = exports.is_equal_camera = exports.Camera = exports.Protein = exports.atom_radius = undefined;
 	
@@ -27997,789 +28028,845 @@ return /******/ (function(modules) { // webpackBootstrap
 	var atom_radius = 0.3;
 	
 	function extract_atom_lines(data) {
-	    var lines = data.split(/\r?\n/);
-	    var pdb_lines = [];
-	    for (var i = 0; i < lines.length; i++) {
-	        var line = lines[i];
-	        if (line.slice(0, 4) === "ATOM" || line.slice(0, 6) === "HETATM") {
-	            pdb_lines.push(line);
-	        }
-	        if (line.slice(0, 3) == "END") {
-	            break;
-	        }
+	  var lines = data.split(/\r?\n/);
+	  var pdb_lines = [];
+	  for (var i = 0; i < lines.length; i++) {
+	    var line = lines[i];
+	    if (line.slice(0, 4) === "ATOM" || line.slice(0, 6) === "HETATM") {
+	      pdb_lines.push(line);
 	    }
-	    return pdb_lines;
+	    if (line.slice(0, 3) == "END") {
+	      break;
+	    }
+	  }
+	  return pdb_lines;
+	}
+	
+	function parsetTitleFromPdbText(text) {
+	  var result = "";
+	  var lines = text.split(/\r?\n/);
+	  var _iteratorNormalCompletion = true;
+	  var _didIteratorError = false;
+	  var _iteratorError = undefined;
+	
+	  try {
+	    for (var _iterator = lines[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	      var line = _step.value;
+	
+	      if (line.substring(0, 5) == 'TITLE') {
+	        result += line.substring(10);
+	      }
+	    }
+	  } catch (err) {
+	    _didIteratorError = true;
+	    _iteratorError = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion && _iterator.return) {
+	        _iterator.return();
+	      }
+	    } finally {
+	      if (_didIteratorError) {
+	        throw _iteratorError;
+	      }
+	    }
+	  }
+	
+	  return result;
 	}
 	
 	function get_central_atom_from_atom_dict(atom_dict) {
-	    var pos = _v2.default.create(0, 0, 0);
-	    var n = 0;
-	    for (var k in atom_dict) {
-	        pos = _v2.default.sum(pos, atom_dict[k].pos);
-	        n += 1;
+	  var pos = _v2.default.create(0, 0, 0);
+	  var n = 0;
+	  for (var k in atom_dict) {
+	    pos = _v2.default.sum(pos, atom_dict[k].pos);
+	    n += 1;
+	  }
+	  pos.divideScalar(n);
+	  var central_atom = null;
+	  var min_d = 1E6;
+	  for (var k in atom_dict) {
+	    if (central_atom == null) {
+	      central_atom = atom_dict[k];
+	      continue;
 	    }
-	    pos.divideScalar(n);
-	    var central_atom = null;
-	    var min_d = 1E6;
-	    for (var k in atom_dict) {
-	        if (central_atom == null) {
-	            central_atom = atom_dict[k];
-	            continue;
-	        }
-	        var d = _v2.default.distance(pos, atom_dict[k].pos);
-	        if (d < min_d) {
-	            central_atom = atom_dict[k];
-	            min_d = d;
-	        }
+	    var d = _v2.default.distance(pos, atom_dict[k].pos);
+	    if (d < min_d) {
+	      central_atom = atom_dict[k];
+	      min_d = d;
 	    }
-	    return central_atom;
+	  }
+	  return central_atom;
 	}
 	
 	var Protein = function Protein() {
-	    this.atoms = [];
-	    this.bonds = [];
-	    this.res_by_id = {};
-	    this.residues = [];
+	  this.atoms = [];
+	  this.bonds = [];
+	  this.res_by_id = {};
+	  this.residues = [];
+	  this.ribbons = [];
+	  this.trace = [];
+	  this.parsing_error = '';
+	  this.isLoading = false;
+	  this.default_html = "";
+	
+	  var aa = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR'];
+	  var dna = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C'];
+	  var rna = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
+	  var chonp = ['C', 'H', 'O', 'N', 'P'];
+	
+	  function delete_numbers(text) {
+	    return text.replace(/\d+/, '');
+	  }
+	
+	  this.make_atoms_from_pdb_lines = function (lines, pdb_id) {
+	    var atoms = [];
+	    if (lines.length == 0) {
+	      this.parsing_error = 'No atom lines';
+	      return;
+	    }
+	    var chains = [];
+	    var i_chain = -1;
+	    for (var i = 0; i < lines.length; i += 1) {
+	      try {
+	        if (lines[i].substr(0, 4) == "ATOM" || lines[i].substr(0, 6) == "HETATM") {
+	          var x = parseFloat(lines[i].substr(30, 7));
+	          var y = parseFloat(lines[i].substr(38, 7));
+	          var z = parseFloat(lines[i].substr(46, 7));
+	          var chain = (0, _util.trim)(lines[i][21]);
+	          var res_num = (0, _util.trim)(lines[i].substr(22, 5));
+	          var res_type = (0, _util.trim)(lines[i].substr(17, 3));
+	          var atom_type = (0, _util.trim)(lines[i].substr(12, 4));
+	          var label = res_num + ' - ' + res_type + ' - ' + atom_type;
+	          var elem = delete_numbers((0, _util.trim)(lines[i].substr(76, 2)));
+	          if (elem == "") {
+	            elem = delete_numbers((0, _util.trim)(atom_type)).substr(0, 1);
+	          }
+	          var is_chonmp = (0, _util.in_array)(elem, chonp);
+	
+	          var alt = (0, _util.trim)(lines[i].substr(16, 1));
+	
+	          if (chain) {
+	            label = chain + ":" + label;
+	          }
+	          if (chain == " ") {
+	            i_chain = -1;
+	          } else {
+	            i_chain = chains.indexOf(chain);
+	            if (i_chain == -1) {
+	              chains.push(chain);
+	              i_chain = chains.length - 1;
+	            }
+	          }
+	          var is_protein_or_nucleotide = (0, _util.in_array)(res_type, aa) || (0, _util.in_array)(res_type, dna) || (0, _util.in_array)(res_type, rna);
+	          if (!is_protein_or_nucleotide) {
+	            i_chain = -1;
+	          }
+	          atoms.push({
+	            'pdb_id': pdb_id,
+	            'pos': _v2.default.create(x, y, z),
+	            'res_type': res_type,
+	            'alt': alt,
+	            'is_alt': false,
+	            'chain': chain,
+	            'i_chain': i_chain,
+	            'is_chonmp': is_chonmp,
+	            'res_num': res_num,
+	            'elem': elem,
+	            'i': i,
+	            'type': atom_type,
+	            'label': label
+	          });
+	        }
+	      } catch (e) {
+	        this.parsing_error = 'line ' + i;
+	        console.log("Error: \"" + lines[i] + "\"");
+	        return;
+	      }
+	    }
+	    return atoms;
+	  };
+	
+	  this.get_central_atom = function () {
+	    var center = this.center();
+	    var central_atom = null;
+	    var min_d = 1E6;
+	    for (var i = 0; i < this.atoms.length; i += 1) {
+	      if (central_atom == null) {
+	        central_atom = this.atoms[i];
+	        continue;
+	      }
+	      var d = _v2.default.distance(center, this.atoms[i].pos);
+	      if (d < min_d) {
+	        central_atom = this.atoms[i];
+	        min_d = d;
+	      }
+	    }
+	    return central_atom;
+	  };
+	
+	  this.get_res_id_from_atom = function (atom) {
+	    // console.log("Protein.get_res_id_from_atom", atom.pdb_id);
+	    var s = "";
+	    if (atom.pdb_id) {
+	      s += atom.pdb_id + ':';
+	    }
+	    if (atom.chain) {
+	      s += atom.chain + ':';
+	    }
+	    s += atom.res_num;
+	    return s;
+	  };
+	
+	  this.get_prev_res_id = function (res_id) {
+	    var i = this.get_i_res_from_res_id(res_id);
+	    if (i <= 0) {
+	      i = this.residues.length - 1;
+	    } else {
+	      i -= 1;
+	    }
+	    ;
+	    return this.residues[i].id;
+	  };
+	
+	  this.get_next_res_id = function (res_id) {
+	    var i = this.get_i_res_from_res_id(res_id);
+	    if (i >= this.residues.length - 1) {
+	      i = 0;
+	    } else {
+	      i += 1;
+	    }
+	    ;
+	    return this.residues[i].id;
+	  };
+	
+	  this.make_bonds = function (bond_pairs) {
+	    for (var i = 0; i < bond_pairs.length; i += 1) {
+	      var j = bond_pairs[i][0];
+	      var k = bond_pairs[i][1];
+	      this.bonds.push({
+	        atom1: this.atoms[j],
+	        atom2: this.atoms[k],
+	        i_chain: this.atoms[k].i_chain
+	      });
+	    }
+	  };
+	
+	  this.make_residue = function (a, res_id) {
+	    var new_r = {
+	      'chain': a.chain,
+	      'num': a.res_num,
+	      'type': a.res_type,
+	      'id': res_id,
+	      'selected': false,
+	      'atoms': {}
+	    };
+	    new_r.is_water = a.res_type == "HOH";
+	    var r_type = (0, _util.trim)(new_r.type);
+	    new_r.is_protein = (0, _util.in_array)(r_type, aa);
+	    new_r.is_nuc = (0, _util.in_array)(r_type, dna) || (0, _util.in_array)(r_type, rna);
+	    new_r.is_protein_or_nuc = new_r.is_protein || new_r.is_nuc;
+	    new_r.is_ligands = !new_r.is_water && !new_r.is_protein_or_nuc;
+	    this.res_by_id[res_id] = new_r;
+	    this.residues.push(new_r);
+	    console.log('Protein.make_residue', res_id, a.res_type);
+	  };
+	
+	  this.make_residues = function (atoms) {
+	    var res_id = '';
+	    for (var i = 0; i < atoms.length; i += 1) {
+	      var a = atoms[i];
+	      var new_res_id = this.get_res_id_from_atom(a);
+	      if (new_res_id != res_id) {
+	        this.make_residue(a, new_res_id);
+	        res_id = new_res_id;
+	      }
+	      var res = this.res_by_id[res_id];
+	      if (a.type in res.atoms) {
+	        a.is_alt = true;
+	      } else {
+	        res.atoms[a.type] = a;
+	        a.is_alt = false;
+	      }
+	      a.res_id = res.id;
+	      a.is_water = res.is_water;
+	      a.is_protein_or_nuc = res.is_protein_or_nuc;
+	      a.is_ligands = res.is_ligands;
+	    }
+	    for (var i = 0; i < this.residues.length; i += 1) {
+	      var res = this.residues[i];
+	      res.i = i;
+	      if (this.has_aa_bb(i)) {
+	        res.central_atom = res.atoms["CA"];
+	      } else if (this.has_nuc_bb(i)) {
+	        res.central_atom = res.atoms["C3'"];
+	      } else {
+	        res.central_atom = get_central_atom_from_atom_dict(res.atoms);
+	      }
+	    }
+	  };
+	
+	  this.has_nuc_bb = function (i) {
+	    if (i < 0 || i >= this.residues.length) {
+	      return false;
+	    }
+	    if ("C3'" in this.residues[i].atoms && "O3'" in this.residues[i].atoms && "C2'" in this.residues[i].atoms && "C5'" in this.residues[i].atoms && "C4'" in this.residues[i].atoms && "O4'" in this.residues[i].atoms && "C1'" in this.residues[i].atoms) {
+	      return true;
+	    }
+	    return false;
+	  };
+	
+	  this.has_aa_bb = function (i) {
+	    if (i < 0 || i >= this.residues.length) {
+	      return false;
+	    }
+	    if ("CA" in this.residues[i].atoms && "N" in this.residues[i].atoms && "C" in this.residues[i].atoms) {
+	      return true;
+	    }
+	    return false;
+	  };
+	
+	  function flank(c, p, q) {
+	    var axis1 = _v2.default.diff(p, q);
+	    var p_to_c = _v2.default.diff(c, p);
+	    var axis2 = _v2.default.perpendicular(p_to_c, axis1);
+	    var axis3 = _v2.default.cross_product(axis1, axis2);
+	    var c_to_p1 = _v2.default.normalized(axis3);
+	    var p1 = _v2.default.sum(c, c_to_p1);
+	    var p2 = _v2.default.diff(c, c_to_p1);
+	    return [p1, p2];
+	  }
+	
+	  this.make_plates = function () {
 	    this.ribbons = [];
+	    var creases = [];
+	    var crease_atoms = [];
+	    var i;
+	    for (var j = 0; j < this.residues.length - 1; j += 1) {
+	      if (this.has_aa_bb(j)) {
+	        crease_atoms.push(this.residues[j].atoms["CA"]);
+	        if (this.has_aa_bb(j - 1) && this.has_aa_bb(j + 1)) {
+	          creases.push(flank(this.residues[j].atoms["CA"].pos, this.residues[j - 1].atoms["CA"].pos, this.residues[j + 1].atoms["CA"].pos));
+	        } else if (this.has_aa_bb(j - 1)) {
+	          creases.push(flank(this.residues[j].atoms["CA"].pos, this.residues[j - 1].atoms["CA"].pos, this.residues[j].atoms["C"].pos));
+	        } else if (this.has_aa_bb(j + 1)) {
+	          creases.push(flank(this.residues[j].atoms["CA"].pos, this.residues[j].atoms["N"].pos, this.residues[j + 1].atoms["CA"].pos));
+	        }
+	      }
+	      if (this.has_nuc_bb(j)) {
+	        crease_atoms.push(this.residues[j].atoms["C3'"]);
+	        if (this.has_nuc_bb(j - 1) && this.has_nuc_bb(j + 1)) {
+	          creases.push(flank(this.residues[j].atoms["C3'"].pos, this.residues[j - 1].atoms["C3'"].pos, this.residues[j + 1].atoms["C3'"].pos));
+	        } else if (this.has_nuc_bb(j - 1)) {
+	          creases.push(flank(this.residues[j].atoms["C3'"].pos, this.residues[j - 1].atoms["C3'"].pos, this.residues[j].atoms["O3'"].pos));
+	        } else if (this.has_nuc_bb(j + 1)) {
+	          creases.push(flank(this.residues[j].atoms["C3'"].pos, this.residues[j].atoms["C5'"].pos, this.residues[j + 1].atoms["C3'"].pos));
+	        }
+	      }
+	    }
+	    for (var j = 1; j < creases.length; j += 1) {
+	      d1 = _v2.default.distance(creases[j - 1][0], creases[j][1]);
+	      if (d1 < 8) {
+	        i = j - 1;
+	        bond = [crease_atoms[i], crease_atoms[j]];
+	        d2 = _v2.default.distance(creases[i][1], creases[j][0]);
+	        e1 = _v2.default.distance(creases[i][0], creases[j][0]);
+	        e2 = _v2.default.distance(creases[i][1], creases[j][1]);
+	        if (d1 + d2 < e1 + e2) {
+	          quad_coords = [creases[i][0].clone(), creases[i][1].clone(), creases[j][0], creases[j][1]];
+	        } else {
+	          quad_coords = [creases[i][0].clone(), creases[i][1].clone(), creases[j][1], creases[j][0]];
+	        }
+	        this.ribbons.push({
+	          'bond': bond,
+	          'quad_coords': quad_coords,
+	          'i_chain': crease_atoms[i].i_chain
+	        });
+	      }
+	    }
+	  };
+	
+	  this.make_trace = function () {
 	    this.trace = [];
-	    this.parsing_error = '';
+	    for (var j = 1; j < this.residues.length; j += 1) {
+	      if (this.has_aa_bb(j - 1) && this.has_aa_bb(j)) {
+	        var ca1 = this.residues[j - 1].atoms["CA"];
+	        var ca2 = this.residues[j].atoms["CA"];
+	        if (ca1.chain == ca2.chain && _v2.default.distance(ca1.pos, ca2.pos) < 8) {
+	          this.trace.push({ atom1: ca1, atom2: ca2 });
+	        }
+	      }
+	      if (this.has_nuc_bb(j - 1) && this.has_nuc_bb(j)) {
+	        var c31 = this.residues[j - 1].atoms["C3'"];
+	        var c32 = this.residues[j].atoms["C3'"];
+	        if (c31.chain == c32.chain && _v2.default.distance(c31.pos, c32.pos) < 8) {
+	          this.trace.push({ atom1: c31, atom2: c32 });
+	        }
+	      }
+	    }
+	  };
 	
-	    var aa = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR'];
-	    var dna = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C'];
-	    var rna = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
-	    var chonp = ['C', 'H', 'O', 'N', 'P'];
+	  this.calc_max_length = function (atoms) {
+	    var maxima = [0.0, 0.0, 0.0];
+	    var minima = [0.0, 0.0, 0.0];
+	    var spans = [0.0, 0.0, 0.0];
 	
-	    function delete_numbers(text) {
-	        return text.replace(/\d+/, '');
+	    function comp(v, i) {
+	      if (i == 0) return v.x;
+	      if (i == 1) return v.y;
+	      if (i == 2) return v.z;
 	    }
 	
-	    this.make_atoms_from_pdb_lines = function (lines) {
-	        if (lines.length == 0) {
-	            this.parsing_error = 'No atom lines';
-	            return;
+	    for (var j = 0; j < 3; j++) {
+	      for (var i = 0; i < atoms.length; i += 1) {
+	        if (minima[j] > comp(atoms[i].pos, j)) {
+	          minima[j] = comp(atoms[i].pos, j);
 	        }
-	        var chains = [];
-	        var i_chain = -1;
-	        for (var i = 0; i < lines.length; i += 1) {
-	            try {
-	                if (lines[i].substr(0, 4) == "ATOM" || lines[i].substr(0, 6) == "HETATM") {
-	                    var x = parseFloat(lines[i].substr(30, 7));
-	                    var y = parseFloat(lines[i].substr(38, 7));
-	                    var z = parseFloat(lines[i].substr(46, 7));
-	                    var chain = (0, _util.trim)(lines[i][21]);
-	                    var res_num = (0, _util.trim)(lines[i].substr(22, 5));
-	                    var res_type = (0, _util.trim)(lines[i].substr(17, 3));
-	                    var atom_type = (0, _util.trim)(lines[i].substr(12, 4));
-	                    var label = res_num + ' - ' + res_type + ' - ' + atom_type;
-	                    var elem = delete_numbers((0, _util.trim)(lines[i].substr(76, 2)));
-	                    if (elem == "") {
-	                        elem = delete_numbers((0, _util.trim)(atom_type)).substr(0, 1);
-	                    }
-	                    var is_chonmp = (0, _util.in_array)(elem, chonp);
+	        if (maxima[j] < comp(atoms[i].pos, j)) {
+	          maxima[j] = comp(atoms[i].pos, j);
+	        }
+	      }
+	      spans[j] = maxima[j] - minima[j];
+	    }
+	    return Math.max(spans[0], spans[1], spans[2]);
+	  };
 	
-	                    var alt = (0, _util.trim)(lines[i].substr(16, 1));
+	  this.get_close_pairs = function (vertices) {
+	    var padding = 0.05;
+	    var div = 5.0;
+	    var inv_div = 1.0 / div;
+	    var maxima = [0.0, 0.0, 0.0];
+	    var minima = [0.0, 0.0, 0.0];
+	    var spans = [0.0, 0.0, 0.0];
+	    var sizes = [0, 0, 0];
 	
-	                    if (chain) {
-	                        label = chain + ":" + label;
-	                    }
-	                    if (chain == " ") {
-	                        i_chain = -1;
-	                    } else {
-	                        i_chain = chains.indexOf(chain);
-	                        if (i_chain == -1) {
-	                            chains.push(chain);
-	                            i_chain = chains.length - 1;
-	                        }
-	                    }
-	                    var is_protein_or_nucleotide = (0, _util.in_array)(res_type, aa) || (0, _util.in_array)(res_type, dna) || (0, _util.in_array)(res_type, rna);
-	                    if (!is_protein_or_nucleotide) {
-	                        i_chain = -1;
-	                    }
-	                    this.atoms.push({
-	                        'pos': _v2.default.create(x, y, z),
-	                        'res_type': res_type,
-	                        'alt': alt,
-	                        'is_alt': false,
-	                        'chain': chain,
-	                        'i_chain': i_chain,
-	                        'is_chonmp': is_chonmp,
-	                        'res_num': res_num,
-	                        'elem': elem,
-	                        'i': i,
-	                        'type': atom_type,
-	                        'label': label
-	                    });
-	                }
-	            } catch (e) {
-	                this.parsing_error = 'line ' + i;
-	                console.log("Error: \"" + lines[i] + "\"");
-	                return;
-	            }
+	    for (var i_dim = 0; i_dim < 3; i_dim++) {
+	      for (var i = 0; i < vertices.length; i += 1) {
+	        if (minima[i_dim] > vertices[i][i_dim]) {
+	          minima[i_dim] = vertices[i][i_dim];
 	        }
-	    };
-	
-	    this.get_central_atom = function () {
-	        var center = this.center();
-	        var central_atom = null;
-	        var min_d = 1E6;
-	        for (var i = 0; i < this.atoms.length; i += 1) {
-	            if (central_atom == null) {
-	                central_atom = this.atoms[i];
-	                continue;
-	            }
-	            var d = _v2.default.distance(center, this.atoms[i].pos);
-	            if (d < min_d) {
-	                central_atom = this.atoms[i];
-	                min_d = d;
-	            }
+	        if (maxima[i_dim] < vertices[i][i_dim]) {
+	          maxima[i_dim] = vertices[i][i_dim];
 	        }
-	        return central_atom;
-	    };
-	
-	    this.get_res_id_from_atom = function (atom) {
-	        var s = "";
-	        if (atom.chain) {
-	            s += atom.chain + ':';
-	        }
-	        s += atom.res_num;
-	        return s;
-	    };
-	
-	    this.get_prev_res_id = function (res_id) {
-	        var i = this.get_i_res_from_res_id(res_id);
-	        if (i <= 0) {
-	            i = this.residues.length - 1;
-	        } else {
-	            i -= 1;
-	        }
-	        ;
-	        return this.residues[i].id;
-	    };
-	
-	    this.get_next_res_id = function (res_id) {
-	        var i = this.get_i_res_from_res_id(res_id);
-	        if (i >= this.residues.length - 1) {
-	            i = 0;
-	        } else {
-	            i += 1;
-	        }
-	        ;
-	        return this.residues[i].id;
-	    };
-	
-	    this.make_bonds = function (bond_pairs) {
-	        this.bonds = [];
-	        for (var i = 0; i < bond_pairs.length; i += 1) {
-	            var j = bond_pairs[i][0];
-	            var k = bond_pairs[i][1];
-	            this.bonds.push({
-	                atom1: this.atoms[j],
-	                atom2: this.atoms[k],
-	                i_chain: this.atoms[k].i_chain
-	            });
-	        }
-	    };
-	
-	    this.make_residue = function (a, res_id) {
-	        var new_r = {
-	            'chain': a.chain,
-	            'num': a.res_num,
-	            'type': a.res_type,
-	            'id': res_id,
-	            'selected': false,
-	            'atoms': {}
-	        };
-	        new_r.is_water = a.res_type == "HOH";
-	        var r_type = (0, _util.trim)(new_r.type);
-	        new_r.is_protein = (0, _util.in_array)(r_type, aa);
-	        new_r.is_nuc = (0, _util.in_array)(r_type, dna) || (0, _util.in_array)(r_type, rna);
-	        new_r.is_protein_or_nuc = new_r.is_protein || new_r.is_nuc;
-	        new_r.is_ligands = !new_r.is_water && !new_r.is_protein_or_nuc;
-	        this.res_by_id[res_id] = new_r;
-	        this.residues.push(new_r);
-	    };
-	
-	    this.make_residues = function () {
-	        this.res_by_id = {};
-	        this.residues = [];
-	        var res_id = '';
-	        for (var i = 0; i < this.atoms.length; i += 1) {
-	            var a = this.atoms[i];
-	            var new_res_id = this.get_res_id_from_atom(a);
-	            if (new_res_id != res_id) {
-	                this.make_residue(a, new_res_id);
-	                res_id = new_res_id;
-	            }
-	            var res = this.res_by_id[res_id];
-	            if (a.type in res.atoms) {
-	                a.is_alt = true;
-	            } else {
-	                res.atoms[a.type] = a;
-	                a.is_alt = false;
-	            }
-	            a.res_id = res.id;
-	            a.is_water = res.is_water;
-	            a.is_protein_or_nuc = res.is_protein_or_nuc;
-	            a.is_ligands = res.is_ligands;
-	        }
-	        for (var i = 0; i < this.residues.length; i += 1) {
-	            var res = this.residues[i];
-	            res.i = i;
-	            if (this.has_aa_bb(i)) {
-	                res.central_atom = res.atoms["CA"];
-	            } else if (this.has_nuc_bb(i)) {
-	                res.central_atom = res.atoms["C3'"];
-	            } else {
-	                res.central_atom = get_central_atom_from_atom_dict(res.atoms);
-	            }
-	        }
-	    };
-	
-	    this.has_nuc_bb = function (i) {
-	        if (i < 0 || i >= this.residues.length) {
-	            return false;
-	        }
-	        if ("C3'" in this.residues[i].atoms && "O3'" in this.residues[i].atoms && "C2'" in this.residues[i].atoms && "C5'" in this.residues[i].atoms && "C4'" in this.residues[i].atoms && "O4'" in this.residues[i].atoms && "C1'" in this.residues[i].atoms) {
-	            return true;
-	        }
-	        return false;
-	    };
-	
-	    this.has_aa_bb = function (i) {
-	        if (i < 0 || i >= this.residues.length) {
-	            return false;
-	        }
-	        if ("CA" in this.residues[i].atoms && "N" in this.residues[i].atoms && "C" in this.residues[i].atoms) {
-	            return true;
-	        }
-	        return false;
-	    };
-	
-	    function flank(c, p, q) {
-	        var axis1 = _v2.default.diff(p, q);
-	        var p_to_c = _v2.default.diff(c, p);
-	        var axis2 = _v2.default.perpendicular(p_to_c, axis1);
-	        var axis3 = _v2.default.cross_product(axis1, axis2);
-	        var c_to_p1 = _v2.default.normalized(axis3);
-	        var p1 = _v2.default.sum(c, c_to_p1);
-	        var p2 = _v2.default.diff(c, c_to_p1);
-	        return [p1, p2];
+	      }
+	      minima[i_dim] -= padding;
+	      maxima[i_dim] += padding;
+	      spans[i_dim] = maxima[i_dim] - minima[i_dim];
+	      sizes[i_dim] = Math.ceil(spans[i_dim] * inv_div);
 	    }
 	
-	    this.make_plates = function () {
-	        this.ribbons = [];
-	        var creases = [];
-	        var crease_atoms = [];
-	        var i;
-	        for (var j = 0; j < this.residues.length - 1; j += 1) {
-	            if (this.has_aa_bb(j)) {
-	                crease_atoms.push(this.residues[j].atoms["CA"]);
-	                if (this.has_aa_bb(j - 1) && this.has_aa_bb(j + 1)) {
-	                    creases.push(flank(this.residues[j].atoms["CA"].pos, this.residues[j - 1].atoms["CA"].pos, this.residues[j + 1].atoms["CA"].pos));
-	                } else if (this.has_aa_bb(j - 1)) {
-	                    creases.push(flank(this.residues[j].atoms["CA"].pos, this.residues[j - 1].atoms["CA"].pos, this.residues[j].atoms["C"].pos));
-	                } else if (this.has_aa_bb(j + 1)) {
-	                    creases.push(flank(this.residues[j].atoms["CA"].pos, this.residues[j].atoms["N"].pos, this.residues[j + 1].atoms["CA"].pos));
-	                }
-	            }
-	            if (this.has_nuc_bb(j)) {
-	                crease_atoms.push(this.residues[j].atoms["C3'"]);
-	                if (this.has_nuc_bb(j - 1) && this.has_nuc_bb(j + 1)) {
-	                    creases.push(flank(this.residues[j].atoms["C3'"].pos, this.residues[j - 1].atoms["C3'"].pos, this.residues[j + 1].atoms["C3'"].pos));
-	                } else if (this.has_nuc_bb(j - 1)) {
-	                    creases.push(flank(this.residues[j].atoms["C3'"].pos, this.residues[j - 1].atoms["C3'"].pos, this.residues[j].atoms["O3'"].pos));
-	                } else if (this.has_nuc_bb(j + 1)) {
-	                    creases.push(flank(this.residues[j].atoms["C3'"].pos, this.residues[j].atoms["C5'"].pos, this.residues[j + 1].atoms["C3'"].pos));
-	                }
-	            }
+	    function vertex_to_space(v) {
+	      var result = [];
+	      for (var j = 0; j < 3; j++) {
+	        result.push(Math.round((v[j] - minima[j]) * inv_div));
+	      }
+	      return result;
+	    }
+	
+	    function space_to_hash(s) {
+	      return s[0] * sizes[1] * sizes[2] + s[1] * sizes[2] + s[2];
+	    }
+	
+	    var cells = {};
+	    var spaces = [];
+	    for (var i = 0; i < vertices.length; i++) {
+	      var vertex = vertices[i];
+	      var space = vertex_to_space(vertex);
+	      spaces.push(space);
+	      var space_hash = space_to_hash(space);
+	      if (!(space_hash in cells)) {
+	        cells[space_hash] = [];
+	      }
+	      cells[space_hash].push(i);
+	    }
+	
+	    function neighbourhood_in_dim(space, i_dim) {
+	      var start = Math.max(0, space[i_dim] - 1);
+	      var end = Math.min(sizes[i_dim], space[i_dim] + 2);
+	      var result = [];
+	      for (var i = start; i < end; i++) {
+	        result.push(i);
+	      }
+	      return result;
+	    }
+	
+	    function space_neighbourhood(space) {
+	      var result = [];
+	      var neighbourhood0 = neighbourhood_in_dim(space, 0);
+	      var neighbourhood1 = neighbourhood_in_dim(space, 1);
+	      var neighbourhood2 = neighbourhood_in_dim(space, 2);
+	      for (var s0 = 0; s0 < neighbourhood0.length; s0++) {
+	        for (var s1 = 0; s1 < neighbourhood1.length; s1++) {
+	          for (var s2 = 0; s2 < neighbourhood2.length; s2++) {
+	            result.push([neighbourhood0[s0], neighbourhood1[s1], neighbourhood2[s2]]);
+	          }
 	        }
-	        for (var j = 1; j < creases.length; j += 1) {
-	            d1 = _v2.default.distance(creases[j - 1][0], creases[j][1]);
-	            if (d1 < 8) {
-	                i = j - 1;
-	                bond = [crease_atoms[i], crease_atoms[j]];
-	                d2 = _v2.default.distance(creases[i][1], creases[j][0]);
-	                e1 = _v2.default.distance(creases[i][0], creases[j][0]);
-	                e2 = _v2.default.distance(creases[i][1], creases[j][1]);
-	                if (d1 + d2 < e1 + e2) {
-	                    quad_coords = [creases[i][0].clone(), creases[i][1].clone(), creases[j][0], creases[j][1]];
-	                } else {
-	                    quad_coords = [creases[i][0].clone(), creases[i][1].clone(), creases[j][1], creases[j][0]];
-	                }
-	                this.ribbons.push({
-	                    'bond': bond,
-	                    'quad_coords': quad_coords,
-	                    'i_chain': crease_atoms[i].i_chain
-	                });
+	      }
+	      return result;
+	    }
+	
+	    var pairs = [];
+	    for (var i = 0; i < vertices.length; i++) {
+	      var neighbourhood = space_neighbourhood(spaces[i]);
+	      for (var j_neigh = 0; j_neigh < neighbourhood.length; j_neigh++) {
+	        var hash = space_to_hash(neighbourhood[j_neigh]);
+	        if (hash in cells) {
+	          var cell = cells[hash];
+	          for (var j_cell = 0; j_cell < cell.length; j_cell++) {
+	            var j = cell[j_cell];
+	            if (i < j) {
+	              pairs.push([i, j]);
 	            }
+	          }
 	        }
+	      }
+	    }
+	    return pairs;
+	  };
+	
+	  this.calc_bonds = function (atoms) {
+	
+	    var vertices = [];
+	    for (var i = 0; i < atoms.length; i++) {
+	      var atom = atoms[i];
+	      vertices.push([atom.pos.x, atom.pos.y, atom.pos.z]);
+	    }
+	    var close_pairs = this.get_close_pairs(vertices);
+	
+	    var result = [];
+	    var small_cutoff = 1.2;
+	    var medium_cutoff = 1.9;
+	    var large_cutoff = 2.4;
+	    var CHONPS = ['C', 'H', 'O', 'N', 'P', 'S'];
+	    for (var i_pair = 0; i_pair < close_pairs.length; i_pair++) {
+	      var a0 = atoms[close_pairs[i_pair][0]];
+	      var a1 = atoms[close_pairs[i_pair][1]];
+	      // HACK: to avoid the water grid bond calculation
+	      // step that kills the rendering
+	      if (a0.res_type == "HOH" || a1.res_type == "HOH") {
+	        continue;
+	      }
+	      var dist = _v2.default.distance(a0.pos, a1.pos);
+	      var cutoff;
+	      if (a0.alt != "" && a1.alt != "") {
+	        if (a0.alt != a1.alt) {
+	          continue;
+	        }
+	      }
+	      if (a0.elem == "H" || a1.elem == "H") {
+	        cutoff = small_cutoff;
+	      } else if ((0, _util.in_array)(a0.elem, CHONPS) && (0, _util.in_array)(a1.elem, CHONPS)) {
+	        cutoff = medium_cutoff;
+	      } else {
+	        cutoff = large_cutoff;
+	      }
+	      if (dist <= cutoff) {
+	        result.push(close_pairs[i_pair]);
+	      }
+	    }
+	    return result;
+	  };
+	
+	  this.find_bb_hb_partners = function (self) {
+	
+	    // Find backbone hydrogen bonds for secondary structure
+	
+	    var vertices = [];
+	    var atoms = [];
+	    for (var j = 0; j < this.residues.length; j += 1) {
+	      var residue = this.residues[j];
+	      residue.hb_partners = [];
+	      residue.i = j;
+	      if (!residue.is_protein_or_nuc) {
+	        continue;
+	      }
+	      if ("O" in residue.atoms) {
+	        var a = residue.atoms["O"];
+	        vertices.push([a.pos.x, a.pos.y, a.pos.z]);
+	        atoms.push(a);
+	      }
+	      if ("N" in residue.atoms) {
+	        var a = residue.atoms["N"];
+	        vertices.push([a.pos.x, a.pos.y, a.pos.z]);
+	        atoms.push(a);
+	      }
+	    }
+	
+	    var cutoff = 3.5;
+	    var close_pairs = this.get_close_pairs(vertices);
+	    for (var i_pair = 0; i_pair < close_pairs.length; i_pair++) {
+	      var a0 = atoms[close_pairs[i_pair][0]];
+	      var a1 = atoms[close_pairs[i_pair][1]];
+	      if (a0.res_id == a1.res_id) {
+	        continue;
+	      }
+	      var dist = _v2.default.distance(a0.pos, a1.pos);
+	      if (dist <= cutoff) {
+	        var res0 = this.res_by_id[a0.res_id];
+	        var res1 = this.res_by_id[a1.res_id];
+	        if (!(0, _util.in_array)(res1.i, res0.hb_partners)) {
+	          if (a0.elem == "O" && a1.elem == "N") {
+	            res0.hb_partners.push(res1.i);
+	          }
+	        }
+	        if (!(0, _util.in_array)(res0.i, res1.hb_partners)) {
+	          if (a1.elem == "O" && a0.elem == "N") {
+	            res1.hb_partners.push(res0.i);
+	          }
+	        }
+	      }
+	    }
+	  };
+	
+	  this.is_conh = function (i_res1, i_res0) {
+	    if (i_res0 < 0 || i_res0 >= this.residues.length) {
+	      return false;
+	    }
+	    if (i_res1 < 0 || i_res1 >= this.residues.length) {
+	      return false;
+	    }
+	    var i_res0 = this.residues[i_res0].i;
+	    return (0, _util.in_array)(i_res0, this.residues[i_res1].hb_partners);
+	  };
+	
+	  this.res_diff = function (i_res0, i_res1) {
+	    var res0 = this.residues[i_res0];
+	    var res1 = this.residues[i_res1];
+	    return _v2.default.diff(res1.central_atom.pos, res0.central_atom.pos);
+	  };
+	
+	  this.find_ss = function () {
+	
+	    // Find Secondary Structure
+	    // H - alpha-helix/3-10-helix
+	    // E - beta-sheet
+	    // C - coil
+	    // - - ligand
+	    // W - water
+	    // D - DNA or RNA
+	
+	    for (var j = 0; j < this.residues.length; j += 1) {
+	      var residue = this.residues[j];
+	      residue.ss = "-";
+	      if (residue.is_water) {
+	        residue.ss = "W";
+	      }
+	      if (residue.is_protein_or_nuc) {
+	        if (this.has_nuc_bb(j)) {
+	          residue.ss = "D";
+	        }
+	        if (this.has_aa_bb(j)) {
+	          residue.ss = "C";
+	        }
+	      }
+	      residue.normals = [];
+	    }
+	
+	    this.find_bb_hb_partners();
+	
+	    var n_res = this.residues.length;
+	    for (var i_res1 = 0; i_res1 < this.residues.length; i_res1 += 1) {
+	
+	      var residue = this.residues[i_res1];
+	      var atoms = residue.atoms;
+	
+	      if (residue.ss == "D") {
+	        var forward = _v2.default.diff(atoms["C3'"].pos, atoms["C5'"].pos);
+	        var up = _v2.default.diff(atoms["C1'"].pos, atoms["C3'"].pos);
+	        var normal = _v2.default.cross_product(forward, up);
+	        residue.normals.push(normal);
+	      }
+	
+	      // alpha-helix
+	      if (this.is_conh(i_res1, i_res1 + 4) && this.is_conh(i_res1 + 1, i_res1 + 5)) {
+	        var normal1 = this.res_diff(i_res1, i_res1 + 4);
+	        var normal2 = this.res_diff(i_res1 + 1, i_res1 + 5);
+	        for (var i_res2 = i_res1 + 1; i_res2 < i_res1 + 5; i_res2 += 1) {
+	          this.residues[i_res2].ss = 'H';
+	          this.residues[i_res2].normals.push(normal1);
+	          this.residues[i_res2].normals.push(normal2);
+	        }
+	      }
+	
+	      // 3-10 helix
+	      if (this.is_conh(i_res1, i_res1 + 3) && this.is_conh(i_res1 + 1, i_res1 + 4)) {
+	        var normal1 = this.res_diff(i_res1, i_res1 + 3);
+	        var normal2 = this.res_diff(i_res1 + 1, i_res1 + 4);
+	        for (var i_res2 = i_res1 + 1; i_res2 < i_res1 + 4; i_res2 += 1) {
+	          this.residues[i_res2].ss = 'H';
+	          this.residues[i_res2].normals.push(normal1);
+	          this.residues[i_res2].normals.push(normal2);
+	        }
+	      }
+	
+	      for (var i_res2 = i_res1 + 1; i_res2 < this.residues.length; i_res2 += 1) {
+	
+	        if (Math.abs(i_res1 - i_res2) <= 5) {
+	          continue;
+	        }
+	
+	        var beta_residues = [];
+	
+	        // parallel beta sheet pairs
+	        if (this.is_conh(i_res1, i_res2 + 1) && this.is_conh(i_res2 - 1, i_res1)) {
+	          beta_residues = beta_residues.concat([i_res1, i_res2]);
+	        }
+	        if (this.is_conh(i_res1 - 1, i_res2) && this.is_conh(i_res2, i_res1 + 1)) {
+	          beta_residues = beta_residues.concat([i_res1, i_res2]);
+	        }
+	
+	        // anti-parallel hbonded beta sheet pairs
+	        if (this.is_conh(i_res1, i_res2) && this.is_conh(i_res2, i_res1)) {
+	          beta_residues = beta_residues.concat([i_res1, i_res2]);
+	          var normal = this.res_diff(i_res1, i_res2);
+	          this.residues[i_res1].normals.push(normal);
+	          this.residues[i_res2].normals.push(_v2.default.scaled(normal, -1));
+	        }
+	
+	        // anti-parallel non-hbonded beta sheet pairs
+	        if (this.is_conh(i_res1 - 1, i_res2 + 1) && this.is_conh(i_res2 - 1, i_res1 + 1)) {
+	          beta_residues = beta_residues.concat([i_res1, i_res2]);
+	          var normal = this.res_diff(i_res1, i_res2);
+	          this.residues[i_res1].normals.push(_v2.default.scaled(normal, -1));
+	          this.residues[i_res2].normals.push(normal);
+	        }
+	
+	        for (var i = 0; i < beta_residues.length; i += 1) {
+	          var i_res = beta_residues[i];
+	          this.residues[i_res].ss = "E";
+	        }
+	      }
+	    }
+	
+	    for (var i_res1 = 0; i_res1 < this.residues.length; i_res1 += 1) {
+	      var res = this.residues[i_res1];
+	      if (res.normals.length == 0) {
+	        res.normal = null;
+	      } else {
+	        var normal = _v2.default.create(0, 0, 0);
+	        for (var i = 0; i < res.normals.length; i += 1) {
+	          normal = _v2.default.sum(normal, res.normals[i]);
+	        }
+	        res.normal = _v2.default.normalized(normal);
+	      }
+	    }
+	  };
+	
+	  this.load = function (protein_data) {
+	    var _this = this;
+	
+	    var load = function load() {
+	      return _this.load(protein_data);
 	    };
+	    while (this.isLoading) {
+	      window.setTimeout(load, 100);
+	    }
+	    this.isLoading = true;
+	    this.pdb_id = protein_data['pdb_id'];
+	    console.log("protein.load begin", this.pdb_id);
+	    console.log("protein.load n_atoms", this.atoms.length);
+	    console.log("protein.load n_residues", this.residues.length);
+	    var atom_lines = extract_atom_lines(protein_data['pdb_text']);
+	    this.default_text = parsetTitleFromPdbText(protein_data['pdb_text']);
+	    var atoms = this.make_atoms_from_pdb_lines(atom_lines, this.pdb_id);
+	    this.make_residues(atoms);
+	    this.atoms = _.concat(this.atoms, atoms);
+	    console.log("protein.load n_atoms", this.atoms.length);
+	    console.log("protein.load n_residues", this.residues.length);
+	    console.log("protein.load find bonds " + this.pdb_id);
+	    this.make_bonds(this.calc_bonds(this.atoms));
+	    this.max_length = this.calc_max_length(this.atoms);
+	    console.log("protein.load find secondary structure " + this.pdb_id);
+	    this.find_ss();
+	    console.log("protein.load end", this.pdb_id);
+	    this.isLoading = false;
+	  };
 	
-	    this.make_trace = function () {
-	        this.trace = [];
-	        for (var j = 1; j < this.residues.length; j += 1) {
-	            if (this.has_aa_bb(j - 1) && this.has_aa_bb(j)) {
-	                var ca1 = this.residues[j - 1].atoms["CA"];
-	                var ca2 = this.residues[j].atoms["CA"];
-	                if (ca1.chain == ca2.chain && _v2.default.distance(ca1.pos, ca2.pos) < 8) {
-	                    this.trace.push({ atom1: ca1, atom2: ca2 });
-	                }
-	            }
-	            if (this.has_nuc_bb(j - 1) && this.has_nuc_bb(j)) {
-	                var c31 = this.residues[j - 1].atoms["C3'"];
-	                var c32 = this.residues[j].atoms["C3'"];
-	                if (c31.chain == c32.chain && _v2.default.distance(c31.pos, c32.pos) < 8) {
-	                    this.trace.push({ atom1: c31, atom2: c32 });
-	                }
-	            }
-	        }
-	    };
+	  this.transform = function (matrix) {
+	    for (var i = 0; i < this.atoms.length; i += 1) {
+	      this.atoms[i].pos.applyMatrix4(matrix);
+	      this.atoms[i].z = this.atoms[i].pos.z;
+	    }
+	    for (i = 0; i < this.ribbons.length; i += 1) {
+	      for (j = 0; j < 4; j += 1) {
+	        this.ribbons[i].quad_coords[j].applyMatrix4(matrix);
+	        this.ribbons[i].z = max_z_of_list(this.ribbons[i].quad_coords);
+	      }
+	    }
+	    for (i = 0; i < this.bonds.length; i += 1) {
+	      this.bonds[i].z = Math.max(this.bonds[i].atom1.pos.z, this.bonds[i].atom2.pos.z) + 0.2;
+	    }
+	    for (i = 0; i < this.trace.length; i += 1) {
+	      this.trace[i].z = Math.max(this.trace[i].atom1.pos.z, this.trace[i].atom2.pos.z) + 0.2;
+	    }
+	    this.max_z = 0;
+	    this.min_z = 1E6;
+	    for (var i = 0; i < this.atoms.length; i += 1) {
+	      if (this.atoms[i].pos.z < this.min_z) {
+	        this.min_z = this.atoms[i].pos.z;
+	      }
+	      if (this.atoms[i].pos.z > this.max_z) {
+	        this.max_z = this.atoms[i].pos.z;
+	      }
+	    }
+	  };
 	
-	    this.calc_max_length = function () {
-	        var maxima = [0.0, 0.0, 0.0];
-	        var minima = [0.0, 0.0, 0.0];
-	        var spans = [0.0, 0.0, 0.0];
+	  this.center = function () {
+	    var x_center = 0;
+	    var y_center = 0;
+	    var z_center = 0;
+	    var n = this.atoms.length;
+	    for (var i = 0; i < n; i += 1) {
+	      x_center += this.atoms[i].pos.x;
+	      y_center += this.atoms[i].pos.y;
+	      z_center += this.atoms[i].pos.z;
+	    }
+	    return _v2.default.create(x_center / n, y_center / n, z_center / n);
+	  };
 	
-	        function comp(v, i) {
-	            if (i == 0) return v.x;
-	            if (i == 1) return v.y;
-	            if (i == 2) return v.z;
-	        }
-	
-	        for (var j = 0; j < 3; j++) {
-	            for (var i = 0; i < this.atoms.length; i += 1) {
-	                if (minima[j] > comp(this.atoms[i].pos, j)) {
-	                    minima[j] = comp(this.atoms[i].pos, j);
-	                }
-	                if (maxima[j] < comp(this.atoms[i].pos, j)) {
-	                    maxima[j] = comp(this.atoms[i].pos, j);
-	                }
-	            }
-	            spans[j] = maxima[j] - minima[j];
-	        }
-	        return Math.max(spans[0], spans[1], spans[2]);
-	    };
-	
-	    this.get_close_pairs = function (vertices) {
-	        var padding = 0.05;
-	        var div = 5.0;
-	        var inv_div = 1.0 / div;
-	        var maxima = [0.0, 0.0, 0.0];
-	        var minima = [0.0, 0.0, 0.0];
-	        var spans = [0.0, 0.0, 0.0];
-	        var sizes = [0, 0, 0];
-	
-	        for (var i_dim = 0; i_dim < 3; i_dim++) {
-	            for (var i = 0; i < vertices.length; i += 1) {
-	                if (minima[i_dim] > vertices[i][i_dim]) {
-	                    minima[i_dim] = vertices[i][i_dim];
-	                }
-	                if (maxima[i_dim] < vertices[i][i_dim]) {
-	                    maxima[i_dim] = vertices[i][i_dim];
-	                }
-	            }
-	            minima[i_dim] -= padding;
-	            maxima[i_dim] += padding;
-	            spans[i_dim] = maxima[i_dim] - minima[i_dim];
-	            sizes[i_dim] = Math.ceil(spans[i_dim] * inv_div);
-	        }
-	
-	        function vertex_to_space(v) {
-	            var result = [];
-	            for (var j = 0; j < 3; j++) {
-	                result.push(Math.round((v[j] - minima[j]) * inv_div));
-	            }
-	            return result;
-	        }
-	
-	        function space_to_hash(s) {
-	            return s[0] * sizes[1] * sizes[2] + s[1] * sizes[2] + s[2];
-	        }
-	
-	        var cells = {};
-	        var spaces = [];
-	        for (var i = 0; i < vertices.length; i++) {
-	            var vertex = vertices[i];
-	            var space = vertex_to_space(vertex);
-	            spaces.push(space);
-	            var space_hash = space_to_hash(space);
-	            if (!(space_hash in cells)) {
-	                cells[space_hash] = [];
-	            }
-	            cells[space_hash].push(i);
-	        }
-	
-	        function neighbourhood_in_dim(space, i_dim) {
-	            var start = Math.max(0, space[i_dim] - 1);
-	            var end = Math.min(sizes[i_dim], space[i_dim] + 2);
-	            var result = [];
-	            for (var i = start; i < end; i++) {
-	                result.push(i);
-	            }
-	            return result;
-	        }
-	
-	        function space_neighbourhood(space) {
-	            var result = [];
-	            var neighbourhood0 = neighbourhood_in_dim(space, 0);
-	            var neighbourhood1 = neighbourhood_in_dim(space, 1);
-	            var neighbourhood2 = neighbourhood_in_dim(space, 2);
-	            for (var s0 = 0; s0 < neighbourhood0.length; s0++) {
-	                for (var s1 = 0; s1 < neighbourhood1.length; s1++) {
-	                    for (var s2 = 0; s2 < neighbourhood2.length; s2++) {
-	                        result.push([neighbourhood0[s0], neighbourhood1[s1], neighbourhood2[s2]]);
-	                    }
-	                }
-	            }
-	            return result;
-	        }
-	
-	        var pairs = [];
-	        for (var i = 0; i < vertices.length; i++) {
-	            var neighbourhood = space_neighbourhood(spaces[i]);
-	            for (var j_neigh = 0; j_neigh < neighbourhood.length; j_neigh++) {
-	                var hash = space_to_hash(neighbourhood[j_neigh]);
-	                if (hash in cells) {
-	                    var cell = cells[hash];
-	                    for (var j_cell = 0; j_cell < cell.length; j_cell++) {
-	                        var j = cell[j_cell];
-	                        if (i < j) {
-	                            pairs.push([i, j]);
-	                        }
-	                    }
-	                }
-	            }
-	        }
-	        return pairs;
-	    };
-	
-	    this.calc_bonds = function () {
-	
-	        var vertices = [];
-	        for (var i = 0; i < this.atoms.length; i++) {
-	            var atom = this.atoms[i];
-	            vertices.push([atom.pos.x, atom.pos.y, atom.pos.z]);
-	        }
-	        var close_pairs = this.get_close_pairs(vertices);
-	
-	        var result = [];
-	        var small_cutoff = 1.2;
-	        var medium_cutoff = 1.9;
-	        var large_cutoff = 2.4;
-	        var CHONPS = ['C', 'H', 'O', 'N', 'P', 'S'];
-	        for (var i_pair = 0; i_pair < close_pairs.length; i_pair++) {
-	            var a0 = this.atoms[close_pairs[i_pair][0]];
-	            var a1 = this.atoms[close_pairs[i_pair][1]];
-	            // HACK: to avoid the water grid bond calculation
-	            // step that kills the rendering
-	            if (a0.res_type == "HOH" || a1.res_type == "HOH") {
-	                continue;
-	            }
-	            var dist = _v2.default.distance(a0.pos, a1.pos);
-	            var cutoff;
-	            if (a0.alt != "" && a1.alt != "") {
-	                if (a0.alt != a1.alt) {
-	                    continue;
-	                }
-	            }
-	            if (a0.elem == "H" || a1.elem == "H") {
-	                cutoff = small_cutoff;
-	            } else if ((0, _util.in_array)(a0.elem, CHONPS) && (0, _util.in_array)(a1.elem, CHONPS)) {
-	                cutoff = medium_cutoff;
-	            } else {
-	                cutoff = large_cutoff;
-	            }
-	            if (dist <= cutoff) {
-	                result.push(close_pairs[i_pair]);
-	            }
-	        }
-	        return result;
-	    };
-	
-	    this.find_bb_hb_partners = function (self) {
-	
-	        // Find backbone hydrogen bonds for secondary structure
-	
-	        var vertices = [];
-	        var atoms = [];
-	        for (var j = 0; j < this.residues.length; j += 1) {
-	            var residue = this.residues[j];
-	            residue.hb_partners = [];
-	            residue.i = j;
-	            if (!residue.is_protein_or_nuc) {
-	                continue;
-	            }
-	            if ("O" in residue.atoms) {
-	                var a = residue.atoms["O"];
-	                vertices.push([a.pos.x, a.pos.y, a.pos.z]);
-	                atoms.push(a);
-	            }
-	            if ("N" in residue.atoms) {
-	                var a = residue.atoms["N"];
-	                vertices.push([a.pos.x, a.pos.y, a.pos.z]);
-	                atoms.push(a);
-	            }
-	        }
-	
-	        var cutoff = 3.5;
-	        var close_pairs = this.get_close_pairs(vertices);
-	        for (var i_pair = 0; i_pair < close_pairs.length; i_pair++) {
-	            var a0 = atoms[close_pairs[i_pair][0]];
-	            var a1 = atoms[close_pairs[i_pair][1]];
-	            if (a0.res_id == a1.res_id) {
-	                continue;
-	            }
-	            var dist = _v2.default.distance(a0.pos, a1.pos);
-	            if (dist <= cutoff) {
-	                var res0 = this.res_by_id[a0.res_id];
-	                var res1 = this.res_by_id[a1.res_id];
-	                if (!(0, _util.in_array)(res1.i, res0.hb_partners)) {
-	                    if (a0.elem == "O" && a1.elem == "N") {
-	                        res0.hb_partners.push(res1.i);
-	                    }
-	                }
-	                if (!(0, _util.in_array)(res0.i, res1.hb_partners)) {
-	                    if (a1.elem == "O" && a0.elem == "N") {
-	                        res1.hb_partners.push(res0.i);
-	                    }
-	                }
-	            }
-	        }
-	    };
-	
-	    this.is_conh = function (i_res1, i_res0) {
-	        if (i_res0 < 0 || i_res0 >= this.residues.length) {
-	            return false;
-	        }
-	        if (i_res1 < 0 || i_res1 >= this.residues.length) {
-	            return false;
-	        }
-	        var i_res0 = this.residues[i_res0].i;
-	        return (0, _util.in_array)(i_res0, this.residues[i_res1].hb_partners);
-	    };
-	
-	    this.res_diff = function (i_res0, i_res1) {
-	        var res0 = this.residues[i_res0];
-	        var res1 = this.residues[i_res1];
-	        return _v2.default.diff(res1.central_atom.pos, res0.central_atom.pos);
-	    };
-	
-	    this.find_ss = function () {
-	
-	        // Find Secondary Structure
-	        // H - alpha-helix/3-10-helix
-	        // E - beta-sheet
-	        // C - coil
-	        // - - ligand
-	        // W - water
-	        // D - DNA or RNA
-	
-	        for (var j = 0; j < this.residues.length; j += 1) {
-	            var residue = this.residues[j];
-	            residue.ss = "-";
-	            if (residue.is_water) {
-	                residue.ss = "W";
-	            }
-	            if (residue.is_protein_or_nuc) {
-	                if (this.has_nuc_bb(j)) {
-	                    residue.ss = "D";
-	                }
-	                if (this.has_aa_bb(j)) {
-	                    residue.ss = "C";
-	                }
-	            }
-	            residue.normals = [];
-	        }
-	
-	        this.find_bb_hb_partners();
-	
-	        var n_res = this.residues.length;
-	        for (var i_res1 = 0; i_res1 < this.residues.length; i_res1 += 1) {
-	
-	            var residue = this.residues[i_res1];
-	            var atoms = residue.atoms;
-	
-	            if (residue.ss == "D") {
-	                var forward = _v2.default.diff(atoms["C3'"].pos, atoms["C5'"].pos);
-	                var up = _v2.default.diff(atoms["C1'"].pos, atoms["C3'"].pos);
-	                var normal = _v2.default.cross_product(forward, up);
-	                residue.normals.push(normal);
-	            }
-	
-	            // alpha-helix
-	            if (this.is_conh(i_res1, i_res1 + 4) && this.is_conh(i_res1 + 1, i_res1 + 5)) {
-	                var normal1 = this.res_diff(i_res1, i_res1 + 4);
-	                var normal2 = this.res_diff(i_res1 + 1, i_res1 + 5);
-	                for (var i_res2 = i_res1 + 1; i_res2 < i_res1 + 5; i_res2 += 1) {
-	                    this.residues[i_res2].ss = 'H';
-	                    this.residues[i_res2].normals.push(normal1);
-	                    this.residues[i_res2].normals.push(normal2);
-	                }
-	            }
-	
-	            // 3-10 helix
-	            if (this.is_conh(i_res1, i_res1 + 3) && this.is_conh(i_res1 + 1, i_res1 + 4)) {
-	                var normal1 = this.res_diff(i_res1, i_res1 + 3);
-	                var normal2 = this.res_diff(i_res1 + 1, i_res1 + 4);
-	                for (var i_res2 = i_res1 + 1; i_res2 < i_res1 + 4; i_res2 += 1) {
-	                    this.residues[i_res2].ss = 'H';
-	                    this.residues[i_res2].normals.push(normal1);
-	                    this.residues[i_res2].normals.push(normal2);
-	                }
-	            }
-	
-	            for (var i_res2 = i_res1 + 1; i_res2 < this.residues.length; i_res2 += 1) {
-	
-	                if (Math.abs(i_res1 - i_res2) <= 5) {
-	                    continue;
-	                }
-	
-	                var beta_residues = [];
-	
-	                // parallel beta sheet pairs
-	                if (this.is_conh(i_res1, i_res2 + 1) && this.is_conh(i_res2 - 1, i_res1)) {
-	                    beta_residues = beta_residues.concat([i_res1, i_res2]);
-	                }
-	                if (this.is_conh(i_res1 - 1, i_res2) && this.is_conh(i_res2, i_res1 + 1)) {
-	                    beta_residues = beta_residues.concat([i_res1, i_res2]);
-	                }
-	
-	                // anti-parallel hbonded beta sheet pairs
-	                if (this.is_conh(i_res1, i_res2) && this.is_conh(i_res2, i_res1)) {
-	                    beta_residues = beta_residues.concat([i_res1, i_res2]);
-	                    var normal = this.res_diff(i_res1, i_res2);
-	                    this.residues[i_res1].normals.push(normal);
-	                    this.residues[i_res2].normals.push(_v2.default.scaled(normal, -1));
-	                }
-	
-	                // anti-parallel non-hbonded beta sheet pairs
-	                if (this.is_conh(i_res1 - 1, i_res2 + 1) && this.is_conh(i_res2 - 1, i_res1 + 1)) {
-	                    beta_residues = beta_residues.concat([i_res1, i_res2]);
-	                    var normal = this.res_diff(i_res1, i_res2);
-	                    this.residues[i_res1].normals.push(_v2.default.scaled(normal, -1));
-	                    this.residues[i_res2].normals.push(normal);
-	                }
-	
-	                for (var i = 0; i < beta_residues.length; i += 1) {
-	                    var i_res = beta_residues[i];
-	                    this.residues[i_res].ss = "E";
-	                }
-	            }
-	        }
-	
-	        for (var i_res1 = 0; i_res1 < this.residues.length; i_res1 += 1) {
-	            var res = this.residues[i_res1];
-	            if (res.normals.length == 0) {
-	                res.normal = null;
-	            } else {
-	                var normal = _v2.default.create(0, 0, 0);
-	                for (var i = 0; i < res.normals.length; i += 1) {
-	                    normal = _v2.default.sum(normal, res.normals[i]);
-	                }
-	                res.normal = _v2.default.normalized(normal);
-	            }
-	        }
-	    };
-	
-	    this.load = function (protein_data) {
-	        this.pdb_id = protein_data['pdb_id'];
-	        var atom_lines = extract_atom_lines(protein_data['pdb_text']);
-	        console.log("parse pdb");
-	        this.make_atoms_from_pdb_lines(atom_lines);
-	        this.make_residues();
-	        console.log("find bonds");
-	        this.make_bonds(this.calc_bonds());
-	        this.max_length = this.calc_max_length();
-	        console.log("find secondary structure");
-	        this.find_ss();
-	        console.log("finish protein analysis");
-	    };
-	
-	    this.transform = function (matrix) {
-	        for (var i = 0; i < this.atoms.length; i += 1) {
-	            this.atoms[i].pos.applyMatrix4(matrix);
-	            this.atoms[i].z = this.atoms[i].pos.z;
-	        }
-	        for (i = 0; i < this.ribbons.length; i += 1) {
-	            for (j = 0; j < 4; j += 1) {
-	                this.ribbons[i].quad_coords[j].applyMatrix4(matrix);
-	                this.ribbons[i].z = max_z_of_list(this.ribbons[i].quad_coords);
-	            }
-	        }
-	        for (i = 0; i < this.bonds.length; i += 1) {
-	            this.bonds[i].z = Math.max(this.bonds[i].atom1.pos.z, this.bonds[i].atom2.pos.z) + 0.2;
-	        }
-	        for (i = 0; i < this.trace.length; i += 1) {
-	            this.trace[i].z = Math.max(this.trace[i].atom1.pos.z, this.trace[i].atom2.pos.z) + 0.2;
-	        }
-	        this.max_z = 0;
-	        this.min_z = 1E6;
-	        for (var i = 0; i < this.atoms.length; i += 1) {
-	            if (this.atoms[i].pos.z < this.min_z) {
-	                this.min_z = this.atoms[i].pos.z;
-	            }
-	            if (this.atoms[i].pos.z > this.max_z) {
-	                this.max_z = this.atoms[i].pos.z;
-	            }
-	        }
-	    };
-	
-	    this.center = function () {
-	        var x_center = 0;
-	        var y_center = 0;
-	        var z_center = 0;
-	        var n = this.atoms.length;
-	        for (var i = 0; i < n; i += 1) {
-	            x_center += this.atoms[i].pos.x;
-	            y_center += this.atoms[i].pos.y;
-	            z_center += this.atoms[i].pos.z;
-	        }
-	        return _v2.default.create(x_center / n, y_center / n, z_center / n);
-	    };
-	
-	    this.get_i_res_from_res_id = function (res_id) {
-	        for (var i = 0; i < this.residues.length; i += 1) {
-	            if (this.residues[i].id == res_id) {
-	                return i;
-	            }
-	        }
+	  this.get_i_res_from_res_id = function (res_id) {
+	    for (var i = 0; i < this.residues.length; i += 1) {
+	      if (this.residues[i].id == res_id) {
 	        return i;
-	    };
+	      }
+	    }
+	    return i;
+	  };
 	
-	    this.clear_selected = function () {
-	        for (var i = 0; i < this.residues.length; i += 1) {
-	            this.residues[i].selected = false;
-	        }
-	    };
+	  this.clear_selected = function () {
+	    for (var i = 0; i < this.residues.length; i += 1) {
+	      this.residues[i].selected = false;
+	    }
+	  };
 	
-	    this.are_close_residues = function (j, k) {
-	        var res_j = this.residues[j];
-	        var res_k = this.residues[k];
-	        var atom_j = this.atoms[res_j.central_atom.i];
-	        var atom_k = this.atoms[res_k.central_atom.i];
-	        if (_v2.default.distance(atom_j.pos, atom_k.pos) > 17) {
-	            return false;
+	  this.are_close_residues = function (j, k) {
+	    var res_j = this.residues[j];
+	    var res_k = this.residues[k];
+	    var atom_j = this.atoms[res_j.central_atom.i];
+	    var atom_k = this.atoms[res_k.central_atom.i];
+	    if (_v2.default.distance(atom_j.pos, atom_k.pos) > 17) {
+	      return false;
+	    }
+	    for (var l in res_j.atoms) {
+	      var atom_l = res_j.atoms[l];
+	      for (var m in res_k.atoms) {
+	        var atom_m = res_k.atoms[m];
+	        if (_v2.default.distance(atom_l.pos, atom_m.pos) < 4) {
+	          return true;
 	        }
-	        for (var l in res_j.atoms) {
-	            var atom_l = res_j.atoms[l];
-	            for (var m in res_k.atoms) {
-	                var atom_m = res_k.atoms[m];
-	                if (_v2.default.distance(atom_l.pos, atom_m.pos) < 4) {
-	                    return true;
-	                }
-	            }
-	        }
-	        return false;
-	    };
+	      }
+	    }
+	    return false;
+	  };
 	
-	    this.select_neighbors = function (i_res, b) {
-	        this.residues[i_res].selected = true;
-	        for (var j = 0; j < this.residues.length; j += 1) {
-	            if (this.are_close_residues(j, i_res)) {
-	                this.residues[j].selected = b;
-	            }
-	        }
-	    };
+	  this.select_neighbors = function (i_res, b) {
+	    this.residues[i_res].selected = true;
+	    for (var j = 0; j < this.residues.length; j += 1) {
+	      if (this.are_close_residues(j, i_res)) {
+	        this.residues[j].selected = b;
+	      }
+	    }
+	  };
 	};
 	
 	///////////////////////////////////////////
@@ -28790,99 +28877,99 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	var Camera = function Camera() {
-	    this.pos = _v2.default.create(0, 0, 0);
-	    this.up_v = _v2.default.create(0, 1, 0);
-	    this.in_v = _v2.default.create(0, 0, 1);
-	    this.zoom = 0.0;
-	    this.z_front = 0.0;
-	    this.z_back = 0.0;
+	  this.pos = _v2.default.create(0, 0, 0);
+	  this.up_v = _v2.default.create(0, 1, 0);
+	  this.in_v = _v2.default.create(0, 0, 1);
+	  this.zoom = 0.0;
+	  this.z_front = 0.0;
+	  this.z_back = 0.0;
 	
-	    this.is_visible_z = function (z) {
-	        if (z < 2 * atom_radius - this.zoom) {
-	            return false;
-	        }
-	        if (z > this.z_back) {
-	            return false;
-	        }
-	        if (z < this.z_front) {
-	            return false;
-	        }
-	        return true;
-	    };
+	  this.is_visible_z = function (z) {
+	    if (z < 2 * atom_radius - this.zoom) {
+	      return false;
+	    }
+	    if (z > this.z_back) {
+	      return false;
+	    }
+	    if (z < this.z_front) {
+	      return false;
+	    }
+	    return true;
+	  };
 	
-	    this.clone = function () {
-	        var c = new Camera();
-	        c.pos = this.pos.clone(), c.up_v = this.up_v.clone(), c.in_v = this.in_v.clone(), c.zoom = this.zoom, c.z_front = this.z_front, c.z_back = this.z_back;
-	        return c;
-	    };
+	  this.clone = function () {
+	    var c = new Camera();
+	    c.pos = this.pos.clone(), c.up_v = this.up_v.clone(), c.in_v = this.in_v.clone(), c.zoom = this.zoom, c.z_front = this.z_front, c.z_back = this.z_back;
+	    return c;
+	  };
 	
-	    this.transform = function (matrix) {
-	        this.pos.applyMatrix4(matrix);
-	        this.up_v.applyMatrix4(matrix);
-	        this.in_v.applyMatrix4(matrix);
-	    };
+	  this.transform = function (matrix) {
+	    this.pos.applyMatrix4(matrix);
+	    this.up_v.applyMatrix4(matrix);
+	    this.in_v.applyMatrix4(matrix);
+	  };
 	};
 	
 	function is_equal_camera(v, w) {
-	    if (_v2.default.is_equal(v.pos, w.pos) && _v2.default.is_equal(v.up_v, w.up_v) && _v2.default.is_equal(v.in_v, w.in_v) && v.zoom == w.zoom && v.z_front == w.z_front && v.z_back == w.z_back) {
-	        return true;
-	    }
-	    return false;
+	  if (_v2.default.is_equal(v.pos, w.pos) && _v2.default.is_equal(v.up_v, w.up_v) && _v2.default.is_equal(v.in_v, w.in_v) && v.zoom == w.zoom && v.z_front == w.z_front && v.z_back == w.z_back) {
+	    return true;
+	  }
+	  return false;
 	}
 	
 	function get_camera_transform(ref, mov, n_step) {
-	    var ref1 = ref.pos;
-	    var ref2 = ref.up_v;
-	    var ref3 = ref.in_v;
-	    var mov1 = mov.pos;
-	    var mov2 = mov.up_v;
-	    var mov3 = mov.in_v;
+	  var ref1 = ref.pos;
+	  var ref2 = ref.up_v;
+	  var ref3 = ref.in_v;
+	  var mov1 = mov.pos;
+	  var mov2 = mov.up_v;
+	  var mov3 = mov.in_v;
 	
-	    var disp = _v2.default.diff(ref1, mov1);
-	    var t = _v2.default.translation(disp);
+	  var disp = _v2.default.diff(ref1, mov1);
+	  var t = _v2.default.translation(disp);
 	
-	    var axis1, torsion1, r1;
-	    var mov12 = _v2.default.diff(mov2, mov1);
-	    var ref12 = _v2.default.diff(ref2, ref1);
-	    if (_v2.default.is_aligned(mov12, ref12)) {
-	        r1 = new _v2.default.Matrix4();
-	        torsion1 = null;
-	    } else {
-	        axis1 = _v2.default.cross_product(mov12, ref12);
-	        torsion1 = _v2.default.dihedral(ref12, axis1, mov12);
-	        r1 = _v2.default.rotation(axis1, torsion1);
-	    }
+	  var axis1, torsion1, r1;
+	  var mov12 = _v2.default.diff(mov2, mov1);
+	  var ref12 = _v2.default.diff(ref2, ref1);
+	  if (_v2.default.is_aligned(mov12, ref12)) {
+	    r1 = new _v2.default.Matrix4();
+	    torsion1 = null;
+	  } else {
+	    axis1 = _v2.default.cross_product(mov12, ref12);
+	    torsion1 = _v2.default.dihedral(ref12, axis1, mov12);
+	    r1 = _v2.default.rotation(axis1, torsion1);
+	  }
 	
-	    var axis2, torsion2, r2;
-	    var ref13 = _v2.default.diff(ref3, ref1);
-	    var mov13 = _v2.default.diff(mov3, mov1);
-	    mov13.applyMatrix4(r1);
-	    if (_v2.default.is_near_zero(_v2.default.angle(ref13, mov13))) {
-	        r2 = new _v2.default.Matrix4();
-	        torsion2 = null;
-	    } else {
-	        axis2 = _v2.default.cross_product(ref13, mov13);
-	        torsion2 = _v2.default.dihedral(ref13, axis2, mov13);
-	        r2 = _v2.default.rotation(axis2, torsion2);
-	    }
+	  var axis2, torsion2, r2;
+	  var ref13 = _v2.default.diff(ref3, ref1);
+	  var mov13 = _v2.default.diff(mov3, mov1);
+	  mov13.applyMatrix4(r1);
+	  if (_v2.default.is_near_zero(_v2.default.angle(ref13, mov13))) {
+	    r2 = new _v2.default.Matrix4();
+	    torsion2 = null;
+	  } else {
+	    axis2 = _v2.default.cross_product(ref13, mov13);
+	    torsion2 = _v2.default.dihedral(ref13, axis2, mov13);
+	    r2 = _v2.default.rotation(axis2, torsion2);
+	  }
 	
-	    // now we have the parameters of the transform
-	    // build the transform (in terms of little steps)
-	    if (torsion1 === null) {
-	        var n = t;
-	    } else {
-	        var r1 = _v2.default.rotation(axis1, torsion1 / n_step);
-	        var n = _v2.default.matrix_product(r1, t);
-	    }
-	    if (torsion2 === null) {
-	        var m = n;
-	    } else {
-	        var r2 = _v2.default.rotation(axis2, torsion2 / n_step);
-	        var m = _v2.default.matrix_product(r2, n);
-	    }
-	    var disp2 = _v2.default.scaled(disp, -(n_step - 1) / n_step);
+	  // now we have the parameters of the transform
+	  // build the transform (in terms of little steps)
+	  if (torsion1 === null) {
+	    var n = t;
+	  } else {
+	    var r1 = _v2.default.rotation(axis1, torsion1 / n_step);
+	    var n = _v2.default.matrix_product(r1, t);
+	  }
+	  if (torsion2 === null) {
+	    var m = n;
+	  } else {
+	    var r2 = _v2.default.rotation(axis2, torsion2 / n_step);
+	    var m = _v2.default.matrix_product(r2, n);
+	  }
+	  var disp2 = _v2.default.scaled(disp, -(n_step - 1) / n_step);
 	
-	    return _v2.default.matrix_product(_v2.default.translation(disp2), m);
+	  return _v2.default.matrix_product(_v2.default.translation(disp2), m);
 	}
 	
 	////////////////////////////////////////////////////
@@ -28905,58 +28992,58 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	var View = function View() {
-	    this.id = 'view:000000';
-	    this.res_id = "";
-	    this.i_atom = -1;
-	    this.order = 1;
-	    this.camera = new Camera();
-	    this.abs_camera = new Camera();
-	    this.selected = [];
-	    this.labels = [];
-	    this.distances = [];
-	    this.text = 'Default view of PDB file';
-	    this.creator = "";
-	    this.url = (0, _util.url)();
-	    this.show = {
-	        sidechain: true,
-	        peptide: true,
-	        hydrogen: false,
-	        water: false,
-	        ligands: true,
-	        trace: false,
-	        all_atom: false,
-	        ribbon: true
-	    };
+	  this.id = 'view:000000';
+	  this.res_id = "";
+	  this.i_atom = -1;
+	  this.order = 1;
+	  this.camera = new Camera();
+	  this.abs_camera = new Camera();
+	  this.selected = [];
+	  this.labels = [];
+	  this.distances = [];
+	  this.text = 'Default view of PDB file';
+	  this.creator = "";
+	  this.url = (0, _util.url)();
+	  this.show = {
+	    sidechain: true,
+	    peptide: true,
+	    hydrogen: false,
+	    water: false,
+	    ligands: true,
+	    trace: false,
+	    all_atom: false,
+	    ribbon: true
+	  };
 	
-	    this.clone = function () {
-	        var v = new View();
-	        v.id = this.id;
-	        v.res_id = this.res_id;
-	        v.i_atom = this.i_atom;
-	        v.selected = this.selected;
-	        v.labels = (0, _util.clone_list_of_dicts)(this.labels);
-	        v.distances = (0, _util.clone_list_of_dicts)(this.distances);
-	        v.order = this.order;
-	        v.text = this.text;
-	        v.time = this.time;
-	        v.url = this.url;
-	        v.abs_camera = this.abs_camera.clone();
-	        v.camera = this.camera.clone();
-	        v.show = (0, _util.clone_dict)(this.show);
-	        return v;
-	    };
+	  this.clone = function () {
+	    var v = new View();
+	    v.id = this.id;
+	    v.res_id = this.res_id;
+	    v.i_atom = this.i_atom;
+	    v.selected = this.selected;
+	    v.labels = (0, _util.clone_list_of_dicts)(this.labels);
+	    v.distances = (0, _util.clone_list_of_dicts)(this.distances);
+	    v.order = this.order;
+	    v.text = this.text;
+	    v.time = this.time;
+	    v.url = this.url;
+	    v.abs_camera = this.abs_camera.clone();
+	    v.camera = this.camera.clone();
+	    v.show = (0, _util.clone_dict)(this.show);
+	    return v;
+	  };
 	
-	    this.copy_metadata_from_view = function (in_view) {
-	        this.res_id = in_view.res_id;
-	        this.show = (0, _util.clone_dict)(in_view.show);
-	        this.labels = (0, _util.clone_list_of_dicts)(in_view.labels);
-	        this.distances = (0, _util.clone_list_of_dicts)(in_view.distances);
-	        this.text = in_view.text;
-	        this.time = in_view.time;
-	        this.url = in_view.url;
-	        this.i_atom = in_view.i_atom;
-	        this.selected = in_view.selected;
-	    };
+	  this.copy_metadata_from_view = function (in_view) {
+	    this.res_id = in_view.res_id;
+	    this.show = (0, _util.clone_dict)(in_view.show);
+	    this.labels = (0, _util.clone_list_of_dicts)(in_view.labels);
+	    this.distances = (0, _util.clone_list_of_dicts)(in_view.distances);
+	    this.text = in_view.text;
+	    this.time = in_view.time;
+	    this.url = in_view.url;
+	    this.i_atom = in_view.i_atom;
+	    this.selected = in_view.selected;
+	  };
 	};
 	
 	/////////////////////////////////////////////////
@@ -28967,187 +29054,187 @@ return /******/ (function(modules) { // webpackBootstrap
 	/////////////////////////////////////////////////
 	
 	var Scene = function Scene(protein) {
-	    this.max_update_step = 20;
-	    this.protein = protein;
-	    this.saved_views_by_id = {};
-	    this.saved_views = [];
-	    this.origin = new View();
-	    this.current_view = new View();
-	    this.target_view = null;
-	    this.n_update_step = -1;
+	  this.max_update_step = 20;
+	  this.protein = protein;
+	  this.saved_views_by_id = {};
+	  this.saved_views = [];
+	  this.origin = new View();
+	  this.current_view = new View();
+	  this.target_view = null;
+	  this.n_update_step = -1;
+	  this.is_new_view_chosen = true;
+	  this.i_last_view = 0;
+	  this.saved_show = null;
+	
+	  this.calculate_abs_camera = function (view) {
+	    var m = get_camera_transform(view.camera, this.origin.camera, 1);
+	    var view_wrt_origin = view.clone();
+	    view_wrt_origin.camera.transform(m);
+	    view.abs_camera = view_wrt_origin.camera;
+	  };
+	
+	  this.restore_camera_from_abs_camera = function (view) {
+	    var current_camera = this.current_view.camera.clone();
+	    var m = get_camera_transform(this.current_view.camera, this.origin.camera, 1);
+	    current_camera.transform(m);
+	    var n = get_camera_transform(this.current_view.camera, current_camera, 1);
+	    view.camera = view.abs_camera.clone();
+	    view.camera.transform(n);
+	  };
+	
+	  this.transform = function (matrix) {
+	    this.protein.transform(matrix);
+	    for (i = 0; i < this.saved_views.length; i += 1) {
+	      this.saved_views[i].camera.transform(matrix);
+	    }
+	    if (this.target_view) {
+	      this.target_view.camera.transform(matrix);
+	    }
+	    this.origin.camera.transform(matrix);
+	    for (var i = 0; i < this.current_view.distances.length; i += 1) {
+	      var dist = this.current_view.distances[i];
+	      this.current_view.distances[i].z = Math.max(this.protein.atoms[dist.i_atom1].pos.z, this.protein.atoms[dist.i_atom2].pos.z);
+	    }
+	  };
+	
+	  this.translate = function (d) {
+	    this.transform(_v2.default.translation(d));
+	  };
+	
+	  this.set_target_view = function (view) {
+	    this.n_update_step = this.max_update_step;
+	    this.target_view = view.clone();
+	  };
+	
+	  this.centered_atom = function () {
+	    var i = this.current_view.i_atom;
+	    return this.protein.atoms[i];
+	  };
+	
+	  this.find_atom_nearest_to_origin = function () {
+	    for (var i = 0; i < this.protein.residues.length; i += 1) {
+	      var res = this.protein.residues[i];
+	      var p = res.central_atom.pos;
+	      var d = p.x * p.x + p.y * p.y + p.z * p.z;
+	      if (d > 400) {
+	        continue;
+	      }
+	      for (var k in res.atoms) {
+	        p = res.atoms[k].pos;
+	        if (Math.abs(p.x) < 0.1 && Math.abs(p.y) < 0.1 && Math.abs(p.z) < 0.1) {
+	          return res.atoms[k].i;
+	        }
+	      }
+	    }
+	    return -1;
+	  };
+	
+	  this.get_i_saved_view_from_id = function (id) {
+	    var i = -1;
+	    for (var j = 0; j < this.saved_views.length; j += 1) {
+	      if (this.saved_views[j].id == id) {
+	        i = j;
+	      }
+	    }
+	    return i;
+	  };
+	
+	  this.insert_view = function (j, new_id, new_view) {
+	    this.saved_views_by_id[new_id] = new_view;
+	    if (j >= this.saved_views.length) {
+	      this.saved_views.push(new_view);
+	    } else {
+	      this.saved_views.splice(j, 0, new_view);
+	    }
+	    this.i_last_view = j;
+	    for (var i = 0; i < this.saved_views.length; i++) {
+	      this.saved_views[i].order = i;
+	    }
+	  };
+	
+	  this.remove_saved_view = function (id) {
+	    var i = this.get_i_saved_view_from_id(id);
+	    if (i < 0) {
+	      return;
+	    }
+	    this.saved_views.splice(i, 1);
+	    delete this.saved_views_by_id[id];
+	    for (var i = 0; i < this.saved_views.length; i++) {
+	      this.saved_views[i].order = i;
+	    }
+	    if (this.i_last_view >= this.saved_views.length) {
+	      this.i_last_view = this.saved_views.length - 1;
+	    }
+	    this.changed = true;
 	    this.is_new_view_chosen = true;
-	    this.i_last_view = 0;
-	    this.saved_show = null;
+	  };
 	
-	    this.calculate_abs_camera = function (view) {
-	        var m = get_camera_transform(view.camera, this.origin.camera, 1);
-	        var view_wrt_origin = view.clone();
-	        view_wrt_origin.camera.transform(m);
-	        view.abs_camera = view_wrt_origin.camera;
-	    };
+	  this.save_view = function (view) {
+	    var id = view.id;
+	    this.saved_views_by_id[id] = view;
+	    this.saved_views.push(view);
+	  };
 	
-	    this.restore_camera_from_abs_camera = function (view) {
-	        var current_camera = this.current_view.camera.clone();
-	        var m = get_camera_transform(this.current_view.camera, this.origin.camera, 1);
-	        current_camera.transform(m);
-	        var n = get_camera_transform(this.current_view.camera, current_camera, 1);
-	        view.camera = view.abs_camera.clone();
-	        view.camera.transform(n);
-	    };
-	
-	    this.transform = function (matrix) {
-	        this.protein.transform(matrix);
-	        for (i = 0; i < this.saved_views.length; i += 1) {
-	            this.saved_views[i].camera.transform(matrix);
-	        }
-	        if (this.target_view) {
-	            this.target_view.camera.transform(matrix);
-	        }
-	        this.origin.camera.transform(matrix);
-	        for (var i = 0; i < this.current_view.distances.length; i += 1) {
-	            var dist = this.current_view.distances[i];
-	            this.current_view.distances[i].z = Math.max(this.protein.atoms[dist.i_atom1].pos.z, this.protein.atoms[dist.i_atom2].pos.z);
-	        }
-	    };
-	
-	    this.translate = function (d) {
-	        this.transform(_v2.default.translation(d));
-	    };
-	
-	    this.set_target_view = function (view) {
-	        this.n_update_step = this.max_update_step;
-	        this.target_view = view.clone();
-	    };
-	
-	    this.centered_atom = function () {
-	        var i = this.current_view.i_atom;
-	        return this.protein.atoms[i];
-	    };
-	
-	    this.find_atom_nearest_to_origin = function () {
-	        for (var i = 0; i < this.protein.residues.length; i += 1) {
-	            var res = this.protein.residues[i];
-	            var p = res.central_atom.pos;
-	            var d = p.x * p.x + p.y * p.y + p.z * p.z;
-	            if (d > 400) {
-	                continue;
-	            }
-	            for (var k in res.atoms) {
-	                p = res.atoms[k].pos;
-	                if (Math.abs(p.x) < 0.1 && Math.abs(p.y) < 0.1 && Math.abs(p.z) < 0.1) {
-	                    return res.atoms[k].i;
-	                }
-	            }
-	        }
-	        return -1;
-	    };
-	
-	    this.get_i_saved_view_from_id = function (id) {
-	        var i = -1;
-	        for (var j = 0; j < this.saved_views.length; j += 1) {
-	            if (this.saved_views[j].id == id) {
-	                i = j;
-	            }
-	        }
-	        return i;
-	    };
-	
-	    this.insert_view = function (j, new_id, new_view) {
-	        this.saved_views_by_id[new_id] = new_view;
-	        if (j >= this.saved_views.length) {
-	            this.saved_views.push(new_view);
-	        } else {
-	            this.saved_views.splice(j, 0, new_view);
-	        }
-	        this.i_last_view = j;
-	        for (var i = 0; i < this.saved_views.length; i++) {
-	            this.saved_views[i].order = i;
-	        }
-	    };
-	
-	    this.remove_saved_view = function (id) {
-	        var i = this.get_i_saved_view_from_id(id);
-	        if (i < 0) {
-	            return;
-	        }
-	        this.saved_views.splice(i, 1);
-	        delete this.saved_views_by_id[id];
-	        for (var i = 0; i < this.saved_views.length; i++) {
-	            this.saved_views[i].order = i;
-	        }
-	        if (this.i_last_view >= this.saved_views.length) {
-	            this.i_last_view = this.saved_views.length - 1;
-	        }
-	        this.changed = true;
-	        this.is_new_view_chosen = true;
-	    };
-	
-	    this.save_view = function (view) {
-	        var id = view.id;
-	        this.saved_views_by_id[id] = view;
-	        this.saved_views.push(view);
-	    };
-	
-	    this.animate = function () {
-	        if (this.n_update_step < 0) {
-	            return;
-	        } else if (this.n_update_step == 0) {
-	            this.current_view.copy_metadata_from_view(this.target_view);
-	            var i_atom = this.current_view.i_atom;
-	            if (i_atom == -1 || typeof i_atom == 'undefined') {
-	                this.current_view.i_atom = this.find_atom_nearest_to_origin();
-	            }
-	            i_atom = this.current_view.i_atom;
-	            if (i_atom > -1) {
-	                this.current_view.res_id = this.protein.atoms[i_atom].res_id;
-	            } else {
-	                this.current_view.res_id = this.protein.residues[0].id;
-	            }
-	            this.protein.clear_selected();
-	            for (i = 0; i < this.current_view.selected.length; i += 1) {
-	                var j = this.current_view.selected[i];
-	                this.protein.residues[j].selected = true;
-	            }
-	            this.is_new_view_chosen = true;
-	        } else {
-	            o = get_camera_transform(this.current_view.camera, this.target_view.camera, this.n_update_step);
-	            this.transform(o);
-	            zoom_diff = this.target_view.camera.zoom - this.current_view.camera.zoom;
-	            this.current_view.camera.zoom += zoom_diff / this.n_update_step;
-	            z_front_diff = this.target_view.camera.z_front - this.current_view.camera.z_front;
-	            this.current_view.camera.z_front += z_front_diff / this.n_update_step;
-	            z_back_diff = this.target_view.camera.z_back - this.current_view.camera.z_back;
-	            this.current_view.camera.z_back += z_back_diff / this.n_update_step;
-	        }
-	        this.changed = true;
-	        this.n_update_step -= 1;
-	    };
-	
-	    this.move_origin_to_center = function () {
-	        this.translate(_v2.default.scaled(this.protein.center(), -1));
-	    };
-	
-	    this.make_default_view = function (default_html) {
-	
-	        // this.current_view = new View();
+	  this.animate = function () {
+	    if (this.n_update_step < 0) {
+	      return;
+	    } else if (this.n_update_step == 0) {
+	      this.current_view.copy_metadata_from_view(this.target_view);
+	      var i_atom = this.current_view.i_atom;
+	      if (i_atom == -1 || typeof i_atom == 'undefined') {
+	        this.current_view.i_atom = this.find_atom_nearest_to_origin();
+	      }
+	      i_atom = this.current_view.i_atom;
+	      if (i_atom > -1) {
+	        this.current_view.res_id = this.protein.atoms[i_atom].res_id;
+	      } else {
 	        this.current_view.res_id = this.protein.residues[0].id;
-	        this.current_view.camera.z_front = protein.min_z;
-	        this.current_view.camera.z_back = protein.max_z;
-	        this.current_view.camera.zoom = Math.abs(2 * protein.max_length);
-	        this.calculate_abs_camera(this.current_view);
+	      }
+	      this.protein.clear_selected();
+	      for (i = 0; i < this.current_view.selected.length; i += 1) {
+	        var j = this.current_view.selected[i];
+	        this.protein.residues[j].selected = true;
+	      }
+	      this.is_new_view_chosen = true;
+	    } else {
+	      o = get_camera_transform(this.current_view.camera, this.target_view.camera, this.n_update_step);
+	      this.transform(o);
+	      zoom_diff = this.target_view.camera.zoom - this.current_view.camera.zoom;
+	      this.current_view.camera.zoom += zoom_diff / this.n_update_step;
+	      z_front_diff = this.target_view.camera.z_front - this.current_view.camera.z_front;
+	      this.current_view.camera.z_front += z_front_diff / this.n_update_step;
+	      z_back_diff = this.target_view.camera.z_back - this.current_view.camera.z_back;
+	      this.current_view.camera.z_back += z_back_diff / this.n_update_step;
+	    }
+	    this.changed = true;
+	    this.n_update_step -= 1;
+	  };
 	
-	        if (this.protein.residues.length > 100) {
-	            this.current_view.show.sidechain = false;
-	        }
+	  this.move_origin_to_center = function () {
+	    this.translate(_v2.default.scaled(this.protein.center(), -1));
+	  };
 	
-	        var default_view = this.current_view.clone();
-	        default_view.order = 0;
-	        default_view.text = default_html;
-	        default_view.pdb_id = this.protein.pdb_id;
+	  this.make_default_view = function (default_html) {
 	
-	        this.save_view(default_view);
-	        this.changed = true;
-	    };
+	    // this.current_view = new View();
+	    this.current_view.res_id = this.protein.residues[0].id;
+	    this.current_view.camera.z_front = protein.min_z;
+	    this.current_view.camera.z_back = protein.max_z;
+	    this.current_view.camera.zoom = Math.abs(2 * protein.max_length);
+	    this.calculate_abs_camera(this.current_view);
+	
+	    if (this.protein.residues.length > 100) {
+	      this.current_view.show.sidechain = false;
+	    }
+	
+	    var default_view = this.current_view.clone();
+	    default_view.order = 0;
+	    default_view.text = default_html;
+	    default_view.pdb_id = this.protein.pdb_id;
+	
+	    this.save_view(default_view);
+	    this.changed = true;
+	  };
 	};
 	
 	/////////////////////////////////////////////////
@@ -29157,341 +29244,341 @@ return /******/ (function(modules) { // webpackBootstrap
 	/////////////////////////////////////////////////
 	
 	var Controller = function Controller(scene) {
-	    this.zoom_min = 2.4;
-	    this.protein = scene.protein;
-	    this.scene = scene;
+	  this.zoom_min = 2.4;
+	  this.protein = scene.protein;
+	  this.scene = scene;
 	
-	    this.delete_dist = function (i) {
-	        this.scene.current_view.distances.splice(i, 1);
-	        this.scene.changed = true;
+	  this.delete_dist = function (i) {
+	    this.scene.current_view.distances.splice(i, 1);
+	    this.scene.changed = true;
+	  };
+	
+	  this.make_dist = function (atom1, atom2) {
+	    this.scene.current_view.distances.push({
+	      'i_atom1': atom1.i,
+	      'i_atom2': atom2.i,
+	      'z': atom2.z
+	    });
+	    this.scene.changed = true;
+	  };
+	
+	  this.make_label = function (i_atom, text) {
+	    this.scene.current_view.labels.push({
+	      'i_atom': i_atom, 'text': text
+	    });
+	    this.scene.changed = true;
+	  };
+	
+	  this.delete_label = function (i) {
+	    this.scene.current_view.labels.splice(i, 1);
+	    this.scene.changed = true;
+	  };
+	
+	  this.rotate_xy = function (x_angle, y_angle) {
+	    x_axis = _v2.default.create(1, 0, 0);
+	    rot_along_x = _v2.default.rotation(x_axis, x_angle);
+	    y_axis = _v2.default.create(0, 1, 0);
+	    rot_along_y = _v2.default.rotation(y_axis, y_angle);
+	    matrix = _v2.default.matrix_product(rot_along_x, rot_along_y);
+	    this.scene.transform(matrix);
+	  };
+	
+	  this.rotate_z = function (z_angle) {
+	    z_axis = _v2.default.create(0, 0, 1);
+	    rot_along_z = _v2.default.rotation(z_axis, z_angle);
+	    this.scene.transform(rot_along_z);
+	  };
+	
+	  this.adjust_zoom = function (zoom_diff) {
+	    var camera = this.scene.current_view.camera;
+	    camera.zoom += zoom_diff;
+	    if (camera.zoom < this.zoom_min) {
+	      camera.zoom = this.zoom_min;
+	    }
+	    this.changed = true;
+	  };
+	
+	  this.set_target_view = function (view) {
+	    this.scene.set_target_view(view);
+	  };
+	
+	  this.set_target_view_by_id = function (id) {
+	    var view = this.scene.saved_views_by_id[id];
+	    this.scene.i_last_view = this.scene.saved_views_by_id[id].order;
+	    this.scene.restore_camera_from_abs_camera(view);
+	    this.set_target_view(view);
+	  };
+	
+	  this.set_target_view_by_res_id = function (res_id) {
+	    var view = this.scene.current_view.clone();
+	    view.res_id = res_id;
+	    view.i_atom = this.protein.res_by_id[res_id].central_atom.i;
+	    var pos = this.protein.res_by_id[res_id].central_atom.pos.clone();
+	    view.camera.transform(_v2.default.translation(pos));
+	    this.set_target_view(view);
+	  };
+	
+	  this.set_target_view_by_atom = function (atom) {
+	    var view = this.scene.current_view.clone();
+	    view.res_id = atom.res_id;
+	    view.i_atom = atom.i;
+	    view.camera.transform(_v2.default.translation(atom.pos));
+	    this.set_target_view(view);
+	  };
+	
+	  this.set_target_prev_residue = function () {
+	    var curr_res_id;
+	    if (this.scene.n_update_step >= 0) {
+	      curr_res_id = this.scene.target_view.res_id;
+	    } else {
+	      curr_res_id = this.scene.current_view.res_id;
+	    }
+	    var res_id = this.protein.get_prev_res_id(curr_res_id);
+	    this.set_target_view_by_res_id(res_id);
+	  };
+	
+	  this.set_target_next_residue = function () {
+	    var curr_res_id;
+	    if (this.scene.n_update_step >= 0) {
+	      curr_res_id = this.scene.target_view.res_id;
+	    } else {
+	      curr_res_id = this.scene.current_view.res_id;
+	    }
+	    var res_id = this.protein.get_next_res_id(curr_res_id);
+	    this.set_target_view_by_res_id(res_id);
+	  };
+	
+	  this.set_target_prev_view = function () {
+	    var scene = this.scene;
+	    scene.i_last_view -= 1;
+	    if (scene.i_last_view < 0) {
+	      scene.i_last_view = scene.saved_views.length - 1;
+	    }
+	    var id = scene.saved_views[scene.i_last_view].id;
+	    this.set_target_view_by_id(id);
+	    return id;
+	  };
+	
+	  this.set_target_next_view = function () {
+	    var scene = this.scene;
+	    scene.i_last_view += 1;
+	    if (scene.i_last_view >= scene.saved_views.length) {
+	      scene.i_last_view = 0;
+	    }
+	    var id = scene.saved_views[scene.i_last_view].id;
+	    this.set_target_view_by_id(id);
+	    return id;
+	  };
+	
+	  this.swap_views = function (i, j) {
+	    this.scene.saved_views[j].order = i;
+	    this.scene.saved_views[i].order = j;
+	    var dummy = this.scene.saved_views[j];
+	    this.scene.saved_views[j] = this.scene.saved_views[i];
+	    this.scene.saved_views[i] = dummy;
+	  };
+	
+	  this.get_view_dict = function (view) {
+	    return {
+	      version: 2,
+	      view_id: view.id,
+	      creator: view.creator,
+	      pdb_id: view.pdb_id,
+	      order: view.order,
+	      show: view.show,
+	      text: view.text,
+	      res_id: view.res_id,
+	      i_atom: view.i_atom,
+	      labels: view.labels,
+	      selected: view.selected,
+	      distances: view.distances,
+	      camera: {
+	        slab: {
+	          z_front: view.abs_camera.z_front,
+	          z_back: view.abs_camera.z_back,
+	          zoom: view.abs_camera.zoom
+	        },
+	        pos: [view.abs_camera.pos.x, view.abs_camera.pos.y, view.abs_camera.pos.z],
+	        up: [view.abs_camera.up_v.x, view.abs_camera.up_v.y, view.abs_camera.up_v.z],
+	        in: [view.abs_camera.in_v.x, view.abs_camera.in_v.y, view.abs_camera.in_v.z]
+	      }
 	    };
+	  };
 	
-	    this.make_dist = function (atom1, atom2) {
-	        this.scene.current_view.distances.push({
-	            'i_atom1': atom1.i,
-	            'i_atom2': atom2.i,
-	            'z': atom2.z
-	        });
-	        this.scene.changed = true;
+	  this.get_view_dicts = function () {
+	    var view_dicts = [];
+	    for (var i = 1; i < this.scene.saved_views.length; i += 1) {
+	      var view = this.scene.saved_views[i];
+	      var view_dict = this.get_view_dict(view);
+	      view_dicts.push(view_dict);
+	    }
+	    return view_dicts;
+	  };
+	
+	  this.make_selected = function () {
+	    var result = [];
+	    for (var i = 0; i < this.protein.residues.length; i += 1) {
+	      if (this.protein.residues[i].selected) {
+	        result.push(i);
+	      }
+	    }
+	    return result;
+	  };
+	
+	  this.clear_selected = function () {
+	    this.protein.clear_selected();
+	    this.scene.current_view.selected = this.make_selected();
+	    this.scene.changed = true;
+	    this.scene.is_new_view_chosen = true;
+	  };
+	
+	  this.select_residue = function (i, v) {
+	    this.protein.residues[i].selected = v;
+	    this.scene.current_view.selected = this.make_selected();
+	    this.scene.is_new_view_chosen = true;
+	    this.scene.changed = true;
+	  };
+	
+	  this.toggle_neighbors = function () {
+	    var res_id = this.scene.current_view.res_id;
+	    var i_res = this.protein.get_i_res_from_res_id(res_id);
+	    if (this.last_neighbour_res_id == res_id) {
+	      var b = false;
+	      this.last_neighbour_res_id = null;
+	    } else {
+	      var b = true;
+	      this.last_neighbour_res_id = res_id;
+	    }
+	    this.protein.select_neighbors(i_res, b);
+	    this.scene.current_view.selected = this.make_selected();
+	    this.scene.changed = true;
+	    this.scene.is_new_view_chosen = true;
+	  };
+	
+	  this.calculate_current_abs_camera = function () {
+	    var view = this.scene.current_view;
+	    this.scene.calculate_abs_camera(view);
+	  };
+	
+	  this.save_current_view = function (new_id) {
+	    var j = this.scene.i_last_view + 1;
+	    var new_view = this.scene.current_view.clone();
+	    new_view.text = 'Click edit to change this text.';
+	    new_view.pdb_id = this.protein.pdb_id;
+	    var time = (0, _util.get_current_date)();
+	    if (user == '' || typeof user == 'undefined') {
+	      new_view.creator = '~ [public] @' + time;
+	    } else {
+	      new_view.creator = '~ ' + user + ' @' + time;
+	    }
+	    new_view.id = new_id;
+	    new_view.selected = this.make_selected();
+	    this.scene.insert_view(j, new_id, new_view);
+	    return j;
+	  };
+	
+	  this.delete_view = function (id) {
+	    this.scene.remove_saved_view(id);
+	  };
+	
+	  this.view_from_dict = function (flat_dict) {
+	    var view = new View();
+	
+	    view.id = flat_dict.view_id;
+	    view.view_id = flat_dict.view_id;
+	    view.pdb_id = flat_dict.pdb_id;
+	    view.lock = flat_dict.lock;
+	    view.text = flat_dict.text;
+	    view.creator = flat_dict.creator;
+	    view.order = flat_dict.order;
+	    view.res_id = flat_dict.res_id;
+	    view.i_atom = flat_dict.i_atom;
+	
+	    view.labels = flat_dict.labels;
+	    view.selected = flat_dict.selected;
+	    view.distances = flat_dict.distances;
+	
+	    view.show = flat_dict.show;
+	    if (!(view.show.all_atom || view.show.trace || view.show.ribbon)) {
+	      view.show.ribbon = true;
+	    }
+	
+	    view.abs_camera.pos.x = flat_dict.camera.pos[0];
+	    view.abs_camera.pos.y = flat_dict.camera.pos[1];
+	    view.abs_camera.pos.z = flat_dict.camera.pos[2];
+	
+	    view.abs_camera.up_v.x = flat_dict.camera.up[0];
+	    view.abs_camera.up_v.y = flat_dict.camera.up[1];
+	    view.abs_camera.up_v.z = flat_dict.camera.up[2];
+	
+	    view.abs_camera.in_v.x = flat_dict.camera.in[0];
+	    view.abs_camera.in_v.y = flat_dict.camera.in[1];
+	    view.abs_camera.in_v.z = flat_dict.camera.in[2];
+	
+	    view.camera.z_front = flat_dict.camera.slab.z_front;
+	    view.camera.z_back = flat_dict.camera.slab.z_back;
+	    view.camera.zoom = flat_dict.camera.slab.zoom;
+	
+	    view.abs_camera.z_front = flat_dict.camera.slab.z_front;
+	    view.abs_camera.z_back = flat_dict.camera.slab.z_back;
+	    view.abs_camera.zoom = flat_dict.camera.slab.zoom;
+	
+	    return view;
+	  };
+	
+	  this.sort_views_by_order = function () {
+	    var order_sort = function order_sort(a, b) {
+	      return a.order - b.order;
 	    };
+	    this.scene.saved_views.sort(order_sort);
+	    for (var i = 0; i < this.scene.saved_views.length; i += 1) {
+	      this.scene.saved_views[i].order = i;
+	    }
+	  };
 	
-	    this.make_label = function (i_atom, text) {
-	        this.scene.current_view.labels.push({
-	            'i_atom': i_atom, 'text': text
-	        });
-	        this.scene.changed = true;
-	    };
+	  this.load_views_from_flat_views = function (view_dicts) {
+	    for (var i = 0; i < view_dicts.length; i += 1) {
+	      var view = this.view_from_dict(view_dicts[i]);
+	      if (view.id === "view:000000") {
+	        continue;
+	      }
+	      this.scene.save_view(view);
+	    }
+	    this.sort_views_by_order();
+	    scene.is_new_view_chosen = true;
+	  };
 	
-	    this.delete_label = function (i) {
-	        this.scene.current_view.labels.splice(i, 1);
-	        this.scene.changed = true;
-	    };
+	  this.set_backbone_option = function (option) {
+	    this.scene.current_view.show.all_atom = false;
+	    this.scene.current_view.show.trace = false;
+	    this.scene.current_view.show.ribbon = false;
+	    this.scene.current_view.show[option] = true;
+	    this.scene.changed = true;
+	  };
 	
-	    this.rotate_xy = function (x_angle, y_angle) {
-	        x_axis = _v2.default.create(1, 0, 0);
-	        rot_along_x = _v2.default.rotation(x_axis, x_angle);
-	        y_axis = _v2.default.create(0, 1, 0);
-	        rot_along_y = _v2.default.rotation(y_axis, y_angle);
-	        matrix = _v2.default.matrix_product(rot_along_x, rot_along_y);
-	        this.scene.transform(matrix);
-	    };
+	  this.set_show_option = function (option, bool) {
+	    console.log('set_show_option', option, bool);
+	    this.scene.current_view.show[option] = bool;
+	    this.scene.changed = true;
+	  };
 	
-	    this.rotate_z = function (z_angle) {
-	        z_axis = _v2.default.create(0, 0, 1);
-	        rot_along_z = _v2.default.rotation(z_axis, z_angle);
-	        this.scene.transform(rot_along_z);
-	    };
+	  this.get_show_option = function (option) {
+	    return this.scene.current_view.show[option];
+	  };
 	
-	    this.adjust_zoom = function (zoom_diff) {
-	        var camera = this.scene.current_view.camera;
-	        camera.zoom += zoom_diff;
-	        if (camera.zoom < this.zoom_min) {
-	            camera.zoom = this.zoom_min;
-	        }
-	        this.changed = true;
-	    };
+	  this.toggle_show_option = function (option) {
+	    var val = this.get_show_option(option);
+	    this.set_show_option(option, !val);
+	  };
 	
-	    this.set_target_view = function (view) {
-	        this.scene.set_target_view(view);
-	    };
+	  this.flag_changed = function () {
+	    this.scene.changed = true;
+	  };
 	
-	    this.set_target_view_by_id = function (id) {
-	        var view = this.scene.saved_views_by_id[id];
-	        this.scene.i_last_view = this.scene.saved_views_by_id[id].order;
-	        this.scene.restore_camera_from_abs_camera(view);
-	        this.set_target_view(view);
-	    };
-	
-	    this.set_target_view_by_res_id = function (res_id) {
-	        var view = this.scene.current_view.clone();
-	        view.res_id = res_id;
-	        view.i_atom = this.protein.res_by_id[res_id].central_atom.i;
-	        var pos = this.protein.res_by_id[res_id].central_atom.pos.clone();
-	        view.camera.transform(_v2.default.translation(pos));
-	        this.set_target_view(view);
-	    };
-	
-	    this.set_target_view_by_atom = function (atom) {
-	        var view = this.scene.current_view.clone();
-	        view.res_id = atom.res_id;
-	        view.i_atom = atom.i;
-	        view.camera.transform(_v2.default.translation(atom.pos));
-	        this.set_target_view(view);
-	    };
-	
-	    this.set_target_prev_residue = function () {
-	        var curr_res_id;
-	        if (this.scene.n_update_step >= 0) {
-	            curr_res_id = this.scene.target_view.res_id;
-	        } else {
-	            curr_res_id = this.scene.current_view.res_id;
-	        }
-	        var res_id = this.protein.get_prev_res_id(curr_res_id);
-	        this.set_target_view_by_res_id(res_id);
-	    };
-	
-	    this.set_target_next_residue = function () {
-	        var curr_res_id;
-	        if (this.scene.n_update_step >= 0) {
-	            curr_res_id = this.scene.target_view.res_id;
-	        } else {
-	            curr_res_id = this.scene.current_view.res_id;
-	        }
-	        var res_id = this.protein.get_next_res_id(curr_res_id);
-	        this.set_target_view_by_res_id(res_id);
-	    };
-	
-	    this.set_target_prev_view = function () {
-	        var scene = this.scene;
-	        scene.i_last_view -= 1;
-	        if (scene.i_last_view < 0) {
-	            scene.i_last_view = scene.saved_views.length - 1;
-	        }
-	        var id = scene.saved_views[scene.i_last_view].id;
-	        this.set_target_view_by_id(id);
-	        return id;
-	    };
-	
-	    this.set_target_next_view = function () {
-	        var scene = this.scene;
-	        scene.i_last_view += 1;
-	        if (scene.i_last_view >= scene.saved_views.length) {
-	            scene.i_last_view = 0;
-	        }
-	        var id = scene.saved_views[scene.i_last_view].id;
-	        this.set_target_view_by_id(id);
-	        return id;
-	    };
-	
-	    this.swap_views = function (i, j) {
-	        this.scene.saved_views[j].order = i;
-	        this.scene.saved_views[i].order = j;
-	        var dummy = this.scene.saved_views[j];
-	        this.scene.saved_views[j] = this.scene.saved_views[i];
-	        this.scene.saved_views[i] = dummy;
-	    };
-	
-	    this.get_view_dict = function (view) {
-	        return {
-	            version: 2,
-	            view_id: view.id,
-	            creator: view.creator,
-	            pdb_id: view.pdb_id,
-	            order: view.order,
-	            show: view.show,
-	            text: view.text,
-	            res_id: view.res_id,
-	            i_atom: view.i_atom,
-	            labels: view.labels,
-	            selected: view.selected,
-	            distances: view.distances,
-	            camera: {
-	                slab: {
-	                    z_front: view.abs_camera.z_front,
-	                    z_back: view.abs_camera.z_back,
-	                    zoom: view.abs_camera.zoom
-	                },
-	                pos: [view.abs_camera.pos.x, view.abs_camera.pos.y, view.abs_camera.pos.z],
-	                up: [view.abs_camera.up_v.x, view.abs_camera.up_v.y, view.abs_camera.up_v.z],
-	                in: [view.abs_camera.in_v.x, view.abs_camera.in_v.y, view.abs_camera.in_v.z]
-	            }
-	        };
-	    };
-	
-	    this.get_view_dicts = function () {
-	        var view_dicts = [];
-	        for (var i = 1; i < this.scene.saved_views.length; i += 1) {
-	            var view = this.scene.saved_views[i];
-	            var view_dict = this.get_view_dict(view);
-	            view_dicts.push(view_dict);
-	        }
-	        return view_dicts;
-	    };
-	
-	    this.make_selected = function () {
-	        var result = [];
-	        for (var i = 0; i < this.protein.residues.length; i += 1) {
-	            if (this.protein.residues[i].selected) {
-	                result.push(i);
-	            }
-	        }
-	        return result;
-	    };
-	
-	    this.clear_selected = function () {
-	        this.protein.clear_selected();
-	        this.scene.current_view.selected = this.make_selected();
-	        this.scene.changed = true;
-	        this.scene.is_new_view_chosen = true;
-	    };
-	
-	    this.select_residue = function (i, v) {
-	        this.protein.residues[i].selected = v;
-	        this.scene.current_view.selected = this.make_selected();
-	        this.scene.is_new_view_chosen = true;
-	        this.scene.changed = true;
-	    };
-	
-	    this.toggle_neighbors = function () {
-	        var res_id = this.scene.current_view.res_id;
-	        var i_res = this.protein.get_i_res_from_res_id(res_id);
-	        if (this.last_neighbour_res_id == res_id) {
-	            var b = false;
-	            this.last_neighbour_res_id = null;
-	        } else {
-	            var b = true;
-	            this.last_neighbour_res_id = res_id;
-	        }
-	        this.protein.select_neighbors(i_res, b);
-	        this.scene.current_view.selected = this.make_selected();
-	        this.scene.changed = true;
-	        this.scene.is_new_view_chosen = true;
-	    };
-	
-	    this.calculate_current_abs_camera = function () {
-	        var view = this.scene.current_view;
-	        this.scene.calculate_abs_camera(view);
-	    };
-	
-	    this.save_current_view = function (new_id) {
-	        var j = this.scene.i_last_view + 1;
-	        var new_view = this.scene.current_view.clone();
-	        new_view.text = 'Click edit to change this text.';
-	        new_view.pdb_id = this.protein.pdb_id;
-	        var time = (0, _util.get_current_date)();
-	        if (user == '' || typeof user == 'undefined') {
-	            new_view.creator = '~ [public] @' + time;
-	        } else {
-	            new_view.creator = '~ ' + user + ' @' + time;
-	        }
-	        new_view.id = new_id;
-	        new_view.selected = this.make_selected();
-	        this.scene.insert_view(j, new_id, new_view);
-	        return j;
-	    };
-	
-	    this.delete_view = function (id) {
-	        this.scene.remove_saved_view(id);
-	    };
-	
-	    this.view_from_dict = function (flat_dict) {
-	        var view = new View();
-	
-	        view.id = flat_dict.view_id;
-	        view.view_id = flat_dict.view_id;
-	        view.pdb_id = flat_dict.pdb_id;
-	        view.lock = flat_dict.lock;
-	        view.text = flat_dict.text;
-	        view.creator = flat_dict.creator;
-	        view.order = flat_dict.order;
-	        view.res_id = flat_dict.res_id;
-	        view.i_atom = flat_dict.i_atom;
-	
-	        view.labels = flat_dict.labels;
-	        view.selected = flat_dict.selected;
-	        view.distances = flat_dict.distances;
-	
-	        view.show = flat_dict.show;
-	        if (!(view.show.all_atom || view.show.trace || view.show.ribbon)) {
-	            view.show.ribbon = true;
-	        }
-	
-	        view.abs_camera.pos.x = flat_dict.camera.pos[0];
-	        view.abs_camera.pos.y = flat_dict.camera.pos[1];
-	        view.abs_camera.pos.z = flat_dict.camera.pos[2];
-	
-	        view.abs_camera.up_v.x = flat_dict.camera.up[0];
-	        view.abs_camera.up_v.y = flat_dict.camera.up[1];
-	        view.abs_camera.up_v.z = flat_dict.camera.up[2];
-	
-	        view.abs_camera.in_v.x = flat_dict.camera.in[0];
-	        view.abs_camera.in_v.y = flat_dict.camera.in[1];
-	        view.abs_camera.in_v.z = flat_dict.camera.in[2];
-	
-	        view.camera.z_front = flat_dict.camera.slab.z_front;
-	        view.camera.z_back = flat_dict.camera.slab.z_back;
-	        view.camera.zoom = flat_dict.camera.slab.zoom;
-	
-	        view.abs_camera.z_front = flat_dict.camera.slab.z_front;
-	        view.abs_camera.z_back = flat_dict.camera.slab.z_back;
-	        view.abs_camera.zoom = flat_dict.camera.slab.zoom;
-	
-	        return view;
-	    };
-	
-	    this.sort_views_by_order = function () {
-	        var order_sort = function order_sort(a, b) {
-	            return a.order - b.order;
-	        };
-	        this.scene.saved_views.sort(order_sort);
-	        for (var i = 0; i < this.scene.saved_views.length; i += 1) {
-	            this.scene.saved_views[i].order = i;
-	        }
-	    };
-	
-	    this.load_views_from_flat_views = function (view_dicts) {
-	        for (var i = 0; i < view_dicts.length; i += 1) {
-	            var view = this.view_from_dict(view_dicts[i]);
-	            if (view.id === "view:000000") {
-	                continue;
-	            }
-	            this.scene.save_view(view);
-	        }
-	        this.sort_views_by_order();
-	        scene.is_new_view_chosen = true;
-	    };
-	
-	    this.set_backbone_option = function (option) {
-	        this.scene.current_view.show.all_atom = false;
-	        this.scene.current_view.show.trace = false;
-	        this.scene.current_view.show.ribbon = false;
-	        this.scene.current_view.show[option] = true;
-	        this.scene.changed = true;
-	    };
-	
-	    this.set_show_option = function (option, bool) {
-	        console.log('set_show_option', option, bool);
-	        this.scene.current_view.show[option] = bool;
-	        this.scene.changed = true;
-	    };
-	
-	    this.get_show_option = function (option) {
-	        return this.scene.current_view.show[option];
-	    };
-	
-	    this.toggle_show_option = function (option) {
-	        var val = this.get_show_option(option);
-	        this.set_show_option(option, !val);
-	    };
-	
-	    this.flag_changed = function () {
-	        this.scene.changed = true;
-	    };
-	
-	    this.set_current_view = function (view) {
-	        this.scene.current_view = view;
-	        this.scene.changed = true;
-	    };
+	  this.set_current_view = function (view) {
+	    this.scene.current_view = view;
+	    this.scene.changed = true;
+	  };
 	};
 	
 	exports.atom_radius = atom_radius;
@@ -71839,9 +71926,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
-	exports.GlProteinDisplay = undefined;
+	exports.ProteinDisplay = undefined;
 	
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
@@ -71896,50 +71983,50 @@ return /******/ (function(modules) { // webpackBootstrap
 	var darkRed = new _three2.default.Color(0x662222);
 	
 	var ElementColors = {
-	    "H": 0xCCCCCC,
-	    "C": 0xAAAAAA,
-	    "O": 0xCC0000,
-	    "N": 0x0000CC,
-	    "S": 0xAAAA00,
-	    "P": 0x6622CC,
-	    "F": 0x00CC00,
-	    "CL": 0x00CC00,
-	    "BR": 0x882200,
-	    "I": 0x6600AA,
-	    "FE": 0xCC6600,
-	    "CA": 0x8888AA
+	  "H": 0xCCCCCC,
+	  "C": 0xAAAAAA,
+	  "O": 0xCC0000,
+	  "N": 0x0000CC,
+	  "S": 0xAAAA00,
+	  "P": 0x6622CC,
+	  "F": 0x00CC00,
+	  "CL": 0x00CC00,
+	  "BR": 0x882200,
+	  "I": 0x6600AA,
+	  "FE": 0xCC6600,
+	  "CA": 0x8888AA
 	};
 	
 	function getSsColor(ss) {
 	
-	    if (ss == "E") {
-	        return yellow;
-	    } else if (ss == "H") {
-	        return blue;
-	    } else if (ss == "D") {
-	        return purple;
-	    } else if (ss == "C") {
-	        return green;
-	    } else if (ss == "W") {
-	        return red;
-	    }
-	    return grey;
+	  if (ss == "E") {
+	    return yellow;
+	  } else if (ss == "H") {
+	    return blue;
+	  } else if (ss == "D") {
+	    return purple;
+	  } else if (ss == "C") {
+	    return green;
+	  } else if (ss == "W") {
+	    return red;
+	  }
+	  return grey;
 	}
 	
 	function getDarkSsColor(ss) {
 	
-	    if (ss == "E") {
-	        return darkYellow;
-	    } else if (ss == "H") {
-	        return darkBlue;
-	    } else if (ss == "D") {
-	        return darkPurple;
-	    } else if (ss == "C") {
-	        return darkGreen;
-	    } else if (ss == "W") {
-	        return darkRed;
-	    }
-	    return darkGrey;
+	  if (ss == "E") {
+	    return darkYellow;
+	  } else if (ss == "H") {
+	    return darkBlue;
+	  } else if (ss == "D") {
+	    return darkPurple;
+	  } else if (ss == "C") {
+	    return darkGreen;
+	  } else if (ss == "W") {
+	    return darkRed;
+	  }
+	  return darkGrey;
 	}
 	
 	// Backbone atom names
@@ -71958,45 +72045,45 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function degToRad(deg) {
 	
-	    return deg * Math.PI / 180.;
+	  return deg * Math.PI / 180.;
 	}
 	
 	function getVerticesFromAtomDict(atoms, atomTypes) {
 	
-	    var vertices = [];
+	  var vertices = [];
 	
-	    for (var i = 0; i < atomTypes.length; i += 1) {
-	        var aType = atomTypes[i];
-	        vertices.push(_v2.default.clone(atoms[aType].pos));
-	    }
+	  for (var i = 0; i < atomTypes.length; i += 1) {
+	    var aType = atomTypes[i];
+	    vertices.push(_v2.default.clone(atoms[aType].pos));
+	  }
 	
-	    return vertices;
+	  return vertices;
 	}
 	
 	function fraction(reference, target, t) {
 	
-	    return t * (target - reference) + reference;
+	  return t * (target - reference) + reference;
 	}
 	
 	function showTextDialog(parentDiv, label, success) {
 	
-	    window.keyboard_lock = true;
+	  window.keyboard_lock = true;
 	
-	    function cleanup() {
-	        dialog.remove();
-	        window.keyboard_lock = false;
-	    }
+	  function cleanup() {
+	    dialog.remove();
+	    window.keyboard_lock = false;
+	  }
 	
-	    var editbox = (0, _util.create_edit_box_div)('', "100%", success, cleanup, label);
+	  var editbox = (0, _util.create_edit_box_div)('', "100%", success, cleanup, label);
 	
-	    var dialog = (0, _jquery2.default)('<div>').addClass('jolecule-dialog').css('display', 'block').css('z-index', '2000').css('width', Math.min(400, parentDiv.width() - 100)).append(editbox);
+	  var dialog = (0, _jquery2.default)('<div>').addClass('jolecule-dialog').css('display', 'block').css('z-index', '2000').css('width', Math.min(400, parentDiv.width() - 100)).append(editbox);
 	
-	    (0, _util.stick_in_center)(parentDiv, dialog, 0, 70);
+	  (0, _util.stick_in_center)(parentDiv, dialog, 0, 70);
 	
-	    var focus = function focus() {
-	        editbox.find('textarea').focus();
-	    };
-	    setTimeout(focus, 100);
+	  var focus = function focus() {
+	    editbox.find('textarea').focus();
+	  };
+	  setTimeout(focus, 100);
 	}
 	
 	/**
@@ -72015,87 +72102,86 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *     - z far -> near
 	 *     - that is positive Z direction is out of the screen
 	 *     - box -1to +1
-	**/
+	 **/
 	
 	function convertViewToTarget(view) {
 	
-	    var cameraTarget = _v2.default.clone(view.abs_camera.pos);
+	  var cameraTarget = _v2.default.clone(view.abs_camera.pos);
 	
-	    var cameraDirection = _v2.default.clone(view.abs_camera.in_v).sub(cameraTarget).multiplyScalar(view.abs_camera.zoom).negate();
+	  var cameraDirection = _v2.default.clone(view.abs_camera.in_v).sub(cameraTarget).multiplyScalar(view.abs_camera.zoom).negate();
 	
-	    var cameraPosition = cameraTarget.clone().add(cameraDirection);
+	  var cameraPosition = cameraTarget.clone().add(cameraDirection);
 	
-	    var cameraUp = _v2.default.clone(view.abs_camera.up_v).sub(cameraTarget).negate();
+	  var cameraUp = _v2.default.clone(view.abs_camera.up_v).sub(cameraTarget).negate();
 	
-	    return {
-	        cameraTarget: cameraTarget,
-	        cameraPosition: cameraPosition,
-	        cameraUp: cameraUp,
-	        zFront: view.abs_camera.z_front,
-	        zBack: view.abs_camera.z_back,
-	        zoom: view.abs_camera.zoom
-	    };
+	  return {
+	    cameraTarget: cameraTarget,
+	    cameraPosition: cameraPosition,
+	    cameraUp: cameraUp,
+	    zFront: view.abs_camera.z_front,
+	    zBack: view.abs_camera.z_back,
+	    zoom: view.abs_camera.zoom
+	  };
 	}
 	
 	function convertTargetToView(target) {
 	
-	    var view = new _protein.View();
+	  var view = new _protein.View();
 	
-	    var cameraDirection = target.cameraPosition.clone().sub(target.cameraTarget).negate();
+	  var cameraDirection = target.cameraPosition.clone().sub(target.cameraTarget).negate();
 	
-	    view.abs_camera.zoom = cameraDirection.length();
-	    view.abs_camera.z_front = target.zFront;
-	    view.abs_camera.z_back = target.zBack;
+	  view.abs_camera.zoom = cameraDirection.length();
+	  view.abs_camera.z_front = target.zFront;
+	  view.abs_camera.z_back = target.zBack;
 	
-	    view.abs_camera.pos = _v2.default.clone(target.cameraTarget);
+	  view.abs_camera.pos = _v2.default.clone(target.cameraTarget);
 	
-	    var up = target.cameraUp.clone().negate();
+	  var up = target.cameraUp.clone().negate();
 	
-	    view.abs_camera.up_v = _v2.default.clone(target.cameraTarget.clone().add(up));
+	  view.abs_camera.up_v = _v2.default.clone(target.cameraTarget.clone().add(up));
 	
-	    cameraDirection.normalize();
-	    view.abs_camera.in_v = _v2.default.clone(target.cameraTarget.clone().add(cameraDirection));
+	  cameraDirection.normalize();
+	  view.abs_camera.in_v = _v2.default.clone(target.cameraTarget.clone().add(cameraDirection));
 	
-	    return view;
+	  return view;
 	}
 	
-	////////////////////////////////////////////////////////////////////
-	// MessageBar
-	////////////////////////////////////////////////////////////////////
-	
+	/**
+	 * MessageBar
+	 **/
 	
 	var MessageBar = function () {
-	    function MessageBar(selector) {
-	        _classCallCheck(this, MessageBar);
+	  function MessageBar(selector) {
+	    _classCallCheck(this, MessageBar);
 	
-	        this.div = (0, _jquery2.default)("<div>").css({
-	            'position': 'absolute',
-	            'top': 40,
-	            'left': 40,
-	            'z-index': 2000,
-	            'color': 'white',
-	            'padding': '5',
-	            'opacity': 0.7
-	        });
+	    this.div = (0, _jquery2.default)("<div>").css({
+	      'position': 'absolute',
+	      'top': 40,
+	      'left': 40,
+	      'z-index': 2000,
+	      'color': 'white',
+	      'padding': '5',
+	      'opacity': 0.7
+	    });
 	
-	        this.parentDiv = (0, _jquery2.default)(selector);
-	        this.parentDiv.append(this.div);
+	    this.parentDiv = (0, _jquery2.default)(selector);
+	    this.parentDiv.append(this.div);
+	  }
+	
+	  _createClass(MessageBar, [{
+	    key: "hide",
+	    value: function hide() {
+	      this.div.css('display', 'none');
 	    }
+	  }, {
+	    key: "html",
+	    value: function html(text) {
+	      this.div.css('display', 'block');
+	      this.div.html(text);
+	    }
+	  }]);
 	
-	    _createClass(MessageBar, [{
-	        key: "hide",
-	        value: function hide() {
-	            this.div.css('display', 'none');
-	        }
-	    }, {
-	        key: "html",
-	        value: function html(text) {
-	            this.div.css('display', 'block');
-	            this.div.html(text);
-	        }
-	    }]);
-	
-	    return MessageBar;
+	  return MessageBar;
 	}();
 	
 	/**
@@ -72103,89 +72189,89 @@ return /******/ (function(modules) { // webpackBootstrap
 	 **/
 	
 	var PopupText = function () {
-	    function PopupText(selector) {
-	        _classCallCheck(this, PopupText);
+	  function PopupText(selector) {
+	    _classCallCheck(this, PopupText);
 	
-	        this.div = (0, _jquery2.default)("<div>").css({
-	            'position': 'absolute',
-	            'top': 0,
-	            'left': 0,
-	            // 'z-index': 100,
-	            'background': 'white',
-	            'padding': '5',
-	            'opacity': 0.7,
-	            'display': 'none'
-	        });
+	    this.div = (0, _jquery2.default)("<div>").css({
+	      'position': 'absolute',
+	      'top': 0,
+	      'left': 0,
+	      // 'z-index': 100,
+	      'background': 'white',
+	      'padding': '5',
+	      'opacity': 0.7,
+	      'display': 'none'
+	    });
 	
-	        this.arrow = (0, _jquery2.default)("<div>").css({
-	            'position': 'absolute',
-	            'top': 0,
-	            'left': 0,
-	            // 'z-index': 100,
-	            'width': 0,
-	            'height': 0,
-	            'border-left': '5px solid transparent',
-	            'border-right': '5px solid transparent',
-	            'border-top': '50px solid white',
-	            'opacity': 0.7,
-	            'display': 'none'
-	        });
+	    this.arrow = (0, _jquery2.default)("<div>").css({
+	      'position': 'absolute',
+	      'top': 0,
+	      'left': 0,
+	      // 'z-index': 100,
+	      'width': 0,
+	      'height': 0,
+	      'border-left': '5px solid transparent',
+	      'border-right': '5px solid transparent',
+	      'border-top': '50px solid white',
+	      'opacity': 0.7,
+	      'display': 'none'
+	    });
 	
-	        this.parentDiv = (0, _jquery2.default)(selector);
-	        this.parentDiv.append(this.div);
-	        this.parentDiv.append(this.arrow);
+	    this.parentDiv = (0, _jquery2.default)(selector);
+	    this.parentDiv.append(this.div);
+	    this.parentDiv.append(this.arrow);
+	  }
+	
+	  _createClass(PopupText, [{
+	    key: "move",
+	    value: function move(x, y) {
+	
+	      var parentDivPos = this.parentDiv.position();
+	      var width = this.div.innerWidth();
+	      var height = this.div.innerHeight();
+	
+	      if (x < 0 || x > this.parentDiv.width() || y < 0 || y > this.parentDiv.height()) {
+	        this.hide();
+	        return;
+	      }
+	
+	      this.div.css({
+	        'top': y - height - 50 + parentDivPos.top,
+	        'left': x - width / 2 + parentDivPos.left,
+	        'display': 'block',
+	        'font-family': 'sans-serif',
+	        'cursor': 'pointer'
+	      });
+	
+	      this.arrow.css({
+	        'top': y - 50 + parentDivPos.top,
+	        'left': x - 5 + parentDivPos.left,
+	        'display': 'block'
+	      });
 	    }
+	  }, {
+	    key: "hide",
+	    value: function hide() {
 	
-	    _createClass(PopupText, [{
-	        key: "move",
-	        value: function move(x, y) {
+	      this.div.css('display', 'none');
+	      this.arrow.css('display', 'none');
+	    }
+	  }, {
+	    key: "html",
+	    value: function html(text) {
 	
-	            var parentDivPos = this.parentDiv.position();
-	            var width = this.div.innerWidth();
-	            var height = this.div.innerHeight();
+	      this.div.html(text);
+	    }
+	  }, {
+	    key: "remove",
+	    value: function remove() {
 	
-	            if (x < 0 || x > this.parentDiv.width() || y < 0 || y > this.parentDiv.height()) {
-	                this.hide();
-	                return;
-	            }
+	      this.div.remove();
+	      this.arrow.remove();
+	    }
+	  }]);
 	
-	            this.div.css({
-	                'top': y - height - 50 + parentDivPos.top,
-	                'left': x - width / 2 + parentDivPos.left,
-	                'display': 'block',
-	                'font-family': 'sans-serif',
-	                'cursor': 'pointer'
-	            });
-	
-	            this.arrow.css({
-	                'top': y - 50 + parentDivPos.top,
-	                'left': x - 5 + parentDivPos.left,
-	                'display': 'block'
-	            });
-	        }
-	    }, {
-	        key: "hide",
-	        value: function hide() {
-	
-	            this.div.css('display', 'none');
-	            this.arrow.css('display', 'none');
-	        }
-	    }, {
-	        key: "html",
-	        value: function html(text) {
-	
-	            this.div.html(text);
-	        }
-	    }, {
-	        key: "remove",
-	        value: function remove() {
-	
-	            this.div.remove();
-	            this.arrow.remove();
-	        }
-	    }]);
-	
-	    return PopupText;
+	  return PopupText;
 	}();
 	
 	/**
@@ -72193,47 +72279,47 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	
 	var AtomLabel = function () {
-	    function AtomLabel(selector, controller, parentList) {
-	        var _this = this;
+	  function AtomLabel(selector, controller, parentList) {
+	    var _this = this;
 	
-	        _classCallCheck(this, AtomLabel);
+	    _classCallCheck(this, AtomLabel);
 	
-	        this.popup = new PopupText(selector);
-	        this.controller = controller;
-	        this.parentList = parentList;
-	        this.popup.div.click(function () {
-	            return _this.remove();
-	        });
+	    this.popup = new PopupText(selector);
+	    this.controller = controller;
+	    this.parentList = parentList;
+	    this.popup.div.click(function () {
+	      return _this.remove();
+	    });
+	  }
+	
+	  _createClass(AtomLabel, [{
+	    key: "update",
+	    value: function update(i, text, x, y, opacity) {
+	
+	      this.i = i;
+	      this.popup.html(text);
+	      this.popup.div.css('opacity', opacity);
+	      this.popup.arrow.css('opacity', opacity);
+	      this.popup.move(x, y);
 	    }
+	  }, {
+	    key: "remove",
+	    value: function remove() {
 	
-	    _createClass(AtomLabel, [{
-	        key: "update",
-	        value: function update(i, text, x, y, opacity) {
+	      this.popup.remove();
+	      this.controller.delete_label(this.i);
+	      this.parentList.splice(this.i, 1);
+	    }
+	  }, {
+	    key: "hide",
+	    value: function hide() {
 	
-	            this.i = i;
-	            this.popup.html(text);
-	            this.popup.div.css('opacity', opacity);
-	            this.popup.arrow.css('opacity', opacity);
-	            this.popup.move(x, y);
-	        }
-	    }, {
-	        key: "remove",
-	        value: function remove() {
+	      this.popup.div.css('display', 'none');
+	      this.popup.arrow.css('display', 'none');
+	    }
+	  }]);
 	
-	            this.popup.remove();
-	            this.controller.delete_label(this.i);
-	            this.parentList.splice(this.i, 1);
-	        }
-	    }, {
-	        key: "hide",
-	        value: function hide() {
-	
-	            this.popup.div.css('display', 'none');
-	            this.popup.arrow.css('display', 'none');
-	        }
-	    }]);
-	
-	    return AtomLabel;
+	  return AtomLabel;
 	}();
 	
 	/**
@@ -72241,96 +72327,96 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	
 	var DistanceLabel = function () {
-	    function DistanceLabel(selector, threeJsScene, controller, parentList) {
-	        var _this2 = this;
+	  function DistanceLabel(selector, threeJsScene, controller, parentList) {
+	    var _this2 = this;
 	
-	        _classCallCheck(this, DistanceLabel);
+	    _classCallCheck(this, DistanceLabel);
 	
-	        this.threeJsScene = threeJsScene;
-	        this.controller = controller;
-	        this.parentList = parentList;
+	    this.threeJsScene = threeJsScene;
+	    this.controller = controller;
+	    this.parentList = parentList;
 	
-	        this.div = (0, _jquery2.default)("<div>").css({
-	            'position': 'absolute',
-	            'top': 0,
-	            'left': 0,
-	            // 'z-index': 100,
-	            'background-color': '#FFDDDD',
-	            'padding': '5',
-	            'opacity': 0.7,
-	            'font-family': 'sans-serif'
-	        });
+	    this.div = (0, _jquery2.default)("<div>").css({
+	      'position': 'absolute',
+	      'top': 0,
+	      'left': 0,
+	      // 'z-index': 100,
+	      'background-color': '#FFDDDD',
+	      'padding': '5',
+	      'opacity': 0.7,
+	      'font-family': 'sans-serif'
+	    });
 	
-	        var geometry = new _three2.default.Geometry();
-	        geometry.vertices.push(new TV3(0, 0, 0));
-	        geometry.vertices.push(new TV3(1, 1, 1));
+	    var geometry = new _three2.default.Geometry();
+	    geometry.vertices.push(new TV3(0, 0, 0));
+	    geometry.vertices.push(new TV3(1, 1, 1));
 	
-	        var material = new _three2.default.LineDashedMaterial({
-	            color: 0xFF7777,
-	            dashSize: 3,
-	            gapSize: 4,
-	            linewidth: 2
-	        });
+	    var material = new _three2.default.LineDashedMaterial({
+	      color: 0xFF7777,
+	      dashSize: 3,
+	      gapSize: 4,
+	      linewidth: 2
+	    });
 	
-	        this.line = new _three2.default.Line(geometry, material);
+	    this.line = new _three2.default.Line(geometry, material);
 	
-	        this.threeJsScene.add(this.line);
+	    this.threeJsScene.add(this.line);
 	
-	        this.parentDiv = (0, _jquery2.default)(selector);
-	        this.parentDiv.append(this.div);
+	    this.parentDiv = (0, _jquery2.default)(selector);
+	    this.parentDiv.append(this.div);
 	
-	        this.div.click(function () {
-	            return _this2.remove();
-	        });
+	    this.div.click(function () {
+	      return _this2.remove();
+	    });
+	  }
+	
+	  _createClass(DistanceLabel, [{
+	    key: "update",
+	    value: function update(i, text, x, y, p1, p2, opacity) {
+	
+	      this.i = i;
+	
+	      if (x < 0 || x > this.parentDiv.width() || y < 0 || y > this.parentDiv.height()) {
+	        this.hide();
+	        return;
+	      }
+	
+	      var parentDivPos = this.parentDiv.position();
+	
+	      this.div.text(text);
+	
+	      var width = this.div.innerHeight();
+	      var height = this.div.innerWidth();
+	
+	      this.div.css({
+	        'top': y - width / 2 + parentDivPos.top,
+	        'left': x - height / 2 + parentDivPos.left,
+	        'display': 'block',
+	        'cursor': 'pointer',
+	        'opacity': opacity
+	      });
+	
+	      this.line.geometry.vertices[0].copy(p1);
+	      this.line.geometry.vertices[1].copy(p2);
 	    }
+	  }, {
+	    key: "remove",
+	    value: function remove() {
 	
-	    _createClass(DistanceLabel, [{
-	        key: "update",
-	        value: function update(i, text, x, y, p1, p2, opacity) {
+	      this.threeJsScene.remove(this.line);
+	      this.div.remove();
+	      this.controller.delete_dist(this.i);
+	      this.parentList.splice(this.i, 1);
+	    }
+	  }, {
+	    key: "hide",
+	    value: function hide() {
 	
-	            this.i = i;
+	      this.div.css('display', 'none');
+	    }
+	  }]);
 	
-	            if (x < 0 || x > this.parentDiv.width() || y < 0 || y > this.parentDiv.height()) {
-	                this.hide();
-	                return;
-	            }
-	
-	            var parentDivPos = this.parentDiv.position();
-	
-	            this.div.text(text);
-	
-	            var width = this.div.innerHeight();
-	            var height = this.div.innerWidth();
-	
-	            this.div.css({
-	                'top': y - width / 2 + parentDivPos.top,
-	                'left': x - height / 2 + parentDivPos.left,
-	                'display': 'block',
-	                'cursor': 'pointer',
-	                'opacity': opacity
-	            });
-	
-	            this.line.geometry.vertices[0].copy(p1);
-	            this.line.geometry.vertices[1].copy(p2);
-	        }
-	    }, {
-	        key: "remove",
-	        value: function remove() {
-	
-	            this.threeJsScene.remove(this.line);
-	            this.div.remove();
-	            this.controller.delete_dist(this.i);
-	            this.parentList.splice(this.i, 1);
-	        }
-	    }, {
-	        key: "hide",
-	        value: function hide() {
-	
-	            this.div.css('display', 'none');
-	        }
-	    }]);
-	
-	    return DistanceLabel;
+	  return DistanceLabel;
 	}();
 	
 	/**
@@ -72338,62 +72424,62 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * - instantiates a DOM object is to draw a line between (x1, y1) and
 	 *   (x2, y2) within a jquery div
 	 * - used to display the mouse tool for making distance labels
-	*/
+	 */
 	
 	var LineElement = function () {
-	    function LineElement(selector, color) {
-	        _classCallCheck(this, LineElement);
+	  function LineElement(selector, color) {
+	    _classCallCheck(this, LineElement);
 	
-	        this.color = color;
+	    this.color = color;
 	
-	        this.div = (0, _jquery2.default)("<canvas>").css({
-	            "position": "absolute",
-	            "z-index": "1000",
-	            "display": "none",
-	            "pointer-events": "none"
-	        });
+	    this.div = (0, _jquery2.default)("<canvas>").css({
+	      "position": "absolute",
+	      "z-index": "1000",
+	      "display": "none",
+	      "pointer-events": "none"
+	    });
 	
-	        this.canvas = this.div[0];
-	        this.context2d = this.canvas.getContext('2d');
+	    this.canvas = this.div[0];
+	    this.context2d = this.canvas.getContext('2d');
 	
-	        this.parentDiv = (0, _jquery2.default)(selector);
-	        this.parentDiv.append(this.div);
+	    this.parentDiv = (0, _jquery2.default)(selector);
+	    this.parentDiv.append(this.div);
+	  }
+	
+	  _createClass(LineElement, [{
+	    key: "hide",
+	    value: function hide() {
+	
+	      this.div.css("display", "none");
 	    }
+	  }, {
+	    key: "move",
+	    value: function move(x1, y1, x2, y2) {
 	
-	    _createClass(LineElement, [{
-	        key: "hide",
-	        value: function hide() {
+	      var parentDivPos = this.parentDiv.position();
 	
-	            this.div.css("display", "none");
-	        }
-	    }, {
-	        key: "move",
-	        value: function move(x1, y1, x2, y2) {
+	      var width = Math.abs(x1 - x2);
+	      var height = Math.abs(y1 - y2);
 	
-	            var parentDivPos = this.parentDiv.position();
+	      var left = Math.min(x1, x2);
+	      var top = Math.min(y1, y2);
 	
-	            var width = Math.abs(x1 - x2);
-	            var height = Math.abs(y1 - y2);
+	      this.div.css("display", "block").css("width", width).css("height", height).css("top", top + parentDivPos.top).css("left", left + parentDivPos.left);
 	
-	            var left = Math.min(x1, x2);
-	            var top = Math.min(y1, y2);
+	      this.canvas.width = width;
+	      this.canvas.height = height;
 	
-	            this.div.css("display", "block").css("width", width).css("height", height).css("top", top + parentDivPos.top).css("left", left + parentDivPos.left);
+	      this.context2d.clearRect(0, 0, width, height);
+	      this.context2d.beginPath();
+	      this.context2d.moveTo(x1 - left, y1 - top);
+	      this.context2d.lineTo(x2 - left, y2 - top);
+	      this.context2d.lineWidth = 2;
+	      this.context2d.strokeStyle = this.color;
+	      this.context2d.stroke();
+	    }
+	  }]);
 	
-	            this.canvas.width = width;
-	            this.canvas.height = height;
-	
-	            this.context2d.clearRect(0, 0, width, height);
-	            this.context2d.beginPath();
-	            this.context2d.moveTo(x1 - left, y1 - top);
-	            this.context2d.lineTo(x2 - left, y2 - top);
-	            this.context2d.lineWidth = 2;
-	            this.context2d.strokeStyle = this.color;
-	            this.context2d.stroke();
-	        }
-	    }]);
-	
-	    return LineElement;
+	  return LineElement;
 	}();
 	
 	/**
@@ -72405,189 +72491,189 @@ return /******/ (function(modules) { // webpackBootstrap
 	 **/
 	
 	var CanvasWrapper = function () {
-	    function CanvasWrapper(selector) {
-	        var _this3 = this;
+	  function CanvasWrapper(selector) {
+	    var _this3 = this;
 	
-	        _classCallCheck(this, CanvasWrapper);
+	    _classCallCheck(this, CanvasWrapper);
 	
-	        this.parentDiv = (0, _jquery2.default)(selector);
+	    this.parentDiv = (0, _jquery2.default)(selector);
 	
-	        this.div = (0, _jquery2.default)("<div>").css('position', 'absolute').css('z-index', 100);
+	    this.div = (0, _jquery2.default)("<div>").css('position', 'absolute').css('z-index', 100);
 	
-	        this.parentDiv.append(this.div);
+	    this.parentDiv.append(this.div);
 	
-	        this.canvas = (0, _jquery2.default)('<canvas>');
+	    this.canvas = (0, _jquery2.default)('<canvas>');
 	
-	        this.div.append(this.canvas);
-	        this.canvasDom = this.canvas[0];
-	        this.drawContext = this.canvasDom.getContext('2d');
+	    this.div.append(this.canvas);
+	    this.canvasDom = this.canvas[0];
+	    this.drawContext = this.canvasDom.getContext('2d');
 	
-	        this.mousePressed = false;
+	    this.mousePressed = false;
 	
-	        var bind = function bind(eventType, callback) {
-	            _this3.canvasDom.addEventListener(eventType, callback);
-	        };
+	    var bind = function bind(eventType, callback) {
+	      _this3.canvasDom.addEventListener(eventType, callback);
+	    };
 	
-	        bind('mousedown', function (e) {
-	            return _this3.mousedown(e);
-	        });
-	        bind('mousemove', function (e) {
-	            return _this3.mousemove(e);
-	        });
-	        bind('mouseup', function (e) {
-	            return _this3.mouseup(e);
-	        });
-	        bind('mouseout', function (e) {
-	            return _this3.mouseup(e);
-	        });
-	        bind('touchstart', function (e) {
-	            return _this3.mousedown(e);
-	        });
-	        bind('touchmove', function (e) {
-	            return _this3.mousemove(e);
-	        });
-	        bind('touchend', function (e) {
-	            return _this3.mouseup(e);
-	        });
-	        bind('touchcancel', function (e) {
-	            return _this3.mouseup(e);
-	        });
+	    bind('mousedown', function (e) {
+	      return _this3.mousedown(e);
+	    });
+	    bind('mousemove', function (e) {
+	      return _this3.mousemove(e);
+	    });
+	    bind('mouseup', function (e) {
+	      return _this3.mouseup(e);
+	    });
+	    bind('mouseout', function (e) {
+	      return _this3.mouseup(e);
+	    });
+	    bind('touchstart', function (e) {
+	      return _this3.mousedown(e);
+	    });
+	    bind('touchmove', function (e) {
+	      return _this3.mousemove(e);
+	    });
+	    bind('touchend', function (e) {
+	      return _this3.mouseup(e);
+	    });
+	    bind('touchcancel', function (e) {
+	      return _this3.mouseup(e);
+	    });
+	  }
+	
+	  _createClass(CanvasWrapper, [{
+	    key: "width",
+	    value: function width() {
+	      return this.parentDiv.width();
 	    }
+	  }, {
+	    key: "height",
+	    value: function height() {
+	      return this.parentDiv.height();
+	    }
+	  }, {
+	    key: "x",
+	    value: function x() {
+	      var parentDivPos = this.parentDiv.position();
+	      return parentDivPos.left;
+	    }
+	  }, {
+	    key: "y",
+	    value: function y() {
+	      var parentDivPos = this.parentDiv.position();
+	      return parentDivPos.top;
+	    }
+	  }, {
+	    key: "inside",
+	    value: function inside(x, y) {
+	      return x >= this.x() && x <= this.x() + this.width() && y >= this.y() && y <= this.y() + this.height();
+	    }
+	  }, {
+	    key: "draw",
+	    value: function draw() {}
+	  }, {
+	    key: "resize",
+	    value: function resize() {
 	
-	    _createClass(CanvasWrapper, [{
-	        key: "width",
-	        value: function width() {
-	            return this.parentDiv.width();
-	        }
-	    }, {
-	        key: "height",
-	        value: function height() {
-	            return this.parentDiv.height();
-	        }
-	    }, {
-	        key: "x",
-	        value: function x() {
-	            var parentDivPos = this.parentDiv.position();
-	            return parentDivPos.left;
-	        }
-	    }, {
-	        key: "y",
-	        value: function y() {
-	            var parentDivPos = this.parentDiv.position();
-	            return parentDivPos.top;
-	        }
-	    }, {
-	        key: "inside",
-	        value: function inside(x, y) {
-	            return x >= this.x() && x <= this.x() + this.width() && y >= this.y() && y <= this.y() + this.height();
-	        }
-	    }, {
-	        key: "draw",
-	        value: function draw() {}
-	    }, {
-	        key: "resize",
-	        value: function resize() {
+	      this.canvasDom.width = this.width();
+	      this.canvasDom.height = this.height();
+	    }
+	  }, {
+	    key: "strokeRect",
+	    value: function strokeRect(x, y, w, h, strokeStyle) {
 	
-	            this.canvasDom.width = this.width();
-	            this.canvasDom.height = this.height();
-	        }
-	    }, {
-	        key: "strokeRect",
-	        value: function strokeRect(x, y, w, h, strokeStyle) {
+	      this.drawContext.strokeStyle = strokeStyle;
+	      this.drawContext.strokeRect(x, y, w, h);
+	    }
+	  }, {
+	    key: "fillRect",
+	    value: function fillRect(x, y, w, h, fillStyle) {
 	
-	            this.drawContext.strokeStyle = strokeStyle;
-	            this.drawContext.strokeRect(x, y, w, h);
-	        }
-	    }, {
-	        key: "fillRect",
-	        value: function fillRect(x, y, w, h, fillStyle) {
+	      this.drawContext.fillStyle = fillStyle;
+	      this.drawContext.fillRect(x, y, w, h);
+	    }
+	  }, {
+	    key: "line",
+	    value: function line(x1, y1, x2, y2, lineWidth, color) {
 	
-	            this.drawContext.fillStyle = fillStyle;
-	            this.drawContext.fillRect(x, y, w, h);
-	        }
-	    }, {
-	        key: "line",
-	        value: function line(x1, y1, x2, y2, lineWidth, color) {
+	      this.drawContext.moveTo(x1, y1);
+	      this.drawContext.lineTo(x2, y2);
+	      this.drawContext.lineWidth = lineWidth;
+	      this.drawContext.strokeStyle = color;
+	      this.drawContext.stroke();
+	    }
+	  }, {
+	    key: "text",
+	    value: function text(_text, x, y, font, color, align) {
 	
-	            this.drawContext.moveTo(x1, y1);
-	            this.drawContext.lineTo(x2, y2);
-	            this.drawContext.lineWidth = lineWidth;
-	            this.drawContext.strokeStyle = color;
-	            this.drawContext.stroke();
-	        }
-	    }, {
-	        key: "text",
-	        value: function text(_text, x, y, font, color, align) {
+	      this.drawContext.fillStyle = color;
+	      this.drawContext.font = font;
+	      this.drawContext.textAlign = align;
+	      this.drawContext.textBaseline = 'middle';
+	      this.drawContext.fillText(_text, x, y);
+	    }
+	  }, {
+	    key: "textWidth",
+	    value: function textWidth(text, font) {
 	
-	            this.drawContext.fillStyle = color;
-	            this.drawContext.font = font;
-	            this.drawContext.textAlign = align;
-	            this.drawContext.textBaseline = 'middle';
-	            this.drawContext.fillText(_text, x, y);
-	        }
-	    }, {
-	        key: "textWidth",
-	        value: function textWidth(text, font) {
+	      this.drawContext.font = font;
+	      this.drawContext.textAlign = 'center';
+	      return this.drawContext.measureText(text).width;
+	    }
+	  }, {
+	    key: "mousedown",
+	    value: function mousedown(event) {
 	
-	            this.drawContext.font = font;
-	            this.drawContext.textAlign = 'center';
-	            return this.drawContext.measureText(text).width;
-	        }
-	    }, {
-	        key: "mousedown",
-	        value: function mousedown(event) {
+	      event.preventDefault();
 	
-	            event.preventDefault();
+	      this.mousePressed = true;
 	
-	            this.mousePressed = true;
+	      this.mousemove(event);
+	    }
+	  }, {
+	    key: "mousemove",
+	    value: function mousemove(event) {}
+	  }, {
+	    key: "mouseup",
+	    value: function mouseup(event) {
 	
-	            this.mousemove(event);
-	        }
-	    }, {
-	        key: "mousemove",
-	        value: function mousemove(event) {}
-	    }, {
-	        key: "mouseup",
-	        value: function mouseup(event) {
+	      event.preventDefault();
 	
-	            event.preventDefault();
+	      this.mousePressed = false;
+	    }
+	  }, {
+	    key: "getPointer",
+	    value: function getPointer(event) {
 	
-	            this.mousePressed = false;
-	        }
-	    }, {
-	        key: "getPointer",
-	        value: function getPointer(event) {
+	      var x, y;
+	      if (event.touches) {
+	        x = event.touches[0].clientX;
+	        y = event.touches[0].clientY;
+	      } else {
+	        x = event.clientX;
+	        y = event.clientY;
+	      }
 	
-	            var x, y;
-	            if (event.touches) {
-	                x = event.touches[0].clientX;
-	                y = event.touches[0].clientY;
-	            } else {
-	                x = event.clientX;
-	                y = event.clientY;
-	            }
+	      this.pointerX = x + document.body.scrollLeft + document.documentElement.scrollLeft - this.x();
 	
-	            this.pointerX = x + document.body.scrollLeft + document.documentElement.scrollLeft - this.x();
+	      this.pointerY = y + document.body.scrollTop + document.documentElement.scrollTop - this.y();
+	    }
+	  }]);
 	
-	            this.pointerY = y + document.body.scrollTop + document.documentElement.scrollTop - this.y();
-	        }
-	    }]);
-	
-	    return CanvasWrapper;
+	  return CanvasWrapper;
 	}();
 	
 	var resToAa = {
-	    "ALA": "A", "CYS": "C", "ASP": "D",
-	    "GLU": "E", "PHE": "F", "GLY": "G",
-	    "HIS": "H", "ILE": "I", "LYS": "K",
-	    "LEU": "L", "MET": "M", "ASN": "N",
-	    "PRO": "P", "GLN": "Q", "ARG": "R",
-	    "SER": "S", "THR": "T", "VAL": "V",
-	    "TRP": "W", "TYR": "Y",
-	    "DA": "A", "DT": "T", "DG": "G", "DC": "C",
-	    "A": "A", "T": "T", "G": "G", "C": "C",
-	    "RA": "A", "RU": "U", "RC": "C", "RG": "G",
-	    "U": "U"
+	  "ALA": "A", "CYS": "C", "ASP": "D",
+	  "GLU": "E", "PHE": "F", "GLY": "G",
+	  "HIS": "H", "ILE": "I", "LYS": "K",
+	  "LEU": "L", "MET": "M", "ASN": "N",
+	  "PRO": "P", "GLN": "Q", "ARG": "R",
+	  "SER": "S", "THR": "T", "VAL": "V",
+	  "TRP": "W", "TYR": "Y",
+	  "DA": "A", "DT": "T", "DG": "G", "DC": "C",
+	  "A": "A", "T": "T", "G": "G", "C": "C",
+	  "RA": "A", "RU": "U", "RC": "C", "RG": "G",
+	  "U": "U"
 	
 	};
 	
@@ -72597,19 +72683,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	
 	_jquery2.default.fn.textWidth = function (text, font) {
-	    if (!_jquery2.default.fn.textWidth.fakeEl) {
-	        _jquery2.default.fn.textWidth.fakeEl = (0, _jquery2.default)('<span>').hide().appendTo(document.body);
-	    }
-	    _jquery2.default.fn.textWidth.fakeEl.text(text || this.val() || this.text()).css('font', font || this.css('font'));
-	    return _jquery2.default.fn.textWidth.fakeEl.width();
+	  if (!_jquery2.default.fn.textWidth.fakeEl) {
+	    _jquery2.default.fn.textWidth.fakeEl = (0, _jquery2.default)('<span>').hide().appendTo(document.body);
+	  }
+	  _jquery2.default.fn.textWidth.fakeEl.text(text || this.val() || this.text()).css('font', font || this.css('font'));
+	  return _jquery2.default.fn.textWidth.fakeEl.width();
 	};
 	
 	_jquery2.default.fn.textHeight = function (text, font) {
-	    if (!_jquery2.default.fn.textWidth.fakeEl) {
-	        _jquery2.default.fn.textWidth.fakeEl = (0, _jquery2.default)('<span>').hide().appendTo(document.body);
-	    }
-	    _jquery2.default.fn.textWidth.fakeEl.text(text || this.val() || this.text()).css('font', font || this.css('font'));
-	    return _jquery2.default.fn.textWidth.fakeEl.height();
+	  if (!_jquery2.default.fn.textWidth.fakeEl) {
+	    _jquery2.default.fn.textWidth.fakeEl = (0, _jquery2.default)('<span>').hide().appendTo(document.body);
+	  }
+	  _jquery2.default.fn.textWidth.fakeEl.text(text || this.val() || this.text()).css('font', font || this.css('font'));
+	  return _jquery2.default.fn.textWidth.fakeEl.height();
 	};
 	
 	/**
@@ -72622,243 +72708,246 @@ return /******/ (function(modules) { // webpackBootstrap
 	 **/
 	
 	var SequenceWidget = function (_CanvasWrapper) {
-	    _inherits(SequenceWidget, _CanvasWrapper);
+	  _inherits(SequenceWidget, _CanvasWrapper);
 	
-	    function SequenceWidget(selector, scene, proteinDisplay) {
-	        _classCallCheck(this, SequenceWidget);
+	  function SequenceWidget(selector, scene, proteinDisplay) {
+	    _classCallCheck(this, SequenceWidget);
 	
-	        var _this4 = _possibleConstructorReturn(this, (SequenceWidget.__proto__ || Object.getPrototypeOf(SequenceWidget)).call(this, selector));
+	    var _this4 = _possibleConstructorReturn(this, (SequenceWidget.__proto__ || Object.getPrototypeOf(SequenceWidget)).call(this, selector));
 	
-	        _this4.scene = scene;
-	        _this4.protein = scene.protein;
+	    _this4.scene = scene;
+	    _this4.protein = scene.protein;
 	
-	        _this4.proteinDisplay = proteinDisplay;
-	        _this4.iRes = 0;
+	    _this4.proteinDisplay = proteinDisplay;
+	    _this4.iRes = 0;
 	
-	        _this4.heightBar = 16;
-	        _this4.spacingY = 4;
-	        _this4.darkColor = "rgb(0, 0, 0)";
-	        _this4.mediumColor = "rgb(155, 155, 155)";
+	    _this4.heightBar = 16;
+	    _this4.spacingY = 4;
+	    _this4.darkColor = "rgb(0, 0, 0)";
+	    _this4.mediumColor = "rgb(155, 155, 155)";
 	
-	        _this4.div.attr('id', 'sequence-widget');
-	        _this4.div.css({
-	            'width': _this4.parentDiv.width(),
-	            'height': _this4.height(),
-	            'top': _this4.y() });
+	    _this4.div.attr('id', 'sequence-widget');
+	    _this4.div.css({
+	      'width': _this4.parentDiv.width(),
+	      'height': _this4.height(),
+	      'top': _this4.y()
+	    });
 	
-	        _this4.charWidth = 14;
-	        _this4.charHeight = 16;
+	    _this4.charWidth = 14;
+	    _this4.charHeight = 16;
 	
-	        _this4.textXOffset = 106;
+	    _this4.textXOffset = 106;
 	
-	        _this4.residues = null;
-	        _this4.iRes = null;
-	        _this4.iStartChar = null;
-	        _this4.iEndChar = null;
+	    _this4.residues = null;
+	    _this4.iRes = null;
+	    _this4.iStartChar = null;
+	    _this4.iEndChar = null;
 	
-	        _this4.residueSelector = (0, _jquery2.default)('<select>').addClass('jolecule-residue-selector').css({
-	            "outline": "none",
-	            "-moz-appearance": "none"
-	        });
-	        _this4.div.append(_this4.residueSelector);
+	    _this4.residueSelector = (0, _jquery2.default)('<select>').addClass('jolecule-residue-selector').css({
+	      "outline": "none",
+	      "-moz-appearance": "none"
+	    });
+	    _this4.div.append(_this4.residueSelector);
 	
-	        _this4.resize();
-	        return _this4;
+	    _this4.resize();
+	    return _this4;
+	  }
+	
+	  _createClass(SequenceWidget, [{
+	    key: "width",
+	    value: function width() {
+	      return this.parentDiv.width();
 	    }
+	  }, {
+	    key: "height",
+	    value: function height() {
+	      return this.heightBar + this.spacingY * 5 + this.charHeight;
+	    }
+	  }, {
+	    key: "resize",
+	    value: function resize() {
+	      _get(SequenceWidget.prototype.__proto__ || Object.getPrototypeOf(SequenceWidget.prototype), "resize", this).call(this);
+	    }
+	  }, {
+	    key: "xToI",
+	    value: function xToI(x) {
+	      return parseInt(x * this.nResidue / this.width());
+	    }
+	  }, {
+	    key: "iToX",
+	    value: function iToX(iRes) {
+	      return parseInt(iRes / this.nResidue * this.width());
+	    }
+	  }, {
+	    key: "textWidth",
+	    value: function textWidth() {
+	      return this.width() - this.textXOffset;
+	    }
+	  }, {
+	    key: "xToIChar",
+	    value: function xToIChar(x) {
+	      return parseInt((x - this.textXOffset) * this.nChar / this.textWidth()) + this.iStartChar;
+	    }
+	  }, {
+	    key: "iCharToX",
+	    value: function iCharToX(iRes) {
+	      return parseInt((iRes - this.iStartChar) / this.nChar * this.textWidth() + this.textXOffset);
+	    }
+	  }, {
+	    key: "resetResidues",
+	    value: function resetResidues() {
 	
-	    _createClass(SequenceWidget, [{
-	        key: "width",
-	        value: function width() {
-	            return this.parentDiv.width();
+	      var nRawResidue = this.scene.protein.residues.length;
+	      console.log("Sequencewidget.resetResidues", _lodash2.default.map(this.scene.protein.residues, "id"));
+	
+	      this.residues = [];
+	      for (var iRes = 0; iRes < nRawResidue; iRes += 1) {
+	        var residue = this.scene.protein.residues[iRes];
+	        if (_lodash2.default.includes(['-', 'W'], residue.ss)) {
+	          continue;
 	        }
-	    }, {
-	        key: "height",
-	        value: function height() {
-	            return this.heightBar + this.spacingY * 5 + this.charHeight;
+	
+	        var entry = {
+	          i: iRes,
+	          ss: residue.ss,
+	          resId: residue.id
+	        };
+	
+	        var resType = residue.type;
+	        if (resType in resToAa) {
+	          entry.c = resToAa[resType];
+	        } else {
+	          entry.c = ".";
 	        }
-	    }, {
-	        key: "resize",
-	        value: function resize() {
-	            _get(SequenceWidget.prototype.__proto__ || Object.getPrototypeOf(SequenceWidget.prototype), "resize", this).call(this);
+	
+	        this.residues.push(entry);
+	      }
+	
+	      this.nResidue = this.residues.length;
+	
+	      this.iRes = this.nChar / 2;
+	      this.iStartChar = 0;
+	
+	      this.residueSelector.val(this.scene.current_view.res_id);
+	
+	      this.populateResidueSelector();
+	    }
+	  }, {
+	    key: "draw",
+	    value: function draw() {
+	
+	      if (!(0, _util.exists)(this.scene)) {
+	        return;
+	      }
+	
+	      this.nChar = Math.ceil(this.width() / this.charWidth);
+	
+	      this.residueSelector.val(this.scene.current_view.res_id);
+	
+	      this.iEndChar = this.iStartChar + this.nChar;
+	
+	      // draw background
+	      this.fillRect(0, 0, this.width(), this.heightBar + this.spacingY * 2, this.darkColor);
+	
+	      this.fillRect(0, this.heightBar + this.spacingY * 2, this.width(), this.charHeight + this.spacingY * 2, this.mediumColor);
+	
+	      var x1 = this.iToX(this.iStartChar);
+	      var x2 = this.iToX(this.iEndChar);
+	
+	      this.fillRect(x1, 0, x2 - x1, this.heightBar + this.spacingY * 2, 1, this.mediumColor);
+	
+	      // draw secondary-structure color bars
+	      var ss = this.residues[0].ss;
+	      var iStart = 0;
+	      var iEnd = 0;
+	      while (iEnd < this.nResidue) {
+	
+	        iEnd += 1;
+	        if (iEnd == this.nResidue || this.residues[iEnd].ss != ss) {
+	
+	          var _x = this.iToX(iStart);
+	          var _x2 = this.iToX(iEnd);
+	          var color = getSsColor(ss).getStyle();
+	          this.fillRect(_x, this.spacingY, _x2 - _x, this.heightBar, color);
+	
+	          if (iEnd <= this.nResidue - 1) {
+	            iStart = iEnd;
+	            ss = this.residues[iEnd].ss;
+	          }
 	        }
-	    }, {
-	        key: "xToI",
-	        value: function xToI(x) {
-	            return parseInt(x * this.nResidue / this.width());
+	      }
+	
+	      // draw characters for sequence
+	      var y = this.heightBar + this.spacingY * 3;
+	      for (var iChar = this.iStartChar; iChar < this.iEndChar; iChar += 1) {
+	        var residue = this.residues[iChar];
+	        var _x3 = this.iCharToX(iChar);
+	        var colorStyle = getSsColor(residue.ss).getStyle();
+	        this.fillRect(_x3, y, this.charWidth, this.charHeight, colorStyle);
+	        var style = "color:black; background-color:" + colorStyle;
+	        this.text(residue.c, _x3 + this.charWidth / 2, y + this.charHeight / 2, "8pt Monospace", "black", "center");
+	      }
+	
+	      var currResId = this.scene.current_view.res_id;
+	      for (var iRes = this.iStartChar; iRes < this.iEndChar; iRes++) {
+	        if (this.residues[iRes].resId == currResId) {
+	          this.strokeRect(this.iCharToX(iRes), this.heightBar + this.spacingY * 2, this.charWidth, this.charHeight + this.spacingY * 2, "white");
+	          break;
 	        }
-	    }, {
-	        key: "iToX",
-	        value: function iToX(iRes) {
-	            return parseInt(iRes / this.nResidue * this.width());
-	        }
-	    }, {
-	        key: "textWidth",
-	        value: function textWidth() {
-	            return this.width() - this.textXOffset;
-	        }
-	    }, {
-	        key: "xToIChar",
-	        value: function xToIChar(x) {
-	            return parseInt((x - this.textXOffset) * this.nChar / this.textWidth()) + this.iStartChar;
-	        }
-	    }, {
-	        key: "iCharToX",
-	        value: function iCharToX(iRes) {
-	            return parseInt((iRes - this.iStartChar) / this.nChar * this.textWidth() + this.textXOffset);
-	        }
-	    }, {
-	        key: "draw",
-	        value: function draw() {
+	      }
 	
-	            if (!(0, _util.exists)(this.scene)) {
-	                return;
-	            }
+	      // draw containers to indicate window
+	      x1 = this.iToX(this.iStartChar);
+	      x2 = this.iToX(this.iEndChar);
+	      this.fillRect(0, this.spacingY, x1, this.heightBar, "rgba(0, 0, 0, 0.3)");
+	      this.fillRect(x2, this.spacingY, this.width() - x2, this.heightBar, "rgba(0, 0, 0, 0.3)");
+	    }
+	  }, {
+	    key: "populateResidueSelector",
+	    value: function populateResidueSelector() {
+	      var _this5 = this;
 	
-	            this.nChar = Math.ceil(this.width() / this.charWidth);
+	      var residues = this.protein.residues;
+	      for (var i = 0; i < residues.length; i++) {
+	        var value = residues[i].id;
+	        var text = residues[i].id + '-' + residues[i].type;
+	        this.residueSelector.append((0, _jquery2.default)('<option>').attr('value', value).text(text));
+	      }
+	      this.residueSelector.change(function () {
+	        var resId = _this5.residueSelector.find(":selected").val();
+	        _this5.proteinDisplay.setTargetFromAtom(_this5.scene.protein.res_by_id[resId].central_atom);
+	      });
+	    }
+	  }, {
+	    key: "getFullIRes",
+	    value: function getFullIRes() {
+	      return this.residues[this.iRes].i;
+	    }
+	  }, {
+	    key: "mousemove",
+	    value: function mousemove(event) {
 	
-	            if (this.residues == null) {
+	      if (!this.mousePressed) {
+	        return;
+	      }
+	      this.getPointer(event);
+	      if (this.pointerY < this.heightBar + this.spacingY * 2) {
+	        this.iRes = this.xToI(this.pointerX);
 	
-	                var nRawResidue = this.scene.protein.residues.length;
+	        // reset sequence window
+	        this.iStartChar = Math.max(this.iRes - 0.5 * this.nChar, 0);
+	        this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar);
+	        this.iStartChar = parseInt(this.iStartChar);
 	
-	                this.residues = [];
-	                for (var _iRes = 0; _iRes < nRawResidue; _iRes += 1) {
-	                    var residue = this.scene.protein.residues[_iRes];
-	                    if (_lodash2.default.includes(['-', 'W'], residue.ss)) {
-	                        continue;
-	                    }
+	        this.proteinDisplay.setTargetFromAtom(this.scene.protein.residues[this.getFullIRes()].central_atom);
+	      } else {
+	        this.iRes = this.xToIChar(this.pointerX);
+	        this.proteinDisplay.setTargetFromAtom(this.scene.protein.residues[this.getFullIRes()].central_atom);
+	      }
+	    }
+	  }]);
 	
-	                    var entry = {
-	                        i: _iRes,
-	                        ss: residue.ss,
-	                        resId: residue.id
-	                    };
-	
-	                    var resType = residue.type;
-	                    if (resType in resToAa) {
-	                        entry.c = resToAa[resType];
-	                    } else {
-	                        entry.c = ".";
-	                    }
-	
-	                    this.residues.push(entry);
-	                }
-	
-	                this.nResidue = this.residues.length;
-	
-	                this.iRes = this.nChar / 2;
-	                this.iStartChar = 0;
-	
-	                this.residueSelector.val(this.scene.current_view.res_id);
-	
-	                this.populateResidueSelector();
-	            }
-	
-	            this.residueSelector.val(this.scene.current_view.res_id);
-	
-	            this.iEndChar = this.iStartChar + this.nChar;
-	
-	            // draw background
-	            this.fillRect(0, 0, this.width(), this.heightBar + this.spacingY * 2, this.darkColor);
-	
-	            this.fillRect(0, this.heightBar + this.spacingY * 2, this.width(), this.charHeight + this.spacingY * 2, this.mediumColor);
-	
-	            var x1 = this.iToX(this.iStartChar);
-	            var x2 = this.iToX(this.iEndChar);
-	
-	            this.fillRect(x1, 0, x2 - x1, this.heightBar + this.spacingY * 2, 1, this.mediumColor);
-	
-	            // draw secondary-structure color bars
-	            var ss = this.residues[0].ss;
-	            var iStart = 0;
-	            var iEnd = 0;
-	            while (iEnd < this.nResidue) {
-	
-	                iEnd += 1;
-	                if (iEnd == this.nResidue || this.residues[iEnd].ss != ss) {
-	
-	                    var _x = this.iToX(iStart);
-	                    var _x2 = this.iToX(iEnd);
-	                    var color = getSsColor(ss).getStyle();
-	                    this.fillRect(_x, this.spacingY, _x2 - _x, this.heightBar, color);
-	
-	                    if (iEnd <= this.nResidue - 1) {
-	                        iStart = iEnd;
-	                        ss = this.residues[iEnd].ss;
-	                    }
-	                }
-	            }
-	
-	            // draw characters for sequence
-	            var y = this.heightBar + this.spacingY * 3;
-	            for (var iChar = this.iStartChar; iChar < this.iEndChar; iChar += 1) {
-	                var _residue = this.residues[iChar];
-	                var _x3 = this.iCharToX(iChar);
-	                var colorStyle = getSsColor(_residue.ss).getStyle();
-	                this.fillRect(_x3, y, this.charWidth, this.charHeight, colorStyle);
-	                var style = "color:black; background-color:" + colorStyle;
-	                this.text(_residue.c, _x3 + this.charWidth / 2, y + this.charHeight / 2, "8pt Monospace", "black", "center");
-	            }
-	
-	            var currResId = this.scene.current_view.res_id;
-	            for (var iRes = this.iStartChar; iRes < this.iEndChar; iRes++) {
-	                if (this.residues[iRes].resId == currResId) {
-	                    this.strokeRect(this.iCharToX(iRes), this.heightBar + this.spacingY * 2, this.charWidth, this.charHeight + this.spacingY * 2, "white");
-	                    break;
-	                }
-	            }
-	
-	            // draw containers to indicate window
-	            x1 = this.iToX(this.iStartChar);
-	            x2 = this.iToX(this.iEndChar);
-	            this.fillRect(0, this.spacingY, x1, this.heightBar, "rgba(0, 0, 0, 0.3)");
-	            this.fillRect(x2, this.spacingY, this.width() - x2, this.heightBar, "rgba(0, 0, 0, 0.3)");
-	        }
-	    }, {
-	        key: "populateResidueSelector",
-	        value: function populateResidueSelector() {
-	            var _this5 = this;
-	
-	            var residues = this.protein.residues;
-	            for (var i = 0; i < residues.length; i++) {
-	                var value = residues[i].id;
-	                var text = residues[i].id + '-' + residues[i].type;
-	                this.residueSelector.append((0, _jquery2.default)('<option>').attr('value', value).text(text));
-	            }
-	            this.residueSelector.change(function () {
-	                var resId = _this5.residueSelector.find(":selected").val();
-	                _this5.proteinDisplay.setTargetFromAtom(_this5.scene.protein.res_by_id[resId].central_atom);
-	            });
-	        }
-	    }, {
-	        key: "getFullIRes",
-	        value: function getFullIRes() {
-	            return this.residues[this.iRes].i;
-	        }
-	    }, {
-	        key: "mousemove",
-	        value: function mousemove(event) {
-	
-	            if (!this.mousePressed) {
-	                return;
-	            }
-	            this.getPointer(event);
-	            if (this.pointerY < this.heightBar + this.spacingY * 2) {
-	                this.iRes = this.xToI(this.pointerX);
-	
-	                // reset sequence window
-	                this.iStartChar = Math.max(this.iRes - 0.5 * this.nChar, 0);
-	                this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar);
-	                this.iStartChar = parseInt(this.iStartChar);
-	
-	                this.proteinDisplay.setTargetFromAtom(this.scene.protein.residues[this.getFullIRes()].central_atom);
-	            } else {
-	                this.iRes = this.xToIChar(this.pointerX);
-	                this.proteinDisplay.setTargetFromAtom(this.scene.protein.residues[this.getFullIRes()].central_atom);
-	            }
-	        }
-	    }]);
-	
-	    return SequenceWidget;
+	  return SequenceWidget;
 	}(CanvasWrapper);
 	
 	/**
@@ -72866,147 +72955,146 @@ return /******/ (function(modules) { // webpackBootstrap
 	 **/
 	
 	var ZSlabBar = function (_CanvasWrapper2) {
-	    _inherits(ZSlabBar, _CanvasWrapper2);
+	  _inherits(ZSlabBar, _CanvasWrapper2);
 	
-	    function ZSlabBar(selector, scene) {
-	        _classCallCheck(this, ZSlabBar);
+	  function ZSlabBar(selector, scene) {
+	    _classCallCheck(this, ZSlabBar);
 	
-	        var _this6 = _possibleConstructorReturn(this, (ZSlabBar.__proto__ || Object.getPrototypeOf(ZSlabBar)).call(this, selector));
+	    var _this6 = _possibleConstructorReturn(this, (ZSlabBar.__proto__ || Object.getPrototypeOf(ZSlabBar)).call(this, selector));
 	
-	        console.log('initialize zslabar with scene', scene);
-	        _this6.scene = scene;
-	        _this6.maxZLength = 0.0;
-	        _this6.yOffset = 52;
-	        _this6.div.attr('id', 'zslab');
-	        return _this6;
+	    _this6.scene = scene;
+	    _this6.maxZLength = 0.0;
+	    _this6.yOffset = 52;
+	    _this6.div.attr('id', 'zslab');
+	    return _this6;
+	  }
+	
+	  _createClass(ZSlabBar, [{
+	    key: "resize",
+	    value: function resize() {
+	
+	      this.div.css({
+	        'width': this.width(),
+	        'height': this.height(),
+	        'top': this.y(),
+	        'left': this.x()
+	      });
+	      _get(ZSlabBar.prototype.__proto__ || Object.getPrototypeOf(ZSlabBar.prototype), "resize", this).call(this);
 	    }
+	  }, {
+	    key: "width",
+	    value: function width() {
+	      return 40;
+	    }
+	  }, {
+	    key: "y",
+	    value: function y() {
+	      var parentDivPos = this.parentDiv.position();
+	      return parentDivPos.top + this.yOffset;
+	    }
+	  }, {
+	    key: "height",
+	    value: function height() {
+	      return this.parentDiv.height() - this.yOffset;
+	    }
+	  }, {
+	    key: "x",
+	    value: function x() {
+	      var parentDivPos = this.parentDiv.position();
+	      return this.parentDiv.width() - this.width() + parentDivPos.left;
+	    }
+	  }, {
+	    key: "yToZ",
+	    value: function yToZ(y) {
 	
-	    _createClass(ZSlabBar, [{
-	        key: "resize",
-	        value: function resize() {
+	      var fraction = y / this.height();
+	      return (0.5 - fraction) * this.maxZLength;
+	    }
+	  }, {
+	    key: "zToY",
+	    value: function zToY(z) {
 	
-	            this.div.css({
-	                'width': this.width(),
-	                'height': this.height(),
-	                'top': this.y(),
-	                'left': this.x()
-	            });
-	            _get(ZSlabBar.prototype.__proto__ || Object.getPrototypeOf(ZSlabBar.prototype), "resize", this).call(this);
-	        }
-	    }, {
-	        key: "width",
-	        value: function width() {
-	            return 40;
-	        }
-	    }, {
-	        key: "y",
-	        value: function y() {
-	            var parentDivPos = this.parentDiv.position();
-	            return parentDivPos.top + this.yOffset;
-	        }
-	    }, {
-	        key: "height",
-	        value: function height() {
-	            return this.parentDiv.height() - this.yOffset;
-	        }
-	    }, {
-	        key: "x",
-	        value: function x() {
-	            var parentDivPos = this.parentDiv.position();
-	            return this.parentDiv.width() - this.width() + parentDivPos.left;
-	        }
-	    }, {
-	        key: "yToZ",
-	        value: function yToZ(y) {
+	      var fraction = z / this.maxZLength;
+	      return (0.5 - fraction) * this.height();
+	    }
+	  }, {
+	    key: "draw",
+	    value: function draw() {
 	
-	            var fraction = y / this.height();
-	            return (0.5 - fraction) * this.maxZLength;
-	        }
-	    }, {
-	        key: "zToY",
-	        value: function zToY(z) {
+	      var protein = this.scene.protein;
+	      var camera = this.scene.current_view.abs_camera;
+	      this.maxZLength = 2.0 * protein.max_length;
 	
-	            var fraction = z / this.maxZLength;
-	            return (0.5 - fraction) * this.height();
-	        }
-	    }, {
-	        key: "draw",
-	        value: function draw() {
+	      var yBack = this.zToY(camera.z_back);
+	      var yFront = this.zToY(camera.z_front);
+	      var yMid = this.zToY(0);
 	
-	            var protein = this.scene.protein;
-	            var camera = this.scene.current_view.abs_camera;
-	            this.maxZLength = 2.0 * protein.max_length;
+	      var grey = "rgba(40, 40, 40, 0.75)";
+	      var dark = "rgba(100, 70, 70, 0.75)";
+	      var light = "rgba(150, 90, 90, 0.75)";
 	
-	            var yBack = this.zToY(camera.z_back);
-	            var yFront = this.zToY(camera.z_front);
-	            var yMid = this.zToY(0);
+	      this.fillRect(0, 0, this.width(), this.height(), grey);
 	
-	            var grey = "rgba(40, 40, 40, 0.75)";
-	            var dark = "rgba(100, 70, 70, 0.75)";
-	            var light = "rgba(150, 90, 90, 0.75)";
+	      this.fillRect(0, yBack, this.width(), yMid - yBack, dark);
 	
-	            this.fillRect(0, 0, this.width(), this.height(), grey);
+	      this.fillRect(0, yMid, this.width(), yFront - yMid, light);
 	
-	            this.fillRect(0, yBack, this.width(), yMid - yBack, dark);
+	      var font = '12px sans-serif';
+	      var xm = this.width() / 2;
 	
-	            this.fillRect(0, yMid, this.width(), yFront - yMid, light);
+	      this.text('zslab', xm, 7, font, light, 'center');
+	      this.text('back', xm, yBack - 7, font, dark, 'center');
+	      this.text('front', xm, yFront + 7, font, light, 'center');
+	    }
+	  }, {
+	    key: "getZ",
+	    value: function getZ(event) {
 	
-	            var font = '12px sans-serif';
-	            var xm = this.width() / 2;
+	      this.getPointer(event);
 	
-	            this.text('zslab', xm, 7, font, light, 'center');
-	            this.text('back', xm, yBack - 7, font, dark, 'center');
-	            this.text('front', xm, yFront + 7, font, light, 'center');
-	        }
-	    }, {
-	        key: "getZ",
-	        value: function getZ(event) {
+	      this.z = this.yToZ(this.pointerY);
+	    }
+	  }, {
+	    key: "mousedown",
+	    value: function mousedown(event) {
 	
-	            this.getPointer(event);
+	      this.getZ(event);
 	
-	            this.z = this.yToZ(this.pointerY);
-	        }
-	    }, {
-	        key: "mousedown",
-	        value: function mousedown(event) {
+	      if (this.z > 0) {
+	        this.back = true;
+	        this.front = false;
+	      } else {
+	        this.front = true;
+	        this.back = false;
+	      }
 	
-	            this.getZ(event);
+	      _get(ZSlabBar.prototype.__proto__ || Object.getPrototypeOf(ZSlabBar.prototype), "mousedown", this).call(this, event);
+	    }
+	  }, {
+	    key: "mousemove",
+	    value: function mousemove(event) {
 	
-	            if (this.z > 0) {
-	                this.back = true;
-	                this.front = false;
-	            } else {
-	                this.front = true;
-	                this.back = false;
-	            }
+	      event.preventDefault();
 	
-	            _get(ZSlabBar.prototype.__proto__ || Object.getPrototypeOf(ZSlabBar.prototype), "mousedown", this).call(this, event);
-	        }
-	    }, {
-	        key: "mousemove",
-	        value: function mousemove(event) {
+	      if (!this.mousePressed) {
+	        return;
+	      }
 	
-	            event.preventDefault();
+	      this.getZ(event);
 	
-	            if (!this.mousePressed) {
-	                return;
-	            }
+	      var abs_camera = this.scene.current_view.abs_camera;
 	
-	            this.getZ(event);
+	      if (this.back) {
+	        abs_camera.z_back = Math.max(2, this.z);
+	      } else if (this.front) {
+	        abs_camera.z_front = Math.min(-2, this.z);
+	      }
 	
-	            var abs_camera = this.scene.current_view.abs_camera;
+	      this.scene.changed = true;
+	    }
+	  }]);
 	
-	            if (this.back) {
-	                abs_camera.z_back = Math.max(2, this.z);
-	            } else if (this.front) {
-	                abs_camera.z_front = Math.min(-2, this.z);
-	            }
-	
-	            this.scene.changed = true;
-	        }
-	    }]);
-	
-	    return ZSlabBar;
+	  return ZSlabBar;
 	}(CanvasWrapper);
 	
 	/**
@@ -73015,1843 +73103,1844 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * webGL threeJs object.
 	 */
 	
-	var GlProteinDisplay = function () {
-	    function GlProteinDisplay(scene, divTag, controller) {
-	        var _this7 = this;
+	var ProteinDisplay = function () {
+	  function ProteinDisplay(scene, divTag, controller) {
+	    var _this7 = this;
 	
-	        _classCallCheck(this, GlProteinDisplay);
+	    _classCallCheck(this, ProteinDisplay);
 	
-	        console.log('init GlProteinDisplay');
-	        this.divTag = divTag;
-	        this.scene = scene;
-	        this.protein = scene.protein;
-	        this.controller = controller;
+	    console.log('GlProteinDisplay.constructor');
+	    this.divTag = divTag;
+	    this.scene = scene;
+	    this.protein = scene.protein;
+	    this.controller = controller;
 	
-	        this.controller.set_target_view_by_res_id = function (resId) {
-	            _this7.setTargetFromResId(resId);
+	    this.controller.set_target_view_by_res_id = function (resId) {
+	      _this7.setTargetFromResId(resId);
+	    };
+	    this.controller.calculate_current_abs_camera = function () {};
+	
+	    // stores any meshes that can be clicked
+	    this.clickMeshes = [];
+	
+	    // stores light objects to rotate with camera motion
+	    this.lights = [];
+	
+	    this.saveMouseX = null;
+	    this.saveMouseY = null;
+	    this.saveMouseR = null;
+	    this.saveMouseT = null;
+	    this.mouseX = null;
+	    this.mouseY = null;
+	    this.mouseR = null;
+	    this.mouseT = null;
+	    this.mousePressed = false;
+	
+	    this.labels = [];
+	    this.distanceLabels = [];
+	
+	    // relative to the scene position from camera
+	    this.zFront = -40;
+	    this.zBack = 20;
+	
+	    // determines how far away the camera is from the scene
+	    this.zoom = 50.0;
+	
+	    this.mainDiv = (0, _jquery2.default)(this.divTag);
+	    this.mainDiv.css('overflow', 'hidden');
+	
+	    this.messageBar = new MessageBar(this.divTag);
+	
+	    this.backgroundColor = 0x000000;
+	
+	    this.threeJsScene = new _three2.default.Scene();
+	    this.threeJsScene.fog = new _three2.default.Fog(this.backgroundColor, 1, 100);
+	    this.threeJsScene.fog.near = this.zoom + 1;
+	    this.threeJsScene.fog.far = this.zoom + this.zBack;
+	
+	    this.cameraTarget = new _three2.default.Vector3(0, 0, 0);
+	
+	    this.setLights();
+	
+	    this.camera = new _three2.default.PerspectiveCamera(45, this.width() / this.height(), this.zFront + this.zoom, this.zBack + this.zoom);
+	
+	    this.renderer = new _three2.default.WebGLRenderer();
+	    this.renderer.setClearColor(this.backgroundColor);
+	    this.renderer.setSize(this.width(), this.height());
+	    this.webglDivId = this.mainDiv.attr('id') + '-canvas-wrapper';
+	    this.webglDivTag = '#' + this.webglDivId;
+	    this.webglDiv = (0, _jquery2.default)("<div>").attr('id', this.webglDivId).css('overflow', 'hidden');
+	    this.mainDiv.append(this.webglDiv);
+	    this.webglDiv[0].appendChild(this.renderer.domElement);
+	
+	    this.hover = new PopupText(this.divTag, "lightblue");
+	    this.hover.div.css("pointer-events", "none");
+	    this.hover.arrow.css("pointer-events", "none");
+	
+	    this.zSlab = new ZSlabBar(this.divTag, this.scene);
+	
+	    this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
+	
+	    this.distancePartnerPointer = new LineElement(this.webglDivTag, "#FF7777");
+	
+	    var dom = this.renderer.domElement;
+	
+	    dom.addEventListener('mousedown', function (e) {
+	      _this7.mousedown(e);
+	    });
+	    dom.addEventListener('mousemove', function (e) {
+	      _this7.mousemove(e);
+	    });
+	    dom.addEventListener('mouseup', function (e) {
+	      _this7.mouseup(e);
+	    });
+	    dom.addEventListener('mousewheel', function (e) {
+	      _this7.mousewheel(e);
+	    });
+	    dom.addEventListener('DOMMouseScroll', function (e) {
+	      _this7.mousewheel(e);
+	    });
+	    dom.addEventListener('touchstart', function (e) {
+	      _this7.mousedown(e);
+	    });
+	    dom.addEventListener('touchmove', function (e) {
+	      _this7.mousemove(e);
+	    });
+	    dom.addEventListener('touchend', function (e) {
+	      _this7.mouseup(e);
+	    });
+	    dom.addEventListener('touchcancel', function (e) {
+	      _this7.mouseup(e);
+	    });
+	    dom.addEventListener('gesturestart', function (e) {
+	      _this7.gesturestart(e);
+	    });
+	    dom.addEventListener('gesturechange', function (e) {
+	      _this7.gesturechange(e);
+	    });
+	    dom.addEventListener('gestureend', function (e) {
+	      _this7.gestureend(e);
+	    });
+	  }
+	
+	  _createClass(ProteinDisplay, [{
+	    key: "buildAfterDataLoad",
+	    value: function buildAfterDataLoad(default_html) {
+	
+	      this.buildScene();
+	
+	      this.sequenceWidget.resetResidues();
+	
+	      // this is some mangling to link openGL
+	      // with the coordinate system that I had
+	      // chosen unwittingly when I first designed
+	      // the raster jolecule library
+	
+	      var current_view = this.scene.current_view;
+	      current_view.res_id = this.protein.residues[0].id;
+	
+	      current_view.abs_camera.z_front = -this.protein.max_length / 2;
+	      current_view.abs_camera.z_back = this.protein.max_length / 2;
+	      current_view.abs_camera.zoom = Math.abs(this.protein.max_length);
+	      current_view.camera.z_front = -this.protein.max_length / 2;
+	      current_view.camera.z_back = this.protein.max_length / 2;
+	      current_view.camera.zoom = Math.abs(this.protein.max_length);
+	
+	      current_view.show.sidechain = false;
+	
+	      current_view.camera.up_v = _v2.default.create(0, -1, 0);
+	      current_view.abs_camera.up_v = _v2.default.create(0, -1, 0);
+	
+	      var atom = this.protein.get_central_atom();
+	      current_view.res_id = atom.res_id;
+	      var residue = this.protein.res_by_id[current_view.res_id];
+	      current_view.i_atom = residue.central_atom.i;
+	      var center = residue.central_atom.pos;
+	
+	      current_view.abs_camera.transform(_v2.default.translation(center));
+	
+	      var neg_center = _v2.default.scaled(center, -1);
+	      this.scene.origin.camera.transform(_v2.default.translation(neg_center));
+	
+	      var default_view = current_view.clone();
+	      default_view.order = 0;
+	      default_view.text = this.protein.default_html;
+	      default_view.pdb_id = this.protein.pdb_id;
+	
+	      this.scene.save_view(default_view);
+	
+	      this.cameraTarget.copy(center);
+	      this.camera.position.set(0, 0, this.zoom).add(this.cameraTarget);
+	      this.camera.lookAt(this.cameraTarget);
+	
+	      this.threeJsScene.fog.near = this.zoom + 1;
+	      this.threeJsScene.fog.far = this.zoom + this.zBack;
+	
+	      this.scene.is_new_view_chosen = true;
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: "isPeptideConnected",
+	    value: function isPeptideConnected(i0, i1) {
+	
+	      var res0 = this.protein.residues[i0];
+	      var res1 = this.protein.residues[i1];
+	
+	      if ("C" in res0.atoms && "N" in res1.atoms && "CA" in res0.atoms && "CA" in res1.atoms) {
+	
+	        // detect a potential peptide bond
+	
+	        var c = res0.atoms["C"];
+	        var n = res1.atoms["N"];
+	        if (_v2.default.distance(c.pos, n.pos) < 2) {
+	          return true;
+	        }
+	      }
+	
+	      return false;
+	    }
+	  }, {
+	    key: "isSugarPhosphateConnected",
+	    value: function isSugarPhosphateConnected(i0, i1) {
+	
+	      var res0 = this.protein.residues[i0];
+	      var res1 = this.protein.residues[i1];
+	
+	      if ("C3'" in res0.atoms && "C1'" in res0.atoms && "C5'" in res0.atoms && "O3'" in res0.atoms && "P" in res1.atoms && "C3'" in res1.atoms && "C1'" in res1.atoms && "C5'" in res1.atoms) {
+	
+	        // detect nucloetide phosphate sugar bond
+	        var o3 = res0.atoms["O3'"];
+	        var p = res1.atoms["P"];
+	        if (_v2.default.distance(o3.pos, p.pos) < 2.5) {
+	          return true;
+	        }
+	      }
+	
+	      return false;
+	    }
+	  }, {
+	    key: "getNormalOfNuc",
+	    value: function getNormalOfNuc(res) {
+	
+	      var atoms = res.atoms;
+	      var forward = _v2.default.diff(atoms["C3'"].pos, atoms["C5'"].pos);
+	      var up = _v2.default.diff(atoms["C1'"].pos, atoms["C3'"].pos);
+	      return _v2.default.cross_product(forward, up);
+	    }
+	  }, {
+	    key: "findChainsAndPieces",
+	    value: function findChainsAndPieces() {
+	
+	      // Chains are continuous pieces of proteins or dna
+	      // Pieces are continuous pieces of secondary structure
+	
+	      this.trace = new _glgeometry.PathAndFrenetFrames();
+	
+	      this.trace.residues = [];
+	
+	      var n_residue = this.protein.residues.length;
+	      for (var j = 0; j < n_residue; j += 1) {
+	
+	        var residue = this.protein.residues[j];
+	        var isProteinNucOrConnected = false;
+	
+	        if (residue.is_protein_or_nuc) {
+	
+	          isProteinNucOrConnected = true;
+	        } else {
+	
+	          if (j > 0) {
+	            if (this.isPeptideConnected(j - 1, j)) {
+	              residue.central_atom = residue.atoms["CA"];
+	              isProteinNucOrConnected = true;
+	            } else if (this.isSugarPhosphateConnected(j - 1, j)) {
+	              residue.central_atom = residue.atoms["C3'"];
+	              isProteinNucOrConnected = true;
+	              residue.ss = "R";
+	              residue.normal = this.getNormalOfNuc(residue);
+	            }
+	          }
+	
+	          if (j < n_residue - 1) {
+	            if (this.isPeptideConnected(j, j + 1)) {
+	              residue.central_atom = residue.atoms["CA"];
+	              isProteinNucOrConnected = true;
+	            } else if (this.isSugarPhosphateConnected(j, j + 1)) {
+	              residue.central_atom = residue.atoms["C3'"];
+	              isProteinNucOrConnected = true;
+	              residue.ss = "R";
+	              residue.normal = this.getNormalOfNuc(residue);
+	            }
+	          }
+	        }
+	
+	        if (isProteinNucOrConnected) {
+	          this.trace.residues.push(residue);
+	          this.trace.points.push(_v2.default.clone(residue.central_atom.pos));
+	        }
+	      }
+	
+	      this.trace.chains = [];
+	      this.trace.pieces = [];
+	
+	      var iStart = 0;
+	      for (var iEnd = 1; iEnd < this.trace.points.length + 1; iEnd += 1) {
+	
+	        var isBreak = false;
+	
+	        if (iEnd == this.trace.points.length) {
+	          isBreak = true;
+	        } else {
+	          var iRes0 = this.trace.residues[iEnd - 1].i;
+	          var iRes1 = this.trace.residues[iEnd].i;
+	          isBreak = !this.isPeptideConnected(iRes0, iRes1) && !this.isSugarPhosphateConnected(iRes0, iRes1);
+	        }
+	
+	        if (!isBreak) {
+	          continue;
+	        }
+	
+	        if (iStart == this.trace.points.length - 1) {
+	          continue;
+	        }
+	
+	        var chain = {
+	          iStart: iStart,
+	          iEnd: iEnd,
+	          pieces: []
 	        };
-	        this.controller.calculate_current_abs_camera = function () {};
 	
-	        // stores any meshes that can be clicked
-	        this.clickMeshes = [];
+	        this.trace.chains.push(chain);
 	
-	        // stores light objects to rotate with camera motion
-	        this.lights = [];
+	        var ss = this.trace.residues[iStart].ss;
+	        var iPieceStart = iStart;
 	
-	        this.saveMouseX = null;
-	        this.saveMouseY = null;
-	        this.saveMouseR = null;
-	        this.saveMouseT = null;
+	        for (var iPieceEnd = iStart + 1; iPieceEnd < iEnd + 1; iPieceEnd += 1) {
+	
+	          isBreak = false;
+	          if (iPieceEnd == iEnd) {
+	            isBreak = true;
+	          } else {
+	            var end_ss = this.trace.residues[iPieceEnd].ss;
+	            if (end_ss != ss) {
+	              // if ( ( end_ss == "R" || ss == "D" ) &&
+	              //      ( end_ss == "D" || ss == "R" ) ) {
+	              //     continue;
+	              // }
+	              isBreak = true;
+	            }
+	          }
+	
+	          if (!isBreak) {
+	            continue;
+	          }
+	
+	          chain.pieces.push({
+	            iStart: iPieceStart,
+	            iEnd: iPieceEnd,
+	            ss: ss
+	          });
+	
+	          iPieceStart = iPieceEnd;
+	          if (iPieceEnd < iEnd) {
+	            ss = this.trace.residues[iPieceEnd].ss;
+	          }
+	        }
+	
+	        iStart = iEnd;
+	      }
+	    }
+	  }, {
+	    key: "calcContinuousTangents",
+	    value: function calcContinuousTangents(trace, iStart, iEnd) {
+	
+	      var points = trace.points;
+	
+	      var iLast = iEnd - 1;
+	
+	      var i;
+	
+	      if (iEnd - iStart > 2) {
+	
+	        trace.tangents[iStart] = points[iStart + 1].clone().sub(points[iStart]).normalize();
+	
+	        for (i = iStart + 1; i < iLast; i += 1) {
+	          trace.tangents[i] = points[i + 1].clone().sub(points[i - 1]).normalize();
+	        }
+	
+	        trace.tangents[iLast] = points[iLast].clone().sub(points[iLast - 1]).normalize();
+	
+	        for (i = iStart + 1; i < iLast; i += 1) {
+	          if (trace.residues[i].normal !== null) {
+	            trace.normals[i] = (0, _glgeometry.perpVector)(trace.tangents[i], _v2.default.clone(trace.residues[i].normal)).normalize();
+	          } else {
+	            var diff = points[i].clone().sub(points[i - 1]);
+	            trace.normals[i] = new TV3().crossVectors(diff, trace.tangents[i]).normalize();
+	          }
+	        }
+	
+	        trace.normals[iStart] = trace.normals[iStart + 1];
+	
+	        trace.normals[iLast] = trace.normals[iLast - 1];
+	      } else {
+	
+	        // for 2 point loops
+	        var tangent = points[iLast].clone().sub(points[iStart]).normalize();
+	
+	        trace.tangents[iStart] = tangent;
+	        trace.tangents[iLast] = tangent;
+	
+	        for (i = iStart; i <= iLast; i += 1) {
+	          if (trace.residues[i].normal !== null) {
+	            trace.normals[i] = (0, _glgeometry.perpVector)(trace.tangents[i], _v2.default.clone(trace.residues[i].normal)).normalize();
+	          } else {
+	            var randomDir = points[i];
+	            trace.normals[i] = new TV3().crossVectors(randomDir, tangent).normalize();
+	          }
+	        }
+	      }
+	
+	      for (i = iStart + 1; i < iEnd; i += 1) {
+	        if (trace.residues[i].ss != "D" && trace.residues[i - 1].ss != "D") {
+	          if (trace.normals[i].dot(trace.normals[i - 1]) < 0) {
+	            trace.normals[i].negate();
+	          }
+	        }
+	      }
+	
+	      for (i = iStart; i < iEnd; i += 1) {
+	        trace.binormals[i] = new TV3().crossVectors(trace.tangents[i], trace.normals[i]);
+	      }
+	    }
+	  }, {
+	    key: "getAtomColor",
+	    value: function getAtomColor(atom) {
+	
+	      if (atom.elem == "C" || atom.elem == "H") {
+	        var res = this.protein.res_by_id[atom.res_id];
+	        return getSsColor(res.ss);
+	      } else if (atom.elem in ElementColors) {
+	        return ElementColors[atom.elem];
+	      }
+	      return darkGrey;
+	    }
+	  }, {
+	    key: "setLights",
+	    value: function setLights() {
+	
+	      var directionalLight = new _three2.default.DirectionalLight(0xFFFFFF);
+	      directionalLight.position.copy(new TV3(0.2, 0.2, 100).normalize());
+	      directionalLight.intensity = 1.2;
+	      this.lights.push(directionalLight);
+	
+	      var directionalLight2 = new _three2.default.DirectionalLight(0xFFFFFF);
+	      directionalLight2.position.copy(new TV3(0.2, 0.2, -100).normalize());
+	      directionalLight2.intensity = 1.2;
+	      this.lights.push(directionalLight2);
+	
+	      var ambientLight = new _three2.default.AmbientLight(0x202020);
+	      this.lights.push(ambientLight);
+	
+	      for (var i = 0; i < this.lights.length; i += 1) {
+	        this.threeJsScene.add(this.lights[i]);
+	      }
+	    }
+	  }, {
+	    key: "getSsFace",
+	    value: function getSsFace(ss) {
+	
+	      if (ss == "C" || ss == "-") {
+	        return coilFace;
+	      }
+	      return ribbonFace;
+	    }
+	  }, {
+	    key: "buildTube",
+	    value: function buildTube() {
+	
+	      this.objects.tube = new _three2.default.Object3D();
+	
+	      var detail = 4;
+	
+	      for (var iChain = 0; iChain < this.trace.chains.length; iChain += 1) {
+	
+	        var chain = this.trace.chains[iChain];
+	        var iStart = chain.iStart;
+	        var iEnd = chain.iEnd;
+	
+	        this.calcContinuousTangents(this.trace, iStart, iEnd);
+	        var path = (0, _glgeometry.expandPath)(this.trace.slice(iStart, iEnd), 2 * detail);
+	
+	        for (var iPiece = 0; iPiece < chain.pieces.length; iPiece += 1) {
+	
+	          var piece = chain.pieces[iPiece];
+	          var iPieceStart = piece.iStart - iStart;
+	          var iPieceEnd = piece.iEnd - iStart;
+	          var ss = piece.ss;
+	
+	          if (iPieceEnd - iPieceStart < 1) {
+	            continue;
+	          }
+	
+	          // allows for overhang between residues
+	          var iPathStart = (2 * iPieceStart - 1) * detail;
+	          if (iPathStart < 0) {
+	            iPathStart = 0;
+	          }
+	
+	          var iPathEnd = (iPieceEnd * 2 - 1) * detail + 1;
+	          if (iPathEnd > path.points.length - 1) {
+	            iPathEnd = path.points.length - 1;
+	          }
+	
+	          var pieceOfPath = path.slice(iPathStart, iPathEnd);
+	
+	          var material = new _three2.default.MeshLambertMaterial({
+	            color: getSsColor(ss)
+	          });
+	
+	          var geom = new _glgeometry.RibbonGeometry(fatCoilFace, pieceOfPath, true);
+	
+	          var mesh = new _three2.default.Mesh(geom, material);
+	
+	          mesh.visible = false;
+	          this.objects.tube.add(mesh);
+	        }
+	      }
+	    }
+	  }, {
+	    key: "buildCartoon",
+	    value: function buildCartoon() {
+	
+	      this.objects.ribbons = new _three2.default.Object3D();
+	
+	      var detail = 4;
+	
+	      for (var iChain = 0; iChain < this.trace.chains.length; iChain += 1) {
+	
+	        var chain = this.trace.chains[iChain];
+	        var iStart = chain.iStart;
+	        var iEnd = chain.iEnd;
+	
+	        this.calcContinuousTangents(this.trace, iStart, iEnd);
+	        var path = (0, _glgeometry.expandPath)(this.trace.slice(iStart, iEnd), 2 * detail);
+	
+	        for (var iPiece = 0; iPiece < chain.pieces.length; iPiece += 1) {
+	
+	          var piece = chain.pieces[iPiece];
+	          var iPieceStart = piece.iStart - iStart;
+	          var iPieceEnd = piece.iEnd - iStart;
+	          var ss = piece.ss;
+	
+	          if (iPieceEnd - iPieceStart < 1) {
+	            continue;
+	          }
+	
+	          // allows for overhang between residues
+	          var iPathStart = (2 * iPieceStart - 1) * detail;
+	          if (iPathStart < 0) {
+	            iPathStart = 0;
+	          }
+	
+	          var iPathEnd = (iPieceEnd * 2 - 1) * detail + 1;
+	          if (iPathEnd > path.points.length - 1) {
+	            iPathEnd = path.points.length - 1;
+	          }
+	
+	          var pieceOfPath = path.slice(iPathStart, iPathEnd);
+	
+	          var face = this.getSsFace(ss);
+	          var color = getSsColor(ss);
+	          var round = ss == "C";
+	
+	          var material = new _three2.default.MeshLambertMaterial({
+	            color: color
+	          });
+	          var geom = new _glgeometry.RibbonGeometry(face, pieceOfPath, round);
+	          var mesh = new _three2.default.Mesh(geom, material);
+	
+	          this.objects.ribbons.add(mesh);
+	        }
+	      }
+	    }
+	  }, {
+	    key: "buildArrows",
+	    value: function buildArrows() {
+	
+	      this.objects.arrows = new _three2.default.Object3D();
+	
+	      for (var iChain = 0; iChain < this.trace.chains.length; iChain += 1) {
+	        var chain = this.trace.chains[iChain];
+	        for (var iPiece = 0; iPiece < chain.pieces.length; iPiece += 1) {
+	          var piece = chain.pieces[iPiece];
+	          var color = getDarkSsColor(piece.ss);
+	          for (var i = piece.iStart; i < piece.iEnd; i += 1) {
+	
+	            var arrow = (0, _glgeometry.drawBlockArrow)(this.trace.points[i], this.trace.tangents[i], this.trace.binormals[i], color);
+	
+	            arrow.atom = this.trace.residues[i].central_atom;
+	            arrow.atom.is_central = true;
+	
+	            this.objects.arrows.add(arrow);
+	
+	            this.clickMeshes.push(arrow);
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: "mergeBond",
+	    value: function mergeBond(totalGeom, bond, residue) {
+	
+	      function cylinderMatrix(from, to, radius) {
+	
+	        var midpoint = from.clone().add(to).multiplyScalar(0.5);
+	
+	        var obj = new _three2.default.Object3D();
+	        obj.scale.set(radius, radius, from.distanceTo(to));
+	        obj.position.copy(midpoint);
+	        obj.lookAt(to);
+	        obj.updateMatrix();
+	        return obj.matrix;
+	      }
+	
+	      var p1 = _v2.default.clone(bond.atom1.pos);
+	      var p2 = _v2.default.clone(bond.atom2.pos);
+	
+	      var res1 = this.protein.res_by_id[bond.atom1.res_id];
+	      var res2 = this.protein.res_by_id[bond.atom2.res_id];
+	
+	      var color1 = getSsColor(res1.ss);
+	      var color2 = getSsColor(res2.ss);
+	
+	      var geom = new _glgeometry.UnitCylinderGeometry();
+	
+	      var radius = 0.2;
+	
+	      if (color1 == color2) {
+	
+	        (0, _glgeometry.setGeometryVerticesColor)(geom, color1);
+	
+	        totalGeom.merge(geom, cylinderMatrix(p1, p2, radius));
+	      } else {
+	
+	        var midpoint = p2.clone().add(p1).multiplyScalar(0.5);
+	
+	        if (bond.atom1.res_id == residue.id) {
+	          (0, _glgeometry.setGeometryVerticesColor)(geom, color1);
+	          totalGeom.merge(geom, cylinderMatrix(p1, midpoint, radius));
+	        }
+	
+	        if (bond.atom2.res_id == residue.id) {
+	          (0, _glgeometry.setGeometryVerticesColor)(geom, color2);
+	          totalGeom.merge(geom, cylinderMatrix(p2, midpoint, radius));
+	        }
+	      }
+	    }
+	  }, {
+	    key: "mergeAtom",
+	    value: function mergeAtom(totalGeom, atom) {
+	
+	      if (atom.is_alt) {
+	        return;
+	      }
+	
+	      var pos = _v2.default.clone(atom.pos);
+	      var color = this.getAtomColor(atom);
+	      var geom = this.unitSphereGeom;
+	      (0, _glgeometry.setGeometryVerticesColor)(geom, color);
+	
+	      var radius = 0.35;
+	      var obj = new _three2.default.Object3D();
+	      obj.scale.set(radius, radius, radius);
+	      obj.position.copy(pos);
+	      obj.updateMatrix();
+	
+	      totalGeom.merge(geom, obj.matrix);
+	    }
+	  }, {
+	    key: "pushAtom",
+	    value: function pushAtom(object, atom) {
+	
+	      var pos = _v2.default.clone(atom.pos);
+	      var material = new _three2.default.MeshLambertMaterial({
+	        color: this.getAtomColor(atom)
+	      });
+	      var radius = 0.35;
+	      var mesh = new _three2.default.Mesh(this.unitSphereGeom, material);
+	      mesh.scale.set(radius, radius, radius);
+	      mesh.position.copy(pos);
+	      mesh.atom = atom;
+	      object.add(mesh);
+	      this.clickMeshes.push(mesh);
+	    }
+	  }, {
+	    key: "assignBonds",
+	    value: function assignBonds() {
+	
+	      for (var j = 0; j < this.protein.residues.length; j += 1) {
+	        var res = this.protein.residues[j];
+	        res.bonds = [];
+	      }
+	
+	      for (var _j = 0; _j < this.protein.bonds.length; _j += 1) {
+	
+	        var bond = this.protein.bonds[_j];
+	        var atom1 = bond.atom1;
+	        var atom2 = bond.atom2;
+	
+	        if (atom1.is_alt || atom2.is_alt) {
+	          continue;
+	        }
+	
+	        var res1 = this.protein.res_by_id[atom1.res_id];
+	        var res2 = this.protein.res_by_id[atom2.res_id];
+	
+	        res1.bonds.push(bond);
+	
+	        if (res1 != res2) {
+	          res2.bonds.push(bond);
+	        }
+	      }
+	    }
+	  }, {
+	    key: "buildBackbone",
+	    value: function buildBackbone() {
+	
+	      this.objects.backbone = new _three2.default.Object3D();
+	
+	      var geom = new _three2.default.Geometry();
+	
+	      for (var i = 0; i < this.protein.residues.length; i += 1) {
+	
+	        var residue = this.protein.residues[i];
+	        if (!residue.is_protein_or_nuc) {
+	          continue;
+	        }
+	
+	        for (var j = 0; j < residue.bonds.length; j += 1) {
+	          var bond = residue.bonds[j];
+	          if ((0, _util.in_array)(bond.atom1.type, backbone_atoms) || (0, _util.in_array)(bond.atom2.type, backbone_atoms)) {
+	            this.mergeBond(geom, bond, residue);
+	          }
+	        }
+	
+	        for (var a in residue.atoms) {
+	          var atom = residue.atoms[a];
+	          if ((0, _util.in_array)(atom.type, backbone_atoms)) {
+	            this.pushAtom(this.objects.backbone, atom);
+	          }
+	        }
+	      }
+	
+	      var material = new _three2.default.MeshLambertMaterial({
+	        color: 0xFFFFFF,
+	        vertexColors: _three2.default.VertexColors
+	      });
+	      var mesh = new _three2.default.Mesh(geom, material);
+	      this.objects.backbone.add(mesh);
+	
+	      this.threeJsScene.add(this.objects.backbone);
+	    }
+	  }, {
+	    key: "buildLigands",
+	    value: function buildLigands() {
+	
+	      this.objects.ligands = new _three2.default.Object3D();
+	      this.threeJsScene.add(this.objects.ligands);
+	
+	      var geom = new _three2.default.Geometry();
+	
+	      for (var i = 0; i < this.protein.residues.length; i += 1) {
+	
+	        var residue = this.protein.residues[i];
+	
+	        if (!residue.is_ligands) {
+	          continue;
+	        }
+	
+	        for (var j = 0; j < residue.bonds.length; j += 1) {
+	          this.mergeBond(geom, residue.bonds[j], residue);
+	        }
+	
+	        for (var a in residue.atoms) {
+	          this.pushAtom(this.objects.ligands, residue.atoms[a]);
+	        }
+	      }
+	
+	      var material = new _three2.default.MeshLambertMaterial({
+	        color: 0xFFFFFF,
+	        vertexColors: _three2.default.VertexColors
+	      });
+	      var mesh = new _three2.default.Mesh(geom, material);
+	      this.objects.ligands.add(mesh);
+	    }
+	  }, {
+	    key: "buildWaters",
+	    value: function buildWaters() {
+	
+	      console.log('buildWaters');
+	
+	      this.objects.water = new _three2.default.Object3D();
+	      this.threeJsScene.add(this.objects.water);
+	
+	      var geom = new _three2.default.Geometry();
+	
+	      for (var i = 0; i < this.protein.residues.length; i += 1) {
+	
+	        var residue = this.protein.residues[i];
+	
+	        if (!residue.is_water) {
+	          continue;
+	        }
+	
+	        for (var j = 0; j < residue.bonds.length; j += 1) {
+	          this.mergeBond(geom, residue.bonds[j], residue);
+	        }
+	
+	        for (var a in residue.atoms) {
+	          this.pushAtom(this.objects.water, residue.atoms[a]);
+	        }
+	      }
+	
+	      var material = new _three2.default.MeshLambertMaterial({
+	        color: 0xFFFFFF,
+	        vertexColors: _three2.default.VertexColors
+	      });
+	      var mesh = new _three2.default.Mesh(geom, material);
+	      this.objects.water.add(mesh);
+	    }
+	  }, {
+	    key: "drawSidechain",
+	    value: function drawSidechain(residue) {
+	
+	      if (!residue.is_protein_or_nuc) {
+	        return;
+	      }
+	
+	      var scGeom = new _three2.default.Geometry();
+	      residue.sidechain = new _three2.default.Object3D();
+	      this.threeJsScene.add(residue.sidechain);
+	
+	      for (var j = 0; j < residue.bonds.length; j += 1) {
+	
+	        var bond = residue.bonds[j];
+	
+	        if (!(0, _util.in_array)(bond.atom1.type, backbone_atoms) || !(0, _util.in_array)(bond.atom2.type, backbone_atoms)) {
+	
+	          this.mergeBond(scGeom, bond, residue);
+	        }
+	      }
+	
+	      var material = new _three2.default.MeshLambertMaterial({
+	        color: 0xFFFFFF,
+	        vertexColors: _three2.default.VertexColors
+	      });
+	      var mesh = new _three2.default.Mesh(scGeom, material);
+	      residue.sidechain.add(mesh);
+	
+	      for (var a in residue.atoms) {
+	        var atom = residue.atoms[a];
+	        if (!(0, _util.in_array)(atom.type, backbone_atoms)) {
+	          atom.is_sidechain = true;
+	          this.pushAtom(residue.sidechain, atom);
+	        }
+	      }
+	    }
+	  }, {
+	    key: "addBondGeometry",
+	    value: function addBondGeometry(totalGeom, atoms, a1, a2, color) {
+	
+	      var vertices = getVerticesFromAtomDict(atoms, [a1, a2]);
+	      var cylinder = (0, _glgeometry.drawCylinder)(vertices[0], vertices[1], 0.2, color, true);
+	      cylinder.updateMatrix();
+	      totalGeom.merge(cylinder.geometry, cylinder.matrix);
+	    }
+	  }, {
+	    key: "buildPeptideBonds",
+	    value: function buildPeptideBonds() {
+	
+	      var totalGeom = new _three2.default.Geometry();
+	
+	      var residues = this.protein.residues;
+	
+	      function isProtein(iRes) {
+	
+	        var residue = residues[iRes];
+	        return residue.ss != "D" && residue.is_protein_or_nuc;
+	      }
+	
+	      for (var iRes = 1; iRes < this.protein.residues.length; iRes += 1) {
+	
+	        if (!isProtein(iRes - 1) || !isProtein(iRes)) {
+	          continue;
+	        }
+	
+	        var geom = new _three2.default.Geometry();
+	
+	        var residue0 = this.protein.residues[iRes - 1];
+	        var residue1 = this.protein.residues[iRes];
+	
+	        var vertices = getVerticesFromAtomDict(residue0.atoms, ["CA", "O", "C"]);
+	        var ca0 = vertices[0];
+	        var o = vertices[1];
+	        var c = vertices[2];
+	
+	        vertices = getVerticesFromAtomDict(residue1.atoms, ["CA", "N"]);
+	        var ca1 = vertices[0];
+	        var n = vertices[1];
+	
+	        if (c.distanceTo(n) > 3) {
+	          continue;
+	        }
+	
+	        var ca1ToN = new TV3().subVectors(n, ca1);
+	        var cToN = new TV3().subVectors(n, c);
+	        var nToH = new TV3().addVectors(ca1ToN, cToN).normalize().multiplyScalar(1.0);
+	        var h = n.clone().add(nToH);
+	
+	        var color0 = getSsColor(residues[iRes - 1].ss);
+	        var color1 = getSsColor(residues[iRes].ss);
+	
+	        var color = color0;
+	        var vertices = [ca0, o, c, n, h, ca0];
+	        var geom = new _glgeometry.RaisedShapeGeometry(vertices, 0.3);
+	        geom.merge(geom, geom.matrix);
+	        (0, _glgeometry.setGeometryVerticesColor)(geom, color);
+	        totalGeom.merge(geom);
+	
+	        var color = color1;
+	        var vertices = [ca1, o, c, n, h, ca1];
+	        var geom = new _glgeometry.RaisedShapeGeometry(vertices, 0.3);
+	        geom.merge(geom, geom.matrix);
+	        (0, _glgeometry.setGeometryVerticesColor)(geom, color);
+	
+	        totalGeom.merge(geom);
+	      }
+	
+	      totalGeom.computeFaceNormals();
+	
+	      var material = new _three2.default.MeshLambertMaterial({
+	        color: 0xFFFFFF,
+	        vertexColors: _three2.default.VertexColors
+	      });
+	
+	      this.objects.peptides = new _three2.default.Mesh(totalGeom, material);
+	
+	      this.threeJsScene.add(this.objects.peptides);
+	    }
+	  }, {
+	    key: "buildNucleotides",
+	    value: function buildNucleotides() {
+	
+	      var totalGeom = new _three2.default.Geometry();
+	
+	      for (var iRes = 0; iRes < this.protein.residues.length; iRes += 1) {
+	
+	        var residue = this.protein.residues[iRes];
+	
+	        if (residue.ss != "D" || !residue.is_protein_or_nuc) {
+	          continue;
+	        }
+	
+	        var geom = new _three2.default.Geometry();
+	        var atomTypes, bondTypes;
+	
+	        if (residue.type == "DA" || residue.type == "A") {
+	
+	          atomTypes = ["N9", "C8", "N7", "C5", "C6", "N1", "C2", "N3", "C4"];
+	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", "N9"], ["C6", "N6"]];
+	        } else if (residue.type == "DG" || residue.type == "G") {
+	
+	          atomTypes = ["N9", "C8", "N7", "C5", "C6", "N1", "C2", "N3", "C4"];
+	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", "N9"], ["C6", "O6"], ["C2", "N2"]];
+	        } else if (residue.type == "DT" || residue.type == "U") {
+	
+	          atomTypes = ["C6", "N1", "C2", "N3", "C4", "C5"];
+	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", "N1"], ["C4", "O4"]];
+	        } else if (residue.type == "DC" || residue.type == "C") {
+	
+	          atomTypes = ["C6", "N1", "C2", "N3", "C4", "C5"];
+	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", "N1"], ["C4", "N4"], ["C2", "O2"]];
+	        } else {
+	
+	          continue;
+	        }
+	
+	        var vertices = getVerticesFromAtomDict(residue.atoms, atomTypes);
+	        var geom = new _glgeometry.RaisedShapeGeometry(vertices, 0.3);
+	        geom.merge(geom, geom.matrix);
+	
+	        for (var i = 0; i < bondTypes.length; i += 1) {
+	          var bond = bondTypes[i];
+	          addBondGeometry(geom, residue.atoms, bond[0], bond[1]);
+	        }
+	
+	        totalGeom.merge(geom);
+	
+	        baseMesh = new _three2.default.Mesh(geom, material);
+	        baseMesh.atom = residue.central_atom;
+	        baseMesh.updateMatrix();
+	        this.clickMeshes.push(baseMesh);
+	      }
+	
+	      totalGeom.computeFaceNormals();
+	
+	      var material = new _three2.default.MeshLambertMaterial({
+	        color: getSsColor("D"),
+	        vertexColors: _three2.default.VertexColors
+	      });
+	
+	      var color = new _three2.default.Color(purple);
+	      (0, _glgeometry.setGeometryVerticesColor)(totalGeom, color);
+	
+	      this.objects.basepairs = new _three2.default.Mesh(totalGeom, material);
+	    }
+	  }, {
+	    key: "buildCrossHairs",
+	    value: function buildCrossHairs() {
+	      var radius = 1.2,
+	          segments = 60,
+	          material = new _three2.default.LineDashedMaterial({ color: 0xFF7777, linewidth: 2 });
+	      var geometry = new _three2.default.CircleGeometry(radius, segments);
+	
+	      // Remove center vertex
+	      geometry.vertices.shift();
+	
+	      this.crossHairs = new _three2.default.Line(geometry, material);
+	      this.threeJsScene.add(this.crossHairs);
+	    }
+	  }, {
+	    key: "moveCrossHairs",
+	    value: function moveCrossHairs() {
+	
+	      this.crossHairs.position.copy(this.cameraTarget);
+	      this.crossHairs.lookAt(this.camera.position);
+	      this.crossHairs.updateMatrix();
+	    }
+	  }, {
+	    key: "buildScene",
+	    value: function buildScene() {
+	
+	      this.messageBar.html('Drawing scene...');
+	
+	      this.messageBar.html('Finding chains...');
+	
+	      this.findChainsAndPieces();
+	
+	      this.unitSphereGeom = new _three2.default.SphereGeometry(1, 8, 8);
+	
+	      this.objects = {};
+	
+	      this.messageBar.html('Building cartoon...');
+	
+	      this.buildTube();
+	
+	      this.buildCartoon();
+	
+	      // this.buildNucleotides();
+	
+	      this.buildArrows();
+	      for (var k in this.objects) {
+	        this.threeJsScene.add(this.objects[k]);
+	      }
+	
+	      this.buildCrossHairs();
+	
+	      this.messageBar.html('Finding bonds...');
+	
+	      this.assignBonds();
+	
+	      this.messageBar.hide();
+	    }
+	  }, {
+	    key: "setTargetFromResId",
+	    value: function setTargetFromResId(resId) {
+	
+	      var atom = this.protein.res_by_id[resId].central_atom;
+	      this.setTargetFromAtom(atom);
+	    }
+	  }, {
+	    key: "setTargetFromAtom",
+	    value: function setTargetFromAtom(atom) {
+	
+	      var position = _v2.default.clone(atom.pos);
+	      var sceneDisplacement = position.clone().sub(this.cameraTarget);
+	
+	      var view = convertTargetToView({
+	        cameraTarget: position,
+	        cameraPosition: this.camera.position.clone().add(sceneDisplacement),
+	        cameraUp: this.camera.up.clone(),
+	        zFront: this.zFront,
+	        zBack: this.zBack
+	      });
+	
+	      view.copy_metadata_from_view(this.scene.current_view);
+	      view.res_id = atom.res_id;
+	      view.i_atom = atom.i;
+	      this.scene.target_view = view;
+	
+	      this.scene.is_new_view_chosen = true;
+	      this.scene.n_update_step = this.scene.max_update_step;
+	    }
+	  }, {
+	    key: "setCameraFromCurrentView",
+	    value: function setCameraFromCurrentView() {
+	
+	      var target = convertViewToTarget(this.scene.current_view);
+	
+	      var cameraDirection = this.camera.position.clone().sub(this.cameraTarget).normalize();
+	
+	      var targetCameraDirection = target.cameraPosition.clone().sub(target.cameraTarget);
+	      this.zoom = targetCameraDirection.length();
+	      targetCameraDirection.normalize();
+	
+	      var rotation = (0, _glgeometry.getUnitVectorRotation)(cameraDirection, targetCameraDirection);
+	
+	      for (var i = 0; i < this.lights.length; i += 1) {
+	        this.lights[i].position.applyQuaternion(rotation);
+	      }
+	
+	      this.cameraTarget.copy(target.cameraTarget);
+	      this.camera.position.copy(target.cameraPosition);
+	      this.camera.up.copy(target.cameraUp);
+	
+	      this.zFront = target.zFront;
+	      this.zBack = target.zBack;
+	
+	      var far = this.zoom + this.zBack;
+	      var near = this.zoom + this.zFront;
+	      if (near < 1) {
+	        near = 1;
+	      }
+	
+	      this.camera.near = near;
+	      this.camera.far = far;
+	      this.camera.lookAt(this.cameraTarget);
+	      this.camera.updateProjectionMatrix();
+	
+	      this.threeJsScene.fog.near = near;
+	      this.threeJsScene.fog.far = far;
+	
+	      var residues = this.protein.residues;
+	      var view = this.scene.current_view;
+	      for (var _i = 0; _i < residues.length; _i += 1) {
+	        residues[_i].selected = false;
+	      }
+	      for (var _i2 = 0; _i2 < view.selected.length; _i2 += 1) {
+	        var i_res = view.selected[_i2];
+	        residues[i_res].selected = true;
+	      }
+	    }
+	  }, {
+	    key: "adjustCamera",
+	    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
+	
+	      var y = this.camera.up;
+	      var z = this.camera.position.clone().sub(this.cameraTarget).normalize();
+	      var x = new TV3().crossVectors(y, z).normalize();
+	
+	      var rot_z = new _three2.default.Quaternion().setFromAxisAngle(z, zRotationAngle);
+	
+	      var rot_y = new _three2.default.Quaternion().setFromAxisAngle(y, -yRotationAngle);
+	
+	      var rot_x = new _three2.default.Quaternion().setFromAxisAngle(x, -xRotationAngle);
+	
+	      var rotation = new _three2.default.Quaternion().multiply(rot_z).multiply(rot_y).multiply(rot_x);
+	
+	      var newZoom = zoomRatio * this.zoom;
+	
+	      if (newZoom < 2) {
+	        newZoom = 2;
+	      }
+	
+	      var cameraPosition = this.camera.position.clone().sub(this.cameraTarget).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(this.cameraTarget);
+	
+	      var view = convertTargetToView({
+	        cameraTarget: this.cameraTarget.clone(),
+	        cameraPosition: cameraPosition,
+	        cameraUp: this.camera.up.clone().applyQuaternion(rotation),
+	        zFront: this.zFront,
+	        zBack: this.zBack
+	      });
+	
+	      view.copy_metadata_from_view(this.scene.current_view);
+	
+	      this.controller.set_current_view(view);
+	    }
+	  }, {
+	    key: "resize",
+	    value: function resize() {
+	
+	      this.camera.aspect = this.width() / this.height();
+	      this.camera.updateProjectionMatrix();
+	
+	      this.renderer.setSize(this.width(), this.height());
+	
+	      this.zSlab.resize();
+	      this.sequenceWidget.resize();
+	
+	      this.controller.flag_changed();
+	    }
+	  }, {
+	    key: "width",
+	    value: function width() {
+	
+	      return this.mainDiv.width();
+	    }
+	  }, {
+	    key: "height",
+	    value: function height() {
+	
+	      return this.mainDiv.height();
+	    }
+	  }, {
+	    key: "getMouse",
+	    value: function getMouse(event) {
+	
+	      // if ( exists( event.touches ) && ( event.touches.length == 2 ) ) {
+	      //     var x0 = event.touches[0].x;
+	      //     var y0 = event.touches[0].y;
+	      //     var x1 = event.touches[1].x;
+	      //     var y1 = event.touches[1].y;
+	      //     var x = x1 - x0;
+	      //     var y = y1 - y0;
+	      //     this.pinchR = Math.sqrt( x*x + y*y );
+	      //     this.mouseT = Math.atan( y / x );
+	      //     if ( x < 0 ) {
+	      //         if ( y > 0 ) {
+	      //             this.mouseT += Math.PI;
+	      //         } else {
+	      //             this.mouseT -= Math.PI;
+	      //         }
+	      //     }
+	      // }
+	
+	
+	      if ((0, _util.exists)(event.touches) && event.touches.length > 0) {
+	        this.eventX = event.touches[0].clientX;
+	        this.eventY = event.touches[0].clientY;
+	      } else {
+	        this.eventX = event.clientX;
+	        this.eventY = event.clientY;
+	      }
+	
+	      var result = (0, _util.pos_dom)(this.mainDiv[0]);
+	      this.mouseX = this.eventX - result[0];
+	      this.mouseY = this.eventY - result[1];
+	
+	      var x = this.mouseX - this.width() / 2;
+	      var y = this.mouseY - this.height() / 2;
+	
+	      this.mouseR = Math.sqrt(x * x + y * y);
+	
+	      this.mouseT = Math.atan(y / x);
+	      if (x < 0) {
+	        if (y > 0) {
+	          this.mouseT += Math.PI;
+	        } else {
+	          this.mouseT -= Math.PI;
+	        }
+	      }
+	    }
+	  }, {
+	    key: "saveMouse",
+	    value: function saveMouse() {
+	
+	      this.saveMouseX = this.mouseX;
+	      this.saveMouseY = this.mouseY;
+	      this.saveMouseR = this.mouseR;
+	      this.saveMouseT = this.mouseT;
+	    }
+	  }, {
+	    key: "getZ",
+	    value: function getZ(pos) {
+	
+	      var origin = this.cameraTarget.clone();
+	
+	      var cameraDir = origin.clone().sub(this.camera.position).normalize();
+	
+	      var posRelativeToOrigin = pos.clone().sub(origin);
+	
+	      return posRelativeToOrigin.dot(cameraDir);
+	    }
+	  }, {
+	    key: "inZlab",
+	    value: function inZlab(pos) {
+	
+	      var z = this.getZ(pos);
+	
+	      return z >= this.zFront && z <= this.zBack;
+	    }
+	  }, {
+	    key: "opacity",
+	    value: function opacity(pos) {
+	
+	      var z = this.getZ(pos);
+	
+	      if (z < this.zFront) {
+	        return 1.0;
+	      }
+	
+	      if (z > this.zBack) {
+	        return 0.0;
+	      }
+	
+	      var opacity = 1 - (z - this.zFront) / (this.zBack - this.zFront);
+	
+	      return opacity;
+	    }
+	  }, {
+	    key: "getHoverAtom",
+	    value: function getHoverAtom() {
+	
+	      var x = this.mouseX;
+	      var y = this.mouseY;
+	
+	      if (x === null || y === null) {
+	        return null;
+	      }
+	
+	      var vector = new _three2.default.Vector3(x / this.width() * 2 - 1, -(y / this.height()) * 2 + 1, 0.5);
+	
+	      vector.unproject(this.camera);
+	
+	      var raycaster = new _three2.default.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
+	
+	      var intersects = raycaster.intersectObjects(this.clickMeshes);
+	
+	      var show = this.scene.current_view.show;
+	
+	      for (var i = 0; i < intersects.length; i += 1) {
+	
+	        var intersect = intersects[i];
+	
+	        var atom = intersect.object.atom;
+	        var res = this.protein.res_by_id[atom.res_id];
+	
+	        if (atom.is_sidechain && !show.sidechain && !res.selected) {
+	          continue;
+	        }
+	
+	        if (atom.is_backbone && !atom.is_central && !show.all_atom) {
+	          continue;
+	        }
+	
+	        if (atom.is_ligand && !show.ligands) {
+	          continue;
+	        }
+	
+	        if (atom.is_water && !show.water) {
+	          continue;
+	        }
+	
+	        if (this.inZlab(_v2.default.clone(intersect.object.atom.pos))) {
+	          return intersects[i].object.atom;
+	        }
+	      }
+	
+	      return null;
+	    }
+	  }, {
+	    key: "posXY",
+	    value: function posXY(pos) {
+	
+	      var widthHalf = 0.5 * this.width();
+	      var heightHalf = 0.5 * this.height();
+	
+	      var vector = pos.clone().project(this.camera);
+	
+	      return {
+	        x: vector.x * widthHalf + widthHalf,
+	        y: -(vector.y * heightHalf) + heightHalf
+	      };
+	    }
+	  }, {
+	    key: "atom_label_dialog",
+	    value: function atom_label_dialog() {
+	
+	      var i_atom = this.scene.current_view.i_atom;
+	      if (i_atom >= 0) {
+	        var success = function success(text) {
+	          controller.make_label(i_atom, text);
+	        };
+	
+	        var controller = this.controller;
+	
+	        var atom = this.protein.atoms[i_atom];
+	        var label = 'Label atom : ' + atom.label;
+	
+	        showTextDialog(this.mainDiv, label, success);
+	      }
+	    }
+	  }, {
+	    key: "updateHover",
+	    value: function updateHover() {
+	
+	      this.hoverAtom = this.getHoverAtom();
+	
+	      if (this.hoverAtom) {
+	
+	        var text = this.hoverAtom.label;
+	        if (this.hoverAtom == this.scene.centered_atom()) {
+	          text = "<center>" + text;
+	          text = text + "<br>[drag distances]<br>[double-click labels]</center>";
+	        }
+	        this.hover.html(text);
+	        var vector = this.posXY(_v2.default.clone(this.hoverAtom.pos));
+	        this.hover.move(vector.x, vector.y);
+	      } else {
+	
+	        this.hover.hide();
+	      }
+	    }
+	  }, {
+	    key: "doubleclick",
+	    value: function doubleclick() {
+	
+	      if (this.hoverAtom !== null) {
+	        if (this.hoverAtom == this.scene.centered_atom()) {
+	          this.atom_label_dialog();
+	        } else {
+	          this.setTargetFromAtom(this.hoverAtom);
+	        }
+	        this.isDraggingCentralAtom = false;
+	      }
+	    }
+	  }, {
+	    key: "mousedown",
+	    value: function mousedown(event) {
+	
+	      this.getMouse(event);
+	
+	      event.preventDefault();
+	
+	      var now = new Date().getTime();
+	
+	      var isDoubleClick = now - this.timePressed < 500;
+	
+	      this.updateHover();
+	
+	      this.downAtom = this.getHoverAtom();
+	
+	      if (isDoubleClick) {
+	
+	        this.doubleclick();
+	      } else {
+	
+	        this.isDraggingCentralAtom = false;
+	
+	        if (this.downAtom !== null) {
+	
+	          this.isDraggingCentralAtom = true;
+	        }
+	      }
+	
+	      this.timePressed = now;
+	
+	      this.saveMouse();
+	      this.mousePressed = true;
+	    }
+	  }, {
+	    key: "mousemove",
+	    value: function mousemove(event) {
+	
+	      this.getMouse(event);
+	
+	      event.preventDefault();
+	
+	      if (this.isGesture) {
+	        return;
+	      }
+	
+	      this.updateHover();
+	
+	      if (this.isDraggingCentralAtom) {
+	
+	        var mainDivPos = this.mainDiv.position();
+	        var v = this.posXY(_v2.default.clone(this.downAtom.pos));
+	
+	        this.distancePartnerPointer.move(this.mouseX, this.mouseY, v.x, v.y);
+	      } else {
+	
+	        var shiftDown = event.shiftKey == 1;
+	
+	        var rightMouse = event.button == 2 || event.which == 3;
+	
+	        if (this.mousePressed) {
+	
+	          var zoomRatio = 1.0;
+	          var zRotationAngle = 0;
+	          var yRotationAngle = 0;
+	          var xRotationAngle = 0;
+	
+	          if (rightMouse || shiftDown) {
+	
+	            zRotationAngle = this.mouseT - this.saveMouseT;
+	
+	            if (this.mouseR > 0.0) {
+	              zoomRatio = this.saveMouseR / this.mouseR;
+	            }
+	          } else {
+	
+	            yRotationAngle = degToRad(this.mouseX - this.saveMouseX);
+	            xRotationAngle = degToRad(this.mouseY - this.saveMouseY);
+	          }
+	
+	          this.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio);
+	
+	          this.saveMouse();
+	        }
+	      }
+	    }
+	  }, {
+	    key: "mousewheel",
+	    value: function mousewheel(event) {
+	
+	      event.preventDefault();
+	
+	      var wheel;
+	      if ((0, _util.exists)(event.wheelDelta)) {
+	        wheel = event.wheelDelta / 120;
+	      } else {
+	        // for Firefox
+	        wheel = -event.detail / 12;
+	      }
+	      var zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1);
+	
+	      this.adjustCamera(0, 0, 0, zoom);
+	    }
+	  }, {
+	    key: "mouseup",
+	    value: function mouseup(event) {
+	
+	      this.getMouse(event);
+	
+	      event.preventDefault();
+	
+	      if (this.isDraggingCentralAtom) {
+	
+	        if (this.hoverAtom !== null) {
+	
+	          var centralAtom = this.scene.centered_atom();
+	
+	          if (this.hoverAtom !== this.downAtom) {
+	            this.controller.make_dist(this.hoverAtom, this.downAtom);
+	          }
+	        }
+	
+	        this.distancePartnerPointer.hide();
+	
+	        this.isDraggingCentralAtom = false;
+	      }
+	
+	      if ((0, _util.exists)(event.touches)) {
+	
+	        this.hover.hide();
 	        this.mouseX = null;
 	        this.mouseY = null;
-	        this.mouseR = null;
-	        this.mouseT = null;
-	        this.mousePressed = false;
+	      }
 	
-	        this.labels = [];
-	        this.distanceLabels = [];
+	      this.downAtom = null;
 	
-	        // relative to the scene position from camera
-	        this.zFront = -40;
-	        this.zBack = 20;
-	
-	        // determines how far away the camera is from the scene
-	        this.zoom = 50.0;
-	
-	        this.mainDiv = (0, _jquery2.default)(this.divTag);
-	        this.mainDiv.css('overflow', 'hidden');
-	
-	        this.messageBar = new MessageBar(this.divTag);
-	
-	        this.backgroundColor = 0x000000;
-	
-	        this.threeJsScene = new _three2.default.Scene();
-	        this.threeJsScene.fog = new _three2.default.Fog(this.backgroundColor, 1, 100);
-	        this.threeJsScene.fog.near = this.zoom + 1;
-	        this.threeJsScene.fog.far = this.zoom + this.zBack;
-	
-	        this.cameraTarget = new _three2.default.Vector3(0, 0, 0);
-	
-	        this.setLights();
-	
-	        this.camera = new _three2.default.PerspectiveCamera(45, this.width() / this.height(), this.zFront + this.zoom, this.zBack + this.zoom);
-	
-	        this.renderer = new _three2.default.WebGLRenderer();
-	        this.renderer.setClearColor(this.backgroundColor);
-	        this.renderer.setSize(this.width(), this.height());
-	        this.webglDivId = this.mainDiv.attr('id') + '-canvas-wrapper';
-	        this.webglDivTag = '#' + this.webglDivId;
-	        this.webglDiv = (0, _jquery2.default)("<div>").attr('id', this.webglDivId).css('overflow', 'hidden');
-	        this.mainDiv.append(this.webglDiv);
-	        this.webglDiv[0].appendChild(this.renderer.domElement);
-	
-	        this.hover = new PopupText(this.divTag, "lightblue");
-	        this.hover.div.css("pointer-events", "none");
-	        this.hover.arrow.css("pointer-events", "none");
-	
-	        this.zSlab = new ZSlabBar(this.divTag, this.scene);
-	
-	        this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
-	
-	        this.distancePartnerPointer = new LineElement(this.webglDivTag, "#FF7777");
-	
-	        var dom = this.renderer.domElement;
-	
-	        dom.addEventListener('mousedown', function (e) {
-	            _this7.mousedown(e);
-	        });
-	        dom.addEventListener('mousemove', function (e) {
-	            _this7.mousemove(e);
-	        });
-	        dom.addEventListener('mouseup', function (e) {
-	            _this7.mouseup(e);
-	        });
-	        dom.addEventListener('mousewheel', function (e) {
-	            _this7.mousewheel(e);
-	        });
-	        dom.addEventListener('DOMMouseScroll', function (e) {
-	            _this7.mousewheel(e);
-	        });
-	        dom.addEventListener('touchstart', function (e) {
-	            _this7.mousedown(e);
-	        });
-	        dom.addEventListener('touchmove', function (e) {
-	            _this7.mousemove(e);
-	        });
-	        dom.addEventListener('touchend', function (e) {
-	            _this7.mouseup(e);
-	        });
-	        dom.addEventListener('touchcancel', function (e) {
-	            _this7.mouseup(e);
-	        });
-	        dom.addEventListener('gesturestart', function (e) {
-	            _this7.gesturestart(e);
-	        });
-	        dom.addEventListener('gesturechange', function (e) {
-	            _this7.gesturechange(e);
-	        });
-	        dom.addEventListener('gestureend', function (e) {
-	            _this7.gestureend(e);
-	        });
+	      this.mousePressed = false;
 	    }
+	  }, {
+	    key: "onKeyDown",
+	    value: function onKeyDown(event) {
 	
-	    _createClass(GlProteinDisplay, [{
-	        key: "post_load",
-	        value: function post_load(default_html) {
+	      if (window.keyboard_lock) {
+	        return;
+	      }
 	
-	            this.buildScene();
+	      var c = String.fromCharCode(event.keyCode).toUpperCase();
 	
-	            // this is some mangling to link openGL
-	            // with the coordinate system that I had
-	            // chosen unwittingly when I first designed
-	            // the raster jolecule library
+	      if (c == ' ') {
 	
-	            var current_view = this.scene.current_view;
-	            current_view.res_id = this.protein.residues[0].id;
+	        this.controller.set_target_next_view();
+	      } else if (c == 'V') {
 	
-	            current_view.abs_camera.z_front = -this.protein.max_length / 2;
-	            current_view.abs_camera.z_back = this.protein.max_length / 2;
-	            current_view.abs_camera.zoom = Math.abs(this.protein.max_length);
-	            current_view.camera.z_front = -this.protein.max_length / 2;
-	            current_view.camera.z_back = this.protein.max_length / 2;
-	            current_view.camera.zoom = Math.abs(this.protein.max_length);
+	        this.controller.save_current_view((0, _util.random_id)());
+	      } else if (c == 'B') {
 	
-	            current_view.show.sidechain = false;
-	
-	            current_view.camera.up_v = _v2.default.create(0, -1, 0);
-	            current_view.abs_camera.up_v = _v2.default.create(0, -1, 0);
-	
-	            var atom = this.protein.get_central_atom();
-	            current_view.res_id = atom.res_id;
-	            var residue = this.protein.res_by_id[current_view.res_id];
-	            current_view.i_atom = residue.central_atom.i;
-	            var center = residue.central_atom.pos;
-	
-	            current_view.abs_camera.transform(_v2.default.translation(center));
-	
-	            var neg_center = _v2.default.scaled(center, -1);
-	            this.scene.origin.camera.transform(_v2.default.translation(neg_center));
-	
-	            var default_view = current_view.clone();
-	            default_view.order = 0;
-	            default_view.text = default_html;
-	            default_view.pdb_id = this.protein.pdb_id;
-	
-	            this.scene.save_view(default_view);
-	
-	            this.cameraTarget.copy(center);
-	            this.camera.position.set(0, 0, this.zoom).add(this.cameraTarget);
-	            this.camera.lookAt(this.cameraTarget);
-	
-	            this.threeJsScene.fog.near = this.zoom + 1;
-	            this.threeJsScene.fog.far = this.zoom + this.zBack;
-	
-	            this.scene.is_new_view_chosen = true;
-	            this.scene.changed = true;
+	        var show = this.scene.current_view.show;
+	        if (show.all_atom) {
+	          this.controller.set_backbone_option('ribbon');
+	        } else if (show.ribbon) {
+	          this.controller.set_backbone_option('trace');
+	        } else if (show.trace) {
+	          this.controller.set_backbone_option('all_atom');
 	        }
-	    }, {
-	        key: "isPeptideConnected",
-	        value: function isPeptideConnected(i0, i1) {
 	
-	            var res0 = this.protein.residues[i0];
-	            var res1 = this.protein.residues[i1];
+	        this.controller.flag_changed();
+	      } else if (c == 'N') {
 	
-	            if ("C" in res0.atoms && "N" in res1.atoms && "CA" in res0.atoms && "CA" in res1.atoms) {
+	        this.controller.toggle_neighbors(false);
+	      } else if (c == 'W') {
 	
-	                // detect a potential peptide bond
+	        this.controller.toggle_show_option('water');
+	      } else if (c == 'L') {
 	
-	                var c = res0.atoms["C"];
-	                var n = res1.atoms["N"];
-	                if (_v2.default.distance(c.pos, n.pos) < 2) {
-	                    return true;
-	                }
-	            }
+	        this.controller.toggle_show_option('ligands');
+	      } else if (c == 'X') {
 	
-	            return false;
+	        var i_atom = this.scene.current_view.i_atom;
+	        if (i_atom >= 0) {
+	          var res_id = this.protein.atoms[i_atom].res_id;
+	          var res = this.protein.res_by_id[res_id];
+	          var i = this.protein.get_i_res_from_res_id(res_id);
+	          this.controller.select_residue(i, !res.selected);
 	        }
-	    }, {
-	        key: "isSugarPhosphateConnected",
-	        value: function isSugarPhosphateConnected(i0, i1) {
+	      } else if (c == 'S') {
 	
-	            var res0 = this.protein.residues[i0];
-	            var res1 = this.protein.residues[i1];
+	        this.controller.set_show_option('sidechain', true);
+	      } else if (c == 'C') {
 	
-	            if ("C3'" in res0.atoms && "C1'" in res0.atoms && "C5'" in res0.atoms && "O3'" in res0.atoms && "P" in res1.atoms && "C3'" in res1.atoms && "C1'" in res1.atoms && "C5'" in res1.atoms) {
+	        this.controller.set_show_option('sidechain', false);
+	        this.controller.clear_selected();
+	      }
+	    }
+	  }, {
+	    key: "gesturestart",
+	    value: function gesturestart(event) {
 	
-	                // detect nucloetide phosphate sugar bond
-	                var o3 = res0.atoms["O3'"];
-	                var p = res1.atoms["P"];
-	                if (_v2.default.distance(o3.pos, p.pos) < 2.5) {
-	                    return true;
-	                }
-	            }
+	      event.preventDefault();
+	      this.isGesture = true;
+	      this.lastPinchRotation = 0;
+	      this.lastScale = event.scale * event.scale;
+	    }
+	  }, {
+	    key: "gesturechange",
+	    value: function gesturechange(event) {
 	
-	            return false;
+	      event.preventDefault();
+	      this.adjustCamera(0, 0, degToRad(event.rotation * 2 - this.lastPinchRotation), this.lastScale / (event.scale * event.scale));
+	
+	      this.lastPinchRotation = event.rotation * 2;
+	      this.lastScale = event.scale * event.scale;
+	    }
+	  }, {
+	    key: "gestureend",
+	    value: function gestureend(event) {
+	
+	      event.preventDefault();
+	      this.isGesture = false;
+	      this.downAtom = null;
+	      this.mousePressed = false;
+	    }
+	  }, {
+	    key: "is_changed",
+	    value: function is_changed() {
+	
+	      return this.scene.changed;
+	    }
+	  }, {
+	    key: "selectVisibleObjects",
+	    value: function selectVisibleObjects() {
+	
+	      var show = this.scene.current_view.show;
+	
+	      (0, _glgeometry.setVisible)(this.objects.tube, show.trace);
+	
+	      (0, _glgeometry.setVisible)(this.objects.ribbons, show.ribbon);
+	
+	      (0, _glgeometry.setVisible)(this.objects.arrows, !show.all_atom);
+	
+	      if (!(0, _util.exists)(this.objects.backbone) && show.all_atom) {
+	        this.messageBar.html('building backbone');
+	        this.buildBackbone();
+	        this.buildPeptideBonds();
+	        this.messageBar.html('');
+	      }
+	      (0, _glgeometry.setVisible)(this.objects.backbone, show.all_atom);
+	      (0, _glgeometry.setVisible)(this.objects.peptides, show.all_atom);
+	
+	      if (!(0, _util.exists)(this.objects.ligands) && show.ligands) {
+	        this.buildLigands();
+	      }
+	      (0, _glgeometry.setVisible)(this.objects.ligands, show.ligands);
+	
+	      if (!(0, _util.exists)(this.objects.water) && show.water) {
+	        this.buildWaters();
+	      }
+	      (0, _glgeometry.setVisible)(this.objects.water, show.water);
+	
+	      for (var i = 0; i < this.trace.residues.length; i += 1) {
+	
+	        var residue = this.trace.residues[i];
+	
+	        var residueShow;
+	        if (show.sidechain) {
+	          residueShow = true;
+	        } else {
+	          residueShow = residue.selected;
 	        }
-	    }, {
-	        key: "getNormalOfNuc",
-	        value: function getNormalOfNuc(res) {
 	
-	            var atoms = res.atoms;
-	            var forward = _v2.default.diff(atoms["C3'"].pos, atoms["C5'"].pos);
-	            var up = _v2.default.diff(atoms["C1'"].pos, atoms["C3'"].pos);
-	            return _v2.default.cross_product(forward, up);
+	        if (residueShow && !(0, _util.exists)(residue.sidechain)) {
+	          this.drawSidechain(residue);
 	        }
-	    }, {
-	        key: "findChainsAndPieces",
-	        value: function findChainsAndPieces() {
+	        (0, _glgeometry.setVisible)(residue.sidechain, residueShow);
+	      }
+	    }
+	  }, {
+	    key: "drawDistanceLabels",
+	    value: function drawDistanceLabels() {
 	
-	            // Chains are continuous pieces of proteins or dna
-	            // Pieces are continuous pieces of secondary structure
+	      var distances = this.scene.current_view.distances;
+	      var distanceLabels = this.distanceLabels;
+	      var atoms = this.protein.atoms;
 	
-	            this.trace = new _glgeometry.PathAndFrenetFrames();
+	      for (var i = 0; i < distances.length; i += 1) {
 	
-	            this.trace.residues = [];
+	        var distance = distances[i];
 	
-	            var n_residue = this.protein.residues.length;
-	            for (var j = 0; j < n_residue; j += 1) {
+	        var p1 = _v2.default.clone(atoms[distance.i_atom1].pos);
+	        var p2 = _v2.default.clone(atoms[distance.i_atom2].pos);
+	        var m = p1.clone().add(p2).multiplyScalar(0.5);
+	        var opacity = 0.7 * this.opacity(m) + 0.3;
 	
-	                var residue = this.protein.residues[j];
-	                var isProteinNucOrConnected = false;
+	        var v = this.posXY(m);
+	        var text = p1.distanceTo(p2).toFixed(1);
 	
-	                if (residue.is_protein_or_nuc) {
-	
-	                    isProteinNucOrConnected = true;
-	                } else {
-	
-	                    if (j > 0) {
-	                        if (this.isPeptideConnected(j - 1, j)) {
-	                            residue.central_atom = residue.atoms["CA"];
-	                            isProteinNucOrConnected = true;
-	                        } else if (this.isSugarPhosphateConnected(j - 1, j)) {
-	                            residue.central_atom = residue.atoms["C3'"];
-	                            isProteinNucOrConnected = true;
-	                            residue.ss = "R";
-	                            residue.normal = this.getNormalOfNuc(residue);
-	                        }
-	                    }
-	
-	                    if (j < n_residue - 1) {
-	                        if (this.isPeptideConnected(j, j + 1)) {
-	                            residue.central_atom = residue.atoms["CA"];
-	                            isProteinNucOrConnected = true;
-	                        } else if (this.isSugarPhosphateConnected(j, j + 1)) {
-	                            residue.central_atom = residue.atoms["C3'"];
-	                            isProteinNucOrConnected = true;
-	                            residue.ss = "R";
-	                            residue.normal = this.getNormalOfNuc(residue);
-	                        }
-	                    }
-	                }
-	
-	                if (isProteinNucOrConnected) {
-	                    this.trace.residues.push(residue);
-	                    this.trace.points.push(_v2.default.clone(residue.central_atom.pos));
-	                }
-	            }
-	
-	            this.trace.chains = [];
-	            this.trace.pieces = [];
-	
-	            var iStart = 0;
-	            for (var iEnd = 1; iEnd < this.trace.points.length + 1; iEnd += 1) {
-	
-	                var isBreak = false;
-	
-	                if (iEnd == this.trace.points.length) {
-	                    isBreak = true;
-	                } else {
-	                    var iRes0 = this.trace.residues[iEnd - 1].i;
-	                    var iRes1 = this.trace.residues[iEnd].i;
-	                    isBreak = !this.isPeptideConnected(iRes0, iRes1) && !this.isSugarPhosphateConnected(iRes0, iRes1);
-	                }
-	
-	                if (!isBreak) {
-	                    continue;
-	                }
-	
-	                if (iStart == this.trace.points.length - 1) {
-	                    continue;
-	                }
-	
-	                var chain = {
-	                    iStart: iStart,
-	                    iEnd: iEnd,
-	                    pieces: []
-	                };
-	
-	                this.trace.chains.push(chain);
-	
-	                var ss = this.trace.residues[iStart].ss;
-	                var iPieceStart = iStart;
-	
-	                for (var iPieceEnd = iStart + 1; iPieceEnd < iEnd + 1; iPieceEnd += 1) {
-	
-	                    isBreak = false;
-	                    if (iPieceEnd == iEnd) {
-	                        isBreak = true;
-	                    } else {
-	                        var end_ss = this.trace.residues[iPieceEnd].ss;
-	                        if (end_ss != ss) {
-	                            // if ( ( end_ss == "R" || ss == "D" ) &&
-	                            //      ( end_ss == "D" || ss == "R" ) ) {
-	                            //     continue;
-	                            // }
-	                            isBreak = true;
-	                        }
-	                    }
-	
-	                    if (!isBreak) {
-	                        continue;
-	                    }
-	
-	                    chain.pieces.push({
-	                        iStart: iPieceStart,
-	                        iEnd: iPieceEnd,
-	                        ss: ss
-	                    });
-	
-	                    iPieceStart = iPieceEnd;
-	                    if (iPieceEnd < iEnd) {
-	                        ss = this.trace.residues[iPieceEnd].ss;
-	                    }
-	                }
-	
-	                iStart = iEnd;
-	            }
+	        if (i >= distanceLabels.length) {
+	          this.distanceLabels.push(new DistanceLabel(this.webglDivTag, this.threeJsScene, this.controller, this.distanceLabels));
 	        }
-	    }, {
-	        key: "calcContinuousTangents",
-	        value: function calcContinuousTangents(trace, iStart, iEnd) {
 	
-	            var points = trace.points;
+	        distanceLabels[i].update(i, text, v.x, v.y, p1, p2, opacity);
 	
-	            var iLast = iEnd - 1;
-	
-	            var i;
-	
-	            if (iEnd - iStart > 2) {
-	
-	                trace.tangents[iStart] = points[iStart + 1].clone().sub(points[iStart]).normalize();
-	
-	                for (i = iStart + 1; i < iLast; i += 1) {
-	                    trace.tangents[i] = points[i + 1].clone().sub(points[i - 1]).normalize();
-	                }
-	
-	                trace.tangents[iLast] = points[iLast].clone().sub(points[iLast - 1]).normalize();
-	
-	                for (i = iStart + 1; i < iLast; i += 1) {
-	                    if (trace.residues[i].normal !== null) {
-	                        trace.normals[i] = (0, _glgeometry.perpVector)(trace.tangents[i], _v2.default.clone(trace.residues[i].normal)).normalize();
-	                    } else {
-	                        var diff = points[i].clone().sub(points[i - 1]);
-	                        trace.normals[i] = new TV3().crossVectors(diff, trace.tangents[i]).normalize();
-	                    }
-	                }
-	
-	                trace.normals[iStart] = trace.normals[iStart + 1];
-	
-	                trace.normals[iLast] = trace.normals[iLast - 1];
-	            } else {
-	
-	                // for 2 point loops
-	                var tangent = points[iLast].clone().sub(points[iStart]).normalize();
-	
-	                trace.tangents[iStart] = tangent;
-	                trace.tangents[iLast] = tangent;
-	
-	                for (i = iStart; i <= iLast; i += 1) {
-	                    if (trace.residues[i].normal !== null) {
-	                        trace.normals[i] = (0, _glgeometry.perpVector)(trace.tangents[i], _v2.default.clone(trace.residues[i].normal)).normalize();
-	                    } else {
-	                        var randomDir = points[i];
-	                        trace.normals[i] = new TV3().crossVectors(randomDir, tangent).normalize();
-	                    }
-	                }
-	            }
-	
-	            for (i = iStart + 1; i < iEnd; i += 1) {
-	                if (trace.residues[i].ss != "D" && trace.residues[i - 1].ss != "D") {
-	                    if (trace.normals[i].dot(trace.normals[i - 1]) < 0) {
-	                        trace.normals[i].negate();
-	                    }
-	                }
-	            }
-	
-	            for (i = iStart; i < iEnd; i += 1) {
-	                trace.binormals[i] = new TV3().crossVectors(trace.tangents[i], trace.normals[i]);
-	            }
+	        if (!this.inZlab(m)) {
+	          distanceLabels[i].hide();
 	        }
-	    }, {
-	        key: "getAtomColor",
-	        value: function getAtomColor(atom) {
+	      }
 	
-	            if (atom.elem == "C" || atom.elem == "H") {
-	                var res = this.protein.res_by_id[atom.res_id];
-	                return getSsColor(res.ss);
-	            } else if (atom.elem in ElementColors) {
-	                return ElementColors[atom.elem];
-	            }
-	            return darkGrey;
+	      for (var i = distanceLabels.length - 1; i >= 0; i -= 1) {
+	        if (i >= distances.length) {
+	          distanceLabels[i].remove();
 	        }
-	    }, {
-	        key: "setLights",
-	        value: function setLights() {
+	      }
+	    }
+	  }, {
+	    key: "drawAtomLabels",
+	    value: function drawAtomLabels() {
 	
-	            var directionalLight = new _three2.default.DirectionalLight(0xFFFFFF);
-	            directionalLight.position.copy(new TV3(0.2, 0.2, 100).normalize());
-	            directionalLight.intensity = 1.2;
-	            this.lights.push(directionalLight);
+	      var labels = this.scene.current_view.labels;
+	      var atomLabels = this.labels;
 	
-	            var directionalLight2 = new _three2.default.DirectionalLight(0xFFFFFF);
-	            directionalLight2.position.copy(new TV3(0.2, 0.2, -100).normalize());
-	            directionalLight2.intensity = 1.2;
-	            this.lights.push(directionalLight2);
+	      for (var i = atomLabels.length; i < labels.length; i += 1) {
+	        var atomLabel = new AtomLabel(this.webglDivTag, this.controller, atomLabels);
+	        atomLabels.push(atomLabel);
+	      }
 	
-	            var ambientLight = new _three2.default.AmbientLight(0x202020);
-	            this.lights.push(ambientLight);
-	
-	            for (var i = 0; i < this.lights.length; i += 1) {
-	                this.threeJsScene.add(this.lights[i]);
-	            }
+	      for (var _i3 = atomLabels.length - 1; _i3 >= 0; _i3 -= 1) {
+	        if (_i3 >= labels.length) {
+	          atomLabels[_i3].remove();
 	        }
-	    }, {
-	        key: "getSsFace",
-	        value: function getSsFace(ss) {
+	      }
 	
-	            if (ss == "C" || ss == "-") {
-	                return coilFace;
-	            }
-	            return ribbonFace;
+	      var atoms = this.protein.atoms;
+	
+	      for (var _i4 = 0; _i4 < labels.length; _i4 += 1) {
+	
+	        var atom = atoms[labels[_i4].i_atom];
+	        var pos = _v2.default.clone(atom.pos);
+	        var v = this.posXY(pos);
+	        var opacity = 0.7 * this.opacity(pos) + 0.2;
+	
+	        atomLabels[_i4].update(_i4, labels[_i4].text, v.x, v.y, opacity);
+	
+	        if (!this.inZlab(pos)) {
+	          atomLabels[_i4].hide();
 	        }
-	    }, {
-	        key: "buildTube",
-	        value: function buildTube() {
-	
-	            this.objects.tube = new _three2.default.Object3D();
-	
-	            var detail = 4;
-	
-	            for (var iChain = 0; iChain < this.trace.chains.length; iChain += 1) {
-	
-	                var chain = this.trace.chains[iChain];
-	                var iStart = chain.iStart;
-	                var iEnd = chain.iEnd;
-	
-	                this.calcContinuousTangents(this.trace, iStart, iEnd);
-	                var path = (0, _glgeometry.expandPath)(this.trace.slice(iStart, iEnd), 2 * detail);
-	
-	                for (var iPiece = 0; iPiece < chain.pieces.length; iPiece += 1) {
-	
-	                    var piece = chain.pieces[iPiece];
-	                    var iPieceStart = piece.iStart - iStart;
-	                    var iPieceEnd = piece.iEnd - iStart;
-	                    var ss = piece.ss;
-	
-	                    if (iPieceEnd - iPieceStart < 1) {
-	                        continue;
-	                    }
-	
-	                    // allows for overhang between residues
-	                    var iPathStart = (2 * iPieceStart - 1) * detail;
-	                    if (iPathStart < 0) {
-	                        iPathStart = 0;
-	                    }
-	
-	                    var iPathEnd = (iPieceEnd * 2 - 1) * detail + 1;
-	                    if (iPathEnd > path.points.length - 1) {
-	                        iPathEnd = path.points.length - 1;
-	                    }
-	
-	                    var pieceOfPath = path.slice(iPathStart, iPathEnd);
-	
-	                    var material = new _three2.default.MeshLambertMaterial({
-	                        color: getSsColor(ss)
-	                    });
-	
-	                    var geom = new _glgeometry.RibbonGeometry(fatCoilFace, pieceOfPath, true);
-	
-	                    var mesh = new _three2.default.Mesh(geom, material);
-	
-	                    mesh.visible = false;
-	                    this.objects.tube.add(mesh);
-	                }
-	            }
-	        }
-	    }, {
-	        key: "buildCartoon",
-	        value: function buildCartoon() {
-	
-	            this.objects.ribbons = new _three2.default.Object3D();
-	
-	            var detail = 4;
-	
-	            for (var iChain = 0; iChain < this.trace.chains.length; iChain += 1) {
-	
-	                var chain = this.trace.chains[iChain];
-	                var iStart = chain.iStart;
-	                var iEnd = chain.iEnd;
-	
-	                this.calcContinuousTangents(this.trace, iStart, iEnd);
-	                var path = (0, _glgeometry.expandPath)(this.trace.slice(iStart, iEnd), 2 * detail);
-	
-	                for (var iPiece = 0; iPiece < chain.pieces.length; iPiece += 1) {
-	
-	                    var piece = chain.pieces[iPiece];
-	                    var iPieceStart = piece.iStart - iStart;
-	                    var iPieceEnd = piece.iEnd - iStart;
-	                    var ss = piece.ss;
-	
-	                    if (iPieceEnd - iPieceStart < 1) {
-	                        continue;
-	                    }
-	
-	                    // allows for overhang between residues
-	                    var iPathStart = (2 * iPieceStart - 1) * detail;
-	                    if (iPathStart < 0) {
-	                        iPathStart = 0;
-	                    }
-	
-	                    var iPathEnd = (iPieceEnd * 2 - 1) * detail + 1;
-	                    if (iPathEnd > path.points.length - 1) {
-	                        iPathEnd = path.points.length - 1;
-	                    }
-	
-	                    var pieceOfPath = path.slice(iPathStart, iPathEnd);
-	
-	                    var face = this.getSsFace(ss);
-	                    var color = getSsColor(ss);
-	                    var round = ss == "C";
-	
-	                    var material = new _three2.default.MeshLambertMaterial({
-	                        color: color
-	                    });
-	                    var geom = new _glgeometry.RibbonGeometry(face, pieceOfPath, round);
-	                    var mesh = new _three2.default.Mesh(geom, material);
-	
-	                    this.objects.ribbons.add(mesh);
-	                }
-	            }
-	        }
-	    }, {
-	        key: "buildArrows",
-	        value: function buildArrows() {
-	
-	            this.objects.arrows = new _three2.default.Object3D();
-	
-	            for (var iChain = 0; iChain < this.trace.chains.length; iChain += 1) {
-	                var chain = this.trace.chains[iChain];
-	                for (var iPiece = 0; iPiece < chain.pieces.length; iPiece += 1) {
-	                    var piece = chain.pieces[iPiece];
-	                    var color = getDarkSsColor(piece.ss);
-	                    for (var i = piece.iStart; i < piece.iEnd; i += 1) {
-	
-	                        var arrow = (0, _glgeometry.drawBlockArrow)(this.trace.points[i], this.trace.tangents[i], this.trace.binormals[i], color);
-	
-	                        arrow.atom = this.trace.residues[i].central_atom;
-	                        arrow.atom.is_central = true;
-	
-	                        this.objects.arrows.add(arrow);
-	
-	                        this.clickMeshes.push(arrow);
-	                    }
-	                }
-	            }
-	        }
-	    }, {
-	        key: "mergeBond",
-	        value: function mergeBond(totalGeom, bond, residue) {
-	
-	            function cylinderMatrix(from, to, radius) {
-	
-	                var midpoint = from.clone().add(to).multiplyScalar(0.5);
-	
-	                var obj = new _three2.default.Object3D();
-	                obj.scale.set(radius, radius, from.distanceTo(to));
-	                obj.position.copy(midpoint);
-	                obj.lookAt(to);
-	                obj.updateMatrix();
-	                return obj.matrix;
-	            }
-	
-	            var p1 = _v2.default.clone(bond.atom1.pos);
-	            var p2 = _v2.default.clone(bond.atom2.pos);
-	
-	            var res1 = this.protein.res_by_id[bond.atom1.res_id];
-	            var res2 = this.protein.res_by_id[bond.atom2.res_id];
-	
-	            var color1 = getSsColor(res1.ss);
-	            var color2 = getSsColor(res2.ss);
-	
-	            var geom = new _glgeometry.UnitCylinderGeometry();
-	
-	            var radius = 0.2;
-	
-	            if (color1 == color2) {
-	
-	                (0, _glgeometry.setGeometryVerticesColor)(geom, color1);
-	
-	                totalGeom.merge(geom, cylinderMatrix(p1, p2, radius));
-	            } else {
-	
-	                var midpoint = p2.clone().add(p1).multiplyScalar(0.5);
-	
-	                if (bond.atom1.res_id == residue.id) {
-	                    (0, _glgeometry.setGeometryVerticesColor)(geom, color1);
-	                    totalGeom.merge(geom, cylinderMatrix(p1, midpoint, radius));
-	                }
-	
-	                if (bond.atom2.res_id == residue.id) {
-	                    (0, _glgeometry.setGeometryVerticesColor)(geom, color2);
-	                    totalGeom.merge(geom, cylinderMatrix(p2, midpoint, radius));
-	                }
-	            }
-	        }
-	    }, {
-	        key: "mergeAtom",
-	        value: function mergeAtom(totalGeom, atom) {
-	
-	            if (atom.is_alt) {
-	                return;
-	            }
-	
-	            var pos = _v2.default.clone(atom.pos);
-	            var color = this.getAtomColor(atom);
-	            var geom = this.unitSphereGeom;
-	            (0, _glgeometry.setGeometryVerticesColor)(geom, color);
-	
-	            var radius = 0.35;
-	            var obj = new _three2.default.Object3D();
-	            obj.scale.set(radius, radius, radius);
-	            obj.position.copy(pos);
-	            obj.updateMatrix();
-	
-	            totalGeom.merge(geom, obj.matrix);
-	        }
-	    }, {
-	        key: "pushAtom",
-	        value: function pushAtom(object, atom) {
-	
-	            var pos = _v2.default.clone(atom.pos);
-	            var material = new _three2.default.MeshLambertMaterial({
-	                color: this.getAtomColor(atom)
-	            });
-	            var radius = 0.35;
-	            var mesh = new _three2.default.Mesh(this.unitSphereGeom, material);
-	            mesh.scale.set(radius, radius, radius);
-	            mesh.position.copy(pos);
-	            mesh.atom = atom;
-	            object.add(mesh);
-	            this.clickMeshes.push(mesh);
-	        }
-	    }, {
-	        key: "assignBonds",
-	        value: function assignBonds() {
-	
-	            for (var j = 0; j < this.protein.residues.length; j += 1) {
-	                var res = this.protein.residues[j];
-	                res.bonds = [];
-	            }
-	
-	            for (var _j = 0; _j < this.protein.bonds.length; _j += 1) {
-	
-	                var bond = this.protein.bonds[_j];
-	                var atom1 = bond.atom1;
-	                var atom2 = bond.atom2;
-	
-	                if (atom1.is_alt || atom2.is_alt) {
-	                    continue;
-	                }
-	
-	                var res1 = this.protein.res_by_id[atom1.res_id];
-	                var res2 = this.protein.res_by_id[atom2.res_id];
-	
-	                res1.bonds.push(bond);
-	
-	                if (res1 != res2) {
-	                    res2.bonds.push(bond);
-	                }
-	            }
-	        }
-	    }, {
-	        key: "buildBackbone",
-	        value: function buildBackbone() {
-	
-	            this.objects.backbone = new _three2.default.Object3D();
-	
-	            var geom = new _three2.default.Geometry();
-	
-	            for (var i = 0; i < this.protein.residues.length; i += 1) {
-	
-	                var residue = this.protein.residues[i];
-	                if (!residue.is_protein_or_nuc) {
-	                    continue;
-	                }
-	
-	                for (var j = 0; j < residue.bonds.length; j += 1) {
-	                    var bond = residue.bonds[j];
-	                    if ((0, _util.in_array)(bond.atom1.type, backbone_atoms) || (0, _util.in_array)(bond.atom2.type, backbone_atoms)) {
-	                        this.mergeBond(geom, bond, residue);
-	                    }
-	                }
-	
-	                for (var a in residue.atoms) {
-	                    var atom = residue.atoms[a];
-	                    if ((0, _util.in_array)(atom.type, backbone_atoms)) {
-	                        this.pushAtom(this.objects.backbone, atom);
-	                    }
-	                }
-	            }
-	
-	            var material = new _three2.default.MeshLambertMaterial({
-	                color: 0xFFFFFF,
-	                vertexColors: _three2.default.VertexColors
-	            });
-	            var mesh = new _three2.default.Mesh(geom, material);
-	            this.objects.backbone.add(mesh);
-	
-	            this.threeJsScene.add(this.objects.backbone);
-	        }
-	    }, {
-	        key: "buildLigands",
-	        value: function buildLigands() {
-	
-	            this.objects.ligands = new _three2.default.Object3D();
-	            this.threeJsScene.add(this.objects.ligands);
-	
-	            var geom = new _three2.default.Geometry();
-	
-	            for (var i = 0; i < this.protein.residues.length; i += 1) {
-	
-	                var residue = this.protein.residues[i];
-	
-	                if (!residue.is_ligands) {
-	                    continue;
-	                }
-	
-	                for (var j = 0; j < residue.bonds.length; j += 1) {
-	                    this.mergeBond(geom, residue.bonds[j], residue);
-	                }
-	
-	                for (var a in residue.atoms) {
-	                    this.pushAtom(this.objects.ligands, residue.atoms[a]);
-	                }
-	            }
-	
-	            var material = new _three2.default.MeshLambertMaterial({
-	                color: 0xFFFFFF,
-	                vertexColors: _three2.default.VertexColors
-	            });
-	            var mesh = new _three2.default.Mesh(geom, material);
-	            this.objects.ligands.add(mesh);
-	        }
-	    }, {
-	        key: "buildWaters",
-	        value: function buildWaters() {
-	
-	            console.log('buildWaters');
-	
-	            this.objects.water = new _three2.default.Object3D();
-	            this.threeJsScene.add(this.objects.water);
-	
-	            var geom = new _three2.default.Geometry();
-	
-	            for (var i = 0; i < this.protein.residues.length; i += 1) {
-	
-	                var residue = this.protein.residues[i];
-	
-	                if (!residue.is_water) {
-	                    continue;
-	                }
-	
-	                for (var j = 0; j < residue.bonds.length; j += 1) {
-	                    this.mergeBond(geom, residue.bonds[j], residue);
-	                }
-	
-	                for (var a in residue.atoms) {
-	                    this.pushAtom(this.objects.water, residue.atoms[a]);
-	                }
-	            }
-	
-	            var material = new _three2.default.MeshLambertMaterial({
-	                color: 0xFFFFFF,
-	                vertexColors: _three2.default.VertexColors
-	            });
-	            var mesh = new _three2.default.Mesh(geom, material);
-	            this.objects.water.add(mesh);
-	        }
-	    }, {
-	        key: "drawSidechain",
-	        value: function drawSidechain(residue) {
-	
-	            if (!residue.is_protein_or_nuc) {
-	                return;
-	            }
-	
-	            var scGeom = new _three2.default.Geometry();
-	            residue.sidechain = new _three2.default.Object3D();
-	            this.threeJsScene.add(residue.sidechain);
-	
-	            for (var j = 0; j < residue.bonds.length; j += 1) {
-	
-	                var bond = residue.bonds[j];
-	
-	                if (!(0, _util.in_array)(bond.atom1.type, backbone_atoms) || !(0, _util.in_array)(bond.atom2.type, backbone_atoms)) {
-	
-	                    this.mergeBond(scGeom, bond, residue);
-	                }
-	            }
-	
-	            var material = new _three2.default.MeshLambertMaterial({
-	                color: 0xFFFFFF,
-	                vertexColors: _three2.default.VertexColors
-	            });
-	            var mesh = new _three2.default.Mesh(scGeom, material);
-	            residue.sidechain.add(mesh);
-	
-	            for (var a in residue.atoms) {
-	                var atom = residue.atoms[a];
-	                if (!(0, _util.in_array)(atom.type, backbone_atoms)) {
-	                    atom.is_sidechain = true;
-	                    this.pushAtom(residue.sidechain, atom);
-	                }
-	            }
-	        }
-	    }, {
-	        key: "addBondGeometry",
-	        value: function addBondGeometry(totalGeom, atoms, a1, a2, color) {
-	
-	            var vertices = getVerticesFromAtomDict(atoms, [a1, a2]);
-	            var cylinder = (0, _glgeometry.drawCylinder)(vertices[0], vertices[1], 0.2, color, true);
-	            cylinder.updateMatrix();
-	            totalGeom.merge(cylinder.geometry, cylinder.matrix);
-	        }
-	    }, {
-	        key: "buildPeptideBonds",
-	        value: function buildPeptideBonds() {
-	
-	            var totalGeom = new _three2.default.Geometry();
-	
-	            var residues = this.protein.residues;
-	
-	            function isProtein(iRes) {
-	
-	                var residue = residues[iRes];
-	                return residue.ss != "D" && residue.is_protein_or_nuc;
-	            }
-	
-	            for (var iRes = 1; iRes < this.protein.residues.length; iRes += 1) {
-	
-	                if (!isProtein(iRes - 1) || !isProtein(iRes)) {
-	                    continue;
-	                }
-	
-	                var geom = new _three2.default.Geometry();
-	
-	                var residue0 = this.protein.residues[iRes - 1];
-	                var residue1 = this.protein.residues[iRes];
-	
-	                var vertices = getVerticesFromAtomDict(residue0.atoms, ["CA", "O", "C"]);
-	                var ca0 = vertices[0];
-	                var o = vertices[1];
-	                var c = vertices[2];
-	
-	                vertices = getVerticesFromAtomDict(residue1.atoms, ["CA", "N"]);
-	                var ca1 = vertices[0];
-	                var n = vertices[1];
-	
-	                if (c.distanceTo(n) > 3) {
-	                    continue;
-	                }
-	
-	                var ca1ToN = new TV3().subVectors(n, ca1);
-	                var cToN = new TV3().subVectors(n, c);
-	                var nToH = new TV3().addVectors(ca1ToN, cToN).normalize().multiplyScalar(1.0);
-	                var h = n.clone().add(nToH);
-	
-	                var color0 = getSsColor(residues[iRes - 1].ss);
-	                var color1 = getSsColor(residues[iRes].ss);
-	
-	                var color = color0;
-	                var vertices = [ca0, o, c, n, h, ca0];
-	                var geom = new _glgeometry.RaisedShapeGeometry(vertices, 0.3);
-	                geom.merge(geom, geom.matrix);
-	                (0, _glgeometry.setGeometryVerticesColor)(geom, color);
-	                totalGeom.merge(geom);
-	
-	                var color = color1;
-	                var vertices = [ca1, o, c, n, h, ca1];
-	                var geom = new _glgeometry.RaisedShapeGeometry(vertices, 0.3);
-	                geom.merge(geom, geom.matrix);
-	                (0, _glgeometry.setGeometryVerticesColor)(geom, color);
-	
-	                totalGeom.merge(geom);
-	            }
-	
-	            totalGeom.computeFaceNormals();
-	
-	            var material = new _three2.default.MeshLambertMaterial({
-	                color: 0xFFFFFF,
-	                vertexColors: _three2.default.VertexColors
-	            });
-	
-	            this.objects.peptides = new _three2.default.Mesh(totalGeom, material);
-	
-	            this.threeJsScene.add(this.objects.peptides);
-	        }
-	    }, {
-	        key: "buildNucleotides",
-	        value: function buildNucleotides() {
-	
-	            var totalGeom = new _three2.default.Geometry();
-	
-	            for (var iRes = 0; iRes < this.protein.residues.length; iRes += 1) {
-	
-	                var residue = this.protein.residues[iRes];
-	
-	                if (residue.ss != "D" || !residue.is_protein_or_nuc) {
-	                    continue;
-	                }
-	
-	                var geom = new _three2.default.Geometry();
-	                var atomTypes, bondTypes;
-	
-	                if (residue.type == "DA" || residue.type == "A") {
-	
-	                    atomTypes = ["N9", "C8", "N7", "C5", "C6", "N1", "C2", "N3", "C4"];
-	                    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", "N9"], ["C6", "N6"]];
-	                } else if (residue.type == "DG" || residue.type == "G") {
-	
-	                    atomTypes = ["N9", "C8", "N7", "C5", "C6", "N1", "C2", "N3", "C4"];
-	                    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", "N9"], ["C6", "O6"], ["C2", "N2"]];
-	                } else if (residue.type == "DT" || residue.type == "U") {
-	
-	                    atomTypes = ["C6", "N1", "C2", "N3", "C4", "C5"];
-	                    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", "N1"], ["C4", "O4"]];
-	                } else if (residue.type == "DC" || residue.type == "C") {
-	
-	                    atomTypes = ["C6", "N1", "C2", "N3", "C4", "C5"];
-	                    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", "N1"], ["C4", "N4"], ["C2", "O2"]];
-	                } else {
-	
-	                    continue;
-	                }
-	
-	                var vertices = getVerticesFromAtomDict(residue.atoms, atomTypes);
-	                var geom = new _glgeometry.RaisedShapeGeometry(vertices, 0.3);
-	                geom.merge(geom, geom.matrix);
-	
-	                for (var i = 0; i < bondTypes.length; i += 1) {
-	                    var bond = bondTypes[i];
-	                    addBondGeometry(geom, residue.atoms, bond[0], bond[1]);
-	                }
-	
-	                totalGeom.merge(geom);
-	
-	                baseMesh = new _three2.default.Mesh(geom, material);
-	                baseMesh.atom = residue.central_atom;
-	                baseMesh.updateMatrix();
-	                this.clickMeshes.push(baseMesh);
-	            }
-	
-	            totalGeom.computeFaceNormals();
-	
-	            var material = new _three2.default.MeshLambertMaterial({
-	                color: getSsColor("D"),
-	                vertexColors: _three2.default.VertexColors
-	            });
-	
-	            var color = new _three2.default.Color(purple);
-	            (0, _glgeometry.setGeometryVerticesColor)(totalGeom, color);
-	
-	            this.objects.basepairs = new _three2.default.Mesh(totalGeom, material);
-	        }
-	    }, {
-	        key: "buildCrossHairs",
-	        value: function buildCrossHairs() {
-	            var radius = 1.2,
-	                segments = 60,
-	                material = new _three2.default.LineDashedMaterial({ color: 0xFF7777, linewidth: 2 });
-	            var geometry = new _three2.default.CircleGeometry(radius, segments);
-	
-	            // Remove center vertex
-	            geometry.vertices.shift();
-	
-	            this.crossHairs = new _three2.default.Line(geometry, material);
-	            this.threeJsScene.add(this.crossHairs);
-	        }
-	    }, {
-	        key: "moveCrossHairs",
-	        value: function moveCrossHairs() {
-	
-	            this.crossHairs.position.copy(this.cameraTarget);
-	            this.crossHairs.lookAt(this.camera.position);
-	            this.crossHairs.updateMatrix();
-	        }
-	    }, {
-	        key: "buildScene",
-	        value: function buildScene() {
-	
-	            this.messageBar.html('Drawing scene...');
-	
-	            this.messageBar.html('Finding chains...');
-	
-	            this.findChainsAndPieces();
-	
-	            this.unitSphereGeom = new _three2.default.SphereGeometry(1, 8, 8);
-	
-	            this.objects = {};
-	
-	            this.messageBar.html('Building cartoon...');
-	
-	            this.buildTube();
-	
-	            this.buildCartoon();
-	
-	            // this.buildNucleotides();
-	
-	            this.buildArrows();
-	            for (var k in this.objects) {
-	                this.threeJsScene.add(this.objects[k]);
-	            }
-	
-	            this.buildCrossHairs();
-	
-	            this.messageBar.html('Finding bonds...');
-	
-	            this.assignBonds();
-	
-	            this.messageBar.hide();
-	        }
-	    }, {
-	        key: "setTargetFromResId",
-	        value: function setTargetFromResId(resId) {
-	
-	            var atom = this.protein.res_by_id[resId].central_atom;
-	            this.setTargetFromAtom(atom);
-	        }
-	    }, {
-	        key: "setTargetFromAtom",
-	        value: function setTargetFromAtom(atom) {
-	
-	            var position = _v2.default.clone(atom.pos);
-	            var sceneDisplacement = position.clone().sub(this.cameraTarget);
-	
-	            var view = convertTargetToView({
-	                cameraTarget: position,
-	                cameraPosition: this.camera.position.clone().add(sceneDisplacement),
-	                cameraUp: this.camera.up.clone(),
-	                zFront: this.zFront,
-	                zBack: this.zBack
-	            });
-	
-	            view.copy_metadata_from_view(this.scene.current_view);
-	            view.res_id = atom.res_id;
-	            view.i_atom = atom.i;
-	            this.scene.target_view = view;
-	
-	            this.scene.is_new_view_chosen = true;
-	            this.scene.n_update_step = this.scene.max_update_step;
-	        }
-	    }, {
-	        key: "setCameraFromCurrentView",
-	        value: function setCameraFromCurrentView() {
-	
-	            var target = convertViewToTarget(this.scene.current_view);
-	
-	            var cameraDirection = this.camera.position.clone().sub(this.cameraTarget).normalize();
-	
-	            var targetCameraDirection = target.cameraPosition.clone().sub(target.cameraTarget);
-	            this.zoom = targetCameraDirection.length();
-	            targetCameraDirection.normalize();
-	
-	            var rotation = (0, _glgeometry.getUnitVectorRotation)(cameraDirection, targetCameraDirection);
-	
-	            for (var i = 0; i < this.lights.length; i += 1) {
-	                this.lights[i].position.applyQuaternion(rotation);
-	            }
-	
-	            this.cameraTarget.copy(target.cameraTarget);
-	            this.camera.position.copy(target.cameraPosition);
-	            this.camera.up.copy(target.cameraUp);
-	
-	            this.zFront = target.zFront;
-	            this.zBack = target.zBack;
-	
-	            var far = this.zoom + this.zBack;
-	            var near = this.zoom + this.zFront;
-	            if (near < 1) {
-	                near = 1;
-	            }
-	
-	            this.camera.near = near;
-	            this.camera.far = far;
-	            this.camera.lookAt(this.cameraTarget);
-	            this.camera.updateProjectionMatrix();
-	
-	            this.threeJsScene.fog.near = near;
-	            this.threeJsScene.fog.far = far;
-	
-	            var residues = this.protein.residues;
-	            var view = this.scene.current_view;
-	            for (var _i = 0; _i < residues.length; _i += 1) {
-	                residues[_i].selected = false;
-	            }
-	            for (var _i2 = 0; _i2 < view.selected.length; _i2 += 1) {
-	                var i_res = view.selected[_i2];
-	                residues[i_res].selected = true;
-	            }
-	        }
-	    }, {
-	        key: "adjustCamera",
-	        value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-	
-	            var y = this.camera.up;
-	            var z = this.camera.position.clone().sub(this.cameraTarget).normalize();
-	            var x = new TV3().crossVectors(y, z).normalize();
-	
-	            var rot_z = new _three2.default.Quaternion().setFromAxisAngle(z, zRotationAngle);
-	
-	            var rot_y = new _three2.default.Quaternion().setFromAxisAngle(y, -yRotationAngle);
-	
-	            var rot_x = new _three2.default.Quaternion().setFromAxisAngle(x, -xRotationAngle);
-	
-	            var rotation = new _three2.default.Quaternion().multiply(rot_z).multiply(rot_y).multiply(rot_x);
-	
-	            var newZoom = zoomRatio * this.zoom;
-	
-	            if (newZoom < 2) {
-	                newZoom = 2;
-	            }
-	
-	            var cameraPosition = this.camera.position.clone().sub(this.cameraTarget).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(this.cameraTarget);
-	
-	            var view = convertTargetToView({
-	                cameraTarget: this.cameraTarget.clone(),
-	                cameraPosition: cameraPosition,
-	                cameraUp: this.camera.up.clone().applyQuaternion(rotation),
-	                zFront: this.zFront,
-	                zBack: this.zBack
-	            });
-	
-	            view.copy_metadata_from_view(this.scene.current_view);
-	
-	            this.controller.set_current_view(view);
-	        }
-	    }, {
-	        key: "resize",
-	        value: function resize() {
-	
-	            this.camera.aspect = this.width() / this.height();
-	            this.camera.updateProjectionMatrix();
-	
-	            this.renderer.setSize(this.width(), this.height());
-	
-	            this.zSlab.resize();
-	            this.sequenceWidget.resize();
-	
-	            this.controller.flag_changed();
-	        }
-	    }, {
-	        key: "width",
-	        value: function width() {
-	
-	            return this.mainDiv.width();
-	        }
-	    }, {
-	        key: "height",
-	        value: function height() {
-	
-	            return this.mainDiv.height();
-	        }
-	    }, {
-	        key: "getMouse",
-	        value: function getMouse(event) {
-	
-	            // if ( exists( event.touches ) && ( event.touches.length == 2 ) ) {
-	            //     var x0 = event.touches[0].x;
-	            //     var y0 = event.touches[0].y;
-	            //     var x1 = event.touches[1].x;
-	            //     var y1 = event.touches[1].y;
-	            //     var x = x1 - x0;
-	            //     var y = y1 - y0;
-	            //     this.pinchR = Math.sqrt( x*x + y*y );
-	            //     this.mouseT = Math.atan( y / x );
-	            //     if ( x < 0 ) {
-	            //         if ( y > 0 ) {
-	            //             this.mouseT += Math.PI;
-	            //         } else {
-	            //             this.mouseT -= Math.PI;
-	            //         }
-	            //     }
-	            // }
-	
-	
-	            if ((0, _util.exists)(event.touches) && event.touches.length > 0) {
-	                this.eventX = event.touches[0].clientX;
-	                this.eventY = event.touches[0].clientY;
-	            } else {
-	                this.eventX = event.clientX;
-	                this.eventY = event.clientY;
-	            }
-	
-	            var result = (0, _util.pos_dom)(this.mainDiv[0]);
-	            this.mouseX = this.eventX - result[0];
-	            this.mouseY = this.eventY - result[1];
-	
-	            var x = this.mouseX - this.width() / 2;
-	            var y = this.mouseY - this.height() / 2;
-	
-	            this.mouseR = Math.sqrt(x * x + y * y);
-	
-	            this.mouseT = Math.atan(y / x);
-	            if (x < 0) {
-	                if (y > 0) {
-	                    this.mouseT += Math.PI;
-	                } else {
-	                    this.mouseT -= Math.PI;
-	                }
-	            }
-	        }
-	    }, {
-	        key: "saveMouse",
-	        value: function saveMouse() {
-	
-	            this.saveMouseX = this.mouseX;
-	            this.saveMouseY = this.mouseY;
-	            this.saveMouseR = this.mouseR;
-	            this.saveMouseT = this.mouseT;
-	        }
-	    }, {
-	        key: "getZ",
-	        value: function getZ(pos) {
-	
-	            var origin = this.cameraTarget.clone();
-	
-	            var cameraDir = origin.clone().sub(this.camera.position).normalize();
-	
-	            var posRelativeToOrigin = pos.clone().sub(origin);
-	
-	            return posRelativeToOrigin.dot(cameraDir);
-	        }
-	    }, {
-	        key: "inZlab",
-	        value: function inZlab(pos) {
-	
-	            var z = this.getZ(pos);
-	
-	            return z >= this.zFront && z <= this.zBack;
-	        }
-	    }, {
-	        key: "opacity",
-	        value: function opacity(pos) {
-	
-	            var z = this.getZ(pos);
-	
-	            if (z < this.zFront) {
-	                return 1.0;
-	            }
-	
-	            if (z > this.zBack) {
-	                return 0.0;
-	            }
-	
-	            var opacity = 1 - (z - this.zFront) / (this.zBack - this.zFront);
-	
-	            return opacity;
-	        }
-	    }, {
-	        key: "getHoverAtom",
-	        value: function getHoverAtom() {
-	
-	            var x = this.mouseX;
-	            var y = this.mouseY;
-	
-	            if (x === null || y === null) {
-	                return null;
-	            }
-	
-	            var vector = new _three2.default.Vector3(x / this.width() * 2 - 1, -(y / this.height()) * 2 + 1, 0.5);
-	
-	            vector.unproject(this.camera);
-	
-	            var raycaster = new _three2.default.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
-	
-	            var intersects = raycaster.intersectObjects(this.clickMeshes);
-	
-	            var show = this.scene.current_view.show;
-	
-	            for (var i = 0; i < intersects.length; i += 1) {
-	
-	                var intersect = intersects[i];
-	
-	                var atom = intersect.object.atom;
-	                var res = this.protein.res_by_id[atom.res_id];
-	
-	                if (atom.is_sidechain && !show.sidechain && !res.selected) {
-	                    continue;
-	                }
-	
-	                if (atom.is_backbone && !atom.is_central && !show.all_atom) {
-	                    continue;
-	                }
-	
-	                if (atom.is_ligand && !show.ligands) {
-	                    continue;
-	                }
-	
-	                if (atom.is_water && !show.water) {
-	                    continue;
-	                }
-	
-	                if (this.inZlab(_v2.default.clone(intersect.object.atom.pos))) {
-	                    return intersects[i].object.atom;
-	                }
-	            }
-	
-	            return null;
-	        }
-	    }, {
-	        key: "posXY",
-	        value: function posXY(pos) {
-	
-	            var widthHalf = 0.5 * this.width();
-	            var heightHalf = 0.5 * this.height();
-	
-	            var vector = pos.clone().project(this.camera);
-	
-	            return {
-	                x: vector.x * widthHalf + widthHalf,
-	                y: -(vector.y * heightHalf) + heightHalf
-	            };
-	        }
-	    }, {
-	        key: "atom_label_dialog",
-	        value: function atom_label_dialog() {
-	
-	            var i_atom = this.scene.current_view.i_atom;
-	            if (i_atom >= 0) {
-	                var success = function success(text) {
-	                    controller.make_label(i_atom, text);
-	                };
-	
-	                var controller = this.controller;
-	
-	
-	                var atom = this.protein.atoms[i_atom];
-	                var label = 'Label atom : ' + atom.label;
-	
-	                showTextDialog(this.mainDiv, label, success);
-	            }
-	        }
-	    }, {
-	        key: "updateHover",
-	        value: function updateHover() {
-	
-	            this.hoverAtom = this.getHoverAtom();
-	
-	            if (this.hoverAtom) {
-	
-	                var text = this.hoverAtom.label;
-	                if (this.hoverAtom == this.scene.centered_atom()) {
-	                    text = "<center>" + text;
-	                    text = text + "<br>[drag distances]<br>[double-click labels]</center>";
-	                }
-	                this.hover.html(text);
-	                var vector = this.posXY(_v2.default.clone(this.hoverAtom.pos));
-	                this.hover.move(vector.x, vector.y);
-	            } else {
-	
-	                this.hover.hide();
-	            }
-	        }
-	    }, {
-	        key: "doubleclick",
-	        value: function doubleclick() {
-	
-	            if (this.hoverAtom !== null) {
-	                if (this.hoverAtom == this.scene.centered_atom()) {
-	                    this.atom_label_dialog();
-	                } else {
-	                    this.setTargetFromAtom(this.hoverAtom);
-	                }
-	                this.isDraggingCentralAtom = false;
-	            }
-	        }
-	    }, {
-	        key: "mousedown",
-	        value: function mousedown(event) {
-	
-	            this.getMouse(event);
-	
-	            event.preventDefault();
-	
-	            var now = new Date().getTime();
-	
-	            var isDoubleClick = now - this.timePressed < 500;
-	
-	            this.updateHover();
-	
-	            this.downAtom = this.getHoverAtom();
-	
-	            if (isDoubleClick) {
-	
-	                this.doubleclick();
-	            } else {
-	
-	                this.isDraggingCentralAtom = false;
-	
-	                if (this.downAtom !== null) {
-	
-	                    this.isDraggingCentralAtom = true;
-	                }
-	            }
-	
-	            this.timePressed = now;
-	
-	            this.saveMouse();
-	            this.mousePressed = true;
-	        }
-	    }, {
-	        key: "mousemove",
-	        value: function mousemove(event) {
-	
-	            this.getMouse(event);
-	
-	            event.preventDefault();
-	
-	            if (this.isGesture) {
-	                return;
-	            }
-	
-	            this.updateHover();
-	
-	            if (this.isDraggingCentralAtom) {
-	
-	                var mainDivPos = this.mainDiv.position();
-	                var v = this.posXY(_v2.default.clone(this.downAtom.pos));
-	
-	                this.distancePartnerPointer.move(this.mouseX, this.mouseY, v.x, v.y);
-	            } else {
-	
-	                var shiftDown = event.shiftKey == 1;
-	
-	                var rightMouse = event.button == 2 || event.which == 3;
-	
-	                if (this.mousePressed) {
-	
-	                    var zoomRatio = 1.0;
-	                    var zRotationAngle = 0;
-	                    var yRotationAngle = 0;
-	                    var xRotationAngle = 0;
-	
-	                    if (rightMouse || shiftDown) {
-	
-	                        zRotationAngle = this.mouseT - this.saveMouseT;
-	
-	                        if (this.mouseR > 0.0) {
-	                            zoomRatio = this.saveMouseR / this.mouseR;
-	                        }
-	                    } else {
-	
-	                        yRotationAngle = degToRad(this.mouseX - this.saveMouseX);
-	                        xRotationAngle = degToRad(this.mouseY - this.saveMouseY);
-	                    }
-	
-	                    this.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio);
-	
-	                    this.saveMouse();
-	                }
-	            }
-	        }
-	    }, {
-	        key: "mousewheel",
-	        value: function mousewheel(event) {
-	
-	            event.preventDefault();
-	
-	            var wheel;
-	            if ((0, _util.exists)(event.wheelDelta)) {
-	                wheel = event.wheelDelta / 120;
-	            } else {
-	                // for Firefox
-	                wheel = -event.detail / 12;
-	            }
-	            var zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1);
-	
-	            this.adjustCamera(0, 0, 0, zoom);
-	        }
-	    }, {
-	        key: "mouseup",
-	        value: function mouseup(event) {
-	
-	            this.getMouse(event);
-	
-	            event.preventDefault();
-	
-	            if (this.isDraggingCentralAtom) {
-	
-	                if (this.hoverAtom !== null) {
-	
-	                    var centralAtom = this.scene.centered_atom();
-	
-	                    if (this.hoverAtom !== this.downAtom) {
-	                        this.controller.make_dist(this.hoverAtom, this.downAtom);
-	                    }
-	                }
-	
-	                this.distancePartnerPointer.hide();
-	
-	                this.isDraggingCentralAtom = false;
-	            }
-	
-	            if ((0, _util.exists)(event.touches)) {
-	
-	                this.hover.hide();
-	                this.mouseX = null;
-	                this.mouseY = null;
-	            }
-	
-	            this.downAtom = null;
-	
-	            this.mousePressed = false;
-	        }
-	    }, {
-	        key: "onKeyDown",
-	        value: function onKeyDown(event) {
-	
-	            if (window.keyboard_lock) {
-	                return;
-	            }
-	
-	            var c = String.fromCharCode(event.keyCode).toUpperCase();
-	
-	            if (c == ' ') {
-	
-	                this.controller.set_target_next_view();
-	            } else if (c == 'V') {
-	
-	                this.controller.save_current_view((0, _util.random_id)());
-	            } else if (c == 'B') {
-	
-	                var show = this.scene.current_view.show;
-	                if (show.all_atom) {
-	                    this.controller.set_backbone_option('ribbon');
-	                } else if (show.ribbon) {
-	                    this.controller.set_backbone_option('trace');
-	                } else if (show.trace) {
-	                    this.controller.set_backbone_option('all_atom');
-	                }
-	
-	                this.controller.flag_changed();
-	            } else if (c == 'N') {
-	
-	                this.controller.toggle_neighbors(false);
-	            } else if (c == 'W') {
-	
-	                this.controller.toggle_show_option('water');
-	            } else if (c == 'L') {
-	
-	                this.controller.toggle_show_option('ligands');
-	            } else if (c == 'X') {
-	
-	                var i_atom = this.scene.current_view.i_atom;
-	                if (i_atom >= 0) {
-	                    var res_id = this.protein.atoms[i_atom].res_id;
-	                    var res = this.protein.res_by_id[res_id];
-	                    var i = this.protein.get_i_res_from_res_id(res_id);
-	                    this.controller.select_residue(i, !res.selected);
-	                }
-	            } else if (c == 'S') {
-	
-	                this.controller.set_show_option('sidechain', true);
-	            } else if (c == 'C') {
-	
-	                this.controller.set_show_option('sidechain', false);
-	                this.controller.clear_selected();
-	            }
-	        }
-	    }, {
-	        key: "gesturestart",
-	        value: function gesturestart(event) {
-	
-	            event.preventDefault();
-	            this.isGesture = true;
-	            this.lastPinchRotation = 0;
-	            this.lastScale = event.scale * event.scale;
-	        }
-	    }, {
-	        key: "gesturechange",
-	        value: function gesturechange(event) {
-	
-	            event.preventDefault();
-	            this.adjustCamera(0, 0, degToRad(event.rotation * 2 - this.lastPinchRotation), this.lastScale / (event.scale * event.scale));
-	
-	            this.lastPinchRotation = event.rotation * 2;
-	            this.lastScale = event.scale * event.scale;
-	        }
-	    }, {
-	        key: "gestureend",
-	        value: function gestureend(event) {
-	
-	            event.preventDefault();
-	            this.isGesture = false;
-	            this.downAtom = null;
-	            this.mousePressed = false;
-	        }
-	    }, {
-	        key: "is_changed",
-	        value: function is_changed() {
-	
-	            return this.scene.changed;
-	        }
-	    }, {
-	        key: "selectVisibleObjects",
-	        value: function selectVisibleObjects() {
-	
-	            var show = this.scene.current_view.show;
-	
-	            (0, _glgeometry.setVisible)(this.objects.tube, show.trace);
-	
-	            (0, _glgeometry.setVisible)(this.objects.ribbons, show.ribbon);
-	
-	            (0, _glgeometry.setVisible)(this.objects.arrows, !show.all_atom);
-	
-	            if (!(0, _util.exists)(this.objects.backbone) && show.all_atom) {
-	                this.messageBar.html('building backbone');
-	                this.buildBackbone();
-	                this.buildPeptideBonds();
-	                this.messageBar.html('');
-	            }
-	            (0, _glgeometry.setVisible)(this.objects.backbone, show.all_atom);
-	            (0, _glgeometry.setVisible)(this.objects.peptides, show.all_atom);
-	
-	            if (!(0, _util.exists)(this.objects.ligands) && show.ligands) {
-	                this.buildLigands();
-	            }
-	            (0, _glgeometry.setVisible)(this.objects.ligands, show.ligands);
-	
-	            if (!(0, _util.exists)(this.objects.water) && show.water) {
-	                this.buildWaters();
-	            }
-	            (0, _glgeometry.setVisible)(this.objects.water, show.water);
-	
-	            for (var i = 0; i < this.trace.residues.length; i += 1) {
-	
-	                var residue = this.trace.residues[i];
-	
-	                var residueShow;
-	                if (show.sidechain) {
-	                    residueShow = true;
-	                } else {
-	                    residueShow = residue.selected;
-	                }
-	
-	                if (residueShow && !(0, _util.exists)(residue.sidechain)) {
-	                    this.drawSidechain(residue);
-	                }
-	                (0, _glgeometry.setVisible)(residue.sidechain, residueShow);
-	            }
-	        }
-	    }, {
-	        key: "drawDistanceLabels",
-	        value: function drawDistanceLabels() {
-	
-	            var distances = this.scene.current_view.distances;
-	            var distanceLabels = this.distanceLabels;
-	            var atoms = this.protein.atoms;
-	
-	            for (var i = 0; i < distances.length; i += 1) {
-	
-	                var distance = distances[i];
-	
-	                var p1 = _v2.default.clone(atoms[distance.i_atom1].pos);
-	                var p2 = _v2.default.clone(atoms[distance.i_atom2].pos);
-	                var m = p1.clone().add(p2).multiplyScalar(0.5);
-	                var opacity = 0.7 * this.opacity(m) + 0.3;
-	
-	                var v = this.posXY(m);
-	                var text = p1.distanceTo(p2).toFixed(1);
-	
-	                if (i >= distanceLabels.length) {
-	                    this.distanceLabels.push(new DistanceLabel(this.webglDivTag, this.threeJsScene, this.controller, this.distanceLabels));
-	                }
-	
-	                distanceLabels[i].update(i, text, v.x, v.y, p1, p2, opacity);
-	
-	                if (!this.inZlab(m)) {
-	                    distanceLabels[i].hide();
-	                }
-	            }
-	
-	            for (var i = distanceLabels.length - 1; i >= 0; i -= 1) {
-	                if (i >= distances.length) {
-	                    distanceLabels[i].remove();
-	                }
-	            }
-	        }
-	    }, {
-	        key: "drawAtomLabels",
-	        value: function drawAtomLabels() {
-	
-	            var labels = this.scene.current_view.labels;
-	            var atomLabels = this.labels;
-	
-	            for (var i = atomLabels.length; i < labels.length; i += 1) {
-	                var atomLabel = new AtomLabel(this.webglDivTag, this.controller, atomLabels);
-	                atomLabels.push(atomLabel);
-	            }
-	
-	            for (var _i3 = atomLabels.length - 1; _i3 >= 0; _i3 -= 1) {
-	                if (_i3 >= labels.length) {
-	                    atomLabels[_i3].remove();
-	                }
-	            }
-	
-	            var atoms = this.protein.atoms;
-	
-	            for (var _i4 = 0; _i4 < labels.length; _i4 += 1) {
-	
-	                var atom = atoms[labels[_i4].i_atom];
-	                var pos = _v2.default.clone(atom.pos);
-	                var v = this.posXY(pos);
-	                var opacity = 0.7 * this.opacity(pos) + 0.2;
-	
-	                atomLabels[_i4].update(_i4, labels[_i4].text, v.x, v.y, opacity);
-	
-	                if (!this.inZlab(pos)) {
-	                    atomLabels[_i4].hide();
-	                }
-	            }
-	        }
-	    }, {
-	        key: "draw",
-	        value: function draw() {
-	            if (_lodash2.default.isUndefined(this.objects)) {
-	                return;
-	            }
-	            if (!this.is_changed()) {
-	                return;
-	            }
-	            this.resize();
-	            this.setCameraFromCurrentView();
-	            this.selectVisibleObjects();
-	            this.drawAtomLabels();
-	            this.drawDistanceLabels();
-	            this.moveCrossHairs();
-	            this.renderer.render(this.threeJsScene, this.camera);
-	            this.drawAtomLabels();
-	            this.drawDistanceLabels();
-	            this.zSlab.draw();
-	            this.sequenceWidget.draw();
-	            this.scene.changed = false;
-	        }
-	    }, {
-	        key: "animate",
-	        value: function animate() {
-	
-	            if (this.scene.target_view == null) {
-	                return;
-	            }
-	
-	            this.scene.n_update_step -= 1;
-	
-	            var nStep = this.scene.n_update_step;
-	
-	            if (nStep <= 0) {
-	                return;
-	            }
-	
-	            var t = 1.0 / nStep;
-	
-	            var old = {
-	                cameraTarget: this.cameraTarget.clone(),
-	                cameraPosition: this.camera.position.clone(),
-	                cameraUp: this.camera.up.clone(),
-	                zFront: this.zFront,
-	                zBack: this.zBack
-	            };
-	
-	            var oldCameraDirection = old.cameraPosition.clone().sub(old.cameraTarget);
-	            var oldZoom = oldCameraDirection.length();
-	            oldCameraDirection.normalize();
-	
-	            var target = convertViewToTarget(this.scene.target_view);
-	            var targetCameraDirection = target.cameraPosition.clone().sub(target.cameraTarget);
-	            var targetZoom = targetCameraDirection.length();
-	            targetCameraDirection.normalize();
-	
-	            var targetCameraDirRotation = (0, _glgeometry.getUnitVectorRotation)(oldCameraDirection, targetCameraDirection);
-	
-	            var rotatedCameraUp = old.cameraUp.clone().applyQuaternion(targetCameraDirRotation);
-	
-	            var newCameraRotation = (0, _glgeometry.getUnitVectorRotation)(rotatedCameraUp, target.cameraUp);
-	            newCameraRotation.multiply(targetCameraDirRotation);
-	            newCameraRotation = (0, _glgeometry.getFractionRotation)(newCameraRotation, t);
-	
-	            var current = {};
-	            var disp;
-	            disp = target.cameraTarget.clone().sub(old.cameraTarget).multiplyScalar(t);
-	            current.cameraTarget = old.cameraTarget.clone().add(disp);
-	            var zoom = fraction(oldZoom, targetZoom, t);
-	            disp = oldCameraDirection.clone().applyQuaternion(newCameraRotation).multiplyScalar(zoom);
-	            current.cameraPosition = current.cameraTarget.clone().add(disp);
-	            current.cameraUp = old.cameraUp.clone().applyQuaternion(newCameraRotation);
-	            current.zFront = fraction(old.zFront, target.zFront, t);
-	            current.zBack = fraction(old.zBack, target.zBack, t);
-	
-	            var view = convertTargetToView(current);
-	            view.copy_metadata_from_view(this.scene.target_view);
-	            this.controller.set_current_view(view);
-	
-	            this.updateHover();
-	        }
-	    }]);
-	
-	    return GlProteinDisplay;
+	      }
+	    }
+	  }, {
+	    key: "draw",
+	    value: function draw() {
+	      if (_lodash2.default.isUndefined(this.objects)) {
+	        return;
+	      }
+	      if (!this.is_changed()) {
+	        return;
+	      }
+	      this.resize();
+	      this.setCameraFromCurrentView();
+	      this.selectVisibleObjects();
+	      this.drawAtomLabels();
+	      this.drawDistanceLabels();
+	      this.moveCrossHairs();
+	      this.renderer.render(this.threeJsScene, this.camera);
+	      this.drawAtomLabels();
+	      this.drawDistanceLabels();
+	      this.zSlab.draw();
+	      this.sequenceWidget.draw();
+	      this.scene.changed = false;
+	    }
+	  }, {
+	    key: "animate",
+	    value: function animate() {
+	
+	      if (this.scene.target_view == null) {
+	        return;
+	      }
+	
+	      this.scene.n_update_step -= 1;
+	
+	      var nStep = this.scene.n_update_step;
+	
+	      if (nStep <= 0) {
+	        return;
+	      }
+	
+	      var t = 1.0 / nStep;
+	
+	      var old = {
+	        cameraTarget: this.cameraTarget.clone(),
+	        cameraPosition: this.camera.position.clone(),
+	        cameraUp: this.camera.up.clone(),
+	        zFront: this.zFront,
+	        zBack: this.zBack
+	      };
+	
+	      var oldCameraDirection = old.cameraPosition.clone().sub(old.cameraTarget);
+	      var oldZoom = oldCameraDirection.length();
+	      oldCameraDirection.normalize();
+	
+	      var target = convertViewToTarget(this.scene.target_view);
+	      var targetCameraDirection = target.cameraPosition.clone().sub(target.cameraTarget);
+	      var targetZoom = targetCameraDirection.length();
+	      targetCameraDirection.normalize();
+	
+	      var targetCameraDirRotation = (0, _glgeometry.getUnitVectorRotation)(oldCameraDirection, targetCameraDirection);
+	
+	      var rotatedCameraUp = old.cameraUp.clone().applyQuaternion(targetCameraDirRotation);
+	
+	      var newCameraRotation = (0, _glgeometry.getUnitVectorRotation)(rotatedCameraUp, target.cameraUp);
+	      newCameraRotation.multiply(targetCameraDirRotation);
+	      newCameraRotation = (0, _glgeometry.getFractionRotation)(newCameraRotation, t);
+	
+	      var current = {};
+	      var disp;
+	      disp = target.cameraTarget.clone().sub(old.cameraTarget).multiplyScalar(t);
+	      current.cameraTarget = old.cameraTarget.clone().add(disp);
+	      var zoom = fraction(oldZoom, targetZoom, t);
+	      disp = oldCameraDirection.clone().applyQuaternion(newCameraRotation).multiplyScalar(zoom);
+	      current.cameraPosition = current.cameraTarget.clone().add(disp);
+	      current.cameraUp = old.cameraUp.clone().applyQuaternion(newCameraRotation);
+	      current.zFront = fraction(old.zFront, target.zFront, t);
+	      current.zBack = fraction(old.zBack, target.zBack, t);
+	
+	      var view = convertTargetToView(current);
+	      view.copy_metadata_from_view(this.scene.target_view);
+	      this.controller.set_current_view(view);
+	
+	      this.updateHover();
+	    }
+	  }]);
+	
+	  return ProteinDisplay;
 	}();
 	
-	exports.GlProteinDisplay = GlProteinDisplay;
+	exports.ProteinDisplay = ProteinDisplay;
 
 /***/ },
 /* 11 */

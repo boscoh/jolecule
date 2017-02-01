@@ -8,6 +8,7 @@ function initEmbedJolecule(userArgs) {
   let defaultArgs = {
     div_tag: '',
     data_server: '',
+    second_data_server: '',
     loading_html: 'Loading PDB from RCSB web-site...',
     loading_failure_html: 'Failed to load PDB.',
     view_id: '',
@@ -17,8 +18,14 @@ function initEmbedJolecule(userArgs) {
     is_loop: false,
     onload: onload,
   };
+  console.log('initEmbedJolecule');
   let args = _.merge(defaultArgs, userArgs);
-  register_global_animation_loop(new EmbedJolecule(args));
+  let j = new EmbedJolecule(args);
+  register_global_animation_loop(j);
+  if (userArgs.second_data_server) {
+    console.log('add second data_server');
+    j.addDataServer(userArgs.second_data_server);
+  }
 }
 
 /**

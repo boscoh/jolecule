@@ -17,11 +17,12 @@
     <div id="jolecule"></div>
     <script src="require.js"></script>
     <script>
-        require( ['jolecule', 'data-server'], function(jolecule, dataServer) {
+        require( ['jolecule', 'data-server', 'data-server2'], function(jolecule, dataServer, dataServer2) {
             document.title = "jolecule - 1mbo";
             jolecule.initEmbedJolecule({
                 div_tag: '#jolecule',
-                data_server: dataServer
+                data_server: dataServer,
+                second_data_server: dataServer2,
             });
         });
     </script>

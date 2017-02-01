@@ -1,7 +1,7 @@
 import $ from "jquery";
 import _ from "lodash";
 import {Protein, Controller, Scene} from "./protein";
-import {GlProteinDisplay} from "./glproteindisplay";
+import {ProteinDisplay} from "./proteindisplay";
 import {
   exists,
   blink,
@@ -14,13 +14,12 @@ import {
 } from "./util.js";
 
 
-//////////////////////////////////////////////////////////
-// 
-// EmbedJolecule - the widget that shows proteins and 
-// annotations
-//
-///////////////////////////////////////////////////////////
-
+/**
+ *
+ * EmbedJolecule - the widget that shows proteins and
+ * annotations
+ *
+ **/
 
 class EmbedJolecule {
 
@@ -42,7 +41,7 @@ class EmbedJolecule {
     this.controller = new Controller(this.scene);
 
     this.create_protein_div();
-    this.protein_display = new GlProteinDisplay(
+    this.protein_display = new ProteinDisplay(
       this.scene, '#jolecule-protein-display', this.controller);
     this.protein_display.min_radius = 10;
 
@@ -57,74 +56,95 @@ class EmbedJolecule {
     this.is_view_text_shown = this.params.is_view_text_shown;
     this.set_text_state();
 
-    var _this = this;
+    $(window).resize(() => this.resize());
 
-    $(window).resize(function() { _this.resize(); });
+    this.data_server.get_protein_data((protein_data) => {
 
-    function load_failure() {
-      _this.loading_message_div.html(
-        _this.params.loading_failure_html);
-    }
+      this.load_protein_data(protein_data);
 
-    function load_view_dicts(view_dicts) {
-      _this.load_views_from_server(view_dicts);
-      if (_this.params.view_id in _this.scene.saved_views_by_id) {
-        _this.controller.set_target_view_by_id(_this.params.view_id);
-        _this.update_view();
-      }
-      if (_this.params.onload) {
-        _this.params.onload(_this);
-      }
-    }
+      this.data_server.get_views((view_dicts) => {
 
-    function load_protein_data(protein_data) {
-      _this.loading_message_div.empty();
-      if (protein_data['pdb_text'].length == 0) {
-        load_failure();
-      } else {
-        _this.load_protein_data(protein_data);
-        _this.resize();
-        _this.data_server.get_views(load_view_dicts);
-      }
-    }
+        this.load_views_from_server(view_dicts);
 
-    this.data_server.get_protein_data(
-      load_protein_data, load_failure);
+        if (this.params.onload) {
+          this.params.onload(this);
+        }
+      });
+    });
   };
 
   load_protein_data(protein_data) {
-    this.loading_message_div.text("Calculating bonds...");
+
+    this.loading_message_div.text("Parsing protein " + protein_data.pdb_id);
+
+    if (protein_data['pdb_text'].length == 0) {
+      console.log(this.params.loading_failure_html);
+      this.loading_message_div.html(
+        this.params.loading_failure_html);
+      return;
+    }
+
     this.protein.load(protein_data);
+
     if (this.protein.parsing_error) {
       this.loading_message_div.text(
         "Error parsing protein: " + this.protein.parsing_error);
       return;
     }
-    var data = protein_data['pdb_text'];
-    var lines = data.split(/\r?\n/);
-    var default_text = "";
-    for (var i=0; i<lines.length; i++) {
-      var line = lines[i];
-      if (line.substring(0, 5) == 'TITLE') {
-        default_text += line.substring(10);
-      }
-    }
-    if (!default_text) {
-      default_text = "";
-    }
-    this.protein_display.post_load(default_text);
+
+    this.protein_display.buildAfterDataLoad();
+
     this.loading_message_div.remove();
+
+    this.resize();
+  }
+
+  addDataServer(data_server) {
+
+    data_server.get_protein_data((protein_data) => {
+      if (protein_data['pdb_text'].length == 0) {
+        this.loading_message_div.html(
+          this.params.loading_failure_html);
+        return;
+      }
+      this.loading_message_div.text("Parsing protein " + protein_data.pdb_id);
+      console.log("EmbedJolecule.addDataServer", protein_data.pdb_id);
+
+      this.protein.load(protein_data);
+      function empty(elem) {
+        while (elem.lastChild) elem.removeChild(elem.lastChild);
+      }
+      // let scene = this.protein_display.threeJsScene;
+      // for (let i = scene.children.length - 1; i >= 0 ; i--) {
+      //   let child = scene.children[ i ];
+      //
+      //   if ( child !== plane && child !== camera ) { // plane & camera are stored earlier
+      //     scene.remove(child);
+      //   }
+      // }
+      // this.protein_display.setLights();
+      this.protein_display.buildScene();
+      this.protein_display.sequenceWidget.resetResidues();
+    });
+
   }
 
   load_views_from_server(view_dicts) {
+
     this.controller.load_views_from_flat_views(view_dicts);
-    var view_id = this.scene.current_view.id;
+
+    let view_id = this.scene.current_view.id;
     if (this.init_view_id) {
       if (this.init_view_id in this.scene.saved_views_by_id) {
         view_id = this.init_view_id;
       }
     }
     this.update_view();
+
+    if (this.params.view_id in this.scene.saved_views_by_id) {
+      this.controller.set_target_view_by_id(this.params.view_id);
+      this.update_view();
+    }
   }
 
   save_views_to_server(success) {
@@ -220,7 +240,7 @@ class EmbedJolecule {
     }
   }
 
-  cycle_backbonefunction() {
+  cycle_backbone() {
     if (this.scene.current_view.show.all_atom) {
       this.controller.set_backbone_option('ribbon');
     } else if (this.scene.current_view.show.ribbon) {
@@ -231,7 +251,6 @@ class EmbedJolecule {
   }
 
   set_text_state() {
-    console.log('set_text_state', this.is_view_text_shown);
     var h_padding = this.view_div.outerHeight() - this.view_div.height();
     if (this.is_view_text_shown) {
       this.view_div.height(this.h_annotation_view);
@@ -410,7 +429,7 @@ class EmbedJolecule {
     this.div.append(this.view_div);
   }
 
-  resize(event) {
+  resize() {
     this.protein_div.width(this.div.outerWidth());
     var new_height = this.div.outerHeight()
         - this.view_div.outerHeight()
@@ -428,6 +447,4 @@ class EmbedJolecule {
 }
 
 
-export {
-  EmbedJolecule
-}
+export { EmbedJolecule }
