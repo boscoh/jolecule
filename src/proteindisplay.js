@@ -916,10 +916,6 @@ class SequenceWidget extends CanvasWrapper {
   resetResidues() {
 
     let nRawResidue = this.scene.protein.residues.length;
-    console.log(
-      "Sequencewidget.resetResidues",
-      _.map(this.scene.protein.residues, "id"));
-
 
     this.residues = [];
     for (let iRes = 0; iRes < nRawResidue; iRes += 1) {
@@ -965,6 +961,12 @@ class SequenceWidget extends CanvasWrapper {
     this.residueSelector.val(this.scene.current_view.res_id);
 
     this.iEndChar = this.iStartChar + this.nChar;
+    if (this.iEndChar > this.residues.length) {
+      this.iEndChar = this.residues.length;
+    }
+    if (this.iStartChar < 0) {
+      this.iStartChar = 0;
+    }
 
     // draw background
     this.fillRect(
@@ -1050,6 +1052,9 @@ class SequenceWidget extends CanvasWrapper {
   }
 
   populateResidueSelector() {
+    this.residueSelector
+      .find('option')
+      .remove();
     var residues = this.protein.residues;
     for (var i = 0; i < residues.length; i++) {
       var value = residues[i].id;
@@ -1749,7 +1754,7 @@ class ProteinDisplay {
     directionalLight.position.copy(
       new TV3(0.2, 0.2, 100)
         .normalize());
-    directionalLight.intensity = 1.2;
+    // directionalLight.intensity = 1.2;
     this.lights.push(directionalLight);
 
     var directionalLight2 =
@@ -1757,7 +1762,7 @@ class ProteinDisplay {
     directionalLight2.position.copy(
       new TV3(0.2, 0.2, -100)
         .normalize());
-    directionalLight2.intensity = 1.2;
+    // directionalLight2.intensity = 1.2;
     this.lights.push(directionalLight2);
 
     var ambientLight = new THREE.AmbientLight(0x202020);

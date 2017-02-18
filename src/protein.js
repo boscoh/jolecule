@@ -270,7 +270,6 @@ var Protein = function () {
     new_r.is_ligands = !new_r.is_water && !new_r.is_protein_or_nuc;
     this.res_by_id[res_id] = new_r;
     this.residues.push(new_r);
-    console.log('Protein.make_residue', res_id, a.res_type)
   }
 
   this.make_residues = function (atoms) {
@@ -805,22 +804,17 @@ var Protein = function () {
     }
     this.isLoading = true;
     this.pdb_id = protein_data['pdb_id'];
-    console.log("protein.load begin", this.pdb_id);
-    console.log("protein.load n_atoms", this.atoms.length);
-    console.log("protein.load n_residues", this.residues.length);
+    console.log(`Protein.load ${this.pdb_id} begin`);
     var atom_lines = extract_atom_lines(protein_data['pdb_text']);
     this.default_text = parsetTitleFromPdbText(protein_data['pdb_text']);
     let atoms = this.make_atoms_from_pdb_lines(atom_lines, this.pdb_id);
+    console.log(`Protein.load ${atoms.length} atoms`);
     this.make_residues(atoms);
     this.atoms = _.concat(this.atoms, atoms);
-    console.log("protein.load n_atoms", this.atoms.length);
-    console.log("protein.load n_residues", this.residues.length);
-    console.log("protein.load find bonds " + this.pdb_id);
     this.make_bonds(this.calc_bonds(this.atoms));
     this.max_length = this.calc_max_length(this.atoms);
-    console.log("protein.load find secondary structure " + this.pdb_id);
     this.find_ss();
-    console.log("protein.load end", this.pdb_id);
+    console.log(`Protein.load ${this.pdb_id} end`);
     this.isLoading = false;
   }
 

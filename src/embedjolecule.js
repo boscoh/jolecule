@@ -33,7 +33,6 @@ class EmbedJolecule {
     this.div[0].oncontextmenu = do_nothing;
 
     this.init_view_id = this.params.view_id;
-    this.data_server = this.params.data_server;
     this.h_annotation_view = this.params.view_height;
 
     this.protein = new Protein();
@@ -58,18 +57,22 @@ class EmbedJolecule {
 
     $(window).resize(() => this.resize());
 
-    this.data_server.get_protein_data((protein_data) => {
-
-      this.load_protein_data(protein_data);
-
-      this.data_server.get_views((view_dicts) => {
-
-        this.load_views_from_server(view_dicts);
-
-        if (this.params.onload) {
-          this.params.onload(this);
-        }
-      });
+    _.each(this.params.data_servers, (data_server, i) => {
+      if (i == 0) {
+        console.log('EmbedJolecule load first dataServer', i);
+        data_server.get_protein_data((protein_data) => {
+          this.load_protein_data(protein_data);
+          data_server.get_views((view_dicts) => {
+            this.load_views_from_server(view_dicts);
+            if (this.params.onload) {
+              this.params.onload(this);
+            }
+          });
+        });
+      } else {
+        console.log('EmbedJolecule load additional dataServer', i);
+        this.addDataServer(data_server);
+      }
     });
   };
 
@@ -111,18 +114,13 @@ class EmbedJolecule {
       console.log("EmbedJolecule.addDataServer", protein_data.pdb_id);
 
       this.protein.load(protein_data);
-      function empty(elem) {
-        while (elem.lastChild) elem.removeChild(elem.lastChild);
-      }
-      // let scene = this.protein_display.threeJsScene;
-      // for (let i = scene.children.length - 1; i >= 0 ; i--) {
-      //   let child = scene.children[ i ];
-      //
-      //   if ( child !== plane && child !== camera ) { // plane & camera are stored earlier
-      //     scene.remove(child);
-      //   }
-      // }
-      // this.protein_display.setLights();
+
+      let scene = this.protein_display.threeJsScene;
+      scene.children.forEach(function(object){
+        scene.remove(object);
+      });
+
+      this.protein_display.setLights();
       this.protein_display.buildScene();
       this.protein_display.sequenceWidget.resetResidues();
     });
