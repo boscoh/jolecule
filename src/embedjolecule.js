@@ -117,10 +117,12 @@ class EmbedJolecule {
 
       let scene = this.protein_display.threeJsScene;
       scene.children.forEach(function(object){
-        scene.remove(object);
+        if (_.isUndefined(object.isLight)) {
+          scene.remove(object);
+        }
       });
 
-      this.protein_display.setLights();
+      // this.protein_display.setLights();
       this.protein_display.buildScene();
       this.protein_display.sequenceWidget.resetResidues();
     });

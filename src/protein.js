@@ -334,89 +334,6 @@ var Protein = function () {
     return false;
   };
 
-  function flank(c, p, q) {
-    var axis1 = v3.diff(p, q);
-    var p_to_c = v3.diff(c, p);
-    var axis2 = v3.perpendicular(p_to_c, axis1);
-    var axis3 = v3.cross_product(axis1, axis2);
-    var c_to_p1 = v3.normalized(axis3);
-    var p1 = v3.sum(c, c_to_p1);
-    var p2 = v3.diff(c, c_to_p1);
-    return [p1, p2];
-  }
-
-  this.make_plates = function () {
-    this.ribbons = [];
-    var creases = [];
-    var crease_atoms = [];
-    var i;
-    for (var j = 0; j < this.residues.length - 1; j += 1) {
-      if (this.has_aa_bb(j)) {
-        crease_atoms.push(this.residues[j].atoms["CA"]);
-        if (this.has_aa_bb(j - 1) && this.has_aa_bb(j + 1)) {
-          creases.push(flank(
-            this.residues[j].atoms["CA"].pos,
-            this.residues[j - 1].atoms["CA"].pos,
-            this.residues[j + 1].atoms["CA"].pos));
-        } else if (this.has_aa_bb(j - 1)) {
-          creases.push(flank(
-            this.residues[j].atoms["CA"].pos,
-            this.residues[j - 1].atoms["CA"].pos,
-            this.residues[j].atoms["C"].pos));
-        } else if (this.has_aa_bb(j + 1)) {
-          creases.push(flank(
-            this.residues[j].atoms["CA"].pos,
-            this.residues[j].atoms["N"].pos,
-            this.residues[j + 1].atoms["CA"].pos));
-        }
-      }
-      if (this.has_nuc_bb(j)) {
-        crease_atoms.push(this.residues[j].atoms["C3'"]);
-        if (this.has_nuc_bb(j - 1) && this.has_nuc_bb(j + 1)) {
-          creases.push(flank(
-            this.residues[j].atoms["C3'"].pos,
-            this.residues[j - 1].atoms["C3'"].pos,
-            this.residues[j + 1].atoms["C3'"].pos));
-        } else if (this.has_nuc_bb(j - 1)) {
-          creases.push(flank(
-            this.residues[j].atoms["C3'"].pos,
-            this.residues[j - 1].atoms["C3'"].pos,
-            this.residues[j].atoms["O3'"].pos));
-        } else if (this.has_nuc_bb(j + 1)) {
-          creases.push(flank(
-            this.residues[j].atoms["C3'"].pos,
-            this.residues[j].atoms["C5'"].pos,
-            this.residues[j + 1].atoms["C3'"].pos));
-        }
-      }
-    }
-    for (var j = 1; j < creases.length; j += 1) {
-      d1 = v3.distance(creases[j - 1][0], creases[j][1]);
-      if (d1 < 8) {
-        i = j - 1;
-        bond = [crease_atoms[i], crease_atoms[j]];
-        d2 = v3.distance(creases[i][1], creases[j][0]);
-        e1 = v3.distance(creases[i][0], creases[j][0]);
-        e2 = v3.distance(creases[i][1], creases[j][1]);
-        if ((d1 + d2) < (e1 + e2)) {
-          quad_coords = [
-            creases[i][0].clone(), creases[i][1].clone(),
-            creases[j][0], creases[j][1]];
-        } else {
-          quad_coords = [
-            creases[i][0].clone(), creases[i][1].clone(),
-            creases[j][1], creases[j][0]];
-        }
-        this.ribbons.push(
-          {
-            'bond': bond,
-            'quad_coords': quad_coords,
-            'i_chain': crease_atoms[i].i_chain
-          })
-      }
-    }
-  }
-
   this.make_trace = function () {
     this.trace = [];
     for (var j = 1; j < this.residues.length; j += 1) {
@@ -563,7 +480,7 @@ var Protein = function () {
 
     var vertices = [];
     for (var i = 0; i < atoms.length; i++) {
-      var atom = atoms[i]
+      var atom = atoms[i];
       vertices.push([atom.pos.x, atom.pos.y, atom.pos.z]);
     }
     var close_pairs = this.get_close_pairs(vertices);
@@ -579,6 +496,9 @@ var Protein = function () {
       // HACK: to avoid the water grid bond calculation
       // step that kills the rendering
       if ((a0.res_type == "HOH") || (a1.res_type == "HOH")) {
+        continue;
+      }
+      if ((a0.res_type == "XXX") || (a1.res_type == "XXX")) {
         continue;
       }
       var dist = v3.distance(a0.pos, a1.pos);

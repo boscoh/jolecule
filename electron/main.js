@@ -66,7 +66,7 @@ document.title = "{{{title}}}";
 
 jolecule.initEmbedJolecule({
     div_tag: '#jolecule',
-    data_server: dataServer
+    data_servers: [dataServer]
 });
 
 `;

@@ -1754,6 +1754,7 @@ class ProteinDisplay {
     directionalLight.position.copy(
       new TV3(0.2, 0.2, 100)
         .normalize());
+    directionalLight.isLight = true;
     // directionalLight.intensity = 1.2;
     this.lights.push(directionalLight);
 
@@ -1762,10 +1763,12 @@ class ProteinDisplay {
     directionalLight2.position.copy(
       new TV3(0.2, 0.2, -100)
         .normalize());
+    directionalLight2.isLight = true;
     // directionalLight2.intensity = 1.2;
     this.lights.push(directionalLight2);
 
     var ambientLight = new THREE.AmbientLight(0x202020);
+    ambientLight.isLight = true;
     this.lights.push(ambientLight);
 
     for (var i = 0; i < this.lights.length; i += 1) {
