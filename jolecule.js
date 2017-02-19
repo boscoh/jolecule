@@ -28131,6 +28131,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var res_type = (0, _util.trim)(lines[i].substr(17, 3));
 	          var atom_type = (0, _util.trim)(lines[i].substr(12, 4));
 	          var label = res_num + ' - ' + res_type + ' - ' + atom_type;
+	          var bfactor = parseFloat(lines[i].substr(60, 6));
 	          var elem = delete_numbers((0, _util.trim)(lines[i].substr(76, 2)));
 	          if (elem == "") {
 	            elem = delete_numbers((0, _util.trim)(atom_type)).substr(0, 1);
@@ -28168,7 +28169,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            'elem': elem,
 	            'i': i,
 	            'type': atom_type,
-	            'label': label
+	            'label': label,
+	            'bfactor': bfactor
 	          });
 	        }
 	      } catch (e) {
@@ -28259,7 +28261,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    new_r.is_protein = (0, _util.in_array)(r_type, aa);
 	    new_r.is_nuc = (0, _util.in_array)(r_type, dna) || (0, _util.in_array)(r_type, rna);
 	    new_r.is_protein_or_nuc = new_r.is_protein || new_r.is_nuc;
-	    new_r.is_ligands = !new_r.is_water && !new_r.is_protein_or_nuc;
+	    new_r.is_grid = a.res_type == "XXX";
+	    new_r.is_ligands = !new_r.is_water && !new_r.is_protein_or_nuc && !new_r.is_grid;
 	    this.res_by_id[res_id] = new_r;
 	    this.residues.push(new_r);
 	  };
@@ -28284,6 +28287,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      a.is_water = res.is_water;
 	      a.is_protein_or_nuc = res.is_protein_or_nuc;
 	      a.is_ligands = res.is_ligands;
+	      a.is_grid = res.is_grid;
 	    }
 	    for (var i = 0; i < this.residues.length; i += 1) {
 	      var res = this.residues[i];
@@ -73034,6 +73038,143 @@ return /******/ (function(modules) { // webpackBootstrap
 	}(CanvasWrapper);
 	
 	/**
+	 * GridBar
+	 **/
+	
+	var GridBar = function (_CanvasWrapper3) {
+	  _inherits(GridBar, _CanvasWrapper3);
+	
+	  function GridBar(selector, scene) {
+	    _classCallCheck(this, GridBar);
+	
+	    var _this7 = _possibleConstructorReturn(this, (GridBar.__proto__ || Object.getPrototypeOf(GridBar)).call(this, selector));
+	
+	    _this7.scene = scene;
+	    _this7.maxB = 2;
+	    _this7.minB = 0;
+	    _this7.diffB = _this7.maxB - _this7.minB;
+	    _this7.scene.grid = 1.1;
+	    _this7.div.attr('id', 'gslab');
+	    return _this7;
+	  }
+	
+	  _createClass(GridBar, [{
+	    key: "resize",
+	    value: function resize() {
+	
+	      var parentDivPos = this.parentDiv.position();
+	      this.div.css({
+	        'width': this.width(),
+	        'height': this.parentDiv.height(),
+	        'top': this.y(),
+	        'left': this.x()
+	      });
+	      this.canvasDom.width = this.width();
+	      this.canvasDom.height = this.height();
+	    }
+	  }, {
+	    key: "width",
+	    value: function width() {
+	      return 40;
+	    }
+	  }, {
+	    key: "x",
+	    value: function x() {
+	      var parentDivPos = this.parentDiv.position();
+	      return parentDivPos.left;
+	    }
+	  }, {
+	    key: "y",
+	    value: function y() {
+	      var parentDivPos = this.parentDiv.position();
+	      return parentDivPos.top;
+	    }
+	  }, {
+	    key: "yToZ",
+	    value: function yToZ(y) {
+	
+	      var fraction = y / this.height();
+	      return fraction * this.diffB + this.minB;
+	    }
+	  }, {
+	    key: "zToY",
+	    value: function zToY(z) {
+	
+	      var fraction = (z - this.minB) / this.diffB;
+	      return fraction * this.height();
+	    }
+	  }, {
+	    key: "draw",
+	    value: function draw() {
+	
+	      var protein = this.scene.protein;
+	      var camera = this.scene.current_view.abs_camera;
+	
+	      var yTop = this.zToY(this.scene.grid);
+	
+	      var grey = "rgba(40, 40, 40, 0.75)";
+	      var dark = "rgba(100, 70, 70, 0.75)";
+	      var light = "rgba(150, 90, 90, 0.75)";
+	
+	      this.fillRect(0, 0, this.width(), this.height(), grey);
+	
+	      this.fillRect(0, 0, this.width(), yTop, dark);
+	
+	      var font = '12px sans-serif';
+	      var xm = this.width() / 2;
+	
+	      this.text('xeon', xm, yTop + 7, font, light, 'center');
+	    }
+	  }, {
+	    key: "getZ",
+	    value: function getZ(event) {
+	
+	      this.getPointer(event);
+	
+	      this.z = this.yToZ(this.pointerY);
+	    }
+	  }, {
+	    key: "mousedown",
+	    value: function mousedown(event) {
+	
+	      event.preventDefault();
+	
+	      this.getZ(event);
+	
+	      this.mousePressed = true;
+	
+	      this.mousemove(event);
+	    }
+	  }, {
+	    key: "mousemove",
+	    value: function mousemove(event) {
+	
+	      event.preventDefault();
+	
+	      if (!this.mousePressed) {
+	        return;
+	      }
+	
+	      this.getZ(event);
+	
+	      this.scene.grid = this.z;
+	
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: "mouseup",
+	    value: function mouseup(event) {
+	
+	      event.preventDefault();
+	
+	      this.mousePressed = false;
+	    }
+	  }]);
+	
+	  return GridBar;
+	}(CanvasWrapper);
+	
+	/**
 	 *
 	 * GlProteinDisplay: The main window for the jolecule
 	 * webGL threeJs object.
@@ -73041,7 +73182,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var ProteinDisplay = function () {
 	  function ProteinDisplay(scene, divTag, controller) {
-	    var _this7 = this;
+	    var _this8 = this;
 	
 	    _classCallCheck(this, ProteinDisplay);
 	
@@ -73052,7 +73193,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.controller = controller;
 	
 	    this.controller.set_target_view_by_res_id = function (resId) {
-	      _this7.setTargetFromResId(resId);
+	      _this8.setTargetFromResId(resId);
 	    };
 	    this.controller.calculate_current_abs_camera = function () {};
 	
@@ -73114,6 +73255,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.hover.arrow.css("pointer-events", "none");
 	
 	    this.zSlab = new ZSlabBar(this.divTag, this.scene);
+	    this.gSlab = new GridBar(this.divTag, this.scene);
 	
 	    this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
 	
@@ -73122,40 +73264,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var dom = this.renderer.domElement;
 	
 	    dom.addEventListener('mousedown', function (e) {
-	      _this7.mousedown(e);
+	      _this8.mousedown(e);
 	    });
 	    dom.addEventListener('mousemove', function (e) {
-	      _this7.mousemove(e);
+	      _this8.mousemove(e);
 	    });
 	    dom.addEventListener('mouseup', function (e) {
-	      _this7.mouseup(e);
+	      _this8.mouseup(e);
 	    });
 	    dom.addEventListener('mousewheel', function (e) {
-	      _this7.mousewheel(e);
+	      _this8.mousewheel(e);
 	    });
 	    dom.addEventListener('DOMMouseScroll', function (e) {
-	      _this7.mousewheel(e);
+	      _this8.mousewheel(e);
 	    });
 	    dom.addEventListener('touchstart', function (e) {
-	      _this7.mousedown(e);
+	      _this8.mousedown(e);
 	    });
 	    dom.addEventListener('touchmove', function (e) {
-	      _this7.mousemove(e);
+	      _this8.mousemove(e);
 	    });
 	    dom.addEventListener('touchend', function (e) {
-	      _this7.mouseup(e);
+	      _this8.mouseup(e);
 	    });
 	    dom.addEventListener('touchcancel', function (e) {
-	      _this7.mouseup(e);
+	      _this8.mouseup(e);
 	    });
 	    dom.addEventListener('gesturestart', function (e) {
-	      _this7.gesturestart(e);
+	      _this8.gesturestart(e);
 	    });
 	    dom.addEventListener('gesturechange', function (e) {
-	      _this7.gesturechange(e);
+	      _this8.gesturechange(e);
 	    });
 	    dom.addEventListener('gestureend', function (e) {
-	      _this7.gestureend(e);
+	      _this8.gestureend(e);
 	    });
 	  }
 	
@@ -73850,6 +73992,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.objects.water.add(mesh);
 	    }
 	  }, {
+	    key: "buildGrid",
+	    value: function buildGrid() {
+	
+	      console.log('buildGrid');
+	
+	      this.objects.grid = new _three2.default.Object3D();
+	      this.threeJsScene.add(this.objects.grid);
+	
+	      var geom = new _three2.default.Geometry();
+	
+	      for (var i = 0; i < this.protein.residues.length; i += 1) {
+	
+	        var residue = this.protein.residues[i];
+	
+	        if (!residue.is_grid) {
+	          continue;
+	        }
+	
+	        console.log('buildGrd +1');
+	        for (var a in residue.atoms) {
+	          this.pushAtom(this.objects.grid, residue.atoms[a]);
+	        }
+	      }
+	
+	      var material = new _three2.default.MeshLambertMaterial({
+	        color: 0xFFFFFF,
+	        vertexColors: _three2.default.VertexColors
+	      });
+	      var mesh = new _three2.default.Mesh(geom, material);
+	      this.objects.grid.add(mesh);
+	    }
+	  }, {
 	    key: "drawSidechain",
 	    value: function drawSidechain(residue) {
 	
@@ -74217,6 +74391,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.renderer.setSize(this.width(), this.height());
 	
 	      this.zSlab.resize();
+	      this.gSlab.resize();
 	      this.sequenceWidget.resize();
 	
 	      this.controller.flag_changed();
@@ -74676,6 +74851,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "selectVisibleObjects",
 	    value: function selectVisibleObjects() {
+	      var _this9 = this;
 	
 	      var show = this.scene.current_view.show;
 	
@@ -74703,6 +74879,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.buildWaters();
 	      }
 	      (0, _glgeometry.setVisible)(this.objects.water, show.water);
+	
+	      if (!(0, _util.exists)(this.objects.grid)) {
+	        this.buildGrid();
+	      }
+	      if ((0, _util.exists)(this.scene.grid)) {
+	        if (this.objects.grid) {
+	          this.objects.grid.traverse(function (child) {
+	            if (child instanceof _three2.default.Mesh && (0, _util.exists)(child.atom)) {
+	              if (child.atom.bfactor > _this9.scene.grid) {
+	                child.visible = true;
+	              } else {
+	                child.visible = false;
+	              }
+	            }
+	          });
+	        }
+	      }
 	
 	      for (var i = 0; i < this.trace.residues.length; i += 1) {
 	
@@ -74811,6 +75004,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.drawAtomLabels();
 	      this.drawDistanceLabels();
 	      this.zSlab.draw();
+	      this.gSlab.draw();
 	      this.sequenceWidget.draw();
 	      this.scene.changed = false;
 	    }

@@ -1243,6 +1243,145 @@ class ZSlabBar extends CanvasWrapper {
 
 
 /**
+ * GridBar
+ **/
+
+class GridBar extends CanvasWrapper {
+
+  constructor(selector, scene) {
+
+    super(selector);
+    this.scene = scene;
+    this.maxB = 2;
+    this.minB = 0;
+    this.diffB = this.maxB - this.minB;
+    this.scene.grid = 1.1;
+    this.div.attr('id', 'gslab');
+  }
+
+
+  resize() {
+
+    let parentDivPos = this.parentDiv.position();
+    this.div.css({
+      'width': this.width(),
+      'height': this.parentDiv.height(),
+      'top': this.y(),
+      'left': this.x(),
+    });
+    this.canvasDom.width = this.width();
+    this.canvasDom.height = this.height();
+  }
+
+
+  width() {
+    return 40
+  }
+
+
+  x() {
+    let parentDivPos = this.parentDiv.position();
+    return parentDivPos.left;
+  }
+
+
+  y() {
+    let parentDivPos = this.parentDiv.position();
+    return parentDivPos.top;
+  }
+
+
+  yToZ(y) {
+
+    let fraction = y / this.height();
+    return fraction * this.diffB + this.minB;
+
+  }
+
+
+  zToY(z) {
+
+    let fraction = (z - this.minB) / this.diffB;
+    return fraction * this.height();
+
+  }
+
+
+  draw() {
+
+    let protein = this.scene.protein;
+    let camera = this.scene.current_view.abs_camera;
+
+    let yTop = this.zToY(this.scene.grid);
+
+    let grey = "rgba(40, 40, 40, 0.75)";
+    let dark = "rgba(100, 70, 70, 0.75)";
+    let light = "rgba(150, 90, 90, 0.75)";
+
+    this.fillRect(
+      0, 0, this.width(), this.height(), grey);
+
+    this.fillRect(
+      0, 0, this.width(), yTop, dark);
+
+    let font = '12px sans-serif';
+    let xm = this.width() / 2;
+
+    this.text(
+      'xeon', xm, yTop + 7, font, light, 'center')
+  }
+
+
+  getZ(event) {
+
+    this.getPointer(event);
+
+    this.z = this.yToZ(this.pointerY);
+
+  }
+
+
+  mousedown(event) {
+
+    event.preventDefault();
+
+    this.getZ(event);
+
+    this.mousePressed = true;
+
+    this.mousemove(event);
+
+  }
+
+
+  mousemove(event) {
+
+    event.preventDefault();
+
+    if (!this.mousePressed) {
+      return;
+    }
+
+    this.getZ(event);
+
+    this.scene.grid = this.z;
+
+    this.scene.changed = true;
+
+  }
+
+
+  mouseup(event) {
+
+    event.preventDefault();
+
+    this.mousePressed = false;
+
+  }
+}
+
+
+/**
  *
  * GlProteinDisplay: The main window for the jolecule
  * webGL threeJs object.
@@ -1329,6 +1468,7 @@ class ProteinDisplay {
     this.hover.arrow.css("pointer-events", "none");
 
     this.zSlab = new ZSlabBar(this.divTag, this.scene);
+    this.gSlab = new GridBar( this.divTag, this.scene );
 
     this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
 
@@ -2185,6 +2325,40 @@ class ProteinDisplay {
   }
 
 
+  buildGrid() {
+
+    console.log('buildGrid');
+
+    this.objects.grid = new THREE.Object3D();
+    this.threeJsScene.add(this.objects.grid);
+
+    var geom = new THREE.Geometry();
+
+    for (var i = 0; i < this.protein.residues.length; i += 1) {
+
+      var residue = this.protein.residues[i];
+
+      if (!residue.is_grid) {
+        continue;
+      }
+
+      console.log('buildGrd +1');
+      for (var a in residue.atoms) {
+        this.pushAtom(this.objects.grid, residue.atoms[a]);
+      }
+
+    }
+
+    var material = new THREE.MeshLambertMaterial({
+      color: 0xFFFFFF,
+      vertexColors: THREE.VertexColors
+    });
+    var mesh = new THREE.Mesh(geom, material);
+    this.objects.grid.add(mesh);
+
+  }
+
+
   drawSidechain(residue) {
 
     if (!residue.is_protein_or_nuc) {
@@ -2634,6 +2808,7 @@ class ProteinDisplay {
     this.renderer.setSize(this.width(), this.height());
 
     this.zSlab.resize();
+    this.gSlab.resize();
     this.sequenceWidget.resize();
 
     this.controller.flag_changed();
@@ -3190,6 +3365,23 @@ class ProteinDisplay {
     }
     setVisible(this.objects.water, show.water);
 
+    if (!exists(this.objects.grid)) {
+      this.buildGrid();
+    }
+    if (exists(this.scene.grid)) {
+      if (this.objects.grid) {
+        this.objects.grid.traverse((child) => {
+          if ((child instanceof THREE.Mesh) && exists(child.atom)) {
+            if (child.atom.bfactor > this.scene.grid) {
+              child.visible = true;
+            } else {
+              child.visible = false;
+            }
+          }
+        });
+      }
+    }
+
     for (var i = 0; i < this.trace.residues.length; i += 1) {
 
       var residue = this.trace.residues[i];
@@ -3312,6 +3504,7 @@ class ProteinDisplay {
     this.drawAtomLabels();
     this.drawDistanceLabels();
     this.zSlab.draw();
+    this.gSlab.draw();
     this.sequenceWidget.draw();
     this.scene.changed = false;
 

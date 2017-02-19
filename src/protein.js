@@ -134,6 +134,7 @@ var Protein = function () {
           var atom_type = trim(lines[i].substr(12, 4));
           var label = res_num + ' - ' + res_type +
             ' - ' + atom_type;
+          var bfactor = parseFloat(lines[i].substr(60,6));
           var elem = delete_numbers(trim(lines[i].substr(76, 2)));
           if (elem == "") {
             elem = delete_numbers(trim(atom_type)).substr(0, 1);
@@ -174,7 +175,8 @@ var Protein = function () {
               'elem': elem,
               'i': i,
               'type': atom_type,
-              'label': label
+              'label': label,
+              'bfactor': bfactor
             }
           );
         }
@@ -267,7 +269,8 @@ var Protein = function () {
     new_r.is_protein = in_array(r_type, aa);
     new_r.is_nuc = in_array(r_type, dna) || in_array(r_type, rna);
     new_r.is_protein_or_nuc = new_r.is_protein || new_r.is_nuc;
-    new_r.is_ligands = !new_r.is_water && !new_r.is_protein_or_nuc;
+    new_r.is_grid = a.res_type == "XXX";
+    new_r.is_ligands = !new_r.is_water && !new_r.is_protein_or_nuc && !new_r.is_grid;
     this.res_by_id[res_id] = new_r;
     this.residues.push(new_r);
   }
@@ -292,6 +295,7 @@ var Protein = function () {
       a.is_water = res.is_water;
       a.is_protein_or_nuc = res.is_protein_or_nuc;
       a.is_ligands = res.is_ligands;
+      a.is_grid = res.is_grid;
     }
     for (var i = 0; i < this.residues.length; i += 1) {
       var res = this.residues[i];
