@@ -810,8 +810,8 @@ var Protein = function () {
   this.are_close_residues = function (j, k) {
     var res_j = this.residues[j];
     var res_k = this.residues[k];
-    var atom_j = this.atoms[res_j.central_atom.i];
-    var atom_k = this.atoms[res_k.central_atom.i];
+    var atom_j = res_j.central_atom;
+    var atom_k = res_k.central_atom;
     if (v3.distance(atom_j.pos, atom_k.pos) > 17) {
       return false;
     }
@@ -830,6 +830,7 @@ var Protein = function () {
   this.select_neighbors = function (i_res, b) {
     this.residues[i_res].selected = true;
     for (var j = 0; j < this.residues.length; j += 1) {
+      var res = this.residues[j];
       if (this.are_close_residues(j, i_res)) {
         this.residues[j].selected = b;
       }

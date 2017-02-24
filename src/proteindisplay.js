@@ -58,7 +58,13 @@ var ElementColors = {
   "BR": 0x882200,
   "I": 0x6600AA,
   "FE": 0xCC6600,
-  "CA": 0x8888AA
+  "CA": 0x8888AA,
+  "He": 0x7B86C2,
+  "Ne": 0x9ED2E4,
+  "Ar": 0x5DC4BE,
+  "Kr": 0xACD376,
+  "Xe": 0xF79F7C,
+  "Rn": 0xE29EC5,
 };
 
 
@@ -2332,29 +2338,16 @@ class ProteinDisplay {
     this.objects.grid = new THREE.Object3D();
     this.threeJsScene.add(this.objects.grid);
 
-    var geom = new THREE.Geometry();
-
     for (var i = 0; i < this.protein.residues.length; i += 1) {
 
       var residue = this.protein.residues[i];
 
-      if (!residue.is_grid) {
-        continue;
+      if (residue.is_grid) {
+        for (var a in residue.atoms) {
+          this.pushAtom(this.objects.grid, residue.atoms[a]);
+        }
       }
-
-      console.log('buildGrd +1');
-      for (var a in residue.atoms) {
-        this.pushAtom(this.objects.grid, residue.atoms[a]);
-      }
-
     }
-
-    var material = new THREE.MeshLambertMaterial({
-      color: 0xFFFFFF,
-      vertexColors: THREE.VertexColors
-    });
-    var mesh = new THREE.Mesh(geom, material);
-    this.objects.grid.add(mesh);
 
   }
 

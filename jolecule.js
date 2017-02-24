@@ -28776,8 +28776,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.are_close_residues = function (j, k) {
 	    var res_j = this.residues[j];
 	    var res_k = this.residues[k];
-	    var atom_j = this.atoms[res_j.central_atom.i];
-	    var atom_k = this.atoms[res_k.central_atom.i];
+	    var atom_j = res_j.central_atom;
+	    var atom_k = res_k.central_atom;
 	    if (_v2.default.distance(atom_j.pos, atom_k.pos) > 17) {
 	      return false;
 	    }
@@ -28796,6 +28796,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.select_neighbors = function (i_res, b) {
 	    this.residues[i_res].selected = true;
 	    for (var j = 0; j < this.residues.length; j += 1) {
+	      var res = this.residues[j];
 	      if (this.are_close_residues(j, i_res)) {
 	        this.residues[j].selected = b;
 	      }
@@ -71928,7 +71929,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  "BR": 0x882200,
 	  "I": 0x6600AA,
 	  "FE": 0xCC6600,
-	  "CA": 0x8888AA
+	  "CA": 0x8888AA,
+	  "He": 0x7B86C2,
+	  "Ne": 0x9ED2E4,
+	  "Ar": 0x5DC4BE,
+	  "Kr": 0xACD376,
+	  "Xe": 0xF79F7C,
+	  "Rn": 0xE29EC5
 	};
 	
 	function getSsColor(ss) {
@@ -74000,28 +74007,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.objects.grid = new _three2.default.Object3D();
 	      this.threeJsScene.add(this.objects.grid);
 	
-	      var geom = new _three2.default.Geometry();
-	
 	      for (var i = 0; i < this.protein.residues.length; i += 1) {
 	
 	        var residue = this.protein.residues[i];
 	
-	        if (!residue.is_grid) {
-	          continue;
-	        }
-	
-	        console.log('buildGrd +1');
-	        for (var a in residue.atoms) {
-	          this.pushAtom(this.objects.grid, residue.atoms[a]);
+	        if (residue.is_grid) {
+	          for (var a in residue.atoms) {
+	            this.pushAtom(this.objects.grid, residue.atoms[a]);
+	          }
 	        }
 	      }
-	
-	      var material = new _three2.default.MeshLambertMaterial({
-	        color: 0xFFFFFF,
-	        vertexColors: _three2.default.VertexColors
-	      });
-	      var mesh = new _three2.default.Mesh(geom, material);
-	      this.objects.grid.add(mesh);
 	    }
 	  }, {
 	    key: "drawSidechain",
