@@ -88,6 +88,7 @@ const embedIndexHtmlMustache = `
             jolecule.initEmbedJolecule({
                 div_tag: '#jolecule',
                 data_servers: [{{{dataServerArgStr}}}],
+                isGrid: true,
             });
         });
     </script>

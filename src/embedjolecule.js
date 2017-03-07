@@ -41,7 +41,7 @@ class EmbedJolecule {
 
     this.create_protein_div();
     this.protein_display = new ProteinDisplay(
-      this.scene, '#jolecule-protein-display', this.controller);
+      this.scene, '#jolecule-protein-display', this.controller, params.isGrid);
     this.protein_display.min_radius = 10;
 
     this.create_status_div();

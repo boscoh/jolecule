@@ -1340,7 +1340,6 @@ class GridBar extends CanvasWrapper {
     }
     return z;
 
-
   }
 
   zToY(z) {
@@ -1431,13 +1430,14 @@ class GridBar extends CanvasWrapper {
 
 class ProteinDisplay {
 
-  constructor(scene, divTag, controller) {
+  constructor(scene, divTag, controller, isGrid) {
 
     console.log('GlProteinDisplay.constructor');
     this.divTag = divTag;
     this.scene = scene;
     this.protein = scene.protein;
     this.controller = controller;
+    this.isGrid = isGrid;
 
     this.controller.set_target_view_by_res_id =
       (resId) => {
@@ -2837,7 +2837,9 @@ class ProteinDisplay {
     this.renderer.setSize(this.width(), this.height());
 
     this.zSlab.resize();
-    this.gSlab.resize();
+    if (this.isGrid) {
+      this.gSlab.resize();
+    }
     this.sequenceWidget.resize();
 
     this.controller.flag_changed();
@@ -3535,7 +3537,9 @@ class ProteinDisplay {
     this.drawAtomLabels();
     this.drawDistanceLabels();
     this.zSlab.draw();
-    this.gSlab.draw();
+    if (this.isGrid) {
+      this.gSlab.draw();
+    }
     this.sequenceWidget.draw();
     this.scene.changed = false;
 

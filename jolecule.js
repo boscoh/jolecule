@@ -88,7 +88,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    is_view_text_shown: false,
 	    is_editable: true,
 	    is_loop: false,
-	    onload: onload
+	    onload: onload,
+	    isGrid: false
 	  };
 	  console.log('initEmbedJolecule');
 	  var args = _lodash2.default.merge(defaultArgs, userArgs);
@@ -272,7 +273,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.controller = new _protein.Controller(this.scene);
 	
 	    this.create_protein_div();
-	    this.protein_display = new _proteindisplay.ProteinDisplay(this.scene, '#jolecule-protein-display', this.controller);
+	    this.protein_display = new _proteindisplay.ProteinDisplay(this.scene, '#jolecule-protein-display', this.controller, params.isGrid);
 	    this.protein_display.min_radius = 10;
 	
 	    this.create_status_div();
@@ -73236,7 +73237,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	
 	var ProteinDisplay = function () {
-	  function ProteinDisplay(scene, divTag, controller) {
+	  function ProteinDisplay(scene, divTag, controller, isGrid) {
 	    var _this9 = this;
 	
 	    _classCallCheck(this, ProteinDisplay);
@@ -73246,6 +73247,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.scene = scene;
 	    this.protein = scene.protein;
 	    this.controller = controller;
+	    this.isGrid = isGrid;
 	
 	    this.controller.set_target_view_by_res_id = function (resId) {
 	      _this9.setTargetFromResId(resId);
@@ -74434,7 +74436,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.renderer.setSize(this.width(), this.height());
 	
 	      this.zSlab.resize();
-	      this.gSlab.resize();
+	      if (this.isGrid) {
+	        this.gSlab.resize();
+	      }
 	      this.sequenceWidget.resize();
 	
 	      this.controller.flag_changed();
@@ -75048,7 +75052,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.drawAtomLabels();
 	      this.drawDistanceLabels();
 	      this.zSlab.draw();
-	      this.gSlab.draw();
+	      if (this.isGrid) {
+	        this.gSlab.draw();
+	      }
 	      this.sequenceWidget.draw();
 	      this.scene.changed = false;
 	    }

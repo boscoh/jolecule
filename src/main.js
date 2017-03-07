@@ -16,6 +16,7 @@ function initEmbedJolecule(userArgs) {
     is_editable: true,
     is_loop: false,
     onload: onload,
+    isGrid: false
   };
   console.log('initEmbedJolecule');
   let args = _.merge(defaultArgs, userArgs);
