@@ -28709,6 +28709,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    console.log("Protein.load " + atoms.length + " atoms");
 	    this.make_residues(atoms);
 	    this.atoms = _.concat(this.atoms, atoms);
+	    for (var i = 0; i < this.atoms.length; i += 1) {
+	      this.atoms[i].i = i;
+	    }
 	    this.make_bonds(this.calc_bonds(this.atoms));
 	    this.max_length = this.calc_max_length(this.atoms);
 	    this.find_ss();
@@ -71578,6 +71581,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  item.click(function (e) {
+	    e.preventDefault();
 	    toggle(!get_toggle());
 	    color();
 	    return false;
@@ -73058,14 +73062,44 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    _this7.scene = scene;
 	    _this7.maxB = 2;
-	    _this7.minB = 0;
+	    _this7.minB = 0.8;
 	    _this7.diffB = _this7.maxB - _this7.minB;
-	    _this7.scene.grid = 1.1;
+	    _this7.scene.grid = 0.8;
+	    _this7.scene.grid_atoms = {
+	      "He": true,
+	      "Ne": true,
+	      "Ar": true,
+	      "Kr": true,
+	      "Xe": true,
+	      "Rn": true
+	    };
+	    _this7.sliderHeight = 45 * 6 - 50;
 	    _this7.div.attr('id', 'gslab');
+	    var y = 5;
+	    for (var elem in _this7.scene.grid_atoms) {
+	      _this7.div.append(_this7.make_elem_button(elem, y));
+	      y += 45;
+	    }
+	
 	    return _this7;
 	  }
 	
 	  _createClass(GridBar, [{
+	    key: "make_elem_button",
+	    value: function make_elem_button(elem, y) {
+	      var _this8 = this;
+	
+	      console.log("make grid atoms", elem, this.scene.grid_atoms[elem]);
+	      var text_button = (0, _util.toggle_button)('toggle_text', elem, 'jolecule-button', function () {
+	        return _this8.scene.grid_atoms[elem];
+	      }, function (b) {
+	        _this8.scene.grid_atoms[elem] = b;
+	        _this8.scene.changed = true;
+	      });
+	      text_button.attr("style", "position: absolute; top: " + y + "px; left: 40px; width: 20px");
+	      return text_button;
+	    }
+	  }, {
 	    key: "resize",
 	    value: function resize() {
 	
@@ -73082,7 +73116,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "width",
 	    value: function width() {
-	      return 40;
+	      return 78;
+	    }
+	  }, {
+	    key: "height",
+	    value: function height() {
+	      return 45 * 6 + 10;
 	    }
 	  }, {
 	    key: "x",
@@ -73094,21 +73133,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "y",
 	    value: function y() {
 	      var parentDivPos = this.parentDiv.position();
-	      return parentDivPos.top;
+	      return parentDivPos.top + 50;
 	    }
 	  }, {
 	    key: "yToZ",
 	    value: function yToZ(y) {
 	
-	      var fraction = y / this.height();
-	      return fraction * this.diffB + this.minB;
+	      var fraction = (y - 20) / this.sliderHeight;
+	      var z = fraction * this.diffB + this.minB;
+	      if (z < this.minB) {
+	        z = this.minB;
+	      }
+	      if (z > this.maxB) {
+	        z = this.maxB;
+	      }
+	      return z;
 	    }
 	  }, {
 	    key: "zToY",
 	    value: function zToY(z) {
 	
-	      var fraction = (z - this.minB) / this.diffB;
-	      return fraction * this.height();
+	      return (z - this.minB) / this.diffB * this.sliderHeight + 20;
 	    }
 	  }, {
 	    key: "draw",
@@ -73117,20 +73162,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var protein = this.scene.protein;
 	      var camera = this.scene.current_view.abs_camera;
 	
-	      var yTop = this.zToY(this.scene.grid);
+	      var backgroundColor = "#222222";
 	
-	      var grey = "rgba(40, 40, 40, 0.75)";
-	      var dark = "rgba(100, 70, 70, 0.75)";
-	      var light = "rgba(150, 90, 90, 0.75)";
+	      this.fillRect(0, 0, this.width(), this.height(), backgroundColor);
 	
-	      this.fillRect(0, 0, this.width(), this.height(), grey);
+	      var xm = 20;
 	
-	      this.fillRect(0, 0, this.width(), yTop, dark);
+	      var dark = "rgb(100, 100, 100)";
+	      var yTop = this.zToY(this.minB);
+	      var yBottom = this.zToY(this.maxB);
+	      this.line(xm, yTop, xm, yBottom, 1, dark);
+	      this.line(5, yTop, 35, yTop, 1, dark);
 	
 	      var font = '12px sans-serif';
-	      var xm = this.width() / 2;
-	
-	      this.text('xeon', xm, yTop + 7, font, light, 'center');
+	      var textColor = "#98ab98";
+	      var y = this.zToY(this.scene.grid);
+	      this.fillRect(5, y, 30, 5, textColor);
+	      this.text(-this.scene.grid.toFixed(2), xm, y + 15, font, textColor, 'center');
 	    }
 	  }, {
 	    key: "getZ",
@@ -73189,7 +73237,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var ProteinDisplay = function () {
 	  function ProteinDisplay(scene, divTag, controller) {
-	    var _this8 = this;
+	    var _this9 = this;
 	
 	    _classCallCheck(this, ProteinDisplay);
 	
@@ -73200,7 +73248,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.controller = controller;
 	
 	    this.controller.set_target_view_by_res_id = function (resId) {
-	      _this8.setTargetFromResId(resId);
+	      _this9.setTargetFromResId(resId);
 	    };
 	    this.controller.calculate_current_abs_camera = function () {};
 	
@@ -73271,40 +73319,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var dom = this.renderer.domElement;
 	
 	    dom.addEventListener('mousedown', function (e) {
-	      _this8.mousedown(e);
+	      _this9.mousedown(e);
 	    });
 	    dom.addEventListener('mousemove', function (e) {
-	      _this8.mousemove(e);
+	      _this9.mousemove(e);
 	    });
 	    dom.addEventListener('mouseup', function (e) {
-	      _this8.mouseup(e);
+	      _this9.mouseup(e);
 	    });
 	    dom.addEventListener('mousewheel', function (e) {
-	      _this8.mousewheel(e);
+	      _this9.mousewheel(e);
 	    });
 	    dom.addEventListener('DOMMouseScroll', function (e) {
-	      _this8.mousewheel(e);
+	      _this9.mousewheel(e);
 	    });
 	    dom.addEventListener('touchstart', function (e) {
-	      _this8.mousedown(e);
+	      _this9.mousedown(e);
 	    });
 	    dom.addEventListener('touchmove', function (e) {
-	      _this8.mousemove(e);
+	      _this9.mousemove(e);
 	    });
 	    dom.addEventListener('touchend', function (e) {
-	      _this8.mouseup(e);
+	      _this9.mouseup(e);
 	    });
 	    dom.addEventListener('touchcancel', function (e) {
-	      _this8.mouseup(e);
+	      _this9.mouseup(e);
 	    });
 	    dom.addEventListener('gesturestart', function (e) {
-	      _this8.gesturestart(e);
+	      _this9.gesturestart(e);
 	    });
 	    dom.addEventListener('gesturechange', function (e) {
-	      _this8.gesturechange(e);
+	      _this9.gesturechange(e);
 	    });
 	    dom.addEventListener('gestureend', function (e) {
-	      _this8.gestureend(e);
+	      _this9.gestureend(e);
 	    });
 	  }
 	
@@ -74846,7 +74894,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "selectVisibleObjects",
 	    value: function selectVisibleObjects() {
-	      var _this9 = this;
+	      var _this10 = this;
 	
 	      var show = this.scene.current_view.show;
 	
@@ -74880,9 +74928,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      if ((0, _util.exists)(this.scene.grid)) {
 	        if (this.objects.grid) {
+	          console.log(this.scene.grid_atoms);
 	          this.objects.grid.traverse(function (child) {
 	            if (child instanceof _three2.default.Mesh && (0, _util.exists)(child.atom)) {
-	              if (child.atom.bfactor > _this9.scene.grid) {
+	              if (child.atom.bfactor > _this10.scene.grid && _this10.scene.grid_atoms[child.atom.elem]) {
 	                child.visible = true;
 	              } else {
 	                child.visible = false;

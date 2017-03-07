@@ -18,6 +18,7 @@ import {
   setGeometryVerticesColor
 } from "./glgeometry";
 import {
+  toggle_button,
   exists,
   pos_dom,
   create_edit_box_div,
@@ -1259,12 +1260,40 @@ class GridBar extends CanvasWrapper {
     super(selector);
     this.scene = scene;
     this.maxB = 2;
-    this.minB = 0;
+    this.minB = 0.8;
     this.diffB = this.maxB - this.minB;
-    this.scene.grid = 1.1;
+    this.scene.grid = 0.8;
+    this.scene.grid_atoms = {
+      "He": true,
+      "Ne": true,
+      "Ar": true,
+      "Kr": true,
+      "Xe": true,
+      "Rn": true,
+    };
+    this.sliderHeight = 45*6 - 50;
     this.div.attr('id', 'gslab');
+    var y = 5;
+    for (var elem in this.scene.grid_atoms) {
+      this.div.append(this.make_elem_button(elem, y));
+      y += 45;
+    }
+
   }
 
+  make_elem_button(elem, y) {
+    console.log("make grid atoms", elem, this.scene.grid_atoms[elem]);
+    var text_button = toggle_button(
+      'toggle_text', elem, 'jolecule-button',
+      () => { return this.scene.grid_atoms[elem]; },
+      (b) => {
+        this.scene.grid_atoms[elem] = b;
+        this.scene.changed = true;
+      });
+    text_button.attr(
+      "style", "position: absolute; top: " + y + "px; left: 40px; width: 20px");
+    return text_button
+  }
 
   resize() {
 
@@ -1281,9 +1310,12 @@ class GridBar extends CanvasWrapper {
 
 
   width() {
-    return 40
+    return 78;
   }
 
+  height() {
+    return 45*6 + 10;
+  }
 
   x() {
     let parentDivPos = this.parentDiv.position();
@@ -1293,48 +1325,52 @@ class GridBar extends CanvasWrapper {
 
   y() {
     let parentDivPos = this.parentDiv.position();
-    return parentDivPos.top;
+    return parentDivPos.top + 50;
   }
-
 
   yToZ(y) {
 
-    let fraction = y / this.height();
-    return fraction * this.diffB + this.minB;
+    let fraction = (y - 20)/ this.sliderHeight;
+    let z = fraction * this.diffB + this.minB;
+    if (z < this.minB) {
+      z = this.minB;
+    }
+    if (z > this.maxB) {
+      z = this.maxB;
+    }
+    return z;
+
 
   }
-
 
   zToY(z) {
 
-    let fraction = (z - this.minB) / this.diffB;
-    return fraction * this.height();
+    return (z - this.minB) / this.diffB * this.sliderHeight + 20;
 
   }
-
 
   draw() {
 
     let protein = this.scene.protein;
     let camera = this.scene.current_view.abs_camera;
 
-    let yTop = this.zToY(this.scene.grid);
+    let backgroundColor = "#222222";
 
-    let grey = "rgba(40, 40, 40, 0.75)";
-    let dark = "rgba(100, 70, 70, 0.75)";
-    let light = "rgba(150, 90, 90, 0.75)";
+    this.fillRect(0, 0, this.width(), this.height(), backgroundColor);
 
-    this.fillRect(
-      0, 0, this.width(), this.height(), grey);
+    let xm = 20;
 
-    this.fillRect(
-      0, 0, this.width(), yTop, dark);
+    let dark = "rgb(100, 100, 100)";
+    let yTop = this.zToY(this.minB);
+    let yBottom = this.zToY(this.maxB);
+    this.line(xm, yTop, xm, yBottom, 1, dark);
+    this.line(5, yTop, 35, yTop, 1, dark);
 
     let font = '12px sans-serif';
-    let xm = this.width() / 2;
-
-    this.text(
-      'xeon', xm, yTop + 7, font, light, 'center')
+    let textColor = "#98ab98";
+    let y = this.zToY(this.scene.grid);
+    this.fillRect(5, y, 30, 5, textColor);
+    this.text(-this.scene.grid.toFixed(2), xm, y + 15, font, textColor, 'center');
   }
 
 
@@ -3363,9 +3399,11 @@ class ProteinDisplay {
     }
     if (exists(this.scene.grid)) {
       if (this.objects.grid) {
+        console.log(this.scene.grid_atoms);
         this.objects.grid.traverse((child) => {
           if ((child instanceof THREE.Mesh) && exists(child.atom)) {
-            if (child.atom.bfactor > this.scene.grid) {
+            if ((child.atom.bfactor > this.scene.grid)
+                && (this.scene.grid_atoms[child.atom.elem])) {
               child.visible = true;
             } else {
               child.visible = false;

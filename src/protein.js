@@ -735,6 +735,9 @@ var Protein = function () {
     console.log(`Protein.load ${atoms.length} atoms`);
     this.make_residues(atoms);
     this.atoms = _.concat(this.atoms, atoms);
+    for (var i=0; i<this.atoms.length; i+=1) {
+      this.atoms[i].i = i;
+    }
     this.make_bonds(this.calc_bonds(this.atoms));
     this.max_length = this.calc_max_length(this.atoms);
     this.find_ss();

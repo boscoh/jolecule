@@ -111,7 +111,8 @@ function toggle_button(id_tag, html_text, class_tag, get_toggle, toggle) {
   }
 
   item.click(
-    function(e) { 
+    function(e) {
+      e.preventDefault();
       toggle(!get_toggle()); 
       color();
       return false; 
