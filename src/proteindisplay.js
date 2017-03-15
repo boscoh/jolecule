@@ -1260,7 +1260,7 @@ class GridBar extends CanvasWrapper {
     super(selector);
     this.scene = scene;
     this.maxB = 2;
-    this.minB = 0.8;
+    this.minB = 0.4;
     this.diffB = this.maxB - this.minB;
     this.scene.grid = 0.8;
     this.scene.grid_atoms = {
@@ -1278,6 +1278,10 @@ class GridBar extends CanvasWrapper {
       this.div.append(this.make_elem_button(elem, y));
       y += 45;
     }
+
+  }
+
+  reset() {
 
   }
 
@@ -2374,17 +2378,32 @@ class ProteinDisplay {
     this.objects.grid = new THREE.Object3D();
     this.threeJsScene.add(this.objects.grid);
 
+    this.gSlab.minB = null;
+    this.gSlab.maxB = null;
+
     for (var i = 0; i < this.protein.residues.length; i += 1) {
-
       var residue = this.protein.residues[i];
-
       if (residue.is_grid) {
         for (var a in residue.atoms) {
-          this.pushAtom(this.objects.grid, residue.atoms[a]);
+          var atom = residue.atoms[a];
+          this.pushAtom(this.objects.grid, atom);
+          if (this.gSlab.minB == null) {
+            this.gSlab.minB = atom.bfactor;
+            this.gSlab.maxB = atom.bfactor;
+          } else {
+            if (atom.bfactor > this.gSlab.maxB) {
+              this.gSlab.maxB = atom.bfactor;
+            }
+            if (atom.bfactor < this.gSlab.minB) {
+              this.gSlab.minB = atom.bfactor;
+            }
+          }
         }
       }
     }
 
+    this.gSlab.diffB = this.gSlab.maxB - this.gSlab.minB;
+    this.scene.grid = this.gSlab.minB;
   }
 
 

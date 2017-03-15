@@ -73063,7 +73063,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    _this7.scene = scene;
 	    _this7.maxB = 2;
-	    _this7.minB = 0.8;
+	    _this7.minB = 0.4;
 	    _this7.diffB = _this7.maxB - _this7.minB;
 	    _this7.scene.grid = 0.8;
 	    _this7.scene.grid_atoms = {
@@ -73086,6 +73086,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(GridBar, [{
+	    key: "reset",
+	    value: function reset() {}
+	  }, {
 	    key: "make_elem_button",
 	    value: function make_elem_button(elem, y) {
 	      var _this8 = this;
@@ -74057,16 +74060,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.objects.grid = new _three2.default.Object3D();
 	      this.threeJsScene.add(this.objects.grid);
 	
+	      this.gSlab.minB = null;
+	      this.gSlab.maxB = null;
+	
 	      for (var i = 0; i < this.protein.residues.length; i += 1) {
-	
 	        var residue = this.protein.residues[i];
-	
 	        if (residue.is_grid) {
 	          for (var a in residue.atoms) {
-	            this.pushAtom(this.objects.grid, residue.atoms[a]);
+	            var atom = residue.atoms[a];
+	            this.pushAtom(this.objects.grid, atom);
+	            if (this.gSlab.minB == null) {
+	              this.gSlab.minB = atom.bfactor;
+	              this.gSlab.maxB = atom.bfactor;
+	            } else {
+	              if (atom.bfactor > this.gSlab.maxB) {
+	                this.gSlab.maxB = atom.bfactor;
+	              }
+	              if (atom.bfactor < this.gSlab.minB) {
+	                this.gSlab.minB = atom.bfactor;
+	              }
+	            }
 	          }
 	        }
 	      }
+	
+	      this.gSlab.diffB = this.gSlab.maxB - this.gSlab.minB;
+	      this.scene.grid = this.gSlab.minB;
 	    }
 	  }, {
 	    key: "drawSidechain",
