@@ -73066,28 +73066,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this7.minB = 0.4;
 	    _this7.diffB = _this7.maxB - _this7.minB;
 	    _this7.scene.grid = 0.8;
-	    _this7.scene.grid_atoms = {
-	      "He": true,
-	      "Ne": true,
-	      "Ar": true,
-	      "Kr": true,
-	      "Xe": true,
-	      "Rn": true
-	    };
+	    _this7.scene.grid_atoms = {};
 	    _this7.sliderHeight = 45 * 6 - 50;
-	    _this7.div.attr('id', 'gslab');
-	    var y = 5;
-	    for (var elem in _this7.scene.grid_atoms) {
-	      _this7.div.append(_this7.make_elem_button(elem, y));
-	      y += 45;
-	    }
-	
+	    _this7.div.attr('id', 'gridBar');
+	    _this7.div.css('height', _this7.height());
+	    _this7.buttonsDiv = (0, _jquery2.default)("<div>");
+	    _this7.div.append(_this7.buttonsDiv);
+	    _this7.reset();
 	    return _this7;
 	  }
 	
 	  _createClass(GridBar, [{
 	    key: "reset",
-	    value: function reset() {}
+	    value: function reset() {
+	      this.buttonsDiv.empty();
+	      var y = 5;
+	      for (var elem in this.scene.grid_atoms) {
+	        this.buttonsDiv.append(this.make_elem_button(elem, y));
+	        y += 45;
+	      }
+	    }
 	  }, {
 	    key: "make_elem_button",
 	    value: function make_elem_button(elem, y) {
@@ -73110,7 +73108,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var parentDivPos = this.parentDiv.position();
 	      this.div.css({
 	        'width': this.width(),
-	        'height': this.parentDiv.height(),
+	        'height': this.height(),
 	        'top': this.y(),
 	        'left': this.x()
 	      });
@@ -73315,7 +73313,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.hover.arrow.css("pointer-events", "none");
 	
 	    this.zSlab = new ZSlabBar(this.divTag, this.scene);
-	    this.gSlab = new GridBar(this.divTag, this.scene);
+	    this.gridBar = new GridBar(this.divTag, this.scene);
 	
 	    this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
 	
@@ -74060,32 +74058,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.objects.grid = new _three2.default.Object3D();
 	      this.threeJsScene.add(this.objects.grid);
 	
-	      this.gSlab.minB = null;
-	      this.gSlab.maxB = null;
+	      this.gridBar.minB = null;
+	      this.gridBar.maxB = null;
+	
+	      this.scene.grid_atoms = {};
 	
 	      for (var i = 0; i < this.protein.residues.length; i += 1) {
 	        var residue = this.protein.residues[i];
 	        if (residue.is_grid) {
 	          for (var a in residue.atoms) {
 	            var atom = residue.atoms[a];
+	            if (!(atom.elem in this.scene.grid_atoms)) {
+	              this.scene.grid_atoms[atom.elem] = true;
+	            }
 	            this.pushAtom(this.objects.grid, atom);
-	            if (this.gSlab.minB == null) {
-	              this.gSlab.minB = atom.bfactor;
-	              this.gSlab.maxB = atom.bfactor;
+	            if (this.gridBar.minB == null) {
+	              this.gridBar.minB = atom.bfactor;
+	              this.gridBar.maxB = atom.bfactor;
 	            } else {
-	              if (atom.bfactor > this.gSlab.maxB) {
-	                this.gSlab.maxB = atom.bfactor;
+	              if (atom.bfactor > this.gridBar.maxB) {
+	                this.gridBar.maxB = atom.bfactor;
 	              }
-	              if (atom.bfactor < this.gSlab.minB) {
-	                this.gSlab.minB = atom.bfactor;
+	              if (atom.bfactor < this.gridBar.minB) {
+	                this.gridBar.minB = atom.bfactor;
 	              }
 	            }
 	          }
 	        }
 	      }
 	
-	      this.gSlab.diffB = this.gSlab.maxB - this.gSlab.minB;
-	      this.scene.grid = this.gSlab.minB;
+	      console.log('buildGrid grid_atoms', this.scene.grid_atoms);
+	      this.gridBar.diffB = this.gridBar.maxB - this.gridBar.minB;
+	      this.scene.grid = this.gridBar.minB;
+	      this.gridBar.reset();
 	    }
 	  }, {
 	    key: "drawSidechain",
@@ -74456,7 +74461,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.zSlab.resize();
 	      if (this.isGrid) {
-	        this.gSlab.resize();
+	        this.gridBar.resize();
 	      }
 	      this.sequenceWidget.resize();
 	
@@ -75072,7 +75077,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.drawDistanceLabels();
 	      this.zSlab.draw();
 	      if (this.isGrid) {
-	        this.gSlab.draw();
+	        this.gridBar.draw();
 	      }
 	      this.sequenceWidget.draw();
 	      this.scene.changed = false;

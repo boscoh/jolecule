@@ -1263,25 +1263,22 @@ class GridBar extends CanvasWrapper {
     this.minB = 0.4;
     this.diffB = this.maxB - this.minB;
     this.scene.grid = 0.8;
-    this.scene.grid_atoms = {
-      "He": true,
-      "Ne": true,
-      "Ar": true,
-      "Kr": true,
-      "Xe": true,
-      "Rn": true,
-    };
+    this.scene.grid_atoms = {};
     this.sliderHeight = 45*6 - 50;
-    this.div.attr('id', 'gslab');
-    var y = 5;
-    for (var elem in this.scene.grid_atoms) {
-      this.div.append(this.make_elem_button(elem, y));
-      y += 45;
-    }
-
+    this.div.attr('id', 'gridBar');
+    this.div.css('height', this.height());
+    this.buttonsDiv = $("<div>");
+    this.div.append(this.buttonsDiv);
+    this.reset();
   }
 
   reset() {
+    this.buttonsDiv.empty();
+    var y = 5;
+    for (var elem in this.scene.grid_atoms) {
+      this.buttonsDiv.append(this.make_elem_button(elem, y));
+      y += 45;
+    }
 
   }
 
@@ -1304,7 +1301,7 @@ class GridBar extends CanvasWrapper {
     let parentDivPos = this.parentDiv.position();
     this.div.css({
       'width': this.width(),
-      'height': this.parentDiv.height(),
+      'height': this.height(),
       'top': this.y(),
       'left': this.x(),
     });
@@ -1514,7 +1511,7 @@ class ProteinDisplay {
     this.hover.arrow.css("pointer-events", "none");
 
     this.zSlab = new ZSlabBar(this.divTag, this.scene);
-    this.gSlab = new GridBar( this.divTag, this.scene );
+    this.gridBar = new GridBar( this.divTag, this.scene );
 
     this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
 
@@ -2378,32 +2375,39 @@ class ProteinDisplay {
     this.objects.grid = new THREE.Object3D();
     this.threeJsScene.add(this.objects.grid);
 
-    this.gSlab.minB = null;
-    this.gSlab.maxB = null;
+    this.gridBar.minB = null;
+    this.gridBar.maxB = null;
+
+    this.scene.grid_atoms = {}
 
     for (var i = 0; i < this.protein.residues.length; i += 1) {
       var residue = this.protein.residues[i];
       if (residue.is_grid) {
         for (var a in residue.atoms) {
           var atom = residue.atoms[a];
+          if (!(atom.elem in this.scene.grid_atoms)) {
+            this.scene.grid_atoms[atom.elem] = true;
+          }
           this.pushAtom(this.objects.grid, atom);
-          if (this.gSlab.minB == null) {
-            this.gSlab.minB = atom.bfactor;
-            this.gSlab.maxB = atom.bfactor;
+          if (this.gridBar.minB == null) {
+            this.gridBar.minB = atom.bfactor;
+            this.gridBar.maxB = atom.bfactor;
           } else {
-            if (atom.bfactor > this.gSlab.maxB) {
-              this.gSlab.maxB = atom.bfactor;
+            if (atom.bfactor > this.gridBar.maxB) {
+              this.gridBar.maxB = atom.bfactor;
             }
-            if (atom.bfactor < this.gSlab.minB) {
-              this.gSlab.minB = atom.bfactor;
+            if (atom.bfactor < this.gridBar.minB) {
+              this.gridBar.minB = atom.bfactor;
             }
           }
         }
       }
     }
 
-    this.gSlab.diffB = this.gSlab.maxB - this.gSlab.minB;
-    this.scene.grid = this.gSlab.minB;
+    console.log('buildGrid grid_atoms', this.scene.grid_atoms);
+    this.gridBar.diffB = this.gridBar.maxB - this.gridBar.minB;
+    this.scene.grid = this.gridBar.minB;
+    this.gridBar.reset();
   }
 
 
@@ -2857,7 +2861,7 @@ class ProteinDisplay {
 
     this.zSlab.resize();
     if (this.isGrid) {
-      this.gSlab.resize();
+      this.gridBar.resize();
     }
     this.sequenceWidget.resize();
 
@@ -3557,7 +3561,7 @@ class ProteinDisplay {
     this.drawDistanceLabels();
     this.zSlab.draw();
     if (this.isGrid) {
-      this.gSlab.draw();
+      this.gridBar.draw();
     }
     this.sequenceWidget.draw();
     this.scene.changed = false;
