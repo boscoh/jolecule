@@ -22,6 +22,7 @@ function initEmbedJolecule(userArgs) {
   let args = _.merge(defaultArgs, userArgs);
   let j = new EmbedJolecule(args);
   register_global_animation_loop(j);
+  return j;
 }
 
 /**
@@ -32,8 +33,9 @@ function initEmbedJolecule(userArgs) {
  * @PARAM: pdb_id
  */
 function initFullPageJolecule(...args) {
-  register_global_animation_loop(
-    new FullPageJolecule(...args));
+  var j = new FullPageJolecule(...args);
+  register_global_animation_loop(j);
+  return j;
 }
 
 function remoteDataServer(pdb_id) {

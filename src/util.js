@@ -346,10 +346,10 @@ function stick_in_top_left(parent, target, x_offset, y_offset) {
   var top = parent.position().top;
   var left = parent.position().left;
   parent.append(target);
-  var w_parent = parent.outerWidth();
-  var h_parent = parent.outerHeight();
-  target.width(w_parent - 2*x_offset);
-  target.height(h_parent - 2*y_offset);
+  // var w_parent = parent.outerWidth();
+  // var h_parent = parent.outerHeight();
+  // target.width(w_parent - 2*x_offset);
+  // target.height(h_parent - 2*y_offset);
   target.css({
       'top': top + y_offset,
       'left': left + x_offset,

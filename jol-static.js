@@ -81,14 +81,18 @@ const embedIndexHtmlMustache = `
     <div id="jolecule"></div>
     <script src="require.js"></script>
     <script>
-        require( 
-                ['jolecule', {{{dataServerLoadStr}}}], 
-                function(jolecule, {{{dataServerArgStr}}}) {
+        require( ['jolecule'], function(jolecule) {
             document.title = "{{{title}}}";
-            jolecule.initEmbedJolecule({
+            var j = jolecule.initEmbedJolecule({
                 div_tag: '#jolecule',
-                data_servers: [{{{dataServerArgStr}}}],
-                isGrid: true,
+                isGrid: true});
+            require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
+                  var dataServers = [{{{dataServerArgStr}}}];
+                  var i = 0
+                  for (var dataServer of dataServers) {
+                    j.addDataServer(dataServer, i);
+                    i += 1;
+                  }
             });
         });
     </script>

@@ -4,7 +4,6 @@ import {Protein, Controller, Scene} from "./protein";
 import {ProteinDisplay} from "./proteindisplay";
 import {
   exists,
-  blink,
   link_button,
   toggle_button,
   ViewPiece,
@@ -47,86 +46,95 @@ class EmbedJolecule {
     this.create_status_div();
     this.create_view_div();
 
-    var blink_text = $('<div>').html(this.params.loading_html);
-    blink(blink_text);
-    this.loading_message_div = $('<div>').append(blink_text);
-    stick_in_top_left(this.div, this.loading_message_div, 30, 90);
+    this.message_div = $('<div>')
+      .attr('id', 'loading-message')
+      .css({
+        'z-index': 5000,
+        'background-color': 'rgba(60, 60, 60, 0.75)',
+        'font-family': 'Helvetica, Arial, sans-serif',
+        'font-size': '12px',
+        'letter-spacing': '0.1em',
+        'padding': '5px',
+        'color': '#666'})
+      .html("Jolecule: loading data for proteins...");
+    stick_in_top_left(this.div, this.message_div, 100, 90);
 
     this.is_view_text_shown = this.params.is_view_text_shown;
     this.set_text_state();
 
     $(window).resize(() => this.resize());
 
-    _.each(this.params.data_servers, (data_server, i) => {
-      if (i == 0) {
-        console.log('EmbedJolecule load first dataServer', i);
-        data_server.get_protein_data((protein_data) => {
-          this.load_protein_data(protein_data);
-          data_server.get_views((view_dicts) => {
-            this.load_views_from_server(view_dicts);
-            if (this.params.onload) {
-              this.params.onload(this);
-            }
-          });
-        });
-      } else {
-        console.log('EmbedJolecule load additional dataServer', i);
+    this.resize();
+
+    this.isProcessingData = false;
+    _.each(this.params.data_servers, (data_server) => {
         this.addDataServer(data_server);
-      }
     });
   };
 
-  load_protein_data(protein_data) {
-
-    this.loading_message_div.text("Parsing protein " + protein_data.pdb_id);
-
+  loadProteinData(protein_data) {
     if (protein_data['pdb_text'].length == 0) {
-      console.log(this.params.loading_failure_html);
-      this.loading_message_div.html(
-        this.params.loading_failure_html);
-      return;
+      return this.params.loading_failure_html;
     }
-
     this.protein.load(protein_data);
-
+    this.protein_display.nDataServer += 1;
     if (this.protein.parsing_error) {
-      this.loading_message_div.text(
-        "Error parsing protein: " + this.protein.parsing_error);
-      return;
+      return "Error parsing protein: " + this.protein.parsing_error;
     }
-
-    this.protein_display.buildAfterDataLoad();
-
-    this.loading_message_div.remove();
-
-    this.resize();
   }
 
-  addDataServer(data_server) {
+  addDataServer(data_server, i) {
+    let message = (html) => {
+      this.message_div.html(html).show();
+    }
 
-    data_server.get_protein_data((protein_data) => {
-      if (protein_data['pdb_text'].length == 0) {
-        this.loading_message_div.html(
-          this.params.loading_failure_html);
-        return;
+    let cleanup = () => {
+      this.resize();
+      this.message_div.hide();
+      this.isProcessingData = false;
+    };
+
+    let guardFn = () => {
+      if (this.isProcessingData) {
+        setTimeout(guardFn, 20);
+      } else {
+        this.isProcessingData = true;
+
+        data_server.get_protein_data((protein_data) => {
+          console.log("EmbedJolecule.load_protein_data", protein_data.pdb_id);
+          this.message("Parsing protein " + protein_data.pdb_id + "...");
+
+          setTimeout(() => {
+
+            var msg = this.loadProteinData(protein_data);
+            this.message(msg);
+
+            if (this.protein_display.nDataServer == 1) {
+              this.protein_display.buildAfterDataLoad();
+              data_server.get_views((view_dicts) => {
+                this.load_views_from_server(view_dicts);
+                if (this.params.onload) {
+                  this.params.onload(this);
+                }
+                cleanup();
+              });
+            } else {
+              let scene = this.protein_display.threeJsScene;
+              scene.children.forEach(function (object) {
+                if (_.isUndefined(object.isLight)) {
+                  scene.remove(object);
+                }
+              });
+              this.protein_display.buildScene();
+              this.protein_display.sequenceWidget.resetResidues();
+              cleanup();
+            }
+          }, 0);
+        });
       }
-      this.loading_message_div.text("Parsing protein " + protein_data.pdb_id);
-      console.log("EmbedJolecule.addDataServer", protein_data.pdb_id);
+    };
 
-      this.protein.load(protein_data);
-
-      let scene = this.protein_display.threeJsScene;
-      scene.children.forEach(function(object){
-        if (_.isUndefined(object.isLight)) {
-          scene.remove(object);
-        }
-      });
-
-      // this.protein_display.setLights();
-      this.protein_display.buildScene();
-      this.protein_display.sequenceWidget.resetResidues();
-    });
-
+    guardFn();
   }
 
   load_views_from_server(view_dicts) {

@@ -6,11 +6,12 @@
     margin-right: 2px;
     margin-bottom: 5px;
     padding: 6px 6px;
-    background-color: #777;
     font-size: 12px;
     font-weight: normal;
     letter-spacing: 0.1em;
     line-height: 30px;
+    background-color: #444;
+    color: #9A9;
 }
 .jolecule-residue-selector {
     height:16px;
@@ -23,14 +24,15 @@
 a.jolecule-button-toggle-on,
 a.jolecule-button-toggle-on:link,
 a.jolecule-button-toggle-on:visited {
-    background-color: #444; 
-    color: #9A9 !important;
+    background-color: #777;
+    color: #333 !important;
 }
 a.jolecule-button input a,
 a.jolecule-button,
 a.jolecule-button:link,
 a.jolecule-button:visited {
-    color: #333;
+    /*background-color: #444;*/
+    /*color: #9A9 !important;*/
     text-decoration: none;
 }
 .jolecule-small-button,

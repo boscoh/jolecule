@@ -963,6 +963,10 @@ class SequenceWidget extends CanvasWrapper {
       return;
     }
 
+    if (this.residues.length == 0) {
+      return;
+    }
+
     this.nChar = Math.ceil(this.width() / this.charWidth);
 
     this.residueSelector.val(this.scene.current_view.res_id);
@@ -1366,6 +1370,7 @@ class GridBar extends CanvasWrapper {
     this.line(xm, yTop, xm, yBottom, 1, dark);
     this.line(5, yTop, 35, yTop, 1, dark);
 
+    console.log('GridBar.draw this.scene.grid', this.scene.grid);
     let font = '12px sans-serif';
     let textColor = "#98ab98";
     let y = this.zToY(this.scene.grid);
@@ -1488,6 +1493,8 @@ class ProteinDisplay {
     this.cameraTarget = new THREE.Vector3(0, 0, 0);
 
     this.setLights();
+
+    this.nDataServer = 0;
 
     this.camera = new THREE.PerspectiveCamera(
       45,
@@ -2404,6 +2411,12 @@ class ProteinDisplay {
       }
     }
 
+    if (this.gridBar.minB == null) {
+      this.gridBar.minB = 0;
+    }
+    if (this.gridBar.maxB == null) {
+      this.gridBar.minB = 0;
+    }
     console.log('buildGrid grid_atoms', this.scene.grid_atoms);
     this.gridBar.diffB = this.gridBar.maxB - this.gridBar.minB;
     this.scene.grid = this.gridBar.minB;
