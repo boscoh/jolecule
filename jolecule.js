@@ -309,16 +309,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  _createClass(EmbedJolecule, [{
 	    key: "loadProteinData",
-	    value: function loadProteinData(protein_data) {
-	      if (protein_data['pdb_text'].length == 0) {
-	        return this.params.loading_failure_html;
-	      }
-	      this.protein.load(protein_data);
-	      this.protein_display.nDataServer += 1;
-	      if (this.protein.parsing_error) {
-	        return "Error parsing protein: " + this.protein.parsing_error;
-	      }
-	    }
+	    value: function loadProteinData(protein_data) {}
 	  }, {
 	    key: "addDataServer",
 	    value: function addDataServer(data_server, i) {
@@ -336,18 +327,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var guardFn = function guardFn() {
 	        if (_this3.isProcessingData) {
-	          setTimeout(guardFn, 20);
+	          setTimeout(guardFn, 50);
 	        } else {
 	          _this3.isProcessingData = true;
 	
 	          data_server.get_protein_data(function (protein_data) {
 	            console.log("EmbedJolecule.load_protein_data", protein_data.pdb_id);
-	            _this3.message("Parsing protein " + protein_data.pdb_id + "...");
-	
+	            message("Rendering " + protein_data.pdb_id + "...");
+	            // timeout needed to allow message to be rendered
 	            setTimeout(function () {
 	
-	              var msg = _this3.loadProteinData(protein_data);
-	              _this3.message(msg);
+	              if (protein_data['pdb_text'].length == 0) {
+	                message(_this3.params.loading_failure_html);
+	                return;
+	              }
+	
+	              _this3.protein.load(protein_data);
+	
+	              _this3.protein_display.nDataServer += 1;
+	
+	              if (_this3.protein.parsing_error) {
+	                message("Error parsing protein: " + _this3.protein.parsing_error);
+	                return;
+	              }
 	
 	              if (_this3.protein_display.nDataServer == 1) {
 	                _this3.protein_display.buildAfterDataLoad();
