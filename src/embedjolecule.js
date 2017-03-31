@@ -73,14 +73,6 @@ class EmbedJolecule {
   };
 
   loadProteinData(protein_data) {
-    if (protein_data['pdb_text'].length == 0) {
-      return this.params.loading_failure_html;
-    }
-    this.protein.load(protein_data);
-    this.protein_display.nDataServer += 1;
-    if (this.protein.parsing_error) {
-      return "Error parsing protein: " + this.protein.parsing_error;
-    }
   }
 
   addDataServer(data_server, i) {
@@ -96,18 +88,29 @@ class EmbedJolecule {
 
     let guardFn = () => {
       if (this.isProcessingData) {
-        setTimeout(guardFn, 20);
+        setTimeout(guardFn, 50);
       } else {
         this.isProcessingData = true;
 
         data_server.get_protein_data((protein_data) => {
           console.log("EmbedJolecule.load_protein_data", protein_data.pdb_id);
           this.message("Parsing protein " + protein_data.pdb_id + "...");
-
+          // timeout needed to allow message to be rendered
           setTimeout(() => {
 
-            var msg = this.loadProteinData(protein_data);
-            this.message(msg);
+            if (protein_data['pdb_text'].length == 0) {
+              this.message(this.params.loading_failure_html);
+              return;
+            }
+
+            this.protein.load(protein_data);
+
+            this.protein_display.nDataServer += 1;
+
+            if (this.protein.parsing_error) {
+              this.message("Error parsing protein: " + this.protein.parsing_error);
+              return;
+            }
 
             if (this.protein_display.nDataServer == 1) {
               this.protein_display.buildAfterDataLoad();
