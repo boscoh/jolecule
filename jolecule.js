@@ -72726,11 +72726,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this4.iStartChar = null;
 	    _this4.iEndChar = null;
 	
-	    _this4.residueSelector = (0, _jquery2.default)('<select>').addClass('jolecule-residue-selector').css({
-	      "outline": "none",
-	      "-moz-appearance": "none"
-	    });
-	    _this4.div.append(_this4.residueSelector);
+	    _this4.residueSelector = null;
 	
 	    _this4.resize();
 	    return _this4;
@@ -72810,8 +72806,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.iRes = this.nChar / 2;
 	      this.iStartChar = 0;
 	
-	      this.residueSelector.val(this.scene.current_view.res_id);
-	
 	      this.populateResidueSelector();
 	    }
 	  }, {
@@ -72826,9 +72820,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return;
 	      }
 	
-	      this.nChar = Math.ceil(this.width() / this.charWidth);
+	      if (!this.residueSelector) {
+	        return;
+	      }
 	
-	      this.residueSelector.val(this.scene.current_view.res_id);
+	      this.nChar = Math.ceil(this.width() / this.charWidth);
 	
 	      this.iEndChar = this.iStartChar + this.nChar;
 	      if (this.iEndChar > this.residues.length) {
@@ -72898,6 +72894,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "populateResidueSelector",
 	    value: function populateResidueSelector() {
 	      var _this5 = this;
+	
+	      if (!this.residueSelector) {
+	        this.residueSelector = (0, _jquery2.default)('<select>').addClass('jolecule-residue-selector').css({
+	          "outline": "none",
+	          "-moz-appearance": "none"
+	        });
+	        this.div.append(this.residueSelector);
+	      }
+	
+	      this.residueSelector.val(this.scene.current_view.res_id);
 	
 	      this.residueSelector.find('option').remove();
 	      var residues = this.protein.residues;

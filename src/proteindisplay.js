@@ -873,13 +873,7 @@ class SequenceWidget extends CanvasWrapper {
     this.iStartChar = null;
     this.iEndChar = null;
 
-    this.residueSelector = $('<select>')
-      .addClass('jolecule-residue-selector')
-      .css({
-        "outline": "none",
-        "-moz-appearance": "none",
-      });
-    this.div.append(this.residueSelector);
+    this.residueSelector = null;
 
     this.resize();
   }
@@ -952,8 +946,6 @@ class SequenceWidget extends CanvasWrapper {
     this.iRes = this.nChar / 2;
     this.iStartChar = 0;
 
-    this.residueSelector.val(this.scene.current_view.res_id);
-
     this.populateResidueSelector();
   }
 
@@ -967,9 +959,11 @@ class SequenceWidget extends CanvasWrapper {
       return;
     }
 
-    this.nChar = Math.ceil(this.width() / this.charWidth);
+    if (!this.residueSelector) {
+      return;
+    }
 
-    this.residueSelector.val(this.scene.current_view.res_id);
+    this.nChar = Math.ceil(this.width() / this.charWidth);
 
     this.iEndChar = this.iStartChar + this.nChar;
     if (this.iEndChar > this.residues.length) {
@@ -1063,6 +1057,18 @@ class SequenceWidget extends CanvasWrapper {
   }
 
   populateResidueSelector() {
+    if (!this.residueSelector) {
+      this.residueSelector = $('<select>')
+        .addClass('jolecule-residue-selector')
+        .css({
+          "outline": "none",
+          "-moz-appearance": "none",
+        });
+      this.div.append(this.residueSelector);
+    }
+
+    this.residueSelector.val(this.scene.current_view.res_id);
+
     this.residueSelector
       .find('option')
       .remove();
