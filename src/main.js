@@ -20,9 +20,9 @@ function initEmbedJolecule(userArgs) {
   };
   console.log('initEmbedJolecule');
   let args = _.merge(defaultArgs, userArgs);
-  let j = new EmbedJolecule(args);
-  register_global_animation_loop(j);
-  return j;
+  let joleculeWidget = new EmbedJolecule(args);
+  register_global_animation_loop(joleculeWidget);
+  return joleculeWidget;
 }
 
 /**
@@ -33,9 +33,9 @@ function initEmbedJolecule(userArgs) {
  * @PARAM: pdb_id
  */
 function initFullPageJolecule(...args) {
-  var j = new FullPageJolecule(...args);
-  register_global_animation_loop(j);
-  return j;
+  var joleculeWidget = new FullPageJolecule(...args);
+  register_global_animation_loop(joleculeWidget);
+  return joleculeWidget;
 }
 
 function remoteDataServer(pdb_id) {

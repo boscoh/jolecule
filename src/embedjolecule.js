@@ -78,7 +78,7 @@ class EmbedJolecule {
   addDataServer(data_server, i) {
     let message = (html) => {
       this.message_div.html(html).show();
-    }
+    };
 
     let cleanup = () => {
       this.resize();
@@ -95,11 +95,12 @@ class EmbedJolecule {
         data_server.get_protein_data((protein_data) => {
           console.log("EmbedJolecule.load_protein_data", protein_data.pdb_id);
           message("Rendering " + protein_data.pdb_id + "...");
+
           // timeout needed to allow message to be rendered
           setTimeout(() => {
-
             if (protein_data['pdb_text'].length == 0) {
               message(this.params.loading_failure_html);
+              this.isProcessingData = false;
               return;
             }
 
@@ -109,6 +110,7 @@ class EmbedJolecule {
 
             if (this.protein.parsing_error) {
               message("Error parsing protein: " + this.protein.parsing_error);
+              this.isProcessingData = false;
               return;
             }
 
