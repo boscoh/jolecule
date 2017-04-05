@@ -1647,6 +1647,17 @@ class ProteinDisplay {
 
   }
 
+  buildAfterAddProteinData() {
+    let scene = this.threeJsScene;
+    scene.children.forEach(function (object) {
+      if (_.isUndefined(object.isLight)) {
+        scene.remove(object);
+      }
+    });
+    this.buildScene();
+    this.sequenceWidget.resetResidues();
+    this.scene.changed = true;
+  }
 
   isPeptideConnected(i0, i1) {
 

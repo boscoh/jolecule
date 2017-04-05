@@ -77,42 +77,46 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
+	/**
+	 *
+	 * @param args = {
+	 *          divTag: '',
+	 *          dataServers: [],
+	 *          view_id: '',
+	 *          viewHeight: 170,
+	 *          isViewTextShown: false,
+	 *          isEditable: true,
+	 *          isLoop: false,
+	 *          onload: onload,
+	 *          isGrid: false
+	 *        }
+	 * @returns {EmbedJolecule}
+	 */
+	
 	function initEmbedJolecule(userArgs) {
-	  var defaultArgs = {
-	    div_tag: '',
-	    data_servers: [],
-	    loading_html: 'Loading PDB from RCSB web-site...',
-	    loading_failure_html: 'Failed to load PDB.',
-	    view_id: '',
-	    view_height: 170,
-	    is_view_text_shown: false,
-	    is_editable: true,
-	    is_loop: false,
-	    onload: onload,
-	    isGrid: false
-	  };
 	  console.log('initEmbedJolecule');
-	  var args = _lodash2.default.merge(defaultArgs, userArgs);
-	  var j = new _embedjolecule.EmbedJolecule(args);
-	  (0, _animation.register_global_animation_loop)(j);
-	  return j;
+	  var args = _lodash2.default.merge(_embedjolecule.defaultArgs, userArgs);
+	  var widget = new _embedjolecule.EmbedJolecule(args);
+	  (0, _animation.register_global_animation_loop)(widget);
+	  return widget;
 	}
 	
 	/**
-	 * @PARAM: protein_display_tag
-	 * @PARAM: sequence_display_tag
-	 * @PARAM: views_display_tag
-	 * @PARAM: data_server
-	 * @PARAM: pdb_id
+	 * @param protein_display_tag
+	 * @param sequence_display_tag
+	 * @param views_display_tag
+	 * @param data_server
+	 * @param pdb_id
+	 * @returns {FullPageJolecule}
 	 */
 	function initFullPageJolecule() {
 	  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
 	    args[_key] = arguments[_key];
 	  }
 	
-	  var j = new (Function.prototype.bind.apply(_fullpagejolecule.FullPageJolecule, [null].concat(args)))();
-	  (0, _animation.register_global_animation_loop)(j);
-	  return j;
+	  var widget = new (Function.prototype.bind.apply(_fullpagejolecule.FullPageJolecule, [null].concat(args)))();
+	  (0, _animation.register_global_animation_loop)(widget);
+	  return widget;
 	}
 	
 	function remoteDataServer(pdb_id) {
@@ -225,7 +229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.EmbedJolecule = undefined;
+	exports.defaultArgs = exports.EmbedJolecule = undefined;
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
@@ -254,6 +258,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 **/
 	
+	var defaultArgs = {
+	  divTag: '',
+	  dataServers: [],
+	  view_id: '',
+	  viewHeight: 170,
+	  isViewTextShown: false,
+	  isEditable: true,
+	  isLoop: false,
+	  onload: onload,
+	  isGrid: false
+	};
+	
 	var EmbedJolecule = function () {
 	  function EmbedJolecule(params) {
 	    var _this2 = this;
@@ -261,28 +277,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _classCallCheck(this, EmbedJolecule);
 	
 	    this.params = params;
-	    this.is_loop = this.params.is_loop;
+	    this.isLoop = this.params.isLoop;
 	
-	    this.div_tag = this.params.div_tag;
-	    this.div = (0, _jquery2.default)(this.params.div_tag);
-	
+	    this.divTag = this.params.divTag;
+	    this.div = (0, _jquery2.default)(this.params.divTag);
+	    // disable right mouse click
 	    this.div[0].oncontextmenu = _util.do_nothing;
 	
-	    this.init_view_id = this.params.view_id;
-	    this.h_annotation_view = this.params.view_height;
+	    this.initViewId = this.params.view_id;
+	    this.hAnnotationView = this.params.viewHeight;
 	
 	    this.protein = new _protein.Protein();
 	    this.scene = new _protein.Scene(this.protein);
 	    this.controller = new _protein.Controller(this.scene);
 	
-	    this.create_protein_div();
+	    this.createProteinDiv();
 	    this.protein_display = new _proteindisplay.ProteinDisplay(this.scene, '#jolecule-protein-display', this.controller, params.isGrid);
 	    this.protein_display.min_radius = 10;
 	
-	    this.create_status_div();
-	    this.create_view_div();
+	    this.createStatusDiv();
+	    this.createViewDiv();
 	
-	    this.message_div = (0, _jquery2.default)('<div>').attr('id', 'loading-message').css({
+	    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').css({
 	      'z-index': 5000,
 	      'background-color': 'rgba(60, 60, 60, 0.75)',
 	      'font-family': 'Helvetica, Arial, sans-serif',
@@ -290,10 +306,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      'letter-spacing': '0.1em',
 	      'padding': '5px',
 	      'color': '#666' }).html("Jolecule: loading data for proteins...");
-	    (0, _util.stick_in_top_left)(this.div, this.message_div, 100, 90);
+	    (0, _util.stick_in_top_left)(this.div, this.messageDiv, 100, 90);
 	
-	    this.is_view_text_shown = this.params.is_view_text_shown;
-	    this.set_text_state();
+	    this.isViewTextShown = this.params.isViewTextShown;
+	    this.setTextState();
 	
 	    (0, _jquery2.default)(window).resize(function () {
 	      return _this2.resize();
@@ -302,26 +318,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.resize();
 	
 	    this.isProcessingData = false;
-	    _lodash2.default.each(this.params.data_servers, function (data_server) {
-	      _this2.addDataServer(data_server);
+	    _lodash2.default.each(this.params.dataServers, function (dataServer) {
+	      _this2.addDataServer(dataServer);
 	    });
 	  }
 	
 	  _createClass(EmbedJolecule, [{
-	    key: "loadProteinData",
-	    value: function loadProteinData(protein_data) {}
-	  }, {
 	    key: "addDataServer",
-	    value: function addDataServer(data_server, i) {
+	    value: function addDataServer(dataServer, i) {
 	      var _this3 = this;
 	
 	      var message = function message(html) {
-	        _this3.message_div.html(html).show();
+	        _this3.messageDiv.html(html).show();
 	      };
 	
 	      var cleanup = function cleanup() {
 	        _this3.resize();
-	        _this3.message_div.hide();
+	        _this3.messageDiv.hide();
 	        _this3.isProcessingData = false;
 	      };
 	
@@ -331,47 +344,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else {
 	          _this3.isProcessingData = true;
 	
-	          data_server.get_protein_data(function (protein_data) {
-	            console.log("EmbedJolecule.load_protein_data", protein_data.pdb_id);
-	            message("Rendering " + protein_data.pdb_id + "...");
+	          dataServer.get_protein_data(function (proteinData) {
+	            console.log("EmbedJolecule.load_protein_data", proteinData.pdb_id);
+	            message("Rendering '" + proteinData.pdb_id + "'");
+	
 	            // timeout needed to allow message to be rendered
 	            setTimeout(function () {
-	
-	              if (protein_data['pdb_text'].length == 0) {
-	                message(_this3.params.loading_failure_html);
+	              if (proteinData['pdb_text'].length == 0) {
+	                message("Error: no protein data");
+	                _this3.isProcessingData = false;
 	                return;
 	              }
 	
-	              _this3.protein.load(protein_data);
-	
-	              _this3.protein_display.nDataServer += 1;
+	              _this3.protein.load(proteinData);
 	
 	              if (_this3.protein.parsing_error) {
 	                message("Error parsing protein: " + _this3.protein.parsing_error);
+	                _this3.isProcessingData = false;
 	                return;
 	              }
 	
+	              _this3.protein_display.nDataServer += 1;
 	              if (_this3.protein_display.nDataServer == 1) {
 	                _this3.protein_display.buildAfterDataLoad();
-	                data_server.get_views(function (view_dicts) {
-	                  _this3.load_views_from_server(view_dicts);
+	                dataServer.get_views(function (view_dicts) {
+	                  _this3.loadViewsFromDataServer(view_dicts);
 	                  if (_this3.params.onload) {
 	                    _this3.params.onload(_this3);
 	                  }
 	                  cleanup();
 	                });
 	              } else {
-	                (function () {
-	                  var scene = _this3.protein_display.threeJsScene;
-	                  scene.children.forEach(function (object) {
-	                    if (_lodash2.default.isUndefined(object.isLight)) {
-	                      scene.remove(object);
-	                    }
-	                  });
-	                  _this3.protein_display.buildScene();
-	                  _this3.protein_display.sequenceWidget.resetResidues();
-	                  cleanup();
-	                })();
+	                _this3.protein_display.buildAfterAddProteinData();
+	                cleanup();
 	              }
 	            }, 0);
 	          });
@@ -381,46 +386,47 @@ return /******/ (function(modules) { // webpackBootstrap
 	      guardFn();
 	    }
 	  }, {
-	    key: "load_views_from_server",
-	    value: function load_views_from_server(view_dicts) {
+	    key: "loadViewsFromDataServer",
+	    value: function loadViewsFromDataServer(view_dicts) {
 	
 	      this.controller.load_views_from_flat_views(view_dicts);
 	
-	      var view_id = this.scene.current_view.id;
-	      if (this.init_view_id) {
-	        if (this.init_view_id in this.scene.saved_views_by_id) {
-	          view_id = this.init_view_id;
+	      var viewId = this.scene.current_view.id;
+	      if (this.initViewId) {
+	        if (this.initViewId in this.scene.saved_views_by_id) {
+	          viewId = this.initViewId;
 	        }
 	      }
-	      this.update_view();
+	      this.updateView();
 	
 	      if (this.params.view_id in this.scene.saved_views_by_id) {
 	        this.controller.set_target_view_by_id(this.params.view_id);
-	        this.update_view();
+	        this.updateView();
 	      }
 	    }
 	  }, {
-	    key: "save_views_to_server",
-	    value: function save_views_to_server(success) {
+	    key: "saveViewsToDataServer",
+	    value: function saveViewsToDataServer(success) {
 	      this.data_server.save_views(this.controller.get_view_dicts(), success);
 	      this.scene.changed = true;
 	    }
 	  }, {
-	    key: "save_curr_view",
-	    value: function save_curr_view() {
-	      var new_id = (0, _util.random_id)();
+	    key: "saveCurrView",
+	    value: function saveCurrView() {
+	      var _this4 = this;
+	
+	      var newId = (0, _util.random_id)();
 	      this.controller.calculate_current_abs_camera();
-	      this.controller.save_current_view(new_id);
-	      this.update_view();
+	      this.controller.save_current_view(newId);
+	      this.updateView();
 	      this.view_div.css('background-color', 'lightgray');
-	      var _this = this;
-	      this.save_views_to_server(function () {
-	        _this.view_div.css('background-color', '');
+	      this.saveViewsToDataServer(function () {
+	        _this4.view_div.css('background-color', '');
 	      });
 	    }
 	  }, {
-	    key: "get_curr_view",
-	    value: function get_curr_view() {
+	    key: "getCurrView",
+	    value: function getCurrView() {
 	      var i = this.scene.i_last_view;
 	      if (i in this.scene.saved_views) {
 	        var id = this.scene.saved_views[i].id;
@@ -430,21 +436,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "change_text",
-	    value: function change_text(changed_text) {
-	      var view = this.get_curr_view();
-	      view.text = changed_text;
+	    key: "changeText",
+	    value: function changeText(newText) {
+	      var _this5 = this;
+	
+	      var view = this.getCurrView();
+	      view.text = newText;
 	      this.view_div.css('background-color', 'lightgray');
-	      var _this = this;
-	      var success = function success() {
-	        _this.view_div.css('background-color', '');
-	      };
-	      this.save_views_to_server(success);
+	      this.saveViewsToDataServer(function () {
+	        _this5.view_div.css('background-color', '');
+	      });
 	      this.scene.changed = true;
 	    }
 	  }, {
-	    key: "delete_curr_view",
-	    value: function delete_curr_view() {
+	    key: "deleteCurrView",
+	    value: function deleteCurrView() {
+	      var _this6 = this;
+	
 	      var i = this.scene.i_last_view;
 	      if (i == 0) {
 	        // skip default view:000000
@@ -453,13 +461,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var id = this.scene.saved_views[i].id;
 	      this.controller.delete_view(id);
 	      this.view_div.css('background-color', 'lightgray');
-	
-	      var _this = this;
-	      var success = function success() {
-	        _this.update_view();
-	        _this.view_div.css('background-color', '');
-	      };
-	      this.data_server.delete_protein_view(id, success);
+	      this.data_server.delete_protein_view(id, function () {
+	        _this6.updateView();
+	        _this6.view_div.css('background-color', '');
+	      });
 	    }
 	  }, {
 	    key: "is_changed",
@@ -474,7 +479,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function animate() {
 	      if ((0, _util.exists)(this.protein_display)) {
 	        this.protein_display.animate();
-	        if (this.is_loop) {
+	        if (this.isLoop) {
 	          if (this.scene.n_update_step <= 0) {
 	            // loop started
 	            this.scene.n_update_step -= 1;
@@ -491,15 +496,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function draw() {
 	      if ((0, _util.exists)(this.protein_display)) {
 	        if (this.scene.changed) {
-	          this.update_view();
+	          this.updateView();
 	          this.protein_display.draw();
 	          this.scene.changed = false;
 	        }
 	      }
 	    }
 	  }, {
-	    key: "cycle_backbone",
-	    value: function cycle_backbone() {
+	    key: "cycleBackbone",
+	    value: function cycleBackbone() {
 	      if (this.scene.current_view.show.all_atom) {
 	        this.controller.set_backbone_option('ribbon');
 	      } else if (this.scene.current_view.show.ribbon) {
@@ -509,11 +514,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "set_text_state",
-	    value: function set_text_state() {
-	      var h_padding = this.view_div.outerHeight() - this.view_div.height();
-	      if (this.is_view_text_shown) {
-	        this.view_div.height(this.h_annotation_view);
+	    key: "setTextState",
+	    value: function setTextState() {
+	      if (this.isViewTextShown) {
+	        this.view_div.height(this.hAnnotationView);
 	        this.view_div.css('visibility', 'visible');
 	      } else {
 	        this.view_div.height(0);
@@ -523,61 +527,61 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.controller.scene.changed = true;
 	    }
 	  }, {
-	    key: "toggle_text_state",
-	    value: function toggle_text_state() {
-	      this.is_view_text_shown = !this.is_view_text_shown;
-	      this.set_text_state();
+	    key: "toggleTextState",
+	    value: function toggleTextState() {
+	      this.isViewTextShown = !this.isViewTextShown;
+	      this.setTextState();
 	    }
 	  }, {
-	    key: "goto_prev_view",
-	    value: function goto_prev_view() {
+	    key: "gotoPrevView",
+	    value: function gotoPrevView() {
 	      this.controller.set_target_prev_view();
-	      this.update_view();
+	      this.updateView();
 	    }
 	  }, {
-	    key: "goto_next_view",
-	    value: function goto_next_view() {
+	    key: "gotoNextView",
+	    value: function gotoNextView() {
 	      this.controller.set_target_next_view();
-	      this.update_view();
+	      this.updateView();
 	    }
 	  }, {
-	    key: "create_protein_div",
-	    value: function create_protein_div() {
-	      var height = this.div.outerHeight() - this.h_annotation_view;
+	    key: "createProteinDiv",
+	    value: function createProteinDiv() {
+	      var height = this.div.outerHeight() - this.hAnnotationView;
 	      this.protein_div = (0, _jquery2.default)('<div>').attr('id', 'jolecule-protein-display').addClass('jolecule-embed-body').css('overflow', 'hidden').css('width', this.div.outerWidth()).css('height', height);
 	      this.div.append(this.protein_div);
 	    }
 	  }, {
-	    key: "create_status_div",
-	    value: function create_status_div() {
+	    key: "createStatusDiv",
+	    value: function createStatusDiv() {
 	      var _this = this;
 	
 	      this.status_text = (0, _jquery2.default)('<span>');
 	
 	      var text_button = (0, _util.toggle_button)('toggle_text', 'T', 'jolecule-button', function () {
-	        return _this.is_view_text_shown;
+	        return _this.isViewTextShown;
 	      }, function (b) {
-	        _this.toggle_text_state();
+	        _this.toggleTextState();
 	      });
 	
 	      var prev_button = (0, _util.link_button)('prev_view', '<', 'jolecule-button', function () {
-	        _this.goto_prev_view();
+	        _this.gotoPrevView();
 	      });
 	
 	      var next_button = (0, _util.link_button)('prev_view', '>', 'jolecule-button', function () {
-	        _this.goto_next_view();
+	        _this.gotoNextView();
 	      });
 	
 	      var loop_button = (0, _util.toggle_button)('loop', '&orarr;', 'jolecule-button', function () {
-	        return _this.is_loop;
+	        return _this.isLoop;
 	      }, function (b) {
-	        _this.is_loop = b;
+	        _this.isLoop = b;
 	      });
 	
 	      var save_button = '';
-	      if (_this.params.is_editable) {
+	      if (_this.params.isEditable) {
 	        save_button = (0, _util.link_button)('save_view', '+', 'jolecule-button', function () {
-	          _this.save_curr_view();
+	          _this.saveCurrView();
 	        });
 	      };
 	
@@ -601,7 +605,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.hyd_button = '';
 	
 	      var backbone_button = (0, _util.link_button)('', 'backbone', 'jolecule-button', function () {
-	        _this.cycle_backbone();
+	        _this.cycleBackbone();
 	      });
 	
 	      var all_button = (0, _util.link_button)('', 'all', 'jolecule-button', function () {
@@ -622,24 +626,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.div.append(this.status_div);
 	    }
 	  }, {
-	    key: "update_view",
-	    value: function update_view() {
+	    key: "updateView",
+	    value: function updateView() {
 	      var _this = this;
-	      var view = this.get_curr_view();
+	      var view = this.getCurrView();
 	      if (view == null) {
 	        return;
 	      }
-	      var n_view = this.scene.saved_views.length;
-	      var i_view = view.order + 1;
-	      this.status_text.text(' ' + i_view + '/' + n_view + ' ');
+	      var nView = this.scene.saved_views.length;
+	      var iView = view.order + 1;
+	      this.status_text.text(' ' + iView + '/' + nView + ' ');
 	      var view_piece = new _util.ViewPiece({
 	        view: view,
-	        is_editable: _this.params.is_editable,
+	        isEditable: _this.params.isEditable,
 	        delete_view: function delete_view() {
-	          _this.delete_curr_view();
+	          _this.deleteCurrView();
 	        },
 	        save_change: function save_change(text) {
-	          _this.change_text(text);
+	          _this.changeText(text);
 	        },
 	        pick: _util.do_nothing,
 	        embed_view: function embed_view() {
@@ -654,8 +658,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // this.hyd.redraw();
 	    }
 	  }, {
-	    key: "create_view_div",
-	    value: function create_view_div() {
+	    key: "createViewDiv",
+	    value: function createViewDiv() {
 	      this.view_div = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view');
 	      this.div.append(this.view_div);
 	    }
@@ -679,6 +683,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 	
 	exports.EmbedJolecule = EmbedJolecule;
+	exports.defaultArgs = defaultArgs;
 
 /***/ },
 /* 3 */
@@ -71742,7 +71747,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.show_div.append((0, _jquery2.default)('<div>').addClass("jolecule-author").html(view.creator));
 	    }
 	
-	    if (this.params.is_editable) {
+	    if (this.params.isEditable) {
 	
 	      this.show_div.append(embed_button).append(' ');
 	
@@ -73463,6 +73468,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.threeJsScene.fog.far = this.zoom + this.zBack;
 	
 	      this.scene.is_new_view_chosen = true;
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: "buildAfterAddProteinData",
+	    value: function buildAfterAddProteinData() {
+	      var scene = this.threeJsScene;
+	      scene.children.forEach(function (object) {
+	        if (_lodash2.default.isUndefined(object.isLight)) {
+	          scene.remove(object);
+	        }
+	      });
+	      this.buildScene();
+	      this.sequenceWidget.resetResidues();
 	      this.scene.changed = true;
 	    }
 	  }, {
@@ -75759,7 +75777,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 **/
 	
 	var SequenceDisplay = function () {
-	  function SequenceDisplay(div_tag, controller) {
+	  function SequenceDisplay(divTag, controller) {
 	    var _this2 = this;
 	
 	    _classCallCheck(this, SequenceDisplay);
@@ -75768,7 +75786,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.scene = controller.scene;
 	    this.protein = controller.scene.protein;
 	    this.res_div = [];
-	    this.div = (0, _jquery4.default)(div_tag).append((0, _jquery4.default)("<div>").addClass('jolecule-sub-header').append("RESIDUES").append("<br>").append((0, _util.link_button)("", 'prev[k]', 'jolecule-button', function () {
+	    this.div = (0, _jquery4.default)(divTag).append((0, _jquery4.default)("<div>").addClass('jolecule-sub-header').append("RESIDUES").append("<br>").append((0, _util.link_button)("", 'prev[k]', 'jolecule-button', function () {
 	      return _this2.goto_prev_residue();
 	    })).append((0, _util.link_button)("", 'next[j]', 'jolecule-button', function () {
 	      return _this2.goto_next_residue();
@@ -75868,18 +75886,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	 **/
 	
 	var ViewsDisplay = function () {
-	  function ViewsDisplay(div_tag, controller, protein_display, data_server) {
+	  function ViewsDisplay(divTag, controller, protein_display, data_server) {
 	    var _this3 = this;
 	
 	    _classCallCheck(this, ViewsDisplay);
 	
-	    this.div_tag = div_tag;
+	    this.divTag = divTag;
 	    this.protein_display = protein_display;
 	    this.scene = controller.scene;
 	    this.controller = controller;
 	    this.data_server = data_server;
 	    this.view_piece = {};
-	    this.top_div = (0, _jquery4.default)(this.div_tag).append((0, _jquery4.default)("<div>").addClass("jolecule-sub-header").append("VIEWS OF PROTEIN").append("<br>").append((0, _util.link_button)('', 'create [v]iew', 'jolecule-button', function () {
+	    this.top_div = (0, _jquery4.default)(this.divTag).append((0, _jquery4.default)("<div>").addClass("jolecule-sub-header").append("VIEWS OF PROTEIN").append("<br>").append((0, _util.link_button)('', 'create [v]iew', 'jolecule-button', function () {
 	      _this3.make_new_view();
 	    })).append((0, _util.link_button)('', 'prev[&uarr;]', 'jolecule-button', function () {
 	      _this3.goto_prev_view();
@@ -75891,8 +75909,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(ViewsDisplay, [{
-	    key: "save_views_to_server",
-	    value: function save_views_to_server(success) {
+	    key: "saveViewsToDataServer",
+	    value: function saveViewsToDataServer(success) {
 	      this.data_server.save_views(this.controller.get_view_dicts(), success);
 	    }
 	  }, {
@@ -75987,7 +76005,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      i_div.css('background-color', 'lightgray');
 	      j_div.css('background-color', 'lightgray');
 	
-	      this.save_views_to_server(function () {
+	      this.saveViewsToDataServer(function () {
 	        j_div.insertBefore(i_div);
 	        _this5.update_views();
 	        i_div.css('background-color', '');
@@ -76020,14 +76038,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var view = this.scene.saved_views_by_id[id];
 	      this.view_piece[id] = new _util.ViewPiece({
 	        view: view,
-	        is_editable: true,
+	        isEditable: true,
 	        delete_view: function delete_view() {
 	          _this6.remove_view(id);
 	        },
 	        save_change: function save_change(changed_text, sucess) {
 	          view.text = changed_text;
 	          _this6.view_piece[id].div.css('background-color', 'lightgray');
-	          _this6.save_views_to_server(function () {
+	          _this6.saveViewsToDataServer(function () {
 	            _this6.view_piece[id].div.css('background-color', '');
 	          });
 	          _this6.scene.changed = true;
@@ -76082,7 +76100,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.insert_new_view_div(new_id);
 	      this.update_views();
 	      this.view_piece[new_id].div.css('background-color', 'lightgray');
-	      this.save_views_to_server(function () {
+	      this.saveViewsToDataServer(function () {
 	        _this7.view_piece[new_id].div.css('background-color', '');
 	        (0, _jquery4.default)("#jolecule-views").stop();
 	        (0, _jquery4.default)("#jolecule-views").scrollTo(_this7.view_piece[new_id].div, 1000, { offset: { top: -80 } });
@@ -76108,15 +76126,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.data_server = data_server;
 	
 	    new _embedjolecule.EmbedJolecule({
-	      div_tag: protein_display_tag,
+	      divTag: protein_display_tag,
 	      data_server: data_server,
-	      loading_html: 'Loading PDB from RCSB web-site...',
-	      loading_failure_html: 'Failed to load PDB.',
 	      view_id: '',
-	      view_height: 170,
-	      is_view_text_shown: false,
-	      is_editable: true,
-	      is_loop: false,
+	      viewHeight: 170,
+	      isViewTextShown: false,
+	      isEditable: true,
+	      isLoop: false,
 	      onload: function onload(embed_jolecule) {
 	        _this8.embed_jolecule = embed_jolecule;
 	        _this8.scene = _this8.embed_jolecule.scene;

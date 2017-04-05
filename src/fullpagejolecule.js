@@ -34,12 +34,12 @@ function html_pad(s, n_padded) {
 
 class SequenceDisplay {
 
-  constructor(div_tag, controller) {
+  constructor(divTag, controller) {
     this.controller = controller;
     this.scene = controller.scene;
     this.protein = controller.scene.protein;
     this.res_div = [];
-    this.div = $(div_tag)
+    this.div = $(divTag)
       .append(
         $("<div>")
           .addClass('jolecule-sub-header')
@@ -166,14 +166,14 @@ class SequenceDisplay {
 
 class ViewsDisplay {
 
-  constructor(div_tag, controller, protein_display, data_server) {
-    this.div_tag = div_tag;
+  constructor(divTag, controller, protein_display, data_server) {
+    this.divTag = divTag;
     this.protein_display = protein_display;
     this.scene = controller.scene;
     this.controller = controller;
     this.data_server = data_server;
     this.view_piece = {};
-    this.top_div = $(this.div_tag)
+    this.top_div = $(this.divTag)
       .append(
         $("<div>")
           .addClass("jolecule-sub-header")
@@ -203,7 +203,7 @@ class ViewsDisplay {
       );
   }
   
-  save_views_to_server(success) {
+  saveViewsToDataServer(success) {
     this.data_server.save_views(
       this.controller.get_view_dicts(), success);
   }
@@ -291,7 +291,7 @@ class ViewsDisplay {
     i_div.css('background-color', 'lightgray')
     j_div.css('background-color', 'lightgray')
 
-    this.save_views_to_server(() => {
+    this.saveViewsToDataServer(() => {
       j_div.insertBefore(i_div);
       this.update_views();
       i_div.css('background-color', '')
@@ -319,12 +319,12 @@ class ViewsDisplay {
     let view = this.scene.saved_views_by_id[id];
     this.view_piece[id] = new ViewPiece({
       view: view,
-      is_editable: true,
+      isEditable: true,
       delete_view: () => { this.remove_view(id); },
       save_change: (changed_text, sucess) => {
         view.text = changed_text;
         this.view_piece[id].div.css('background-color', 'lightgray');
-        this.save_views_to_server(() => {
+        this.saveViewsToDataServer(() => {
           this.view_piece[id].div.css('background-color', '');
         });
         this.scene.changed = true;
@@ -368,7 +368,7 @@ class ViewsDisplay {
     this.insert_new_view_div(new_id);
     this.update_views();
     this.view_piece[new_id].div.css('background-color', 'lightgray');
-    this.save_views_to_server(() => {
+    this.saveViewsToDataServer(() => {
       this.view_piece[new_id].div.css('background-color', '');
       $("#jolecule-views").stop();
       $("#jolecule-views").scrollTo(
@@ -399,15 +399,13 @@ class FullPageJolecule {
     this.data_server = data_server;
 
     new EmbedJolecule({
-      div_tag: protein_display_tag,
+      divTag: protein_display_tag,
       data_server: data_server,
-      loading_html: 'Loading PDB from RCSB web-site...',
-      loading_failure_html: 'Failed to load PDB.',
       view_id: '',
-      view_height: 170,
-      is_view_text_shown: false,
-      is_editable: true,
-      is_loop: false,
+      viewHeight: 170,
+      isViewTextShown: false,
+      isEditable: true,
+      isLoop: false,
       onload: (embed_jolecule) => {
         this.embed_jolecule = embed_jolecule;
         this.scene = this.embed_jolecule.scene;

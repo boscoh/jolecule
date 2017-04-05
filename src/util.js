@@ -278,7 +278,7 @@ function ViewPiece(params) {
         )
     }
 
-    if (this.params.is_editable) {
+    if (this.params.isEditable) {
 
       this.show_div
         .append(embed_button)

@@ -1,41 +1,45 @@
 import {register_global_animation_loop} from "./animation";
-import {EmbedJolecule} from "./embedjolecule.js";
+import {EmbedJolecule, defaultArgs } from "./embedjolecule.js";
 import {FullPageJolecule} from "./fullpagejolecule.js";
 import _ from "lodash";
 import $ from "jquery";
 
+/**
+ *
+ * @param args = {
+ *          divTag: '',
+ *          dataServers: [],
+ *          view_id: '',
+ *          viewHeight: 170,
+ *          isViewTextShown: false,
+ *          isEditable: true,
+ *          isLoop: false,
+ *          onload: onload,
+ *          isGrid: false
+ *        }
+ * @returns {EmbedJolecule}
+ */
+
 function initEmbedJolecule(userArgs) {
-  let defaultArgs = {
-    div_tag: '',
-    data_servers: [],
-    loading_html: 'Loading PDB from RCSB web-site...',
-    loading_failure_html: 'Failed to load PDB.',
-    view_id: '',
-    view_height: 170,
-    is_view_text_shown: false,
-    is_editable: true,
-    is_loop: false,
-    onload: onload,
-    isGrid: false
-  };
   console.log('initEmbedJolecule');
   let args = _.merge(defaultArgs, userArgs);
-  let joleculeWidget = new EmbedJolecule(args);
-  register_global_animation_loop(joleculeWidget);
-  return joleculeWidget;
+  let widget = new EmbedJolecule(args);
+  register_global_animation_loop(widget);
+  return widget;
 }
 
 /**
- * @PARAM: protein_display_tag
- * @PARAM: sequence_display_tag
- * @PARAM: views_display_tag
- * @PARAM: data_server
- * @PARAM: pdb_id
+ * @param protein_display_tag
+ * @param sequence_display_tag
+ * @param views_display_tag
+ * @param data_server
+ * @param pdb_id
+ * @returns {FullPageJolecule}
  */
 function initFullPageJolecule(...args) {
-  var joleculeWidget = new FullPageJolecule(...args);
-  register_global_animation_loop(joleculeWidget);
-  return joleculeWidget;
+  var widget = new FullPageJolecule(...args);
+  register_global_animation_loop(widget);
+  return widget;
 }
 
 function remoteDataServer(pdb_id) {

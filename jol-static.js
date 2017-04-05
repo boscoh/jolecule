@@ -84,7 +84,7 @@ const embedIndexHtmlMustache = `
         require( ['jolecule'], function(jolecule) {
             document.title = "{{{title}}}";
             var j = jolecule.initEmbedJolecule({
-                div_tag: '#jolecule',
+                divTag: '#jolecule',
                 isGrid: true});
             require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
                   var dataServers = [{{{dataServerArgStr}}}];

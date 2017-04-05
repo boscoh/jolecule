@@ -20,33 +20,45 @@ import {
  *
  **/
 
+let defaultArgs = {
+  divTag: '',
+  dataServers: [],
+  view_id: '',
+  viewHeight: 170,
+  isViewTextShown: false,
+  isEditable: true,
+  isLoop: false,
+  onload: onload,
+  isGrid: false
+};
+
 class EmbedJolecule {
 
   constructor (params) {
     this.params = params;
-    this.is_loop = this.params.is_loop;
+    this.isLoop = this.params.isLoop;
 
-    this.div_tag = this.params.div_tag;
-    this.div = $(this.params.div_tag);
-
+    this.divTag = this.params.divTag;
+    this.div = $(this.params.divTag);
+    // disable right mouse click
     this.div[0].oncontextmenu = do_nothing;
 
-    this.init_view_id = this.params.view_id;
-    this.h_annotation_view = this.params.view_height;
+    this.initViewId = this.params.view_id;
+    this.hAnnotationView = this.params.viewHeight;
 
     this.protein = new Protein();
     this.scene = new Scene(this.protein);
     this.controller = new Controller(this.scene);
 
-    this.create_protein_div();
+    this.createProteinDiv();
     this.protein_display = new ProteinDisplay(
       this.scene, '#jolecule-protein-display', this.controller, params.isGrid);
     this.protein_display.min_radius = 10;
 
-    this.create_status_div();
-    this.create_view_div();
+    this.createStatusDiv();
+    this.createViewDiv();
 
-    this.message_div = $('<div>')
+    this.messageDiv = $('<div>')
       .attr('id', 'loading-message')
       .css({
         'z-index': 5000,
@@ -57,32 +69,29 @@ class EmbedJolecule {
         'padding': '5px',
         'color': '#666'})
       .html("Jolecule: loading data for proteins...");
-    stick_in_top_left(this.div, this.message_div, 100, 90);
+    stick_in_top_left(this.div, this.messageDiv, 100, 90);
 
-    this.is_view_text_shown = this.params.is_view_text_shown;
-    this.set_text_state();
+    this.isViewTextShown = this.params.isViewTextShown;
+    this.setTextState();
 
     $(window).resize(() => this.resize());
 
     this.resize();
 
     this.isProcessingData = false;
-    _.each(this.params.data_servers, (data_server) => {
-        this.addDataServer(data_server);
+    _.each(this.params.dataServers, (dataServer) => {
+        this.addDataServer(dataServer);
     });
   };
 
-  loadProteinData(protein_data) {
-  }
-
-  addDataServer(data_server, i) {
+  addDataServer(dataServer, i) {
     let message = (html) => {
-      this.message_div.html(html).show();
+      this.messageDiv.html(html).show();
     };
 
     let cleanup = () => {
       this.resize();
-      this.message_div.hide();
+      this.messageDiv.hide();
       this.isProcessingData = false;
     };
 
@@ -92,21 +101,19 @@ class EmbedJolecule {
       } else {
         this.isProcessingData = true;
 
-        data_server.get_protein_data((protein_data) => {
-          console.log("EmbedJolecule.load_protein_data", protein_data.pdb_id);
-          message("Rendering " + protein_data.pdb_id + "...");
+        dataServer.get_protein_data((proteinData) => {
+          console.log("EmbedJolecule.load_protein_data", proteinData.pdb_id);
+          message("Rendering '" + proteinData.pdb_id + "'");
 
           // timeout needed to allow message to be rendered
           setTimeout(() => {
-            if (protein_data['pdb_text'].length == 0) {
-              message(this.params.loading_failure_html);
+            if (proteinData['pdb_text'].length == 0) {
+              message("Error: no protein data");
               this.isProcessingData = false;
               return;
             }
 
-            this.protein.load(protein_data);
-
-            this.protein_display.nDataServer += 1;
+            this.protein.load(proteinData);
 
             if (this.protein.parsing_error) {
               message("Error parsing protein: " + this.protein.parsing_error);
@@ -114,24 +121,18 @@ class EmbedJolecule {
               return;
             }
 
+            this.protein_display.nDataServer += 1;
             if (this.protein_display.nDataServer == 1) {
               this.protein_display.buildAfterDataLoad();
-              data_server.get_views((view_dicts) => {
-                this.load_views_from_server(view_dicts);
+              dataServer.get_views((view_dicts) => {
+                this.loadViewsFromDataServer(view_dicts);
                 if (this.params.onload) {
                   this.params.onload(this);
                 }
                 cleanup();
               });
             } else {
-              let scene = this.protein_display.threeJsScene;
-              scene.children.forEach(function (object) {
-                if (_.isUndefined(object.isLight)) {
-                  scene.remove(object);
-                }
-              });
-              this.protein_display.buildScene();
-              this.protein_display.sequenceWidget.resetResidues();
+              this.protein_display.buildAfterAddProteinData();
               cleanup();
             }
           }, 0);
@@ -142,45 +143,40 @@ class EmbedJolecule {
     guardFn();
   }
 
-  load_views_from_server(view_dicts) {
+  loadViewsFromDataServer(view_dicts) {
 
     this.controller.load_views_from_flat_views(view_dicts);
 
-    let view_id = this.scene.current_view.id;
-    if (this.init_view_id) {
-      if (this.init_view_id in this.scene.saved_views_by_id) {
-        view_id = this.init_view_id;
+    let viewId = this.scene.current_view.id;
+    if (this.initViewId) {
+      if (this.initViewId in this.scene.saved_views_by_id) {
+        viewId = this.initViewId;
       }
     }
-    this.update_view();
+    this.updateView();
 
     if (this.params.view_id in this.scene.saved_views_by_id) {
       this.controller.set_target_view_by_id(this.params.view_id);
-      this.update_view();
+      this.updateView();
     }
   }
 
-  save_views_to_server(success) {
+  saveViewsToDataServer(success) {
     this.data_server.save_views(
       this.controller.get_view_dicts(), success);
     this.scene.changed = true;
   }
 
-  save_curr_view() {
-    var new_id = random_id();
+  saveCurrView() {
+    var newId = random_id();
     this.controller.calculate_current_abs_camera();
-    this.controller.save_current_view(new_id);
-    this.update_view();
+    this.controller.save_current_view(newId);
+    this.updateView();
     this.view_div.css('background-color', 'lightgray');
-    var _this = this;
-    this.save_views_to_server(
-      function() { 
-        _this.view_div.css('background-color', ''); 
-      }
-    );
+    this.saveViewsToDataServer(() => { this.view_div.css('background-color', ''); });
   }
 
-  get_curr_view() {
+  getCurrView() {
     var i = this.scene.i_last_view;
     if (i in this.scene.saved_views) {
       var id = this.scene.saved_views[i].id;
@@ -190,19 +186,16 @@ class EmbedJolecule {
     }
   }
 
-  change_text(changed_text) {
-    var view = this.get_curr_view();
-    view.text = changed_text;
+  changeText(newText) {
+    var view = this.getCurrView();
+    view.text = newText;
     this.view_div.css('background-color', 'lightgray');
-    var _this = this;
-    var success = function() {
-      _this.view_div.css('background-color', '');
-    }
-    this.save_views_to_server(success);
+    this.saveViewsToDataServer(
+      () => { this.view_div.css('background-color', ''); });
     this.scene.changed = true;
   }
 
-  delete_curr_view() {
+  deleteCurrView() {
     var i = this.scene.i_last_view;
     if (i == 0) {
       // skip default view:000000
@@ -211,13 +204,12 @@ class EmbedJolecule {
     var id = this.scene.saved_views[i].id;
     this.controller.delete_view(id);
     this.view_div.css('background-color', 'lightgray');
-
-    var _this = this;
-    var success = function() {
-      _this.update_view();
-      _this.view_div.css('background-color', '');
-    }
-    this.data_server.delete_protein_view(id, success);
+    this.data_server.delete_protein_view(
+      id,
+      () => {
+        this.updateView();
+        this.view_div.css('background-color', '');
+      });
   }
 
   is_changed() {
@@ -230,7 +222,7 @@ class EmbedJolecule {
   animate() {
     if (exists(this.protein_display)) {
       this.protein_display.animate();
-      if (this.is_loop) {
+      if (this.isLoop) {
         if (this.scene.n_update_step <= 0) {
           // loop started
           this.scene.n_update_step -= 1;
@@ -246,14 +238,14 @@ class EmbedJolecule {
   draw() {
     if (exists(this.protein_display)) {
       if (this.scene.changed) {
-        this.update_view();
+        this.updateView();
         this.protein_display.draw();
         this.scene.changed = false;
       }
     }
   }
 
-  cycle_backbone() {
+  cycleBackbone() {
     if (this.scene.current_view.show.all_atom) {
       this.controller.set_backbone_option('ribbon');
     } else if (this.scene.current_view.show.ribbon) {
@@ -263,10 +255,9 @@ class EmbedJolecule {
     }
   }
 
-  set_text_state() {
-    var h_padding = this.view_div.outerHeight() - this.view_div.height();
-    if (this.is_view_text_shown) {
-      this.view_div.height(this.h_annotation_view);
+  setTextState() {
+    if (this.isViewTextShown) {
+      this.view_div.height(this.hAnnotationView);
       this.view_div.css('visibility', 'visible');
     } else {
       this.view_div.height(0);
@@ -276,25 +267,25 @@ class EmbedJolecule {
     this.controller.scene.changed = true;
   }
 
-  toggle_text_state() {
-    this.is_view_text_shown = !this.is_view_text_shown;
-    this.set_text_state();
+  toggleTextState() {
+    this.isViewTextShown = !this.isViewTextShown;
+    this.setTextState();
   }
   
-  goto_prev_view() {
+  gotoPrevView() {
     this.controller.set_target_prev_view();
-    this.update_view();
+    this.updateView();
   }
   
-  goto_next_view() {
+  gotoNextView() {
     this.controller.set_target_next_view();
-    this.update_view();
+    this.updateView();
   }
 
-  create_protein_div() {
+  createProteinDiv() {
     var height = 
         this.div.outerHeight() - 
-        this.h_annotation_view;
+        this.hAnnotationView;
     this.protein_div = 
       $('<div>')
         .attr('id', 'jolecule-protein-display')
@@ -305,34 +296,34 @@ class EmbedJolecule {
     this.div.append(this.protein_div);
   }
 
-  create_status_div() {
+  createStatusDiv() {
     var _this = this;
 
     this.status_text = $('<span>');
 
     var text_button = toggle_button(
         'toggle_text', 'T', 'jolecule-button',
-        function() { return _this.is_view_text_shown },
-        function(b) { _this.toggle_text_state(); });
+        function() { return _this.isViewTextShown },
+        function(b) { _this.toggleTextState(); });
 
     var prev_button = link_button(
       'prev_view', '<', 'jolecule-button',
-      function() { _this.goto_prev_view() });
+      function() { _this.gotoPrevView() });
 
     var next_button = link_button(
         'prev_view', '>', 'jolecule-button', 
-        function() { _this.goto_next_view() });
+        function() { _this.gotoNextView() });
 
     var loop_button = toggle_button(
         'loop', '&orarr;', 'jolecule-button',
-        function() { return _this.is_loop; },
-        function(b) { _this.is_loop = b });
+        function() { return _this.isLoop; },
+        function(b) { _this.isLoop = b });
 
     var save_button = '';
-    if (_this.params.is_editable) {
+    if (_this.params.isEditable) {
       save_button = link_button(
           'save_view', '+', 'jolecule-button',
-           function() { _this.save_curr_view() });
+           function() { _this.saveCurrView() });
     };
 
     this.lig_button = toggle_button(
@@ -356,7 +347,7 @@ class EmbedJolecule {
 
     var backbone_button = link_button(
       '', 'backbone', 'jolecule-button',
-      function() { _this.cycle_backbone(); });
+      function() { _this.cycleBackbone(); });
 
     var all_button = link_button('', 'all', 'jolecule-button',
       function() { _this.controller.set_show_option('sidechain', true); });
@@ -405,20 +396,20 @@ class EmbedJolecule {
     this.div.append(this.status_div);
   }
 
-  update_view() {
+  updateView() {
     var _this = this;
-    var view = this.get_curr_view();
+    var view = this.getCurrView();
     if (view == null) {
       return;
     }
-    var n_view = this.scene.saved_views.length;
-    var i_view = view.order + 1
-    this.status_text.text(' ' + i_view + '/' + n_view + ' ');
+    var nView = this.scene.saved_views.length;
+    var iView = view.order + 1
+    this.status_text.text(' ' + iView + '/' + nView + ' ');
     var view_piece = new ViewPiece({
       view: view,
-      is_editable: _this.params.is_editable,
-      delete_view: function() { _this.delete_curr_view() },
-      save_change: function(text) { _this.change_text(text); },
+      isEditable: _this.params.isEditable,
+      delete_view: function() { _this.deleteCurrView() },
+      save_change: function(text) { _this.changeText(text); },
       pick: do_nothing,
       embed_view: function() {
         window.location.href = '/embed/pdb/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id;
@@ -436,7 +427,7 @@ class EmbedJolecule {
     // this.hyd.redraw();
   }
 
-  create_view_div() {
+  createViewDiv() {
     this.view_div = $('<div>')
       .addClass('jolecule-embed-view');
     this.div.append(this.view_div);
@@ -460,4 +451,4 @@ class EmbedJolecule {
 }
 
 
-export { EmbedJolecule }
+export { EmbedJolecule, defaultArgs }

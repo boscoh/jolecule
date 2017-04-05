@@ -192,8 +192,6 @@ The parameters in `initEmbedJolecule` controls how the widget is displayed:
   padding or margin.
 - `data_server`: the name of the variable for the data in `data_server.js`.
   A unique name is crucial for multiple widgets.
-- `loading_html`: the text shown when the widget is loading
-- `loading_failure_html`: the text shown if PDB fails to load
 - `view_id`: the id of the view you want to start with, by default it's the PDB's view
 - `view_height`: the size of the text window for the view text
 - `is_view_text_shown`: determines if the view text is shown or hidden

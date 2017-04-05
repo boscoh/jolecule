@@ -65,8 +65,8 @@ function getPdbLines() {
 document.title = "{{{title}}}";   
 
 jolecule.initEmbedJolecule({
-    div_tag: '#jolecule',
-    data_servers: [dataServer]
+    divTag: '#jolecule',
+    dataServers: [dataServer]
 });
 
 `;
