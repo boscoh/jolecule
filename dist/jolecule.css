@@ -1,0 +1,161 @@
+.jolecule-residue-selector,
+.jolecule-button {
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-align: center;
+    margin-right: 2px;
+    margin-bottom: 5px;
+    padding: 6px 6px;
+    font-size: 12px;
+    font-weight: normal;
+    letter-spacing: 0.1em;
+    line-height: 30px;
+    background-color: #444;
+    color: #9A9;
+}
+.jolecule-residue-selector {
+    height:16px;
+    line-height:16px;
+    border: 0;
+    padding: 0;
+    font-family: Courier;
+    font-size: 10px;
+}
+a.jolecule-button-toggle-on,
+a.jolecule-button-toggle-on:link,
+a.jolecule-button-toggle-on:visited {
+    background-color: #777;
+    color: #333 !important;
+}
+a.jolecule-button input a,
+a.jolecule-button,
+a.jolecule-button:link,
+a.jolecule-button:visited {
+    /*background-color: #444;*/
+    /*color: #9A9 !important;*/
+    text-decoration: none;
+}
+.jolecule-small-button,
+a.jolecule-small-button,
+a.jolecule-small-button:visited {
+    padding: 0;
+    font-size: 10px;
+    color: #779;
+    letter-spacing: 0.1em;
+    font-weight: normal;
+}
+a.jolecule-button:active,
+a.jolecule-small-button:active,
+a.jolecule-large-button:active {
+    background-color: #F99;
+}
+.jolecule-author {
+    padding-top: 0em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: #776;
+    padding-left: 15px;
+    font-weight: normal;
+}
+.jolecule-dialog {
+    background-color: #222;
+    padding: 10px;
+    border: 2px solid #444;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    line-height: 1.5em;
+}
+.jolecule-textbox {
+    font-size: 12px;
+    font-family: Helvetica, sans-serif;
+    letter-spacing: 0.1em;
+    line-height: 1em;
+}
+.jolecule-edit-textarea {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    font-family: Helvetica, sans-serif;
+    font-color: #333;
+    background-color: #888;
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+}
+.jolecule-embed-view a,
+.jolecule-embed-view a:visited,
+.jolecule-dialog a,
+.jolecule-dialog a:visited {
+    text-decoration: none;
+    color: #77A;
+}
+.jolecule-embed-header,
+.jolecule-embed-view-bar  {
+    display: flex;
+    padding: 5px;
+    vertical-align: middle;
+    background-color: #222;
+    color: #666;
+    font-family: helvetica;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    overflow: hidden;
+}
+.flex-left {
+    flex: 1 1;
+    text-align: left;
+    vertical-align: middle;
+}
+.flex-right {
+    flex: 1 1;
+    text-align: right;
+    vertical-align: middle;
+}
+.jolecule-embed-header,
+.jolecule-embed-header a {
+    color: #777;
+    text-decoration: none;
+}
+.jolecule-embed-body {
+    flex: 1;
+    -webkit-flex: 1;
+    font-size: 12px;
+    font-family: helvetica;
+    letter-spacing: 0.1em;
+    line-height: 1.2em;
+    color: #666;
+}
+.jolecule-embed-view {
+    background-color: #222;
+    color: #777;
+    font-size: 12px;
+    font-family: Helvetica, sans-serif;
+    letter-spacing: 0.1em;
+    line-height: 1em;
+}
+.jolecule-residue-selector {
+    position: absolute;
+    top: 28px;
+    left: 3px;
+    z-index: 2500;
+    width: 100px;
+}
+.jolecule-embed-body {
+    /*position: relative;*/
+}
+
+.jolecule-view {
+    display: flex;
+    display: -webkit-flex;
+    flex-direction: row;
+    -webkit-flex-direction: row;
+    background-color: #222;
+    padding: 2px 5px 15px 5px;
+    box-sizing: border-box;
+}
+.jolecule-view,
+.jolecule-view-text {
+    font-size: 12px;
+    font-family: Helvetica, sans-serif;
+    letter-spacing: 0.1em;
+    line-height: 1.5em;
+}
+
