@@ -88,7 +88,7 @@ const embedIndexHtmlMustache = `
                 isGrid: true});
             require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
                   var dataServers = [{{{dataServerArgStr}}}];
-                  var i = 0
+                  var i = 0;
                   for (var dataServer of dataServers) {
                     j.addDataServer(dataServer, i);
                     i += 1;
@@ -118,18 +118,18 @@ const fullPageIndexHtmlMustache = `
       <script src="require.js"></script>
       <script>
         (function() {
-          require( 
-                ['jolecule', 'data-server'], 
-                function(jolecule, dataServer) {
-            document.title = "jolecule - pdb:{{pdb_id}}";
+          require(
+                ['jolecule', {{{dataServerLoadStr}}}], 
+                function(jolecule, {{{dataServerArgStr}}}) {
+            document.title = "{{title}}";
             window.user = '{{user_nickname}}';
-            jolecule.initFullPageJolecule(
+            var dataServers = [{{{dataServerArgStr}}}];
+            var j = jolecule.initFullPageJolecule(
               '#jolecule-protein-container',
               '#jolecule-sequence-container',
               '#jolecule-views-container',
-              dataServer,
-              '{{pdb_id}}');
-            });
+              dataServers);
+          });
         })();
       </script>
     </div>
@@ -187,20 +187,33 @@ if (remain.length < 1) {
   }
 
   let html = path.join(targetDir, 'index.html');
-  let title = "jolecule - 1mbo";
-  let htmlText = mustache.render(
-    embedIndexHtmlMustache, {
-      title,
-      dataServerLoadStr,
-      dataServerArgStr,
-    });
+  let title = "jolecule";
+  let isFullPage = true;
+  let htmlText;
+  if (isFullPage) {
+    let user_nickname = 'anonymous';
+    htmlText = mustache.render(
+      fullPageIndexHtmlMustache, {
+        title,
+        dataServerLoadStr,
+        dataServerArgStr,
+        user_nickname
+      });
+  } else {
+    htmlText = mustache.render(
+      embedIndexHtmlMustache, {
+        title,
+        dataServerLoadStr,
+        dataServerArgStr,
+      });
+  }
   fs.writeFileSync(html, htmlText);
 
   let fnames = [
-    'jolecule.js',
-    'jolecule.js.map',
-    'jolecule.css',
-    'full-page-jolecule.css',
+    'dist/jolecule.js',
+    'dist/jolecule.js.map',
+    'dist/jolecule.css',
+    'dist/full-page-jolecule.css',
     'node_modules/requirejs/require.js'];
 
   for (let fname of fnames) {

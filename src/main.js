@@ -7,21 +7,20 @@ import $ from "jquery";
 /**
  *
  * @param args = {
- *          divTag: '',
- *          dataServers: [],
- *          view_id: '',
- *          viewHeight: 170,
- *          isViewTextShown: false,
- *          isEditable: true,
- *          isLoop: false,
- *          onload: onload,
- *          isGrid: false
- *        }
+ *   divTag: '',
+ *   dataServers: [],
+ *   view_id: '',
+ *   viewHeight: 170,
+ *   isViewTextShown: false,
+ *   isEditable: true,
+ *   isLoop: false,
+ *   onload: onload,
+ *   isGrid: false
+ * }
  * @returns {EmbedJolecule}
  */
 
 function initEmbedJolecule(userArgs) {
-  console.log('initEmbedJolecule');
   let args = _.merge(defaultArgs, userArgs);
   let widget = new EmbedJolecule(args);
   register_global_animation_loop(widget);
@@ -32,8 +31,6 @@ function initEmbedJolecule(userArgs) {
  * @param protein_display_tag
  * @param sequence_display_tag
  * @param views_display_tag
- * @param data_server
- * @param pdb_id
  * @returns {FullPageJolecule}
  */
 function initFullPageJolecule(...args) {
@@ -42,28 +39,28 @@ function initFullPageJolecule(...args) {
   return widget;
 }
 
-function remoteDataServer(pdb_id) {
+function remoteDataServer(pdbId) {
   return {
-    pdb_id: pdb_id,
-    get_protein_data: function(process_protein_data) {
+    pdb_id: pdbId,
+    get_protein_data: function(processProteinData) {
       let url;
-      if (pdb_id.length == 4) {
-        url = `https://files.rcsb.org/download/${pdb_id}.pdb1`;
+      if (pdbId.length == 4) {
+        url = `https://files.rcsb.org/download/${pdbId}.pdb1`;
       } else {
-        url = `/pdb/${pdb_id}.txt`;
+        url = `/pdb/${pdbId}.txt`;
       }
-      $.get(url, (pdb_text) => {
-        process_protein_data({pdb_id, pdb_text});
+      $.get(url, (pdbText) => {
+        processProteinData({pdbId, pdbText});
       });
     },
-    get_views: function(process_views) {
-      $.getJSON(`/pdb/${pdb_id}.views.json`, process_views);
+    get_views: function(processViews) {
+      $.getJSON(`/pdb/${pdbId}.views.json`, processViews);
     },
     save_views: function(views, success) {
       $.post('/save/views', JSON.stringify(views), success);
     },
-    delete_protein_view: function(view_id, success) {
-      $.post('/delete/view', {pdb_id, view_id}, success);
+    delete_protein_view: function(viewId, success) {
+      $.post('/delete/view', {pdbId, viewId}, success);
     }
   }
 }

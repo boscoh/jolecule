@@ -5,7 +5,7 @@ module.exports = {
   entry: './src/main.js',
   devtool: 'source-map',
   output: {
-    path: __dirname,
+    path: path.join(__dirname, 'dist'),
     filename: 'jolecule.js',
     library: 'jolecule',
     libraryTarget: 'umd'

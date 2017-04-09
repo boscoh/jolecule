@@ -632,7 +632,7 @@ var Protein = function () {
       if (residue.ss == "D") {
         var forward = v3.diff(atoms["C3'"].pos, atoms["C5'"].pos);
         var up = v3.diff(atoms["C1'"].pos, atoms["C3'"].pos);
-        var normal = v3.cross_product(forward, up);
+        var normal = v3.crossProduct(forward, up);
         residue.normals.push(normal);
       }
 
@@ -891,9 +891,9 @@ var Camera = function () {
 
 
 function is_equal_camera(v, w) {
-  if (v3.is_equal(v.pos, w.pos) &&
-    v3.is_equal(v.up_v, w.up_v) &&
-    v3.is_equal(v.in_v, w.in_v) &&
+  if (v3.isEqual(v.pos, w.pos) &&
+    v3.isEqual(v.up_v, w.up_v) &&
+    v3.isEqual(v.in_v, w.in_v) &&
     (v.zoom == w.zoom) &&
     (v.z_front == w.z_front) &&
     (v.z_back == w.z_back)) {
@@ -921,7 +921,7 @@ function get_camera_transform(ref, mov, n_step) {
     r1 = new v3.Matrix4();
     torsion1 = null;
   } else {
-    axis1 = v3.cross_product(mov12, ref12);
+    axis1 = v3.crossProduct(mov12, ref12);
     torsion1 = v3.dihedral(ref12, axis1, mov12);
     r1 = v3.rotation(axis1, torsion1);
   }
@@ -930,11 +930,11 @@ function get_camera_transform(ref, mov, n_step) {
   var ref13 = v3.diff(ref3, ref1);
   var mov13 = v3.diff(mov3, mov1);
   mov13.applyMatrix4(r1);
-  if (v3.is_near_zero(v3.angle(ref13, mov13))) {
+  if (v3.isNearZero(v3.angle(ref13, mov13))) {
     r2 = new v3.Matrix4();
     torsion2 = null;
   } else {
-    axis2 = v3.cross_product(ref13, mov13);
+    axis2 = v3.crossProduct(ref13, mov13);
     torsion2 = v3.dihedral(ref13, axis2, mov13);
     r2 = v3.rotation(axis2, torsion2);
   }
@@ -945,17 +945,17 @@ function get_camera_transform(ref, mov, n_step) {
     var n = t;
   } else {
     var r1 = v3.rotation(axis1, torsion1 / n_step);
-    var n = v3.matrix_product(r1, t);
+    var n = v3.matrixProduct(r1, t);
   }
   if (torsion2 === null) {
     var m = n;
   } else {
     var r2 = v3.rotation(axis2, torsion2 / n_step);
-    var m = v3.matrix_product(r2, n);
+    var m = v3.matrixProduct(r2, n);
   }
   var disp2 = v3.scaled(disp, -(n_step - 1) / n_step);
 
-  return v3.matrix_product(v3.translation(disp2), m);
+  return v3.matrixProduct(v3.translation(disp2), m);
 }
 
 
@@ -1284,7 +1284,7 @@ var Controller = function (scene) {
     rot_along_x = v3.rotation(x_axis, x_angle);
     y_axis = v3.create(0, 1, 0);
     rot_along_y = v3.rotation(y_axis, y_angle);
-    matrix = v3.matrix_product(rot_along_x, rot_along_y);
+    matrix = v3.matrixProduct(rot_along_x, rot_along_y);
     this.scene.transform(matrix);
   }
 
@@ -1375,7 +1375,7 @@ var Controller = function (scene) {
     return id;
   }
 
-  this.swap_views = function (i, j) {
+  this.swapViews = function (i, j) {
     this.scene.saved_views[j].order = i;
     this.scene.saved_views[i].order = j;
     var dummy = this.scene.saved_views[j];

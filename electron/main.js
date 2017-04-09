@@ -20,7 +20,7 @@ let viewsJson;
 
 const localServerMustache = `
 const {ipcRenderer} = require('electron');
-const jolecule = require('../jolecule');
+const jolecule = require('../dist/jolecule');
 
 var dataServer = {
   get_protein_data: function(loadProteinData) {

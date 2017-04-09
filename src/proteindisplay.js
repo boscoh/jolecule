@@ -107,7 +107,7 @@ function getDarkSsColor(ss) {
 
 // Backbone atom names
 
-var backbone_atoms = [
+var backboneAtoms = [
   "N", "C", "O", "H", "HA", "CA", "OXT",
   "C3'", "P", "OP1", "O5'", "OP2",
   "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'",
@@ -1585,7 +1585,7 @@ class ProteinDisplay {
   }
 
 
-  buildAfterDataLoad(default_html) {
+  buildAfterDataLoad(defaultHtml) {
 
     this.buildScene();
 
@@ -1715,7 +1715,7 @@ class ProteinDisplay {
     var atoms = res.atoms;
     var forward = v3.diff(atoms["C3'"].pos, atoms["C5'"].pos);
     var up = v3.diff(atoms["C1'"].pos, atoms["C3'"].pos);
-    return v3.cross_product(forward, up);
+    return v3.crossProduct(forward, up);
 
   }
 
@@ -2293,15 +2293,15 @@ class ProteinDisplay {
 
       for (var j = 0; j < residue.bonds.length; j += 1) {
         var bond = residue.bonds[j];
-        if (in_array(bond.atom1.type, backbone_atoms) ||
-          in_array(bond.atom2.type, backbone_atoms)) {
+        if (in_array(bond.atom1.type, backboneAtoms) ||
+          in_array(bond.atom2.type, backboneAtoms)) {
           this.mergeBond(geom, bond, residue);
         }
       }
 
       for (var a in residue.atoms) {
         var atom = residue.atoms[a];
-        if (in_array(atom.type, backbone_atoms)) {
+        if (in_array(atom.type, backboneAtoms)) {
           this.pushAtom(this.objects.backbone, atom);
         }
       }
@@ -2455,7 +2455,7 @@ class ProteinDisplay {
 
       var bond = residue.bonds[j];
 
-      if (!in_array(bond.atom1.type, backbone_atoms) || !in_array(bond.atom2.type, backbone_atoms)) {
+      if (!in_array(bond.atom1.type, backboneAtoms) || !in_array(bond.atom2.type, backboneAtoms)) {
 
         this.mergeBond(scGeom, bond, residue);
       }
@@ -2471,7 +2471,7 @@ class ProteinDisplay {
 
     for (var a in residue.atoms) {
       var atom = residue.atoms[a];
-      if (!in_array(atom.type, backbone_atoms)) {
+      if (!in_array(atom.type, backboneAtoms)) {
         atom.is_sidechain = true;
         this.pushAtom(residue.sidechain, atom);
       }
@@ -3454,7 +3454,6 @@ class ProteinDisplay {
     }
     if (exists(this.scene.grid)) {
       if (this.objects.grid) {
-        console.log(this.scene.grid_atoms);
         this.objects.grid.traverse((child) => {
           if ((child instanceof THREE.Mesh) && exists(child.atom)) {
             if ((child.atom.bfactor > this.scene.grid)

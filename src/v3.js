@@ -16,7 +16,7 @@ import THREE from "three";
 var SMALL = 1E-6;
 
 
-function is_near_zero(a) {
+function isNearZero(a) {
   return Math.abs(a) < SMALL;
 }
 
@@ -56,7 +56,7 @@ function sum(a, b) {
 function parallel(v, axis) {
   var axis_len = axis.length();
   var result;
-  if (is_near_zero(axis_len)) {
+  if (isNearZero(axis_len)) {
     result = create(v.x, v.y, v.z);
   } else {
     var scale = dot_product(v, axis)/axis_len/axis_len;
@@ -70,7 +70,7 @@ function perpendicular(v, axis) {
   return diff(v, parallel(v, axis));
 }
 
-function cross_product(a, b) {
+function crossProduct(a, b) {
   return new THREE.Vector3().crossVectors(a, b);
 }
 
@@ -86,7 +86,7 @@ function distance(p1, p2) {
 function angle(a, b) {
   var a_len = a.length();
   var b_len = b.length();
-  if (is_near_zero(a_len * b_len)) {
+  if (isNearZero(a_len * b_len)) {
     return 0.0;
   }
   var c = dot_product(a, b) / a_len / b_len;
@@ -106,14 +106,14 @@ function dihedral(ref, axis, v) {
   var ref_perp = perpendicular(ref, axis);
   var v_perp = perpendicular(v, axis);
   var a = angle(ref_perp, v_perp);
-  var cross = cross_product(ref_perp, v_perp);
+  var cross = crossProduct(ref_perp, v_perp);
   if (dot_product(cross, axis) > 0) {
     a = -a;
   }
   return a;
 }
 
-function mid_point(p, q) {
+function midPoint(p, q) {
   var s = sum(p, q);
   return scaled(s, 0.5);
 }
@@ -125,24 +125,24 @@ function random() {
 }
 
 
-function is_equal(v, w) {
-  if (!is_near_zero(v.x-w.x)) {
+function isEqual(v, w) {
+  if (!isNearZero(v.x-w.x)) {
     return false;
-  } else if (!is_near_zero(v.y-w.y)) {
+  } else if (!isNearZero(v.y-w.y)) {
     return false;
-  } else if (!is_near_zero(v.y-w.y)) {
+  } else if (!isNearZero(v.y-w.y)) {
     return false;
   }
   return true;
 }
 
 function is_aligned(v, w) {
-  return is_near_zero(angle(v, w));
+  return isNearZero(angle(v, w));
 }
 
 var Matrix4 = THREE.Matrix4;
 
-function matrix_product(lhs, rhs) {
+function matrixProduct(lhs, rhs) {
   var c = new Matrix4();
   c.multiplyMatrices(lhs, rhs);
   return c;
@@ -160,7 +160,7 @@ function translation(p) {
 
 export default {
   SMALL,
-  is_near_zero,
+  isNearZero,
   create,
   clone,
   scaled,
@@ -169,17 +169,17 @@ export default {
   sum,
   parallel,
   perpendicular,
-  cross_product,
+  crossProduct,
   dot_product,
   distance,
   angle,
   dihedral,
-  mid_point,
+  midPoint,
   random,
-  is_equal,
+  isEqual,
   is_aligned,
   Matrix4,
-  matrix_product,
+  matrixProduct,
   rotation,
   translation,
 };

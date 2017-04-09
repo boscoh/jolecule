@@ -1,6 +1,6 @@
 
 import $ from "jquery";
-
+import _ from "lodash";
 
 // Utility functions
 
@@ -223,11 +223,11 @@ function ViewPiece(params) {
       .addClass('jolecule-view-text')
       .css('width', '100%')
       .css('height', '5em')
-      .click(do_nothing);
+      .click(_.noop);
 
     this.edit_div = $('<div>')
       .css('width', '100%')
-      .click(do_nothing)
+      .click(_.noop)
       .append(this.edit_textarea)
       .append('<br><br>')
       .append(
@@ -288,21 +288,21 @@ function ViewPiece(params) {
         this.show_div
           .append(edit_button)
   
-        if (exists(this.params.swap_up) && this.params.swap_up)
+        if (exists(this.params.swapUp) && this.params.swapUp)
           this.show_div
             .append(" ")
             .append(
               link_button(
                 "", "up", "jolecule-small-button",  
-                function() { _this.params.swap_up(); }))
+                function() { _this.params.swapUp(); }))
 
-        if (exists(this.params.swap_up) && this.params.swap_down)
+        if (exists(this.params.swapUp) && this.params.swapDown)
           this.show_div
             .append(" ")
             .append(
               link_button(
                 "", "down", "jolecule-small-button",  
-                function() { _this.params.swap_down(); }))
+                function() { _this.params.swapDown(); }))
 
         this.show_div
           .append(
@@ -394,11 +394,6 @@ function trim(text) {
 }
 
 
-function do_nothing() {
-  return false;
-}
-
-
 function clone_dict(d) {
   var new_d = {};
   for (var k in d) {
@@ -460,7 +455,6 @@ export {
     in_array,
     del_from_array,
     trim,
-    do_nothing,
     clone_dict,
     clone_list_of_dicts,
     random_string,

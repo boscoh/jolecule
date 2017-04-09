@@ -43,13 +43,13 @@ function consoleLogMethods(myObject) {
 // make vectors
 var v = get_random_vector();
 var w = v.clone(v);
-assert(v3.is_equal(v, w));
+assert(v3.isEqual(v, w));
 
 // vector subtractiions and additions
 var b = get_random_vector();
 var c = v3.sum(v, b);
 var d = v3.diff(c, b);
-assert(v3.is_equal(v, d));
+assert(v3.isEqual(v, d));
 
 // test orthogonal rotations
 var x = v3.create(get_random_real(), 0, 0);
@@ -59,17 +59,17 @@ var rotation = v3.rotation(y, radians(90));
 var ry_x = x.clone();
 ry_x.applyMatrix4(rotation);
 ry_x.multiplyScalar(-1);
-assert(v3.is_equal(z, ry_x));
+assert(v3.isEqual(z, ry_x));
 
 // test cross product
-var cross_x_y = v3.cross_product(x, y);
-assert(v3.is_equal(
+var cross_x_y = v3.crossProduct(x, y);
+assert(v3.isEqual(
     v3.normalized(cross_x_y),
     v3.normalized(z)));
-var cross_y_x = v3.cross_product(x, y);
+var cross_y_x = v3.crossProduct(x, y);
 var neg_z = z.clone();
 neg_z.multiplyScalar(-1)
-assert(v3.is_equal(
+assert(v3.isEqual(
     v3.normalized(cross_x_y), neg_z));
 
 // test translation
@@ -79,14 +79,14 @@ var translation = v3.translation(y);
 var x_and_y = x.clone();
 x_and_y.applyMatrix4(translation);
 var x_plus_y = v3.sum(x, y);
-assert(v3.is_equal(x_plus_y, x_and_y));
+assert(v3.isEqual(x_plus_y, x_and_y));
 
 // test rotation
 var x = get_random_vector();
 var rotation = v3.rotation(get_random_vector(), Math.random());
 var y = x.clone();
 y.applyMatrix4(rotation);
-assert(v3.is_near_zero(x.length() - y.length()));
+assert(v3.isNearZero(x.length() - y.length()));
 
 // test matrix combination
 var matrices = [rotation, translation, rotation, translation];
@@ -96,8 +96,8 @@ var x = get_random_vector();
 var y = x.clone();
 for (var matrix of matrices) {
     x.applyMatrix4(matrix);
-    combined_matrix = v3.matrix_product(
+    combined_matrix = v3.matrixProduct(
         matrix, combined_matrix);
 }
 y.applyMatrix4(combined_matrix);
-assert(v3.is_equal(x, y));
+assert(v3.isEqual(x, y));
