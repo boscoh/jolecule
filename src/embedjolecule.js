@@ -27,7 +27,6 @@ let defaultArgs = {
   isViewTextShown: false,
   isEditable: true,
   isLoop: false,
-  onload: onload,
   isGrid: false
 };
 
@@ -66,9 +65,9 @@ class EmbedJolecule {
         'font-size': '12px',
         'letter-spacing': '0.1em',
         'padding': '5px',
+        'position': 'absolute',
         'color': '#666'})
       .html("Jolecule: loading data for proteins...");
-    stick_in_top_left(this.div, this.messageDiv, 100, 90);
 
     this.isViewTextShown = this.params.isViewTextShown;
     this.setTextState();
@@ -78,17 +77,11 @@ class EmbedJolecule {
     this.resize();
 
     this.isProcessingData = false;
-    // _.each(this.params.dataServers, (dataServer) => {
-    //     this.addDataServer(dataServer);
-    // });
-
-    if (this.params.onload) {
-      this.params.onload();
-    }
   };
 
   setProcessingMesssage(html) {
     this.messageDiv.html(html).show();
+    stick_in_top_left(this.div, this.messageDiv, 100, 90);
   };
 
   cleanupProcessingMessage() {
@@ -130,9 +123,6 @@ class EmbedJolecule {
               this.proteinDisplay.buildAfterDataLoad();
               dataServer.get_views((view_dicts) => {
                 this.loadViewsFromDataServer(view_dicts);
-                // if (this.params.onload) {
-                //   this.params.onload(this);
-                // }
                 this.cleanupProcessingMessage();
                 if (callback) {
                   callback();

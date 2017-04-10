@@ -263,7 +263,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  isViewTextShown: false,
 	  isEditable: true,
 	  isLoop: false,
-	  onload: onload,
 	  isGrid: false
 	};
 	
@@ -302,8 +301,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      'font-size': '12px',
 	      'letter-spacing': '0.1em',
 	      'padding': '5px',
+	      'position': 'absolute',
 	      'color': '#666' }).html("Jolecule: loading data for proteins...");
-	    (0, _util.stick_in_top_left)(this.div, this.messageDiv, 100, 90);
 	
 	    this.isViewTextShown = this.params.isViewTextShown;
 	    this.setTextState();
@@ -315,19 +314,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.resize();
 	
 	    this.isProcessingData = false;
-	    // _.each(this.params.dataServers, (dataServer) => {
-	    //     this.addDataServer(dataServer);
-	    // });
-	
-	    if (this.params.onload) {
-	      this.params.onload();
-	    }
 	  }
 	
 	  _createClass(EmbedJolecule, [{
 	    key: "setProcessingMesssage",
 	    value: function setProcessingMesssage(html) {
 	      this.messageDiv.html(html).show();
+	      (0, _util.stick_in_top_left)(this.div, this.messageDiv, 100, 90);
 	    }
 	  }, {
 	    key: "cleanupProcessingMessage",
@@ -372,9 +365,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                _this2.proteinDisplay.buildAfterDataLoad();
 	                dataServer.get_views(function (view_dicts) {
 	                  _this2.loadViewsFromDataServer(view_dicts);
-	                  // if (this.params.onload) {
-	                  //   this.params.onload(this);
-	                  // }
 	                  _this2.cleanupProcessingMessage();
 	                  if (callback) {
 	                    callback();
@@ -28922,7 +28912,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var axis1, torsion1, r1;
 	  var mov12 = _v2.default.diff(mov2, mov1);
 	  var ref12 = _v2.default.diff(ref2, ref1);
-	  if (_v2.default.is_aligned(mov12, ref12)) {
+	  if (_v2.default.isAligned(mov12, ref12)) {
 	    r1 = new _v2.default.Matrix4();
 	    torsion1 = null;
 	  } else {
@@ -29716,7 +29706,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return true;
 	}
 	
-	function is_aligned(v, w) {
+	function isAligned(v, w) {
 	  return isNearZero(angle(v, w));
 	}
 	
@@ -29757,7 +29747,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  midPoint: midPoint,
 	  random: random,
 	  isEqual: isEqual,
-	  is_aligned: is_aligned,
+	  isAligned: isAligned,
 	  Matrix4: Matrix4,
 	  matrixProduct: matrixProduct,
 	  rotation: rotation,
@@ -73377,7 +73367,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.hover.arrow.css("pointer-events", "none");
 	
 	    this.zSlab = new ZSlabBar(this.divTag, this.scene);
-	    this.gridBar = new GridBar(this.divTag, this.scene);
+	    if (this.isGrid) {
+	      this.gridBar = new GridBar(this.divTag, this.scene);
+	    }
 	
 	    this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
 	
@@ -75034,7 +75026,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      (0, _glgeometry.setVisible)(this.objects.water, show.water);
 	
-	      if (!(0, _util.exists)(this.objects.grid)) {
+	      if (this.isGrid && !(0, _util.exists)(this.objects.grid)) {
 	        this.buildGrid();
 	      }
 	      if ((0, _util.exists)(this.scene.grid)) {
@@ -75807,14 +75799,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "redraw",
 	    value: function redraw() {
 	      for (var i = 0; i < this.resDiv.length; i += 1) {
-	        var resId = this.protein.residues[i].id;
-	        if (resId == this.scene.current_view.res_id) {
-	          this.resDiv[i].target.removeClass("jolecule-unselected-box");
-	          this.resDiv[i].target.addClass("jolecule-selected-box");
-	          (0, _jquery4.default)('#jolecule-sequence').stop().scrollTo(this.resDiv[i].target, 1000, { offset: { top: -80 } });
-	        } else {
-	          this.resDiv[i].target.removeClass("jolecule-selected-box");
-	          this.resDiv[i].target.addClass("jolecule-unselected-box");
+	        if (!_lodash2.default.isUndefined(this.protein.residues[i])) {
+	          var resId = this.protein.residues[i].id;
+	          if (resId == this.scene.current_view.res_id) {
+	            this.resDiv[i].target.removeClass("jolecule-unselected-box");
+	            this.resDiv[i].target.addClass("jolecule-selected-box");
+	            (0, _jquery4.default)('#jolecule-sequence').stop().scrollTo(this.resDiv[i].target, 1000, { offset: { top: -80 } });
+	          } else {
+	            this.resDiv[i].target.removeClass("jolecule-selected-box");
+	            this.resDiv[i].target.addClass("jolecule-unselected-box");
+	          }
 	        }
 	      }
 	      for (var _i = 0; _i < this.protein.residues.length; _i += 1) {
@@ -76144,7 +76138,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      viewHeight: 170,
 	      isViewTextShown: false,
 	      isEditable: true,
-	      isLoop: false
+	      isLoop: false,
+	      isGrid: true
 	    });
 	
 	    document.oncontextmenu = _lodash2.default.noop;

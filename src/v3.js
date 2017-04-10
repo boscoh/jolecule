@@ -136,7 +136,7 @@ function isEqual(v, w) {
   return true;
 }
 
-function is_aligned(v, w) {
+function isAligned(v, w) {
   return isNearZero(angle(v, w));
 }
 
@@ -177,7 +177,7 @@ export default {
   midPoint,
   random,
   isEqual,
-  is_aligned,
+  isAligned,
   Matrix4,
   matrixProduct,
   rotation,

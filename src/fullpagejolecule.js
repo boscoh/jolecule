@@ -63,17 +63,19 @@ class SequenceDisplay {
 
   redraw() {
     for (let i = 0; i < this.resDiv.length; i += 1) {
-      let resId = this.protein.residues[i].id;
-      if (resId == this.scene.current_view.res_id) {
-        this.resDiv[i].target.removeClass("jolecule-unselected-box");
-        this.resDiv[i].target.addClass("jolecule-selected-box");
-        $('#jolecule-sequence')
-          .stop()
-          .scrollTo(
-            this.resDiv[i].target, 1000, {offset: {top: -80}});
-      } else {
-        this.resDiv[i].target.removeClass("jolecule-selected-box");
-        this.resDiv[i].target.addClass("jolecule-unselected-box");
+      if (!_.isUndefined(this.protein.residues[i])) {
+        let resId = this.protein.residues[i].id;
+        if (resId == this.scene.current_view.res_id) {
+          this.resDiv[i].target.removeClass("jolecule-unselected-box");
+          this.resDiv[i].target.addClass("jolecule-selected-box");
+          $('#jolecule-sequence')
+            .stop()
+            .scrollTo(
+              this.resDiv[i].target, 1000, {offset: {top: -80}});
+        } else {
+          this.resDiv[i].target.removeClass("jolecule-selected-box");
+          this.resDiv[i].target.addClass("jolecule-unselected-box");
+        }
       }
     }
     for (let i = 0; i < this.protein.residues.length; i += 1) {
@@ -402,7 +404,8 @@ class FullPageJolecule {
       viewHeight: 170,
       isViewTextShown: false,
       isEditable: true,
-      isLoop: false
+      isLoop: false,
+      isGrid: true
     });
 
     document.oncontextmenu = _.noop;

@@ -917,7 +917,7 @@ function get_camera_transform(ref, mov, n_step) {
   var axis1, torsion1, r1;
   var mov12 = v3.diff(mov2, mov1);
   var ref12 = v3.diff(ref2, ref1);
-  if (v3.is_aligned(mov12, ref12)) {
+  if (v3.isAligned(mov12, ref12)) {
     r1 = new v3.Matrix4();
     torsion1 = null;
   } else {

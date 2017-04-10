@@ -1524,7 +1524,9 @@ class ProteinDisplay {
     this.hover.arrow.css("pointer-events", "none");
 
     this.zSlab = new ZSlabBar(this.divTag, this.scene);
-    this.gridBar = new GridBar( this.divTag, this.scene );
+    if (this.isGrid) {
+      this.gridBar = new GridBar(this.divTag, this.scene);
+    }
 
     this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
 
@@ -3449,7 +3451,7 @@ class ProteinDisplay {
     }
     setVisible(this.objects.water, show.water);
 
-    if (!exists(this.objects.grid)) {
+    if (this.isGrid && !exists(this.objects.grid)) {
       this.buildGrid();
     }
     if (exists(this.scene.grid)) {

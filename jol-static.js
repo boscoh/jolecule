@@ -63,6 +63,7 @@ const embedIndexHtmlMustache = `
         content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    <title>jolecule</title>
     <link rel="stylesheet" type="text/css" href="jolecule.css"/>
     <style>
         body {
@@ -78,24 +79,21 @@ const embedIndexHtmlMustache = `
     </style>
 </head>
 <body>
-    <div id="jolecule"></div>
-    <script src="require.js"></script>
-    <script>
-        require( ['jolecule'], function(jolecule) {
-            document.title = "{{{title}}}";
-            var j = jolecule.initEmbedJolecule({
-                divTag: '#jolecule',
-                isGrid: true});
-            require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
-                  var dataServers = [{{{dataServerArgStr}}}];
-                  var i = 0;
-                  for (var dataServer of dataServers) {
-                    j.addDataServer(dataServer, i);
-                    i += 1;
-                  }
-            });
-        });
-    </script>
+  <div id="jolecule"></div>
+  <script src="require.js"></script>
+  <script>
+  require( ['jolecule'], function(jolecule) {
+    var j = jolecule.initEmbedJolecule({
+      divTag: '#jolecule',
+      isGrid: true});
+    require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
+      var dataServers = [{{{dataServerArgStr}}}];
+      for (var dataServer of dataServers) {
+        j.addDataServer(dataServer);
+      }
+    });
+  });
+  </script>
 </body>
 `;
 
@@ -107,6 +105,7 @@ const fullPageIndexHtmlMustache = `
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
   <link rel="stylesheet" type="text/css" href="jolecule.css"/>
   <link rel="stylesheet" type="text/css" href="full-page-jolecule.css" />
+  <title>jolecule</title>
 </head>
 
 <body>
@@ -119,20 +118,15 @@ const fullPageIndexHtmlMustache = `
       <script>
         (function() {
           require(['jolecule'], function(jolecule) {
-            document.title = "{{title}}";
             window.user = '{{user_nickname}}';
             var j = jolecule.initFullPageJolecule(
               '#jolecule-protein-container',
               '#jolecule-sequence-container',
               '#jolecule-views-container');
-            console.log('j', j);
             require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
               var dataServers = [{{{dataServerArgStr}}}];
-              var i = 0;
               for (var dataServer of dataServers) {
-                console.log('dataServer', dataServer);
-                j.addDataServer(dataServer, i);
-                i += 1;
+                j.addDataServer(dataServer);
               }
             });
           });
@@ -200,7 +194,6 @@ if (remain.length < 1) {
     let user_nickname = 'anonymous';
     htmlText = mustache.render(
       fullPageIndexHtmlMustache, {
-        title,
         dataServerLoadStr,
         dataServerArgStr,
         user_nickname
@@ -208,7 +201,6 @@ if (remain.length < 1) {
   } else {
     htmlText = mustache.render(
       embedIndexHtmlMustache, {
-        title,
         dataServerLoadStr,
         dataServerArgStr,
       });
