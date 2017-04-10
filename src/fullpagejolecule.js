@@ -77,10 +77,12 @@ class SequenceDisplay {
       }
     }
     for (let i = 0; i < this.protein.residues.length; i += 1) {
-      if (this.protein.residues[i].selected) {
-        this.resDiv[i].select.prop('checked', true);
-      } else {
-        this.resDiv[i].select.prop('checked', false);
+      if (!_.isUndefined(this.resDiv[i])) {
+        if (this.protein.residues[i].selected) {
+          this.resDiv[i].select.prop('checked', true);
+        } else {
+          this.resDiv[i].select.prop('checked', false);
+        }
       }
     }
   }
@@ -141,7 +143,7 @@ class SequenceDisplay {
   
   buildDivs() {
     let sequenceDiv = $("#jolecule-sequence");
-    sequenceDiv.clear();
+    sequenceDiv.empty();
     for (let i=0; i<this.protein.residues.length; i+=1) {
       let elem = this.createResidueDiv(i);
       sequenceDiv.append(elem.target);
@@ -393,59 +395,59 @@ class FullPageJolecule {
       dataServers) {
 
     this.viewsDisplayTag = viewsDisplayTag;
-    this.sequence_display_tag = sequenceDisplayTag;
-    // this.data_server = data_server;
-    this.dataServers = dataServers;
+    this.sequenceDisplayTag = sequenceDisplayTag;
 
-    this.embedJolecule;
-    new EmbedJolecule({
+    this.embedJolecule = new EmbedJolecule({
       divTag: proteinDisplayTag,
       viewId: '',
       viewHeight: 170,
       isViewTextShown: false,
       isEditable: true,
-      isLoop: false,
-      dataServers: dataServers,
-      onload: (embedJolecule) => {
-        this.embedJolecule = embedJolecule;
+      isLoop: false
+    });
+
+    document.oncontextmenu = _.noop;
+    document.onkeydown = (e) => this.onkeydown(e);
+    let resize_fn = () => {
+      this.resize()
+    };
+    $(window).resize(resize_fn);
+    window.onorientationchange = resize_fn;
+
+    this.noData = true;
+  }
+
+  addDataServer(dataServer) {
+    this.embedJolecule.addDataServer(dataServer, () => {
+      if (this.noData) {
+        this.noData = false;
+
         this.scene = this.embedJolecule.scene;
         this.controller = this.embedJolecule.controller;
         this.proteinDisplay = this.embedJolecule.proteinDisplay;
-        this.postDataLoadBuildElements();
+
+        this.viewsDisplay = new ViewsDisplay(
+          this.viewsDisplayTag,
+          this.controller,
+          this.proteinDisplay,
+          this.data_server);
+
+        this.viewsDisplay.makeAllViews();
+        let hashTag = url().split('#')[1];
+        if (hashTag in this.scene.saved_views_by_id) {
+          this.viewsDisplay.setTargetByViewId(hashTag);
+        } else {
+          this.viewsDisplay.setTargetByViewId('view:000000');
+        }
+        this.viewsDisplay.updateViews();
+
+        this.sequenceDisplay = new SequenceDisplay(
+          this.sequenceDisplayTag, this.controller);
       }
+
+      this.sequenceDisplay.buildDivs();
+      this.resize();
     });
-  }
-
-  postDataLoadBuildElements() {
-
-    this.viewsDisplay = new ViewsDisplay(
-      this.viewsDisplayTag,
-      this.controller,
-      this.proteinDisplay,
-      this.data_server);
-
-    this.viewsDisplay.makeAllViews();
-
-    this.sequence_display = new SequenceDisplay(
-      this.sequence_display_tag, this.controller);
-    this.sequence_display.buildDivs();
-
-    let hashTag = url().split('#')[1];
-    if (hashTag in this.scene.saved_views_by_id) {
-      this.viewsDisplay.setTargetByViewId(hashTag);
-    } else {
-      this.viewsDisplay.setTargetByViewId('view:000000');
-    }
-    this.viewsDisplay.updateViews();
-
-    document.oncontextmenu = _.noop;
-
-    document.onkeydown = (e) => this.onkeydown(e);
-
-    let resize_fn = () => this.resize();
-    $(window).resize(resize_fn);
-    window.onorientationchange = resize_fn;
-    resize_fn();
   }
 
   is_changed() {
@@ -459,7 +461,7 @@ class FullPageJolecule {
     if (this.scene.changed) {
       this.viewsDisplay.updateViews();
       if (this.scene.is_new_view_chosen) {
-        this.sequence_display.redraw();
+        this.sequenceDisplay.redraw();
         this.scene.is_new_view_chosen = false;
       }
       this.embedJolecule.draw();
@@ -490,14 +492,14 @@ class FullPageJolecule {
         this.viewsDisplay.makeNewView();
         return;
       } else if ((c == "K") || (event.keyCode == 37)) {
-        this.sequence_display.gotoPrevResidue();
+        this.sequenceDisplay.gotoPrevResidue();
       } else if ((c == "J") || (event.keyCode == 39)) {
-        this.sequence_display.gotoNextResidue();
+        this.sequenceDisplay.gotoNextResidue();
       } else if (c == "X") {
         let i_atom = this.scene.current_view.i_atom;
         if (i_atom >= 0) {
           let res_id = this.controller.protein.atoms[i_atom].res_id;
-          this.sequence_display.toggleResidueSelect(res_id);
+          this.sequenceDisplay.toggleResidueSelect(res_id);
         }
       } else if (event.keyCode == 38) {
         this.viewsDisplay.gotoPrevView();

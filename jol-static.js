@@ -118,17 +118,23 @@ const fullPageIndexHtmlMustache = `
       <script src="require.js"></script>
       <script>
         (function() {
-          require(
-                ['jolecule', {{{dataServerLoadStr}}}], 
-                function(jolecule, {{{dataServerArgStr}}}) {
+          require(['jolecule'], function(jolecule) {
             document.title = "{{title}}";
             window.user = '{{user_nickname}}';
-            var dataServers = [{{{dataServerArgStr}}}];
             var j = jolecule.initFullPageJolecule(
               '#jolecule-protein-container',
               '#jolecule-sequence-container',
-              '#jolecule-views-container',
-              dataServers);
+              '#jolecule-views-container');
+            console.log('j', j);
+            require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
+              var dataServers = [{{{dataServerArgStr}}}];
+              var i = 0;
+              for (var dataServer of dataServers) {
+                console.log('dataServer', dataServer);
+                j.addDataServer(dataServer, i);
+                i += 1;
+              }
+            });
           });
         })();
       </script>

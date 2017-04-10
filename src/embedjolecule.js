@@ -78,9 +78,13 @@ class EmbedJolecule {
     this.resize();
 
     this.isProcessingData = false;
-    _.each(this.params.dataServers, (dataServer) => {
-        this.addDataServer(dataServer);
-    });
+    // _.each(this.params.dataServers, (dataServer) => {
+    //     this.addDataServer(dataServer);
+    // });
+
+    if (this.params.onload) {
+      this.params.onload();
+    }
   };
 
   setProcessingMesssage(html) {
@@ -93,7 +97,7 @@ class EmbedJolecule {
     this.isProcessingData = false;
   };
 
-  addDataServer(dataServer, i) {
+  addDataServer(dataServer, callback) {
 
     let guardFn = () => {
       if (this.isProcessingData) {
@@ -126,14 +130,20 @@ class EmbedJolecule {
               this.proteinDisplay.buildAfterDataLoad();
               dataServer.get_views((view_dicts) => {
                 this.loadViewsFromDataServer(view_dicts);
-                if (this.params.onload) {
-                  this.params.onload(this);
-                }
+                // if (this.params.onload) {
+                //   this.params.onload(this);
+                // }
                 this.cleanupProcessingMessage();
+                if (callback) {
+                  callback();
+                }
               });
             } else {
               this.proteinDisplay.buildAfterAddProteinData();
               this.cleanupProcessingMessage();
+              if (callback) {
+                callback();
+              }
             }
           }, 0);
         });

@@ -29,7 +29,7 @@ function initEmbedJolecule(userArgs) {
 
 /**
  * @param protein_display_tag
- * @param sequence_display_tag
+ * @param sequenceDisplayTag
  * @param views_display_tag
  * @returns {FullPageJolecule}
  */

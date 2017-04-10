@@ -102,7 +102,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	/**
 	 * @param protein_display_tag
-	 * @param sequence_display_tag
+	 * @param sequenceDisplayTag
 	 * @param views_display_tag
 	 * @returns {FullPageJolecule}
 	 */
@@ -315,9 +315,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.resize();
 	
 	    this.isProcessingData = false;
-	    _lodash2.default.each(this.params.dataServers, function (dataServer) {
-	      _this.addDataServer(dataServer);
-	    });
+	    // _.each(this.params.dataServers, (dataServer) => {
+	    //     this.addDataServer(dataServer);
+	    // });
+	
+	    if (this.params.onload) {
+	      this.params.onload();
+	    }
 	  }
 	
 	  _createClass(EmbedJolecule, [{
@@ -334,7 +338,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: "addDataServer",
-	    value: function addDataServer(dataServer, i) {
+	    value: function addDataServer(dataServer, callback) {
 	      var _this2 = this;
 	
 	      var guardFn = function guardFn() {
@@ -368,14 +372,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	                _this2.proteinDisplay.buildAfterDataLoad();
 	                dataServer.get_views(function (view_dicts) {
 	                  _this2.loadViewsFromDataServer(view_dicts);
-	                  if (_this2.params.onload) {
-	                    _this2.params.onload(_this2);
-	                  }
+	                  // if (this.params.onload) {
+	                  //   this.params.onload(this);
+	                  // }
 	                  _this2.cleanupProcessingMessage();
+	                  if (callback) {
+	                    callback();
+	                  }
 	                });
 	              } else {
 	                _this2.proteinDisplay.buildAfterAddProteinData();
 	                _this2.cleanupProcessingMessage();
+	                if (callback) {
+	                  callback();
+	                }
 	              }
 	            }, 0);
 	          });
@@ -28655,7 +28665,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (residue.ss == "D") {
 	        var forward = _v2.default.diff(atoms["C3'"].pos, atoms["C5'"].pos);
 	        var up = _v2.default.diff(atoms["C1'"].pos, atoms["C3'"].pos);
-	        var normal = _v2.default.cross_product(forward, up);
+	        var normal = _v2.default.crossProduct(forward, up);
 	        residue.normals.push(normal);
 	      }
 	
@@ -28892,7 +28902,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	function is_equal_camera(v, w) {
-	  if (_v2.default.is_equal(v.pos, w.pos) && _v2.default.is_equal(v.up_v, w.up_v) && _v2.default.is_equal(v.in_v, w.in_v) && v.zoom == w.zoom && v.z_front == w.z_front && v.z_back == w.z_back) {
+	  if (_v2.default.isEqual(v.pos, w.pos) && _v2.default.isEqual(v.up_v, w.up_v) && _v2.default.isEqual(v.in_v, w.in_v) && v.zoom == w.zoom && v.z_front == w.z_front && v.z_back == w.z_back) {
 	    return true;
 	  }
 	  return false;
@@ -28916,7 +28926,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    r1 = new _v2.default.Matrix4();
 	    torsion1 = null;
 	  } else {
-	    axis1 = _v2.default.cross_product(mov12, ref12);
+	    axis1 = _v2.default.crossProduct(mov12, ref12);
 	    torsion1 = _v2.default.dihedral(ref12, axis1, mov12);
 	    r1 = _v2.default.rotation(axis1, torsion1);
 	  }
@@ -28925,11 +28935,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var ref13 = _v2.default.diff(ref3, ref1);
 	  var mov13 = _v2.default.diff(mov3, mov1);
 	  mov13.applyMatrix4(r1);
-	  if (_v2.default.is_near_zero(_v2.default.angle(ref13, mov13))) {
+	  if (_v2.default.isNearZero(_v2.default.angle(ref13, mov13))) {
 	    r2 = new _v2.default.Matrix4();
 	    torsion2 = null;
 	  } else {
-	    axis2 = _v2.default.cross_product(ref13, mov13);
+	    axis2 = _v2.default.crossProduct(ref13, mov13);
 	    torsion2 = _v2.default.dihedral(ref13, axis2, mov13);
 	    r2 = _v2.default.rotation(axis2, torsion2);
 	  }
@@ -28940,17 +28950,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var n = t;
 	  } else {
 	    var r1 = _v2.default.rotation(axis1, torsion1 / n_step);
-	    var n = _v2.default.matrix_product(r1, t);
+	    var n = _v2.default.matrixProduct(r1, t);
 	  }
 	  if (torsion2 === null) {
 	    var m = n;
 	  } else {
 	    var r2 = _v2.default.rotation(axis2, torsion2 / n_step);
-	    var m = _v2.default.matrix_product(r2, n);
+	    var m = _v2.default.matrixProduct(r2, n);
 	  }
 	  var disp2 = _v2.default.scaled(disp, -(n_step - 1) / n_step);
 	
-	  return _v2.default.matrix_product(_v2.default.translation(disp2), m);
+	  return _v2.default.matrixProduct(_v2.default.translation(disp2), m);
 	}
 	
 	////////////////////////////////////////////////////
@@ -29260,7 +29270,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    rot_along_x = _v2.default.rotation(x_axis, x_angle);
 	    y_axis = _v2.default.create(0, 1, 0);
 	    rot_along_y = _v2.default.rotation(y_axis, y_angle);
-	    matrix = _v2.default.matrix_product(rot_along_x, rot_along_y);
+	    matrix = _v2.default.matrixProduct(rot_along_x, rot_along_y);
 	    this.scene.transform(matrix);
 	  };
 	
@@ -29599,7 +29609,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * 
 	 **/
 	
-	function is_near_zero(a) {
+	function isNearZero(a) {
 	  return Math.abs(a) < SMALL;
 	}
 	
@@ -29632,7 +29642,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function parallel(v, axis) {
 	  var axis_len = axis.length();
 	  var result;
-	  if (is_near_zero(axis_len)) {
+	  if (isNearZero(axis_len)) {
 	    result = create(v.x, v.y, v.z);
 	  } else {
 	    var scale = dot_product(v, axis) / axis_len / axis_len;
@@ -29645,7 +29655,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return diff(v, parallel(v, axis));
 	}
 	
-	function cross_product(a, b) {
+	function crossProduct(a, b) {
 	  return new _three2.default.Vector3().crossVectors(a, b);
 	}
 	
@@ -29660,7 +29670,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function angle(a, b) {
 	  var a_len = a.length();
 	  var b_len = b.length();
-	  if (is_near_zero(a_len * b_len)) {
+	  if (isNearZero(a_len * b_len)) {
 	    return 0.0;
 	  }
 	  var c = dot_product(a, b) / a_len / b_len;
@@ -29679,14 +29689,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var ref_perp = perpendicular(ref, axis);
 	  var v_perp = perpendicular(v, axis);
 	  var a = angle(ref_perp, v_perp);
-	  var cross = cross_product(ref_perp, v_perp);
+	  var cross = crossProduct(ref_perp, v_perp);
 	  if (dot_product(cross, axis) > 0) {
 	    a = -a;
 	  }
 	  return a;
 	}
 	
-	function mid_point(p, q) {
+	function midPoint(p, q) {
 	  var s = sum(p, q);
 	  return scaled(s, 0.5);
 	}
@@ -29695,24 +29705,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return create(Math.random(), Math.random(), Math.random());
 	}
 	
-	function is_equal(v, w) {
-	  if (!is_near_zero(v.x - w.x)) {
+	function isEqual(v, w) {
+	  if (!isNearZero(v.x - w.x)) {
 	    return false;
-	  } else if (!is_near_zero(v.y - w.y)) {
+	  } else if (!isNearZero(v.y - w.y)) {
 	    return false;
-	  } else if (!is_near_zero(v.y - w.y)) {
+	  } else if (!isNearZero(v.y - w.y)) {
 	    return false;
 	  }
 	  return true;
 	}
 	
 	function is_aligned(v, w) {
-	  return is_near_zero(angle(v, w));
+	  return isNearZero(angle(v, w));
 	}
 	
 	var Matrix4 = _three2.default.Matrix4;
 	
-	function matrix_product(lhs, rhs) {
+	function matrixProduct(lhs, rhs) {
 	  var c = new Matrix4();
 	  c.multiplyMatrices(lhs, rhs);
 	  return c;
@@ -29730,7 +29740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	exports.default = {
 	  SMALL: SMALL,
-	  is_near_zero: is_near_zero,
+	  isNearZero: isNearZero,
 	  create: create,
 	  clone: clone,
 	  scaled: scaled,
@@ -29739,17 +29749,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  sum: sum,
 	  parallel: parallel,
 	  perpendicular: perpendicular,
-	  cross_product: cross_product,
+	  crossProduct: crossProduct,
 	  dot_product: dot_product,
 	  distance: distance,
 	  angle: angle,
 	  dihedral: dihedral,
-	  mid_point: mid_point,
+	  midPoint: midPoint,
 	  random: random,
-	  is_equal: is_equal,
+	  isEqual: isEqual,
 	  is_aligned: is_aligned,
 	  Matrix4: Matrix4,
-	  matrix_product: matrix_product,
+	  matrixProduct: matrixProduct,
 	  rotation: rotation,
 	  translation: translation
 	};
@@ -73528,7 +73538,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var atoms = res.atoms;
 	      var forward = _v2.default.diff(atoms["C3'"].pos, atoms["C5'"].pos);
 	      var up = _v2.default.diff(atoms["C1'"].pos, atoms["C3'"].pos);
-	      return _v2.default.cross_product(forward, up);
+	      return _v2.default.crossProduct(forward, up);
 	    }
 	  }, {
 	    key: "findChainsAndPieces",
@@ -75808,10 +75818,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 	      for (var _i = 0; _i < this.protein.residues.length; _i += 1) {
-	        if (this.protein.residues[_i].selected) {
-	          this.resDiv[_i].select.prop('checked', true);
-	        } else {
-	          this.resDiv[_i].select.prop('checked', false);
+	        if (!_lodash2.default.isUndefined(this.resDiv[_i])) {
+	          if (this.protein.residues[_i].selected) {
+	            this.resDiv[_i].select.prop('checked', true);
+	          } else {
+	            this.resDiv[_i].select.prop('checked', false);
+	          }
 	        }
 	      }
 	    }
@@ -75864,7 +75876,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "buildDivs",
 	    value: function buildDivs() {
 	      var sequenceDiv = (0, _jquery4.default)("#jolecule-sequence");
-	      sequenceDiv.clear();
+	      sequenceDiv.empty();
 	      for (var i = 0; i < this.protein.residues.length; i += 1) {
 	        var elem = this.createResidueDiv(i);
 	        sequenceDiv.append(elem.target);
@@ -76124,61 +76136,60 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _classCallCheck(this, FullPageJolecule);
 	
 	    this.viewsDisplayTag = viewsDisplayTag;
-	    this.sequence_display_tag = sequenceDisplayTag;
-	    // this.data_server = data_server;
-	    this.dataServers = dataServers;
+	    this.sequenceDisplayTag = sequenceDisplayTag;
 	
-	    this.embedJolecule;
-	    new _embedjolecule.EmbedJolecule({
+	    this.embedJolecule = new _embedjolecule.EmbedJolecule({
 	      divTag: proteinDisplayTag,
 	      viewId: '',
 	      viewHeight: 170,
 	      isViewTextShown: false,
 	      isEditable: true,
-	      isLoop: false,
-	      dataServers: dataServers,
-	      onload: function onload(embedJolecule) {
-	        _this8.embedJolecule = embedJolecule;
-	        _this8.scene = _this8.embedJolecule.scene;
-	        _this8.controller = _this8.embedJolecule.controller;
-	        _this8.proteinDisplay = _this8.embedJolecule.proteinDisplay;
-	        _this8.postDataLoadBuildElements();
-	      }
+	      isLoop: false
 	    });
+	
+	    document.oncontextmenu = _lodash2.default.noop;
+	    document.onkeydown = function (e) {
+	      return _this8.onkeydown(e);
+	    };
+	    var resize_fn = function resize_fn() {
+	      _this8.resize();
+	    };
+	    (0, _jquery4.default)(window).resize(resize_fn);
+	    window.onorientationchange = resize_fn;
+	
+	    this.noData = true;
 	  }
 	
 	  _createClass(FullPageJolecule, [{
-	    key: "postDataLoadBuildElements",
-	    value: function postDataLoadBuildElements() {
+	    key: "addDataServer",
+	    value: function addDataServer(dataServer) {
 	      var _this9 = this;
 	
-	      this.viewsDisplay = new ViewsDisplay(this.viewsDisplayTag, this.controller, this.proteinDisplay, this.data_server);
+	      this.embedJolecule.addDataServer(dataServer, function () {
+	        if (_this9.noData) {
+	          _this9.noData = false;
 	
-	      this.viewsDisplay.makeAllViews();
+	          _this9.scene = _this9.embedJolecule.scene;
+	          _this9.controller = _this9.embedJolecule.controller;
+	          _this9.proteinDisplay = _this9.embedJolecule.proteinDisplay;
 	
-	      this.sequence_display = new SequenceDisplay(this.sequence_display_tag, this.controller);
-	      this.sequence_display.buildDivs();
+	          _this9.viewsDisplay = new ViewsDisplay(_this9.viewsDisplayTag, _this9.controller, _this9.proteinDisplay, _this9.data_server);
 	
-	      var hashTag = (0, _util.url)().split('#')[1];
-	      if (hashTag in this.scene.saved_views_by_id) {
-	        this.viewsDisplay.setTargetByViewId(hashTag);
-	      } else {
-	        this.viewsDisplay.setTargetByViewId('view:000000');
-	      }
-	      this.viewsDisplay.updateViews();
+	          _this9.viewsDisplay.makeAllViews();
+	          var hashTag = (0, _util.url)().split('#')[1];
+	          if (hashTag in _this9.scene.saved_views_by_id) {
+	            _this9.viewsDisplay.setTargetByViewId(hashTag);
+	          } else {
+	            _this9.viewsDisplay.setTargetByViewId('view:000000');
+	          }
+	          _this9.viewsDisplay.updateViews();
 	
-	      document.oncontextmenu = _lodash2.default.noop;
+	          _this9.sequenceDisplay = new SequenceDisplay(_this9.sequenceDisplayTag, _this9.controller);
+	        }
 	
-	      document.onkeydown = function (e) {
-	        return _this9.onkeydown(e);
-	      };
-	
-	      var resize_fn = function resize_fn() {
-	        return _this9.resize();
-	      };
-	      (0, _jquery4.default)(window).resize(resize_fn);
-	      window.onorientationchange = resize_fn;
-	      resize_fn();
+	        _this9.sequenceDisplay.buildDivs();
+	        _this9.resize();
+	      });
 	    }
 	  }, {
 	    key: "is_changed",
@@ -76194,7 +76205,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (this.scene.changed) {
 	        this.viewsDisplay.updateViews();
 	        if (this.scene.is_new_view_chosen) {
-	          this.sequence_display.redraw();
+	          this.sequenceDisplay.redraw();
 	          this.scene.is_new_view_chosen = false;
 	        }
 	        this.embedJolecule.draw();
@@ -76228,14 +76239,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	          this.viewsDisplay.makeNewView();
 	          return;
 	        } else if (c == "K" || event.keyCode == 37) {
-	          this.sequence_display.gotoPrevResidue();
+	          this.sequenceDisplay.gotoPrevResidue();
 	        } else if (c == "J" || event.keyCode == 39) {
-	          this.sequence_display.gotoNextResidue();
+	          this.sequenceDisplay.gotoNextResidue();
 	        } else if (c == "X") {
 	          var i_atom = this.scene.current_view.i_atom;
 	          if (i_atom >= 0) {
 	            var res_id = this.controller.protein.atoms[i_atom].res_id;
-	            this.sequence_display.toggleResidueSelect(res_id);
+	            this.sequenceDisplay.toggleResidueSelect(res_id);
 	          }
 	        } else if (event.keyCode == 38) {
 	          this.viewsDisplay.gotoPrevView();

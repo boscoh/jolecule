@@ -1,4 +1,3 @@
-*pyc
 .idea
 electron/node_modules
 electron/renderer.js
