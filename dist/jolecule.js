@@ -76130,7 +76130,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 **/
 	
 	var FullPageJolecule = function () {
-	  function FullPageJolecule(proteinDisplayTag, sequenceDisplayTag, viewsDisplayTag, dataServers) {
+	  function FullPageJolecule(proteinDisplayTag, sequenceDisplayTag, viewsDisplayTag) {
 	    var _this8 = this;
 	
 	    _classCallCheck(this, FullPageJolecule);
@@ -76173,7 +76173,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          _this9.controller = _this9.embedJolecule.controller;
 	          _this9.proteinDisplay = _this9.embedJolecule.proteinDisplay;
 	
-	          _this9.viewsDisplay = new ViewsDisplay(_this9.viewsDisplayTag, _this9.controller, _this9.proteinDisplay, _this9.data_server);
+	          _this9.viewsDisplay = new ViewsDisplay(_this9.viewsDisplayTag, _this9.controller, _this9.proteinDisplay, dataServer);
 	
 	          _this9.viewsDisplay.makeAllViews();
 	          var hashTag = (0, _util.url)().split('#')[1];

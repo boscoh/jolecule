@@ -391,8 +391,7 @@ class FullPageJolecule {
   constructor(
       proteinDisplayTag,
       sequenceDisplayTag,
-      viewsDisplayTag,
-      dataServers) {
+      viewsDisplayTag) {
 
     this.viewsDisplayTag = viewsDisplayTag;
     this.sequenceDisplayTag = sequenceDisplayTag;
@@ -430,7 +429,7 @@ class FullPageJolecule {
           this.viewsDisplayTag,
           this.controller,
           this.proteinDisplay,
-          this.data_server);
+          dataServer);
 
         this.viewsDisplay.makeAllViews();
         let hashTag = url().split('#')[1];
