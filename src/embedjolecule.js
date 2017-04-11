@@ -60,14 +60,14 @@ class EmbedJolecule {
       .attr('id', 'loading-message')
       .css({
         'z-index': 5000,
-        'background-color': 'rgba(60, 60, 60, 0.75)',
+        'background-color': 'rgba(60, 60, 60, 0.9)',
         'font-family': 'Helvetica, Arial, sans-serif',
         'font-size': '12px',
         'letter-spacing': '0.1em',
-        'padding': '5px',
-        'position': 'absolute',
-        'color': '#666'})
-      .html("Jolecule: loading data for proteins...");
+        'padding': '5px 15px',
+        'color': '#666'});
+
+    this.setProcessingMesssage("Loading data for proteins");
 
     this.isViewTextShown = this.params.isViewTextShown;
     this.setTextState();

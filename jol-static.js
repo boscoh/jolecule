@@ -140,7 +140,10 @@ const fullPageIndexHtmlMustache = `
 `;
 
 
-let knownOpts = {"out": [String, null]};
+let knownOpts = {
+  "out": [String, null],
+  "batch": [Boolean, false],
+};
 let shortHands = {"o": ["--out"]};
 let parsed = nopt(knownOpts, shortHands, process.argv, 2);
 let remain = parsed.argv.remain;
@@ -220,7 +223,9 @@ if (remain.length < 1) {
       path.join(targetDir, path.basename(fname)));
   }
 
-  opener(html);
+  if (!parsed.batch) {
+    opener(html);
+  }
 }
 
 
