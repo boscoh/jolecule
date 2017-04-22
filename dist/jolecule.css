@@ -31,8 +31,8 @@ a.jolecule-button input a,
 a.jolecule-button,
 a.jolecule-button:link,
 a.jolecule-button:visited {
-    /*background-color: #444;*/
-    /*color: #9A9 !important;*/
+    background-color: #444;
+    color: #9A9 !important;
     text-decoration: none;
 }
 .jolecule-small-button,

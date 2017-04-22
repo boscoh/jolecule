@@ -1499,6 +1499,7 @@ class ProteinDisplay {
     this.cameraTarget = new THREE.Vector3(0, 0, 0);
 
     this.setLights();
+    this.buildCrossHairs();
 
     this.nDataServer = 0;
 
@@ -1652,7 +1653,7 @@ class ProteinDisplay {
   buildAfterAddProteinData() {
     let scene = this.threeJsScene;
     scene.children.forEach(function (object) {
-      if (_.isUndefined(object.isLight)) {
+      if (_.isUndefined(object.dontDelete)) {
         scene.remove(object);
       }
     });
@@ -1963,7 +1964,7 @@ class ProteinDisplay {
     directionalLight.position.copy(
       new TV3(0.2, 0.2, 100)
         .normalize());
-    directionalLight.isLight = true;
+    directionalLight.dontDelete = true;
     // directionalLight.intensity = 1.2;
     this.lights.push(directionalLight);
 
@@ -1972,12 +1973,12 @@ class ProteinDisplay {
     directionalLight2.position.copy(
       new TV3(0.2, 0.2, -100)
         .normalize());
-    directionalLight2.isLight = true;
+    directionalLight2.dontDelete = true;
     // directionalLight2.intensity = 1.2;
     this.lights.push(directionalLight2);
 
     var ambientLight = new THREE.AmbientLight(0x202020);
-    ambientLight.isLight = true;
+    ambientLight.dontDelete = true;
     this.lights.push(ambientLight);
 
     for (var i = 0; i < this.lights.length; i += 1) {
@@ -2693,6 +2694,7 @@ class ProteinDisplay {
     geometry.vertices.shift();
 
     this.crossHairs = new THREE.Line(geometry, material);
+    this.crossHairs.dontDelete = true;
     this.threeJsScene.add(this.crossHairs);
   }
 
@@ -2729,8 +2731,6 @@ class ProteinDisplay {
     for (var k in this.objects) {
       this.threeJsScene.add(this.objects[k]);
     }
-
-    this.buildCrossHairs();
 
     this.messageBar.html('Finding bonds...');
 

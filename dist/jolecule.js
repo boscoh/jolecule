@@ -364,7 +364,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	              _this2.proteinDisplay.nDataServer += 1;
 	              if (_this2.proteinDisplay.nDataServer == 1) {
 	                _this2.proteinDisplay.buildAfterDataLoad();
-	                dataServer.get_views(function (view_dicts) {
+	
+	                // need to keep track of a single dataServer
+	                // to save views, will take the first one
+	                _this2.dataServer = dataServer;
+	                _this2.dataServer.get_views(function (view_dicts) {
 	                  _this2.loadViewsFromDataServer(view_dicts);
 	                  _this2.cleanupProcessingMessage();
 	                  if (callback) {
@@ -407,7 +411,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "saveViewsToDataServer",
 	    value: function saveViewsToDataServer(success) {
-	      this.data_server.save_views(this.controller.get_view_dicts(), success);
+	      this.dataServer.save_views(this.controller.get_view_dicts(), success);
 	      this.scene.changed = true;
 	    }
 	  }, {
@@ -461,7 +465,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var id = this.scene.saved_views[i].id;
 	      this.controller.delete_view(id);
 	      this.viewDiv.css('background-color', 'lightgray');
-	      this.data_server.delete_protein_view(id, function () {
+	      this.dataServer.delete_protein_view(id, function () {
 	        _this5.updateView();
 	        _this5.viewDiv.css('background-color', '');
 	      });
@@ -73349,6 +73353,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.cameraTarget = new _three2.default.Vector3(0, 0, 0);
 	
 	    this.setLights();
+	    this.buildCrossHairs();
 	
 	    this.nDataServer = 0;
 	
@@ -73477,7 +73482,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function buildAfterAddProteinData() {
 	      var scene = this.threeJsScene;
 	      scene.children.forEach(function (object) {
-	        if (_lodash2.default.isUndefined(object.isLight)) {
+	        if (_lodash2.default.isUndefined(object.dontDelete)) {
 	          scene.remove(object);
 	        }
 	      });
@@ -73736,18 +73741,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var directionalLight = new _three2.default.DirectionalLight(0xFFFFFF);
 	      directionalLight.position.copy(new TV3(0.2, 0.2, 100).normalize());
-	      directionalLight.isLight = true;
+	      directionalLight.dontDelete = true;
 	      // directionalLight.intensity = 1.2;
 	      this.lights.push(directionalLight);
 	
 	      var directionalLight2 = new _three2.default.DirectionalLight(0xFFFFFF);
 	      directionalLight2.position.copy(new TV3(0.2, 0.2, -100).normalize());
-	      directionalLight2.isLight = true;
+	      directionalLight2.dontDelete = true;
 	      // directionalLight2.intensity = 1.2;
 	      this.lights.push(directionalLight2);
 	
 	      var ambientLight = new _three2.default.AmbientLight(0x202020);
-	      ambientLight.isLight = true;
+	      ambientLight.dontDelete = true;
 	      this.lights.push(ambientLight);
 	
 	      for (var i = 0; i < this.lights.length; i += 1) {
@@ -74366,6 +74371,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      geometry.vertices.shift();
 	
 	      this.crossHairs = new _three2.default.Line(geometry, material);
+	      this.crossHairs.dontDelete = true;
 	      this.threeJsScene.add(this.crossHairs);
 	    }
 	  }, {
@@ -74402,8 +74408,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      for (var k in this.objects) {
 	        this.threeJsScene.add(this.objects[k]);
 	      }
-	
-	      this.buildCrossHairs();
 	
 	      this.messageBar.html('Finding bonds...');
 	

@@ -6,14 +6,14 @@ body {
     width: 100%;
     height: 100%;
 }
-a,
+/*a,
 a:visited {
     text-decoration: none;
     color: #779;
 }
 a:hover {
     text-decoration: underline;
-}
+}*/
 body, li, td {
     font-size: 14px;
     line-height: 1.5em;

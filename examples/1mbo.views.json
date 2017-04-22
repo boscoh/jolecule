@@ -2,6 +2,51 @@
   {
     "camera": {
       "in": [
+        14.544941573278988,
+        28.076346285052434,
+        1.1254353476971197
+      ],
+      "pos": [
+        15.359999656677246,
+        27.950000762939453,
+        0.5600000023841858
+      ],
+      "slab": {
+        "z_back": 25.46,
+        "z_front": -25.46,
+        "zoom": 50.91999999999986
+      },
+      "up": [
+        15.283488132998746,
+        26.959142980525943,
+        0.6711163458039523
+      ]
+    },
+    "creator": "~ public @19/4/2017",
+    "distances": [],
+    "i_atom": 1274,
+    "labels": [],
+    "order": 1,
+    "pdb_id": "1mbo",
+    "res_id": "1mbo:A:155",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "version": 2,
+    "view_id": "view:kehdbx"
+  },
+  {
+    "camera": {
+      "in": [
         20.75720932831459,
         11.068200781142572,
         6.5859819544366776
@@ -36,7 +81,7 @@
         "text": "hello"
       }
     ],
-    "order": 1,
+    "order": 2,
     "pdb_id": "1mbo",
     "res_id": "A:115",
     "selected": [],
@@ -90,7 +135,7 @@
         "text": "C-terminal"
       }
     ],
-    "order": 2,
+    "order": 3,
     "pdb_id": "1mbo",
     "res_id": "A:109",
     "selected": [],
@@ -139,7 +184,7 @@
         "text": "kink in alpha-helix"
       }
     ],
-    "order": 3,
+    "order": 4,
     "pdb_id": "1mbo",
     "res_id": "A:21",
     "selected": [],
@@ -188,7 +233,7 @@
         "text": "bottom of cavity"
       }
     ],
-    "order": 4,
+    "order": 5,
     "pdb_id": "1mbo",
     "res_id": "A:68",
     "selected": [],
@@ -204,6 +249,119 @@
     "text": "The structure of the myoglobin provides a cavity in the middle of the protein.",
     "version": 2,
     "view_id": "view:coun7l"
+  },
+  {
+    "camera": {
+      "in": [
+        18.61162633704652,
+        25.24319664220601,
+        5.018693704050931
+      ],
+      "pos": [
+        19.179999999998742,
+        26.050000000001305,
+        5.179999999999071
+      ],
+      "slab": {
+        "z_back": 27.396983240223452,
+        "z_front": -23.523016759776546,
+        "zoom": 69.28452731387469
+      },
+      "up": [
+        19.228697779635795,
+        26.212721086500764,
+        4.194530378819992
+      ]
+    },
+    "creator": "~ public @19/4/2017",
+    "distances": [],
+    "i_atom": 547,
+    "labels": [
+      {
+        "i_atom": 831,
+        "text": "bottom of cavity"
+      }
+    ],
+    "order": 6,
+    "pdb_id": "1mbo",
+    "res_id": "A:68",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": false,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "version": 2,
+    "view_id": "view:abhb1f"
+  },
+  {
+    "camera": {
+      "in": [
+        26.656535609381073,
+        28.267461716606242,
+        2.6531193370531527
+      ],
+      "pos": [
+        27.5,
+        28.55,
+        3.11
+      ],
+      "slab": {
+        "z_back": 27.396983240223452,
+        "z_front": -7.962798353909463,
+        "zoom": 24.996626362605273
+      },
+      "up": [
+        27.982902981600162,
+        28.523764194780288,
+        2.234719249105675
+      ]
+    },
+    "creator": "~ public @19/4/2017",
+    "distances": [],
+    "i_atom": 510,
+    "labels": [
+      {
+        "i_atom": 510,
+        "text": "haha"
+      }
+    ],
+    "order": 7,
+    "pdb_id": "1mbo",
+    "res_id": "1mbo:A:63",
+    "selected": [
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      216,
+      261,
+      295,
+      301,
+      480
+    ],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": false,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "version": 2,
+    "view_id": "view:xmrfnr"
   },
   {
     "camera": {
@@ -237,7 +395,7 @@
         "text": "heme"
       }
     ],
-    "order": 5,
+    "order": 8,
     "pdb_id": "1mbo",
     "res_id": "A:155",
     "selected": [],
@@ -286,7 +444,7 @@
         "text": "heme"
       }
     ],
-    "order": 6,
+    "order": 9,
     "pdb_id": "1mbo",
     "res_id": "A:155",
     "selected": [],
@@ -335,7 +493,7 @@
         "text": "Iron atom"
       }
     ],
-    "order": 7,
+    "order": 10,
     "pdb_id": "1mbo",
     "res_id": "A:155",
     "selected": [],
@@ -392,7 +550,7 @@
         "text": "O2 of oxygen molecule"
       }
     ],
-    "order": 8,
+    "order": 11,
     "pdb_id": "1mbo",
     "res_id": "A:555",
     "selected": [],
@@ -436,7 +594,7 @@
     "distances": [],
     "i_atom": 1276,
     "labels": [],
-    "order": 9,
+    "order": 12,
     "pdb_id": "1mbo",
     "res_id": "A:555",
     "selected": [
@@ -493,7 +651,7 @@
         "text": "blocking histidine"
       }
     ],
-    "order": 10,
+    "order": 13,
     "pdb_id": "1mbo",
     "res_id": "A:64",
     "selected": [
@@ -550,7 +708,7 @@
         "text": "blocking histidine"
       }
     ],
-    "order": 11,
+    "order": 14,
     "pdb_id": "1mbo",
     "res_id": "A:64",
     "selected": [
@@ -607,7 +765,7 @@
         "text": "blocks potential carbon monoxide binding"
       }
     ],
-    "order": 12,
+    "order": 15,
     "pdb_id": "1mbo",
     "res_id": "A:64",
     "selected": [

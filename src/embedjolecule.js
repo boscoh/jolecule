@@ -121,7 +121,11 @@ class EmbedJolecule {
             this.proteinDisplay.nDataServer += 1;
             if (this.proteinDisplay.nDataServer == 1) {
               this.proteinDisplay.buildAfterDataLoad();
-              dataServer.get_views((view_dicts) => {
+
+              // need to keep track of a single dataServer
+              // to save views, will take the first one
+              this.dataServer = dataServer;
+              this.dataServer.get_views((view_dicts) => {
                 this.loadViewsFromDataServer(view_dicts);
                 this.cleanupProcessingMessage();
                 if (callback) {
@@ -162,7 +166,7 @@ class EmbedJolecule {
   }
 
   saveViewsToDataServer(success) {
-    this.data_server.save_views(
+    this.dataServer.save_views(
       this.controller.get_view_dicts(), success);
     this.scene.changed = true;
   }
@@ -204,7 +208,7 @@ class EmbedJolecule {
     var id = this.scene.saved_views[i].id;
     this.controller.delete_view(id);
     this.viewDiv.css('background-color', 'lightgray');
-    this.data_server.delete_protein_view(
+    this.dataServer.delete_protein_view(
       id,
       () => {
         this.updateView();
