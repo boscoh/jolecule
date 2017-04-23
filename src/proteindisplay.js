@@ -853,7 +853,7 @@ class SequenceWidget extends CanvasWrapper {
 
     this.heightBar = 16;
     this.spacingY = 4;
-    this.darkColor = "rgb(0, 0, 0)";
+    this.darkColor = "#222";
     this.mediumColor = "rgb(155, 155, 155)";
 
     this.div.attr('id', 'sequence-widget');
@@ -891,11 +891,11 @@ class SequenceWidget extends CanvasWrapper {
   }
 
   xToI(x) {
-    return parseInt(x * this.nResidue / this.width());
+    return parseInt((x - this.textXOffset) * this.nResidue / this.textWidth());
   }
 
   iToX(iRes) {
-    return parseInt(iRes / this.nResidue * this.width());
+    return parseInt(iRes / this.nResidue * this.textWidth()) + this.textXOffset;
   }
 
   textWidth() {
@@ -975,11 +975,14 @@ class SequenceWidget extends CanvasWrapper {
 
     // draw background
     this.fillRect(
-      0, 0, this.width(), this.heightBar + this.spacingY * 2, this.darkColor);
+      0, 0, this.width(), this.height(), this.darkColor);
 
     this.fillRect(
-      0, this.heightBar + this.spacingY * 2,
-      this.width(), this.charHeight + this.spacingY * 2, this.mediumColor);
+      this.textXOffset, 0, this.textWidth(), this.heightBar + this.spacingY * 2, this.darkColor);
+
+    this.fillRect(
+      this.textXOffset, this.heightBar + this.spacingY * 2,
+      this.textWidth(), this.charHeight + this.spacingY * 2, this.mediumColor);
 
     let x1 = this.iToX(this.iStartChar);
     let x2 = this.iToX(this.iEndChar);
@@ -1041,18 +1044,6 @@ class SequenceWidget extends CanvasWrapper {
         break;
       }
     }
-
-    // draw containers to indicate window
-    x1 = this.iToX(this.iStartChar);
-    x2 = this.iToX(this.iEndChar);
-    this.fillRect(
-      0, this.spacingY,
-      x1, this.heightBar,
-      "rgba(0, 0, 0, 0.3)");
-    this.fillRect(
-      x2, this.spacingY,
-      this.width() - x2, this.heightBar,
-      "rgba(0, 0, 0, 0.3)");
 
   }
 
@@ -1376,7 +1367,6 @@ class GridBar extends CanvasWrapper {
     this.line(xm, yTop, xm, yBottom, 1, dark);
     this.line(5, yTop, 35, yTop, 1, dark);
 
-    console.log('GridBar.draw this.scene.grid', this.scene.grid);
     let font = '12px sans-serif';
     let textColor = "#98ab98";
     let y = this.zToY(this.scene.grid);
@@ -1498,7 +1488,7 @@ class ProteinDisplay {
 
     this.cameraTarget = new THREE.Vector3(0, 0, 0);
 
-    this.setLights();
+    this.buildLights();
     this.buildCrossHairs();
 
     this.nDataServer = 0;
@@ -1957,7 +1947,7 @@ class ProteinDisplay {
   }
 
 
-  setLights() {
+  buildLights() {
 
     var directionalLight =
       new THREE.DirectionalLight(0xFFFFFF);
@@ -3415,7 +3405,7 @@ class ProteinDisplay {
   }
 
 
-  is_changed() {
+  isChanged() {
 
     return this.scene.changed;
 
@@ -3578,7 +3568,7 @@ class ProteinDisplay {
     if (_.isUndefined(this.objects)) {
       return;
     }
-    if (!this.is_changed()) {
+    if (!this.isChanged()) {
       return;
     }
     this.resize();

@@ -2,6 +2,7 @@ html,
 body {
     background-color: black;
     padding: 0;
+    margin: 0;
     overflow: hidden;
     width: 100%;
     height: 100%;
@@ -26,7 +27,6 @@ body, li, td {
 h1, h2, h3, h4, h5, h6, h7 {
     font-weight: 200;
     color: #886;
-
 }
 
 #jolecule-container {
@@ -176,7 +176,7 @@ h1, h2, h3, h4, h5, h6, h7 {
     -webkit-flex: 50px 0 0;
 }
 .jolecule-selected-box {
-    border: 1px dotted #D66;
+    border: 1px dotted #733;
 }
 .jolecule-unselected-box {
     border: 1px solid #222;
@@ -184,8 +184,8 @@ h1, h2, h3, h4, h5, h6, h7 {
 .jolecule-large-button,
 a.jolecule-large-button:link,
 a.jolecule-large-button:visited {
-    background-color: #777;
-    color: #333!important;
+    background-color: #444;
+    color: #000;
     text-decoration: none;
     font-size: 14px;
 }

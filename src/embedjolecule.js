@@ -21,7 +21,6 @@ import {
 
 let defaultArgs = {
   divTag: '',
-  dataServers: [],
   viewId: '',
   viewHeight: 170,
   isViewTextShown: false,
@@ -216,11 +215,11 @@ class EmbedJolecule {
       });
   }
 
-  is_changed() {
+  isChanged() {
     if (!exists(this.proteinDisplay)) {
       return false;
     }
-    return this.proteinDisplay.is_changed();
+    return this.proteinDisplay.isChanged();
   }
 
   animate() {
@@ -346,7 +345,7 @@ class EmbedJolecule {
     this.hydButton = '';
 
     var backboneButton = link_button(
-      '', 'backbone', 'jolecule-button',
+      '', 'b-bone', 'jolecule-button',
       () => { this.cycleBackbone(); });
 
     var allSidechainButton = link_button('', 'all', 'jolecule-button',
@@ -375,23 +374,17 @@ class EmbedJolecule {
           .append(saveButton)
       )
       .append(
-        $('<div style="margin-left: 0.75em; white-space: nowrap;">')
+        $('<div style="flex: 1; white-space: nowrap; align-self: flex-end">')
           .append(backboneButton)
-      )
-      .append(
-        $('<div style="margin-left: 0.75em; white-space: nowrap;">')
+          .append(" ")
           .append(this.ligButton)
           .append(this.hydButton)
           .append(this.watButton)
-      ) 
-      .append(
-        $('<div style="margin-left: 0.75em; white-space: nowrap; align-self: flex-end">')
-          .append(' sidechain:')
+          .append(" ")
+          .append(' s-chain ')
           .append(allSidechainButton)
           .append(clearSidechainButton)
-          .append(nearSidechainButton)
-          .append(' ')
-      ) ;
+          .append(nearSidechainButton));
 
     this.div.append(this.statusDiv);
   }

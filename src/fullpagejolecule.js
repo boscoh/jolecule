@@ -8,159 +8,8 @@ import {
     ViewPiece,
     trim,
     random_id,
+    toggle_button,
 } from "./util";
-
-
-/**
- * fullPageJolecule - the javascript based protein/dna viewer
- **/
-
-
-function html_pad(s, n_padded) {
-  let trim_s = trim(s)
-  let n = (n_padded - trim_s.length);
-  let padded_s = trim_s;
-  for (let k=0; k<n; k++) {
-    padded_s += '&nbsp;';
-  }
-  return padded_s;
-}
-
-
-/**
- * SequenceDisplay creates a vertical list of clickable links
- * to the residues in a protein, does not yet respond to
- * progressive data load
- **/
-
-class SequenceDisplay {
-
-  constructor(divTag, controller) {
-    this.controller = controller;
-    this.scene = controller.scene;
-    this.protein = controller.scene.protein;
-    this.resDiv = [];
-    this.div = $(divTag)
-      .append(
-        $("<div>")
-          .addClass('jolecule-sub-header')
-          .append("RESIDUES")
-          .append("<br>")
-          .append(
-            link_button(
-              "", 'prev[k]', 'jolecule-button', () => this.gotoPrevResidue())
-          )
-          .append(
-            link_button(
-              "", 'next[j]', 'jolecule-button', () => this.gotoNextResidue())
-          )
-      )
-      .append(
-        $("<div>")
-          .attr("id", 'jolecule-sequence')
-      );
-  }
-
-  redraw() {
-    for (let i = 0; i < this.resDiv.length; i += 1) {
-      if (!_.isUndefined(this.protein.residues[i])) {
-        let resId = this.protein.residues[i].id;
-        if (resId == this.scene.current_view.res_id) {
-          this.resDiv[i].target.removeClass("jolecule-unselected-box");
-          this.resDiv[i].target.addClass("jolecule-selected-box");
-          $('#jolecule-sequence')
-            .stop()
-            .scrollTo(
-              this.resDiv[i].target, 1000, {offset: {top: -80}});
-        } else {
-          this.resDiv[i].target.removeClass("jolecule-selected-box");
-          this.resDiv[i].target.addClass("jolecule-unselected-box");
-        }
-      }
-    }
-    for (let i = 0; i < this.protein.residues.length; i += 1) {
-      if (!_.isUndefined(this.resDiv[i])) {
-        if (this.protein.residues[i].selected) {
-          this.resDiv[i].select.prop('checked', true);
-        } else {
-          this.resDiv[i].select.prop('checked', false);
-        }
-      }
-    }
-  }
-
-  gotoPrevResidue() {
-    this.controller.set_target_prev_residue();
-    window.location.hash = this.scene.target_view.res_id;
-  }
-
-  gotoNextResidue() {
-    this.controller.set_target_next_residue();
-    window.location.hash = this.scene.target_view.res_id;
-  }
-
-  setResidueSelect(res_id, v) {
-    let i = this.protein.get_i_res_from_res_id(res_id);
-    this.controller.select_residue(i, v);
-  }
-  
-  toggleResidueSelect(res_id) {
-    let r = this.protein.res_by_id[res_id]
-    this.setResidueSelect(res_id, !r.selected);
-  }
-
-  createResidueDiv(i) {
-    let controller = this.controller;
-    let resId = this.protein.residues[i].id;
-    let resType = this.protein.residues[i].type;
-    let html = "&nbsp;" + html_pad(resId, 7) + html_pad(resType, 3) + "&nbsp;"
-    let showResId = resId + ":show";
-    let checkbox = $("<input>")
-        .attr('type', 'checkbox')
-        .attr('id', showResId)
-        .attr('name', showResId)
-        .attr('checked', false)
-        .click( 
-            (event) => {
-              let check_id = 'input[name="' + showResId + '"' + ']';
-              let v = $(check_id).is(':checked');
-              this.setResidueSelect(resId, v);
-            });
-    let elem = $("<div>")
-        .addClass("jolecule-residue")
-        .append(checkbox)
-        .append(
-          $("<a>")
-            .addClass('jolecule-button')
-            .attr("href", "#" + resId)
-            .html(html)
-            .click(
-              () => {
-                controller.set_target_view_by_res_id(resId);
-                this.redraw();
-            }))
-        .append("<br>")
-    return { 'target':elem, 'select':checkbox };
-  }
-  
-  buildDivs() {
-    let sequenceDiv = $("#jolecule-sequence");
-    sequenceDiv.empty();
-    for (let i=0; i<this.protein.residues.length; i+=1) {
-      let elem = this.createResidueDiv(i);
-      sequenceDiv.append(elem.target);
-      this.resDiv.push(elem);
-    }
-    
-    this.scene.current_view.res_id = this.protein.residues[0].id;
-    let hashTag = url().split('#')[1];
-    if (hashTag in this.protein.res_by_id) {
-      this.controller.set_target_view_by_res_id(hashTag);
-    }
-    this.redraw();
-  }
-
-}
 
 
 /**
@@ -385,7 +234,9 @@ class ViewsDisplay {
 
 
 /**
- * FullPageJolecule
+ * FullPageJolecule - full page wrapper around an embedd EmbedJolecule
+ * widget. Handles keypresses and urls and adds a better views annotation
+ * list tool
  **/
 
 class FullPageJolecule {
@@ -443,16 +294,13 @@ class FullPageJolecule {
         }
         this.viewsDisplay.updateViews();
 
-        this.sequenceDisplay = new SequenceDisplay(
-          this.sequenceDisplayTag, this.controller);
       }
 
-      this.sequenceDisplay.buildDivs();
       this.resize();
     });
   }
 
-  is_changed() {
+  isChanged() {
     if (typeof this.scene !== "undefined") {
       return this.scene.changed; 
     }
@@ -463,7 +311,6 @@ class FullPageJolecule {
     if (this.scene.changed) {
       this.viewsDisplay.updateViews();
       if (this.scene.is_new_view_chosen) {
-        this.sequenceDisplay.redraw();
         this.scene.is_new_view_chosen = false;
       }
       this.embedJolecule.draw();
@@ -486,6 +333,17 @@ class FullPageJolecule {
     }
   }
 
+  gotoPrevResidue() {
+    this.controller.set_target_prev_residue();
+    window.location.hash = this.scene.target_view.res_id;
+  }
+
+  gotoNextResidue() {
+    this.controller.set_target_next_residue();
+    window.location.hash = this.scene.target_view.res_id;
+  }
+
+
   onkeydown(event) {
     if (!window.keyboard_lock) {
       let c = String.fromCharCode(event.keyCode).toUpperCase();
@@ -494,14 +352,13 @@ class FullPageJolecule {
         this.viewsDisplay.makeNewView();
         return;
       } else if ((c == "K") || (event.keyCode == 37)) {
-        this.sequenceDisplay.gotoPrevResidue();
+        this.gotoPrevResidue();
       } else if ((c == "J") || (event.keyCode == 39)) {
-        this.sequenceDisplay.gotoNextResidue();
+        this.gotoNextResidue();
       } else if (c == "X") {
         let i_atom = this.scene.current_view.i_atom;
         if (i_atom >= 0) {
           let res_id = this.controller.protein.atoms[i_atom].res_id;
-          this.sequenceDisplay.toggleResidueSelect(res_id);
         }
       } else if (event.keyCode == 38) {
         this.viewsDisplay.gotoPrevView();

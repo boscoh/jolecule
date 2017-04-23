@@ -1,4 +1,4 @@
-import {register_global_animation_loop} from "./animation";
+import {registerGlobalAnimationLoop} from "./animation";
 import {EmbedJolecule, defaultArgs } from "./embedjolecule.js";
 import {FullPageJolecule} from "./fullpagejolecule.js";
 import _ from "lodash";
@@ -8,8 +8,7 @@ import $ from "jquery";
  *
  * @param args = {
  *   divTag: '',
- *   dataServers: [],
- *   view_id: '',
+ *   viewId: '',
  *   viewHeight: 170,
  *   isViewTextShown: false,
  *   isEditable: true,
@@ -23,7 +22,7 @@ import $ from "jquery";
 function initEmbedJolecule(userArgs) {
   let args = _.merge(defaultArgs, userArgs);
   let widget = new EmbedJolecule(args);
-  register_global_animation_loop(widget);
+  registerGlobalAnimationLoop(widget);
   return widget;
 }
 
@@ -35,7 +34,7 @@ function initEmbedJolecule(userArgs) {
  */
 function initFullPageJolecule(...args) {
   var widget = new FullPageJolecule(...args);
-  register_global_animation_loop(widget);
+  registerGlobalAnimationLoop(widget);
   return widget;
 }
 

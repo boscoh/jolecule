@@ -81,8 +81,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 * @param args = {
 	 *   divTag: '',
-	 *   dataServers: [],
-	 *   view_id: '',
+	 *   viewId: '',
 	 *   viewHeight: 170,
 	 *   isViewTextShown: false,
 	 *   isEditable: true,
@@ -96,7 +95,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function initEmbedJolecule(userArgs) {
 	  var args = _lodash2.default.merge(_embedjolecule.defaultArgs, userArgs);
 	  var widget = new _embedjolecule.EmbedJolecule(args);
-	  (0, _animation.register_global_animation_loop)(widget);
+	  (0, _animation.registerGlobalAnimationLoop)(widget);
 	  return widget;
 	}
 	
@@ -112,7 +111,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  var widget = new (Function.prototype.bind.apply(_fullpagejolecule.FullPageJolecule, [null].concat(args)))();
-	  (0, _animation.register_global_animation_loop)(widget);
+	  (0, _animation.registerGlobalAnimationLoop)(widget);
 	  return widget;
 	}
 	
@@ -163,59 +162,102 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 * class Widget {
 	 *   animate() {}
-	 *   is_changed: boolean
+	 *   isChanged: boolean
 	 *   draw() {}
 	 * }
 	 *
 	 * global storage
-	 * - window.global_displays
-	 * - window.last_time
+	 * - window.globalWidgets
+	 * - window.lastTime
 	 **/
 	
-	var ms_per_step = 25;
+	var MS_PER_STEP = 25;
 	
 	function loop() {
 	  requestAnimationFrame(loop);
 	
-	  if (window.global_displays == []) {
+	  if (window.globalWidgets == []) {
 	    return;
 	  }
-	  var curr_time = new Date().getTime();
-	  var elapsed_time = curr_time - window.last_time;
-	  var n_step = elapsed_time / ms_per_step;
-	  if (n_step < 1) {
-	    n_step = 1;
+	  var currTime = new Date().getTime();
+	  var elapsedTime = currTime - window.lastTime;
+	  var nStep = elapsedTime / MS_PER_STEP;
+	  if (nStep < 1) {
+	    nStep = 1;
 	  }
-	  n_step = Math.floor(n_step);
-	  var i, j;
-	  for (i = 0; i < n_step; i++) {
-	    for (j = 0; j < window.global_displays.length; j++) {
-	      window.global_displays[j].animate();
+	  nStep = Math.floor(nStep);
+	
+	  for (var i = 0; i < nStep; i++) {
+	    var _iteratorNormalCompletion = true;
+	    var _didIteratorError = false;
+	    var _iteratorError = undefined;
+	
+	    try {
+	      for (var _iterator = window.globalWidgets[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	        var widget = _step.value;
+	
+	        widget.animate();
+	      }
+	    } catch (err) {
+	      _didIteratorError = true;
+	      _iteratorError = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion && _iterator.return) {
+	          _iterator.return();
+	        }
+	      } finally {
+	        if (_didIteratorError) {
+	          throw _iteratorError;
+	        }
+	      }
 	    }
 	  }
-	  for (j = 0; j < window.global_displays.length; j++) {
-	    var display = window.global_displays[j];
-	    if (display.is_changed()) {
-	      display.draw();
+	
+	  var _iteratorNormalCompletion2 = true;
+	  var _didIteratorError2 = false;
+	  var _iteratorError2 = undefined;
+	
+	  try {
+	    for (var _iterator2 = window.globalWidgets[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	      var _widget = _step2.value;
+	
+	      if (_widget.isChanged()) {
+	        _widget.draw();
+	      }
+	    }
+	  } catch (err) {
+	    _didIteratorError2 = true;
+	    _iteratorError2 = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	        _iterator2.return();
+	      }
+	    } finally {
+	      if (_didIteratorError2) {
+	        throw _iteratorError2;
+	      }
 	    }
 	  }
-	  window.last_time = curr_time;
+	
+	  window.lastTime = currTime;
 	}
 	
 	/**
 	 * run loop() as a singleton by using the global
 	 * window space to lock one single copy of loop
 	 **/
-	function register_global_animation_loop(new_display) {
-	  if (typeof window.global_displays == 'undefined') {
-	    window.global_displays = [];
+	function registerGlobalAnimationLoop(widget) {
+	  if (typeof window.globalWidgets == 'undefined') {
+	    window.globalWidgets = [];
 	    loop();
-	    window.last_time = new Date().getTime();
+	    window.lastTime = new Date().getTime();
 	  }
-	  window.global_displays.push(new_display);
+	  window.globalWidgets.push(widget);
 	}
 	
-	exports.register_global_animation_loop = register_global_animation_loop;
+	exports.registerGlobalAnimationLoop = registerGlobalAnimationLoop;
 
 /***/ },
 /* 2 */
@@ -257,7 +299,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var defaultArgs = {
 	  divTag: '',
-	  dataServers: [],
 	  viewId: '',
 	  viewHeight: 170,
 	  isViewTextShown: false,
@@ -471,12 +512,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: "is_changed",
-	    value: function is_changed() {
+	    key: "isChanged",
+	    value: function isChanged() {
 	      if (!(0, _util.exists)(this.proteinDisplay)) {
 	        return false;
 	      }
-	      return this.proteinDisplay.is_changed();
+	      return this.proteinDisplay.isChanged();
 	    }
 	  }, {
 	    key: "animate",
@@ -608,7 +649,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	      this.hydButton = '';
 	
-	      var backboneButton = (0, _util.link_button)('', 'backbone', 'jolecule-button', function () {
+	      var backboneButton = (0, _util.link_button)('', 'b-bone', 'jolecule-button', function () {
 	        _this6.cycleBackbone();
 	      });
 	
@@ -625,7 +666,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this6.controller.toggle_neighbors();
 	      });
 	
-	      this.statusDiv = (0, _jquery2.default)('<div style="flex-wrap: wrap; justify-content: flex-end">').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap;">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton)).append((0, _jquery2.default)('<div style="margin-left: 0.75em; white-space: nowrap;">').append(backboneButton)).append((0, _jquery2.default)('<div style="margin-left: 0.75em; white-space: nowrap;">').append(this.ligButton).append(this.hydButton).append(this.watButton)).append((0, _jquery2.default)('<div style="margin-left: 0.75em; white-space: nowrap; align-self: flex-end">').append(' sidechain:').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton).append(' '));
+	      this.statusDiv = (0, _jquery2.default)('<div style="flex-wrap: wrap; justify-content: flex-end">').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap;">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton)).append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap; align-self: flex-end">').append(backboneButton).append(" ").append(this.ligButton).append(this.hydButton).append(this.watButton).append(" ").append(' s-chain ').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton));
 	
 	      this.div.append(this.statusDiv);
 	    }
@@ -72715,7 +72756,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    _this4.heightBar = 16;
 	    _this4.spacingY = 4;
-	    _this4.darkColor = "rgb(0, 0, 0)";
+	    _this4.darkColor = "#222";
 	    _this4.mediumColor = "rgb(155, 155, 155)";
 	
 	    _this4.div.attr('id', 'sequence-widget');
@@ -72759,12 +72800,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "xToI",
 	    value: function xToI(x) {
-	      return parseInt(x * this.nResidue / this.width());
+	      return parseInt((x - this.textXOffset) * this.nResidue / this.textWidth());
 	    }
 	  }, {
 	    key: "iToX",
 	    value: function iToX(iRes) {
-	      return parseInt(iRes / this.nResidue * this.width());
+	      return parseInt(iRes / this.nResidue * this.textWidth()) + this.textXOffset;
 	    }
 	  }, {
 	    key: "textWidth",
@@ -72844,9 +72885,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      // draw background
-	      this.fillRect(0, 0, this.width(), this.heightBar + this.spacingY * 2, this.darkColor);
+	      this.fillRect(0, 0, this.width(), this.height(), this.darkColor);
 	
-	      this.fillRect(0, this.heightBar + this.spacingY * 2, this.width(), this.charHeight + this.spacingY * 2, this.mediumColor);
+	      this.fillRect(this.textXOffset, 0, this.textWidth(), this.heightBar + this.spacingY * 2, this.darkColor);
+	
+	      this.fillRect(this.textXOffset, this.heightBar + this.spacingY * 2, this.textWidth(), this.charHeight + this.spacingY * 2, this.mediumColor);
 	
 	      var x1 = this.iToX(this.iStartChar);
 	      var x2 = this.iToX(this.iEndChar);
@@ -72892,12 +72935,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	          break;
 	        }
 	      }
-	
-	      // draw containers to indicate window
-	      x1 = this.iToX(this.iStartChar);
-	      x2 = this.iToX(this.iEndChar);
-	      this.fillRect(0, this.spacingY, x1, this.heightBar, "rgba(0, 0, 0, 0.3)");
-	      this.fillRect(x2, this.spacingY, this.width() - x2, this.heightBar, "rgba(0, 0, 0, 0.3)");
 	    }
 	  }, {
 	    key: "populateResidueSelector",
@@ -73232,7 +73269,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.line(xm, yTop, xm, yBottom, 1, dark);
 	      this.line(5, yTop, 35, yTop, 1, dark);
 	
-	      console.log('GridBar.draw this.scene.grid', this.scene.grid);
 	      var font = '12px sans-serif';
 	      var textColor = "#98ab98";
 	      var y = this.zToY(this.scene.grid);
@@ -73352,7 +73388,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.cameraTarget = new _three2.default.Vector3(0, 0, 0);
 	
-	    this.setLights();
+	    this.buildLights();
 	    this.buildCrossHairs();
 	
 	    this.nDataServer = 0;
@@ -73736,8 +73772,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return darkGrey;
 	    }
 	  }, {
-	    key: "setLights",
-	    value: function setLights() {
+	    key: "buildLights",
+	    value: function buildLights() {
 	
 	      var directionalLight = new _three2.default.DirectionalLight(0xFFFFFF);
 	      directionalLight.position.copy(new TV3(0.2, 0.2, 100).normalize());
@@ -74994,8 +75030,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.mousePressed = false;
 	    }
 	  }, {
-	    key: "is_changed",
-	    value: function is_changed() {
+	    key: "isChanged",
+	    value: function isChanged() {
 	
 	      return this.scene.changed;
 	    }
@@ -75142,7 +75178,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (_lodash2.default.isUndefined(this.objects)) {
 	        return;
 	      }
-	      if (!this.is_changed()) {
+	      if (!this.isChanged()) {
 	        return;
 	      }
 	      this.resize();
@@ -75764,143 +75800,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	/**
-	 * fullPageJolecule - the javascript based protein/dna viewer
-	 **/
-	
-	function html_pad(s, n_padded) {
-	  var trim_s = (0, _util.trim)(s);
-	  var n = n_padded - trim_s.length;
-	  var padded_s = trim_s;
-	  for (var k = 0; k < n; k++) {
-	    padded_s += '&nbsp;';
-	  }
-	  return padded_s;
-	}
-	
-	/**
-	 * SequenceDisplay creates a vertical list of clickable links
-	 * to the residues in a protein, does not yet respond to
-	 * progressive data load
-	 **/
-	
-	var SequenceDisplay = function () {
-	  function SequenceDisplay(divTag, controller) {
-	    var _this = this;
-	
-	    _classCallCheck(this, SequenceDisplay);
-	
-	    this.controller = controller;
-	    this.scene = controller.scene;
-	    this.protein = controller.scene.protein;
-	    this.resDiv = [];
-	    this.div = (0, _jquery4.default)(divTag).append((0, _jquery4.default)("<div>").addClass('jolecule-sub-header').append("RESIDUES").append("<br>").append((0, _util.link_button)("", 'prev[k]', 'jolecule-button', function () {
-	      return _this.gotoPrevResidue();
-	    })).append((0, _util.link_button)("", 'next[j]', 'jolecule-button', function () {
-	      return _this.gotoNextResidue();
-	    }))).append((0, _jquery4.default)("<div>").attr("id", 'jolecule-sequence'));
-	  }
-	
-	  _createClass(SequenceDisplay, [{
-	    key: "redraw",
-	    value: function redraw() {
-	      for (var i = 0; i < this.resDiv.length; i += 1) {
-	        if (!_lodash2.default.isUndefined(this.protein.residues[i])) {
-	          var resId = this.protein.residues[i].id;
-	          if (resId == this.scene.current_view.res_id) {
-	            this.resDiv[i].target.removeClass("jolecule-unselected-box");
-	            this.resDiv[i].target.addClass("jolecule-selected-box");
-	            (0, _jquery4.default)('#jolecule-sequence').stop().scrollTo(this.resDiv[i].target, 1000, { offset: { top: -80 } });
-	          } else {
-	            this.resDiv[i].target.removeClass("jolecule-selected-box");
-	            this.resDiv[i].target.addClass("jolecule-unselected-box");
-	          }
-	        }
-	      }
-	      for (var _i = 0; _i < this.protein.residues.length; _i += 1) {
-	        if (!_lodash2.default.isUndefined(this.resDiv[_i])) {
-	          if (this.protein.residues[_i].selected) {
-	            this.resDiv[_i].select.prop('checked', true);
-	          } else {
-	            this.resDiv[_i].select.prop('checked', false);
-	          }
-	        }
-	      }
-	    }
-	  }, {
-	    key: "gotoPrevResidue",
-	    value: function gotoPrevResidue() {
-	      this.controller.set_target_prev_residue();
-	      window.location.hash = this.scene.target_view.res_id;
-	    }
-	  }, {
-	    key: "gotoNextResidue",
-	    value: function gotoNextResidue() {
-	      this.controller.set_target_next_residue();
-	      window.location.hash = this.scene.target_view.res_id;
-	    }
-	  }, {
-	    key: "setResidueSelect",
-	    value: function setResidueSelect(res_id, v) {
-	      var i = this.protein.get_i_res_from_res_id(res_id);
-	      this.controller.select_residue(i, v);
-	    }
-	  }, {
-	    key: "toggleResidueSelect",
-	    value: function toggleResidueSelect(res_id) {
-	      var r = this.protein.res_by_id[res_id];
-	      this.setResidueSelect(res_id, !r.selected);
-	    }
-	  }, {
-	    key: "createResidueDiv",
-	    value: function createResidueDiv(i) {
-	      var _this2 = this;
-	
-	      var controller = this.controller;
-	      var resId = this.protein.residues[i].id;
-	      var resType = this.protein.residues[i].type;
-	      var html = "&nbsp;" + html_pad(resId, 7) + html_pad(resType, 3) + "&nbsp;";
-	      var showResId = resId + ":show";
-	      var checkbox = (0, _jquery4.default)("<input>").attr('type', 'checkbox').attr('id', showResId).attr('name', showResId).attr('checked', false).click(function (event) {
-	        var check_id = 'input[name="' + showResId + '"' + ']';
-	        var v = (0, _jquery4.default)(check_id).is(':checked');
-	        _this2.setResidueSelect(resId, v);
-	      });
-	      var elem = (0, _jquery4.default)("<div>").addClass("jolecule-residue").append(checkbox).append((0, _jquery4.default)("<a>").addClass('jolecule-button').attr("href", "#" + resId).html(html).click(function () {
-	        controller.set_target_view_by_res_id(resId);
-	        _this2.redraw();
-	      })).append("<br>");
-	      return { 'target': elem, 'select': checkbox };
-	    }
-	  }, {
-	    key: "buildDivs",
-	    value: function buildDivs() {
-	      var sequenceDiv = (0, _jquery4.default)("#jolecule-sequence");
-	      sequenceDiv.empty();
-	      for (var i = 0; i < this.protein.residues.length; i += 1) {
-	        var elem = this.createResidueDiv(i);
-	        sequenceDiv.append(elem.target);
-	        this.resDiv.push(elem);
-	      }
-	
-	      this.scene.current_view.res_id = this.protein.residues[0].id;
-	      var hashTag = (0, _util.url)().split('#')[1];
-	      if (hashTag in this.protein.res_by_id) {
-	        this.controller.set_target_view_by_res_id(hashTag);
-	      }
-	      this.redraw();
-	    }
-	  }]);
-	
-	  return SequenceDisplay;
-	}();
-	
-	/**
 	 * ViewsDisplay keeps track of the views
 	 **/
 	
 	var ViewsDisplay = function () {
 	  function ViewsDisplay(divTag, controller, proteinDisplay, data_server) {
-	    var _this3 = this;
+	    var _this = this;
 	
 	    _classCallCheck(this, ViewsDisplay);
 	
@@ -75911,13 +75816,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.data_server = data_server;
 	    this.viewPiece = {};
 	    this.topDiv = (0, _jquery4.default)(this.divTag).append((0, _jquery4.default)("<div>").addClass("jolecule-sub-header").append("VIEWS OF PROTEIN").append("<br>").append((0, _util.link_button)('', 'create [v]iew', 'jolecule-button', function () {
-	      _this3.makeNewView();
+	      _this.makeNewView();
 	    })).append((0, _util.link_button)('', 'prev[&uarr;]', 'jolecule-button', function () {
-	      _this3.gotoPrevView();
+	      _this.gotoPrevView();
 	    })).append((0, _util.link_button)('', 'next[&darr;]', 'jolecule-button', function () {
-	      _this3.gotoNextView();
+	      _this.gotoNextView();
 	    })).append((0, _util.link_button)('', '[a]dd label', 'jolecule-button', function () {
-	      _this3.proteinDisplay.atom_label_dialog();
+	      _this.proteinDisplay.atom_label_dialog();
 	    }))).append((0, _jquery4.default)("<div>").attr("id", "jolecule-views"));
 	  }
 	
@@ -75993,20 +75898,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "removeView",
 	    value: function removeView(id) {
-	      var _this4 = this;
+	      var _this2 = this;
 	
 	      this.viewPiece[id].div.css('background-color', 'lightgray');
 	      this.data_server.delete_protein_view(id, function () {
-	        _this4.controller.delete_view(id);
-	        _this4.viewPiece[id].div.remove();
-	        delete _this4.viewPiece[id];
-	        _this4.updateViews();
+	        _this2.controller.delete_view(id);
+	        _this2.viewPiece[id].div.remove();
+	        delete _this2.viewPiece[id];
+	        _this2.updateViews();
 	      });
 	    }
 	  }, {
 	    key: "swapViews",
 	    value: function swapViews(i, j) {
-	      var _this5 = this;
+	      var _this3 = this;
 	
 	      var i_id = this.scene.saved_views[i].id;
 	      var j_id = this.scene.saved_views[j].id;
@@ -76020,7 +75925,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.saveViewsToDataServer(function () {
 	        j_div.insertBefore(i_div);
-	        _this5.updateViews();
+	        _this3.updateViews();
 	        i_div.css('background-color', '');
 	        j_div.css('background-color', '');
 	      });
@@ -76046,32 +75951,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "makeViewDiv",
 	    value: function makeViewDiv(id) {
-	      var _this6 = this;
+	      var _this4 = this;
 	
 	      var view = this.scene.saved_views_by_id[id];
 	      this.viewPiece[id] = new _util.ViewPiece({
 	        view: view,
 	        isEditable: true,
 	        delete_view: function delete_view() {
-	          _this6.removeView(id);
+	          _this4.removeView(id);
 	        },
 	        save_change: function save_change(changed_text, sucess) {
 	          view.text = changed_text;
-	          _this6.viewPiece[id].div.css('background-color', 'lightgray');
-	          _this6.saveViewsToDataServer(function () {
-	            _this6.viewPiece[id].div.css('background-color', '');
+	          _this4.viewPiece[id].div.css('background-color', 'lightgray');
+	          _this4.saveViewsToDataServer(function () {
+	            _this4.viewPiece[id].div.css('background-color', '');
 	          });
-	          _this6.scene.changed = true;
+	          _this4.scene.changed = true;
 	        },
 	        pick: function pick() {
-	          _this6.setTargetByViewId(id);
+	          _this4.setTargetByViewId(id);
 	        },
 	        goto: view.order + 1,
 	        swapUp: function swapUp() {
-	          _this6.swapUp(id);
+	          _this4.swapUp(id);
 	        },
 	        swapDown: function swapDown() {
-	          _this6.swapDown(id);
+	          _this4.swapDown(id);
 	        },
 	        embed_view: function embed_view() {
 	          window.location.href = '/embed/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id;
@@ -76105,7 +76010,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "makeNewView",
 	    value: function makeNewView() {
-	      var _this7 = this;
+	      var _this5 = this;
 	
 	      var new_id = (0, _util.random_id)();
 	      this.controller.calculate_current_abs_camera();
@@ -76114,9 +76019,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.updateViews();
 	      this.viewPiece[new_id].div.css('background-color', 'lightgray');
 	      this.saveViewsToDataServer(function () {
-	        _this7.viewPiece[new_id].div.css('background-color', '');
+	        _this5.viewPiece[new_id].div.css('background-color', '');
 	        (0, _jquery4.default)("#jolecule-views").stop();
-	        (0, _jquery4.default)("#jolecule-views").scrollTo(_this7.viewPiece[new_id].div, 1000, { offset: { top: -80 } });
+	        (0, _jquery4.default)("#jolecule-views").scrollTo(_this5.viewPiece[new_id].div, 1000, { offset: { top: -80 } });
 	      });
 	    }
 	  }]);
@@ -76125,12 +76030,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 	
 	/**
-	 * FullPageJolecule
+	 * FullPageJolecule - full page wrapper around an embedd EmbedJolecule
+	 * widget. Handles keypresses and urls and adds a better views annotation
+	 * list tool
 	 **/
 	
 	var FullPageJolecule = function () {
 	  function FullPageJolecule(proteinDisplayTag, sequenceDisplayTag, viewsDisplayTag) {
-	    var _this8 = this;
+	    var _this6 = this;
 	
 	    _classCallCheck(this, FullPageJolecule);
 	
@@ -76149,10 +76056,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    document.oncontextmenu = _lodash2.default.noop;
 	    document.onkeydown = function (e) {
-	      return _this8.onkeydown(e);
+	      return _this6.onkeydown(e);
 	    };
 	    var resize_fn = function resize_fn() {
-	      _this8.resize();
+	      _this6.resize();
 	    };
 	    (0, _jquery4.default)(window).resize(resize_fn);
 	    window.onorientationchange = resize_fn;
@@ -76163,37 +76070,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _createClass(FullPageJolecule, [{
 	    key: "addDataServer",
 	    value: function addDataServer(dataServer) {
-	      var _this9 = this;
+	      var _this7 = this;
 	
 	      this.embedJolecule.addDataServer(dataServer, function () {
-	        if (_this9.noData) {
-	          _this9.noData = false;
+	        if (_this7.noData) {
+	          _this7.noData = false;
 	
-	          _this9.scene = _this9.embedJolecule.scene;
-	          _this9.controller = _this9.embedJolecule.controller;
-	          _this9.proteinDisplay = _this9.embedJolecule.proteinDisplay;
+	          _this7.scene = _this7.embedJolecule.scene;
+	          _this7.controller = _this7.embedJolecule.controller;
+	          _this7.proteinDisplay = _this7.embedJolecule.proteinDisplay;
 	
-	          _this9.viewsDisplay = new ViewsDisplay(_this9.viewsDisplayTag, _this9.controller, _this9.proteinDisplay, dataServer);
+	          _this7.viewsDisplay = new ViewsDisplay(_this7.viewsDisplayTag, _this7.controller, _this7.proteinDisplay, dataServer);
 	
-	          _this9.viewsDisplay.makeAllViews();
+	          _this7.viewsDisplay.makeAllViews();
 	          var hashTag = (0, _util.url)().split('#')[1];
-	          if (hashTag in _this9.scene.saved_views_by_id) {
-	            _this9.viewsDisplay.setTargetByViewId(hashTag);
+	          if (hashTag in _this7.scene.saved_views_by_id) {
+	            _this7.viewsDisplay.setTargetByViewId(hashTag);
 	          } else {
-	            _this9.viewsDisplay.setTargetByViewId('view:000000');
+	            _this7.viewsDisplay.setTargetByViewId('view:000000');
 	          }
-	          _this9.viewsDisplay.updateViews();
-	
-	          _this9.sequenceDisplay = new SequenceDisplay(_this9.sequenceDisplayTag, _this9.controller);
+	          _this7.viewsDisplay.updateViews();
 	        }
 	
-	        _this9.sequenceDisplay.buildDivs();
-	        _this9.resize();
+	        _this7.resize();
 	      });
 	    }
 	  }, {
-	    key: "is_changed",
-	    value: function is_changed() {
+	    key: "isChanged",
+	    value: function isChanged() {
 	      if (typeof this.scene !== "undefined") {
 	        return this.scene.changed;
 	      }
@@ -76205,7 +76109,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (this.scene.changed) {
 	        this.viewsDisplay.updateViews();
 	        if (this.scene.is_new_view_chosen) {
-	          this.sequenceDisplay.redraw();
 	          this.scene.is_new_view_chosen = false;
 	        }
 	        this.embedJolecule.draw();
@@ -76230,6 +76133,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
+	    key: "gotoPrevResidue",
+	    value: function gotoPrevResidue() {
+	      this.controller.set_target_prev_residue();
+	      window.location.hash = this.scene.target_view.res_id;
+	    }
+	  }, {
+	    key: "gotoNextResidue",
+	    value: function gotoNextResidue() {
+	      this.controller.set_target_next_residue();
+	      window.location.hash = this.scene.target_view.res_id;
+	    }
+	  }, {
 	    key: "onkeydown",
 	    value: function onkeydown(event) {
 	      if (!window.keyboard_lock) {
@@ -76239,14 +76154,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          this.viewsDisplay.makeNewView();
 	          return;
 	        } else if (c == "K" || event.keyCode == 37) {
-	          this.sequenceDisplay.gotoPrevResidue();
+	          this.gotoPrevResidue();
 	        } else if (c == "J" || event.keyCode == 39) {
-	          this.sequenceDisplay.gotoNextResidue();
+	          this.gotoNextResidue();
 	        } else if (c == "X") {
 	          var i_atom = this.scene.current_view.i_atom;
 	          if (i_atom >= 0) {
 	            var res_id = this.controller.protein.atoms[i_atom].res_id;
-	            this.sequenceDisplay.toggleResidueSelect(res_id);
 	          }
 	        } else if (event.keyCode == 38) {
 	          this.viewsDisplay.gotoPrevView();

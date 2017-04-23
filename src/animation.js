@@ -6,60 +6,61 @@
  *
  * class Widget {
  *   animate() {}
- *   is_changed: boolean
+ *   isChanged: boolean
  *   draw() {}
  * }
  *
  * global storage
- * - window.global_displays
- * - window.last_time
+ * - window.globalWidgets
+ * - window.lastTime
  **/
 
-var ms_per_step = 25;
+var MS_PER_STEP = 25;
 
 function loop() {
   requestAnimationFrame( loop );
 
-  if (window.global_displays == []) {
+  if (window.globalWidgets == []) {
     return;
   }
-  var curr_time = (new Date).getTime();
-  var elapsed_time = curr_time - window.last_time;
-  var n_step = (elapsed_time)/ms_per_step;
-  if (n_step < 1) {
-    n_step = 1;
+  var currTime = (new Date).getTime();
+  var elapsedTime = currTime - window.lastTime;
+  var nStep = (elapsedTime)/MS_PER_STEP;
+  if (nStep < 1) {
+    nStep = 1;
   }
-  n_step = Math.floor(n_step);
-  var i, j;
-  for (i=0; i<n_step; i++) {
-    for (j=0; j<window.global_displays.length; j++) {
-      window.global_displays[j].animate();
+  nStep = Math.floor(nStep);
+
+  for (let i=0; i<nStep; i++) {
+    for (let widget of window.globalWidgets) {
+      widget.animate();
     }
   }
-  for (j=0; j<window.global_displays.length; j++) {
-    var display = window.global_displays[j];
-    if (display.is_changed()) {
-      display.draw();
+
+  for (let widget of window.globalWidgets) {
+    if (widget.isChanged()) {
+      widget.draw();
     }
   }
-  window.last_time = curr_time;
+
+  window.lastTime = currTime;
 }
 
 /**
  * run loop() as a singleton by using the global
  * window space to lock one single copy of loop
  **/
-function register_global_animation_loop(new_display) {
-  if (typeof window.global_displays == 'undefined') {
-    window.global_displays = [];
+function registerGlobalAnimationLoop(widget) {
+  if (typeof window.globalWidgets == 'undefined') {
+    window.globalWidgets = [];
     loop();
-    window.last_time = (new Date).getTime();
+    window.lastTime = (new Date).getTime();
   }
-  window.global_displays.push(new_display);
+  window.globalWidgets.push(widget);
 }
 
 
-export { register_global_animation_loop }
+export { registerGlobalAnimationLoop }
 
 
 
