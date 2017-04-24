@@ -345,7 +345,7 @@ class EmbedJolecule {
     this.hydButton = '';
 
     var backboneButton = link_button(
-      '', 'b-bone', 'jolecule-button',
+      '', 'bb', 'jolecule-button',
       () => { this.cycleBackbone(); });
 
     var allSidechainButton = link_button('', 'all', 'jolecule-button',
@@ -374,14 +374,14 @@ class EmbedJolecule {
           .append(saveButton)
       )
       .append(
-        $('<div style="flex: 1; white-space: nowrap; align-self: flex-end">')
+        $('<div style="flex: 1; white-space: nowrap; text-align: right; align-self: flex-end">')
           .append(backboneButton)
           .append(" ")
           .append(this.ligButton)
           .append(this.hydButton)
           .append(this.watButton)
           .append(" ")
-          .append(' s-chain ')
+          .append(' sc ')
           .append(allSidechainButton)
           .append(clearSidechainButton)
           .append(nearSidechainButton));

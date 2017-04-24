@@ -649,7 +649,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	      this.hydButton = '';
 	
-	      var backboneButton = (0, _util.link_button)('', 'b-bone', 'jolecule-button', function () {
+	      var backboneButton = (0, _util.link_button)('', 'bb', 'jolecule-button', function () {
 	        _this6.cycleBackbone();
 	      });
 	
@@ -666,7 +666,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this6.controller.toggle_neighbors();
 	      });
 	
-	      this.statusDiv = (0, _jquery2.default)('<div style="flex-wrap: wrap; justify-content: flex-end">').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap;">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton)).append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap; align-self: flex-end">').append(backboneButton).append(" ").append(this.ligButton).append(this.hydButton).append(this.watButton).append(" ").append(' s-chain ').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton));
+	      this.statusDiv = (0, _jquery2.default)('<div style="flex-wrap: wrap; justify-content: flex-end">').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap;">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton)).append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap; text-align: right; align-self: flex-end">').append(backboneButton).append(" ").append(this.ligButton).append(this.hydButton).append(this.watButton).append(" ").append(' sc ').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton));
 	
 	      this.div.append(this.statusDiv);
 	    }
@@ -71656,18 +71656,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return item;
 	}
 	
-	function toggle_button(id_tag, html_text, class_tag, get_toggle, toggle) {
+	function toggle_button(id_tag, html_text, class_tag, get_toggle, toggle, onColor) {
 	  var item = (0, _jquery2.default)('<a>').attr('id', id_tag).attr('href', '').html(html_text);
 	
 	  var color = function color() {
 	    if (get_toggle()) {
-	      item.addClass('jolecule-button-toggle-on');
+	      console.log('set background-color', onColor);
+	      if (onColor) {
+	        item.css('background-color', onColor);
+	      } else {
+	        item.addClass('jolecule-button-toggle-on');
+	      }
 	    } else {
-	      item.removeClass('jolecule-button-toggle-on');
+	      if (onColor) {
+	        item.css('background-color', '');
+	      } else {
+	        item.removeClass('jolecule-button-toggle-on');
+	      }
 	    }
 	  };
-	
-	  color();
 	
 	  if (class_tag) {
 	    item.addClass(class_tag);
@@ -71681,6 +71688,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	
 	  item.redraw = color;
+	
+	  color();
 	
 	  return item;
 	}
@@ -72178,44 +72187,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  return view;
 	}
-	
-	/**
-	 * MessageBar
-	 **/
-	
-	var MessageBar = function () {
-	  function MessageBar(selector) {
-	    _classCallCheck(this, MessageBar);
-	
-	    this.div = (0, _jquery2.default)("<div>").css({
-	      'position': 'absolute',
-	      'top': 40,
-	      'left': 40,
-	      'z-index': 2000,
-	      'color': 'white',
-	      'padding': '5',
-	      'opacity': 0.7
-	    });
-	
-	    this.parentDiv = (0, _jquery2.default)(selector);
-	    this.parentDiv.append(this.div);
-	  }
-	
-	  _createClass(MessageBar, [{
-	    key: "hide",
-	    value: function hide() {
-	      this.div.css('display', 'none');
-	    }
-	  }, {
-	    key: "html",
-	    value: function html(text) {
-	      this.div.css('display', 'block');
-	      this.div.html(text);
-	    }
-	  }]);
-	
-	  return MessageBar;
-	}();
 	
 	/**
 	 * PopupText
@@ -73175,23 +73146,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.buttonsDiv.empty();
 	      var y = 5;
 	      for (var elem in this.scene.grid_atoms) {
-	        this.buttonsDiv.append(this.make_elem_button(elem, y));
+	        this.buttonsDiv.append(this.makeElemButton(elem, y));
 	        y += 45;
 	      }
 	    }
 	  }, {
-	    key: "make_elem_button",
-	    value: function make_elem_button(elem, y) {
+	    key: "makeElemButton",
+	    value: function makeElemButton(elem, y) {
 	      var _this8 = this;
 	
 	      console.log("make grid atoms", elem, this.scene.grid_atoms[elem]);
+	      var color = new _three2.default.Color(ElementColors[elem]);
+	      var colorHexStr = color.getHexString();
 	      var text_button = (0, _util.toggle_button)('toggle_text', elem, 'jolecule-button', function () {
 	        return _this8.scene.grid_atoms[elem];
 	      }, function (b) {
 	        _this8.scene.grid_atoms[elem] = b;
 	        _this8.scene.changed = true;
-	      });
-	      text_button.attr("style", "position: absolute; top: " + y + "px; left: 40px; width: 20px");
+	      }, colorHexStr);
+	      text_button.css('position', 'absolute');
+	      text_button.css('top', y + "px");
+	      text_button.css('left', '40px');
+	      text_button.css('width', '20px');
 	      return text_button;
 	    }
 	  }, {
@@ -73376,8 +73352,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.mainDiv = (0, _jquery2.default)(this.divTag);
 	    this.mainDiv.css('overflow', 'hidden');
-	
-	    this.messageBar = new MessageBar(this.divTag);
 	
 	    this.backgroundColor = 0x000000;
 	
@@ -74422,17 +74396,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "buildScene",
 	    value: function buildScene() {
 	
-	      this.messageBar.html('Drawing scene...');
-	
-	      this.messageBar.html('Finding chains...');
-	
 	      this.findChainsAndPieces();
 	
 	      this.unitSphereGeom = new _three2.default.SphereGeometry(1, 8, 8);
 	
 	      this.objects = {};
-	
-	      this.messageBar.html('Building cartoon...');
 	
 	      this.buildTube();
 	
@@ -74445,11 +74413,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.threeJsScene.add(this.objects[k]);
 	      }
 	
-	      this.messageBar.html('Finding bonds...');
-	
 	      this.assignBonds();
-	
-	      this.messageBar.hide();
 	    }
 	  }, {
 	    key: "setTargetFromResId",
@@ -75049,10 +75013,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      (0, _glgeometry.setVisible)(this.objects.arrows, !show.all_atom);
 	
 	      if (!(0, _util.exists)(this.objects.backbone) && show.all_atom) {
-	        this.messageBar.html('building backbone');
 	        this.buildBackbone();
 	        this.buildPeptideBonds();
-	        this.messageBar.html('');
 	      }
 	      (0, _glgeometry.setVisible)(this.objects.backbone, show.all_atom);
 	      (0, _glgeometry.setVisible)(this.objects.peptides, show.all_atom);

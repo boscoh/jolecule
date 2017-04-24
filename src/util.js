@@ -88,7 +88,8 @@ function link_button(id_tag, html_text, class_tag, click) {
 }
 
 
-function toggle_button(id_tag, html_text, class_tag, get_toggle, toggle) {
+function toggle_button(
+  id_tag, html_text, class_tag, get_toggle, toggle, onColor) {
   var item = 
     $('<a>')
       .attr('id', id_tag)
@@ -97,15 +98,21 @@ function toggle_button(id_tag, html_text, class_tag, get_toggle, toggle) {
 
   var color = function() {
     if (get_toggle()) {
-      item.addClass('jolecule-button-toggle-on');
+      console.log('set background-color', onColor);
+      if (onColor) {
+        item.css('background-color', onColor);
+      } else {
+        item.addClass('jolecule-button-toggle-on');
+      }
     } else {
-      item.removeClass('jolecule-button-toggle-on');
+      if (onColor) {
+        item.css('background-color', '');
+      } else {
+        item.removeClass('jolecule-button-toggle-on');
+      }
     }
-
   }
 
-  color();
-  
   if (class_tag) {
     item.addClass(class_tag);
   }
@@ -121,6 +128,8 @@ function toggle_button(id_tag, html_text, class_tag, get_toggle, toggle) {
 
   item.redraw = color;
 
+  color();
+  
   return item;
 }
 

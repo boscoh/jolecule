@@ -278,41 +278,6 @@ function convertTargetToView(target) {
 
 
 /**
- * MessageBar
- **/
-
-
-class MessageBar {
-
-  constructor(selector) {
-    this.div = $("<div>")
-      .css({
-        'position': 'absolute',
-        'top': 40,
-        'left': 40,
-        'z-index': 2000,
-        'color': 'white',
-        'padding': '5',
-        'opacity': 0.7,
-      });
-
-    this.parentDiv = $(selector);
-    this.parentDiv.append(this.div);
-  }
-
-  hide() {
-    this.div.css('display', 'none');
-  }
-
-  html(text) {
-    this.div.css('display', 'block');
-    this.div.html(text);
-  }
-
-}
-
-
-/**
  * PopupText
  **/
 
@@ -1277,23 +1242,30 @@ class GridBar extends CanvasWrapper {
     this.buttonsDiv.empty();
     var y = 5;
     for (var elem in this.scene.grid_atoms) {
-      this.buttonsDiv.append(this.make_elem_button(elem, y));
+      this.buttonsDiv.append(this.makeElemButton(elem, y));
       y += 45;
     }
 
   }
 
-  make_elem_button(elem, y) {
+  makeElemButton(elem, y) {
     console.log("make grid atoms", elem, this.scene.grid_atoms[elem]);
+    var color = new THREE.Color(ElementColors[elem]);
+    var colorHexStr = color.getHexString();
     var text_button = toggle_button(
-      'toggle_text', elem, 'jolecule-button',
-      () => { return this.scene.grid_atoms[elem]; },
+      'toggle_text', 
+      elem, 
+      'jolecule-button',
+      () => this.scene.grid_atoms[elem],
       (b) => {
         this.scene.grid_atoms[elem] = b;
         this.scene.changed = true;
-      });
-    text_button.attr(
-      "style", "position: absolute; top: " + y + "px; left: 40px; width: 20px");
+      },
+      colorHexStr);
+    text_button.css('position', 'absolute');
+    text_button.css('top', y + "px");
+    text_button.css('left', '40px');
+    text_button.css('width', '20px');
     return text_button
   }
 
@@ -1476,8 +1448,6 @@ class ProteinDisplay {
 
     this.mainDiv = $(this.divTag);
     this.mainDiv.css('overflow', 'hidden');
-
-    this.messageBar = new MessageBar(this.divTag);
 
     this.backgroundColor = 0x000000;
 
@@ -2699,17 +2669,11 @@ class ProteinDisplay {
 
   buildScene() {
 
-    this.messageBar.html('Drawing scene...');
-
-    this.messageBar.html('Finding chains...');
-
     this.findChainsAndPieces();
 
     this.unitSphereGeom = new THREE.SphereGeometry(1, 8, 8);
 
     this.objects = {};
-
-    this.messageBar.html('Building cartoon...');
 
     this.buildTube();
 
@@ -2722,11 +2686,7 @@ class ProteinDisplay {
       this.threeJsScene.add(this.objects[k]);
     }
 
-    this.messageBar.html('Finding bonds...');
-
     this.assignBonds();
-
-    this.messageBar.hide();
 
   }
 
@@ -3423,10 +3383,8 @@ class ProteinDisplay {
     setVisible(this.objects.arrows, !show.all_atom);
 
     if (!exists(this.objects.backbone) && show.all_atom) {
-      this.messageBar.html('building backbone');
       this.buildBackbone();
       this.buildPeptideBonds();
-      this.messageBar.html('');
     }
     setVisible(this.objects.backbone, show.all_atom);
     setVisible(this.objects.peptides, show.all_atom);
