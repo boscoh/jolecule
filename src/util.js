@@ -98,7 +98,6 @@ function toggle_button(
 
   var color = function() {
     if (get_toggle()) {
-      console.log('set background-color', onColor);
       if (onColor) {
         item.css('background-color', onColor);
       } else {

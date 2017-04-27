@@ -293,7 +293,6 @@ class FullPageJolecule {
           this.viewsDisplay.setTargetByViewId('view:000000');
         }
         this.viewsDisplay.updateViews();
-
       }
 
       this.resize();

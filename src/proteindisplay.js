@@ -290,7 +290,6 @@ class PopupText {
         'position': 'absolute',
         'top': 0,
         'left': 0,
-        // 'z-index': 100,
         'background': 'white',
         'padding': '5',
         'opacity': 0.7,
@@ -302,7 +301,6 @@ class PopupText {
         'position': 'absolute',
         'top': 0,
         'left': 0,
-        // 'z-index': 100,
         'width': 0,
         'height': 0,
         'border-left': '5px solid transparent',
@@ -2357,8 +2355,6 @@ class ProteinDisplay {
 
   buildGrid() {
 
-    console.log('buildGrid');
-
     this.objects.grid = new THREE.Object3D();
     this.threeJsScene.add(this.objects.grid);
 
@@ -3263,73 +3259,6 @@ class ProteinDisplay {
   }
 
 
-  onKeyDown(event) {
-
-    if (window.keyboard_lock) {
-      return
-    }
-
-    var c = String.fromCharCode(event.keyCode)
-      .toUpperCase();
-
-    if (c == ' ') {
-
-      this.controller.set_target_next_view();
-
-    } else if (c == 'V') {
-
-      this.controller.save_current_view(random_id());
-
-    } else if (c == 'B') {
-
-      var show = this.scene.current_view.show;
-      if (show.all_atom) {
-        this.controller.set_backbone_option('ribbon');
-      } else if (show.ribbon) {
-        this.controller.set_backbone_option('trace');
-      } else if (show.trace) {
-        this.controller.set_backbone_option('all_atom');
-      }
-
-      this.controller.flag_changed();
-
-    } else if (c == 'N') {
-
-      this.controller.toggle_neighbors(false);
-
-    } else if (c == 'W') {
-
-      this.controller.toggle_show_option('water');
-
-    } else if (c == 'L') {
-
-      this.controller.toggle_show_option('ligands');
-
-
-    } else if (c == 'X') {
-
-      var i_atom = this.scene.current_view.i_atom;
-      if (i_atom >= 0) {
-        var res_id = this.protein.atoms[i_atom].res_id;
-        var res = this.protein.res_by_id[res_id];
-        var i = this.protein.get_i_res_from_res_id(res_id);
-        this.controller.select_residue(i, !res.selected);
-      }
-
-    } else if (c == 'S') {
-
-      this.controller.set_show_option('sidechain', true);
-
-    } else if (c == 'C') {
-
-      this.controller.set_show_option('sidechain', false);
-      this.controller.clear_selected();
-
-    }
-
-  }
-
-
   gesturestart(event) {
 
     event.preventDefault();
@@ -3406,6 +3335,7 @@ class ProteinDisplay {
       if (this.objects.grid) {
         this.objects.grid.traverse((child) => {
           if ((child instanceof THREE.Mesh) && exists(child.atom)) {
+            console.log(child.atom.elem, child.atom.bfactor, this.scene.grid)
             if ((child.atom.bfactor > this.scene.grid)
                 && (this.scene.grid_atoms[child.atom.elem])) {
               child.visible = true;

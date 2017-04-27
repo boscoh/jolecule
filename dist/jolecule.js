@@ -355,13 +355,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.resize();
 	
-	    this.isProcessingData = false;
+	    this.isProcessing = { flag: false };
 	  }
 	
 	  _createClass(EmbedJolecule, [{
 	    key: "setProcessingMesssage",
-	    value: function setProcessingMesssage(html) {
-	      this.messageDiv.html(html).show();
+	    value: function setProcessingMesssage(message) {
+	      console.log(message);
+	      this.messageDiv.html(message).show();
 	      (0, _util.stick_in_top_left)(this.div, this.messageDiv, 100, 90);
 	    }
 	  }, {
@@ -369,66 +370,81 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function cleanupProcessingMessage() {
 	      this.resize();
 	      this.messageDiv.hide();
-	      this.isProcessingData = false;
+	    }
+	  }, {
+	    key: "displayProcessMessageAndRun",
+	    value: function displayProcessMessageAndRun(message, fn) {
+	      this.setProcessingMesssage(message);
+	      setTimeout(fn, 0);
+	    }
+	  }, {
+	    key: "loadProteinData",
+	    value: function loadProteinData(isProcessingFlag, dataServer, proteinData, callback) {
+	      var _this2 = this;
+	
+	      if (proteinData.pdb_text.length == 0) {
+	        this.setProcessingMesssage("Error: no protein data");
+	        isProcessingFlag.flag = false;
+	        return;
+	      }
+	
+	      this.protein.load(proteinData);
+	
+	      if (this.protein.parsing_error) {
+	        this.setProcessingMesssage("Error parsing protein: " + this.protein.parsing_error);
+	        isProcessingFlag.flag = false;
+	        return;
+	      }
+	
+	      this.proteinDisplay.nDataServer += 1;
+	      if (this.proteinDisplay.nDataServer == 1) {
+	        this.proteinDisplay.buildAfterDataLoad();
+	
+	        // need to keep track of a single dataServer
+	        // to save views, will take the first one
+	        this.dataServer = dataServer;
+	        this.dataServer.get_views(function (view_dicts) {
+	          _this2.loadViewsFromDataServer(view_dicts);
+	          isProcessingFlag.flag = false;
+	          _this2.cleanupProcessingMessage();
+	          if (callback) {
+	            callback();
+	          }
+	        });
+	      } else {
+	        this.proteinDisplay.buildAfterAddProteinData();
+	        this.cleanupProcessingMessage();
+	        isProcessingFlag.flag = false;
+	        if (callback) {
+	          callback();
+	        }
+	      }
+	    }
+	  }, {
+	    key: "runWithProcessQueue",
+	    value: function runWithProcessQueue(isProcessingFlag, fn) {
+	      var guardFn = function guardFn() {
+	        if (isProcessingFlag.flag) {
+	          setTimeout(guardFn, 50);
+	        } else {
+	          isProcessingFlag.flag = true;
+	          fn(isProcessingFlag);
+	        }
+	      };
+	      guardFn();
 	    }
 	  }, {
 	    key: "addDataServer",
 	    value: function addDataServer(dataServer, callback) {
-	      var _this2 = this;
+	      var _this3 = this;
 	
-	      var guardFn = function guardFn() {
-	        if (_this2.isProcessingData) {
-	          setTimeout(guardFn, 50);
-	        } else {
-	          _this2.isProcessingData = true;
-	
-	          dataServer.get_protein_data(function (proteinData) {
-	            console.log("EmbedJolecule.load_protein_data", proteinData.pdb_id);
-	            _this2.setProcessingMesssage("Rendering '" + proteinData.pdb_id + "'");
-	
-	            // timeout needed to allow message to be rendered
-	            setTimeout(function () {
-	              if (proteinData['pdb_text'].length == 0) {
-	                _this2.setProcessingMesssage("Error: no protein data");
-	                _this2.isProcessingData = false;
-	                return;
-	              }
-	
-	              _this2.protein.load(proteinData);
-	
-	              if (_this2.protein.parsing_error) {
-	                _this2.setProcessingMesssage("Error parsing protein: " + _this2.protein.parsing_error);
-	                _this2.isProcessingData = false;
-	                return;
-	              }
-	
-	              _this2.proteinDisplay.nDataServer += 1;
-	              if (_this2.proteinDisplay.nDataServer == 1) {
-	                _this2.proteinDisplay.buildAfterDataLoad();
-	
-	                // need to keep track of a single dataServer
-	                // to save views, will take the first one
-	                _this2.dataServer = dataServer;
-	                _this2.dataServer.get_views(function (view_dicts) {
-	                  _this2.loadViewsFromDataServer(view_dicts);
-	                  _this2.cleanupProcessingMessage();
-	                  if (callback) {
-	                    callback();
-	                  }
-	                });
-	              } else {
-	                _this2.proteinDisplay.buildAfterAddProteinData();
-	                _this2.cleanupProcessingMessage();
-	                if (callback) {
-	                  callback();
-	                }
-	              }
-	            }, 0);
+	      this.runWithProcessQueue(this.isProcessing, function (isProcessingFlag) {
+	        dataServer.get_protein_data(function (proteinData) {
+	          _this3.displayProcessMessageAndRun("Rendering '" + proteinData.pdb_id + "'", function () {
+	            _this3.loadProteinData(isProcessingFlag, dataServer, proteinData, callback);
 	          });
-	        }
-	      };
-	
-	      guardFn();
+	        });
+	      });
 	    }
 	  }, {
 	    key: "loadViewsFromDataServer",
@@ -458,7 +474,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "saveCurrView",
 	    value: function saveCurrView() {
-	      var _this3 = this;
+	      var _this4 = this;
 	
 	      var newId = (0, _util.random_id)();
 	      this.controller.calculate_current_abs_camera();
@@ -466,7 +482,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.updateView();
 	      this.viewDiv.css('background-color', 'lightgray');
 	      this.saveViewsToDataServer(function () {
-	        _this3.viewDiv.css('background-color', '');
+	        _this4.viewDiv.css('background-color', '');
 	      });
 	    }
 	  }, {
@@ -483,20 +499,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "changeText",
 	    value: function changeText(newText) {
-	      var _this4 = this;
+	      var _this5 = this;
 	
 	      var view = this.getCurrView();
 	      view.text = newText;
 	      this.viewDiv.css('background-color', 'lightgray');
 	      this.saveViewsToDataServer(function () {
-	        _this4.viewDiv.css('background-color', '');
+	        _this5.viewDiv.css('background-color', '');
 	      });
 	      this.scene.changed = true;
 	    }
 	  }, {
 	    key: "deleteCurrView",
 	    value: function deleteCurrView() {
-	      var _this5 = this;
+	      var _this6 = this;
 	
 	      var i = this.scene.i_last_view;
 	      if (i == 0) {
@@ -507,8 +523,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.controller.delete_view(id);
 	      this.viewDiv.css('background-color', 'lightgray');
 	      this.dataServer.delete_protein_view(id, function () {
-	        _this5.updateView();
-	        _this5.viewDiv.css('background-color', '');
+	        _this6.updateView();
+	        _this6.viewDiv.css('background-color', '');
 	      });
 	    }
 	  }, {
@@ -599,71 +615,71 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "createStatusDiv",
 	    value: function createStatusDiv() {
-	      var _this6 = this;
+	      var _this7 = this;
 	
 	      this.statusText = (0, _jquery2.default)('<span>');
 	
 	      var textButton = (0, _util.toggle_button)('toggle_text', 'T', 'jolecule-button', function () {
-	        return _this6.isViewTextShown;
+	        return _this7.isViewTextShown;
 	      }, function (b) {
-	        _this6.toggleTextState();
+	        _this7.toggleTextState();
 	      });
 	
 	      var prevButton = (0, _util.link_button)('prev_view', '<', 'jolecule-button', function () {
-	        _this6.gotoPrevView();
+	        _this7.gotoPrevView();
 	      });
 	
 	      var nextButton = (0, _util.link_button)('prev_view', '>', 'jolecule-button', function () {
-	        _this6.gotoNextView();
+	        _this7.gotoNextView();
 	      });
 	
 	      var loopButton = (0, _util.toggle_button)('loop', '&orarr;', 'jolecule-button', function () {
-	        return _this6.isLoop;
+	        return _this7.isLoop;
 	      }, function (b) {
-	        _this6.isLoop = b;
+	        _this7.isLoop = b;
 	      });
 	
 	      var saveButton = '';
 	      if (this.params.isEditable) {
 	        saveButton = (0, _util.link_button)('save_view', '+', 'jolecule-button', function () {
-	          _this6.saveCurrView();
+	          _this7.saveCurrView();
 	        });
 	      };
 	
 	      this.ligButton = (0, _util.toggle_button)('', 'lig', 'jolecule-button', function () {
-	        return _this6.controller.get_show_option('ligands');
+	        return _this7.controller.get_show_option('ligands');
 	      }, function (b) {
-	        _this6.controller.set_show_option('ligands', b);
+	        _this7.controller.set_show_option('ligands', b);
 	      });
 	
 	      this.watButton = (0, _util.toggle_button)('', 'h2o', 'jolecule-button', function () {
-	        return _this6.controller.get_show_option('water');
+	        return _this7.controller.get_show_option('water');
 	      }, function (b) {
-	        _this6.controller.set_show_option('water', b);
+	        _this7.controller.set_show_option('water', b);
 	      });
 	
 	      this.hydButton = (0, _util.toggle_button)('', 'h', 'jolecule-button', function () {
-	        return _this6.controller.get_show_option('hydrogen');
+	        return _this7.controller.get_show_option('hydrogen');
 	      }, function (b) {
-	        _this6.controller.set_show_option('hydrogen', b);
+	        _this7.controller.set_show_option('hydrogen', b);
 	      });
 	      this.hydButton = '';
 	
 	      var backboneButton = (0, _util.link_button)('', 'bb', 'jolecule-button', function () {
-	        _this6.cycleBackbone();
+	        _this7.cycleBackbone();
 	      });
 	
 	      var allSidechainButton = (0, _util.link_button)('', 'all', 'jolecule-button', function () {
-	        _this6.controller.set_show_option('sidechain', true);
+	        _this7.controller.set_show_option('sidechain', true);
 	      });
 	
 	      var clearSidechainButton = (0, _util.link_button)('', 'x', 'jolecule-button', function () {
-	        _this6.controller.set_show_option('sidechain', false);
-	        _this6.controller.clear_selected();
+	        _this7.controller.set_show_option('sidechain', false);
+	        _this7.controller.clear_selected();
 	      });
 	
 	      var nearSidechainButton = (0, _util.link_button)('', 'near', 'jolecule-button', function () {
-	        _this6.controller.toggle_neighbors();
+	        _this7.controller.toggle_neighbors();
 	      });
 	
 	      this.statusDiv = (0, _jquery2.default)('<div style="flex-wrap: wrap; justify-content: flex-end">').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap;">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton)).append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap; text-align: right; align-self: flex-end">').append(backboneButton).append(" ").append(this.ligButton).append(this.hydButton).append(this.watButton).append(" ").append(' sc ').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton));
@@ -673,7 +689,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "updateView",
 	    value: function updateView() {
-	      var _this7 = this;
+	      var _this8 = this;
 	
 	      var view = this.getCurrView();
 	      if (view == null) {
@@ -686,10 +702,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        view: view,
 	        isEditable: this.params.isEditable,
 	        delete_view: function delete_view() {
-	          _this7.deleteCurrView();
+	          _this8.deleteCurrView();
 	        },
 	        save_change: function save_change(text) {
-	          _this7.changeText(text);
+	          _this8.changeText(text);
 	        },
 	        pick: _lodash2.default.noop,
 	        embed_view: function embed_view() {
@@ -28189,7 +28205,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.ribbons = [];
 	  this.trace = [];
 	  this.parsing_error = '';
-	  this.isLoading = false;
 	  this.default_html = "";
 	
 	  var aa = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR'];
@@ -28781,15 +28796,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  this.load = function (protein_data) {
-	    var _this = this;
-	
-	    var load = function load() {
-	      return _this.load(protein_data);
-	    };
-	    while (this.isLoading) {
-	      window.setTimeout(load, 100);
-	    }
-	    this.isLoading = true;
 	    this.pdb_id = protein_data['pdb_id'];
 	    console.log("Protein.load " + this.pdb_id + " begin");
 	    var atom_lines = extract_atom_lines(protein_data['pdb_text']);
@@ -28805,7 +28811,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.max_length = this.calc_max_length(this.atoms);
 	    this.find_ss();
 	    console.log("Protein.load " + this.pdb_id + " end");
-	    this.isLoading = false;
 	  };
 	
 	  this.transform = function (matrix) {
@@ -71661,7 +71666,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  var color = function color() {
 	    if (get_toggle()) {
-	      console.log('set background-color', onColor);
 	      if (onColor) {
 	        item.css('background-color', onColor);
 	      } else {
@@ -72200,7 +72204,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      'position': 'absolute',
 	      'top': 0,
 	      'left': 0,
-	      // 'z-index': 100,
 	      'background': 'white',
 	      'padding': '5',
 	      'opacity': 0.7,
@@ -72211,7 +72214,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      'position': 'absolute',
 	      'top': 0,
 	      'left': 0,
-	      // 'z-index': 100,
 	      'width': 0,
 	      'height': 0,
 	      'border-left': '5px solid transparent',
@@ -74138,8 +74140,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "buildGrid",
 	    value: function buildGrid() {
 	
-	      console.log('buildGrid');
-	
 	      this.objects.grid = new _three2.default.Object3D();
 	      this.threeJsScene.add(this.objects.grid);
 	
@@ -74911,61 +74911,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.mousePressed = false;
 	    }
 	  }, {
-	    key: "onKeyDown",
-	    value: function onKeyDown(event) {
-	
-	      if (window.keyboard_lock) {
-	        return;
-	      }
-	
-	      var c = String.fromCharCode(event.keyCode).toUpperCase();
-	
-	      if (c == ' ') {
-	
-	        this.controller.set_target_next_view();
-	      } else if (c == 'V') {
-	
-	        this.controller.save_current_view((0, _util.random_id)());
-	      } else if (c == 'B') {
-	
-	        var show = this.scene.current_view.show;
-	        if (show.all_atom) {
-	          this.controller.set_backbone_option('ribbon');
-	        } else if (show.ribbon) {
-	          this.controller.set_backbone_option('trace');
-	        } else if (show.trace) {
-	          this.controller.set_backbone_option('all_atom');
-	        }
-	
-	        this.controller.flag_changed();
-	      } else if (c == 'N') {
-	
-	        this.controller.toggle_neighbors(false);
-	      } else if (c == 'W') {
-	
-	        this.controller.toggle_show_option('water');
-	      } else if (c == 'L') {
-	
-	        this.controller.toggle_show_option('ligands');
-	      } else if (c == 'X') {
-	
-	        var i_atom = this.scene.current_view.i_atom;
-	        if (i_atom >= 0) {
-	          var res_id = this.protein.atoms[i_atom].res_id;
-	          var res = this.protein.res_by_id[res_id];
-	          var i = this.protein.get_i_res_from_res_id(res_id);
-	          this.controller.select_residue(i, !res.selected);
-	        }
-	      } else if (c == 'S') {
-	
-	        this.controller.set_show_option('sidechain', true);
-	      } else if (c == 'C') {
-	
-	        this.controller.set_show_option('sidechain', false);
-	        this.controller.clear_selected();
-	      }
-	    }
-	  }, {
 	    key: "gesturestart",
 	    value: function gesturestart(event) {
 	
@@ -75036,6 +74981,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (this.objects.grid) {
 	          this.objects.grid.traverse(function (child) {
 	            if (child instanceof _three2.default.Mesh && (0, _util.exists)(child.atom)) {
+	              console.log(child.atom.elem, child.atom.bfactor, _this10.scene.grid);
 	              if (child.atom.bfactor > _this10.scene.grid && _this10.scene.grid_atoms[child.atom.elem]) {
 	                child.visible = true;
 	              } else {

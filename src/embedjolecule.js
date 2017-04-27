@@ -75,75 +75,91 @@ class EmbedJolecule {
 
     this.resize();
 
-    this.isProcessingData = false;
+    this.isProcessing = { flag: false };
   };
 
-  setProcessingMesssage(html) {
-    this.messageDiv.html(html).show();
+  setProcessingMesssage(message) {
+    console.log(message);
+    this.messageDiv.html(message).show();
     stick_in_top_left(this.div, this.messageDiv, 100, 90);
   };
 
   cleanupProcessingMessage() {
     this.resize();
     this.messageDiv.hide();
-    this.isProcessingData = false;
   };
 
-  addDataServer(dataServer, callback) {
+  displayProcessMessageAndRun(message, fn) {
+    this.setProcessingMesssage(message);
+    setTimeout(fn, 0);
+  }
+  
+  loadProteinData(isProcessingFlag, dataServer, proteinData, callback) {
+    if (proteinData.pdb_text.length == 0) {
+      this.setProcessingMesssage("Error: no protein data");
+      isProcessingFlag.flag = false;
+      return;
+    }
 
+    this.protein.load(proteinData);
+
+    if (this.protein.parsing_error) {
+      this.setProcessingMesssage("Error parsing protein: " + this.protein.parsing_error);
+      isProcessingFlag.flag = false;
+      return;
+    }
+
+    this.proteinDisplay.nDataServer += 1;
+    if (this.proteinDisplay.nDataServer == 1) {
+      this.proteinDisplay.buildAfterDataLoad();
+
+      // need to keep track of a single dataServer
+      // to save views, will take the first one
+      this.dataServer = dataServer;
+      this.dataServer.get_views((view_dicts) => {
+        this.loadViewsFromDataServer(view_dicts);
+        isProcessingFlag.flag = false;
+        this.cleanupProcessingMessage();
+        if (callback) {
+          callback();
+        }
+      });
+    } else {
+      this.proteinDisplay.buildAfterAddProteinData();
+      this.cleanupProcessingMessage();
+      isProcessingFlag.flag = false;
+      if (callback) {
+        callback();
+      }
+    }
+  }
+
+  runWithProcessQueue(isProcessingFlag, fn) {
     let guardFn = () => {
-      if (this.isProcessingData) {
+      if (isProcessingFlag.flag) {
         setTimeout(guardFn, 50);
       } else {
-        this.isProcessingData = true;
-
-        dataServer.get_protein_data((proteinData) => {
-          console.log("EmbedJolecule.load_protein_data", proteinData.pdb_id);
-          this.setProcessingMesssage("Rendering '" + proteinData.pdb_id + "'");
-
-          // timeout needed to allow message to be rendered
-          setTimeout(() => {
-            if (proteinData['pdb_text'].length == 0) {
-              this.setProcessingMesssage("Error: no protein data");
-              this.isProcessingData = false;
-              return;
-            }
-
-            this.protein.load(proteinData);
-
-            if (this.protein.parsing_error) {
-              this.setProcessingMesssage("Error parsing protein: " + this.protein.parsing_error);
-              this.isProcessingData = false;
-              return;
-            }
-
-            this.proteinDisplay.nDataServer += 1;
-            if (this.proteinDisplay.nDataServer == 1) {
-              this.proteinDisplay.buildAfterDataLoad();
-
-              // need to keep track of a single dataServer
-              // to save views, will take the first one
-              this.dataServer = dataServer;
-              this.dataServer.get_views((view_dicts) => {
-                this.loadViewsFromDataServer(view_dicts);
-                this.cleanupProcessingMessage();
-                if (callback) {
-                  callback();
-                }
-              });
-            } else {
-              this.proteinDisplay.buildAfterAddProteinData();
-              this.cleanupProcessingMessage();
-              if (callback) {
-                callback();
-              }
-            }
-          }, 0);
-        });
+        isProcessingFlag.flag = true;
+        fn(isProcessingFlag);
       }
     };
-
     guardFn();
+  }
+
+  addDataServer(dataServer, callback) {
+    this.runWithProcessQueue(
+      this.isProcessing,
+      (isProcessingFlag) => {
+        dataServer.get_protein_data(
+          (proteinData) => {
+            this.displayProcessMessageAndRun(
+              "Rendering '" + proteinData.pdb_id + "'", 
+              () => { 
+                this.loadProteinData(
+                  isProcessingFlag, dataServer, proteinData, callback)
+              });
+          });
+      })
   }
 
   loadViewsFromDataServer(viewDicts) {

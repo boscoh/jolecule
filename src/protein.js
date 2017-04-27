@@ -99,7 +99,6 @@ var Protein = function () {
   this.ribbons = [];
   this.trace = [];
   this.parsing_error = '';
-  this.isLoading = false;
   this.default_html = "";
 
   var aa = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS',
@@ -722,11 +721,6 @@ var Protein = function () {
   }
 
   this.load = function (protein_data) {
-    let load = () => this.load(protein_data);
-    while (this.isLoading) {
-      window.setTimeout(load, 100);
-    }
-    this.isLoading = true;
     this.pdb_id = protein_data['pdb_id'];
     console.log(`Protein.load ${this.pdb_id} begin`);
     var atom_lines = extract_atom_lines(protein_data['pdb_text']);
@@ -742,7 +736,6 @@ var Protein = function () {
     this.max_length = this.calc_max_length(this.atoms);
     this.find_ss();
     console.log(`Protein.load ${this.pdb_id} end`);
-    this.isLoading = false;
   }
 
   this.transform = function (matrix) {
