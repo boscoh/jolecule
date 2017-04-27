@@ -335,17 +335,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.createStatusDiv();
 	    this.createViewDiv();
 	
-	    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').css({
-	      'z-index': 5000,
-	      'background-color': 'rgba(60, 60, 60, 0.9)',
-	      'font-family': 'Helvetica, Arial, sans-serif',
-	      'font-size': '12px',
-	      'letter-spacing': '0.1em',
-	      'padding': '5px 15px',
-	      'color': '#666' });
-	
-	    this.setProcessingMesssage("Loading data for proteins");
-	
 	    this.isViewTextShown = this.params.isViewTextShown;
 	    this.setTextState();
 	
@@ -359,31 +348,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(EmbedJolecule, [{
-	    key: "setProcessingMesssage",
-	    value: function setProcessingMesssage(message) {
-	      console.log(message);
-	      this.messageDiv.html(message).show();
-	      (0, _util.stick_in_top_left)(this.div, this.messageDiv, 100, 90);
-	    }
-	  }, {
-	    key: "cleanupProcessingMessage",
-	    value: function cleanupProcessingMessage() {
-	      this.resize();
-	      this.messageDiv.hide();
-	    }
-	  }, {
-	    key: "displayProcessMessageAndRun",
-	    value: function displayProcessMessageAndRun(message, fn) {
-	      this.setProcessingMesssage(message);
-	      setTimeout(fn, 0);
-	    }
-	  }, {
 	    key: "loadProteinData",
 	    value: function loadProteinData(isProcessingFlag, dataServer, proteinData, callback) {
 	      var _this2 = this;
 	
 	      if (proteinData.pdb_text.length == 0) {
-	        this.setProcessingMesssage("Error: no protein data");
+	        this.proteinDisplay.setProcessingMesssage("Error: no protein data");
 	        isProcessingFlag.flag = false;
 	        return;
 	      }
@@ -391,7 +361,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.protein.load(proteinData);
 	
 	      if (this.protein.parsing_error) {
-	        this.setProcessingMesssage("Error parsing protein: " + this.protein.parsing_error);
+	        this.proteinDisplay.setProcessingMesssage("Error parsing protein: " + this.protein.parsing_error);
 	        isProcessingFlag.flag = false;
 	        return;
 	      }
@@ -406,14 +376,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.dataServer.get_views(function (view_dicts) {
 	          _this2.loadViewsFromDataServer(view_dicts);
 	          isProcessingFlag.flag = false;
-	          _this2.cleanupProcessingMessage();
+	          _this2.proteinDisplay.cleanupProcessingMessage();
 	          if (callback) {
 	            callback();
 	          }
 	        });
 	      } else {
 	        this.proteinDisplay.buildAfterAddProteinData();
-	        this.cleanupProcessingMessage();
+	        this.proteinDisplay.cleanupProcessingMessage();
 	        isProcessingFlag.flag = false;
 	        if (callback) {
 	          callback();
@@ -440,7 +410,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.runWithProcessQueue(this.isProcessing, function (isProcessingFlag) {
 	        dataServer.get_protein_data(function (proteinData) {
-	          _this3.displayProcessMessageAndRun("Rendering '" + proteinData.pdb_id + "'", function () {
+	          _this3.proteinDisplay.displayProcessMessageAndRun("Rendering '" + proteinData.pdb_id + "'", function () {
 	            _this3.loadProteinData(isProcessingFlag, dataServer, proteinData, callback);
 	          });
 	        });
@@ -73389,6 +73359,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.gridBar = new GridBar(this.divTag, this.scene);
 	    }
 	
+	    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').css({
+	      'z-index': 5000,
+	      'background-color': 'rgba(60, 60, 60, 0.9)',
+	      'font-family': 'Helvetica, Arial, sans-serif',
+	      'font-size': '12px',
+	      'letter-spacing': '0.1em',
+	      'padding': '5px 15px',
+	      'color': '#666' });
+	
+	    this.setProcessingMesssage("Loading data for proteins");
+	
 	    this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
 	
 	    this.distancePartnerPointer = new LineElement(this.webglDivTag, "#FF7777");
@@ -73434,6 +73415,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(ProteinDisplay, [{
+	    key: "setProcessingMesssage",
+	    value: function setProcessingMesssage(message) {
+	      console.log(message);
+	      this.messageDiv.html(message).show();
+	      (0, _util.stick_in_top_left)(this.mainDiv, this.messageDiv, 100, 90);
+	    }
+	  }, {
+	    key: "cleanupProcessingMessage",
+	    value: function cleanupProcessingMessage() {
+	      this.resize();
+	      this.messageDiv.hide();
+	    }
+	  }, {
+	    key: "displayProcessMessageAndRun",
+	    value: function displayProcessMessageAndRun(message, fn) {
+	      this.setProcessingMesssage(message);
+	      setTimeout(fn, 0);
+	    }
+	  }, {
 	    key: "buildAfterDataLoad",
 	    value: function buildAfterDataLoad(defaultHtml) {
 	

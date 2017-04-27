@@ -25,6 +25,7 @@ import {
   stick_in_center,
   in_array,
   random_id,
+  stick_in_top_left,
 } from "./util";
 
 var TV3 = THREE.Vector3;
@@ -1487,6 +1488,19 @@ class ProteinDisplay {
       this.gridBar = new GridBar(this.divTag, this.scene);
     }
 
+    this.messageDiv = $('<div>')
+      .attr('id', 'loading-message')
+      .css({
+        'z-index': 5000,
+        'background-color': 'rgba(60, 60, 60, 0.9)',
+        'font-family': 'Helvetica, Arial, sans-serif',
+        'font-size': '12px',
+        'letter-spacing': '0.1em',
+        'padding': '5px 15px',
+        'color': '#666'});
+
+    this.setProcessingMesssage("Loading data for proteins");
+
     this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
 
     this.distancePartnerPointer = new LineElement(
@@ -1545,7 +1559,22 @@ class ProteinDisplay {
 
   }
 
+  setProcessingMesssage(message) {
+    console.log(message);
+    this.messageDiv.html(message).show();
+    stick_in_top_left(this.mainDiv, this.messageDiv, 100, 90);
+  };
 
+  cleanupProcessingMessage() {
+    this.resize();
+    this.messageDiv.hide();
+  };
+
+  displayProcessMessageAndRun(message, fn) {
+    this.setProcessingMesssage(message);
+    setTimeout(fn, 0);
+  }
+  
   buildAfterDataLoad(defaultHtml) {
 
     this.buildScene();

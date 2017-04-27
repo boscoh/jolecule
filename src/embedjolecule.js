@@ -55,19 +55,6 @@ class EmbedJolecule {
     this.createStatusDiv();
     this.createViewDiv();
 
-    this.messageDiv = $('<div>')
-      .attr('id', 'loading-message')
-      .css({
-        'z-index': 5000,
-        'background-color': 'rgba(60, 60, 60, 0.9)',
-        'font-family': 'Helvetica, Arial, sans-serif',
-        'font-size': '12px',
-        'letter-spacing': '0.1em',
-        'padding': '5px 15px',
-        'color': '#666'});
-
-    this.setProcessingMesssage("Loading data for proteins");
-
     this.isViewTextShown = this.params.isViewTextShown;
     this.setTextState();
 
@@ -78,25 +65,9 @@ class EmbedJolecule {
     this.isProcessing = { flag: false };
   };
 
-  setProcessingMesssage(message) {
-    console.log(message);
-    this.messageDiv.html(message).show();
-    stick_in_top_left(this.div, this.messageDiv, 100, 90);
-  };
-
-  cleanupProcessingMessage() {
-    this.resize();
-    this.messageDiv.hide();
-  };
-
-  displayProcessMessageAndRun(message, fn) {
-    this.setProcessingMesssage(message);
-    setTimeout(fn, 0);
-  }
-  
   loadProteinData(isProcessingFlag, dataServer, proteinData, callback) {
     if (proteinData.pdb_text.length == 0) {
-      this.setProcessingMesssage("Error: no protein data");
+      this.proteinDisplay.setProcessingMesssage("Error: no protein data");
       isProcessingFlag.flag = false;
       return;
     }
@@ -104,7 +75,7 @@ class EmbedJolecule {
     this.protein.load(proteinData);
 
     if (this.protein.parsing_error) {
-      this.setProcessingMesssage("Error parsing protein: " + this.protein.parsing_error);
+      this.proteinDisplay.setProcessingMesssage("Error parsing protein: " + this.protein.parsing_error);
       isProcessingFlag.flag = false;
       return;
     }
@@ -119,14 +90,14 @@ class EmbedJolecule {
       this.dataServer.get_views((view_dicts) => {
         this.loadViewsFromDataServer(view_dicts);
         isProcessingFlag.flag = false;
-        this.cleanupProcessingMessage();
+        this.proteinDisplay.cleanupProcessingMessage();
         if (callback) {
           callback();
         }
       });
     } else {
       this.proteinDisplay.buildAfterAddProteinData();
-      this.cleanupProcessingMessage();
+      this.proteinDisplay.cleanupProcessingMessage();
       isProcessingFlag.flag = false;
       if (callback) {
         callback();
@@ -152,7 +123,7 @@ class EmbedJolecule {
       (isProcessingFlag) => {
         dataServer.get_protein_data(
           (proteinData) => {
-            this.displayProcessMessageAndRun(
+            this.proteinDisplay.1566displayProcessMessageAndRun(
               "Rendering '" + proteinData.pdb_id + "'", 
               () => { 
                 this.loadProteinData(
