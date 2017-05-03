@@ -2452,7 +2452,7 @@ class ProteinDisplay {
   }
 
 
-  drawSidechain(residue) {
+  buildSidechain(residue) {
 
     if (!residue.is_protein_or_nuc) {
       return;
@@ -2718,6 +2718,11 @@ class ProteinDisplay {
   buildScene() {
 
     clearObject3D(this.threeJsScene);
+
+    this.objects.ligands.notBuilt = true;
+    this.objects.backbone.notBuilt = true;
+    this.objects.peptides.notBuilt = true;
+    this.objects.water.notBuilt = true;
 
     this.findChainsAndPieces();
 
@@ -3366,23 +3371,25 @@ class ProteinDisplay {
 
     setVisible(this.objects.arrows, !show.all_atom);
 
-    if ((this.objects.backbone.children.length == 0) && show.all_atom) {
+    if (this.objects.backbone.notBuilt && show.all_atom) {
       this.buildBackbone();
       this.buildPeptideBonds();
+      delete this.objects.backbone.notBuilt;
     }
     console.log('backbone', this.objects.backbone);
     setVisible(this.objects.backbone, show.all_atom);
     setVisible(this.objects.peptides, show.all_atom);
 
-    if (!exists(this.objects.ligands) && show.ligands) {
+    if (this.objects.ligands.notBuilt && show.ligands) {
       this.buildLigands();
+      delete this.objects.ligands.notBuilt;
     }
     setVisible(this.objects.ligands, show.ligands);
 
-    if (!exists(this.objects.water) && show.water) {
+    if (this.objects.water.notBuilt && show.water) {
       this.buildWaters();
+      delete this.objects.water.notBuilt;
     }
-
     setVisible(this.objects.water, show.water);
 
     if (this.isGrid) {
@@ -3412,7 +3419,7 @@ class ProteinDisplay {
       }
 
       if (residueShow && !exists(residue.sidechain)) {
-        this.drawSidechain(residue);
+        this.buildSidechain(residue);
       }
       setVisible(residue.sidechain, residueShow);
 

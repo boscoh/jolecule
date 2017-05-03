@@ -74206,8 +74206,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.gridBar.reset();
 	    }
 	  }, {
-	    key: "drawSidechain",
-	    value: function drawSidechain(residue) {
+	    key: "buildSidechain",
+	    value: function buildSidechain(residue) {
 	
 	      if (!residue.is_protein_or_nuc) {
 	        return;
@@ -74419,6 +74419,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function buildScene() {
 	
 	      clearObject3D(this.threeJsScene);
+	
+	      this.objects.ligands.notBuilt = true;
+	      this.objects.backbone.notBuilt = true;
+	      this.objects.peptides.notBuilt = true;
+	      this.objects.water.notBuilt = true;
 	
 	      this.findChainsAndPieces();
 	
@@ -74982,23 +74987,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      (0, _glgeometry.setVisible)(this.objects.arrows, !show.all_atom);
 	
-	      if (this.objects.backbone.children.length == 0 && show.all_atom) {
+	      if (this.objects.backbone.notBuilt && show.all_atom) {
 	        this.buildBackbone();
 	        this.buildPeptideBonds();
+	        delete this.objects.backbone.notBuilt;
 	      }
 	      console.log('backbone', this.objects.backbone);
 	      (0, _glgeometry.setVisible)(this.objects.backbone, show.all_atom);
 	      (0, _glgeometry.setVisible)(this.objects.peptides, show.all_atom);
 	
-	      if (!(0, _util.exists)(this.objects.ligands) && show.ligands) {
+	      if (this.objects.ligands.notBuilt && show.ligands) {
 	        this.buildLigands();
+	        delete this.objects.ligands.notBuilt;
 	      }
 	      (0, _glgeometry.setVisible)(this.objects.ligands, show.ligands);
 	
-	      if (!(0, _util.exists)(this.objects.water) && show.water) {
+	      if (this.objects.water.notBuilt && show.water) {
 	        this.buildWaters();
+	        delete this.objects.water.notBuilt;
 	      }
-	
 	      (0, _glgeometry.setVisible)(this.objects.water, show.water);
 	
 	      if (this.isGrid) {
@@ -75027,7 +75034,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        if (residueShow && !(0, _util.exists)(residue.sidechain)) {
-	          this.drawSidechain(residue);
+	          this.buildSidechain(residue);
 	        }
 	        (0, _glgeometry.setVisible)(residue.sidechain, residueShow);
 	      }
