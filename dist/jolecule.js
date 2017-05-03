@@ -290,6 +290,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
+	function runWithProcessQueue(isProcessingFlag, fn) {
+	  function guardFn() {
+	    if (isProcessingFlag.flag) {
+	      setTimeout(guardFn, 50);
+	    } else {
+	      isProcessingFlag.flag = true;
+	      fn(isProcessingFlag);
+	    }
+	  };
+	  guardFn();
+	}
+	
 	/**
 	 *
 	 * EmbedJolecule - the widget that shows proteins and
@@ -391,24 +403,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "runWithProcessQueue",
-	    value: function runWithProcessQueue(isProcessingFlag, fn) {
-	      var guardFn = function guardFn() {
-	        if (isProcessingFlag.flag) {
-	          setTimeout(guardFn, 50);
-	        } else {
-	          isProcessingFlag.flag = true;
-	          fn(isProcessingFlag);
-	        }
-	      };
-	      guardFn();
-	    }
-	  }, {
 	    key: "addDataServer",
 	    value: function addDataServer(dataServer, callback) {
 	      var _this3 = this;
 	
-	      this.runWithProcessQueue(this.isProcessing, function (isProcessingFlag) {
+	      runWithProcessQueue(this.isProcessing, function (isProcessingFlag) {
 	        dataServer.get_protein_data(function (proteinData) {
 	          _this3.proteinDisplay.displayProcessMessageAndRun("Rendering '" + proteinData.pdb_id + "'", function () {
 	            _this3.loadProteinData(isProcessingFlag, dataServer, proteinData, callback);
@@ -73272,6 +73271,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return GridBar;
 	}(CanvasWrapper);
 	
+	function clearObject3D(obj) {
+	  if (_lodash2.default.isUndefined(obj)) {
+	    return;
+	  }
+	  obj.children.forEach(function (object) {
+	    if (!_lodash2.default.isUndefined(object.dontDelete)) {
+	      return;
+	    }
+	    if (!_lodash2.default.isUndefined(object.geometry)) {
+	      object.geometry.dispose();
+	    }
+	    if (!_lodash2.default.isUndefined(object.material)) {
+	      object.material.dispose();
+	    }
+	    obj.remove(object);
+	  });
+	}
+	
 	/**
 	 *
 	 * GlProteinDisplay: The main window for the jolecule
@@ -73298,9 +73315,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    // stores any meshes that can be clicked
 	    this.clickMeshes = [];
-	
-	    // stores light objects to rotate with camera motion
-	    this.lights = [];
 	
 	    this.saveMouseX = null;
 	    this.saveMouseY = null;
@@ -73332,12 +73346,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.threeJsScene.fog.near = this.zoom + 1;
 	    this.threeJsScene.fog.far = this.zoom + this.zBack;
 	
-	    this.cameraTarget = new _three2.default.Vector3(0, 0, 0);
-	
+	    this.lights = [];
 	    this.buildLights();
 	    this.buildCrossHairs();
 	
 	    this.nDataServer = 0;
+	
+	    this.cameraTarget = new _three2.default.Vector3(0, 0, 0);
 	
 	    this.camera = new _three2.default.PerspectiveCamera(45, this.width() / this.height(), this.zFront + this.zoom, this.zBack + this.zoom);
 	
@@ -73434,8 +73449,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	      setTimeout(fn, 0);
 	    }
 	  }, {
+	    key: "resetScene",
+	    value: function resetScene() {
+	      this.objects = {};
+	      this.objects.tube = new _three2.default.Object3D();
+	      this.objects.water = new _three2.default.Object3D();
+	      this.objects.ribbons = new _three2.default.Object3D();
+	      this.objects.grid = new _three2.default.Object3D();
+	      this.objects.arrows = new _three2.default.Object3D();
+	      this.objects.backbone = new _three2.default.Object3D();
+	      this.objects.ligands = new _three2.default.Object3D();
+	      this.objects.peptides = new _three2.default.Object3D();
+	    }
+	  }, {
 	    key: "buildAfterDataLoad",
 	    value: function buildAfterDataLoad(defaultHtml) {
+	
+	      this.resetScene();
 	
 	      this.buildScene();
 	
@@ -73492,12 +73522,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "buildAfterAddProteinData",
 	    value: function buildAfterAddProteinData() {
-	      var scene = this.threeJsScene;
-	      scene.children.forEach(function (object) {
-	        if (_lodash2.default.isUndefined(object.dontDelete)) {
-	          scene.remove(object);
-	        }
-	      });
 	      this.buildScene();
 	      this.sequenceWidget.resetResidues();
 	      this.scene.changed = true;
@@ -73784,7 +73808,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "buildTube",
 	    value: function buildTube() {
 	
-	      this.objects.tube = new _three2.default.Object3D();
+	      clearObject3D(this.objects.tube);
 	
 	      var detail = 4;
 	
@@ -73838,7 +73862,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "buildCartoon",
 	    value: function buildCartoon() {
 	
-	      this.objects.ribbons = new _three2.default.Object3D();
+	      clearObject3D(this.objects.ribbons);
 	
 	      var detail = 4;
 	
@@ -73893,7 +73917,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "buildArrows",
 	    value: function buildArrows() {
 	
-	      this.objects.arrows = new _three2.default.Object3D();
+	      clearObject3D(this.objects.arrows);
 	
 	      for (var iChain = 0; iChain < this.trace.chains.length; iChain += 1) {
 	        var chain = this.trace.chains[iChain];
@@ -74033,7 +74057,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "buildBackbone",
 	    value: function buildBackbone() {
 	
-	      this.objects.backbone = new _three2.default.Object3D();
+	      clearObject3D(this.objects.backbone);
 	
 	      var geom = new _three2.default.Geometry();
 	
@@ -74065,16 +74089,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	      var mesh = new _three2.default.Mesh(geom, material);
 	      this.objects.backbone.add(mesh);
-	
-	      this.threeJsScene.add(this.objects.backbone);
 	    }
 	  }, {
 	    key: "buildLigands",
 	    value: function buildLigands() {
 	
-	      this.objects.ligands = new _three2.default.Object3D();
-	      this.threeJsScene.add(this.objects.ligands);
-	
+	      clearObject3D(this.objects.ligands);
 	      var geom = new _three2.default.Geometry();
 	
 	      for (var i = 0; i < this.protein.residues.length; i += 1) {
@@ -74107,8 +74127,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      console.log('buildWaters');
 	
-	      this.objects.water = new _three2.default.Object3D();
-	      this.threeJsScene.add(this.objects.water);
+	      clearObject3D(this.objects.water);
 	
 	      var geom = new _three2.default.Geometry();
 	
@@ -74140,8 +74159,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "buildGrid",
 	    value: function buildGrid() {
 	
-	      this.objects.grid = new _three2.default.Object3D();
-	      this.threeJsScene.add(this.objects.grid);
+	      if (!this.isGrid) {
+	        return;
+	      }
+	
+	      clearObject3D(this.objects.grid);
 	
 	      this.gridBar.minB = null;
 	      this.gridBar.maxB = null;
@@ -74233,6 +74255,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "buildPeptideBonds",
 	    value: function buildPeptideBonds() {
 	
+	      clearObject3D(this.objects.peptides);
+	
 	      var totalGeom = new _three2.default.Geometry();
 	
 	      var residues = this.protein.residues;
@@ -74298,9 +74322,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        vertexColors: _three2.default.VertexColors
 	      });
 	
-	      this.objects.peptides = new _three2.default.Mesh(totalGeom, material);
-	
-	      this.threeJsScene.add(this.objects.peptides);
+	      this.objects.peptides.add(new _three2.default.Mesh(totalGeom, material));
 	    }
 	  }, {
 	    key: "buildNucleotides",
@@ -74346,12 +74368,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        for (var i = 0; i < bondTypes.length; i += 1) {
 	          var bond = bondTypes[i];
-	          addBondGeometry(geom, residue.atoms, bond[0], bond[1]);
+	          this.addBondGeometry(geom, residue.atoms, bond[0], bond[1]);
 	        }
 	
 	        totalGeom.merge(geom);
 	
-	        baseMesh = new _three2.default.Mesh(geom, material);
+	        var baseMesh = new _three2.default.Mesh(geom, material);
 	        baseMesh.atom = residue.central_atom;
 	        baseMesh.updateMatrix();
 	        this.clickMeshes.push(baseMesh);
@@ -74396,24 +74418,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "buildScene",
 	    value: function buildScene() {
 	
+	      clearObject3D(this.threeJsScene);
+	
 	      this.findChainsAndPieces();
 	
 	      this.unitSphereGeom = new _three2.default.SphereGeometry(1, 8, 8);
-	
-	      this.objects = {};
 	
 	      this.buildTube();
 	
 	      this.buildCartoon();
 	
-	      // this.buildNucleotides();
+	      this.buildGrid();
+	
+	      this.buildNucleotides();
 	
 	      this.buildArrows();
+	
+	      this.assignBonds();
+	
 	      for (var k in this.objects) {
 	        this.threeJsScene.add(this.objects[k]);
 	      }
-	
-	      this.assignBonds();
 	    }
 	  }, {
 	    key: "setTargetFromResId",
@@ -74957,10 +74982,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      (0, _glgeometry.setVisible)(this.objects.arrows, !show.all_atom);
 	
-	      if (!(0, _util.exists)(this.objects.backbone) && show.all_atom) {
+	      if (this.objects.backbone.children.length == 0 && show.all_atom) {
 	        this.buildBackbone();
 	        this.buildPeptideBonds();
 	      }
+	      console.log('backbone', this.objects.backbone);
 	      (0, _glgeometry.setVisible)(this.objects.backbone, show.all_atom);
 	      (0, _glgeometry.setVisible)(this.objects.peptides, show.all_atom);
 	
@@ -74972,16 +74998,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!(0, _util.exists)(this.objects.water) && show.water) {
 	        this.buildWaters();
 	      }
+	
 	      (0, _glgeometry.setVisible)(this.objects.water, show.water);
 	
-	      if (this.isGrid && !(0, _util.exists)(this.objects.grid)) {
-	        this.buildGrid();
-	      }
-	      if ((0, _util.exists)(this.scene.grid)) {
-	        if (this.objects.grid) {
+	      if (this.isGrid) {
+	        if ((0, _util.exists)(this.scene.grid) && this.objects.grid) {
 	          this.objects.grid.traverse(function (child) {
 	            if (child instanceof _three2.default.Mesh && (0, _util.exists)(child.atom)) {
-	              console.log(child.atom.elem, child.atom.bfactor, _this10.scene.grid);
 	              if (child.atom.bfactor > _this10.scene.grid && _this10.scene.grid_atoms[child.atom.elem]) {
 	                child.visible = true;
 	              } else {
@@ -75326,6 +75349,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	BlockArrowGeometry.prototype = Object.create(_three2.default.ExtrudeGeometry.prototype);
 	BlockArrowGeometry.prototype.constructor = BlockArrowGeometry;
+	
+	var cylinderGeometry = void 0;
 	
 	function UnitCylinderGeometry() {
 	

@@ -193,6 +193,8 @@ BlockArrowGeometry.prototype = Object.create( THREE.ExtrudeGeometry.prototype );
 BlockArrowGeometry.prototype.constructor = BlockArrowGeometry;
 
 
+let cylinderGeometry;
+
 
 function UnitCylinderGeometry() {
 
@@ -212,6 +214,7 @@ function UnitCylinderGeometry() {
 
 UnitCylinderGeometry.prototype = Object.create( THREE.CylinderGeometry.prototype );
 UnitCylinderGeometry.prototype.constructor = UnitCylinderGeometry;
+
 
 
 

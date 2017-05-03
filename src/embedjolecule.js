@@ -12,6 +12,19 @@ import {
 } from "./util.js";
 
 
+function runWithProcessQueue(isProcessingFlag, fn) {
+  function guardFn() {
+    if (isProcessingFlag.flag) {
+      setTimeout(guardFn, 50);
+    } else {
+      isProcessingFlag.flag = true;
+      fn(isProcessingFlag);
+    }
+  };
+  guardFn();
+}
+
+
 /**
  *
  * EmbedJolecule - the widget that shows proteins and
@@ -105,25 +118,13 @@ class EmbedJolecule {
     }
   }
 
-  runWithProcessQueue(isProcessingFlag, fn) {
-    let guardFn = () => {
-      if (isProcessingFlag.flag) {
-        setTimeout(guardFn, 50);
-      } else {
-        isProcessingFlag.flag = true;
-        fn(isProcessingFlag);
-      }
-    };
-    guardFn();
-  }
-
   addDataServer(dataServer, callback) {
-    this.runWithProcessQueue(
+    runWithProcessQueue(
       this.isProcessing,
       (isProcessingFlag) => {
         dataServer.get_protein_data(
           (proteinData) => {
-            this.proteinDisplay.1566displayProcessMessageAndRun(
+            this.proteinDisplay.displayProcessMessageAndRun(
               "Rendering '" + proteinData.pdb_id + "'", 
               () => { 
                 this.loadProteinData(

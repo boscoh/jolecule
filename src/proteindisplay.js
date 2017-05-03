@@ -1395,6 +1395,25 @@ class GridBar extends CanvasWrapper {
 }
 
 
+function clearObject3D(obj) {
+  if (_.isUndefined(obj)) {
+    return;
+  }
+  obj.children.forEach(function (object) {
+    if (!_.isUndefined(object.dontDelete)) {
+      return;
+    }
+    if (!_.isUndefined(object.geometry)) {
+      object.geometry.dispose();
+    }
+    if (!_.isUndefined(object.material)) {
+      object.material.dispose();
+    }
+    obj.remove(object);
+  });
+}
+
+
 /**
  *
  * GlProteinDisplay: The main window for the jolecule
@@ -1421,9 +1440,6 @@ class ProteinDisplay {
 
     // stores any meshes that can be clicked
     this.clickMeshes = [];
-
-    // stores light objects to rotate with camera motion
-    this.lights = [];
 
     this.saveMouseX = null;
     this.saveMouseY = null;
@@ -1455,12 +1471,14 @@ class ProteinDisplay {
     this.threeJsScene.fog.near = this.zoom + 1;
     this.threeJsScene.fog.far = this.zoom + this.zBack;
 
-    this.cameraTarget = new THREE.Vector3(0, 0, 0);
 
+    this.lights = [];
     this.buildLights();
     this.buildCrossHairs();
 
     this.nDataServer = 0;
+
+    this.cameraTarget = new THREE.Vector3(0, 0, 0);
 
     this.camera = new THREE.PerspectiveCamera(
       45,
@@ -1574,8 +1592,22 @@ class ProteinDisplay {
     this.setProcessingMesssage(message);
     setTimeout(fn, 0);
   }
-  
+
+  resetScene() {
+    this.objects = {};
+    this.objects.tube = new THREE.Object3D();
+    this.objects.water = new THREE.Object3D();
+    this.objects.ribbons = new THREE.Object3D();
+    this.objects.grid = new THREE.Object3D();
+    this.objects.arrows = new THREE.Object3D();
+    this.objects.backbone = new THREE.Object3D();
+    this.objects.ligands = new THREE.Object3D();
+    this.objects.peptides = new THREE.Object3D();
+  }
+
   buildAfterDataLoad(defaultHtml) {
+
+    this.resetScene();
 
     this.buildScene();
 
@@ -1638,12 +1670,6 @@ class ProteinDisplay {
   }
 
   buildAfterAddProteinData() {
-    let scene = this.threeJsScene;
-    scene.children.forEach(function (object) {
-      if (_.isUndefined(object.dontDelete)) {
-        scene.remove(object);
-      }
-    });
     this.buildScene();
     this.sequenceWidget.resetResidues();
     this.scene.changed = true;
@@ -1987,7 +2013,7 @@ class ProteinDisplay {
 
   buildTube() {
 
-    this.objects.tube = new THREE.Object3D();
+    clearObject3D(this.objects.tube);
 
     var detail = 4;
 
@@ -2048,7 +2074,7 @@ class ProteinDisplay {
 
   buildCartoon() {
 
-    this.objects.ribbons = new THREE.Object3D();
+    clearObject3D(this.objects.ribbons);
 
     var detail = 4;
 
@@ -2110,7 +2136,7 @@ class ProteinDisplay {
 
   buildArrows() {
 
-    this.objects.arrows = new THREE.Object3D();
+    clearObject3D(this.objects.arrows);
 
     for (var iChain = 0; iChain < this.trace.chains.length; iChain +=
       1) {
@@ -2270,7 +2296,7 @@ class ProteinDisplay {
 
   buildBackbone() {
 
-    this.objects.backbone = new THREE.Object3D();
+    clearObject3D(this.objects.backbone);
 
     var geom = new THREE.Geometry();
 
@@ -2304,17 +2330,12 @@ class ProteinDisplay {
     });
     var mesh = new THREE.Mesh(geom, material);
     this.objects.backbone.add(mesh);
-
-    this.threeJsScene.add(this.objects.backbone);
-
   }
 
 
   buildLigands() {
 
-    this.objects.ligands = new THREE.Object3D();
-    this.threeJsScene.add(this.objects.ligands);
-
+    clearObject3D(this.objects.ligands);
     var geom = new THREE.Geometry();
 
     for (var i = 0; i < this.protein.residues.length; i += 1) {
@@ -2349,8 +2370,7 @@ class ProteinDisplay {
 
     console.log('buildWaters');
 
-    this.objects.water = new THREE.Object3D();
-    this.threeJsScene.add(this.objects.water);
+    clearObject3D(this.objects.water);
 
     var geom = new THREE.Geometry();
 
@@ -2384,8 +2404,11 @@ class ProteinDisplay {
 
   buildGrid() {
 
-    this.objects.grid = new THREE.Object3D();
-    this.threeJsScene.add(this.objects.grid);
+    if (!this.isGrid) {
+      return;
+    }
+
+    clearObject3D(this.objects.grid);
 
     this.gridBar.minB = null;
     this.gridBar.maxB = null;
@@ -2481,6 +2504,8 @@ class ProteinDisplay {
 
   buildPeptideBonds() {
 
+    clearObject3D(this.objects.peptides);
+
     var totalGeom = new THREE.Geometry();
 
     var residues = this.protein.residues;
@@ -2558,9 +2583,7 @@ class ProteinDisplay {
       vertexColors: THREE.VertexColors
     });
 
-    this.objects.peptides = new THREE.Mesh(totalGeom, material);
-
-    this.threeJsScene.add(this.objects.peptides);
+    this.objects.peptides.add(new THREE.Mesh(totalGeom, material));
 
   }
 
@@ -2640,13 +2663,13 @@ class ProteinDisplay {
 
       for (var i = 0; i < bondTypes.length; i += 1) {
         var bond = bondTypes[i];
-        addBondGeometry(
+        this.addBondGeometry(
           geom, residue.atoms, bond[0], bond[1]);
       }
 
       totalGeom.merge(geom);
 
-      baseMesh = new THREE.Mesh(geom, material);
+      let baseMesh = new THREE.Mesh(geom, material);
       baseMesh.atom = residue.central_atom;
       baseMesh.updateMatrix();
       this.clickMeshes.push(baseMesh);
@@ -2694,24 +2717,27 @@ class ProteinDisplay {
 
   buildScene() {
 
+    clearObject3D(this.threeJsScene);
+
     this.findChainsAndPieces();
 
     this.unitSphereGeom = new THREE.SphereGeometry(1, 8, 8);
-
-    this.objects = {};
 
     this.buildTube();
 
     this.buildCartoon();
 
-    // this.buildNucleotides();
+    this.buildGrid();
+
+    this.buildNucleotides();
 
     this.buildArrows();
+
+    this.assignBonds();
+
     for (var k in this.objects) {
       this.threeJsScene.add(this.objects[k]);
     }
-
-    this.assignBonds();
 
   }
 
@@ -3340,10 +3366,11 @@ class ProteinDisplay {
 
     setVisible(this.objects.arrows, !show.all_atom);
 
-    if (!exists(this.objects.backbone) && show.all_atom) {
+    if ((this.objects.backbone.children.length == 0) && show.all_atom) {
       this.buildBackbone();
       this.buildPeptideBonds();
     }
+    console.log('backbone', this.objects.backbone);
     setVisible(this.objects.backbone, show.all_atom);
     setVisible(this.objects.peptides, show.all_atom);
 
@@ -3355,18 +3382,15 @@ class ProteinDisplay {
     if (!exists(this.objects.water) && show.water) {
       this.buildWaters();
     }
+
     setVisible(this.objects.water, show.water);
 
-    if (this.isGrid && !exists(this.objects.grid)) {
-      this.buildGrid();
-    }
-    if (exists(this.scene.grid)) {
-      if (this.objects.grid) {
+    if (this.isGrid) {
+      if (exists(this.scene.grid) && this.objects.grid) {
         this.objects.grid.traverse((child) => {
           if ((child instanceof THREE.Mesh) && exists(child.atom)) {
-            console.log(child.atom.elem, child.atom.bfactor, this.scene.grid)
             if ((child.atom.bfactor > this.scene.grid)
-                && (this.scene.grid_atoms[child.atom.elem])) {
+              && (this.scene.grid_atoms[child.atom.elem])) {
               child.visible = true;
             } else {
               child.visible = false;
@@ -3503,7 +3527,6 @@ class ProteinDisplay {
     }
     this.sequenceWidget.draw();
     this.scene.changed = false;
-
   }
 
 
