@@ -1396,21 +1396,21 @@ class GridBar extends CanvasWrapper {
 
 
 function clearObject3D(obj) {
-  if (_.isUndefined(obj)) {
-    return;
-  }
-  obj.children.forEach(function (object) {
-    if (!_.isUndefined(object.dontDelete)) {
+  // clearing obj does not clear scene
+  var j = obj.children.length - 1;
+  for (var i=j; i>=0; i-=1) {
+    var child = obj.children[i];
+    if (!_.isUndefined(child.dontDelete)) {
       return;
     }
-    if (!_.isUndefined(object.geometry)) {
-      object.geometry.dispose();
+    if (!_.isUndefined(child.geometry)) {
+      child.geometry.dispose();
     }
-    if (!_.isUndefined(object.material)) {
-      object.material.dispose();
+    if (!_.isUndefined(child.material)) {
+      child.material.dispose();
     }
-    obj.remove(object);
-  });
+    obj.remove(child);
+  }
 }
 
 
@@ -1593,7 +1593,8 @@ class ProteinDisplay {
     setTimeout(fn, 0);
   }
 
-  resetScene() {
+  createObjects() {
+    console.log('createObjects');
     this.objects = {};
     this.objects.tube = new THREE.Object3D();
     this.objects.water = new THREE.Object3D();
@@ -1607,7 +1608,7 @@ class ProteinDisplay {
 
   buildAfterDataLoad(defaultHtml) {
 
-    this.resetScene();
+    this.createObjects();
 
     this.buildScene();
 
@@ -1670,6 +1671,7 @@ class ProteinDisplay {
   }
 
   buildAfterAddProteinData() {
+    clearObject3D(this.threeJsScene);
     this.buildScene();
     this.sequenceWidget.resetResidues();
     this.scene.changed = true;
@@ -2072,10 +2074,15 @@ class ProteinDisplay {
   }
 
 
-  buildCartoon() {
+  buildRibbons() {
+
+    console.log('before ribbons.children', this.objects.ribbons.children);
+    console.log('before scene.children', this.threeJsScene.children);
 
     clearObject3D(this.objects.ribbons);
 
+    console.log('after ribbons.children', this.objects.ribbons.children);
+    console.log('after scene.children', this.threeJsScene.children);
     var detail = 4;
 
     for (var iChain = 0; iChain < this.trace.chains.length; iChain +=
@@ -2717,8 +2724,6 @@ class ProteinDisplay {
 
   buildScene() {
 
-    clearObject3D(this.threeJsScene);
-
     this.objects.ligands.notBuilt = true;
     this.objects.backbone.notBuilt = true;
     this.objects.peptides.notBuilt = true;
@@ -2728,9 +2733,9 @@ class ProteinDisplay {
 
     this.unitSphereGeom = new THREE.SphereGeometry(1, 8, 8);
 
-    this.buildTube();
+    this.buildRibbons();
 
-    this.buildCartoon();
+    this.buildTube();
 
     this.buildGrid();
 
@@ -2743,7 +2748,6 @@ class ProteinDisplay {
     for (var k in this.objects) {
       this.threeJsScene.add(this.objects[k]);
     }
-
   }
 
 
@@ -3376,7 +3380,6 @@ class ProteinDisplay {
       this.buildPeptideBonds();
       delete this.objects.backbone.notBuilt;
     }
-    console.log('backbone', this.objects.backbone);
     setVisible(this.objects.backbone, show.all_atom);
     setVisible(this.objects.peptides, show.all_atom);
 

@@ -73272,21 +73272,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	}(CanvasWrapper);
 	
 	function clearObject3D(obj) {
-	  if (_lodash2.default.isUndefined(obj)) {
-	    return;
-	  }
-	  obj.children.forEach(function (object) {
-	    if (!_lodash2.default.isUndefined(object.dontDelete)) {
+	  // clearing obj does not clear scene
+	  var j = obj.children.length - 1;
+	  for (var i = j; i >= 0; i -= 1) {
+	    var child = obj.children[i];
+	    if (!_lodash2.default.isUndefined(child.dontDelete)) {
 	      return;
 	    }
-	    if (!_lodash2.default.isUndefined(object.geometry)) {
-	      object.geometry.dispose();
+	    if (!_lodash2.default.isUndefined(child.geometry)) {
+	      child.geometry.dispose();
 	    }
-	    if (!_lodash2.default.isUndefined(object.material)) {
-	      object.material.dispose();
+	    if (!_lodash2.default.isUndefined(child.material)) {
+	      child.material.dispose();
 	    }
-	    obj.remove(object);
-	  });
+	    obj.remove(child);
+	  }
 	}
 	
 	/**
@@ -73449,8 +73449,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      setTimeout(fn, 0);
 	    }
 	  }, {
-	    key: "resetScene",
-	    value: function resetScene() {
+	    key: "createObjects",
+	    value: function createObjects() {
+	      console.log('createObjects');
 	      this.objects = {};
 	      this.objects.tube = new _three2.default.Object3D();
 	      this.objects.water = new _three2.default.Object3D();
@@ -73465,7 +73466,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "buildAfterDataLoad",
 	    value: function buildAfterDataLoad(defaultHtml) {
 	
-	      this.resetScene();
+	      this.createObjects();
 	
 	      this.buildScene();
 	
@@ -73522,6 +73523,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "buildAfterAddProteinData",
 	    value: function buildAfterAddProteinData() {
+	      clearObject3D(this.threeJsScene);
 	      this.buildScene();
 	      this.sequenceWidget.resetResidues();
 	      this.scene.changed = true;
@@ -73859,11 +73861,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "buildCartoon",
-	    value: function buildCartoon() {
+	    key: "buildRibbons",
+	    value: function buildRibbons() {
+	
+	      console.log('before ribbons.children', this.objects.ribbons.children);
+	      console.log('before scene.children', this.threeJsScene.children);
 	
 	      clearObject3D(this.objects.ribbons);
 	
+	      console.log('after ribbons.children', this.objects.ribbons.children);
+	      console.log('after scene.children', this.threeJsScene.children);
 	      var detail = 4;
 	
 	      for (var iChain = 0; iChain < this.trace.chains.length; iChain += 1) {
@@ -74418,8 +74425,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "buildScene",
 	    value: function buildScene() {
 	
-	      clearObject3D(this.threeJsScene);
-	
 	      this.objects.ligands.notBuilt = true;
 	      this.objects.backbone.notBuilt = true;
 	      this.objects.peptides.notBuilt = true;
@@ -74429,9 +74434,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.unitSphereGeom = new _three2.default.SphereGeometry(1, 8, 8);
 	
-	      this.buildTube();
+	      this.buildRibbons();
 	
-	      this.buildCartoon();
+	      this.buildTube();
 	
 	      this.buildGrid();
 	
@@ -74992,7 +74997,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.buildPeptideBonds();
 	        delete this.objects.backbone.notBuilt;
 	      }
-	      console.log('backbone', this.objects.backbone);
 	      (0, _glgeometry.setVisible)(this.objects.backbone, show.all_atom);
 	      (0, _glgeometry.setVisible)(this.objects.peptides, show.all_atom);
 	
