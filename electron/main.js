@@ -75,7 +75,7 @@ function createWindow(pdb, title) {
 
   const pdbText = fs.readFileSync(pdb, 'utf8');
   let pdbLines = pdbText.split(/\r?\n/);
-  pdbLines = _.map(pdbLines, (l) => l.replace('"', '\"'));
+  pdbLines = _.map(pdbLines, (l) => l.replace(/"/g, '\\"'));
 
   // const localServerMustache = fs.readFileSync('renderer.mustache.js', 'utf8');
   let dataJsText = mustache.render(
