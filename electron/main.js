@@ -93,7 +93,7 @@ function createWindow(pdb, title) {
   }));
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -176,6 +176,7 @@ function init() {
         }, 
         {
           label: 'Quit',
+          accelerator: 'CmdOrCtrl+Q',
           click: () => {
             app.quit();
           }
@@ -205,10 +206,6 @@ function init() {
   if (remain.length > 0) {
     pdb = remain[0];
   }
-
-  electron.globalShortcut.register('CommandOrControl+Q', () => {
-    app.quit();
-  });
 
   console.log(process.argv, remain);
   openPdbWindow(pdb);

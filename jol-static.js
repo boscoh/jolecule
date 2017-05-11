@@ -176,7 +176,6 @@ if (remain.length < 1) {
     dataServerArgStr += `dataServer${i}`;
     let pdbLines = pdbText.split(/\r?\n/);
     pdbLines = _.map(pdbLines, (l) => l.replace(/"/g, '\\"'));
-    console.log(pdbLines[99]);
     let pdbId = base;
     let viewsJson = pdb.replace('.pdb', '') + '.views.json';
     console.log(`Checking ${viewsJson}`);
