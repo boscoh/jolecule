@@ -1,22 +1,15 @@
 import scrollTo from "jquery.scrollto";
 import $ from "jquery";
 import _ from "lodash";
-import { EmbedJolecule } from "./embedjolecule";
-import {
-    url,
-    link_button,
-    ViewPiece,
-    trim,
-    random_id,
-    toggle_button,
-} from "./util";
+import { EmbedJolecule, ViewPiece } from "./embedjolecule";
+import { url, link_button, random_id } from "./util";
 
 
 /**
- * ViewsDisplay keeps track of the views
+ * ViewPieceList keeps track of the views
  **/
 
-class ViewsDisplay {
+class ViewPieceList {
 
   constructor(divTag, controller, proteinDisplay, data_server) {
     this.divTag = divTag;
@@ -87,8 +80,8 @@ class ViewsDisplay {
       }
 
       let viewPiece = this.viewPiece[id];
-      if (view.text != viewPiece.show_text_div.html()) {
-        viewPiece.show_text_div.html(view.text);
+      if (view.text != viewPiece.showTextDiv.html()) {
+        viewPiece.showTextDiv.html(view.text);
       }
 
       let a = viewPiece.div.find('a').eq(0);
@@ -279,7 +272,7 @@ class FullPageJolecule {
         this.controller = this.embedJolecule.controller;
         this.proteinDisplay = this.embedJolecule.proteinDisplay;
 
-        this.viewsDisplay = new ViewsDisplay(
+        this.viewsDisplay = new ViewPieceList(
           this.viewsDisplayTag,
           this.controller,
           this.proteinDisplay,

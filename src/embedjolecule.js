@@ -6,7 +6,6 @@ import {
   exists,
   link_button,
   toggle_button,
-  ViewPiece,
   stick_in_top_left,
   random_id,
 } from "./util.js";
@@ -22,6 +21,150 @@ function runWithProcessQueue(isProcessingFlag, fn) {
     }
   };
   guardFn();
+}
+
+
+class ViewPiece {
+  constructor(params) {
+    this.params = params;
+    this.div = $('<div>').addClass("jolecule-view");
+
+    if (exists(params.goto)) {
+      this.div.append(
+        link_button(
+          "",
+          this.params.goto,
+          'jolecule-large-button',
+          this.params.pick)
+      )
+    }
+    this.params = params;
+    this.makeEditDiv();
+    this.makeShowDiv();
+  }
+
+  saveChange() {
+    var changedTet = this.editTextArea.val();
+    this.editDiv.hide();
+    this.showDiv.show();
+    this.showTextDiv.html(changedTet);
+    this.params.saveChange(changedTet);
+    window.keyboard_lock = false;
+  }
+
+  start_edit() {
+    this.params.pick();
+    this.editTextArea.text(this.params.view.text);
+    this.editDiv.show();
+    this.showDiv.hide();
+    var textarea = this.editTextArea.find('textarea')
+    setTimeout(function() { textarea.focus(); }, 100)
+    window.keyboard_lock = true;
+  }
+
+  discard_change() {
+    this.editDiv.hide();
+    this.showDiv.show();
+    window.keyboard_lock = false;
+  }
+
+  makeEditDiv() {
+
+    this.editTextArea = $("<textarea>")
+      .addClass('jolecule-view-text')
+      .css('width', '100%')
+      .css('height', '5em')
+      .click(_.noop);
+
+    this.editDiv = $('<div>')
+      .css('width', '100%')
+      .click(_.noop)
+      .append(this.editTextArea)
+      .append('<br><br>')
+      .append(
+        link_button(
+          "", "save", "jolecule-small-button",
+          (event) => { this.saveChange() }))
+      .append(' &nbsp; ')
+      .append(
+        link_button(
+          "", "discard", "jolecule-small-button",
+          (event) => { this.discard_change() }))
+      .hide();
+
+    this.div.append(this.editDiv);
+  }
+
+  makeShowDiv() {
+    var view = this.params.view;
+
+    var editButton = link_button(
+      "", "edit", "jolecule-small-button",
+      () => { this.start_edit(); });
+
+    var embedButton = link_button(
+      "", "embed", "jolecule-small-button",
+      () => { this.params.embed_view() });
+
+    var deleteButton = link_button(
+      "", "delete", "jolecule-small-button",
+      () => { this.params.delete_view() });
+
+    this.showTextDiv = $('<div>')
+      .addClass("jolecule-view-text")
+      .html(this.params.view.text)
+
+    this.showDiv = $('<div>')
+      .css('width', '100%')
+      .append(this.showTextDiv);
+
+    if (view.id != 'view:000000') {
+      this.showDiv
+        .append(
+          $('<div>')
+            .addClass("jolecule-author")
+            .html(view.creator)
+        )
+    }
+
+    if (this.params.isEditable) {
+
+      this.showDiv
+        .append(embedButton)
+        .append(' ');
+
+      if (!view.lock) {
+        this.showDiv
+          .append(editButton);
+
+        if (exists(this.params.swapUp) && this.params.swapUp)
+          this.showDiv
+            .append(" ")
+            .append(
+              link_button(
+                "", "up", "jolecule-small-button",
+                function() { _this.params.swapUp(); }))
+
+        if (exists(this.params.swapUp) && this.params.swapDown)
+          this.showDiv
+            .append(" ")
+            .append(
+              link_button(
+                "", "down", "jolecule-small-button",
+                function() { _this.params.swapDown(); }))
+
+        this.showDiv
+          .append(
+            $("<div>")
+              .css("float", "right")
+              .append(deleteButton))
+        ;
+      }
+    }
+
+    this.div.append(this.showDiv);
+  }
+
 }
 
 
@@ -404,7 +547,9 @@ class EmbedJolecule {
       .append(this.realViewDiv);
     this.ligButton.redraw();
     this.watButton.redraw();
-    // this.hyd.redraw();
+    if (this.hydButton) {
+      this.hydButton.redraw();
+    }
   }
 
   createViewDiv() {
@@ -431,4 +576,4 @@ class EmbedJolecule {
 }
 
 
-export { EmbedJolecule, defaultArgs }
+export { EmbedJolecule, defaultArgs, ViewPiece }

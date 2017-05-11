@@ -2076,13 +2076,8 @@ class ProteinDisplay {
 
   buildRibbons() {
 
-    console.log('before ribbons.children', this.objects.ribbons.children);
-    console.log('before scene.children', this.threeJsScene.children);
-
     clearObject3D(this.objects.ribbons);
 
-    console.log('after ribbons.children', this.objects.ribbons.children);
-    console.log('after scene.children', this.threeJsScene.children);
     var detail = 4;
 
     for (var iChain = 0; iChain < this.trace.chains.length; iChain +=
