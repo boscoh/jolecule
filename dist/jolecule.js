@@ -71666,7 +71666,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.get_current_date = exports.random_id = exports.random_string = exports.clone_list_of_dicts = exports.clone_dict = exports.trim = exports.del_from_array = exports.in_array = exports.stick_in_center = exports.stick_in_top_left = exports.create_edit_box_div = exports.create_message_div = exports.toggle_button = exports.link_button = exports.blink = exports.pos_dom = exports.get_pdb_id_from_url = exports.url = exports.is_ipad = exports.exists = undefined;
+	exports.get_current_date = exports.random_id = exports.clone_list_of_dicts = exports.clone_dict = exports.trim = exports.in_array = exports.stick_in_center = exports.stick_in_top_left = exports.create_edit_box_div = exports.toggle_button = exports.link_button = exports.pos_dom = exports.url = exports.exists = undefined;
 	
 	var _jquery = __webpack_require__(3);
 	
@@ -71685,18 +71685,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return typeof x !== 'undefined';
 	}
 	
-	function is_ipad() {
-	  return navigator.userAgent.match(/iPad/i) != null;
-	}
-	
 	function url() {
 	  return "" + window.location;
-	}
-	
-	function get_pdb_id_from_url(loc) {
-	  var pieces = loc.split('#')[0].split('/');
-	  var i = pieces.length - 1;
-	  return pieces[i];
 	}
 	
 	function pos_dom(in_dom) {
@@ -71717,16 +71707,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    curr_top -= curr_dom.scrollTop || 0;
 	  } while (curr_dom = curr_dom.parentNode);
 	  return [curr_left, curr_top];
-	}
-	
-	function blink(selector) {
-	  (0, _jquery2.default)(selector).animate({ opacity: 0 }, 50, "linear", function () {
-	    (0, _jquery2.default)(this).delay(800);
-	    (0, _jquery2.default)(this).animate({ opacity: 1 }, 50, function () {
-	      blink(this);
-	    });
-	    (0, _jquery2.default)(this).delay(800);
-	  });
 	}
 	
 	function link_button(id_tag, html_text, class_tag, click) {
@@ -71781,17 +71761,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  color();
 	
 	  return item;
-	}
-	
-	function create_message_div(text, width, cleanup) {
-	  var edit_div = (0, _jquery2.default)('<div>').addClass('jolecule-textbox').css({ 'width': width });
-	
-	  var okay = link_button('okay', 'okay', 'jolecule-button', function () {
-	    cleanup();return false;
-	  });
-	
-	  edit_div.append(text).append("<br><br>").append(okay);
-	  return edit_div;
 	}
 	
 	function create_edit_box_div(init_text, width, change, cleanup, label) {
@@ -71867,14 +71836,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return w_list.indexOf(v) >= 0;
 	}
 	
-	function del_from_array(x, x_list) {
-	  for (var i = 0; i <= x_list.length; i += 1) {
-	    if (x == x_list[i]) {
-	      x_list.splice(i, 1);
-	    }
-	  }
-	}
-	
 	function trim(text) {
 	  return text.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
 	}
@@ -71918,23 +71879,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	exports.exists = exists;
-	exports.is_ipad = is_ipad;
 	exports.url = url;
-	exports.get_pdb_id_from_url = get_pdb_id_from_url;
 	exports.pos_dom = pos_dom;
-	exports.blink = blink;
 	exports.link_button = link_button;
 	exports.toggle_button = toggle_button;
-	exports.create_message_div = create_message_div;
 	exports.create_edit_box_div = create_edit_box_div;
 	exports.stick_in_top_left = stick_in_top_left;
 	exports.stick_in_center = stick_in_center;
 	exports.in_array = in_array;
-	exports.del_from_array = del_from_array;
 	exports.trim = trim;
 	exports.clone_dict = clone_dict;
 	exports.clone_list_of_dicts = clone_list_of_dicts;
-	exports.random_string = random_string;
 	exports.random_id = random_id;
 	exports.get_current_date = get_current_date;
 

@@ -2,6 +2,7 @@
 import $ from "jquery";
 import _ from "lodash";
 
+
 // Utility functions
 
 
@@ -10,20 +11,8 @@ function exists(x) {
 }
 
 
-function is_ipad() {
-  return navigator.userAgent.match(/iPad/i) != null;
-}
-
-
 function url() {
   return "" + window.location;
-}
-
-
-function get_pdb_id_from_url(loc) {
-  var pieces = loc.split('#')[0].split('/');
-  var i = pieces.length-1;
-  return pieces[i];
 }
 
 
@@ -45,22 +34,6 @@ function pos_dom(in_dom) {
     curr_top -= curr_dom.scrollTop || 0;
   } while (curr_dom = curr_dom.parentNode);
   return [curr_left, curr_top];
-}
-
-
-function blink(selector) {
-  $(selector).animate(
-    {opacity:0}, 50, "linear",
-    function() {
-      $(this).delay(800);
-      $(this).animate(
-        {opacity:1}, 50, 
-        function(){
-          blink(this);
-        });
-      $(this).delay(800);
-    }
-  );
 }
 
 
@@ -130,23 +103,6 @@ function toggle_button(
   color();
   
   return item;
-}
-
-
-function create_message_div(text, width, cleanup) {
-  var edit_div = $('<div>')
-    .addClass('jolecule-textbox')
-    .css({'width':width});
-
-  var okay = link_button(
-      'okay', 'okay', 'jolecule-button', 
-      function() { cleanup(); return false; });
-
-  edit_div
-    .append(text)
-    .append("<br><br>")
-    .append(okay);
-  return edit_div;
 }
 
 
@@ -241,14 +197,6 @@ function in_array(v, w_list) {
 }
 
 
-function del_from_array(x, x_list) {
-  for (var i=0; i<=x_list.length; i+=1)
-    if (x == x_list[i]) {
-      x_list.splice(i, 1);
-    }
-}
-
-
 function trim(text) {
   return text.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
 }
@@ -300,23 +248,17 @@ function get_current_date() {
 
 export {
     exists,
-    is_ipad,
     url,
-    get_pdb_id_from_url,
     pos_dom,
-    blink,
     link_button,
     toggle_button,
-    create_message_div,
     create_edit_box_div,
     stick_in_top_left,
     stick_in_center,
     in_array,
-    del_from_array,
     trim,
     clone_dict,
     clone_list_of_dicts,
-    random_string,
     random_id,
     get_current_date,
 }
