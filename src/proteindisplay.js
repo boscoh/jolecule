@@ -18,14 +18,12 @@ import {
   setGeometryVerticesColor
 } from "./glgeometry";
 import {
-  toggle_button,
+  toggleButton,
   exists,
-  pos_dom,
-  create_edit_box_div,
-  stick_in_center,
-  in_array,
-  random_id,
-  stick_in_top_left,
+  getDomPosition,
+  stickJqueryDivInCenter,
+  inArray,
+  stickJqueryDivInTopLeft,
 } from "./util";
 
 var TV3 = THREE.Vector3;
@@ -174,6 +172,52 @@ function fraction(reference, target, t) {
 
 function showTextDialog(parentDiv, label, success) {
 
+  function create_edit_box_div(init_text, width, change, cleanup, label) {
+
+    var accept_edit = function() {
+      change(textarea.val());
+      cleanup();
+      window.keyboard_lock = false;
+    }
+
+    var discard_edit = function() {
+      cleanup();
+      window.keyboard_lock = false;
+    }
+
+    var save_button = linkButton(
+      'okay', 'okay', 'jolecule-small-button', accept_edit);
+
+    var discard_button = linkButton(
+      'discard', 'discard', 'jolecule-small-button', discard_edit);
+
+    var textarea = $("<textarea>")
+      .css('width', width)
+      .addClass('jolecule-view-text')
+      .text(init_text)
+      .keydown(
+        function(e) {
+          if (e.keyCode == 27) {
+            discard_edit();
+            return true;
+          }
+        })
+
+    if (!label) {
+      label = '';
+    }
+
+    window.keyboard_lock = true;
+
+    return $('<div>')
+      .css('width', width)
+      .append(label)
+      .append(textarea)
+      .append(save_button)
+      .append(' ')
+      .append(discard_button);
+  }
+
   window.keyboard_lock = true;
 
   function cleanup() {
@@ -191,7 +235,7 @@ function showTextDialog(parentDiv, label, success) {
     .css('width', Math.min(400, parentDiv.width() - 100))
     .append(editbox);
 
-  stick_in_center(parentDiv, dialog, 0, 70);
+  stickJqueryDivInCenter(parentDiv, dialog, 0, 70);
 
   var focus = function () {
     editbox.find('textarea')
@@ -1251,7 +1295,7 @@ class GridBar extends CanvasWrapper {
     console.log("make grid atoms", elem, this.scene.grid_atoms[elem]);
     var color = new THREE.Color(ElementColors[elem]);
     var colorHexStr = color.getHexString();
-    var text_button = toggle_button(
+    var text_button = toggleButton(
       'toggle_text', 
       elem, 
       'jolecule-button',
@@ -1580,7 +1624,7 @@ class ProteinDisplay {
   setProcessingMesssage(message) {
     console.log(message);
     this.messageDiv.html(message).show();
-    stick_in_top_left(this.mainDiv, this.messageDiv, 100, 90);
+    stickJqueryDivInTopLeft(this.mainDiv, this.messageDiv, 100, 90);
   };
 
   cleanupProcessingMessage() {
@@ -2311,15 +2355,15 @@ class ProteinDisplay {
 
       for (var j = 0; j < residue.bonds.length; j += 1) {
         var bond = residue.bonds[j];
-        if (in_array(bond.atom1.type, backboneAtoms) ||
-          in_array(bond.atom2.type, backboneAtoms)) {
+        if (inArray(bond.atom1.type, backboneAtoms) ||
+          inArray(bond.atom2.type, backboneAtoms)) {
           this.mergeBond(geom, bond, residue);
         }
       }
 
       for (var a in residue.atoms) {
         var atom = residue.atoms[a];
-        if (in_array(atom.type, backboneAtoms)) {
+        if (inArray(atom.type, backboneAtoms)) {
           this.pushAtom(this.objects.backbone, atom);
         }
       }
@@ -2468,7 +2512,7 @@ class ProteinDisplay {
 
       var bond = residue.bonds[j];
 
-      if (!in_array(bond.atom1.type, backboneAtoms) || !in_array(bond.atom2.type, backboneAtoms)) {
+      if (!inArray(bond.atom1.type, backboneAtoms) || !inArray(bond.atom2.type, backboneAtoms)) {
 
         this.mergeBond(scGeom, bond, residue);
       }
@@ -2484,7 +2528,7 @@ class ProteinDisplay {
 
     for (var a in residue.atoms) {
       var atom = residue.atoms[a];
-      if (!in_array(atom.type, backboneAtoms)) {
+      if (!inArray(atom.type, backboneAtoms)) {
         atom.is_sidechain = true;
         this.pushAtom(residue.sidechain, atom);
       }
@@ -2950,7 +2994,7 @@ class ProteinDisplay {
       this.eventY = event.clientY;
     }
 
-    var result = pos_dom(this.mainDiv[0]);
+    var result = getDomPosition(this.mainDiv[0]);
     this.mouseX = this.eventX - result[0];
     this.mouseY = this.eventY - result[1];
 

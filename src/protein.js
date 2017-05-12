@@ -23,12 +23,9 @@
 import v3 from "./v3";
 
 import {
-  url,
-  in_array,
-  trim,
-  clone_dict,
-  clone_list_of_dicts,
-  get_current_date,
+  getWindowUrl,
+  inArray,
+  getCurrentDateStr,
 } from "./util.js";
 
 
@@ -127,20 +124,20 @@ var Protein = function () {
           var x = parseFloat(lines[i].substr(30, 7));
           var y = parseFloat(lines[i].substr(38, 7));
           var z = parseFloat(lines[i].substr(46, 7));
-          var chain = trim(lines[i][21]);
-          var res_num = trim(lines[i].substr(22, 5));
-          var res_type = trim(lines[i].substr(17, 3));
-          var atom_type = trim(lines[i].substr(12, 4));
+          var chain = _.trim(lines[i][21]);
+          var res_num = _.trim(lines[i].substr(22, 5));
+          var res_type = _.trim(lines[i].substr(17, 3));
+          var atom_type = _.trim(lines[i].substr(12, 4));
           var label = res_num + ' - ' + res_type +
             ' - ' + atom_type;
           var bfactor = parseFloat(lines[i].substr(60,6));
-          var elem = delete_numbers(trim(lines[i].substr(76, 2)));
+          var elem = delete_numbers(_.trim(lines[i].substr(76, 2)));
           if (elem == "") {
-            elem = delete_numbers(trim(atom_type)).substr(0, 1);
+            elem = delete_numbers(_.trim(atom_type)).substr(0, 1);
           }
-          var is_chonmp = in_array(elem, chonp);
+          var is_chonmp = inArray(elem, chonp);
 
-          var alt = trim(lines[i].substr(16, 1));
+          var alt = _.trim(lines[i].substr(16, 1));
 
           if (chain) {
             label = chain + ":" + label;
@@ -155,9 +152,9 @@ var Protein = function () {
             }
           }
           var is_protein_or_nucleotide =
-            in_array(res_type, aa) ||
-            in_array(res_type, dna) ||
-            in_array(res_type, rna);
+            inArray(res_type, aa) ||
+            inArray(res_type, dna) ||
+            inArray(res_type, rna);
           if (!is_protein_or_nucleotide) {
             i_chain = -1;
           }
@@ -264,9 +261,9 @@ var Protein = function () {
       'atoms': {},
     }
     new_r.is_water = a.res_type == "HOH";
-    var r_type = trim(new_r.type)
-    new_r.is_protein = in_array(r_type, aa);
-    new_r.is_nuc = in_array(r_type, dna) || in_array(r_type, rna);
+    var r_type = _.trim(new_r.type)
+    new_r.is_protein = inArray(r_type, aa);
+    new_r.is_nuc = inArray(r_type, dna) || inArray(r_type, rna);
     new_r.is_protein_or_nuc = new_r.is_protein || new_r.is_nuc;
     new_r.is_grid = a.res_type == "XXX";
     new_r.is_ligands = !new_r.is_water && !new_r.is_protein_or_nuc && !new_r.is_grid;
@@ -513,7 +510,7 @@ var Protein = function () {
       }
       if ((a0.elem == "H") || (a1.elem == "H")) {
         cutoff = small_cutoff;
-      } else if (in_array(a0.elem, CHONPS) && in_array(a1.elem, CHONPS)) {
+      } else if (inArray(a0.elem, CHONPS) && inArray(a1.elem, CHONPS)) {
         cutoff = medium_cutoff;
       } else {
         cutoff = large_cutoff;
@@ -562,12 +559,12 @@ var Protein = function () {
       if (dist <= cutoff) {
         var res0 = this.res_by_id[a0.res_id];
         var res1 = this.res_by_id[a1.res_id];
-        if (!in_array(res1.i, res0.hb_partners)) {
+        if (!inArray(res1.i, res0.hb_partners)) {
           if ((a0.elem == "O") && (a1.elem == "N")) {
             res0.hb_partners.push(res1.i);
           }
         }
-        if (!in_array(res0.i, res1.hb_partners)) {
+        if (!inArray(res0.i, res1.hb_partners)) {
           if ((a1.elem == "O") && (a0.elem == "N")) {
             res1.hb_partners.push(res0.i);
           }
@@ -584,7 +581,7 @@ var Protein = function () {
       return false;
     }
     var i_res0 = this.residues[i_res0].i
-    return in_array(i_res0, this.residues[i_res1].hb_partners);
+    return inArray(i_res0, this.residues[i_res1].hb_partners);
   }
 
   this.res_diff = function (i_res0, i_res1) {
@@ -983,7 +980,7 @@ var View = function () {
   this.distances = [];
   this.text = 'Default view of PDB file';
   this.creator = "";
-  this.url = url();
+  this.url = getWindowUrl();
   this.show = {
     sidechain: true,
     peptide: true,
@@ -1001,23 +998,23 @@ var View = function () {
     v.res_id = this.res_id;
     v.i_atom = this.i_atom;
     v.selected = this.selected;
-    v.labels = clone_list_of_dicts(this.labels);
-    v.distances = clone_list_of_dicts(this.distances);
+    v.labels = _.cloneDeep(this.labels);
+    v.distances = _.cloneDeep(this.distances);
     v.order = this.order;
     v.text = this.text;
     v.time = this.time;
     v.url = this.url;
     v.abs_camera = this.abs_camera.clone();
     v.camera = this.camera.clone();
-    v.show = clone_dict(this.show);
+    v.show = _.cloneDeep(this.show);
     return v;
   }
 
   this.copy_metadata_from_view = function (in_view) {
     this.res_id = in_view.res_id;
-    this.show = clone_dict(in_view.show);
-    this.labels = clone_list_of_dicts(in_view.labels);
-    this.distances = clone_list_of_dicts(in_view.distances);
+    this.show = _.cloneDeep(in_view.show);
+    this.labels = _.cloneDeep(in_view.labels);
+    this.distances = _.cloneDeep(in_view.distances);
     this.text = in_view.text;
     this.time = in_view.time;
     this.url = in_view.url;
@@ -1475,7 +1472,7 @@ var Controller = function (scene) {
     var new_view = this.scene.current_view.clone();
     new_view.text = 'Click edit to change this text.';
     new_view.pdb_id = this.protein.pdb_id;
-    var time = get_current_date();
+    var time = getCurrentDateStr();
     if (user == '' || typeof user == 'undefined') {
       new_view.creator = '~ [public] @' + time;
     } else {

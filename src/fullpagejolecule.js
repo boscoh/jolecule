@@ -2,7 +2,7 @@ import scrollTo from "jquery.scrollto";
 import $ from "jquery";
 import _ from "lodash";
 import { EmbedJolecule, ViewPiece } from "./embedjolecule";
-import { url, link_button, random_id } from "./util";
+import { getWindowUrl, linkButton, randomId } from "./util";
 
 
 /**
@@ -25,19 +25,19 @@ class ViewPieceList {
           .append("VIEWS OF PROTEIN")
           .append("<br>")
           .append(
-            link_button(
+            linkButton(
               '', 'create [v]iew', 'jolecule-button',
               () => { this.makeNewView(); }))
           .append(
-            link_button(
+            linkButton(
               '', 'prev[&uarr;]', 'jolecule-button',
               () => { this.gotoPrevView(); }))
           .append(
-            link_button(
+            linkButton(
               '', 'next[&darr;]', 'jolecule-button',
               () => { this.gotoNextView(); }))
           .append(
-            link_button(
+            linkButton(
               '', '[a]dd label', 'jolecule-button',
               () => { this.proteinDisplay.atom_label_dialog(); }
             ))
@@ -207,19 +207,17 @@ class ViewPieceList {
   }
 
   makeNewView() {
-    let new_id = random_id();
+    let newId = randomId();
     this.controller.calculate_current_abs_camera();
-    this.controller.save_current_view(new_id);
-    this.insertNewViewDiv(new_id);
+    this.controller.save_current_view(newId);
+    this.insertNewViewDiv(newId);
     this.updateViews();
-    this.viewPiece[new_id].div.css('background-color', 'lightgray');
+    this.viewPiece[newId].div.css('background-color', 'lightgray');
     this.saveViewsToDataServer(() => {
-      this.viewPiece[new_id].div.css('background-color', '');
+      this.viewPiece[newId].div.css('background-color', '');
       $("#jolecule-views").stop();
       $("#jolecule-views").scrollTo(
-        this.viewPiece[new_id].div,
-        1000,
-        {offset:{top:-80}});
+        this.viewPiece[newId].div, 1000, {offset:{top:-80}});
     });
   }
 
@@ -279,7 +277,7 @@ class FullPageJolecule {
           dataServer);
 
         this.viewsDisplay.makeAllViews();
-        let hashTag = url().split('#')[1];
+        let hashTag = getWindowUrl().split('#')[1];
         if (hashTag in this.scene.saved_views_by_id) {
           this.viewsDisplay.setTargetByViewId(hashTag);
         } else {

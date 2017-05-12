@@ -310,7 +310,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.div = (0, _jquery2.default)('<div>').addClass("jolecule-view");
 	
 	    if ((0, _util.exists)(params.goto)) {
-	      this.div.append((0, _util.link_button)("", this.params.goto, 'jolecule-large-button', this.params.pick));
+	      this.div.append((0, _util.linkButton)("", this.params.goto, 'jolecule-large-button', this.params.pick));
 	    }
 	    this.params = params;
 	    this.makeEditDiv();
@@ -354,9 +354,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.editTextArea = (0, _jquery2.default)("<textarea>").addClass('jolecule-view-text').css('width', '100%').css('height', '5em').click(_lodash2.default.noop);
 	
-	      this.editDiv = (0, _jquery2.default)('<div>').css('width', '100%').click(_lodash2.default.noop).append(this.editTextArea).append('<br><br>').append((0, _util.link_button)("", "save", "jolecule-small-button", function (event) {
+	      this.editDiv = (0, _jquery2.default)('<div>').css('width', '100%').click(_lodash2.default.noop).append(this.editTextArea).append('<br><br>').append((0, _util.linkButton)("", "save", "jolecule-small-button", function (event) {
 	        _this2.saveChange();
-	      })).append(' &nbsp; ').append((0, _util.link_button)("", "discard", "jolecule-small-button", function (event) {
+	      })).append(' &nbsp; ').append((0, _util.linkButton)("", "discard", "jolecule-small-button", function (event) {
 	        _this2.discard_change();
 	      })).hide();
 	
@@ -369,15 +369,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var view = this.params.view;
 	
-	      var editButton = (0, _util.link_button)("", "edit", "jolecule-small-button", function () {
+	      var editButton = (0, _util.linkButton)("", "edit", "jolecule-small-button", function () {
 	        _this3.start_edit();
 	      });
 	
-	      var embedButton = (0, _util.link_button)("", "embed", "jolecule-small-button", function () {
+	      var embedButton = (0, _util.linkButton)("", "embed", "jolecule-small-button", function () {
 	        _this3.params.embed_view();
 	      });
 	
-	      var deleteButton = (0, _util.link_button)("", "delete", "jolecule-small-button", function () {
+	      var deleteButton = (0, _util.linkButton)("", "delete", "jolecule-small-button", function () {
 	        _this3.params.delete_view();
 	      });
 	
@@ -396,11 +396,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!view.lock) {
 	          this.showDiv.append(editButton);
 	
-	          if ((0, _util.exists)(this.params.swapUp) && this.params.swapUp) this.showDiv.append(" ").append((0, _util.link_button)("", "up", "jolecule-small-button", function () {
+	          if ((0, _util.exists)(this.params.swapUp) && this.params.swapUp) this.showDiv.append(" ").append((0, _util.linkButton)("", "up", "jolecule-small-button", function () {
 	            _this.params.swapUp();
 	          }));
 	
-	          if ((0, _util.exists)(this.params.swapUp) && this.params.swapDown) this.showDiv.append(" ").append((0, _util.link_button)("", "down", "jolecule-small-button", function () {
+	          if ((0, _util.exists)(this.params.swapUp) && this.params.swapDown) this.showDiv.append(" ").append((0, _util.linkButton)("", "down", "jolecule-small-button", function () {
 	            _this.params.swapDown();
 	          }));
 	
@@ -558,7 +558,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function saveCurrView() {
 	      var _this7 = this;
 	
-	      var newId = (0, _util.random_id)();
+	      var newId = (0, _util.randomId)();
 	      this.controller.calculate_current_abs_camera();
 	      this.controller.save_current_view(newId);
 	      this.updateView();
@@ -701,21 +701,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.statusText = (0, _jquery2.default)('<span>');
 	
-	      var textButton = (0, _util.toggle_button)('toggle_text', 'T', 'jolecule-button', function () {
+	      var textButton = (0, _util.toggleButton)('toggle_text', 'T', 'jolecule-button', function () {
 	        return _this10.isViewTextShown;
 	      }, function (b) {
 	        _this10.toggleTextState();
 	      });
 	
-	      var prevButton = (0, _util.link_button)('prev_view', '<', 'jolecule-button', function () {
+	      var prevButton = (0, _util.linkButton)('prev_view', '<', 'jolecule-button', function () {
 	        _this10.gotoPrevView();
 	      });
 	
-	      var nextButton = (0, _util.link_button)('prev_view', '>', 'jolecule-button', function () {
+	      var nextButton = (0, _util.linkButton)('prev_view', '>', 'jolecule-button', function () {
 	        _this10.gotoNextView();
 	      });
 	
-	      var loopButton = (0, _util.toggle_button)('loop', '&orarr;', 'jolecule-button', function () {
+	      var loopButton = (0, _util.toggleButton)('loop', '&orarr;', 'jolecule-button', function () {
 	        return _this10.isLoop;
 	      }, function (b) {
 	        _this10.isLoop = b;
@@ -723,44 +723,44 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var saveButton = '';
 	      if (this.params.isEditable) {
-	        saveButton = (0, _util.link_button)('save_view', '+', 'jolecule-button', function () {
+	        saveButton = (0, _util.linkButton)('save_view', '+', 'jolecule-button', function () {
 	          _this10.saveCurrView();
 	        });
 	      };
 	
-	      this.ligButton = (0, _util.toggle_button)('', 'lig', 'jolecule-button', function () {
+	      this.ligButton = (0, _util.toggleButton)('', 'lig', 'jolecule-button', function () {
 	        return _this10.controller.get_show_option('ligands');
 	      }, function (b) {
 	        _this10.controller.set_show_option('ligands', b);
 	      });
 	
-	      this.watButton = (0, _util.toggle_button)('', 'h2o', 'jolecule-button', function () {
+	      this.watButton = (0, _util.toggleButton)('', 'h2o', 'jolecule-button', function () {
 	        return _this10.controller.get_show_option('water');
 	      }, function (b) {
 	        _this10.controller.set_show_option('water', b);
 	      });
 	
-	      this.hydButton = (0, _util.toggle_button)('', 'h', 'jolecule-button', function () {
+	      this.hydButton = (0, _util.toggleButton)('', 'h', 'jolecule-button', function () {
 	        return _this10.controller.get_show_option('hydrogen');
 	      }, function (b) {
 	        _this10.controller.set_show_option('hydrogen', b);
 	      });
 	      this.hydButton = '';
 	
-	      var backboneButton = (0, _util.link_button)('', 'bb', 'jolecule-button', function () {
+	      var backboneButton = (0, _util.linkButton)('', 'bb', 'jolecule-button', function () {
 	        _this10.cycleBackbone();
 	      });
 	
-	      var allSidechainButton = (0, _util.link_button)('', 'all', 'jolecule-button', function () {
+	      var allSidechainButton = (0, _util.linkButton)('', 'all', 'jolecule-button', function () {
 	        _this10.controller.set_show_option('sidechain', true);
 	      });
 	
-	      var clearSidechainButton = (0, _util.link_button)('', 'x', 'jolecule-button', function () {
+	      var clearSidechainButton = (0, _util.linkButton)('', 'x', 'jolecule-button', function () {
 	        _this10.controller.set_show_option('sidechain', false);
 	        _this10.controller.clear_selected();
 	      });
 	
-	      var nearSidechainButton = (0, _util.link_button)('', 'near', 'jolecule-button', function () {
+	      var nearSidechainButton = (0, _util.linkButton)('', 'near', 'jolecule-button', function () {
 	        _this10.controller.toggle_neighbors();
 	      });
 	
@@ -28315,19 +28315,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var x = parseFloat(lines[i].substr(30, 7));
 	          var y = parseFloat(lines[i].substr(38, 7));
 	          var z = parseFloat(lines[i].substr(46, 7));
-	          var chain = (0, _util.trim)(lines[i][21]);
-	          var res_num = (0, _util.trim)(lines[i].substr(22, 5));
-	          var res_type = (0, _util.trim)(lines[i].substr(17, 3));
-	          var atom_type = (0, _util.trim)(lines[i].substr(12, 4));
+	          var chain = _.trim(lines[i][21]);
+	          var res_num = _.trim(lines[i].substr(22, 5));
+	          var res_type = _.trim(lines[i].substr(17, 3));
+	          var atom_type = _.trim(lines[i].substr(12, 4));
 	          var label = res_num + ' - ' + res_type + ' - ' + atom_type;
 	          var bfactor = parseFloat(lines[i].substr(60, 6));
-	          var elem = delete_numbers((0, _util.trim)(lines[i].substr(76, 2)));
+	          var elem = delete_numbers(_.trim(lines[i].substr(76, 2)));
 	          if (elem == "") {
-	            elem = delete_numbers((0, _util.trim)(atom_type)).substr(0, 1);
+	            elem = delete_numbers(_.trim(atom_type)).substr(0, 1);
 	          }
-	          var is_chonmp = (0, _util.in_array)(elem, chonp);
+	          var is_chonmp = (0, _util.inArray)(elem, chonp);
 	
-	          var alt = (0, _util.trim)(lines[i].substr(16, 1));
+	          var alt = _.trim(lines[i].substr(16, 1));
 	
 	          if (chain) {
 	            label = chain + ":" + label;
@@ -28341,7 +28341,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              i_chain = chains.length - 1;
 	            }
 	          }
-	          var is_protein_or_nucleotide = (0, _util.in_array)(res_type, aa) || (0, _util.in_array)(res_type, dna) || (0, _util.in_array)(res_type, rna);
+	          var is_protein_or_nucleotide = (0, _util.inArray)(res_type, aa) || (0, _util.inArray)(res_type, dna) || (0, _util.inArray)(res_type, rna);
 	          if (!is_protein_or_nucleotide) {
 	            i_chain = -1;
 	          }
@@ -28446,9 +28446,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      'atoms': {}
 	    };
 	    new_r.is_water = a.res_type == "HOH";
-	    var r_type = (0, _util.trim)(new_r.type);
-	    new_r.is_protein = (0, _util.in_array)(r_type, aa);
-	    new_r.is_nuc = (0, _util.in_array)(r_type, dna) || (0, _util.in_array)(r_type, rna);
+	    var r_type = _.trim(new_r.type);
+	    new_r.is_protein = (0, _util.inArray)(r_type, aa);
+	    new_r.is_nuc = (0, _util.inArray)(r_type, dna) || (0, _util.inArray)(r_type, rna);
 	    new_r.is_protein_or_nuc = new_r.is_protein || new_r.is_nuc;
 	    new_r.is_grid = a.res_type == "XXX";
 	    new_r.is_ligands = !new_r.is_water && !new_r.is_protein_or_nuc && !new_r.is_grid;
@@ -28683,7 +28683,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      if (a0.elem == "H" || a1.elem == "H") {
 	        cutoff = small_cutoff;
-	      } else if ((0, _util.in_array)(a0.elem, CHONPS) && (0, _util.in_array)(a1.elem, CHONPS)) {
+	      } else if ((0, _util.inArray)(a0.elem, CHONPS) && (0, _util.inArray)(a1.elem, CHONPS)) {
 	        cutoff = medium_cutoff;
 	      } else {
 	        cutoff = large_cutoff;
@@ -28732,12 +28732,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (dist <= cutoff) {
 	        var res0 = this.res_by_id[a0.res_id];
 	        var res1 = this.res_by_id[a1.res_id];
-	        if (!(0, _util.in_array)(res1.i, res0.hb_partners)) {
+	        if (!(0, _util.inArray)(res1.i, res0.hb_partners)) {
 	          if (a0.elem == "O" && a1.elem == "N") {
 	            res0.hb_partners.push(res1.i);
 	          }
 	        }
-	        if (!(0, _util.in_array)(res0.i, res1.hb_partners)) {
+	        if (!(0, _util.inArray)(res0.i, res1.hb_partners)) {
 	          if (a1.elem == "O" && a0.elem == "N") {
 	            res1.hb_partners.push(res0.i);
 	          }
@@ -28754,7 +28754,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return false;
 	    }
 	    var i_res0 = this.residues[i_res0].i;
-	    return (0, _util.in_array)(i_res0, this.residues[i_res1].hb_partners);
+	    return (0, _util.inArray)(i_res0, this.residues[i_res1].hb_partners);
 	  };
 	
 	  this.res_diff = function (i_res0, i_res1) {
@@ -29120,7 +29120,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.distances = [];
 	  this.text = 'Default view of PDB file';
 	  this.creator = "";
-	  this.url = (0, _util.url)();
+	  this.url = (0, _util.getWindowUrl)();
 	  this.show = {
 	    sidechain: true,
 	    peptide: true,
@@ -29138,23 +29138,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    v.res_id = this.res_id;
 	    v.i_atom = this.i_atom;
 	    v.selected = this.selected;
-	    v.labels = (0, _util.clone_list_of_dicts)(this.labels);
-	    v.distances = (0, _util.clone_list_of_dicts)(this.distances);
+	    v.labels = _.cloneDeep(this.labels);
+	    v.distances = _.cloneDeep(this.distances);
 	    v.order = this.order;
 	    v.text = this.text;
 	    v.time = this.time;
 	    v.url = this.url;
 	    v.abs_camera = this.abs_camera.clone();
 	    v.camera = this.camera.clone();
-	    v.show = (0, _util.clone_dict)(this.show);
+	    v.show = _.cloneDeep(this.show);
 	    return v;
 	  };
 	
 	  this.copy_metadata_from_view = function (in_view) {
 	    this.res_id = in_view.res_id;
-	    this.show = (0, _util.clone_dict)(in_view.show);
-	    this.labels = (0, _util.clone_list_of_dicts)(in_view.labels);
-	    this.distances = (0, _util.clone_list_of_dicts)(in_view.distances);
+	    this.show = _.cloneDeep(in_view.show);
+	    this.labels = _.cloneDeep(in_view.labels);
+	    this.distances = _.cloneDeep(in_view.distances);
 	    this.text = in_view.text;
 	    this.time = in_view.time;
 	    this.url = in_view.url;
@@ -29582,7 +29582,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var new_view = this.scene.current_view.clone();
 	    new_view.text = 'Click edit to change this text.';
 	    new_view.pdb_id = this.protein.pdb_id;
-	    var time = (0, _util.get_current_date)();
+	    var time = (0, _util.getCurrentDateStr)();
 	    if (user == '' || typeof user == 'undefined') {
 	      new_view.creator = '~ [public] @' + time;
 	    } else {
@@ -71666,7 +71666,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.get_current_date = exports.random_id = exports.clone_list_of_dicts = exports.clone_dict = exports.trim = exports.in_array = exports.stick_in_center = exports.stick_in_top_left = exports.create_edit_box_div = exports.toggle_button = exports.link_button = exports.pos_dom = exports.url = exports.exists = undefined;
+	exports.getCurrentDateStr = exports.randomId = exports.inArray = exports.stickJqueryDivInCenter = exports.stickJqueryDivInTopLeft = exports.toggleButton = exports.linkButton = exports.getDomPosition = exports.getWindowUrl = exports.exists = undefined;
 	
 	var _jquery = __webpack_require__(3);
 	
@@ -71682,55 +71682,56 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	function exists(x) {
-	  return typeof x !== 'undefined';
+	  return !_lodash2.default.isUndefined(x) && x !== null;
 	}
 	
-	function url() {
+	function getWindowUrl() {
 	  return "" + window.location;
 	}
 	
-	function pos_dom(in_dom) {
-	  var curr_dom = in_dom;
-	  var curr_left = 0;
-	  var curr_top = 0;
-	  if (curr_dom.offsetParent) {
-	    curr_left = curr_dom.offsetLeft;
-	    curr_top = curr_dom.offsetTop;
-	    while (curr_dom = curr_dom.offsetParent) {
-	      curr_left += curr_dom.offsetLeft;
-	      curr_top += curr_dom.offsetTop;
+	function getDomPosition(dom) {
+	  var currDom = dom;
+	  var currLeft = 0;
+	  var currTop = 0;
+	  if (currDom.offsetParent) {
+	    currLeft = currDom.offsetLeft;
+	    currTop = currDom.offsetTop;
+	    while (currDom = currDom.offsetParent) {
+	      currLeft += currDom.offsetLeft;
+	      currTop += currDom.offsetTop;
 	    }
 	  }
-	  curr_dom = in_dom;
+	  currDom = dom;
 	  do {
-	    curr_left -= curr_dom.scrollLeft || 0;
-	    curr_top -= curr_dom.scrollTop || 0;
-	  } while (curr_dom = curr_dom.parentNode);
-	  return [curr_left, curr_top];
+	    currLeft -= currDom.scrollLeft || 0;
+	    currTop -= currDom.scrollTop || 0;
+	  } while (currDom = currDom.parentNode);
+	  return [currLeft, currTop];
 	}
 	
-	function link_button(id_tag, html_text, class_tag, click) {
-	  var item = (0, _jquery2.default)('<a>').attr('id', id_tag).attr('href', '').html(html_text);
+	function linkButton(idTag, text, classTag, callback) {
+	  var item = (0, _jquery2.default)('<a>').attr('id', idTag).attr('href', '').html(text);
 	
-	  if (class_tag) {
-	    item.addClass(class_tag);
+	  if (classTag) {
+	    item.addClass(classTag);
 	  }
 	
-	  if (click) {
+	  if (callback) {
 	    item.on(' click touch ', function (e) {
 	      e.preventDefault();
-	      click();
+	      callback();
 	    });
 	  }
 	
 	  return item;
 	}
 	
-	function toggle_button(id_tag, html_text, class_tag, get_toggle, toggle, onColor) {
-	  var item = (0, _jquery2.default)('<a>').attr('id', id_tag).attr('href', '').html(html_text);
+	function toggleButton(idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
+	
+	  var item = (0, _jquery2.default)('<a>').attr('id', idTag).attr('href', '').html(text);
 	
 	  var color = function color() {
-	    if (get_toggle()) {
+	    if (getToggleFn()) {
 	      if (onColor) {
 	        item.css('background-color', onColor);
 	      } else {
@@ -71745,13 +71746,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  };
 	
-	  if (class_tag) {
-	    item.addClass(class_tag);
+	  if (classTag) {
+	    item.addClass(classTag);
 	  }
 	
 	  item.click(function (e) {
 	    e.preventDefault();
-	    toggle(!get_toggle());
+	    setToggleFn(!getToggleFn());
 	    color();
 	    return false;
 	  });
@@ -71763,40 +71764,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return item;
 	}
 	
-	function create_edit_box_div(init_text, width, change, cleanup, label) {
-	
-	  var accept_edit = function accept_edit() {
-	    change(textarea.val());
-	    cleanup();
-	    window.keyboard_lock = false;
-	  };
-	
-	  var discard_edit = function discard_edit() {
-	    cleanup();
-	    window.keyboard_lock = false;
-	  };
-	
-	  var save_button = link_button('okay', 'okay', 'jolecule-small-button', accept_edit);
-	
-	  var discard_button = link_button('discard', 'discard', 'jolecule-small-button', discard_edit);
-	
-	  var textarea = (0, _jquery2.default)("<textarea>").css('width', width).addClass('jolecule-view-text').text(init_text).keydown(function (e) {
-	    if (e.keyCode == 27) {
-	      discard_edit();
-	      return true;
-	    }
-	  });
-	
-	  if (!label) {
-	    label = '';
-	  }
-	
-	  window.keyboard_lock = true;
-	
-	  return (0, _jquery2.default)('<div>').css('width', width).append(label).append(textarea).append(save_button).append(' ').append(discard_button);
-	}
-	
-	function stick_in_top_left(parent, target, x_offset, y_offset) {
+	function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
 	  target.css({
 	    'position': 'absolute',
 	    'z-index': '9000'
@@ -71804,59 +71772,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var top = parent.position().top;
 	  var left = parent.position().left;
 	  parent.append(target);
-	  // var w_parent = parent.outerWidth();
-	  // var h_parent = parent.outerHeight();
-	  // target.width(w_parent - 2*x_offset);
-	  // target.height(h_parent - 2*y_offset);
 	  target.css({
-	    'top': top + y_offset,
-	    'left': left + x_offset
+	    'top': top + yOffset,
+	    'left': left + xOffset
 	  });
 	}
 	
-	function stick_in_center(parent, target, x_offset, y_offset) {
+	function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
 	  target.css({
 	    'position': 'absolute',
 	    'z-index': '9000'
 	  });
 	  var top = parent.position().top;
 	  var left = parent.position().left;
-	  var w_parent = parent.outerWidth();
-	  var h_parent = parent.outerHeight();
+	  var widthParent = parent.outerWidth();
+	  var heightParent = parent.outerHeight();
 	  parent.prepend(target);
-	  var w_target = target.outerWidth();
-	  var h_target = target.outerHeight();
+	  var widthTarget = target.outerWidth();
+	  var heightTarget = target.outerHeight();
 	  target.css({
-	    'top': top + h_parent / 2 - h_target / 2 - y_offset,
-	    'left': left + w_parent / 2 - w_target / 2 - x_offset
+	    'top': top + heightParent / 2 - heightTarget / 2 - yOffset,
+	    'left': left + widthParent / 2 - widthTarget / 2 - xOffset
 	  });
 	}
 	
-	function in_array(v, w_list) {
-	  return w_list.indexOf(v) >= 0;
+	function inArray(v, aList) {
+	  return aList.indexOf(v) >= 0;
 	}
 	
-	function trim(text) {
-	  return text.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
-	}
-	
-	function clone_dict(d) {
-	  var new_d = {};
-	  for (var k in d) {
-	    new_d[k] = d[k];
-	  };
-	  return new_d;
-	}
-	
-	function clone_list_of_dicts(list_of_dicts) {
-	  var new_list = [];
-	  for (var i = 0; i < list_of_dicts.length; i += 1) {
-	    new_list.push(clone_dict(list_of_dicts[i]));
-	  }
-	  return new_list;
-	}
-	
-	function random_string(n_char) {
+	function randomString(n_char) {
 	  var chars = "0123456789abcdefghiklmnopqrstuvwxyz";
 	  var s = '';
 	  for (var i = 0; i < n_char; i++) {
@@ -71866,32 +71810,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return s;
 	}
 	
-	function random_id() {
-	  return 'view:' + random_string(6);
+	function randomId() {
+	  return 'view:' + randomString(6);
 	}
 	
-	function get_current_date() {
-	  var current_view = new Date();
-	  var month = current_view.getMonth() + 1;
-	  var day = current_view.getDate();
-	  var year = current_view.getFullYear();
+	function getCurrentDateStr() {
+	  var now = new Date();
+	  var month = now.getMonth() + 1;
+	  var day = now.getDate();
+	  var year = now.getFullYear();
 	  return day + "/" + month + "/" + year;
 	}
 	
 	exports.exists = exists;
-	exports.url = url;
-	exports.pos_dom = pos_dom;
-	exports.link_button = link_button;
-	exports.toggle_button = toggle_button;
-	exports.create_edit_box_div = create_edit_box_div;
-	exports.stick_in_top_left = stick_in_top_left;
-	exports.stick_in_center = stick_in_center;
-	exports.in_array = in_array;
-	exports.trim = trim;
-	exports.clone_dict = clone_dict;
-	exports.clone_list_of_dicts = clone_list_of_dicts;
-	exports.random_id = random_id;
-	exports.get_current_date = get_current_date;
+	exports.getWindowUrl = getWindowUrl;
+	exports.getDomPosition = getDomPosition;
+	exports.linkButton = linkButton;
+	exports.toggleButton = toggleButton;
+	exports.stickJqueryDivInTopLeft = stickJqueryDivInTopLeft;
+	exports.stickJqueryDivInCenter = stickJqueryDivInCenter;
+	exports.inArray = inArray;
+	exports.randomId = randomId;
+	exports.getCurrentDateStr = getCurrentDateStr;
 
 /***/ },
 /* 10 */
@@ -72047,6 +71987,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function showTextDialog(parentDiv, label, success) {
 	
+	  function create_edit_box_div(init_text, width, change, cleanup, label) {
+	
+	    var accept_edit = function accept_edit() {
+	      change(textarea.val());
+	      cleanup();
+	      window.keyboard_lock = false;
+	    };
+	
+	    var discard_edit = function discard_edit() {
+	      cleanup();
+	      window.keyboard_lock = false;
+	    };
+	
+	    var save_button = linkButton('okay', 'okay', 'jolecule-small-button', accept_edit);
+	
+	    var discard_button = linkButton('discard', 'discard', 'jolecule-small-button', discard_edit);
+	
+	    var textarea = (0, _jquery2.default)("<textarea>").css('width', width).addClass('jolecule-view-text').text(init_text).keydown(function (e) {
+	      if (e.keyCode == 27) {
+	        discard_edit();
+	        return true;
+	      }
+	    });
+	
+	    if (!label) {
+	      label = '';
+	    }
+	
+	    window.keyboard_lock = true;
+	
+	    return (0, _jquery2.default)('<div>').css('width', width).append(label).append(textarea).append(save_button).append(' ').append(discard_button);
+	  }
+	
 	  window.keyboard_lock = true;
 	
 	  function cleanup() {
@@ -72054,11 +72027,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    window.keyboard_lock = false;
 	  }
 	
-	  var editbox = (0, _util.create_edit_box_div)('', "100%", success, cleanup, label);
+	  var editbox = create_edit_box_div('', "100%", success, cleanup, label);
 	
 	  var dialog = (0, _jquery2.default)('<div>').addClass('jolecule-dialog').css('display', 'block').css('z-index', '2000').css('width', Math.min(400, parentDiv.width() - 100)).append(editbox);
 	
-	  (0, _util.stick_in_center)(parentDiv, dialog, 0, 70);
+	  (0, _util.stickJqueryDivInCenter)(parentDiv, dialog, 0, 70);
 	
 	  var focus = function focus() {
 	    editbox.find('textarea').focus();
@@ -73094,7 +73067,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      console.log("make grid atoms", elem, this.scene.grid_atoms[elem]);
 	      var color = new _three2.default.Color(ElementColors[elem]);
 	      var colorHexStr = color.getHexString();
-	      var text_button = (0, _util.toggle_button)('toggle_text', elem, 'jolecule-button', function () {
+	      var text_button = (0, _util.toggleButton)('toggle_text', elem, 'jolecule-button', function () {
 	        return _this8.scene.grid_atoms[elem];
 	      }, function (b) {
 	        _this8.scene.grid_atoms[elem] = b;
@@ -73399,7 +73372,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function setProcessingMesssage(message) {
 	      console.log(message);
 	      this.messageDiv.html(message).show();
-	      (0, _util.stick_in_top_left)(this.mainDiv, this.messageDiv, 100, 90);
+	      (0, _util.stickJqueryDivInTopLeft)(this.mainDiv, this.messageDiv, 100, 90);
 	    }
 	  }, {
 	    key: "cleanupProcessingMessage",
@@ -74037,14 +74010,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        for (var j = 0; j < residue.bonds.length; j += 1) {
 	          var bond = residue.bonds[j];
-	          if ((0, _util.in_array)(bond.atom1.type, backboneAtoms) || (0, _util.in_array)(bond.atom2.type, backboneAtoms)) {
+	          if ((0, _util.inArray)(bond.atom1.type, backboneAtoms) || (0, _util.inArray)(bond.atom2.type, backboneAtoms)) {
 	            this.mergeBond(geom, bond, residue);
 	          }
 	        }
 	
 	        for (var a in residue.atoms) {
 	          var atom = residue.atoms[a];
-	          if ((0, _util.in_array)(atom.type, backboneAtoms)) {
+	          if ((0, _util.inArray)(atom.type, backboneAtoms)) {
 	            this.pushAtom(this.objects.backbone, atom);
 	          }
 	        }
@@ -74188,7 +74161,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var bond = residue.bonds[j];
 	
-	        if (!(0, _util.in_array)(bond.atom1.type, backboneAtoms) || !(0, _util.in_array)(bond.atom2.type, backboneAtoms)) {
+	        if (!(0, _util.inArray)(bond.atom1.type, backboneAtoms) || !(0, _util.inArray)(bond.atom2.type, backboneAtoms)) {
 	
 	          this.mergeBond(scGeom, bond, residue);
 	        }
@@ -74203,7 +74176,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      for (var a in residue.atoms) {
 	        var atom = residue.atoms[a];
-	        if (!(0, _util.in_array)(atom.type, backboneAtoms)) {
+	        if (!(0, _util.inArray)(atom.type, backboneAtoms)) {
 	          atom.is_sidechain = true;
 	          this.pushAtom(residue.sidechain, atom);
 	        }
@@ -74585,7 +74558,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.eventY = event.clientY;
 	      }
 	
-	      var result = (0, _util.pos_dom)(this.mainDiv[0]);
+	      var result = (0, _util.getDomPosition)(this.mainDiv[0]);
 	      this.mouseX = this.eventX - result[0];
 	      this.mouseY = this.eventY - result[1];
 	
@@ -75719,13 +75692,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.controller = controller;
 	    this.data_server = data_server;
 	    this.viewPiece = {};
-	    this.topDiv = (0, _jquery4.default)(this.divTag).append((0, _jquery4.default)("<div>").addClass("jolecule-sub-header").append("VIEWS OF PROTEIN").append("<br>").append((0, _util.link_button)('', 'create [v]iew', 'jolecule-button', function () {
+	    this.topDiv = (0, _jquery4.default)(this.divTag).append((0, _jquery4.default)("<div>").addClass("jolecule-sub-header").append("VIEWS OF PROTEIN").append("<br>").append((0, _util.linkButton)('', 'create [v]iew', 'jolecule-button', function () {
 	      _this.makeNewView();
-	    })).append((0, _util.link_button)('', 'prev[&uarr;]', 'jolecule-button', function () {
+	    })).append((0, _util.linkButton)('', 'prev[&uarr;]', 'jolecule-button', function () {
 	      _this.gotoPrevView();
-	    })).append((0, _util.link_button)('', 'next[&darr;]', 'jolecule-button', function () {
+	    })).append((0, _util.linkButton)('', 'next[&darr;]', 'jolecule-button', function () {
 	      _this.gotoNextView();
-	    })).append((0, _util.link_button)('', '[a]dd label', 'jolecule-button', function () {
+	    })).append((0, _util.linkButton)('', '[a]dd label', 'jolecule-button', function () {
 	      _this.proteinDisplay.atom_label_dialog();
 	    }))).append((0, _jquery4.default)("<div>").attr("id", "jolecule-views"));
 	  }
@@ -75916,16 +75889,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function makeNewView() {
 	      var _this5 = this;
 	
-	      var new_id = (0, _util.random_id)();
+	      var newId = (0, _util.randomId)();
 	      this.controller.calculate_current_abs_camera();
-	      this.controller.save_current_view(new_id);
-	      this.insertNewViewDiv(new_id);
+	      this.controller.save_current_view(newId);
+	      this.insertNewViewDiv(newId);
 	      this.updateViews();
-	      this.viewPiece[new_id].div.css('background-color', 'lightgray');
+	      this.viewPiece[newId].div.css('background-color', 'lightgray');
 	      this.saveViewsToDataServer(function () {
-	        _this5.viewPiece[new_id].div.css('background-color', '');
+	        _this5.viewPiece[newId].div.css('background-color', '');
 	        (0, _jquery4.default)("#jolecule-views").stop();
-	        (0, _jquery4.default)("#jolecule-views").scrollTo(_this5.viewPiece[new_id].div, 1000, { offset: { top: -80 } });
+	        (0, _jquery4.default)("#jolecule-views").scrollTo(_this5.viewPiece[newId].div, 1000, { offset: { top: -80 } });
 	      });
 	    }
 	  }]);
@@ -75987,7 +75960,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          _this7.viewsDisplay = new ViewPieceList(_this7.viewsDisplayTag, _this7.controller, _this7.proteinDisplay, dataServer);
 	
 	          _this7.viewsDisplay.makeAllViews();
-	          var hashTag = (0, _util.url)().split('#')[1];
+	          var hashTag = (0, _util.getWindowUrl)().split('#')[1];
 	          if (hashTag in _this7.scene.saved_views_by_id) {
 	            _this7.viewsDisplay.setTargetByViewId(hashTag);
 	          } else {

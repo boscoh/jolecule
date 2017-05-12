@@ -7,52 +7,52 @@ import _ from "lodash";
 
 
 function exists(x) {
-  return typeof x !== 'undefined';
+  return !(_.isUndefined(x)) && (x !== null);
 }
 
 
-function url() {
+function getWindowUrl() {
   return "" + window.location;
 }
 
 
-function pos_dom(in_dom) {
-  var curr_dom = in_dom;
-  var curr_left = 0;
-  var curr_top = 0;
-  if (curr_dom.offsetParent) {
-    curr_left = curr_dom.offsetLeft;
-    curr_top = curr_dom.offsetTop;
-    while (curr_dom = curr_dom.offsetParent) {
-      curr_left += curr_dom.offsetLeft;
-      curr_top += curr_dom.offsetTop;
+function getDomPosition(dom) {
+  var currDom = dom;
+  var currLeft = 0;
+  var currTop = 0;
+  if (currDom.offsetParent) {
+    currLeft = currDom.offsetLeft;
+    currTop = currDom.offsetTop;
+    while (currDom = currDom.offsetParent) {
+      currLeft += currDom.offsetLeft;
+      currTop += currDom.offsetTop;
     }
   }
-  curr_dom = in_dom;
+  currDom = dom;
   do {
-    curr_left -= curr_dom.scrollLeft || 0;
-    curr_top -= curr_dom.scrollTop || 0;
-  } while (curr_dom = curr_dom.parentNode);
-  return [curr_left, curr_top];
+    currLeft -= currDom.scrollLeft || 0;
+    currTop -= currDom.scrollTop || 0;
+  } while (currDom = currDom.parentNode);
+  return [currLeft, currTop];
 }
 
 
-function link_button(id_tag, html_text, class_tag, click) {
+function linkButton(idTag, text, classTag, callback) {
   var item = 
     $('<a>')
-      .attr('id', id_tag)
+      .attr('id', idTag)
       .attr('href', '')
-      .html(html_text);
+      .html(text);
 
-  if (class_tag) {
-    item.addClass(class_tag);
+  if (classTag) {
+    item.addClass(classTag);
   }
 
-  if (click) {
+  if (callback) {
     item.on(' click touch ',
       function(e) { 
         e.preventDefault();
-        click(); 
+        callback(); 
       }
     );
   }
@@ -61,16 +61,17 @@ function link_button(id_tag, html_text, class_tag, click) {
 }
 
 
-function toggle_button(
-  id_tag, html_text, class_tag, get_toggle, toggle, onColor) {
-  var item = 
+function toggleButton(
+  idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
+
+  var item =
     $('<a>')
-      .attr('id', id_tag)
+      .attr('id', idTag)
       .attr('href', '')
-      .html(html_text);
+      .html(text);
 
   var color = function() {
-    if (get_toggle()) {
+    if (getToggleFn()) {
       if (onColor) {
         item.css('background-color', onColor);
       } else {
@@ -85,14 +86,14 @@ function toggle_button(
     }
   }
 
-  if (class_tag) {
-    item.addClass(class_tag);
+  if (classTag) {
+    item.addClass(classTag);
   }
 
   item.click(
     function(e) {
       e.preventDefault();
-      toggle(!get_toggle()); 
+      setToggleFn(!getToggleFn()); 
       color();
       return false; 
     }
@@ -106,55 +107,9 @@ function toggle_button(
 }
 
 
-function create_edit_box_div(init_text, width, change, cleanup, label) {
-
-  var accept_edit = function() { 
-    change(textarea.val());
-    cleanup();
-    window.keyboard_lock = false;
-  }
-
-  var discard_edit = function() {
-    cleanup();
-    window.keyboard_lock = false;
-  }
-
-  var save_button = link_button(
-      'okay', 'okay', 'jolecule-small-button', accept_edit);
-
-  var discard_button = link_button(
-      'discard', 'discard', 'jolecule-small-button', discard_edit);
-
-  var textarea = $("<textarea>")
-    .css('width', width)
-    .addClass('jolecule-view-text')
-    .text(init_text)
-    .keydown(
-      function(e) {
-        if (e.keyCode == 27) {
-          discard_edit();
-        return true;
-      }
-    })
-
-  if (!label) {
-    label = '';
-  }
-
-  window.keyboard_lock = true;
-
-  return $('<div>')
-    .css('width', width)
-    .append(label)
-    .append(textarea)
-    .append(save_button)
-    .append(' ')
-    .append(discard_button);
-}
 
 
-
-function stick_in_top_left(parent, target, x_offset, y_offset) {
+function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
   target.css({
     'position':'absolute',
     'z-index':'9000'
@@ -162,65 +117,38 @@ function stick_in_top_left(parent, target, x_offset, y_offset) {
   var top = parent.position().top;
   var left = parent.position().left;
   parent.append(target);
-  // var w_parent = parent.outerWidth();
-  // var h_parent = parent.outerHeight();
-  // target.width(w_parent - 2*x_offset);
-  // target.height(h_parent - 2*y_offset);
   target.css({
-      'top': top + y_offset,
-      'left': left + x_offset,
+      'top': top + yOffset,
+      'left': left + xOffset
   });
 }
 
 
-function stick_in_center(parent, target, x_offset, y_offset) {
+function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
   target.css({
     'position':'absolute',
     'z-index':'9000'
   });
   var top = parent.position().top;
   var left = parent.position().left;
-  var w_parent = parent.outerWidth();
-  var h_parent = parent.outerHeight();
+  var widthParent = parent.outerWidth();
+  var heightParent = parent.outerHeight();
   parent.prepend(target);
-  var w_target = target.outerWidth();
-  var h_target = target.outerHeight();
+  var widthTarget = target.outerWidth();
+  var heightTarget = target.outerHeight();
   target.css({
-      'top': top + h_parent/2 - h_target/2 - y_offset,
-      'left': left + w_parent/2 - w_target/2 - x_offset,
+      'top': top + heightParent/2 - heightTarget/2 - yOffset,
+      'left': left + widthParent/2 - widthTarget/2 - xOffset,
   });
 }
 
 
-function in_array(v, w_list) {
-  return w_list.indexOf(v) >= 0;
+function inArray(v, aList) {
+  return aList.indexOf(v) >= 0;
 }
 
 
-function trim(text) {
-  return text.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
-}
-
-
-function clone_dict(d) {
-  var new_d = {};
-  for (var k in d) {
-    new_d[k] = d[k];
-  };
-  return new_d;
-}
-
-
-function clone_list_of_dicts(list_of_dicts) {
-  var new_list = [];
-  for (var i=0; i<list_of_dicts.length; i+= 1) {
-    new_list.push(clone_dict(list_of_dicts[i]));
-  }
-  return new_list;
-}
-
-
-function random_string(n_char) {
+function randomString(n_char) {
 	var chars = 
 	   "0123456789abcdefghiklmnopqrstuvwxyz";
 	var s = '';
@@ -232,33 +160,29 @@ function random_string(n_char) {
 }
 
 
-function random_id() {
-  return 'view:' + random_string(6);
+function randomId() {
+  return 'view:' + randomString(6);
 }
 
 
-function get_current_date() {
-  var current_view = new Date();
-  var month = current_view.getMonth() + 1;
-  var day = current_view.getDate();
-  var year = current_view.getFullYear();
+function getCurrentDateStr() {
+  var now = new Date();
+  var month = now.getMonth() + 1;
+  var day = now.getDate();
+  var year = now.getFullYear();
   return day + "/" + month + "/" + year;
 }
 
 
 export {
-    exists,
-    url,
-    pos_dom,
-    link_button,
-    toggle_button,
-    create_edit_box_div,
-    stick_in_top_left,
-    stick_in_center,
-    in_array,
-    trim,
-    clone_dict,
-    clone_list_of_dicts,
-    random_id,
-    get_current_date,
+  exists,
+  getWindowUrl,
+  getDomPosition,
+  linkButton,
+  toggleButton,
+  stickJqueryDivInTopLeft,
+  stickJqueryDivInCenter,
+  inArray,
+  randomId,
+  getCurrentDateStr,
 }

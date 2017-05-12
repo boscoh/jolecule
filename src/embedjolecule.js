@@ -4,10 +4,9 @@ import {Protein, Controller, Scene} from "./protein";
 import {ProteinDisplay} from "./proteindisplay";
 import {
   exists,
-  link_button,
-  toggle_button,
-  stick_in_top_left,
-  random_id,
+  linkButton,
+  toggleButton,
+  randomId,
 } from "./util.js";
 
 
@@ -31,7 +30,7 @@ class ViewPiece {
 
     if (exists(params.goto)) {
       this.div.append(
-        link_button(
+        linkButton(
           "",
           this.params.goto,
           'jolecule-large-button',
@@ -82,12 +81,12 @@ class ViewPiece {
       .append(this.editTextArea)
       .append('<br><br>')
       .append(
-        link_button(
+        linkButton(
           "", "save", "jolecule-small-button",
           (event) => { this.saveChange() }))
       .append(' &nbsp; ')
       .append(
-        link_button(
+        linkButton(
           "", "discard", "jolecule-small-button",
           (event) => { this.discard_change() }))
       .hide();
@@ -98,15 +97,15 @@ class ViewPiece {
   makeShowDiv() {
     var view = this.params.view;
 
-    var editButton = link_button(
+    var editButton = linkButton(
       "", "edit", "jolecule-small-button",
       () => { this.start_edit(); });
 
-    var embedButton = link_button(
+    var embedButton = linkButton(
       "", "embed", "jolecule-small-button",
       () => { this.params.embed_view() });
 
-    var deleteButton = link_button(
+    var deleteButton = linkButton(
       "", "delete", "jolecule-small-button",
       () => { this.params.delete_view() });
 
@@ -141,7 +140,7 @@ class ViewPiece {
           this.showDiv
             .append(" ")
             .append(
-              link_button(
+              linkButton(
                 "", "up", "jolecule-small-button",
                 function() { _this.params.swapUp(); }))
 
@@ -149,7 +148,7 @@ class ViewPiece {
           this.showDiv
             .append(" ")
             .append(
-              link_button(
+              linkButton(
                 "", "down", "jolecule-small-button",
                 function() { _this.params.swapDown(); }))
 
@@ -302,7 +301,7 @@ class EmbedJolecule {
   }
 
   saveCurrView() {
-    var newId = random_id();
+    var newId = randomId();
     this.controller.calculate_current_abs_camera();
     this.controller.save_current_view(newId);
     this.updateView();
@@ -434,62 +433,62 @@ class EmbedJolecule {
 
     this.statusText = $('<span>');
 
-    var textButton = toggle_button(
+    var textButton = toggleButton(
         'toggle_text', 'T', 'jolecule-button',
         () => this.isViewTextShown,
         (b) => { this.toggleTextState(); });
 
-    var prevButton = link_button(
+    var prevButton = linkButton(
       'prev_view', '<', 'jolecule-button', () => { this.gotoPrevView() });
 
-    var nextButton = link_button(
+    var nextButton = linkButton(
         'prev_view', '>', 'jolecule-button', () => { this.gotoNextView() });
 
-    var loopButton = toggle_button(
+    var loopButton = toggleButton(
         'loop', '&orarr;', 'jolecule-button',
         () => this.isLoop,
         (b) => { this.isLoop = b });
 
     var saveButton = '';
     if (this.params.isEditable) {
-      saveButton = link_button(
+      saveButton = linkButton(
           'save_view', '+', 'jolecule-button', () => { this.saveCurrView() });
     };
 
-    this.ligButton = toggle_button(
+    this.ligButton = toggleButton(
       '', 'lig', 'jolecule-button',
       () => this.controller.get_show_option('ligands'),
       (b) => { this.controller.set_show_option('ligands', b); }
     );
 
-    this.watButton = toggle_button(
+    this.watButton = toggleButton(
       '', 'h2o', 'jolecule-button',
       () => this.controller.get_show_option('water'),
       (b) => { this.controller.set_show_option('water', b); }
     );
 
-    this.hydButton = toggle_button(
+    this.hydButton = toggleButton(
       '', 'h', 'jolecule-button',
       () => this.controller.get_show_option('hydrogen'),
       (b) => { this.controller.set_show_option('hydrogen', b); }
     );
     this.hydButton = '';
 
-    var backboneButton = link_button(
+    var backboneButton = linkButton(
       '', 'bb', 'jolecule-button',
       () => { this.cycleBackbone(); });
 
-    var allSidechainButton = link_button('', 'all', 'jolecule-button',
+    var allSidechainButton = linkButton('', 'all', 'jolecule-button',
       () => { this.controller.set_show_option('sidechain', true); });
 
-    var clearSidechainButton = link_button(
+    var clearSidechainButton = linkButton(
       '', 'x', 'jolecule-button',
       () => {
         this.controller.set_show_option('sidechain', false);
         this.controller.clear_selected();
       });
 
-    var nearSidechainButton = link_button(
+    var nearSidechainButton = linkButton(
       '', 'near', 'jolecule-button',
       () => { this.controller.toggle_neighbors(); });
 

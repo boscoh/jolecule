@@ -2,6 +2,51 @@
   {
     "camera": {
       "in": [
+        31.896534430201648,
+        29.255611418972574,
+        -4.613456237177716
+      ],
+      "pos": [
+        32.74,
+        29.78,
+        -4.73
+      ],
+      "slab": {
+        "z_back": 13.830123456790123,
+        "z_front": -4.400493827160491,
+        "zoom": 29.927354534274553
+      },
+      "up": [
+        32.898365700883915,
+        29.32995122032139,
+        -5.608849475560711
+      ]
+    },
+    "creator": "~ public @11/5/2017",
+    "distances": [],
+    "i_atom": 1227,
+    "labels": [],
+    "order": 1,
+    "pdb_id": "1mbo",
+    "res_id": "1mbo:A:154",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "version": 2,
+    "view_id": "view:z3mfz8"
+  },
+  {
+    "camera": {
+      "in": [
         11.806914551919526,
         24.27087304582328,
         14.110436672233593
@@ -26,7 +71,7 @@
     "distances": [],
     "i_atom": 591,
     "labels": [],
-    "order": 1,
+    "order": 2,
     "pdb_id": "1mbo",
     "res_id": "1mbo:A:75",
     "selected": [
@@ -96,7 +141,7 @@
     "distances": [],
     "i_atom": 1274,
     "labels": [],
-    "order": 2,
+    "order": 3,
     "pdb_id": "1mbo",
     "res_id": "1mbo:A:155",
     "selected": [],
@@ -151,7 +196,7 @@
         "text": "hello"
       }
     ],
-    "order": 3,
+    "order": 4,
     "pdb_id": "1mbo",
     "res_id": "A:115",
     "selected": [],
@@ -205,7 +250,7 @@
         "text": "C-terminal"
       }
     ],
-    "order": 4,
+    "order": 5,
     "pdb_id": "1mbo",
     "res_id": "A:109",
     "selected": [],
@@ -254,7 +299,7 @@
         "text": "kink in alpha-helix"
       }
     ],
-    "order": 5,
+    "order": 6,
     "pdb_id": "1mbo",
     "res_id": "A:21",
     "selected": [],
@@ -303,7 +348,7 @@
         "text": "bottom of cavity"
       }
     ],
-    "order": 6,
+    "order": 7,
     "pdb_id": "1mbo",
     "res_id": "A:68",
     "selected": [],
@@ -352,7 +397,7 @@
         "text": "bottom of cavity"
       }
     ],
-    "order": 7,
+    "order": 8,
     "pdb_id": "1mbo",
     "res_id": "A:68",
     "selected": [],
@@ -401,7 +446,7 @@
         "text": "haha"
       }
     ],
-    "order": 8,
+    "order": 9,
     "pdb_id": "1mbo",
     "res_id": "1mbo:A:63",
     "selected": [
@@ -465,7 +510,7 @@
         "text": "heme"
       }
     ],
-    "order": 9,
+    "order": 10,
     "pdb_id": "1mbo",
     "res_id": "A:155",
     "selected": [],
@@ -514,7 +559,7 @@
         "text": "heme"
       }
     ],
-    "order": 10,
+    "order": 11,
     "pdb_id": "1mbo",
     "res_id": "A:155",
     "selected": [],
@@ -563,7 +608,7 @@
         "text": "Iron atom"
       }
     ],
-    "order": 11,
+    "order": 12,
     "pdb_id": "1mbo",
     "res_id": "A:155",
     "selected": [],
@@ -620,7 +665,7 @@
         "text": "O2 of oxygen molecule"
       }
     ],
-    "order": 12,
+    "order": 13,
     "pdb_id": "1mbo",
     "res_id": "A:555",
     "selected": [],
@@ -664,7 +709,7 @@
     "distances": [],
     "i_atom": 1276,
     "labels": [],
-    "order": 13,
+    "order": 14,
     "pdb_id": "1mbo",
     "res_id": "A:555",
     "selected": [
@@ -721,7 +766,7 @@
         "text": "blocking histidine"
       }
     ],
-    "order": 14,
+    "order": 15,
     "pdb_id": "1mbo",
     "res_id": "A:64",
     "selected": [
@@ -778,7 +823,7 @@
         "text": "blocking histidine"
       }
     ],
-    "order": 15,
+    "order": 16,
     "pdb_id": "1mbo",
     "res_id": "A:64",
     "selected": [
@@ -835,7 +880,7 @@
         "text": "blocks potential carbon monoxide binding"
       }
     ],
-    "order": 16,
+    "order": 17,
     "pdb_id": "1mbo",
     "res_id": "A:64",
     "selected": [
