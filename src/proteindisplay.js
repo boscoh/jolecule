@@ -19,6 +19,7 @@ import {
 } from "./glgeometry";
 import {
   toggleButton,
+  linkButton,
   exists,
   getDomPosition,
   stickJqueryDivInCenter,
@@ -170,52 +171,10 @@ function fraction(reference, target, t) {
 }
 
 
-function showTextDialog(parentDiv, label, success) {
+function textEntryDialog(parentDiv, label, callback) {
 
-  function create_edit_box_div(init_text, width, change, cleanup, label) {
-
-    var accept_edit = function() {
-      change(textarea.val());
-      cleanup();
-      window.keyboard_lock = false;
-    }
-
-    var discard_edit = function() {
-      cleanup();
-      window.keyboard_lock = false;
-    }
-
-    var save_button = linkButton(
-      'okay', 'okay', 'jolecule-small-button', accept_edit);
-
-    var discard_button = linkButton(
-      'discard', 'discard', 'jolecule-small-button', discard_edit);
-
-    var textarea = $("<textarea>")
-      .css('width', width)
-      .addClass('jolecule-view-text')
-      .text(init_text)
-      .keydown(
-        function(e) {
-          if (e.keyCode == 27) {
-            discard_edit();
-            return true;
-          }
-        })
-
-    if (!label) {
-      label = '';
-    }
-
-    window.keyboard_lock = true;
-
-    return $('<div>')
-      .css('width', width)
-      .append(label)
-      .append(textarea)
-      .append(save_button)
-      .append(' ')
-      .append(discard_button);
+  if (!label) {
+    label = '';
   }
 
   window.keyboard_lock = true;
@@ -225,8 +184,41 @@ function showTextDialog(parentDiv, label, success) {
     window.keyboard_lock = false;
   }
 
-  var editbox = create_edit_box_div(
-    '', "100%", success, cleanup, label);
+  function accept() {
+    callback(textarea.val());
+    cleanup();
+    window.keyboard_lock = false;
+  }
+
+  function discard() {
+    cleanup();
+    window.keyboard_lock = false;
+  }
+
+  var save_button = linkButton(
+    'okay', 'okay', 'jolecule-small-button', accept);
+
+  var discard_button = linkButton(
+    'discard', 'discard', 'jolecule-small-button', discard);
+
+  var textarea = $("<textarea>")
+    .css('width', "100%")
+    .addClass('jolecule-view-text')
+    .keydown(
+      function(e) {
+        if (e.keyCode == 27) {
+          discard();
+          return true;
+        }
+      })
+
+  var editbox = $('<div>')
+    .css('width', "100%")
+    .append(label)
+    .append(textarea)
+    .append(save_button)
+    .append(' ')
+    .append(discard_button);
 
   var dialog = $('<div>')
     .addClass('jolecule-dialog')
@@ -237,11 +229,7 @@ function showTextDialog(parentDiv, label, success) {
 
   stickJqueryDivInCenter(parentDiv, dialog, 0, 70);
 
-  var focus = function () {
-    editbox.find('textarea')
-      .focus();
-  };
-  setTimeout(focus, 100);
+  setTimeout(() => { editbox.find('textarea').focus() }, 100);
 
 }
 
@@ -3158,7 +3146,7 @@ class ProteinDisplay {
       var atom = this.protein.atoms[i_atom];
       var label = 'Label atom : ' + atom.label;
 
-      showTextDialog(this.mainDiv, label, success);
+      textEntryDialog(this.mainDiv, label, success);
     }
 
   }

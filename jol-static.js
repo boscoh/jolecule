@@ -86,7 +86,7 @@ const embedIndexHtmlMustache = `
   require( ['jolecule'], function(jolecule) {
     var j = jolecule.initEmbedJolecule({
       divTag: '#jolecule',
-      isGrid: true});
+      isGrid: false});
     require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
       var dataServers = [{{{dataServerArgStr}}}];
       for (var dataServer of dataServers) {
@@ -123,7 +123,11 @@ const fullPageIndexHtmlMustache = `
             var j = jolecule.initFullPageJolecule(
               '#jolecule-protein-container',
               '#jolecule-sequence-container',
-              '#jolecule-views-container');
+              '#jolecule-views-container',
+              { 
+                isEditable: false,
+                isGrid: false
+              });
             require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
               var dataServers = [{{{dataServerArgStr}}}];
               for (var dataServer of dataServers) {

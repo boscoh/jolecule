@@ -22,11 +22,7 @@
 
 import v3 from "./v3";
 
-import {
-  getWindowUrl,
-  inArray,
-  getCurrentDateStr,
-} from "./util.js";
+import { getWindowUrl, inArray, getCurrentDateStr } from "./util.js";
 
 
 var user = 'public'; // will be overriden by server
@@ -721,7 +717,8 @@ var Protein = function () {
     this.pdb_id = protein_data['pdb_id'];
     console.log(`Protein.load ${this.pdb_id} begin`);
     var atom_lines = extract_atom_lines(protein_data['pdb_text']);
-    this.default_text = parsetTitleFromPdbText(protein_data['pdb_text']);
+    this.default_html = 'Default view of ' + this.pdb_id + ": "
+      + parsetTitleFromPdbText(protein_data['pdb_text']);
     let atoms = this.make_atoms_from_pdb_lines(atom_lines, this.pdb_id);
     console.log(`Protein.load ${atoms.length} atoms`);
     this.make_residues(atoms);
@@ -1203,32 +1200,6 @@ var Scene = function (protein) {
     this.n_update_step -= 1;
   }
 
-  this.move_origin_to_center = function () {
-    this.translate(v3.scaled(this.protein.center(), -1));
-  }
-
-  this.make_default_view = function (default_html) {
-
-    // this.current_view = new View();
-    this.current_view.res_id = this.protein.residues[0].id;
-    this.current_view.camera.z_front = protein.min_z;
-    this.current_view.camera.z_back = protein.max_z;
-    this.current_view.camera.zoom =
-      Math.abs(2 * protein.max_length);
-    this.calculate_abs_camera(this.current_view);
-
-    if (this.protein.residues.length > 100) {
-      this.current_view.show.sidechain = false;
-    }
-
-    var default_view = this.current_view.clone();
-    default_view.order = 0;
-    default_view.text = default_html;
-    default_view.pdb_id = this.protein.pdb_id;
-
-    this.save_view(default_view);
-    this.changed = true;
-  }
 }
 
 

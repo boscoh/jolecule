@@ -1,8 +1,8 @@
-import scrollTo from "jquery.scrollto";
 import $ from "jquery";
+import scrollTo from "jquery.scrollto";
 import _ from "lodash";
 import { EmbedJolecule, ViewPiece } from "./embedjolecule";
-import { getWindowUrl, linkButton, randomId } from "./util";
+import { getWindowUrl, linkButton, randomId, exists } from "./util";
 
 
 /**
@@ -11,11 +11,12 @@ import { getWindowUrl, linkButton, randomId } from "./util";
 
 class ViewPieceList {
 
-  constructor(divTag, controller, proteinDisplay, data_server) {
+  constructor(divTag, controller, proteinDisplay, data_server, isEditable) {
     this.divTag = divTag;
     this.proteinDisplay = proteinDisplay;
     this.scene = controller.scene;
     this.controller = controller;
+    this.isEditable = isEditable;
     this.data_server = data_server;
     this.viewPiece = {};
     this.topDiv = $(this.divTag)
@@ -164,7 +165,7 @@ class ViewPieceList {
     let view = this.scene.saved_views_by_id[id];
     this.viewPiece[id] = new ViewPiece({
       view: view,
-      isEditable: true,
+      isEditable: this.isEditable,
       delete_view: () => { this.removeView(id); },
       save_change: (changed_text, sucess) => {
         view.text = changed_text;
@@ -235,12 +236,13 @@ class FullPageJolecule {
   constructor(
       proteinDisplayTag,
       sequenceDisplayTag,
-      viewsDisplayTag) {
+      viewsDisplayTag,
+      params) {
 
     this.viewsDisplayTag = viewsDisplayTag;
     this.sequenceDisplayTag = sequenceDisplayTag;
 
-    this.embedJolecule = new EmbedJolecule({
+    this.params = {
       divTag: proteinDisplayTag,
       viewId: '',
       viewHeight: 170,
@@ -248,7 +250,14 @@ class FullPageJolecule {
       isEditable: true,
       isLoop: false,
       isGrid: true
-    });
+    };
+
+    if (exists(params)) {
+      this.params = _.assign(this.params, params);
+    }
+
+    console.log('FullPageJolecule ', this.params);
+    this.embedJolecule = new EmbedJolecule(this.params);
 
     document.oncontextmenu = _.noop;
     document.onkeydown = (e) => this.onkeydown(e);
@@ -274,7 +283,8 @@ class FullPageJolecule {
           this.viewsDisplayTag,
           this.controller,
           this.proteinDisplay,
-          dataServer);
+          dataServer,
+          this.params.isEditable);
 
         this.viewsDisplay.makeAllViews();
         let hashTag = getWindowUrl().split('#')[1];

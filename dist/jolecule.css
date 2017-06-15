@@ -31,21 +31,21 @@ a.jolecule-button,
 a.jolecule-button:link,
 a.jolecule-button:visited {
     background-color: #444;
-    color: #111;
+    color: #000;
     text-decoration: none;
 }
 .jolecule-small-button,
 a.jolecule-small-button,
 a.jolecule-small-button:visited {
-    background-color: #333;
-    color: #111;
+    background-color: #444;
+    color: #000;
     text-decoration: none;
 }
 a.jolecule-button-toggle-on,
 a.jolecule-button-toggle-on:link,
 a.jolecule-button-toggle-on:visited {
     background-color: #777;
-    color: #333 !important;
+    color: #333;
 }
 .jolecule-small-button,
 a.jolecule-small-button,
@@ -55,7 +55,7 @@ a.jolecule-small-button:visited {
     text-align: center;
     margin-right: 2px;
     margin-bottom: 5px;
-    padding: 0px 2px;
+    padding: 2px 2px;
     font-weight: normal;
     font-size: 10px;
     letter-spacing: 0.1em;

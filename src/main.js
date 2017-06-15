@@ -49,7 +49,7 @@ function remoteDataServer(pdbId) {
         url = `/pdb/${pdbId}.txt`;
       }
       $.get(url, (pdbText) => {
-        processProteinData({pdbId, pdbText});
+        processProteinData({pdb_id: pdbId, pdb_text: pdbText});
       });
     },
     get_views: function(processViews) {

@@ -70,7 +70,7 @@ function toggleButton(
       .attr('href', '')
       .html(text);
 
-  var color = function() {
+  function color() {
     if (getToggleFn()) {
       if (onColor) {
         item.css('background-color', onColor);

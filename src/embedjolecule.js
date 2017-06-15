@@ -39,6 +39,7 @@ class ViewPiece {
     }
     this.params = params;
     this.makeEditDiv();
+
     this.makeShowDiv();
   }
 
@@ -51,7 +52,7 @@ class ViewPiece {
     window.keyboard_lock = false;
   }
 
-  start_edit() {
+  startEdit() {
     this.params.pick();
     this.editTextArea.text(this.params.view.text);
     this.editDiv.show();
@@ -61,7 +62,7 @@ class ViewPiece {
     window.keyboard_lock = true;
   }
 
-  discard_change() {
+  discardChange() {
     this.editDiv.hide();
     this.showDiv.show();
     window.keyboard_lock = false;
@@ -88,7 +89,7 @@ class ViewPiece {
       .append(
         linkButton(
           "", "discard", "jolecule-small-button",
-          (event) => { this.discard_change() }))
+          (event) => { this.discardChange() }))
       .hide();
 
     this.div.append(this.editDiv);
@@ -99,7 +100,7 @@ class ViewPiece {
 
     var editButton = linkButton(
       "", "edit", "jolecule-small-button",
-      () => { this.start_edit(); });
+      () => { this.startEdit(); });
 
     var embedButton = linkButton(
       "", "embed", "jolecule-small-button",
@@ -126,39 +127,40 @@ class ViewPiece {
         )
     }
 
-    if (this.params.isEditable) {
+    let isEditable = this.params.isEditable
+      && (!view.lock)
+      && (view.id != 'view:000000');
+
+    if (isEditable) {
+
+      // this.showDiv
+      //   .append(embedButton)
+      //   .append(' ');
 
       this.showDiv
-        .append(embedButton)
-        .append(' ');
+        .append(editButton);
 
-      if (!view.lock) {
+      if (exists(this.params.swapUp) && this.params.swapUp)
         this.showDiv
-          .append(editButton);
-
-        if (exists(this.params.swapUp) && this.params.swapUp)
-          this.showDiv
-            .append(" ")
-            .append(
-              linkButton(
-                "", "up", "jolecule-small-button",
-                function() { _this.params.swapUp(); }))
-
-        if (exists(this.params.swapUp) && this.params.swapDown)
-          this.showDiv
-            .append(" ")
-            .append(
-              linkButton(
-                "", "down", "jolecule-small-button",
-                function() { _this.params.swapDown(); }))
-
-        this.showDiv
+          .append(" ")
           .append(
-            $("<div>")
-              .css("float", "right")
-              .append(deleteButton))
-        ;
-      }
+            linkButton(
+              "", "up", "jolecule-small-button",
+              function() { _this.params.swapUp(); }));
+
+      if (exists(this.params.swapUp) && this.params.swapDown)
+        this.showDiv
+          .append(" ")
+          .append(
+            linkButton(
+              "", "down", "jolecule-small-button",
+              function() { _this.params.swapDown(); }));
+
+      this.showDiv
+        .append(
+          $("<div>")
+            .css("float", "right")
+            .append(deleteButton));
     }
 
     this.div.append(this.showDiv);
@@ -525,7 +527,7 @@ class EmbedJolecule {
       return;
     }
     var nView = this.scene.saved_views.length;
-    var iView = view.order + 1
+    var iView = view.order + 1;
     this.statusText.text(' ' + iView + '/' + nView + ' ');
     var viewPiece = new ViewPiece({
       view: view,
