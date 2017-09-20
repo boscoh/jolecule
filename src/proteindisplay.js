@@ -884,6 +884,7 @@ class SequenceWidget extends CanvasWrapper {
 
   resize() {
     super.resize();
+    this.div.css('width', this.parentDiv.width())
   }
 
   xToI(x) {

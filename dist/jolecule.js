@@ -72645,6 +72645,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: "resize",
 	    value: function resize() {
 	      _get(SequenceWidget.prototype.__proto__ || Object.getPrototypeOf(SequenceWidget.prototype), "resize", this).call(this);
+	      this.div.css('width', this.parentDiv.width());
 	    }
 	  }, {
 	    key: "xToI",
@@ -75676,6 +75677,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _createClass(ViewPieceList, [{
 	    key: "saveViewsToDataServer",
 	    value: function saveViewsToDataServer(success) {
+	      console.log('> ViewPieceList.saveViewsToDataServer');
 	      this.data_server.save_views(this.controller.get_view_dicts(), success);
 	    }
 	  }, {
@@ -75859,6 +75861,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function makeNewView() {
 	      var _this5 = this;
 	
+	      console.log('> ViewPieceList.makeNewView');
 	      var newId = (0, _util.randomId)();
 	      this.controller.calculate_current_abs_camera();
 	      this.controller.save_current_view(newId);
@@ -75866,6 +75869,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.updateViews();
 	      this.viewPiece[newId].div.css('background-color', 'lightgray');
 	      this.saveViewsToDataServer(function () {
+	        console.log('> ViewPieceList.makeNewView success');
 	        _this5.viewPiece[newId].div.css('background-color', '');
 	        (0, _jquery2.default)("#jolecule-views").stop();
 	        (0, _jquery2.default)("#jolecule-views").scrollTo(_this5.viewPiece[newId].div, 1000, { offset: { top: -80 } });

@@ -22,11 +22,281 @@
         0.5600000023841858
       ]
     },
-    "creator": "~ public @7/6/2017",
+    "creator": "~ public @19/9/2017",
     "distances": [],
     "i_atom": 1274,
     "labels": [],
     "order": 1,
+    "pdb_id": "1mbo",
+    "res_id": "1mbo:A:155",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "version": 2,
+    "view_id": "view:28se7x"
+  },
+  {
+    "camera": {
+      "in": [
+        15.359999656677246,
+        27.950000762939453,
+        1.5600000023841858
+      ],
+      "pos": [
+        15.359999656677246,
+        27.950000762939453,
+        0.5600000023841858
+      ],
+      "slab": {
+        "z_back": 25.46,
+        "z_front": -25.46,
+        "zoom": 50.92
+      },
+      "up": [
+        15.359999656677246,
+        26.950000762939453,
+        0.5600000023841858
+      ]
+    },
+    "creator": "~ public @19/9/2017",
+    "distances": [],
+    "i_atom": 1274,
+    "labels": [],
+    "order": 2,
+    "pdb_id": "1mbo",
+    "res_id": "1mbo:A:155",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "version": 2,
+    "view_id": "view:kx5goc"
+  },
+  {
+    "camera": {
+      "in": [
+        15.359999656677246,
+        27.950000762939453,
+        1.5600000023841858
+      ],
+      "pos": [
+        15.359999656677246,
+        27.950000762939453,
+        0.5600000023841858
+      ],
+      "slab": {
+        "z_back": 25.46,
+        "z_front": -25.46,
+        "zoom": 50.92
+      },
+      "up": [
+        15.359999656677246,
+        26.950000762939453,
+        0.5600000023841858
+      ]
+    },
+    "creator": "~ public @19/9/2017",
+    "distances": [],
+    "i_atom": 1274,
+    "labels": [],
+    "order": 3,
+    "pdb_id": "1mbo",
+    "res_id": "1mbo:A:155",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "version": 2,
+    "view_id": "view:59hiu3"
+  },
+  {
+    "camera": {
+      "in": [
+        15.359999656677246,
+        27.950000762939453,
+        1.5600000023841858
+      ],
+      "pos": [
+        15.359999656677246,
+        27.950000762939453,
+        0.5600000023841858
+      ],
+      "slab": {
+        "z_back": 25.46,
+        "z_front": -25.46,
+        "zoom": 50.92
+      },
+      "up": [
+        15.359999656677246,
+        26.950000762939453,
+        0.5600000023841858
+      ]
+    },
+    "creator": "~ public @19/9/2017",
+    "distances": [],
+    "i_atom": 1274,
+    "labels": [],
+    "order": 4,
+    "pdb_id": "1mbo",
+    "res_id": "1mbo:A:155",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "version": 2,
+    "view_id": "view:ee1nz2"
+  },
+  {
+    "camera": {
+      "in": [
+        15.359999656677246,
+        27.950000762939453,
+        1.5600000023841858
+      ],
+      "pos": [
+        15.359999656677246,
+        27.950000762939453,
+        0.5600000023841858
+      ],
+      "slab": {
+        "z_back": 25.46,
+        "z_front": -25.46,
+        "zoom": 50.92
+      },
+      "up": [
+        15.359999656677246,
+        26.950000762939453,
+        0.5600000023841858
+      ]
+    },
+    "creator": "~ public @17/9/2017",
+    "distances": [],
+    "i_atom": 1274,
+    "labels": [],
+    "order": 5,
+    "pdb_id": "1mbo",
+    "res_id": "1mbo:A:155",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "version": 2,
+    "view_id": "view:s49vxt"
+  },
+  {
+    "camera": {
+      "in": [
+        15.359999656677246,
+        27.950000762939453,
+        1.5600000023841858
+      ],
+      "pos": [
+        15.359999656677246,
+        27.950000762939453,
+        0.5600000023841858
+      ],
+      "slab": {
+        "z_back": 25.46,
+        "z_front": -25.46,
+        "zoom": 50.92
+      },
+      "up": [
+        15.359999656677246,
+        26.950000762939453,
+        0.5600000023841858
+      ]
+    },
+    "creator": "~ public @17/9/2017",
+    "distances": [],
+    "i_atom": 1274,
+    "labels": [],
+    "order": 6,
+    "pdb_id": "1mbo",
+    "res_id": "1mbo:A:155",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "version": 2,
+    "view_id": "view:nzi7wl"
+  },
+  {
+    "camera": {
+      "in": [
+        15.359999656677246,
+        27.950000762939453,
+        1.5600000023841858
+      ],
+      "pos": [
+        15.359999656677246,
+        27.950000762939453,
+        0.5600000023841858
+      ],
+      "slab": {
+        "z_back": 25.46,
+        "z_front": -25.46,
+        "zoom": 50.92
+      },
+      "up": [
+        15.359999656677246,
+        26.950000762939453,
+        0.5600000023841858
+      ]
+    },
+    "creator": "~ public @7/6/2017",
+    "distances": [],
+    "i_atom": 1274,
+    "labels": [],
+    "order": 7,
     "pdb_id": "1mbo",
     "res_id": "1mbo:A:155",
     "selected": [],
@@ -71,7 +341,7 @@
     "distances": [],
     "i_atom": 1227,
     "labels": [],
-    "order": 2,
+    "order": 8,
     "pdb_id": "1mbo",
     "res_id": "1mbo:A:154",
     "selected": [],
@@ -116,7 +386,7 @@
     "distances": [],
     "i_atom": 1227,
     "labels": [],
-    "order": 3,
+    "order": 9,
     "pdb_id": "1mbo",
     "res_id": "1mbo:A:154",
     "selected": [],
@@ -161,7 +431,7 @@
     "distances": [],
     "i_atom": 591,
     "labels": [],
-    "order": 4,
+    "order": 10,
     "pdb_id": "1mbo",
     "res_id": "1mbo:A:75",
     "selected": [
@@ -231,7 +501,7 @@
     "distances": [],
     "i_atom": 1274,
     "labels": [],
-    "order": 5,
+    "order": 11,
     "pdb_id": "1mbo",
     "res_id": "1mbo:A:155",
     "selected": [],
@@ -286,7 +556,7 @@
         "text": "hello"
       }
     ],
-    "order": 6,
+    "order": 12,
     "pdb_id": "1mbo",
     "res_id": "A:115",
     "selected": [],
@@ -340,7 +610,7 @@
         "text": "C-terminal"
       }
     ],
-    "order": 7,
+    "order": 13,
     "pdb_id": "1mbo",
     "res_id": "A:109",
     "selected": [],
@@ -389,7 +659,7 @@
         "text": "kink in alpha-helix"
       }
     ],
-    "order": 8,
+    "order": 14,
     "pdb_id": "1mbo",
     "res_id": "A:21",
     "selected": [],
@@ -438,7 +708,7 @@
         "text": "bottom of cavity"
       }
     ],
-    "order": 9,
+    "order": 15,
     "pdb_id": "1mbo",
     "res_id": "A:68",
     "selected": [],
@@ -487,7 +757,7 @@
         "text": "bottom of cavity"
       }
     ],
-    "order": 10,
+    "order": 16,
     "pdb_id": "1mbo",
     "res_id": "A:68",
     "selected": [],
@@ -536,7 +806,7 @@
         "text": "haha"
       }
     ],
-    "order": 11,
+    "order": 17,
     "pdb_id": "1mbo",
     "res_id": "1mbo:A:63",
     "selected": [
@@ -600,7 +870,7 @@
         "text": "heme"
       }
     ],
-    "order": 12,
+    "order": 18,
     "pdb_id": "1mbo",
     "res_id": "A:155",
     "selected": [],
@@ -649,7 +919,7 @@
         "text": "heme"
       }
     ],
-    "order": 13,
+    "order": 19,
     "pdb_id": "1mbo",
     "res_id": "A:155",
     "selected": [],
@@ -698,7 +968,7 @@
         "text": "Iron atom"
       }
     ],
-    "order": 14,
+    "order": 20,
     "pdb_id": "1mbo",
     "res_id": "A:155",
     "selected": [],
@@ -755,7 +1025,7 @@
         "text": "O2 of oxygen molecule"
       }
     ],
-    "order": 15,
+    "order": 21,
     "pdb_id": "1mbo",
     "res_id": "A:555",
     "selected": [],
@@ -799,7 +1069,7 @@
     "distances": [],
     "i_atom": 1276,
     "labels": [],
-    "order": 16,
+    "order": 22,
     "pdb_id": "1mbo",
     "res_id": "A:555",
     "selected": [
@@ -856,7 +1126,7 @@
         "text": "blocking histidine"
       }
     ],
-    "order": 17,
+    "order": 23,
     "pdb_id": "1mbo",
     "res_id": "A:64",
     "selected": [
@@ -913,7 +1183,7 @@
         "text": "blocking histidine"
       }
     ],
-    "order": 18,
+    "order": 24,
     "pdb_id": "1mbo",
     "res_id": "A:64",
     "selected": [
@@ -970,7 +1240,7 @@
         "text": "blocks potential carbon monoxide binding"
       }
     ],
-    "order": 19,
+    "order": 25,
     "pdb_id": "1mbo",
     "res_id": "A:64",
     "selected": [

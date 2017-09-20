@@ -50,6 +50,7 @@ class ViewPieceList {
   }
   
   saveViewsToDataServer(success) {
+    console.log('> ViewPieceList.saveViewsToDataServer')
     this.data_server.save_views(
       this.controller.get_view_dicts(), success);
   }
@@ -208,6 +209,7 @@ class ViewPieceList {
   }
 
   makeNewView() {
+    console.log('> ViewPieceList.makeNewView')
     let newId = randomId();
     this.controller.calculate_current_abs_camera();
     this.controller.save_current_view(newId);
@@ -215,6 +217,7 @@ class ViewPieceList {
     this.updateViews();
     this.viewPiece[newId].div.css('background-color', 'lightgray');
     this.saveViewsToDataServer(() => {
+      console.log('> ViewPieceList.makeNewView success')
       this.viewPiece[newId].div.css('background-color', '');
       $("#jolecule-views").stop();
       $("#jolecule-views").scrollTo(
