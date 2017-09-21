@@ -126,7 +126,7 @@ const fullPageIndexHtmlMustache = `
               '#jolecule-views-container',
               { 
                 isEditable: false,
-                isGrid: true
+                isGrid: true,
               });
             require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
               var dataServers = [{{{dataServerArgStr}}}];

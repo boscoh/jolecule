@@ -118,6 +118,7 @@ class ViewPieceList {
   }
 
   removeView(id) {
+    console.log('> ViewPieceList.removeView')
     this.viewPiece[id].div.css('background-color', 'lightgray')
     this.data_server.delete_protein_view(id, () => {
       this.controller.delete_view(id);
@@ -252,7 +253,8 @@ class FullPageJolecule {
       isViewTextShown: false,
       isEditable: true,
       isLoop: false,
-      isGrid: true
+      isGrid: true,
+      backgroundColor: 0xCCCCCC
     };
 
     if (exists(params)) {

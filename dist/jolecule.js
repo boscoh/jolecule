@@ -125,17 +125,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else {
 	        url = "/pdb/" + pdbId + ".txt";
 	      }
+	      console.log('> remoteDataServer.get_protein_data', url);
 	      _jquery2.default.get(url, function (pdbText) {
 	        processProteinData({ pdb_id: pdbId, pdb_text: pdbText });
 	      });
 	    },
 	    get_views: function get_views(processViews) {
+	      console.log('> remoteDataServer.get_views', "/pdb/" + pdbId + ".views.json");
 	      _jquery2.default.getJSON("/pdb/" + pdbId + ".views.json", processViews);
 	    },
 	    save_views: function save_views(views, success) {
-	      _jquery2.default.post('/save/views', JSON.stringify(views), success);
+	      console.log('> remoteDataServer.save_views', '/save/views');
+	      _jquery2.default.post('/save/views', views, success);
 	    },
 	    delete_protein_view: function delete_protein_view(viewId, success) {
+	      console.log('> remoteDataServer.delete_protein_view', '/delete/view');
 	      _jquery2.default.post('/delete/view', { pdbId: pdbId, viewId: viewId }, success);
 	    }
 	  };
@@ -303,6 +307,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	var ViewPiece = function () {
+	  /**
+	   * params{ goto, saveChage(txt), pick, view, deleteView, isEditable, swapUp
+	   * 
+	   }
+	   */
 	  function ViewPiece(params) {
 	    _classCallCheck(this, ViewPiece);
 	
@@ -321,6 +330,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _createClass(ViewPiece, [{
 	    key: "saveChange",
 	    value: function saveChange() {
+	      console.log('> ViewPiece.saveChange');
 	      var changedTet = this.editTextArea.val();
 	      this.editDiv.hide();
 	      this.showDiv.show();
@@ -351,14 +361,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "makeEditDiv",
 	    value: function makeEditDiv() {
-	      var _this2 = this;
+	      var _this = this;
 	
 	      this.editTextArea = (0, _jquery2.default)("<textarea>").addClass('jolecule-view-text').css('width', '100%').css('height', '5em').click(_lodash2.default.noop);
 	
 	      this.editDiv = (0, _jquery2.default)('<div>').css('width', '100%').click(_lodash2.default.noop).append(this.editTextArea).append('<br><br>').append((0, _util.linkButton)("", "save", "jolecule-small-button", function (event) {
-	        _this2.saveChange();
+	        _this.saveChange();
 	      })).append(' &nbsp; ').append((0, _util.linkButton)("", "discard", "jolecule-small-button", function (event) {
-	        _this2.discardChange();
+	        _this.discardChange();
 	      })).hide();
 	
 	      this.div.append(this.editDiv);
@@ -366,20 +376,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "makeShowDiv",
 	    value: function makeShowDiv() {
-	      var _this3 = this;
+	      var _this2 = this;
 	
 	      var view = this.params.view;
 	
 	      var editButton = (0, _util.linkButton)("", "edit", "jolecule-small-button", function () {
-	        _this3.startEdit();
+	        _this2.startEdit();
 	      });
 	
 	      var embedButton = (0, _util.linkButton)("", "embed", "jolecule-small-button", function () {
-	        _this3.params.embed_view();
-	      });
-	
-	      var deleteButton = (0, _util.linkButton)("", "delete", "jolecule-small-button", function () {
-	        _this3.params.delete_view();
+	        _this2.params.embed_view();
 	      });
 	
 	      this.showTextDiv = (0, _jquery2.default)('<div>').addClass("jolecule-view-text").html(this.params.view.text);
@@ -401,14 +407,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.showDiv.append(editButton);
 	
 	        if ((0, _util.exists)(this.params.swapUp) && this.params.swapUp) this.showDiv.append(" ").append((0, _util.linkButton)("", "up", "jolecule-small-button", function () {
-	          _this.params.swapUp();
+	          _this2.params.swapUp();
 	        }));
 	
 	        if ((0, _util.exists)(this.params.swapUp) && this.params.swapDown) this.showDiv.append(" ").append((0, _util.linkButton)("", "down", "jolecule-small-button", function () {
-	          _this.params.swapDown();
+	          _this2.params.swapDown();
 	        }));
 	
-	        this.showDiv.append((0, _jquery2.default)("<div>").css("float", "right").append(deleteButton));
+	        if ((0, _util.exists)(this.params.delete_view)) {
+	          this.showDiv.append((0, _jquery2.default)("<div>").css("float", "right").append((0, _util.linkButton)("", "delete", "jolecule-small-button", function () {
+	            console.log('> ViewPiece.deleteButton');
+	            _this2.params.delete_view();
+	          })));
+	        }
 	      }
 	
 	      this.div.append(this.showDiv);
@@ -432,12 +443,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  isViewTextShown: false,
 	  isEditable: true,
 	  isLoop: false,
-	  isGrid: false
+	  isGrid: false,
+	  backgroundColor: 0x000000
 	};
 	
 	var EmbedJolecule = function () {
 	  function EmbedJolecule(params) {
-	    var _this4 = this;
+	    var _this3 = this;
 	
 	    _classCallCheck(this, EmbedJolecule);
 	
@@ -456,8 +468,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.scene = new _protein.Scene(this.protein);
 	    this.controller = new _protein.Controller(this.scene);
 	
+	    this.residueSelector = null;
+	
 	    this.createProteinDiv();
-	    this.proteinDisplay = new _proteindisplay.ProteinDisplay(this.scene, '#jolecule-protein-display', this.controller, params.isGrid);
+	    console.log('> EmbedJolecule.constructor', params);
+	    this.proteinDisplay = new _proteindisplay.ProteinDisplay(this.scene, '#jolecule-protein-display', this.controller, params.isGrid, params.backgroundColor);
 	    this.proteinDisplay.min_radius = 10;
 	
 	    this.createStatusDiv();
@@ -467,7 +482,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.setTextState();
 	
 	    (0, _jquery2.default)(window).resize(function () {
-	      return _this4.resize();
+	      return _this3.resize();
 	    });
 	
 	    this.resize();
@@ -478,7 +493,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _createClass(EmbedJolecule, [{
 	    key: "loadProteinData",
 	    value: function loadProteinData(isProcessingFlag, dataServer, proteinData, callback) {
-	      var _this5 = this;
+	      var _this4 = this;
 	
 	      if (proteinData.pdb_text.length == 0) {
 	        this.proteinDisplay.setProcessingMesssage("Error: no protein data");
@@ -487,6 +502,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      this.protein.load(proteinData);
+	
+	      this.populateResidueSelector();
 	
 	      if (this.protein.parsing_error) {
 	        this.proteinDisplay.setProcessingMesssage("Error parsing protein: " + this.protein.parsing_error);
@@ -502,9 +519,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // to save views, will take the first one
 	        this.dataServer = dataServer;
 	        this.dataServer.get_views(function (view_dicts) {
-	          _this5.loadViewsFromDataServer(view_dicts);
+	          _this4.loadViewsFromDataServer(view_dicts);
 	          isProcessingFlag.flag = false;
-	          _this5.proteinDisplay.cleanupProcessingMessage();
+	          _this4.proteinDisplay.cleanupProcessingMessage();
 	          if (callback) {
 	            callback();
 	          }
@@ -521,12 +538,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "addDataServer",
 	    value: function addDataServer(dataServer, callback) {
-	      var _this6 = this;
+	      var _this5 = this;
 	
 	      runWithProcessQueue(this.isProcessing, function (isProcessingFlag) {
 	        dataServer.get_protein_data(function (proteinData) {
-	          _this6.proteinDisplay.displayProcessMessageAndRun("Rendering '" + proteinData.pdb_id + "'", function () {
-	            _this6.loadProteinData(isProcessingFlag, dataServer, proteinData, callback);
+	          _this5.proteinDisplay.displayProcessMessageAndRun("Rendering '" + proteinData.pdb_id + "'", function () {
+	            _this5.loadProteinData(isProcessingFlag, dataServer, proteinData, callback);
 	          });
 	        });
 	      });
@@ -559,7 +576,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "saveCurrView",
 	    value: function saveCurrView() {
-	      var _this7 = this;
+	      var _this6 = this;
 	
 	      var newId = (0, _util.randomId)();
 	      this.controller.calculate_current_abs_camera();
@@ -567,7 +584,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.updateView();
 	      this.viewDiv.css('background-color', 'lightgray');
 	      this.saveViewsToDataServer(function () {
-	        _this7.viewDiv.css('background-color', '');
+	        _this6.viewDiv.css('background-color', '');
 	      });
 	    }
 	  }, {
@@ -584,20 +601,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "changeText",
 	    value: function changeText(newText) {
-	      var _this8 = this;
+	      var _this7 = this;
 	
 	      var view = this.getCurrView();
 	      view.text = newText;
 	      this.viewDiv.css('background-color', 'lightgray');
 	      this.saveViewsToDataServer(function () {
-	        _this8.viewDiv.css('background-color', '');
+	        _this7.viewDiv.css('background-color', '');
 	      });
 	      this.scene.changed = true;
 	    }
 	  }, {
 	    key: "deleteCurrView",
 	    value: function deleteCurrView() {
-	      var _this9 = this;
+	      var _this8 = this;
 	
 	      var i = this.scene.i_last_view;
 	      if (i == 0) {
@@ -608,8 +625,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.controller.delete_view(id);
 	      this.viewDiv.css('background-color', 'lightgray');
 	      this.dataServer.delete_protein_view(id, function () {
-	        _this9.updateView();
-	        _this9.viewDiv.css('background-color', '');
+	        _this8.updateView();
+	        _this8.viewDiv.css('background-color', '');
 	      });
 	    }
 	  }, {
@@ -644,6 +661,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (this.scene.changed) {
 	          this.updateView();
 	          this.proteinDisplay.draw();
+	          this.populateResidueSelector();
 	          this.scene.changed = false;
 	        }
 	      }
@@ -698,83 +716,112 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.div.append(this.proteinDiv);
 	    }
 	  }, {
+	    key: "populateResidueSelector",
+	    value: function populateResidueSelector() {
+	      // clear selector
+	      this.residueSelector.find('option').remove();
+	
+	      // rebuild selector
+	      var residues = this.protein.residues;
+	      for (var i = 0; i < residues.length; i++) {
+	        var value = residues[i].id;
+	        var text = residues[i].id + '-' + residues[i].type;
+	        this.residueSelector.append((0, _jquery2.default)('<option>').attr('value', value).text(text));
+	      }
+	
+	      console.log('> EmbedJolecule.populateResidueSelector', this.scene.current_view.res_id);
+	      this.residueSelector.val(this.scene.current_view.res_id);
+	    }
+	  }, {
 	    key: "createStatusDiv",
 	    value: function createStatusDiv() {
-	      var _this10 = this;
+	      var _this9 = this;
 	
 	      this.statusText = (0, _jquery2.default)('<span>');
 	
 	      var textButton = (0, _util.toggleButton)('toggle_text', 'T', 'jolecule-button', function () {
-	        return _this10.isViewTextShown;
+	        return _this9.isViewTextShown;
 	      }, function (b) {
-	        _this10.toggleTextState();
+	        _this9.toggleTextState();
 	      });
 	
 	      var prevButton = (0, _util.linkButton)('prev_view', '<', 'jolecule-button', function () {
-	        _this10.gotoPrevView();
+	        _this9.gotoPrevView();
 	      });
 	
 	      var nextButton = (0, _util.linkButton)('prev_view', '>', 'jolecule-button', function () {
-	        _this10.gotoNextView();
+	        _this9.gotoNextView();
 	      });
 	
 	      var loopButton = (0, _util.toggleButton)('loop', '&orarr;', 'jolecule-button', function () {
-	        return _this10.isLoop;
+	        return _this9.isLoop;
 	      }, function (b) {
-	        _this10.isLoop = b;
+	        _this9.isLoop = b;
 	      });
 	
 	      var saveButton = '';
 	      if (this.params.isEditable) {
 	        saveButton = (0, _util.linkButton)('save_view', '+', 'jolecule-button', function () {
-	          _this10.saveCurrView();
+	          _this9.saveCurrView();
 	        });
 	      };
 	
 	      this.ligButton = (0, _util.toggleButton)('', 'lig', 'jolecule-button', function () {
-	        return _this10.controller.get_show_option('ligands');
+	        return _this9.controller.get_show_option('ligands');
 	      }, function (b) {
-	        _this10.controller.set_show_option('ligands', b);
+	        _this9.controller.set_show_option('ligands', b);
 	      });
 	
 	      this.watButton = (0, _util.toggleButton)('', 'h2o', 'jolecule-button', function () {
-	        return _this10.controller.get_show_option('water');
+	        return _this9.controller.get_show_option('water');
 	      }, function (b) {
-	        _this10.controller.set_show_option('water', b);
+	        _this9.controller.set_show_option('water', b);
 	      });
 	
 	      this.hydButton = (0, _util.toggleButton)('', 'h', 'jolecule-button', function () {
-	        return _this10.controller.get_show_option('hydrogen');
+	        return _this9.controller.get_show_option('hydrogen');
 	      }, function (b) {
-	        _this10.controller.set_show_option('hydrogen', b);
+	        _this9.controller.set_show_option('hydrogen', b);
 	      });
 	      this.hydButton = '';
 	
 	      var backboneButton = (0, _util.linkButton)('', 'bb', 'jolecule-button', function () {
-	        _this10.cycleBackbone();
+	        _this9.cycleBackbone();
 	      });
 	
 	      var allSidechainButton = (0, _util.linkButton)('', 'all', 'jolecule-button', function () {
-	        _this10.controller.set_show_option('sidechain', true);
+	        _this9.controller.set_show_option('sidechain', true);
 	      });
 	
 	      var clearSidechainButton = (0, _util.linkButton)('', 'x', 'jolecule-button', function () {
-	        _this10.controller.set_show_option('sidechain', false);
-	        _this10.controller.clear_selected();
+	        _this9.controller.set_show_option('sidechain', false);
+	        _this9.controller.clear_selected();
 	      });
 	
 	      var nearSidechainButton = (0, _util.linkButton)('', 'near', 'jolecule-button', function () {
-	        _this10.controller.toggle_neighbors();
+	        _this9.controller.toggle_neighbors();
 	      });
 	
-	      this.statusDiv = (0, _jquery2.default)('<div style="flex-wrap: wrap; justify-content: flex-end">').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap;">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton)).append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap; text-align: right; align-self: flex-end">').append(backboneButton).append(" ").append(this.ligButton).append(this.hydButton).append(this.watButton).append(" ").append(' sc ').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton));
+	      this.residueSelector = (0, _jquery2.default)('<select>').addClass('jolecule-residue-selector').css({
+	        "outline": "none",
+	        "-moz-appearance": "none"
+	      });
+	
+	      this.residueSelector.change(function () {
+	        var resId = _this9.residueSelector.find(":selected").val();
+	        _this9.proteinDisplay.setTargetFromAtom(_this9.scene.protein.res_by_id[resId].central_atom);
+	      });
+	
+	      this.scStatusDiv = (0, _jquery2.default)('<div style="flex: 1; white-space: nowrap; text-align: right; align-self: flex-end">').append(backboneButton).append(" ").append(this.ligButton).append(this.hydButton).append(this.watButton).append(" ").append(' sc ').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton);
+	
+	      this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap;">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton).append(this.residueSelector)).append(this.scStatusDiv);
 	
 	      this.div.append(this.statusDiv);
 	    }
 	  }, {
 	    key: "updateView",
 	    value: function updateView() {
-	      var _this11 = this;
+	      var _this10 = this;
 	
 	      var view = this.getCurrView();
 	      if (view == null) {
@@ -787,10 +834,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        view: view,
 	        isEditable: this.params.isEditable,
 	        delete_view: function delete_view() {
-	          _this11.deleteCurrView();
+	          _this10.deleteCurrView();
 	        },
 	        save_change: function save_change(text) {
-	          _this11.changeText(text);
+	          _this10.changeText(text);
 	        },
 	        pick: _lodash2.default.noop,
 	        embed_view: function embed_view() {
@@ -71859,16 +71906,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	// Color constants
 	
-	var green = new _three2.default.Color(0x66CC66);
-	var blue = new _three2.default.Color(0x6666CC);
-	var yellow = new _three2.default.Color(0xCCCC44);
-	var purple = new _three2.default.Color(0xCC44CC);
+	var green = new _three2.default.Color(0x639941);
+	var blue = new _three2.default.Color(0x568AB5);
+	var yellow = new _three2.default.Color(0xFFC900);
+	var purple = new _three2.default.Color(0x9578AA);
 	var grey = new _three2.default.Color(0xBBBBBB);
 	var red = new _three2.default.Color(0x993333);
 	
-	var darkGreen = new _three2.default.Color(0x226622);
-	var darkBlue = new _three2.default.Color(0x333399);
-	var darkYellow = new _three2.default.Color(0x999922);
+	var darkGreen = new _three2.default.Color(0x2E471E);
+	var darkBlue = new _three2.default.Color(0x406786);
+	var darkYellow = new _three2.default.Color(0xC39900);
 	var darkPurple = new _three2.default.Color(0x992299);
 	var darkGrey = new _three2.default.Color(0x555555);
 	var darkRed = new _three2.default.Color(0x662222);
@@ -72618,14 +72665,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this4.charWidth = 14;
 	    _this4.charHeight = 16;
 	
-	    _this4.textXOffset = 106;
+	    _this4.textXOffset = 0;
 	
 	    _this4.residues = null;
 	    _this4.iRes = null;
 	    _this4.iStartChar = null;
 	    _this4.iEndChar = null;
-	
-	    _this4.residueSelector = null;
 	
 	    _this4.resize();
 	    return _this4;
@@ -72705,8 +72750,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.iRes = this.nChar / 2;
 	      this.iStartChar = 0;
-	
-	      this.populateResidueSelector();
 	    }
 	  }, {
 	    key: "draw",
@@ -72717,10 +72760,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      if (this.residues.length == 0) {
-	        return;
-	      }
-	
-	      if (!this.residueSelector) {
 	        return;
 	      }
 	
@@ -72787,33 +72826,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "populateResidueSelector",
-	    value: function populateResidueSelector() {
-	      var _this5 = this;
-	
-	      if (!this.residueSelector) {
-	        this.residueSelector = (0, _jquery2.default)('<select>').addClass('jolecule-residue-selector').css({
-	          "outline": "none",
-	          "-moz-appearance": "none"
-	        });
-	        this.div.append(this.residueSelector);
-	      }
-	
-	      this.residueSelector.val(this.scene.current_view.res_id);
-	
-	      this.residueSelector.find('option').remove();
-	      var residues = this.protein.residues;
-	      for (var i = 0; i < residues.length; i++) {
-	        var value = residues[i].id;
-	        var text = residues[i].id + '-' + residues[i].type;
-	        this.residueSelector.append((0, _jquery2.default)('<option>').attr('value', value).text(text));
-	      }
-	      this.residueSelector.change(function () {
-	        var resId = _this5.residueSelector.find(":selected").val();
-	        _this5.proteinDisplay.setTargetFromAtom(_this5.scene.protein.res_by_id[resId].central_atom);
-	      });
-	    }
-	  }, {
 	    key: "getFullIRes",
 	    value: function getFullIRes() {
 	      return this.residues[this.iRes].i;
@@ -72855,13 +72867,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function ZSlabBar(selector, scene) {
 	    _classCallCheck(this, ZSlabBar);
 	
-	    var _this6 = _possibleConstructorReturn(this, (ZSlabBar.__proto__ || Object.getPrototypeOf(ZSlabBar)).call(this, selector));
+	    var _this5 = _possibleConstructorReturn(this, (ZSlabBar.__proto__ || Object.getPrototypeOf(ZSlabBar)).call(this, selector));
 	
-	    _this6.scene = scene;
-	    _this6.maxZLength = 0.0;
-	    _this6.yOffset = 52;
-	    _this6.div.attr('id', 'zslab');
-	    return _this6;
+	    _this5.scene = scene;
+	    _this5.maxZLength = 0.0;
+	    _this5.yOffset = 52;
+	    _this5.div.attr('id', 'zslab');
+	    return _this5;
 	  }
 	
 	  _createClass(ZSlabBar, [{
@@ -73002,21 +73014,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function GridBar(selector, scene) {
 	    _classCallCheck(this, GridBar);
 	
-	    var _this7 = _possibleConstructorReturn(this, (GridBar.__proto__ || Object.getPrototypeOf(GridBar)).call(this, selector));
+	    var _this6 = _possibleConstructorReturn(this, (GridBar.__proto__ || Object.getPrototypeOf(GridBar)).call(this, selector));
 	
-	    _this7.scene = scene;
-	    _this7.maxB = 2;
-	    _this7.minB = 0.4;
-	    _this7.diffB = _this7.maxB - _this7.minB;
-	    _this7.scene.grid = 0.8;
-	    _this7.scene.grid_atoms = {};
-	    _this7.sliderHeight = 45 * 6 - 50;
-	    _this7.div.attr('id', 'gridBar');
-	    _this7.div.css('height', _this7.height());
-	    _this7.buttonsDiv = (0, _jquery2.default)("<div>");
-	    _this7.div.append(_this7.buttonsDiv);
-	    _this7.reset();
-	    return _this7;
+	    _this6.scene = scene;
+	    _this6.maxB = 2;
+	    _this6.minB = 0.4;
+	    _this6.diffB = _this6.maxB - _this6.minB;
+	    _this6.scene.grid = 0.8;
+	    _this6.scene.grid_atoms = {};
+	    _this6.sliderHeight = 45 * 6 - 50;
+	    _this6.div.attr('id', 'gridBar');
+	    _this6.div.css('height', _this6.height());
+	    _this6.buttonsDiv = (0, _jquery2.default)("<div>");
+	    _this6.div.append(_this6.buttonsDiv);
+	    _this6.reset();
+	    return _this6;
 	  }
 	
 	  _createClass(GridBar, [{
@@ -73032,16 +73044,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "makeElemButton",
 	    value: function makeElemButton(elem, y) {
-	      var _this8 = this;
+	      var _this7 = this;
 	
 	      console.log("make grid atoms", elem, this.scene.grid_atoms[elem]);
 	      var color = new _three2.default.Color(ElementColors[elem]);
 	      var colorHexStr = color.getHexString();
 	      var text_button = (0, _util.toggleButton)('toggle_text', elem, 'jolecule-button', function () {
-	        return _this8.scene.grid_atoms[elem];
+	        return _this7.scene.grid_atoms[elem];
 	      }, function (b) {
-	        _this8.scene.grid_atoms[elem] = b;
-	        _this8.scene.changed = true;
+	        _this7.scene.grid_atoms[elem] = b;
+	        _this7.scene.changed = true;
 	      }, colorHexStr);
 	      text_button.css('position', 'absolute');
 	      text_button.css('top', y + "px");
@@ -73204,8 +73216,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	
 	var ProteinDisplay = function () {
-	  function ProteinDisplay(scene, divTag, controller, isGrid) {
-	    var _this9 = this;
+	  function ProteinDisplay(scene, divTag, controller, isGrid, backgroundColor) {
+	    var _this8 = this;
 	
 	    _classCallCheck(this, ProteinDisplay);
 	
@@ -73217,7 +73229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.isGrid = isGrid;
 	
 	    this.controller.set_target_view_by_res_id = function (resId) {
-	      _this9.setTargetFromResId(resId);
+	      _this8.setTargetFromResId(resId);
 	    };
 	    this.controller.calculate_current_abs_camera = function () {};
 	
@@ -73247,7 +73259,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.mainDiv = (0, _jquery2.default)(this.divTag);
 	    this.mainDiv.css('overflow', 'hidden');
 	
-	    this.backgroundColor = 0x000000;
+	    this.backgroundColor = backgroundColor;
 	
 	    this.threeJsScene = new _three2.default.Scene();
 	    this.threeJsScene.fog = new _three2.default.Fog(this.backgroundColor, 1, 100);
@@ -73300,40 +73312,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var dom = this.renderer.domElement;
 	
 	    dom.addEventListener('mousedown', function (e) {
-	      _this9.mousedown(e);
+	      _this8.mousedown(e);
 	    });
 	    dom.addEventListener('mousemove', function (e) {
-	      _this9.mousemove(e);
+	      _this8.mousemove(e);
 	    });
 	    dom.addEventListener('mouseup', function (e) {
-	      _this9.mouseup(e);
+	      _this8.mouseup(e);
 	    });
 	    dom.addEventListener('mousewheel', function (e) {
-	      _this9.mousewheel(e);
+	      _this8.mousewheel(e);
 	    });
 	    dom.addEventListener('DOMMouseScroll', function (e) {
-	      _this9.mousewheel(e);
+	      _this8.mousewheel(e);
 	    });
 	    dom.addEventListener('touchstart', function (e) {
-	      _this9.mousedown(e);
+	      _this8.mousedown(e);
 	    });
 	    dom.addEventListener('touchmove', function (e) {
-	      _this9.mousemove(e);
+	      _this8.mousemove(e);
 	    });
 	    dom.addEventListener('touchend', function (e) {
-	      _this9.mouseup(e);
+	      _this8.mouseup(e);
 	    });
 	    dom.addEventListener('touchcancel', function (e) {
-	      _this9.mouseup(e);
+	      _this8.mouseup(e);
 	    });
 	    dom.addEventListener('gesturestart', function (e) {
-	      _this9.gesturestart(e);
+	      _this8.gesturestart(e);
 	    });
 	    dom.addEventListener('gesturechange', function (e) {
-	      _this9.gesturechange(e);
+	      _this8.gesturechange(e);
 	    });
 	    dom.addEventListener('gestureend', function (e) {
-	      _this9.gestureend(e);
+	      _this8.gestureend(e);
 	    });
 	  }
 	
@@ -73359,7 +73371,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "createObjects",
 	    value: function createObjects() {
-	      console.log('createObjects');
+	      console.log('> ProteinDisplay.createObjects');
 	      this.objects = {};
 	      this.objects.tube = new _three2.default.Object3D();
 	      this.objects.water = new _three2.default.Object3D();
@@ -74110,7 +74122,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (this.gridBar.maxB == null) {
 	        this.gridBar.minB = 0;
 	      }
-	      console.log('buildGrid grid_atoms', this.scene.grid_atoms);
+	      console.log('> ProteinDisplay.buildGrid grid_atoms', this.scene.grid_atoms);
 	      this.gridBar.diffB = this.gridBar.maxB - this.gridBar.minB;
 	      this.scene.grid = this.gridBar.minB;
 	      this.gridBar.reset();
@@ -74885,7 +74897,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "selectVisibleObjects",
 	    value: function selectVisibleObjects() {
-	      var _this10 = this;
+	      var _this9 = this;
 	
 	      var show = this.scene.current_view.show;
 	
@@ -74919,7 +74931,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if ((0, _util.exists)(this.scene.grid) && this.objects.grid) {
 	          this.objects.grid.traverse(function (child) {
 	            if (child instanceof _three2.default.Mesh && (0, _util.exists)(child.atom)) {
-	              if (child.atom.bfactor > _this10.scene.grid && _this10.scene.grid_atoms[child.atom.elem]) {
+	              if (child.atom.bfactor > _this9.scene.grid && _this9.scene.grid_atoms[child.atom.elem]) {
 	                child.visible = true;
 	              } else {
 	                child.visible = false;
@@ -75749,6 +75761,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function removeView(id) {
 	      var _this2 = this;
 	
+	      console.log('> ViewPieceList.removeView');
 	      this.viewPiece[id].div.css('background-color', 'lightgray');
 	      this.data_server.delete_protein_view(id, function () {
 	        _this2.controller.delete_view(id);
@@ -75902,7 +75915,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      isViewTextShown: false,
 	      isEditable: true,
 	      isLoop: false,
-	      isGrid: true
+	      isGrid: true,
+	      backgroundColor: 0xCCCCCC
 	    };
 	
 	    if ((0, _util.exists)(params)) {

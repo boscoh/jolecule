@@ -13,14 +13,9 @@
 }
 .jolecule-residue-selector {
     border: 0;
-    font-family: Courier;
-    font-size: 10px;
-    position: absolute;
-    left: 3px;
-    top: 0px;
-    height:50px;
-    line-height:16px;
-    z-index: 2500;
+    font-size: 12px;
+    box-sizing: border-box;
+    height:27px;
     padding: 15px 5px;
     width: 100px;
 }

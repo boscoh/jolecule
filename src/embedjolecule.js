@@ -24,6 +24,11 @@ function runWithProcessQueue(isProcessingFlag, fn) {
 
 
 class ViewPiece {
+  /**
+   * params{ goto, saveChage(txt), pick, view, deleteView, isEditable, swapUp
+   * 
+   }
+   */
   constructor(params) {
     this.params = params;
     this.div = $('<div>').addClass("jolecule-view");
@@ -44,6 +49,7 @@ class ViewPiece {
   }
 
   saveChange() {
+    console.log('> ViewPiece.saveChange')
     var changedTet = this.editTextArea.val();
     this.editDiv.hide();
     this.showDiv.show();
@@ -106,10 +112,6 @@ class ViewPiece {
       "", "embed", "jolecule-small-button",
       () => { this.params.embed_view() });
 
-    var deleteButton = linkButton(
-      "", "delete", "jolecule-small-button",
-      () => { this.params.delete_view() });
-
     this.showTextDiv = $('<div>')
       .addClass("jolecule-view-text")
       .html(this.params.view.text)
@@ -146,7 +148,7 @@ class ViewPiece {
           .append(
             linkButton(
               "", "up", "jolecule-small-button",
-              function() { _this.params.swapUp(); }));
+              () => { this.params.swapUp(); }));
 
       if (exists(this.params.swapUp) && this.params.swapDown)
         this.showDiv
@@ -154,13 +156,21 @@ class ViewPiece {
           .append(
             linkButton(
               "", "down", "jolecule-small-button",
-              function() { _this.params.swapDown(); }));
+              () => { this.params.swapDown(); }));
 
-      this.showDiv
-        .append(
-          $("<div>")
+      if (exists(this.params.delete_view)) {
+        this.showDiv
+          .append(
+            $("<div>")
             .css("float", "right")
-            .append(deleteButton));
+            .append(
+              linkButton(
+                "", "delete", "jolecule-small-button",
+                () => { 
+                  console.log('> ViewPiece.deleteButton')
+                  this.params.delete_view() 
+                })));
+      }
     }
 
     this.div.append(this.showDiv);
@@ -183,7 +193,8 @@ let defaultArgs = {
   isViewTextShown: false,
   isEditable: true,
   isLoop: false,
-  isGrid: false
+  isGrid: false,
+  backgroundColor: 0x000000
 };
 
 class EmbedJolecule {
@@ -204,9 +215,12 @@ class EmbedJolecule {
     this.scene = new Scene(this.protein);
     this.controller = new Controller(this.scene);
 
+    this.residueSelector = null;
+
     this.createProteinDiv();
+    console.log('> EmbedJolecule.constructor', params)
     this.proteinDisplay = new ProteinDisplay(
-      this.scene, '#jolecule-protein-display', this.controller, params.isGrid);
+      this.scene, '#jolecule-protein-display', this.controller, params.isGrid, params.backgroundColor);
     this.proteinDisplay.min_radius = 10;
 
     this.createStatusDiv();
@@ -230,6 +244,8 @@ class EmbedJolecule {
     }
 
     this.protein.load(proteinData);
+
+    this.populateResidueSelector();
 
     if (this.protein.parsing_error) {
       this.proteinDisplay.setProcessingMesssage("Error parsing protein: " + this.protein.parsing_error);
@@ -375,6 +391,7 @@ class EmbedJolecule {
       if (this.scene.changed) {
         this.updateView();
         this.proteinDisplay.draw();
+        this.populateResidueSelector();
         this.scene.changed = false;
       }
     }
@@ -429,6 +446,26 @@ class EmbedJolecule {
         .css('width', this.div.outerWidth())
         .css('height', height);
     this.div.append(this.proteinDiv);
+  }
+
+  populateResidueSelector() {
+    // clear selector
+    this.residueSelector
+      .find('option')
+      .remove();
+
+    // rebuild selector
+    var residues = this.protein.residues;
+    for (var i = 0; i < residues.length; i++) {
+      var value = residues[i].id;
+      var text = residues[i].id + '-' + residues[i].type;
+      this.residueSelector.append(
+        $('<option>').attr('value', value).text(text));
+    }
+
+    console.log('> EmbedJolecule.populateResidueSelector', this.scene.current_view.res_id)
+    this.residueSelector.val(this.scene.current_view.res_id);
+
   }
 
   createStatusDiv() {
@@ -494,7 +531,33 @@ class EmbedJolecule {
       '', 'near', 'jolecule-button',
       () => { this.controller.toggle_neighbors(); });
 
-    this.statusDiv = $('<div style="flex-wrap: wrap; justify-content: flex-end">')
+    this.residueSelector = $('<select>')
+      .addClass('jolecule-residue-selector')
+      .css({
+        "outline": "none",
+        "-moz-appearance": "none",
+      });
+
+    this.residueSelector.change(() => {
+      var resId = this.residueSelector.find(":selected").val();
+      this.proteinDisplay.setTargetFromAtom(
+        this.scene.protein.res_by_id[resId].central_atom);
+    });
+
+    this.scStatusDiv = 
+      $('<div style="flex: 1; white-space: nowrap; text-align: right; align-self: flex-end">')
+        .append(backboneButton)
+        .append(" ")
+        .append(this.ligButton)
+        .append(this.hydButton)
+        .append(this.watButton)
+        .append(" ")
+        .append(' sc ')
+        .append(allSidechainButton)
+        .append(clearSidechainButton)
+        .append(nearSidechainButton)
+
+    this.statusDiv = $('<div style="display: flex; flex-direction: column">')
       .addClass('jolecule-embed-view-bar')
       .append(
         $('<div style="flex: 1; white-space: nowrap;">')
@@ -504,19 +567,8 @@ class EmbedJolecule {
           .append(this.statusText)
           .append(nextButton)
           .append(saveButton)
-      )
-      .append(
-        $('<div style="flex: 1; white-space: nowrap; text-align: right; align-self: flex-end">')
-          .append(backboneButton)
-          .append(" ")
-          .append(this.ligButton)
-          .append(this.hydButton)
-          .append(this.watButton)
-          .append(" ")
-          .append(' sc ')
-          .append(allSidechainButton)
-          .append(clearSidechainButton)
-          .append(nearSidechainButton));
+          .append(this.residueSelector))
+      .append(this.scStatusDiv);
 
     this.div.append(this.statusDiv);
   }

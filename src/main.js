@@ -48,17 +48,21 @@ function remoteDataServer(pdbId) {
       } else {
         url = `/pdb/${pdbId}.txt`;
       }
+      console.log('> remoteDataServer.get_protein_data', url)
       $.get(url, (pdbText) => {
         processProteinData({pdb_id: pdbId, pdb_text: pdbText});
       });
     },
     get_views: function(processViews) {
+      console.log('> remoteDataServer.get_views', `/pdb/${pdbId}.views.json`)
       $.getJSON(`/pdb/${pdbId}.views.json`, processViews);
     },
     save_views: function(views, success) {
-      $.post('/save/views', JSON.stringify(views), success);
+      console.log('> remoteDataServer.save_views', '/save/views')
+      $.post('/save/views', views, success);
     },
     delete_protein_view: function(viewId, success) {
+      console.log('> remoteDataServer.delete_protein_view', '/delete/view')
       $.post('/delete/view', {pdbId, viewId}, success);
     }
   }

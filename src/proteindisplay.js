@@ -32,16 +32,16 @@ var TV3 = THREE.Vector3;
 
 // Color constants
 
-var green = new THREE.Color(0x66CC66);
-var blue = new THREE.Color(0x6666CC);
-var yellow = new THREE.Color(0xCCCC44);
-var purple = new THREE.Color(0xCC44CC);
+var green = new THREE.Color(0x639941);
+var blue = new THREE.Color(0x568AB5);
+var yellow = new THREE.Color(0xFFC900);
+var purple = new THREE.Color(0x9578AA);
 var grey = new THREE.Color(0xBBBBBB);
 var red = new THREE.Color(0x993333);
 
-var darkGreen = new THREE.Color(0x226622);
-var darkBlue = new THREE.Color(0x333399);
-var darkYellow = new THREE.Color(0x999922);
+var darkGreen = new THREE.Color(0x2E471E);
+var darkBlue = new THREE.Color(0x406786);
+var darkYellow = new THREE.Color(0xC39900);
 var darkPurple = new THREE.Color(0x992299);
 var darkGrey = new THREE.Color(0x555555);
 var darkRed = new THREE.Color(0x662222);
@@ -862,14 +862,12 @@ class SequenceWidget extends CanvasWrapper {
     this.charWidth = 14;
     this.charHeight = 16;
 
-    this.textXOffset = 106;
+    this.textXOffset = 0;
 
     this.residues = null;
     this.iRes = null;
     this.iStartChar = null;
     this.iEndChar = null;
-
-    this.residueSelector = null;
 
     this.resize();
   }
@@ -943,7 +941,6 @@ class SequenceWidget extends CanvasWrapper {
     this.iRes = this.nChar / 2;
     this.iStartChar = 0;
 
-    this.populateResidueSelector();
   }
 
   draw() {
@@ -953,10 +950,6 @@ class SequenceWidget extends CanvasWrapper {
     }
 
     if (this.residues.length == 0) {
-      return;
-    }
-
-    if (!this.residueSelector) {
       return;
     }
 
@@ -1042,36 +1035,6 @@ class SequenceWidget extends CanvasWrapper {
       }
     }
 
-  }
-
-  populateResidueSelector() {
-    if (!this.residueSelector) {
-      this.residueSelector = $('<select>')
-        .addClass('jolecule-residue-selector')
-        .css({
-          "outline": "none",
-          "-moz-appearance": "none",
-        });
-      this.div.append(this.residueSelector);
-    }
-
-    this.residueSelector.val(this.scene.current_view.res_id);
-
-    this.residueSelector
-      .find('option')
-      .remove();
-    var residues = this.protein.residues;
-    for (var i = 0; i < residues.length; i++) {
-      var value = residues[i].id;
-      var text = residues[i].id + '-' + residues[i].type;
-      this.residueSelector.append(
-        $('<option>').attr('value', value).text(text));
-    }
-    this.residueSelector.change(() => {
-      var resId = this.residueSelector.find(":selected").val();
-      this.proteinDisplay.setTargetFromAtom(
-        this.scene.protein.res_by_id[resId].central_atom);
-    });
   }
 
   getFullIRes() {
@@ -1455,7 +1418,7 @@ function clearObject3D(obj) {
 
 class ProteinDisplay {
 
-  constructor(scene, divTag, controller, isGrid) {
+  constructor(scene, divTag, controller, isGrid, backgroundColor) {
 
     console.log('GlProteinDisplay.constructor');
     this.divTag = divTag;
@@ -1497,7 +1460,7 @@ class ProteinDisplay {
     this.mainDiv = $(this.divTag);
     this.mainDiv.css('overflow', 'hidden');
 
-    this.backgroundColor = 0x000000;
+    this.backgroundColor = backgroundColor; 
 
     this.threeJsScene = new THREE.Scene();
     this.threeJsScene.fog = new THREE.Fog(this.backgroundColor, 1, 100);
@@ -1627,7 +1590,7 @@ class ProteinDisplay {
   }
 
   createObjects() {
-    console.log('createObjects');
+    console.log('> ProteinDisplay.createObjects');
     this.objects = {};
     this.objects.tube = new THREE.Object3D();
     this.objects.water = new THREE.Object3D();
@@ -2480,7 +2443,7 @@ class ProteinDisplay {
     if (this.gridBar.maxB == null) {
       this.gridBar.minB = 0;
     }
-    console.log('buildGrid grid_atoms', this.scene.grid_atoms);
+    console.log('> ProteinDisplay.buildGrid grid_atoms', this.scene.grid_atoms);
     this.gridBar.diffB = this.gridBar.maxB - this.gridBar.minB;
     this.scene.grid = this.gridBar.minB;
     this.gridBar.reset();
