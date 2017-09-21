@@ -1240,6 +1240,11 @@ class GridBar extends CanvasWrapper {
       this.buttonsDiv.append(this.makeElemButton(elem, y));
       y += 45;
     }
+    if (_.keys(this.scene.grid_atoms).length == 0) {
+      this.div.hide()
+    } else {
+      this.div.show()
+    }
 
   }
 

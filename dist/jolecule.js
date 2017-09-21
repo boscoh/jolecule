@@ -73040,6 +73040,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.buttonsDiv.append(this.makeElemButton(elem, y));
 	        y += 45;
 	      }
+	      if (_lodash2.default.keys(this.scene.grid_atoms).length == 0) {
+	        this.div.hide();
+	      } else {
+	        this.div.show();
+	      }
 	    }
 	  }, {
 	    key: "makeElemButton",
@@ -75916,14 +75921,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      isEditable: true,
 	      isLoop: false,
 	      isGrid: true,
-	      backgroundColor: 0xCCCCCC
+	      backgroundColor: 0x000000
 	    };
+	
+	    console.log('FullPageJolecule params', params);
 	
 	    if ((0, _util.exists)(params)) {
 	      this.params = _lodash2.default.assign(this.params, params);
 	    }
 	
-	    console.log('FullPageJolecule ', this.params);
+	    console.log('FullPageJolecule this.params', this.params);
 	    this.embedJolecule = new _embedjolecule.EmbedJolecule(this.params);
 	
 	    document.oncontextmenu = _lodash2.default.noop;

@@ -254,14 +254,16 @@ class FullPageJolecule {
       isEditable: true,
       isLoop: false,
       isGrid: true,
-      backgroundColor: 0xCCCCCC
+      backgroundColor: 0x000000
     };
+
+    console.log('FullPageJolecule params', params);
 
     if (exists(params)) {
       this.params = _.assign(this.params, params);
     }
 
-    console.log('FullPageJolecule ', this.params);
+    console.log('FullPageJolecule this.params', this.params);
     this.embedJolecule = new EmbedJolecule(this.params);
 
     document.oncontextmenu = _.noop;
