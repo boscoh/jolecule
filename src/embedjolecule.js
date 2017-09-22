@@ -501,7 +501,7 @@ class EmbedJolecule {
     );
 
     this.watButton = toggleButton(
-      '', 'h2o', 'jolecule-button',
+      '', 'water', 'jolecule-button',
       () => this.controller.get_show_option('water'),
       (b) => { this.controller.set_show_option('water', b); }
     );
@@ -514,7 +514,7 @@ class EmbedJolecule {
     this.hydButton = '';
 
     var backboneButton = linkButton(
-      '', 'bb', 'jolecule-button',
+      '', 'backbone', 'jolecule-button',
       () => { this.cycleBackbone(); });
 
     var allSidechainButton = linkButton('', 'all', 'jolecule-button',
@@ -544,31 +544,41 @@ class EmbedJolecule {
         this.scene.protein.res_by_id[resId].central_atom);
     });
 
-    this.scStatusDiv = 
-      $('<div style="flex: 1; white-space: nowrap; text-align: right; align-self: flex-end">')
-        .append(backboneButton)
-        .append(" ")
-        .append(this.ligButton)
-        .append(this.hydButton)
-        .append(this.watButton)
-        .append(" ")
-        .append(' sc ')
-        .append(allSidechainButton)
-        .append(clearSidechainButton)
-        .append(nearSidechainButton)
+    this.viewBarDiv = 
+      $('<div style="width: 100%; display: flex; flex-direction: row">')
+        .append(
+          $('<div style="flex: 1; flex-start">')
+            .append(loopButton)
+            .append(textButton)
+            .append(prevButton)
+            .append(this.statusText)
+            .append(nextButton)
+            .append(saveButton))
+        .append(
+          $('<div style="flex: 1; flex-end; text-align: right">')
+            .append(this.residueSelector))
+
+    this.sidechainDiv = 
+      $('<div style="width: 100%; display: flex; flex-direction: row">')
+        .append(
+          $('<div style="flex: 1; flex-start">')
+            .append(backboneButton)
+            .append(" ")
+            .append(this.ligButton)
+            .append(this.hydButton)
+            .append(this.watButton)
+            .append(" "))
+        .append(
+          $('<div style="flex: 1; flex-end; text-align: right">')
+            .append(' sidechain: ')
+            .append(allSidechainButton)
+            .append(clearSidechainButton)
+            .append(nearSidechainButton))
 
     this.statusDiv = $('<div style="display: flex; flex-direction: column">')
       .addClass('jolecule-embed-view-bar')
-      .append(
-        $('<div style="flex: 1; white-space: nowrap;">')
-          .append(loopButton)
-          .append(textButton)
-          .append(prevButton)
-          .append(this.statusText)
-          .append(nextButton)
-          .append(saveButton)
-          .append(this.residueSelector))
-      .append(this.scStatusDiv);
+      .append(this.viewBarDiv)
+      .append(this.sidechainDiv);
 
     this.div.append(this.statusDiv);
   }

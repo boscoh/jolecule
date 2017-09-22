@@ -772,7 +772,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this9.controller.set_show_option('ligands', b);
 	      });
 	
-	      this.watButton = (0, _util.toggleButton)('', 'h2o', 'jolecule-button', function () {
+	      this.watButton = (0, _util.toggleButton)('', 'water', 'jolecule-button', function () {
 	        return _this9.controller.get_show_option('water');
 	      }, function (b) {
 	        _this9.controller.set_show_option('water', b);
@@ -785,7 +785,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	      this.hydButton = '';
 	
-	      var backboneButton = (0, _util.linkButton)('', 'bb', 'jolecule-button', function () {
+	      var backboneButton = (0, _util.linkButton)('', 'backbone', 'jolecule-button', function () {
 	        _this9.cycleBackbone();
 	      });
 	
@@ -812,9 +812,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this9.proteinDisplay.setTargetFromAtom(_this9.scene.protein.res_by_id[resId].central_atom);
 	      });
 	
-	      this.scStatusDiv = (0, _jquery2.default)('<div style="flex: 1; white-space: nowrap; text-align: right; align-self: flex-end">').append(backboneButton).append(" ").append(this.ligButton).append(this.hydButton).append(this.watButton).append(" ").append(' sc ').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton);
+	      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 1; flex-start">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton)).append((0, _jquery2.default)('<div style="flex: 1; flex-end; text-align: right">').append(this.residueSelector));
 	
-	      this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div style="flex: 1; white-space: nowrap;">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton).append(this.residueSelector)).append(this.scStatusDiv);
+	      this.sidechainDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 1; flex-start">').append(backboneButton).append(" ").append(this.ligButton).append(this.hydButton).append(this.watButton).append(" ")).append((0, _jquery2.default)('<div style="flex: 1; flex-end; text-align: right">').append(' sidechain: ').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton));
+	
+	      this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append(this.viewBarDiv).append(this.sidechainDiv);
 	
 	      this.div.append(this.statusDiv);
 	    }
