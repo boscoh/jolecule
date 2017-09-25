@@ -812,9 +812,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this9.proteinDisplay.setTargetFromAtom(_this9.scene.protein.res_by_id[resId].central_atom);
 	      });
 	
-	      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 1; flex-start">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton)).append((0, _jquery2.default)('<div style="flex: 1; flex-end; text-align: right">').append(this.residueSelector));
+	      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton)).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: flex-end;">').append(this.residueSelector));
 	
-	      this.sidechainDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 1; flex-start">').append(backboneButton).append(" ").append(this.ligButton).append(this.hydButton).append(this.watButton).append(" ")).append((0, _jquery2.default)('<div style="flex: 1; flex-end; text-align: right">').append(' sidechain: ').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton));
+	      this.sidechainDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row; margin-top: 5px">').append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">').append(backboneButton).append(" ").append(this.ligButton).append(this.hydButton).append(this.watButton).append(" ")).append((0, _jquery2.default)('<div style="flex: 1; justify-content: flex-end; display: flex; flex-direction: row; align-items: center;">').append(' sidechain: ').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton));
 	
 	      this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append(this.viewBarDiv).append(this.sidechainDiv);
 	
@@ -71863,7 +71863,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -71918,58 +71918,56 @@ return /******/ (function(modules) { // webpackBootstrap
 	var darkGreen = new _three2.default.Color(0x2E471E);
 	var darkBlue = new _three2.default.Color(0x406786);
 	var darkYellow = new _three2.default.Color(0xC39900);
-	var darkPurple = new _three2.default.Color(0x992299);
+	var darkPurple = new _three2.default.Color(0x5E4C6B);
 	var darkGrey = new _three2.default.Color(0x555555);
 	var darkRed = new _three2.default.Color(0x662222);
 	
 	var ElementColors = {
-	  "H": 0xCCCCCC,
-	  "C": 0xAAAAAA,
-	  "O": 0xCC0000,
-	  "N": 0x0000CC,
-	  "S": 0xAAAA00,
-	  "P": 0x6622CC,
-	  "F": 0x00CC00,
-	  "CL": 0x00CC00,
-	  "BR": 0x882200,
-	  "I": 0x6600AA,
-	  "FE": 0xCC6600,
-	  "CA": 0x8888AA,
-	  "He": 0x7B86C2,
-	  "Ne": 0x9ED2E4,
-	  "Ar": 0x5DC4BE,
-	  "Kr": 0xACD376,
-	  "Xe": 0xF79F7C,
-	  "Rn": 0xE29EC5
+	  'H': 0xCCCCCC,
+	  'C': 0xAAAAAA,
+	  'O': 0xCC0000,
+	  'N': 0x0000CC,
+	  'S': 0xAAAA00,
+	  'P': 0x6622CC,
+	  'F': 0x00CC00,
+	  'CL': 0x00CC00,
+	  'BR': 0x882200,
+	  'I': 0x6600AA,
+	  'FE': 0xCC6600,
+	  'CA': 0x8888AA,
+	  'He': 0x7B86C2,
+	  'Ne': 0x9ED2E4,
+	  'Ar': 0x5DC4BE,
+	  'Kr': 0xACD376,
+	  'Xe': 0xF79F7C,
+	  'Rn': 0xE29EC5
 	};
 	
 	function getSsColor(ss) {
-	
-	  if (ss == "E") {
+	  if (ss == 'E') {
 	    return yellow;
-	  } else if (ss == "H") {
+	  } else if (ss == 'H') {
 	    return blue;
-	  } else if (ss == "D") {
+	  } else if (ss == 'D') {
 	    return purple;
-	  } else if (ss == "C") {
+	  } else if (ss == 'C') {
 	    return green;
-	  } else if (ss == "W") {
+	  } else if (ss == 'W') {
 	    return red;
 	  }
 	  return grey;
 	}
 	
 	function getDarkSsColor(ss) {
-	
-	  if (ss == "E") {
+	  if (ss == 'E') {
 	    return darkYellow;
-	  } else if (ss == "H") {
+	  } else if (ss == 'H') {
 	    return darkBlue;
-	  } else if (ss == "D") {
+	  } else if (ss == 'D') {
 	    return darkPurple;
-	  } else if (ss == "C") {
+	  } else if (ss == 'C') {
 	    return darkGreen;
-	  } else if (ss == "W") {
+	  } else if (ss == 'W') {
 	    return darkRed;
 	  }
 	  return darkGrey;
@@ -71977,7 +71975,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	// Backbone atom names
 	
-	var backboneAtoms = ["N", "C", "O", "H", "HA", "CA", "OXT", "C3'", "P", "OP1", "O5'", "OP2", "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'", "H2'", "H2''", "H3'", "H4'", "H5'", "H5''", "HO3'"];
+	var backboneAtoms = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', "C3'", 'P', 'OP1', "O5'", 'OP2', "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'", "H2'", "H2''", "H3'", "H4'", "H5'", "H5''", "HO3'"];
 	
 	// Cartoon cross-sections
 	
@@ -71990,12 +71988,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var fatCoilFace = new _three2.default.Shape([new _three2.default.Vector2(-0.25, -0.25), new _three2.default.Vector2(-0.25, +0.25), new _three2.default.Vector2(+0.25, +0.25), new _three2.default.Vector2(+0.25, -0.25)]);
 	
 	function degToRad(deg) {
-	
-	  return deg * Math.PI / 180.;
+	  return deg * Math.PI / 180.0;
 	}
 	
 	function getVerticesFromAtomDict(atoms, atomTypes) {
-	
 	  var vertices = [];
 	
 	  for (var i = 0; i < atomTypes.length; i += 1) {
@@ -72007,12 +72003,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	function fraction(reference, target, t) {
-	
 	  return t * (target - reference) + reference;
 	}
 	
 	function textEntryDialog(parentDiv, label, callback) {
-	
 	  if (!label) {
 	    label = '';
 	  }
@@ -72039,14 +72033,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  var discard_button = (0, _util.linkButton)('discard', 'discard', 'jolecule-small-button', discard);
 	
-	  var textarea = (0, _jquery2.default)("<textarea>").css('width', "100%").addClass('jolecule-view-text').keydown(function (e) {
+	  var textarea = (0, _jquery2.default)('<textarea>').css('width', '100%').addClass('jolecule-view-text').keydown(function (e) {
 	    if (e.keyCode == 27) {
 	      discard();
 	      return true;
 	    }
 	  });
 	
-	  var editbox = (0, _jquery2.default)('<div>').css('width', "100%").append(label).append(textarea).append(save_button).append(' ').append(discard_button);
+	  var editbox = (0, _jquery2.default)('<div>').css('width', '100%').append(label).append(textarea).append(save_button).append(' ').append(discard_button);
 	
 	  var dialog = (0, _jquery2.default)('<div>').addClass('jolecule-dialog').css('display', 'block').css('z-index', '2000').css('width', Math.min(400, parentDiv.width() - 100)).append(editbox);
 	
@@ -72076,7 +72070,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 **/
 	
 	function convertViewToTarget(view) {
-	
 	  var cameraTarget = _v2.default.clone(view.abs_camera.pos);
 	
 	  var cameraDirection = _v2.default.clone(view.abs_camera.in_v).sub(cameraTarget).multiplyScalar(view.abs_camera.zoom).negate();
@@ -72096,7 +72089,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	function convertTargetToView(target) {
-	
 	  var view = new _protein.View();
 	
 	  var cameraDirection = target.cameraPosition.clone().sub(target.cameraTarget).negate();
@@ -72125,7 +72117,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function PopupText(selector) {
 	    _classCallCheck(this, PopupText);
 	
-	    this.div = (0, _jquery2.default)("<div>").css({
+	    this.div = (0, _jquery2.default)('<div>').css({
 	      'position': 'absolute',
 	      'top': 0,
 	      'left': 0,
@@ -72135,7 +72127,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      'display': 'none'
 	    });
 	
-	    this.arrow = (0, _jquery2.default)("<div>").css({
+	    this.arrow = (0, _jquery2.default)('<div>').css({
 	      'position': 'absolute',
 	      'top': 0,
 	      'left': 0,
@@ -72154,9 +72146,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(PopupText, [{
-	    key: "move",
+	    key: 'move',
 	    value: function move(x, y) {
-	
 	      var parentDivPos = this.parentDiv.position();
 	      var width = this.div.innerWidth();
 	      var height = this.div.innerHeight();
@@ -72181,22 +72172,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: "hide",
+	    key: 'hide',
 	    value: function hide() {
-	
 	      this.div.css('display', 'none');
 	      this.arrow.css('display', 'none');
 	    }
 	  }, {
-	    key: "html",
+	    key: 'html',
 	    value: function html(text) {
-	
 	      this.div.html(text);
 	    }
 	  }, {
-	    key: "remove",
+	    key: 'remove',
 	    value: function remove() {
-	
 	      this.div.remove();
 	      this.arrow.remove();
 	    }
@@ -72224,9 +72212,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(AtomLabel, [{
-	    key: "update",
+	    key: 'update',
 	    value: function update(i, text, x, y, opacity) {
-	
 	      this.i = i;
 	      this.popup.html(text);
 	      this.popup.div.css('opacity', opacity);
@@ -72234,17 +72221,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.popup.move(x, y);
 	    }
 	  }, {
-	    key: "remove",
+	    key: 'remove',
 	    value: function remove() {
-	
 	      this.popup.remove();
 	      this.controller.delete_label(this.i);
 	      this.parentList.splice(this.i, 1);
 	    }
 	  }, {
-	    key: "hide",
+	    key: 'hide',
 	    value: function hide() {
-	
 	      this.popup.div.css('display', 'none');
 	      this.popup.arrow.css('display', 'none');
 	    }
@@ -72267,7 +72252,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.controller = controller;
 	    this.parentList = parentList;
 	
-	    this.div = (0, _jquery2.default)("<div>").css({
+	    this.div = (0, _jquery2.default)('<div>').css({
 	      'position': 'absolute',
 	      'top': 0,
 	      'left': 0,
@@ -72302,9 +72287,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(DistanceLabel, [{
-	    key: "update",
+	    key: 'update',
 	    value: function update(i, text, x, y, p1, p2, opacity) {
-	
 	      this.i = i;
 	
 	      if (x < 0 || x > this.parentDiv.width() || y < 0 || y > this.parentDiv.height()) {
@@ -72331,18 +72315,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.line.geometry.vertices[1].copy(p2);
 	    }
 	  }, {
-	    key: "remove",
+	    key: 'remove',
 	    value: function remove() {
-	
 	      this.threeJsScene.remove(this.line);
 	      this.div.remove();
 	      this.controller.delete_dist(this.i);
 	      this.parentList.splice(this.i, 1);
 	    }
 	  }, {
-	    key: "hide",
+	    key: 'hide',
 	    value: function hide() {
-	
 	      this.div.css('display', 'none');
 	    }
 	  }]);
@@ -72363,11 +72345,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.color = color;
 	
-	    this.div = (0, _jquery2.default)("<canvas>").css({
-	      "position": "absolute",
-	      "z-index": "1000",
-	      "display": "none",
-	      "pointer-events": "none"
+	    this.div = (0, _jquery2.default)('<canvas>').css({
+	      'position': 'absolute',
+	      'z-index': '1000',
+	      'display': 'none',
+	      'pointer-events': 'none'
 	    });
 	
 	    this.canvas = this.div[0];
@@ -72378,15 +72360,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(LineElement, [{
-	    key: "hide",
+	    key: 'hide',
 	    value: function hide() {
-	
-	      this.div.css("display", "none");
+	      this.div.css('display', 'none');
 	    }
 	  }, {
-	    key: "move",
+	    key: 'move',
 	    value: function move(x1, y1, x2, y2) {
-	
 	      var parentDivPos = this.parentDiv.position();
 	
 	      var width = Math.abs(x1 - x2);
@@ -72395,7 +72375,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var left = Math.min(x1, x2);
 	      var top = Math.min(y1, y2);
 	
-	      this.div.css("display", "block").css("width", width).css("height", height).css("top", top + parentDivPos.top).css("left", left + parentDivPos.left);
+	      this.div.css('display', 'block').css('width', width).css('height', height).css('top', top + parentDivPos.top).css('left', left + parentDivPos.left);
 	
 	      this.canvas.width = width;
 	      this.canvas.height = height;
@@ -72429,7 +72409,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.parentDiv = (0, _jquery2.default)(selector);
 	
-	    this.div = (0, _jquery2.default)("<div>").css('position', 'absolute').css('z-index', 100);
+	    this.div = (0, _jquery2.default)('<div>').css('position', 'absolute').css('z-index', 100);
 	
 	    this.parentDiv.append(this.div);
 	
@@ -72472,60 +72452,56 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(CanvasWrapper, [{
-	    key: "width",
+	    key: 'width',
 	    value: function width() {
 	      return this.parentDiv.width();
 	    }
 	  }, {
-	    key: "height",
+	    key: 'height',
 	    value: function height() {
 	      return this.parentDiv.height();
 	    }
 	  }, {
-	    key: "x",
+	    key: 'x',
 	    value: function x() {
 	      var parentDivPos = this.parentDiv.position();
 	      return parentDivPos.left;
 	    }
 	  }, {
-	    key: "y",
+	    key: 'y',
 	    value: function y() {
 	      var parentDivPos = this.parentDiv.position();
 	      return parentDivPos.top;
 	    }
 	  }, {
-	    key: "inside",
+	    key: 'inside',
 	    value: function inside(x, y) {
 	      return x >= this.x() && x <= this.x() + this.width() && y >= this.y() && y <= this.y() + this.height();
 	    }
 	  }, {
-	    key: "draw",
+	    key: 'draw',
 	    value: function draw() {}
 	  }, {
-	    key: "resize",
+	    key: 'resize',
 	    value: function resize() {
-	
 	      this.canvasDom.width = this.width();
 	      this.canvasDom.height = this.height();
 	    }
 	  }, {
-	    key: "strokeRect",
+	    key: 'strokeRect',
 	    value: function strokeRect(x, y, w, h, strokeStyle) {
-	
 	      this.drawContext.strokeStyle = strokeStyle;
 	      this.drawContext.strokeRect(x, y, w, h);
 	    }
 	  }, {
-	    key: "fillRect",
+	    key: 'fillRect',
 	    value: function fillRect(x, y, w, h, fillStyle) {
-	
 	      this.drawContext.fillStyle = fillStyle;
 	      this.drawContext.fillRect(x, y, w, h);
 	    }
 	  }, {
-	    key: "line",
+	    key: 'line',
 	    value: function line(x1, y1, x2, y2, lineWidth, color) {
-	
 	      this.drawContext.moveTo(x1, y1);
 	      this.drawContext.lineTo(x2, y2);
 	      this.drawContext.lineWidth = lineWidth;
@@ -72533,9 +72509,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.drawContext.stroke();
 	    }
 	  }, {
-	    key: "text",
+	    key: 'text',
 	    value: function text(_text, x, y, font, color, align) {
-	
 	      this.drawContext.fillStyle = color;
 	      this.drawContext.font = font;
 	      this.drawContext.textAlign = align;
@@ -72543,17 +72518,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.drawContext.fillText(_text, x, y);
 	    }
 	  }, {
-	    key: "textWidth",
+	    key: 'textWidth',
 	    value: function textWidth(text, font) {
-	
 	      this.drawContext.font = font;
 	      this.drawContext.textAlign = 'center';
 	      return this.drawContext.measureText(text).width;
 	    }
 	  }, {
-	    key: "mousedown",
+	    key: 'mousedown',
 	    value: function mousedown(event) {
-	
 	      event.preventDefault();
 	
 	      this.mousePressed = true;
@@ -72561,20 +72534,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.mousemove(event);
 	    }
 	  }, {
-	    key: "mousemove",
+	    key: 'mousemove',
 	    value: function mousemove(event) {}
 	  }, {
-	    key: "mouseup",
+	    key: 'mouseup',
 	    value: function mouseup(event) {
-	
 	      event.preventDefault();
 	
 	      this.mousePressed = false;
 	    }
 	  }, {
-	    key: "getPointer",
+	    key: 'getPointer',
 	    value: function getPointer(event) {
-	
 	      var x, y;
 	      if (event.touches) {
 	        x = event.touches[0].clientX;
@@ -72594,17 +72565,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 	
 	var resToAa = {
-	  "ALA": "A", "CYS": "C", "ASP": "D",
-	  "GLU": "E", "PHE": "F", "GLY": "G",
-	  "HIS": "H", "ILE": "I", "LYS": "K",
-	  "LEU": "L", "MET": "M", "ASN": "N",
-	  "PRO": "P", "GLN": "Q", "ARG": "R",
-	  "SER": "S", "THR": "T", "VAL": "V",
-	  "TRP": "W", "TYR": "Y",
-	  "DA": "A", "DT": "T", "DG": "G", "DC": "C",
-	  "A": "A", "T": "T", "G": "G", "C": "C",
-	  "RA": "A", "RU": "U", "RC": "C", "RG": "G",
-	  "U": "U"
+	  'ALA': 'A',
+	  'CYS': 'C',
+	  'ASP': 'D',
+	  'GLU': 'E',
+	  'PHE': 'F',
+	  'GLY': 'G',
+	  'HIS': 'H',
+	  'ILE': 'I',
+	  'LYS': 'K',
+	  'LEU': 'L',
+	  'MET': 'M',
+	  'ASN': 'N',
+	  'PRO': 'P',
+	  'GLN': 'Q',
+	  'ARG': 'R',
+	  'SER': 'S',
+	  'THR': 'T',
+	  'VAL': 'V',
+	  'TRP': 'W',
+	  'TYR': 'Y',
+	  'DA': 'A',
+	  'DT': 'T',
+	  'DG': 'G',
+	  'DC': 'C',
+	  'A': 'A',
+	  'T': 'T',
+	  'G': 'G',
+	  'C': 'C',
+	  'RA': 'A',
+	  'RU': 'U',
+	  'RC': 'C',
+	  'RG': 'G',
+	  'U': 'U'
 	
 	};
 	
@@ -72652,16 +72645,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this4.proteinDisplay = proteinDisplay;
 	    _this4.iRes = 0;
 	
+	    _this4.offsetY = 4;
 	    _this4.heightBar = 16;
 	    _this4.spacingY = 4;
-	    _this4.darkColor = "#222";
-	    _this4.mediumColor = "rgb(155, 155, 155)";
+	    _this4.backColor = '#CCC';
+	    _this4.selectColor = '#FFF';
+	    _this4.highlightColor = '#222';
 	
 	    _this4.div.attr('id', 'sequence-widget');
 	    _this4.div.css({
 	      'width': _this4.parentDiv.width(),
 	      'height': _this4.height(),
-	      'top': _this4.y()
+	      'top': _this4.y(),
+	      'background-color': '#CCC',
+	      'border-bottom': '1px solid #AAA'
 	    });
 	
 	    _this4.charWidth = 14;
@@ -72679,50 +72676,49 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(SequenceWidget, [{
-	    key: "width",
+	    key: 'width',
 	    value: function width() {
 	      return this.parentDiv.width();
 	    }
 	  }, {
-	    key: "height",
+	    key: 'height',
 	    value: function height() {
-	      return this.heightBar + this.spacingY * 5 + this.charHeight;
+	      return this.offsetY + this.heightBar + this.spacingY * 6 + this.charHeight;
 	    }
 	  }, {
-	    key: "resize",
+	    key: 'resize',
 	    value: function resize() {
-	      _get(SequenceWidget.prototype.__proto__ || Object.getPrototypeOf(SequenceWidget.prototype), "resize", this).call(this);
+	      _get(SequenceWidget.prototype.__proto__ || Object.getPrototypeOf(SequenceWidget.prototype), 'resize', this).call(this);
 	      this.div.css('width', this.parentDiv.width());
 	    }
 	  }, {
-	    key: "xToI",
+	    key: 'xToI',
 	    value: function xToI(x) {
 	      return parseInt((x - this.textXOffset) * this.nResidue / this.textWidth());
 	    }
 	  }, {
-	    key: "iToX",
+	    key: 'iToX',
 	    value: function iToX(iRes) {
 	      return parseInt(iRes / this.nResidue * this.textWidth()) + this.textXOffset;
 	    }
 	  }, {
-	    key: "textWidth",
+	    key: 'textWidth',
 	    value: function textWidth() {
 	      return this.width() - this.textXOffset;
 	    }
 	  }, {
-	    key: "xToIChar",
+	    key: 'xToIChar',
 	    value: function xToIChar(x) {
 	      return parseInt((x - this.textXOffset) * this.nChar / this.textWidth()) + this.iStartChar;
 	    }
 	  }, {
-	    key: "iCharToX",
+	    key: 'iCharToX',
 	    value: function iCharToX(iRes) {
 	      return parseInt((iRes - this.iStartChar) / this.nChar * this.textWidth() + this.textXOffset);
 	    }
 	  }, {
-	    key: "resetResidues",
+	    key: 'resetResidues',
 	    value: function resetResidues() {
-	
 	      var nRawResidue = this.scene.protein.residues.length;
 	
 	      this.residues = [];
@@ -72742,7 +72738,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (resType in resToAa) {
 	          entry.c = resToAa[resType];
 	        } else {
-	          entry.c = ".";
+	          entry.c = '.';
 	        }
 	
 	        this.residues.push(entry);
@@ -72754,9 +72750,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.iStartChar = 0;
 	    }
 	  }, {
-	    key: "draw",
+	    key: 'draw',
 	    value: function draw() {
-	
 	      if (!(0, _util.exists)(this.scene)) {
 	        return;
 	      }
@@ -72776,30 +72771,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      // draw background
-	      this.fillRect(0, 0, this.width(), this.height(), this.darkColor);
+	      this.fillRect(0, 0, this.width(), this.height(), this.backColor);
 	
-	      this.fillRect(this.textXOffset, 0, this.textWidth(), this.heightBar + this.spacingY * 2, this.darkColor);
+	      this.fillRect(this.textXOffset, 0, this.textWidth(), this.heightBar + this.spacingY * 2, this.backColor);
 	
-	      this.fillRect(this.textXOffset, this.heightBar + this.spacingY * 2, this.textWidth(), this.charHeight + this.spacingY * 2, this.mediumColor);
+	      this.fillRect(this.textXOffset, this.offsetY + this.heightBar + this.spacingY * 2, this.textWidth(), this.charHeight + this.spacingY * 2, this.selectColor);
 	
 	      var x1 = this.iToX(this.iStartChar);
 	      var x2 = this.iToX(this.iEndChar);
 	
-	      this.fillRect(x1, 0, x2 - x1, this.heightBar + this.spacingY * 2, 1, this.mediumColor);
+	      this.fillRect(x1, this.offsetY, x2 - x1, this.heightBar + this.spacingY * 2, 1, this.selectColor);
 	
 	      // draw secondary-structure color bars
 	      var ss = this.residues[0].ss;
 	      var iStart = 0;
 	      var iEnd = 0;
 	      while (iEnd < this.nResidue) {
-	
 	        iEnd += 1;
 	        if (iEnd == this.nResidue || this.residues[iEnd].ss != ss) {
-	
 	          var _x = this.iToX(iStart);
 	          var _x2 = this.iToX(iEnd);
 	          var color = getSsColor(ss).getStyle();
-	          this.fillRect(_x, this.spacingY, _x2 - _x, this.heightBar, color);
+	          this.fillRect(_x, this.offsetY + this.spacingY, _x2 - _x, this.heightBar, color);
 	
 	          if (iEnd <= this.nResidue - 1) {
 	            iStart = iEnd;
@@ -72809,33 +72802,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      // draw characters for sequence
-	      var y = this.heightBar + this.spacingY * 3;
+	      var y = this.offsetY + this.heightBar + this.spacingY * 3;
 	      for (var iChar = this.iStartChar; iChar < this.iEndChar; iChar += 1) {
 	        var residue = this.residues[iChar];
 	        var _x3 = this.iCharToX(iChar);
 	        var colorStyle = getSsColor(residue.ss).getStyle();
 	        this.fillRect(_x3, y, this.charWidth, this.charHeight, colorStyle);
-	        var style = "color:black; background-color:" + colorStyle;
-	        this.text(residue.c, _x3 + this.charWidth / 2, y + this.charHeight / 2, "8pt Monospace", "black", "center");
+	        var style = 'color:black; background-color:' + colorStyle;
+	        this.text(residue.c, _x3 + this.charWidth / 2, y + this.charHeight / 2, '8pt Monospace', 'black', 'center');
 	      }
 	
 	      var currResId = this.scene.current_view.res_id;
 	      for (var iRes = this.iStartChar; iRes < this.iEndChar; iRes++) {
 	        if (this.residues[iRes].resId == currResId) {
-	          this.strokeRect(this.iCharToX(iRes), this.heightBar + this.spacingY * 2, this.charWidth, this.charHeight + this.spacingY * 2, "white");
+	          this.strokeRect(this.iCharToX(iRes), this.offsetY + this.heightBar + this.spacingY * 2, this.charWidth, this.charHeight + this.spacingY * 2, this.highlightColor);
 	          break;
 	        }
 	      }
 	    }
 	  }, {
-	    key: "getFullIRes",
+	    key: 'getFullIRes',
 	    value: function getFullIRes() {
 	      return this.residues[this.iRes].i;
 	    }
 	  }, {
-	    key: "mousemove",
+	    key: 'mousemove',
 	    value: function mousemove(event) {
-	
 	      if (!this.mousePressed) {
 	        return;
 	      }
@@ -72873,63 +72865,63 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    _this5.scene = scene;
 	    _this5.maxZLength = 0.0;
-	    _this5.yOffset = 52;
+	    _this5.yOffset = 60;
 	    _this5.div.attr('id', 'zslab');
+	
+	    _this5.backColor = 'rgba(150, 150, 150, 0.75)';
+	    _this5.zBackColor = 'rgba(100, 70, 70, 0.75)';
+	    _this5.zFrontColor = 'rgba(150, 90, 90, 0.75)';
 	    return _this5;
 	  }
 	
 	  _createClass(ZSlabBar, [{
-	    key: "resize",
+	    key: 'resize',
 	    value: function resize() {
-	
 	      this.div.css({
 	        'width': this.width(),
 	        'height': this.height(),
 	        'top': this.y(),
 	        'left': this.x()
 	      });
-	      _get(ZSlabBar.prototype.__proto__ || Object.getPrototypeOf(ZSlabBar.prototype), "resize", this).call(this);
+	      _get(ZSlabBar.prototype.__proto__ || Object.getPrototypeOf(ZSlabBar.prototype), 'resize', this).call(this);
 	    }
 	  }, {
-	    key: "width",
+	    key: 'width',
 	    value: function width() {
 	      return 40;
 	    }
 	  }, {
-	    key: "y",
+	    key: 'y',
 	    value: function y() {
 	      var parentDivPos = this.parentDiv.position();
 	      return parentDivPos.top + this.yOffset;
 	    }
 	  }, {
-	    key: "height",
+	    key: 'height',
 	    value: function height() {
 	      return this.parentDiv.height() - this.yOffset;
 	    }
 	  }, {
-	    key: "x",
+	    key: 'x',
 	    value: function x() {
 	      var parentDivPos = this.parentDiv.position();
 	      return this.parentDiv.width() - this.width() + parentDivPos.left;
 	    }
 	  }, {
-	    key: "yToZ",
+	    key: 'yToZ',
 	    value: function yToZ(y) {
-	
 	      var fraction = y / this.height();
 	      return (0.5 - fraction) * this.maxZLength;
 	    }
 	  }, {
-	    key: "zToY",
+	    key: 'zToY',
 	    value: function zToY(z) {
-	
 	      var fraction = z / this.maxZLength;
 	      return (0.5 - fraction) * this.height();
 	    }
 	  }, {
-	    key: "draw",
+	    key: 'draw',
 	    value: function draw() {
-	
 	      var protein = this.scene.protein;
 	      var camera = this.scene.current_view.abs_camera;
 	      this.maxZLength = 2.0 * protein.max_length;
@@ -72938,35 +72930,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var yFront = this.zToY(camera.z_front);
 	      var yMid = this.zToY(0);
 	
-	      var grey = "rgba(40, 40, 40, 0.75)";
-	      var dark = "rgba(100, 70, 70, 0.75)";
-	      var light = "rgba(150, 90, 90, 0.75)";
+	      this.fillRect(0, 0, this.width(), this.height(), this.backColor);
 	
-	      this.fillRect(0, 0, this.width(), this.height(), grey);
+	      this.fillRect(0, yBack, this.width(), yMid - yBack, this.zBackColor);
 	
-	      this.fillRect(0, yBack, this.width(), yMid - yBack, dark);
-	
-	      this.fillRect(0, yMid, this.width(), yFront - yMid, light);
+	      this.fillRect(0, yMid, this.width(), yFront - yMid, this.zFrontColor);
 	
 	      var font = '12px sans-serif';
 	      var xm = this.width() / 2;
 	
-	      this.text('zslab', xm, 7, font, light, 'center');
-	      this.text('back', xm, yBack - 7, font, dark, 'center');
-	      this.text('front', xm, yFront + 7, font, light, 'center');
+	      this.text('zslab', xm, 10, font, this.zFrontColor, 'center');
+	      this.text('back', xm, yBack - 7, font, this.zBackColor, 'center');
+	      this.text('front', xm, yFront + 7, font, this.zFrontColor, 'center');
 	    }
 	  }, {
-	    key: "getZ",
+	    key: 'getZ',
 	    value: function getZ(event) {
-	
 	      this.getPointer(event);
 	
 	      this.z = this.yToZ(this.pointerY);
 	    }
 	  }, {
-	    key: "mousedown",
+	    key: 'mousedown',
 	    value: function mousedown(event) {
-	
 	      this.getZ(event);
 	
 	      if (this.z > 0) {
@@ -72977,12 +72963,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.back = false;
 	      }
 	
-	      _get(ZSlabBar.prototype.__proto__ || Object.getPrototypeOf(ZSlabBar.prototype), "mousedown", this).call(this, event);
+	      _get(ZSlabBar.prototype.__proto__ || Object.getPrototypeOf(ZSlabBar.prototype), 'mousedown', this).call(this, event);
 	    }
 	  }, {
-	    key: "mousemove",
+	    key: 'mousemove',
 	    value: function mousemove(event) {
-	
 	      event.preventDefault();
 	
 	      if (!this.mousePressed) {
@@ -73027,14 +73012,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this6.sliderHeight = 45 * 6 - 50;
 	    _this6.div.attr('id', 'gridBar');
 	    _this6.div.css('height', _this6.height());
-	    _this6.buttonsDiv = (0, _jquery2.default)("<div>");
+	    _this6.buttonsDiv = (0, _jquery2.default)('<div>');
 	    _this6.div.append(_this6.buttonsDiv);
 	    _this6.reset();
 	    return _this6;
 	  }
 	
 	  _createClass(GridBar, [{
-	    key: "reset",
+	    key: 'reset',
 	    value: function reset() {
 	      this.buttonsDiv.empty();
 	      var y = 5;
@@ -73049,11 +73034,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "makeElemButton",
+	    key: 'makeElemButton',
 	    value: function makeElemButton(elem, y) {
 	      var _this7 = this;
 	
-	      console.log("make grid atoms", elem, this.scene.grid_atoms[elem]);
+	      console.log('make grid atoms', elem, this.scene.grid_atoms[elem]);
 	      var color = new _three2.default.Color(ElementColors[elem]);
 	      var colorHexStr = color.getHexString();
 	      var text_button = (0, _util.toggleButton)('toggle_text', elem, 'jolecule-button', function () {
@@ -73063,15 +73048,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this7.scene.changed = true;
 	      }, colorHexStr);
 	      text_button.css('position', 'absolute');
-	      text_button.css('top', y + "px");
+	      text_button.css('top', y + 'px');
 	      text_button.css('left', '40px');
 	      text_button.css('width', '20px');
 	      return text_button;
 	    }
 	  }, {
-	    key: "resize",
+	    key: 'resize',
 	    value: function resize() {
-	
 	      var parentDivPos = this.parentDiv.position();
 	      this.div.css({
 	        'width': this.width(),
@@ -73083,31 +73067,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.canvasDom.height = this.height();
 	    }
 	  }, {
-	    key: "width",
+	    key: 'width',
 	    value: function width() {
 	      return 78;
 	    }
 	  }, {
-	    key: "height",
+	    key: 'height',
 	    value: function height() {
 	      return 45 * 6 + 10;
 	    }
 	  }, {
-	    key: "x",
+	    key: 'x',
 	    value: function x() {
 	      var parentDivPos = this.parentDiv.position();
 	      return parentDivPos.left;
 	    }
 	  }, {
-	    key: "y",
+	    key: 'y',
 	    value: function y() {
 	      var parentDivPos = this.parentDiv.position();
 	      return parentDivPos.top + 50;
 	    }
 	  }, {
-	    key: "yToZ",
+	    key: 'yToZ',
 	    value: function yToZ(y) {
-	
 	      var fraction = (y - 20) / this.sliderHeight;
 	      var z = fraction * this.diffB + this.minB;
 	      if (z < this.minB) {
@@ -73119,48 +73102,44 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return z;
 	    }
 	  }, {
-	    key: "zToY",
+	    key: 'zToY',
 	    value: function zToY(z) {
-	
 	      return (z - this.minB) / this.diffB * this.sliderHeight + 20;
 	    }
 	  }, {
-	    key: "draw",
+	    key: 'draw',
 	    value: function draw() {
-	
 	      var protein = this.scene.protein;
 	      var camera = this.scene.current_view.abs_camera;
 	
-	      var backgroundColor = "#222222";
+	      var backgroundColor = '#222222';
 	
 	      this.fillRect(0, 0, this.width(), this.height(), backgroundColor);
 	
 	      var xm = 20;
 	
-	      var dark = "rgb(100, 100, 100)";
+	      var dark = 'rgb(100, 100, 100)';
 	      var yTop = this.zToY(this.minB);
 	      var yBottom = this.zToY(this.maxB);
 	      this.line(xm, yTop, xm, yBottom, 1, dark);
 	      this.line(5, yTop, 35, yTop, 1, dark);
 	
 	      var font = '12px sans-serif';
-	      var textColor = "#98ab98";
+	      var textColor = '#98ab98';
 	      var y = this.zToY(this.scene.grid);
 	      this.fillRect(5, y, 30, 5, textColor);
 	      this.text(-this.scene.grid.toFixed(2), xm, y + 15, font, textColor, 'center');
 	    }
 	  }, {
-	    key: "getZ",
+	    key: 'getZ',
 	    value: function getZ(event) {
-	
 	      this.getPointer(event);
 	
 	      this.z = this.yToZ(this.pointerY);
 	    }
 	  }, {
-	    key: "mousedown",
+	    key: 'mousedown',
 	    value: function mousedown(event) {
-	
 	      event.preventDefault();
 	
 	      this.getZ(event);
@@ -73170,9 +73149,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.mousemove(event);
 	    }
 	  }, {
-	    key: "mousemove",
+	    key: 'mousemove',
 	    value: function mousemove(event) {
-	
 	      event.preventDefault();
 	
 	      if (!this.mousePressed) {
@@ -73186,9 +73164,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.scene.changed = true;
 	    }
 	  }, {
-	    key: "mouseup",
+	    key: 'mouseup',
 	    value: function mouseup(event) {
-	
 	      event.preventDefault();
 	
 	      this.mousePressed = false;
@@ -73266,9 +73243,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.mainDiv = (0, _jquery2.default)(this.divTag);
 	    this.mainDiv.css('overflow', 'hidden');
 	
+	    this.hover = new PopupText(this.divTag, 'lightblue');
+	    this.hover.div.css('pointer-events', 'none');
+	    this.hover.arrow.css('pointer-events', 'none');
+	
+	    this.zSlab = new ZSlabBar(this.divTag, this.scene);
+	    if (this.isGrid) {
+	      this.gridBar = new GridBar(this.divTag, this.scene);
+	    }
+	
+	    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').css({
+	      'z-index': 5000,
+	      'background-color': 'rgba(60, 60, 60, 0.9)',
+	      'font-family': 'Helvetica, Arial, sans-serif',
+	      'font-size': '12px',
+	      'letter-spacing': '0.1em',
+	      'padding': '5px 15px',
+	      'color': '#666' });
+	
+	    this.setProcessingMesssage('Loading data for proteins');
+	
 	    this.backgroundColor = backgroundColor;
 	
 	    this.threeJsScene = new _three2.default.Scene();
+	    this.threeJsScene.background = new _three2.default.Color(this.backgroundColor);
 	    this.threeJsScene.fog = new _three2.default.Fog(this.backgroundColor, 1, 100);
 	    this.threeJsScene.fog.near = this.zoom + 1;
 	    this.threeJsScene.fog.far = this.zoom + this.zBack;
@@ -73288,33 +73286,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.renderer.setSize(this.width(), this.height());
 	    this.webglDivId = this.mainDiv.attr('id') + '-canvas-wrapper';
 	    this.webglDivTag = '#' + this.webglDivId;
-	    this.webglDiv = (0, _jquery2.default)("<div>").attr('id', this.webglDivId).css('overflow', 'hidden');
+	    this.webglDiv = (0, _jquery2.default)('<div>').attr('id', this.webglDivId).css('overflow', 'hidden');
 	    this.mainDiv.append(this.webglDiv);
-	    this.webglDiv[0].appendChild(this.renderer.domElement);
+	    var canvas = this.renderer.domElement;
+	    this.webglDiv[0].appendChild(canvas);
 	
-	    this.hover = new PopupText(this.divTag, "lightblue");
-	    this.hover.div.css("pointer-events", "none");
-	    this.hover.arrow.css("pointer-events", "none");
-	
-	    this.zSlab = new ZSlabBar(this.divTag, this.scene);
-	    if (this.isGrid) {
-	      this.gridBar = new GridBar(this.divTag, this.scene);
-	    }
-	
-	    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').css({
-	      'z-index': 5000,
-	      'background-color': 'rgba(60, 60, 60, 0.9)',
-	      'font-family': 'Helvetica, Arial, sans-serif',
-	      'font-size': '12px',
-	      'letter-spacing': '0.1em',
-	      'padding': '5px 15px',
-	      'color': '#666' });
-	
-	    this.setProcessingMesssage("Loading data for proteins");
+	    this.mainDiv.css('background-color', '#CCC');
+	    this.webglDiv.css('background-color', '#CCC');
 	
 	    this.sequenceWidget = new SequenceWidget(this.divTag, this.scene, this);
 	
-	    this.distancePartnerPointer = new LineElement(this.webglDivTag, "#FF7777");
+	    this.distancePartnerPointer = new LineElement(this.webglDivTag, '#FF7777');
 	
 	    var dom = this.renderer.domElement;
 	
@@ -73357,26 +73339,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(ProteinDisplay, [{
-	    key: "setProcessingMesssage",
+	    key: 'setProcessingMesssage',
 	    value: function setProcessingMesssage(message) {
 	      console.log(message);
 	      this.messageDiv.html(message).show();
 	      (0, _util.stickJqueryDivInTopLeft)(this.mainDiv, this.messageDiv, 100, 90);
 	    }
 	  }, {
-	    key: "cleanupProcessingMessage",
+	    key: 'cleanupProcessingMessage',
 	    value: function cleanupProcessingMessage() {
 	      this.resize();
 	      this.messageDiv.hide();
 	    }
 	  }, {
-	    key: "displayProcessMessageAndRun",
+	    key: 'displayProcessMessageAndRun',
 	    value: function displayProcessMessageAndRun(message, fn) {
 	      this.setProcessingMesssage(message);
 	      setTimeout(fn, 0);
 	    }
 	  }, {
-	    key: "createObjects",
+	    key: 'createObjects',
 	    value: function createObjects() {
 	      console.log('> ProteinDisplay.createObjects');
 	      this.objects = {};
@@ -73390,9 +73372,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.objects.peptides = new _three2.default.Object3D();
 	    }
 	  }, {
-	    key: "buildAfterDataLoad",
+	    key: 'buildAfterDataLoad',
 	    value: function buildAfterDataLoad(defaultHtml) {
-	
 	      this.createObjects();
 	
 	      this.buildScene();
@@ -73448,7 +73429,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.scene.changed = true;
 	    }
 	  }, {
-	    key: "buildAfterAddProteinData",
+	    key: 'buildAfterAddProteinData',
 	    value: function buildAfterAddProteinData() {
 	      clearObject3D(this.threeJsScene);
 	      this.buildScene();
@@ -73456,18 +73437,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.scene.changed = true;
 	    }
 	  }, {
-	    key: "isPeptideConnected",
+	    key: 'isPeptideConnected',
 	    value: function isPeptideConnected(i0, i1) {
-	
 	      var res0 = this.protein.residues[i0];
 	      var res1 = this.protein.residues[i1];
 	
-	      if ("C" in res0.atoms && "N" in res1.atoms && "CA" in res0.atoms && "CA" in res1.atoms) {
-	
+	      if ('C' in res0.atoms && 'N' in res1.atoms && 'CA' in res0.atoms && 'CA' in res1.atoms) {
 	        // detect a potential peptide bond
 	
-	        var c = res0.atoms["C"];
-	        var n = res1.atoms["N"];
+	        var c = res0.atoms['C'];
+	        var n = res1.atoms['N'];
 	        if (_v2.default.distance(c.pos, n.pos) < 2) {
 	          return true;
 	        }
@@ -73476,17 +73455,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return false;
 	    }
 	  }, {
-	    key: "isSugarPhosphateConnected",
+	    key: 'isSugarPhosphateConnected',
 	    value: function isSugarPhosphateConnected(i0, i1) {
-	
 	      var res0 = this.protein.residues[i0];
 	      var res1 = this.protein.residues[i1];
 	
-	      if ("C3'" in res0.atoms && "C1'" in res0.atoms && "C5'" in res0.atoms && "O3'" in res0.atoms && "P" in res1.atoms && "C3'" in res1.atoms && "C1'" in res1.atoms && "C5'" in res1.atoms) {
-	
+	      if ("C3'" in res0.atoms && "C1'" in res0.atoms && "C5'" in res0.atoms && "O3'" in res0.atoms && 'P' in res1.atoms && "C3'" in res1.atoms && "C1'" in res1.atoms && "C5'" in res1.atoms) {
 	        // detect nucloetide phosphate sugar bond
 	        var o3 = res0.atoms["O3'"];
-	        var p = res1.atoms["P"];
+	        var p = res1.atoms['P'];
 	        if (_v2.default.distance(o3.pos, p.pos) < 2.5) {
 	          return true;
 	        }
@@ -73495,18 +73472,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return false;
 	    }
 	  }, {
-	    key: "getNormalOfNuc",
+	    key: 'getNormalOfNuc',
 	    value: function getNormalOfNuc(res) {
-	
 	      var atoms = res.atoms;
 	      var forward = _v2.default.diff(atoms["C3'"].pos, atoms["C5'"].pos);
 	      var up = _v2.default.diff(atoms["C1'"].pos, atoms["C3'"].pos);
 	      return _v2.default.crossProduct(forward, up);
 	    }
 	  }, {
-	    key: "findChainsAndPieces",
+	    key: 'findChainsAndPieces',
 	    value: function findChainsAndPieces() {
-	
 	      // Chains are continuous pieces of proteins or dna
 	      // Pieces are continuous pieces of secondary structure
 	
@@ -73516,35 +73491,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var n_residue = this.protein.residues.length;
 	      for (var j = 0; j < n_residue; j += 1) {
-	
 	        var residue = this.protein.residues[j];
 	        var isProteinNucOrConnected = false;
 	
 	        if (residue.is_protein_or_nuc) {
-	
 	          isProteinNucOrConnected = true;
 	        } else {
-	
 	          if (j > 0) {
 	            if (this.isPeptideConnected(j - 1, j)) {
-	              residue.central_atom = residue.atoms["CA"];
+	              residue.central_atom = residue.atoms['CA'];
 	              isProteinNucOrConnected = true;
 	            } else if (this.isSugarPhosphateConnected(j - 1, j)) {
 	              residue.central_atom = residue.atoms["C3'"];
 	              isProteinNucOrConnected = true;
-	              residue.ss = "R";
+	              residue.ss = 'R';
 	              residue.normal = this.getNormalOfNuc(residue);
 	            }
 	          }
 	
 	          if (j < n_residue - 1) {
 	            if (this.isPeptideConnected(j, j + 1)) {
-	              residue.central_atom = residue.atoms["CA"];
+	              residue.central_atom = residue.atoms['CA'];
 	              isProteinNucOrConnected = true;
 	            } else if (this.isSugarPhosphateConnected(j, j + 1)) {
 	              residue.central_atom = residue.atoms["C3'"];
 	              isProteinNucOrConnected = true;
-	              residue.ss = "R";
+	              residue.ss = 'R';
 	              residue.normal = this.getNormalOfNuc(residue);
 	            }
 	          }
@@ -73561,7 +73533,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var iStart = 0;
 	      for (var iEnd = 1; iEnd < this.trace.points.length + 1; iEnd += 1) {
-	
 	        var isBreak = false;
 	
 	        if (iEnd == this.trace.points.length) {
@@ -73592,7 +73563,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var iPieceStart = iStart;
 	
 	        for (var iPieceEnd = iStart + 1; iPieceEnd < iEnd + 1; iPieceEnd += 1) {
-	
 	          isBreak = false;
 	          if (iPieceEnd == iEnd) {
 	            isBreak = true;
@@ -73627,9 +73597,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "calcContinuousTangents",
+	    key: 'calcContinuousTangents',
 	    value: function calcContinuousTangents(trace, iStart, iEnd) {
-	
 	      var points = trace.points;
 	
 	      var iLast = iEnd - 1;
@@ -73637,7 +73606,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var i;
 	
 	      if (iEnd - iStart > 2) {
-	
 	        trace.tangents[iStart] = points[iStart + 1].clone().sub(points[iStart]).normalize();
 	
 	        for (i = iStart + 1; i < iLast; i += 1) {
@@ -73659,7 +73627,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        trace.normals[iLast] = trace.normals[iLast - 1];
 	      } else {
-	
 	        // for 2 point loops
 	        var tangent = points[iLast].clone().sub(points[iStart]).normalize();
 	
@@ -73677,7 +73644,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      for (i = iStart + 1; i < iEnd; i += 1) {
-	        if (trace.residues[i].ss != "D" && trace.residues[i - 1].ss != "D") {
+	        if (trace.residues[i].ss != 'D' && trace.residues[i - 1].ss != 'D') {
 	          if (trace.normals[i].dot(trace.normals[i - 1]) < 0) {
 	            trace.normals[i].negate();
 	          }
@@ -73689,10 +73656,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "getAtomColor",
+	    key: 'getAtomColor',
 	    value: function getAtomColor(atom) {
-	
-	      if (atom.elem == "C" || atom.elem == "H") {
+	      if (atom.elem == 'C' || atom.elem == 'H') {
 	        var res = this.protein.res_by_id[atom.res_id];
 	        return getSsColor(res.ss);
 	      } else if (atom.elem in ElementColors) {
@@ -73701,9 +73667,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return darkGrey;
 	    }
 	  }, {
-	    key: "buildLights",
+	    key: 'buildLights',
 	    value: function buildLights() {
-	
 	      var directionalLight = new _three2.default.DirectionalLight(0xFFFFFF);
 	      directionalLight.position.copy(new TV3(0.2, 0.2, 100).normalize());
 	      directionalLight.dontDelete = true;
@@ -73725,24 +73690,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "getSsFace",
+	    key: 'getSsFace',
 	    value: function getSsFace(ss) {
-	
-	      if (ss == "C" || ss == "-") {
+	      if (ss == 'C' || ss == '-') {
 	        return coilFace;
 	      }
 	      return ribbonFace;
 	    }
 	  }, {
-	    key: "buildTube",
+	    key: 'buildTube',
 	    value: function buildTube() {
-	
 	      clearObject3D(this.objects.tube);
 	
 	      var detail = 4;
 	
 	      for (var iChain = 0; iChain < this.trace.chains.length; iChain += 1) {
-	
 	        var chain = this.trace.chains[iChain];
 	        var iStart = chain.iStart;
 	        var iEnd = chain.iEnd;
@@ -73751,7 +73713,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var path = (0, _glgeometry.expandPath)(this.trace.slice(iStart, iEnd), 2 * detail);
 	
 	        for (var iPiece = 0; iPiece < chain.pieces.length; iPiece += 1) {
-	
 	          var piece = chain.pieces[iPiece];
 	          var iPieceStart = piece.iStart - iStart;
 	          var iPieceEnd = piece.iEnd - iStart;
@@ -73788,15 +73749,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "buildRibbons",
+	    key: 'buildRibbons',
 	    value: function buildRibbons() {
-	
 	      clearObject3D(this.objects.ribbons);
 	
 	      var detail = 4;
 	
 	      for (var iChain = 0; iChain < this.trace.chains.length; iChain += 1) {
-	
 	        var chain = this.trace.chains[iChain];
 	        var iStart = chain.iStart;
 	        var iEnd = chain.iEnd;
@@ -73805,7 +73764,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var path = (0, _glgeometry.expandPath)(this.trace.slice(iStart, iEnd), 2 * detail);
 	
 	        for (var iPiece = 0; iPiece < chain.pieces.length; iPiece += 1) {
-	
 	          var piece = chain.pieces[iPiece];
 	          var iPieceStart = piece.iStart - iStart;
 	          var iPieceEnd = piece.iEnd - iStart;
@@ -73830,7 +73788,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          var face = this.getSsFace(ss);
 	          var color = getSsColor(ss);
-	          var round = ss == "C";
+	          var round = ss == 'C';
 	
 	          var material = new _three2.default.MeshLambertMaterial({
 	            color: color
@@ -73843,9 +73801,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "buildArrows",
+	    key: 'buildArrows',
 	    value: function buildArrows() {
-	
 	      clearObject3D(this.objects.arrows);
 	
 	      for (var iChain = 0; iChain < this.trace.chains.length; iChain += 1) {
@@ -73854,7 +73811,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var piece = chain.pieces[iPiece];
 	          var color = getDarkSsColor(piece.ss);
 	          for (var i = piece.iStart; i < piece.iEnd; i += 1) {
-	
 	            var arrow = (0, _glgeometry.drawBlockArrow)(this.trace.points[i], this.trace.tangents[i], this.trace.binormals[i], color);
 	
 	            arrow.atom = this.trace.residues[i].central_atom;
@@ -73868,11 +73824,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "mergeBond",
+	    key: 'mergeBond',
 	    value: function mergeBond(totalGeom, bond, residue) {
-	
 	      function cylinderMatrix(from, to, radius) {
-	
 	        var midpoint = from.clone().add(to).multiplyScalar(0.5);
 	
 	        var obj = new _three2.default.Object3D();
@@ -73897,12 +73851,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var radius = 0.2;
 	
 	      if (color1 == color2) {
-	
 	        (0, _glgeometry.setGeometryVerticesColor)(geom, color1);
 	
 	        totalGeom.merge(geom, cylinderMatrix(p1, p2, radius));
 	      } else {
-	
 	        var midpoint = p2.clone().add(p1).multiplyScalar(0.5);
 	
 	        if (bond.atom1.res_id == residue.id) {
@@ -73917,9 +73869,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "mergeAtom",
+	    key: 'mergeAtom',
 	    value: function mergeAtom(totalGeom, atom) {
-	
 	      if (atom.is_alt) {
 	        return;
 	      }
@@ -73938,9 +73889,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      totalGeom.merge(geom, obj.matrix);
 	    }
 	  }, {
-	    key: "pushAtom",
+	    key: 'pushAtom',
 	    value: function pushAtom(object, atom) {
-	
 	      var pos = _v2.default.clone(atom.pos);
 	      var material = new _three2.default.MeshLambertMaterial({
 	        color: this.getAtomColor(atom)
@@ -73954,16 +73904,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.clickMeshes.push(mesh);
 	    }
 	  }, {
-	    key: "assignBonds",
+	    key: 'assignBonds',
 	    value: function assignBonds() {
-	
 	      for (var j = 0; j < this.protein.residues.length; j += 1) {
 	        var res = this.protein.residues[j];
 	        res.bonds = [];
 	      }
 	
 	      for (var _j = 0; _j < this.protein.bonds.length; _j += 1) {
-	
 	        var bond = this.protein.bonds[_j];
 	        var atom1 = bond.atom1;
 	        var atom2 = bond.atom2;
@@ -73983,15 +73931,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "buildBackbone",
+	    key: 'buildBackbone',
 	    value: function buildBackbone() {
-	
 	      clearObject3D(this.objects.backbone);
 	
 	      var geom = new _three2.default.Geometry();
 	
 	      for (var i = 0; i < this.protein.residues.length; i += 1) {
-	
 	        var residue = this.protein.residues[i];
 	        if (!residue.is_protein_or_nuc) {
 	          continue;
@@ -74020,14 +73966,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.objects.backbone.add(mesh);
 	    }
 	  }, {
-	    key: "buildLigands",
+	    key: 'buildLigands',
 	    value: function buildLigands() {
-	
 	      clearObject3D(this.objects.ligands);
 	      var geom = new _three2.default.Geometry();
 	
 	      for (var i = 0; i < this.protein.residues.length; i += 1) {
-	
 	        var residue = this.protein.residues[i];
 	
 	        if (!residue.is_ligands) {
@@ -74051,9 +73995,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.objects.ligands.add(mesh);
 	    }
 	  }, {
-	    key: "buildWaters",
+	    key: 'buildWaters',
 	    value: function buildWaters() {
-	
 	      console.log('buildWaters');
 	
 	      clearObject3D(this.objects.water);
@@ -74061,7 +74004,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var geom = new _three2.default.Geometry();
 	
 	      for (var i = 0; i < this.protein.residues.length; i += 1) {
-	
 	        var residue = this.protein.residues[i];
 	
 	        if (!residue.is_water) {
@@ -74085,9 +74027,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.objects.water.add(mesh);
 	    }
 	  }, {
-	    key: "buildGrid",
+	    key: 'buildGrid',
 	    value: function buildGrid() {
-	
 	      if (!this.isGrid) {
 	        return;
 	      }
@@ -74135,9 +74076,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.gridBar.reset();
 	    }
 	  }, {
-	    key: "buildSidechain",
+	    key: 'buildSidechain',
 	    value: function buildSidechain(residue) {
-	
 	      if (!residue.is_protein_or_nuc) {
 	        return;
 	      }
@@ -74147,11 +74087,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.threeJsScene.add(residue.sidechain);
 	
 	      for (var j = 0; j < residue.bonds.length; j += 1) {
-	
 	        var bond = residue.bonds[j];
 	
 	        if (!(0, _util.inArray)(bond.atom1.type, backboneAtoms) || !(0, _util.inArray)(bond.atom2.type, backboneAtoms)) {
-	
 	          this.mergeBond(scGeom, bond, residue);
 	        }
 	      }
@@ -74172,18 +74110,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "addBondGeometry",
+	    key: 'addBondGeometry',
 	    value: function addBondGeometry(totalGeom, atoms, a1, a2, color) {
-	
 	      var vertices = getVerticesFromAtomDict(atoms, [a1, a2]);
 	      var cylinder = (0, _glgeometry.drawCylinder)(vertices[0], vertices[1], 0.2, color, true);
 	      cylinder.updateMatrix();
 	      totalGeom.merge(cylinder.geometry, cylinder.matrix);
 	    }
 	  }, {
-	    key: "buildPeptideBonds",
+	    key: 'buildPeptideBonds',
 	    value: function buildPeptideBonds() {
-	
 	      clearObject3D(this.objects.peptides);
 	
 	      var totalGeom = new _three2.default.Geometry();
@@ -74191,13 +74127,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var residues = this.protein.residues;
 	
 	      function isProtein(iRes) {
-	
 	        var residue = residues[iRes];
-	        return residue.ss != "D" && residue.is_protein_or_nuc;
+	        return residue.ss != 'D' && residue.is_protein_or_nuc;
 	      }
 	
 	      for (var iRes = 1; iRes < this.protein.residues.length; iRes += 1) {
-	
 	        if (!isProtein(iRes - 1) || !isProtein(iRes)) {
 	          continue;
 	        }
@@ -74207,12 +74141,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var residue0 = this.protein.residues[iRes - 1];
 	        var residue1 = this.protein.residues[iRes];
 	
-	        var vertices = getVerticesFromAtomDict(residue0.atoms, ["CA", "O", "C"]);
+	        var vertices = getVerticesFromAtomDict(residue0.atoms, ['CA', 'O', 'C']);
 	        var ca0 = vertices[0];
 	        var o = vertices[1];
 	        var c = vertices[2];
 	
-	        vertices = getVerticesFromAtomDict(residue1.atoms, ["CA", "N"]);
+	        vertices = getVerticesFromAtomDict(residue1.atoms, ['CA', 'N']);
 	        var ca1 = vertices[0];
 	        var n = vertices[1];
 	
@@ -74254,47 +74188,50 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.objects.peptides.add(new _three2.default.Mesh(totalGeom, material));
 	    }
 	  }, {
-	    key: "buildNucleotides",
+	    key: 'buildNucleotides',
 	    value: function buildNucleotides() {
-	
 	      var totalGeom = new _three2.default.Geometry();
 	
 	      for (var iRes = 0; iRes < this.protein.residues.length; iRes += 1) {
-	
 	        var residue = this.protein.residues[iRes];
 	
-	        if (residue.ss != "D" || !residue.is_protein_or_nuc) {
+	        if (residue.ss != 'D' || !residue.is_protein_or_nuc) {
 	          continue;
 	        }
 	
 	        var geom = new _three2.default.Geometry();
 	        var atomTypes, bondTypes;
 	
-	        if (residue.type == "DA" || residue.type == "A") {
-	
-	          atomTypes = ["N9", "C8", "N7", "C5", "C6", "N1", "C2", "N3", "C4"];
-	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", "N9"], ["C6", "N6"]];
-	        } else if (residue.type == "DG" || residue.type == "G") {
-	
-	          atomTypes = ["N9", "C8", "N7", "C5", "C6", "N1", "C2", "N3", "C4"];
-	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", "N9"], ["C6", "O6"], ["C2", "N2"]];
-	        } else if (residue.type == "DT" || residue.type == "U") {
-	
-	          atomTypes = ["C6", "N1", "C2", "N3", "C4", "C5"];
-	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", "N1"], ["C4", "O4"]];
-	        } else if (residue.type == "DC" || residue.type == "C") {
-	
-	          atomTypes = ["C6", "N1", "C2", "N3", "C4", "C5"];
-	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", "N1"], ["C4", "N4"], ["C2", "O2"]];
+	        if (residue.type == 'DA' || residue.type == 'A') {
+	          atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
+	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']
+	          // ["C6", "N6"]
+	          ];
+	        } else if (residue.type == 'DG' || residue.type == 'G') {
+	          atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
+	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']
+	          // ["C6", "O6"],
+	          // ["C2", "N2"]
+	          ];
+	        } else if (residue.type == 'DT' || residue.type == 'U') {
+	          atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
+	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']
+	          // ["C4", "O4"]
+	          ];
+	        } else if (residue.type == 'DC' || residue.type == 'C') {
+	          atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
+	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']
+	          // ["C4", "N4"],
+	          // ["C2", "O2"]
+	          ];
 	        } else {
-	
 	          continue;
 	        }
 	
 	        var vertices = getVerticesFromAtomDict(residue.atoms, atomTypes);
 	        var geom = new _glgeometry.RaisedShapeGeometry(vertices, 0.3);
 	        geom.merge(geom, geom.matrix);
-	
+	        geom.computeFaceNormals();
 	        for (var i = 0; i < bondTypes.length; i += 1) {
 	          var bond = bondTypes[i];
 	          this.addBondGeometry(geom, residue.atoms, bond[0], bond[1]);
@@ -74308,20 +74245,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.clickMeshes.push(baseMesh);
 	      }
 	
-	      totalGeom.computeFaceNormals();
+	      // totalGeom.computeFaceNormals()
 	
 	      var material = new _three2.default.MeshLambertMaterial({
-	        color: getSsColor("D"),
-	        vertexColors: _three2.default.VertexColors
+	        color: getSsColor('D')
 	      });
-	
-	      var color = new _three2.default.Color(purple);
-	      (0, _glgeometry.setGeometryVerticesColor)(totalGeom, color);
 	
 	      this.objects.basepairs = new _three2.default.Mesh(totalGeom, material);
 	    }
 	  }, {
-	    key: "buildCrossHairs",
+	    key: 'buildCrossHairs',
 	    value: function buildCrossHairs() {
 	      var radius = 1.2,
 	          segments = 60,
@@ -74336,17 +74269,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.threeJsScene.add(this.crossHairs);
 	    }
 	  }, {
-	    key: "moveCrossHairs",
+	    key: 'moveCrossHairs',
 	    value: function moveCrossHairs() {
-	
 	      this.crossHairs.position.copy(this.cameraTarget);
 	      this.crossHairs.lookAt(this.camera.position);
 	      this.crossHairs.updateMatrix();
 	    }
 	  }, {
-	    key: "buildScene",
+	    key: 'buildScene',
 	    value: function buildScene() {
-	
 	      this.objects.ligands.notBuilt = true;
 	      this.objects.backbone.notBuilt = true;
 	      this.objects.peptides.notBuilt = true;
@@ -74373,16 +74304,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "setTargetFromResId",
+	    key: 'setTargetFromResId',
 	    value: function setTargetFromResId(resId) {
-	
 	      var atom = this.protein.res_by_id[resId].central_atom;
 	      this.setTargetFromAtom(atom);
 	    }
 	  }, {
-	    key: "setTargetFromAtom",
+	    key: 'setTargetFromAtom',
 	    value: function setTargetFromAtom(atom) {
-	
 	      var position = _v2.default.clone(atom.pos);
 	      var sceneDisplacement = position.clone().sub(this.cameraTarget);
 	
@@ -74403,9 +74332,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.scene.n_update_step = this.scene.max_update_step;
 	    }
 	  }, {
-	    key: "setCameraFromCurrentView",
+	    key: 'setCameraFromCurrentView',
 	    value: function setCameraFromCurrentView() {
-	
 	      var target = convertViewToTarget(this.scene.current_view);
 	
 	      var cameraDirection = this.camera.position.clone().sub(this.cameraTarget).normalize();
@@ -74452,9 +74380,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "adjustCamera",
+	    key: 'adjustCamera',
 	    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-	
 	      var y = this.camera.up;
 	      var z = this.camera.position.clone().sub(this.cameraTarget).normalize();
 	      var x = new TV3().crossVectors(y, z).normalize();
@@ -74488,9 +74415,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.controller.set_current_view(view);
 	    }
 	  }, {
-	    key: "resize",
+	    key: 'resize',
 	    value: function resize() {
-	
 	      this.camera.aspect = this.width() / this.height();
 	      this.camera.updateProjectionMatrix();
 	
@@ -74505,21 +74431,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.controller.flag_changed();
 	    }
 	  }, {
-	    key: "width",
+	    key: 'width',
 	    value: function width() {
-	
 	      return this.mainDiv.width();
 	    }
 	  }, {
-	    key: "height",
+	    key: 'height',
 	    value: function height() {
-	
 	      return this.mainDiv.height();
 	    }
 	  }, {
-	    key: "getMouse",
+	    key: 'getMouse',
 	    value: function getMouse(event) {
-	
 	      // if ( exists( event.touches ) && ( event.touches.length == 2 ) ) {
 	      //     var x0 = event.touches[0].x;
 	      //     var y0 = event.touches[0].y;
@@ -74537,7 +74460,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      //         }
 	      //     }
 	      // }
-	
 	
 	      if ((0, _util.exists)(event.touches) && event.touches.length > 0) {
 	        this.eventX = event.touches[0].clientX;
@@ -74566,18 +74488,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "saveMouse",
+	    key: 'saveMouse',
 	    value: function saveMouse() {
-	
 	      this.saveMouseX = this.mouseX;
 	      this.saveMouseY = this.mouseY;
 	      this.saveMouseR = this.mouseR;
 	      this.saveMouseT = this.mouseT;
 	    }
 	  }, {
-	    key: "getZ",
+	    key: 'getZ',
 	    value: function getZ(pos) {
-	
 	      var origin = this.cameraTarget.clone();
 	
 	      var cameraDir = origin.clone().sub(this.camera.position).normalize();
@@ -74587,17 +74507,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return posRelativeToOrigin.dot(cameraDir);
 	    }
 	  }, {
-	    key: "inZlab",
+	    key: 'inZlab',
 	    value: function inZlab(pos) {
-	
 	      var z = this.getZ(pos);
 	
 	      return z >= this.zFront && z <= this.zBack;
 	    }
 	  }, {
-	    key: "opacity",
+	    key: 'opacity',
 	    value: function opacity(pos) {
-	
 	      var z = this.getZ(pos);
 	
 	      if (z < this.zFront) {
@@ -74613,9 +74531,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return opacity;
 	    }
 	  }, {
-	    key: "getHoverAtom",
+	    key: 'getHoverAtom',
 	    value: function getHoverAtom() {
-	
 	      var x = this.mouseX;
 	      var y = this.mouseY;
 	
@@ -74634,7 +74551,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var show = this.scene.current_view.show;
 	
 	      for (var i = 0; i < intersects.length; i += 1) {
-	
 	        var intersect = intersects[i];
 	
 	        var atom = intersect.object.atom;
@@ -74664,9 +74580,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return null;
 	    }
 	  }, {
-	    key: "posXY",
+	    key: 'posXY',
 	    value: function posXY(pos) {
-	
 	      var widthHalf = 0.5 * this.width();
 	      var heightHalf = 0.5 * this.height();
 	
@@ -74678,9 +74593,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	    }
 	  }, {
-	    key: "atom_label_dialog",
+	    key: 'atom_label_dialog',
 	    value: function atom_label_dialog() {
-	
 	      var i_atom = this.scene.current_view.i_atom;
 	      if (i_atom >= 0) {
 	        var success = function success(text) {
@@ -74696,30 +74610,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "updateHover",
+	    key: 'updateHover',
 	    value: function updateHover() {
-	
 	      this.hoverAtom = this.getHoverAtom();
 	
 	      if (this.hoverAtom) {
-	
 	        var text = this.hoverAtom.label;
 	        if (this.hoverAtom == this.scene.centered_atom()) {
-	          text = "<center>" + text;
-	          text = text + "<br>[drag distances]<br>[double-click labels]</center>";
+	          text = '<center>' + text;
+	          text = text + '<br>[drag distances]<br>[double-click labels]</center>';
 	        }
 	        this.hover.html(text);
 	        var vector = this.posXY(_v2.default.clone(this.hoverAtom.pos));
 	        this.hover.move(vector.x, vector.y);
 	      } else {
-	
 	        this.hover.hide();
 	      }
 	    }
 	  }, {
-	    key: "doubleclick",
+	    key: 'doubleclick',
 	    value: function doubleclick() {
-	
 	      if (this.hoverAtom !== null) {
 	        if (this.hoverAtom == this.scene.centered_atom()) {
 	          this.atom_label_dialog();
@@ -74730,9 +74640,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "mousedown",
+	    key: 'mousedown',
 	    value: function mousedown(event) {
-	
 	      this.getMouse(event);
 	
 	      event.preventDefault();
@@ -74746,14 +74655,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.downAtom = this.getHoverAtom();
 	
 	      if (isDoubleClick) {
-	
 	        this.doubleclick();
 	      } else {
-	
 	        this.isDraggingCentralAtom = false;
 	
 	        if (this.downAtom !== null) {
-	
 	          this.isDraggingCentralAtom = true;
 	        }
 	      }
@@ -74764,9 +74670,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.mousePressed = true;
 	    }
 	  }, {
-	    key: "mousemove",
+	    key: 'mousemove',
 	    value: function mousemove(event) {
-	
 	      this.getMouse(event);
 	
 	      event.preventDefault();
@@ -74778,33 +74683,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.updateHover();
 	
 	      if (this.isDraggingCentralAtom) {
-	
 	        var mainDivPos = this.mainDiv.position();
 	        var v = this.posXY(_v2.default.clone(this.downAtom.pos));
 	
 	        this.distancePartnerPointer.move(this.mouseX, this.mouseY, v.x, v.y);
 	      } else {
-	
 	        var shiftDown = event.shiftKey == 1;
 	
 	        var rightMouse = event.button == 2 || event.which == 3;
 	
 	        if (this.mousePressed) {
-	
 	          var zoomRatio = 1.0;
 	          var zRotationAngle = 0;
 	          var yRotationAngle = 0;
 	          var xRotationAngle = 0;
 	
 	          if (rightMouse || shiftDown) {
-	
 	            zRotationAngle = this.mouseT - this.saveMouseT;
 	
 	            if (this.mouseR > 0.0) {
 	              zoomRatio = this.saveMouseR / this.mouseR;
 	            }
 	          } else {
-	
 	            yRotationAngle = degToRad(this.mouseX - this.saveMouseX);
 	            xRotationAngle = degToRad(this.mouseY - this.saveMouseY);
 	          }
@@ -74816,9 +74716,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "mousewheel",
+	    key: 'mousewheel',
 	    value: function mousewheel(event) {
-	
 	      event.preventDefault();
 	
 	      var wheel;
@@ -74833,17 +74732,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.adjustCamera(0, 0, 0, zoom);
 	    }
 	  }, {
-	    key: "mouseup",
+	    key: 'mouseup',
 	    value: function mouseup(event) {
-	
 	      this.getMouse(event);
 	
 	      event.preventDefault();
 	
 	      if (this.isDraggingCentralAtom) {
-	
 	        if (this.hoverAtom !== null) {
-	
 	          var centralAtom = this.scene.centered_atom();
 	
 	          if (this.hoverAtom !== this.downAtom) {
@@ -74857,7 +74753,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      if ((0, _util.exists)(event.touches)) {
-	
 	        this.hover.hide();
 	        this.mouseX = null;
 	        this.mouseY = null;
@@ -74868,18 +74763,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.mousePressed = false;
 	    }
 	  }, {
-	    key: "gesturestart",
+	    key: 'gesturestart',
 	    value: function gesturestart(event) {
-	
 	      event.preventDefault();
 	      this.isGesture = true;
 	      this.lastPinchRotation = 0;
 	      this.lastScale = event.scale * event.scale;
 	    }
 	  }, {
-	    key: "gesturechange",
+	    key: 'gesturechange',
 	    value: function gesturechange(event) {
-	
 	      event.preventDefault();
 	      this.adjustCamera(0, 0, degToRad(event.rotation * 2 - this.lastPinchRotation), this.lastScale / (event.scale * event.scale));
 	
@@ -74887,22 +74780,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.lastScale = event.scale * event.scale;
 	    }
 	  }, {
-	    key: "gestureend",
+	    key: 'gestureend',
 	    value: function gestureend(event) {
-	
 	      event.preventDefault();
 	      this.isGesture = false;
 	      this.downAtom = null;
 	      this.mousePressed = false;
 	    }
 	  }, {
-	    key: "isChanged",
+	    key: 'isChanged',
 	    value: function isChanged() {
-	
 	      return this.scene.changed;
 	    }
 	  }, {
-	    key: "selectVisibleObjects",
+	    key: 'selectVisibleObjects',
 	    value: function selectVisibleObjects() {
 	      var _this9 = this;
 	
@@ -74949,7 +74840,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      for (var i = 0; i < this.trace.residues.length; i += 1) {
-	
 	        var residue = this.trace.residues[i];
 	
 	        var residueShow;
@@ -74966,15 +74856,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "drawDistanceLabels",
+	    key: 'drawDistanceLabels',
 	    value: function drawDistanceLabels() {
-	
 	      var distances = this.scene.current_view.distances;
 	      var distanceLabels = this.distanceLabels;
 	      var atoms = this.protein.atoms;
 	
 	      for (var i = 0; i < distances.length; i += 1) {
-	
 	        var distance = distances[i];
 	
 	        var p1 = _v2.default.clone(atoms[distance.i_atom1].pos);
@@ -75003,9 +74891,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "drawAtomLabels",
+	    key: 'drawAtomLabels',
 	    value: function drawAtomLabels() {
-	
 	      var labels = this.scene.current_view.labels;
 	      var atomLabels = this.labels;
 	
@@ -75023,7 +74910,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var atoms = this.protein.atoms;
 	
 	      for (var _i4 = 0; _i4 < labels.length; _i4 += 1) {
-	
 	        var atom = atoms[labels[_i4].i_atom];
 	        var pos = _v2.default.clone(atom.pos);
 	        var v = this.posXY(pos);
@@ -75037,7 +74923,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "draw",
+	    key: 'draw',
 	    value: function draw() {
 	      if (_lodash2.default.isUndefined(this.objects)) {
 	        return;
@@ -75062,9 +74948,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.scene.changed = false;
 	    }
 	  }, {
-	    key: "animate",
+	    key: 'animate',
 	    value: function animate() {
-	
 	      if (this.scene.target_view == null) {
 	        return;
 	      }
@@ -75682,7 +75567,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.isEditable = isEditable;
 	    this.data_server = data_server;
 	    this.viewPiece = {};
-	    this.topDiv = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)("<div>").addClass("jolecule-sub-header").append("VIEWS OF PROTEIN").append("<br>").append((0, _util.linkButton)('', 'create [v]iew', 'jolecule-button', function () {
+	    this.topDiv = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)("<div>").addClass("jolecule-sub-header").append("VIEWS OF PROTEIN").append("<br>").append("<br>").append((0, _util.linkButton)('', 'create [v]iew', 'jolecule-button', function () {
 	      _this.makeNewView();
 	    })).append((0, _util.linkButton)('', 'prev[&uarr;]', 'jolecule-button', function () {
 	      _this.gotoPrevView();
@@ -75923,7 +75808,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      isEditable: true,
 	      isLoop: false,
 	      isGrid: true,
-	      backgroundColor: 0x000000
+	      backgroundColor: 0xCCCCCC
 	    };
 	
 	    console.log('FullPageJolecule params', params);

@@ -25,6 +25,7 @@ class ViewPieceList {
           .addClass("jolecule-sub-header")
           .append("VIEWS OF PROTEIN")
           .append("<br>")
+          .append("<br>")
           .append(
             linkButton(
               '', 'create [v]iew', 'jolecule-button',
@@ -254,7 +255,7 @@ class FullPageJolecule {
       isEditable: true,
       isLoop: false,
       isGrid: true,
-      backgroundColor: 0x000000
+      backgroundColor: 0xCCCCCC
     };
 
     console.log('FullPageJolecule params', params);

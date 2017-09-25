@@ -547,7 +547,7 @@ class EmbedJolecule {
     this.viewBarDiv = 
       $('<div style="width: 100%; display: flex; flex-direction: row">')
         .append(
-          $('<div style="flex: 1; flex-start">')
+          $('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">')
             .append(loopButton)
             .append(textButton)
             .append(prevButton)
@@ -555,13 +555,13 @@ class EmbedJolecule {
             .append(nextButton)
             .append(saveButton))
         .append(
-          $('<div style="flex: 1; flex-end; text-align: right">')
+          $('<div style="flex: 1; display: flex; flex-direction: row; justify-content: flex-end;">')
             .append(this.residueSelector))
 
     this.sidechainDiv = 
-      $('<div style="width: 100%; display: flex; flex-direction: row">')
+      $('<div style="width: 100%; display: flex; flex-direction: row; margin-top: 5px">')
         .append(
-          $('<div style="flex: 1; flex-start">')
+          $('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">')
             .append(backboneButton)
             .append(" ")
             .append(this.ligButton)
@@ -569,7 +569,7 @@ class EmbedJolecule {
             .append(this.watButton)
             .append(" "))
         .append(
-          $('<div style="flex: 1; flex-end; text-align: right">')
+          $('<div style="flex: 1; justify-content: flex-end; display: flex; flex-direction: row; align-items: center;">')
             .append(' sidechain: ')
             .append(allSidechainButton)
             .append(clearSidechainButton)
