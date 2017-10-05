@@ -20,6 +20,16 @@ function catmulRomSpline( t, p1, p2, p3, p4 ) {
 }
 
 
+/**
+ * Create a path for extrusion where the direction of the
+ * normal and binormal is defined, as well as the tangent.
+ *
+ * In particular, the path provides a slice() function
+ * that produces a sub-portion of the path.
+ *
+ * @constructor
+ *
+ */
 function PathAndFrenetFrames() {
     this.points = [];
     this.normals = [];
@@ -38,10 +48,22 @@ function PathAndFrenetFrames() {
         subPath.binormals = this.binormals.slice( i, j );
         return subPath;
     }
-
 }
 
 
+/**
+ * Creates a new path out of a slice of the oldPath, with
+ * n number of segments between two points, using a Catmul-Rom
+ * spline based on the two points, and the two surrounding
+ * points. At the ends, the external points are projected
+ * from the end using the tangent at the ends.
+ *
+ * @param oldPath
+ * @param n
+ * @param iOldPoint
+ * @param jOldPoint
+ * @returns {PathAndFrenetFrames}
+ */
 function expandPath( oldPath, n, iOldPoint, jOldPoint ) {
 
     if ( typeof iOldPoint == "undefined" ) {
@@ -217,32 +239,6 @@ UnitCylinderGeometry.prototype.constructor = UnitCylinderGeometry;
 
 
 
-
-function drawCylinder( from, to, radius, color, cap ) {
-
-    if ( typeof cylinderGeometry == 'undefined' ) {
-        cylinderGeometry = new UnitCylinderGeometry();
-    }
-
-    var midpoint = from.clone()
-        .add( to )
-        .multiplyScalar( 0.5 );
-
-    var material = new THREE.MeshLambertMaterial( {
-        color: ( new TCo( color ) )
-            .getHex()
-    } );
-
-    var mesh = new THREE.Mesh( cylinderGeometry, material );
-    mesh.scale.set( radius, radius, from.distanceTo( to ) );
-    mesh.position.copy( midpoint );
-    mesh.lookAt( to );
-
-    return mesh;
-};
-
-
-
 function drawBlockArrow( point, tangent, normal, color ) {
 
     if ( typeof blockArrowGeometry == 'undefined' ) {
@@ -362,8 +358,26 @@ RaisedShapeGeometry.prototype = Object.create( THREE.Geometry.prototype );
 RaisedShapeGeometry.prototype.constructor = RaisedShapeGeometry;
 
 
-
-function RibbonGeometry( shape, path, round ) {
+/**
+ * Extrusion along a path that aligns a 2D shape as cross-section, with
+ * orientation along the normal for the cross-section.
+ * 
+ * Accepts a cross-section shape, which is a collection of 2D points around
+ * the origin, and a path, which contains points, normals and binormals
+ * and builds a oriented extrusion out of it.
+ * 
+ * If round is set, then the vertex normals are set to orient along the 
+ * normal/binormal axis from the origin, otherwise, face normals are defined
+ * perpedicular to the face.
+ * 
+ * For a segment between two path points and a repitition of the cross-section,
+ * two triangles are defined.
+ * 
+ * @param {THREE.Shape} shape - collection of 2D points for cross section
+ * @param {THREE.FrenetFrame} path - collection of points, normals, and binormals
+ * @param {boolean} round - boolean 
+ */
+function RibbonGeometry( shape, path, round, front, back ) {
 
     THREE.Geometry.call( this );
 
@@ -514,33 +528,36 @@ function RibbonGeometry( shape, path, round ) {
         }
     }
 
-    // Draw front face
-    normal = threePointNormal( [
-        this.vertices[ 0 ],
-        this.vertices[ 1 ],
-        this.vertices[ 2 ]
-    ] )
-    for ( var i = 0; i < nVertex - 2; i += 1 ) {
-        var face = new THREE.Face3( i, i + 1, nVertex - 1 );
-        face.normal.copy( normal );
-        this.faces.push( face );
+    if (front) {
+      // Draw front face
+      normal = threePointNormal([
+        this.vertices[0],
+        this.vertices[1],
+        this.vertices[2]
+      ])
+      for (var i = 0; i < nVertex - 2; i += 1) {
+        var face = new THREE.Face3(i, i + 1, nVertex - 1);
+        face.normal.copy(normal);
+        this.faces.push(face);
+      }
     }
 
+    if (back) {
+      // draw back face
+      var offset = this.vertices.length - 1 - nVertex;
 
-    // draw back face
-    var offset = this.vertices.length - 1 - nVertex;
+      normal = threePointNormal([
+        this.vertices[offset],
+        this.vertices[offset + nVertex - 1],
+        this.vertices[offset + 1]
+      ])
 
-    normal = threePointNormal( [
-        this.vertices[ offset ],
-        this.vertices[ offset + nVertex - 1 ],
-        this.vertices[ offset + 1 ]
-    ] )
-
-    for ( var i = 0; i < nVertex - 2; i += 1 ) {
+      for (var i = 0; i < nVertex - 2; i += 1) {
         face = new THREE.Face3(
-            offset + i, offset + nVertex - 1, offset + i + 1 );
-        face.normal.copy( normal );
-        this.faces.push( face );
+          offset + i, offset + nVertex - 1, offset + i + 1);
+        face.normal.copy(normal);
+        this.faces.push(face);
+      }
     }
 
 }
@@ -583,7 +600,6 @@ export {
     PathAndFrenetFrames,
     BlockArrowGeometry,
     UnitCylinderGeometry,
-    drawCylinder,
     drawBlockArrow,
     setVisible,
     expandPath,

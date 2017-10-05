@@ -34,13 +34,17 @@ class ViewPiece {
     this.div = $('<div>').addClass("jolecule-view");
 
     if (exists(params.goto)) {
-      this.div.append(
-        linkButton(
-          "",
-          this.params.goto,
-          'jolecule-large-button',
-          this.params.pick)
-      )
+      this.div
+        .append(
+          linkButton(
+            "",
+            this.params.goto,
+            'jolecule-button',
+            this.params.pick)
+        )
+        .append(
+          '<div style="width: 10px">'
+        )
     }
     this.params = params;
     this.makeEditDiv();
@@ -218,9 +222,12 @@ class EmbedJolecule {
     this.residueSelector = null;
 
     this.createProteinDiv();
-    console.log('> EmbedJolecule.constructor', params)
     this.proteinDisplay = new ProteinDisplay(
-      this.scene, '#jolecule-protein-display', this.controller, params.isGrid, params.backgroundColor);
+      this.scene, 
+      '#jolecule-protein-display', 
+      this.controller, 
+      params.isGrid, 
+      params.backgroundColor);
     this.proteinDisplay.min_radius = 10;
 
     this.createStatusDiv();
@@ -285,7 +292,7 @@ class EmbedJolecule {
         dataServer.get_protein_data(
           (proteinData) => {
             this.proteinDisplay.displayProcessMessageAndRun(
-              "Rendering '" + proteinData.pdb_id + "'", 
+              "Parsing '" + proteinData.pdb_id + "'", 
               () => { 
                 this.loadProteinData(
                   isProcessingFlag, dataServer, proteinData, callback)
@@ -463,9 +470,7 @@ class EmbedJolecule {
         $('<option>').attr('value', value).text(text));
     }
 
-    console.log('> EmbedJolecule.populateResidueSelector', this.scene.current_view.res_id)
     this.residueSelector.val(this.scene.current_view.res_id);
-
   }
 
   createStatusDiv() {

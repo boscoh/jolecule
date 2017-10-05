@@ -128,9 +128,11 @@ a.jolecule-large-button:active {
     display: -webkit-flex;
     flex-direction: row;
     -webkit-flex-direction: row;
-    background-color: #CCC;
-    padding: 2px 5px 15px 5px;
+    padding: 5px 5px 15px 5px;
     box-sizing: border-box;
+    margin: 0px 5px 5px 5px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
 }
 .jolecule-view,
 .jolecule-view-text {
@@ -138,7 +140,8 @@ a.jolecule-large-button:active {
     font-family: Helvetica, sans-serif;
     letter-spacing: 0.1em;
     line-height: 1.5em;
-    color: #888;
+    background-color: #BBB;
+    color: #333;
 }
 textarea.jolecule-view-text,
 .jolecule-edit-textarea {
@@ -149,5 +152,14 @@ textarea.jolecule-view-text,
     background-color: #888;
     margin-top: 0.5em;
     margin-bottom: 1em;
+}
+.jolecule-loading-message {
+    z-index: 5000;
+    background-color: rgba(180, 180, 180, 0.9);
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    padding: 5px 15px;
+    color: #666
 }
 

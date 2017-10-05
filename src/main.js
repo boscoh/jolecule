@@ -59,11 +59,11 @@ function remoteDataServer(pdbId) {
     },
     save_views: function(views, success) {
       console.log('> remoteDataServer.save_views', '/save/views')
-      $.post('/save/views', views, success);
+      $.post('/save/views', JSON.stringify(views), success);
     },
     delete_protein_view: function(viewId, success) {
       console.log('> remoteDataServer.delete_protein_view', '/delete/view')
-      $.post('/delete/view', {pdbId, viewId}, success);
+      $.post('/delete/view', JSON.stringify({pdbId, viewId}), success);
     }
   }
 }

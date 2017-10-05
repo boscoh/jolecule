@@ -124,48 +124,23 @@ body {
 
 .jolecule-sub-header {
   padding-top: 10px;
-  padding-left: 20px;
+  padding-left: 15px;
   padding-bottom: 15px;
   text-align: left;
   line-height: 25px;
   font-size: 12px;
   font-weight: bold;
   letter-spacing: 0.3em;
-  line-height: 2em;
+  line-height: 1.5em;
   color: #555;
   flex: 50px 0 0;
   -webkit-flex: 50px 0 0;
 }
 .jolecule-selected-box {
-  border: 2px solid #CAA;
+  border: 2px solid #A88; 
 }
 .jolecule-unselected-box {
   border: 2px solid rgba(100, 100, 100, 0);
-}
-.jolecule-large-button,
-a.jolecule-large-button:link,
-a.jolecule-large-button:visited {
-  background-color: #999;
-  color: #000;
-  text-decoration: none;
-  font-size: 14px;
-}
-a.jolecule-large-button:active {
-  background-color: #F99;
-}
-.jolecule-large-button {
-  display: block;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
-  text-align: center;
-  width: 20px;
-  padding-top: 4px;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin-right: 10px;
-  height: 1em;
-  font-weight: normal;
 }
 
 @media screen and (max-width: 1200px) {

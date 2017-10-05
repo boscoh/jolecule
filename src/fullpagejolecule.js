@@ -28,7 +28,7 @@ class ViewPieceList {
           .append("<br>")
           .append(
             linkButton(
-              '', 'create [v]iew', 'jolecule-button',
+              '', '+[v]iew', 'jolecule-button',
               () => { this.makeNewView(); }))
           .append(
             linkButton(
@@ -40,10 +40,11 @@ class ViewPieceList {
               () => { this.gotoNextView(); }))
           .append(
             linkButton(
-              '', '[a]dd label', 'jolecule-button',
+              '', '+l[a]bel', 'jolecule-button',
               () => { this.proteinDisplay.atom_label_dialog(); }
             ))
-      )
+          .append("<br>")
+        )
       .append(
         $("<div>")
           .attr("id", "jolecule-views")
@@ -258,13 +259,12 @@ class FullPageJolecule {
       backgroundColor: 0xCCCCCC
     };
 
-    console.log('FullPageJolecule params', params);
+    console.log('FullPageJolecule.constructor params', params);
 
     if (exists(params)) {
       this.params = _.assign(this.params, params);
     }
 
-    console.log('FullPageJolecule this.params', this.params);
     this.embedJolecule = new EmbedJolecule(this.params);
 
     document.oncontextmenu = _.noop;
