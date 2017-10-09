@@ -71972,9 +71972,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return darkGrey;
 	}
 	
+	function getResColor(res) {
+	  return res.color;
+	}
+	
 	// Backbone atom names
 	
-	var backboneAtoms = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', "C3'", 'P', 'OP1', "O5'", 'OP2', "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'", "H2'", "H2''", "H3'", "H4'", "H5'", "H5''", "HO3'"];
+	var backboneAtoms = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', 'C3\'', 'P', 'OP1', 'O5\'', 'OP2', 'C5\'', 'O5\'', 'O3\'', 'C4\'', 'O4\'', 'C1\'', 'C2\'', 'O2\'', 'H2\'', 'H2\'\'', 'H3\'', 'H4\'', 'H5\'', 'H5\'\'', 'HO3\''];
 	
 	// Cartoon cross-sections
 	
@@ -72601,27 +72605,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	/**
-	 * Calculate width of text from DOM element or
-	 * string. By Phil Freo <http://philfreo.com>
-	 */
-	
-	_jquery2.default.fn.textWidth = function (text, font) {
-	  if (!_jquery2.default.fn.textWidth.fakeEl) {
-	    _jquery2.default.fn.textWidth.fakeEl = (0, _jquery2.default)('<span>').hide().appendTo(document.body);
-	  }
-	  _jquery2.default.fn.textWidth.fakeEl.text(text || this.val() || this.text()).css('font', font || this.css('font'));
-	  return _jquery2.default.fn.textWidth.fakeEl.width();
-	};
-	
-	_jquery2.default.fn.textHeight = function (text, font) {
-	  if (!_jquery2.default.fn.textWidth.fakeEl) {
-	    _jquery2.default.fn.textWidth.fakeEl = (0, _jquery2.default)('<span>').hide().appendTo(document.body);
-	  }
-	  _jquery2.default.fn.textWidth.fakeEl.text(text || this.val() || this.text()).css('font', font || this.css('font'));
-	  return _jquery2.default.fn.textWidth.fakeEl.height();
-	};
-	
-	/**
 	 * SequenceWidget
 	 *   - creates a dual band across the top of the selected div
 	 *     for glProteinDisplay
@@ -73007,6 +72990,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this6.minB = 0.4;
 	    _this6.diffB = _this6.maxB - _this6.minB;
 	    _this6.scene.grid = 0.8;
+	    _this6.scene.gridChanged = true;
 	    _this6.scene.grid_atoms = {};
 	    _this6.buttonHeight = 40;
 	    _this6.sliderHeight = _this6.buttonHeight * 6 - 50;
@@ -73159,6 +73143,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.getZ(event);
 	
 	      this.scene.grid = this.z;
+	      this.scene.gridChanged = true;
+	      this.draw();
 	
 	      this.scene.changed = true;
 	    }
@@ -73174,24 +73160,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return GridBar;
 	}(CanvasWrapper);
 	
-	function clearObject3D(obj) {
-	  // clearing obj does not clear scene
-	  var j = obj.children.length - 1;
-	  for (var i = j; i >= 0; i -= 1) {
-	    var child = obj.children[i];
-	    if (!_lodash2.default.isUndefined(child.dontDelete)) {
-	      return;
-	    }
-	    if (!_lodash2.default.isUndefined(child.geometry)) {
-	      child.geometry.dispose();
-	    }
-	    if (!_lodash2.default.isUndefined(child.material)) {
-	      child.material.dispose();
-	    }
-	    obj.remove(child);
-	  }
-	}
-	
 	function cylinderMatrix(from, to, radius) {
 	  var midpoint = from.clone().add(to).multiplyScalar(0.5);
 	
@@ -73205,11 +73173,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	/**
 	 *
-	 * GlProteinDisplay: The main window for the jolecule
-	 * webGL threeJs object.
+	 * GlProteinDisplay: The main window for drawing the protein
+	 * in a WebGL HTML5 canvas, with a Z-Slabe and Sequence Display
 	 */
 	
 	var ProteinDisplay = function () {
+	
+	  /**
+	   * ProteinDisplay Constructor
+	   *
+	   * @param scene - Scene object that holds a protein and views
+	   * @param divTag - a tag for a DOM element
+	   * @param controller - the controller for the scene
+	   * @param isGrid - flat to show autodock 3D grid
+	   * @param backgroundColor - the background color of the canvas
+	   *                          and protein
+	   */
 	  function ProteinDisplay(scene, divTag, controller, isGrid, backgroundColor) {
 	    var _this8 = this;
 	
@@ -73287,6 +73266,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.threeJsScene.fog.near = this.zoom + 1;
 	    this.threeJsScene.fog.far = this.zoom + this.zBack;
 	
+	    this.pickingScene = new _three2.default.Scene();
+	    this.pickingTexture = new _three2.default.WebGLRenderTarget(this.width(), this.height());
+	    this.pickingTexture.texture.minFilter = _three2.default.LinearFilter;
+	    this.pickingGeometry = new _three2.default.Geometry();
+	    this.pickingMaterial = new _three2.default.MeshBasicMaterial({ vertexColors: _three2.default.VertexColors });
+	
 	    this.lights = [];
 	    this.buildLights();
 	
@@ -73304,40 +73289,43 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.renderer.setClearColor(this.backgroundColor);
 	      this.renderer.setSize(this.width(), this.height());
 	      var dom = this.renderer.domElement;
-	      dom.addEventListener('mousedown', function (e) {
+	      var bind = function bind(w, fn) {
+	        dom.addEventListener(w, fn);
+	      };
+	      bind('mousedown', function (e) {
 	        return _this9.mousedown(e);
 	      });
-	      dom.addEventListener('mousemove', function (e) {
+	      bind('mousemove', function (e) {
 	        return _this9.mousemove(e);
 	      });
-	      dom.addEventListener('mouseup', function (e) {
+	      bind('mouseup', function (e) {
 	        return _this9.mouseup(e);
 	      });
-	      dom.addEventListener('mousewheel', function (e) {
+	      bind('mousewheel', function (e) {
 	        return _this9.mousewheel(e);
 	      });
-	      dom.addEventListener('DOMMouseScroll', function (e) {
+	      bind('DOMMouseScroll', function (e) {
 	        return _this9.mousewheel(e);
 	      });
-	      dom.addEventListener('touchstart', function (e) {
+	      bind('touchstart', function (e) {
 	        return _this9.mousedown(e);
 	      });
-	      dom.addEventListener('touchmove', function (e) {
+	      bind('touchmove', function (e) {
 	        return _this9.mousemove(e);
 	      });
-	      dom.addEventListener('touchend', function (e) {
+	      bind('touchend', function (e) {
 	        return _this9.mouseup(e);
 	      });
-	      dom.addEventListener('touchcancel', function (e) {
+	      bind('touchcancel', function (e) {
 	        return _this9.mouseup(e);
 	      });
-	      dom.addEventListener('gesturestart', function (e) {
+	      bind('gesturestart', function (e) {
 	        return _this9.gesturestart(e);
 	      });
-	      dom.addEventListener('gesturechange', function (e) {
+	      bind('gesturechange', function (e) {
 	        return _this9.gesturechange(e);
 	      });
-	      dom.addEventListener('gestureend', function (e) {
+	      bind('gestureend', function (e) {
 	        return _this9.gestureend(e);
 	      });
 	      this.webglDiv[0].appendChild(dom);
@@ -73372,13 +73360,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.objects.arrows = new _three2.default.Object3D();
 	      this.objects.backbone = new _three2.default.Object3D();
 	      this.objects.ligands = new _three2.default.Object3D();
-	      this.objects.peptides = new _three2.default.Object3D();
 	    }
 	  }, {
 	    key: 'buildAfterDataLoad',
 	    value: function buildAfterDataLoad(defaultHtml) {
 	
 	      this.createObjects();
+	
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+	
+	      try {
+	        for (var _iterator = this.protein.residues[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var res = _step.value;
+	
+	          res.color = getSsColor(res.ss);
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator.return) {
+	            _iterator.return();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
 	
 	      this.buildScene();
 	
@@ -73435,10 +73447,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildAfterAddProteinData',
 	    value: function buildAfterAddProteinData() {
-	      clearObject3D(this.threeJsScene);
+	      (0, _glgeometry.clearObject3D)(this.threeJsScene);
+	      this.initGrid();
 	      this.buildScene();
 	      this.sequenceWidget.resetResidues();
 	      this.scene.changed = true;
+	      this.gridBar.reset();
 	    }
 	  }, {
 	    key: 'isPeptideConnected',
@@ -73464,9 +73478,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var res0 = this.protein.residues[i0];
 	      var res1 = this.protein.residues[i1];
 	
-	      if ("C3'" in res0.atoms && "C1'" in res0.atoms && "C5'" in res0.atoms && "O3'" in res0.atoms && 'P' in res1.atoms && "C3'" in res1.atoms && "C1'" in res1.atoms && "C5'" in res1.atoms) {
+	      if ('C3\'' in res0.atoms && 'C1\'' in res0.atoms && 'C5\'' in res0.atoms && 'O3\'' in res0.atoms && 'P' in res1.atoms && 'C3\'' in res1.atoms && 'C1\'' in res1.atoms && 'C5\'' in res1.atoms) {
 	        // detect nucloetide phosphate sugar bond
-	        var o3 = res0.atoms["O3'"];
+	        var o3 = res0.atoms['O3\''];
 	        var p = res1.atoms['P'];
 	        if (_v2.default.distance(o3.pos, p.pos) < 2.5) {
 	          return true;
@@ -73479,8 +73493,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'getNormalOfNuc',
 	    value: function getNormalOfNuc(res) {
 	      var atoms = res.atoms;
-	      var forward = _v2.default.diff(atoms["C3'"].pos, atoms["C5'"].pos);
-	      var up = _v2.default.diff(atoms["C1'"].pos, atoms["C3'"].pos);
+	      var forward = _v2.default.diff(atoms['C3\''].pos, atoms['C5\''].pos);
+	      var up = _v2.default.diff(atoms['C1\''].pos, atoms['C3\''].pos);
 	      return _v2.default.crossProduct(forward, up);
 	    }
 	  }, {
@@ -73496,18 +73510,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var n_residue = this.protein.residues.length;
 	      for (var j = 0; j < n_residue; j += 1) {
 	        var residue = this.protein.residues[j];
-	        var isProteinNucOrConnected = false;
+	        var isResInTrace = false;
 	
 	        if (residue.is_protein_or_nuc) {
-	          isProteinNucOrConnected = true;
+	          isResInTrace = true;
 	        } else {
 	          if (j > 0) {
 	            if (this.isPeptideConnected(j - 1, j)) {
 	              residue.central_atom = residue.atoms['CA'];
-	              isProteinNucOrConnected = true;
+	              isResInTrace = true;
 	            } else if (this.isSugarPhosphateConnected(j - 1, j)) {
-	              residue.central_atom = residue.atoms["C3'"];
-	              isProteinNucOrConnected = true;
+	              residue.central_atom = residue.atoms['C3\''];
+	              isResInTrace = true;
 	              residue.ss = 'R';
 	              residue.normal = this.getNormalOfNuc(residue);
 	            }
@@ -73516,17 +73530,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (j < n_residue - 1) {
 	            if (this.isPeptideConnected(j, j + 1)) {
 	              residue.central_atom = residue.atoms['CA'];
-	              isProteinNucOrConnected = true;
+	              isResInTrace = true;
 	            } else if (this.isSugarPhosphateConnected(j, j + 1)) {
-	              residue.central_atom = residue.atoms["C3'"];
-	              isProteinNucOrConnected = true;
+	              residue.central_atom = residue.atoms['C3\''];
+	              isResInTrace = true;
 	              residue.ss = 'R';
 	              residue.normal = this.getNormalOfNuc(residue);
 	            }
 	          }
 	        }
 	
-	        if (isProteinNucOrConnected) {
+	        if (isResInTrace) {
 	          this.trace.residues.push(residue);
 	          this.trace.points.push(_v2.default.clone(residue.central_atom.pos));
 	        }
@@ -73664,7 +73678,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function getAtomColor(atom) {
 	      if (atom.elem == 'C' || atom.elem == 'H') {
 	        var res = this.protein.res_by_id[atom.res_id];
-	        return getSsColor(res.ss);
+	        return getResColor(res);
 	      } else if (atom.elem in ElementColors) {
 	        return ElementColors[atom.elem];
 	      }
@@ -73702,9 +73716,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return ribbonFace;
 	    }
 	  }, {
+	    key: 'getTraceResColor',
+	    value: function getTraceResColor(iResTrace) {
+	      var res = this.trace.residues[iResTrace];
+	      return getResColor(res);
+	    }
+	  }, {
+	    key: 'getTraceResDarkColor',
+	    value: function getTraceResDarkColor(iResTrace) {
+	      var res = this.trace.residues[iResTrace];
+	      return getDarkSsColor(res.ss);
+	    }
+	  }, {
 	    key: 'buildTube',
 	    value: function buildTube() {
-	      clearObject3D(this.objects.tube);
+	      (0, _glgeometry.clearObject3D)(this.objects.tube);
 	
 	      var detail = 4;
 	
@@ -73722,143 +73748,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var iPieceEnd = piece.iEnd - iStart;
 	          var ss = piece.ss;
 	
-	          if (iPieceEnd - iPieceStart < 1) {
-	            continue;
-	          }
-	
-	          // allows for overhang between residues
-	          var iPathStart = (2 * iPieceStart - 1) * detail;
-	          if (iPathStart < 0) {
-	            iPathStart = 0;
-	          }
-	
-	          var iPathEnd = (iPieceEnd * 2 - 1) * detail + 1;
-	          if (iPathEnd > path.points.length - 1) {
-	            iPathEnd = path.points.length - 1;
-	          }
-	
-	          var pieceOfPath = path.slice(iPathStart, iPathEnd);
-	
-	          var material = new _three2.default.MeshLambertMaterial({
-	            color: getSsColor(ss)
-	          });
-	
-	          var geom = new _glgeometry.RibbonGeometry(fatCoilFace, pieceOfPath, true);
-	
-	          var mesh = new _three2.default.Mesh(geom, material);
-	
-	          mesh.visible = false;
-	          this.objects.tube.add(mesh);
-	        }
-	      }
-	    }
-	  }, {
-	    key: 'buildRibbons',
-	    value: function buildRibbons() {
-	      clearObject3D(this.objects.ribbons);
-	
-	      /**
-	       *
-	       * The connected residues are grouped into:
-	       *  - chains
-	       *  - pieces
-	       *
-	       * A path is generated with 2*detail.
-	       *
-	       * If a residue is not at the end of a piece,
-	       * will be extended to detail beyond that is
-	       * half-way between the residue and the neighboring
-	       * residue in a different piece.
-	       *
-	       **/
-	
-	      var detail = 4;
-	
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
-	
-	      try {
-	        for (var _iterator = this.trace.chains[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var chain = _step.value;
-	
-	          var iChainStart = chain.iStart;
-	          var iChainEnd = chain.iEnd;
-	          var nChain = iChainEnd - iChainStart;
-	
-	          this.calcContinuousTangents(this.trace, iChainStart, iChainEnd);
-	          var path = (0, _glgeometry.expandPath)(this.trace.slice(iChainStart, iChainEnd), 2 * detail);
+	          var ssPieceGeom = new _three2.default.Geometry();
 	
 	          var _iteratorNormalCompletion2 = true;
 	          var _didIteratorError2 = false;
 	          var _iteratorError2 = undefined;
 	
 	          try {
-	            for (var _iterator2 = chain.pieces[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	              var piece = _step2.value;
+	            for (var _iterator2 = _lodash2.default.range(piece.iStart, piece.iEnd)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	              var iRes = _step2.value;
 	
-	              var iPieceStart = piece.iStart - iChainStart;
-	              var iPieceEnd = piece.iEnd - iChainStart;
+	              var iResInChain = iRes - iStart;
 	
-	              var ss = piece.ss;
-	              var face = this.getSsFace(ss);
-	              var color = getSsColor(ss);
-	              var isRound = ss == 'C';
-	
-	              var ssPieceGeom = new _three2.default.Geometry();
-	
-	              var _iteratorNormalCompletion3 = true;
-	              var _didIteratorError3 = false;
-	              var _iteratorError3 = undefined;
-	
-	              try {
-	                for (var _iterator3 = _lodash2.default.range(iPieceStart, iPieceEnd)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	                  var iResPiece = _step3.value;
-	
-	
-	                  // works out start on expanded path, including overhang
-	                  var iPathStart = iResPiece * 2 * detail - detail;
-	                  var isFront = iResPiece === iPieceStart;
-	                  if (iPathStart < 0) {
-	                    iPathStart = 0;
-	                  }
-	
-	                  // works out end of expanded path, including overhang
-	                  var iPathEnd = (iResPiece + 1) * 2 * detail - detail + 1;
-	                  var isBack = iResPiece === iPieceEnd - 1;
-	                  if (iPathEnd >= path.points.length) {
-	                    iPathEnd = path.points.length - 1;
-	                  }
-	
-	                  var resPath = path.slice(iPathStart, iPathEnd);
-	
-	                  var resGeom = new _glgeometry.RibbonGeometry(face, resPath, isRound, isFront, isBack);
-	                  (0, _glgeometry.setGeometryVerticesColor)(resGeom, color);
-	
-	                  ssPieceGeom.merge(resGeom, resGeom.matrix);
-	                }
-	              } catch (err) {
-	                _didIteratorError3 = true;
-	                _iteratorError3 = err;
-	              } finally {
-	                try {
-	                  if (!_iteratorNormalCompletion3 && _iterator3.return) {
-	                    _iterator3.return();
-	                  }
-	                } finally {
-	                  if (_didIteratorError3) {
-	                    throw _iteratorError3;
-	                  }
-	                }
+	              // works out start on expanded path, including overhang
+	              var iPathStart = iResInChain * 2 * detail - detail;
+	              var isFront = false;
+	              if (iPathStart < 0) {
+	                iPathStart = 0;
+	                isFront = true;
 	              }
 	
-	              var material = new _three2.default.MeshLambertMaterial({
-	                vertexColors: _three2.default.VertexColors
-	              });
+	              // works out end of expanded path, including overhang
+	              var iPathEnd = (iResInChain + 1) * 2 * detail - detail + 1;
+	              var isBack = false;
+	              if (iPathEnd >= path.points.length) {
+	                iPathEnd = path.points.length - 1;
+	                isBack = true;
+	              }
 	
-	              var mesh = new _three2.default.Mesh(ssPieceGeom, material);
+	              var resPath = path.slice(iPathStart, iPathEnd);
 	
-	              this.objects.ribbons.add(mesh);
+	              var resGeom = new _glgeometry.RibbonGeometry(fatCoilFace, resPath, true, isFront, isBack);
+	
+	              var color = this.getTraceResColor(iRes);
+	              (0, _glgeometry.setGeometryVerticesColor)(resGeom, color);
+	
+	              ssPieceGeom.merge(resGeom, resGeom.matrix);
 	            }
 	          } catch (err) {
 	            _didIteratorError2 = true;
@@ -73874,18 +73799,154 @@ return /******/ (function(modules) { // webpackBootstrap
 	              }
 	            }
 	          }
+	
+	          var material = new _three2.default.MeshLambertMaterial({
+	            vertexColors: _three2.default.VertexColors
+	          });
+	
+	          var mesh = new _three2.default.Mesh(ssPieceGeom, material);
+	
+	          mesh.visible = false;
+	          this.objects.tube.add(mesh);
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'buildRibbons',
+	    value: function buildRibbons() {
+	      (0, _glgeometry.clearObject3D)(this.objects.ribbons);
+	
+	      /**
+	       *
+	       * The connected residues are grouped into:
+	       *  - chains - list of [i,j] of trace residues
+	       *  - pieces - list of [i,j] belonging to same SS
+	       *
+	       * A path is generated with 2*detail.
+	       *
+	       * If a residue is not at the end of a piece,
+	       * will be extended to detail beyond that is
+	       * half-way between the residue and the neighboring
+	       * residue in a different piece.
+	       *
+	       **/
+	
+	      var detail = 4;
+	
+	      var _iteratorNormalCompletion3 = true;
+	      var _didIteratorError3 = false;
+	      var _iteratorError3 = undefined;
+	
+	      try {
+	        for (var _iterator3 = this.trace.chains[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	          var chain = _step3.value;
+	
+	          var iChainStart = chain.iStart;
+	          var iChainEnd = chain.iEnd;
+	
+	          this.calcContinuousTangents(this.trace, iChainStart, iChainEnd);
+	          var path = (0, _glgeometry.expandPath)(this.trace.slice(iChainStart, iChainEnd), 2 * detail);
+	
+	          var _iteratorNormalCompletion4 = true;
+	          var _didIteratorError4 = false;
+	          var _iteratorError4 = undefined;
+	
+	          try {
+	            for (var _iterator4 = chain.pieces[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	              var piece = _step4.value;
+	
+	              var ss = piece.ss;
+	              var face = this.getSsFace(ss);
+	              var isRound = ss == 'C';
+	
+	              var ssPieceGeom = new _three2.default.Geometry();
+	
+	              var _iteratorNormalCompletion5 = true;
+	              var _didIteratorError5 = false;
+	              var _iteratorError5 = undefined;
+	
+	              try {
+	                for (var _iterator5 = _lodash2.default.range(piece.iStart, piece.iEnd)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+	                  var iRes = _step5.value;
+	
+	                  var iResInChain = iRes - iChainStart;
+	
+	                  // works out start on expanded path, including overhang
+	                  var iPathStart = iResInChain * 2 * detail - detail;
+	                  var isFront = iRes === piece.iStart;
+	                  if (iPathStart < 0) {
+	                    iPathStart = 0;
+	                  }
+	
+	                  // works out end of expanded path, including overhang
+	                  var iPathEnd = (iResInChain + 1) * 2 * detail - detail + 1;
+	                  var isBack = iRes === piece.iEnd - 1;
+	                  if (iPathEnd >= path.points.length) {
+	                    iPathEnd = path.points.length - 1;
+	                  }
+	
+	                  var resPath = path.slice(iPathStart, iPathEnd);
+	
+	                  var resGeom = new _glgeometry.RibbonGeometry(face, resPath, isRound, isFront, isBack);
+	
+	                  var color = this.getTraceResColor(iRes);
+	                  (0, _glgeometry.setGeometryVerticesColor)(resGeom, color);
+	
+	                  ssPieceGeom.merge(resGeom, resGeom.matrix);
+	
+	                  var i = this.trace.residues[iRes].central_atom.i;
+	                  (0, _glgeometry.setGeometryVerticesColor)(resGeom, new _three2.default.Color().setHex(i));
+	                  this.pickingGeometry.merge(resGeom, resGeom.matrix);
+	                }
+	              } catch (err) {
+	                _didIteratorError5 = true;
+	                _iteratorError5 = err;
+	              } finally {
+	                try {
+	                  if (!_iteratorNormalCompletion5 && _iterator5.return) {
+	                    _iterator5.return();
+	                  }
+	                } finally {
+	                  if (_didIteratorError5) {
+	                    throw _iteratorError5;
+	                  }
+	                }
+	              }
+	
+	              var material = new _three2.default.MeshLambertMaterial({
+	                vertexColors: _three2.default.VertexColors
+	              });
+	
+	              var mesh = new _three2.default.Mesh(ssPieceGeom, material);
+	
+	              this.objects.ribbons.add(mesh);
+	            }
+	          } catch (err) {
+	            _didIteratorError4 = true;
+	            _iteratorError4 = err;
+	          } finally {
+	            try {
+	              if (!_iteratorNormalCompletion4 && _iterator4.return) {
+	                _iterator4.return();
+	              }
+	            } finally {
+	              if (_didIteratorError4) {
+	                throw _iteratorError4;
+	              }
+	            }
+	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
+	        _didIteratorError3 = true;
+	        _iteratorError3 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
+	          if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	            _iterator3.return();
 	          }
 	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
+	          if (_didIteratorError3) {
+	            throw _iteratorError3;
 	          }
 	        }
 	      }
@@ -73893,45 +73954,80 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildArrows',
 	    value: function buildArrows() {
-	      clearObject3D(this.objects.arrows);
+	      (0, _glgeometry.clearObject3D)(this.objects.arrows);
 	
-	      var _iteratorNormalCompletion4 = true;
-	      var _didIteratorError4 = false;
-	      var _iteratorError4 = undefined;
+	      var geom = new _three2.default.Geometry();
+	      var blockArrowGeometry = new _glgeometry.BlockArrowGeometry();
+	      blockArrowGeometry.computeFaceNormals();
+	
+	      var _iteratorNormalCompletion6 = true;
+	      var _didIteratorError6 = false;
+	      var _iteratorError6 = undefined;
 	
 	      try {
-	        for (var _iterator4 = this.trace.chains[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	          var chain = _step4.value;
+	        for (var _iterator6 = this.trace.chains[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+	          var chain = _step6.value;
+	          var _iteratorNormalCompletion7 = true;
+	          var _didIteratorError7 = false;
+	          var _iteratorError7 = undefined;
 	
-	          for (var iPiece = 0; iPiece < chain.pieces.length; iPiece += 1) {
-	            var piece = chain.pieces[iPiece];
-	            var color = getDarkSsColor(piece.ss);
-	            for (var i = piece.iStart; i < piece.iEnd; i += 1) {
-	              var arrow = (0, _glgeometry.drawBlockArrow)(this.trace.points[i], this.trace.tangents[i], this.trace.binormals[i], color);
+	          try {
+	            for (var _iterator7 = chain.pieces[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+	              var piece = _step7.value;
 	
-	              arrow.atom = this.trace.residues[i].central_atom;
-	              arrow.atom.is_central = true;
+	              for (var i = piece.iStart; i < piece.iEnd; i += 1) {
 	
-	              this.objects.arrows.add(arrow);
+	                var point = this.trace.points[i];
+	                var tangent = this.trace.tangents[i];
+	                var normal = this.trace.binormals[i];
 	
-	              this.clickMeshes.push(arrow);
+	                var obj = new _three2.default.Object3D();
+	                obj.position.copy(point);
+	                obj.up.copy(normal);
+	                obj.lookAt(point.clone().add(tangent));
+	                obj.updateMatrix();
+	
+	                var color = this.getTraceResDarkColor(i);
+	                (0, _glgeometry.setGeometryVerticesColor)(blockArrowGeometry, color);
+	
+	                geom.merge(blockArrowGeometry, obj.matrix);
+	              }
+	            }
+	          } catch (err) {
+	            _didIteratorError7 = true;
+	            _iteratorError7 = err;
+	          } finally {
+	            try {
+	              if (!_iteratorNormalCompletion7 && _iterator7.return) {
+	                _iterator7.return();
+	              }
+	            } finally {
+	              if (_didIteratorError7) {
+	                throw _iteratorError7;
+	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError4 = true;
-	        _iteratorError4 = err;
+	        _didIteratorError6 = true;
+	        _iteratorError6 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	            _iterator4.return();
+	          if (!_iteratorNormalCompletion6 && _iterator6.return) {
+	            _iterator6.return();
 	          }
 	        } finally {
-	          if (_didIteratorError4) {
-	            throw _iteratorError4;
+	          if (_didIteratorError6) {
+	            throw _iteratorError6;
 	          }
 	        }
 	      }
+	
+	      var material = new _three2.default.MeshLambertMaterial({
+	        vertexColors: _three2.default.VertexColors
+	      });
+	      var mesh = new _three2.default.Mesh(geom, material);
+	      this.objects.arrows.add(mesh);
 	    }
 	  }, {
 	    key: 'mergeBond',
@@ -73943,8 +74039,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var res1 = this.protein.res_by_id[bond.atom1.res_id];
 	      var res2 = this.protein.res_by_id[bond.atom2.res_id];
 	
-	      var color1 = getSsColor(res1.ss);
-	      var color2 = getSsColor(res2.ss);
+	      var color1 = getResColor(res1);
+	      var color2 = getResColor(res2);
 	
 	      var geom = new _glgeometry.UnitCylinderGeometry();
 	
@@ -74033,7 +74129,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildBackbone',
 	    value: function buildBackbone() {
-	      clearObject3D(this.objects.backbone);
+	      (0, _glgeometry.clearObject3D)(this.objects.backbone);
 	
 	      var geom = new _three2.default.Geometry();
 	
@@ -74067,7 +74163,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildLigands',
 	    value: function buildLigands() {
-	      clearObject3D(this.objects.ligands);
+	      (0, _glgeometry.clearObject3D)(this.objects.ligands);
 	      var geom = new _three2.default.Geometry();
 	
 	      for (var i = 0; i < this.protein.residues.length; i += 1) {
@@ -74097,7 +74193,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function buildWaters() {
 	      console.log('buildWaters');
 	
-	      clearObject3D(this.objects.water);
+	      (0, _glgeometry.clearObject3D)(this.objects.water);
 	
 	      var geom = new _three2.default.Geometry();
 	
@@ -74123,18 +74219,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var mesh = new _three2.default.Mesh(geom, material);
 	      this.objects.water.add(mesh);
 	    }
+	
+	    /**
+	     * Searches atoms for autodock grid atoms and gets the
+	     * B-factor limits for the grid atoms
+	     */
+	
 	  }, {
-	    key: 'buildGrid',
-	    value: function buildGrid() {
-	      if (!this.isGrid) {
-	        return;
-	      }
-	
-	      clearObject3D(this.objects.grid);
-	
-	      this.gridBar.minB = null;
-	      this.gridBar.maxB = null;
-	
+	    key: 'initGrid',
+	    value: function initGrid() {
 	      this.scene.grid_atoms = {};
 	
 	      for (var i = 0; i < this.protein.residues.length; i += 1) {
@@ -74142,10 +74235,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (residue.is_grid) {
 	          for (var a in residue.atoms) {
 	            var atom = residue.atoms[a];
+	
 	            if (!(atom.elem in this.scene.grid_atoms)) {
 	              this.scene.grid_atoms[atom.elem] = true;
 	            }
-	            this.pushAtom(this.objects.grid, atom);
+	
 	            if (this.gridBar.minB == null) {
 	              this.gridBar.minB = atom.bfactor;
 	              this.gridBar.maxB = atom.bfactor;
@@ -74167,10 +74261,57 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (this.gridBar.maxB == null) {
 	        this.gridBar.minB = 0;
 	      }
-	      console.log('ProteinDisplay.buildGrid grid_atoms', this.scene.grid_atoms);
 	      this.gridBar.diffB = this.gridBar.maxB - this.gridBar.minB;
 	      this.scene.grid = this.gridBar.minB;
-	      this.gridBar.reset();
+	      console.log('ProteinDisplay.initGrid', this.scene.grid_atoms);
+	    }
+	  }, {
+	    key: 'buildGrid',
+	    value: function buildGrid() {
+	      if (!this.isGrid) {
+	        return;
+	      }
+	      (0, _glgeometry.clearObject3D)(this.objects.grid);
+	      var _iteratorNormalCompletion8 = true;
+	      var _didIteratorError8 = false;
+	      var _iteratorError8 = undefined;
+	
+	      try {
+	        for (var _iterator8 = this.protein.residues[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+	          var residue = _step8.value;
+	
+	          if (residue.is_grid) {
+	            for (var a in residue.atoms) {
+	              var atom = residue.atoms[a];
+	              if (atom.bfactor > this.scene.grid && this.scene.grid_atoms[atom.elem]) {
+	                var radius = 0.35;
+	                var material = new _three2.default.MeshLambertMaterial({
+	                  color: this.getAtomColor(atom)
+	                });
+	                var mesh = new _three2.default.Mesh(this.unitSphereGeom, material);
+	                mesh.scale.set(radius, radius, radius);
+	                mesh.position.copy(atom.pos);
+	                mesh.atom = atom;
+	                this.objects.grid.add(mesh);
+	                this.clickMeshes.push(mesh);
+	              }
+	            }
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError8 = true;
+	        _iteratorError8 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+	            _iterator8.return();
+	          }
+	        } finally {
+	          if (_didIteratorError8) {
+	            throw _iteratorError8;
+	          }
+	        }
+	      }
 	    }
 	  }, {
 	    key: 'buildSidechain',
@@ -74206,75 +74347,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: 'buildPeptideBonds',
-	    value: function buildPeptideBonds() {
-	      clearObject3D(this.objects.peptides);
-	
-	      var totalGeom = new _three2.default.Geometry();
-	
-	      var residues = this.protein.residues;
-	
-	      function isProtein(iRes) {
-	        var residue = residues[iRes];
-	        return residue.ss != 'D' && residue.is_protein_or_nuc;
-	      }
-	
-	      for (var iRes = 1; iRes < this.protein.residues.length; iRes += 1) {
-	        if (!isProtein(iRes - 1) || !isProtein(iRes)) {
-	          continue;
-	        }
-	
-	        var geom = new _three2.default.Geometry();
-	
-	        var residue0 = this.protein.residues[iRes - 1];
-	        var residue1 = this.protein.residues[iRes];
-	
-	        var vertices = getVerticesFromAtomDict(residue0.atoms, ['CA', 'O', 'C']);
-	        var ca0 = vertices[0];
-	        var o = vertices[1];
-	        var c = vertices[2];
-	
-	        vertices = getVerticesFromAtomDict(residue1.atoms, ['CA', 'N']);
-	        var ca1 = vertices[0];
-	        var n = vertices[1];
-	
-	        if (c.distanceTo(n) > 3) {
-	          continue;
-	        }
-	
-	        var ca1ToN = new TV3().subVectors(n, ca1);
-	        var cToN = new TV3().subVectors(n, c);
-	        var nToH = new TV3().addVectors(ca1ToN, cToN).normalize().multiplyScalar(1.0);
-	        var h = n.clone().add(nToH);
-	
-	        var color0 = getSsColor(residues[iRes - 1].ss);
-	        var color1 = getSsColor(residues[iRes].ss);
-	
-	        var color = color0;
-	        var vertices = [ca0, o, c, n, h, ca0];
-	        var geom = new _glgeometry.RaisedShapeGeometry(vertices, 0.3);
-	        geom.merge(geom, geom.matrix);
-	        (0, _glgeometry.setGeometryVerticesColor)(geom, color);
-	        totalGeom.merge(geom);
-	
-	        var color = color1;
-	        var vertices = [ca1, o, c, n, h, ca1];
-	        var geom = new _glgeometry.RaisedShapeGeometry(vertices, 0.3);
-	        geom.merge(geom, geom.matrix);
-	        (0, _glgeometry.setGeometryVerticesColor)(geom, color);
-	
-	        totalGeom.merge(geom);
-	      }
-	
-	      totalGeom.computeFaceNormals();
-	
-	      var material = new _three2.default.MeshLambertMaterial({
-	        vertexColors: _three2.default.VertexColors
-	      });
-	
-	      this.objects.peptides.add(new _three2.default.Mesh(totalGeom, material));
-	    }
-	  }, {
 	    key: 'buildNucleotides',
 	    value: function buildNucleotides() {
 	      var totalGeom = new _three2.default.Geometry();
@@ -74291,16 +74363,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var atomTypes, bondTypes;
 	        if (residue.type == 'DA' || residue.type == 'A') {
 	          atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
-	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']];
+	          bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']];
 	        } else if (residue.type == 'DG' || residue.type == 'G') {
 	          atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
-	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']];
+	          bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']];
 	        } else if (residue.type == 'DT' || residue.type == 'U') {
 	          atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
-	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']];
+	          bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']];
 	        } else if (residue.type == 'DC' || residue.type == 'C') {
 	          atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
-	          bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']];
+	          bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']];
 	        } else {
 	          continue;
 	        }
@@ -74317,6 +74389,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          basepairGeom.merge(cylinderGeom, cylinderMatrix(vertices[0], vertices[1], radius));
 	        }
 	
+	        (0, _glgeometry.setGeometryVerticesColor)(basepairGeom, getResColor(residue));
+	
 	        var basepairMesh = new _three2.default.Mesh(basepairGeom, material);
 	        basepairMesh.atom = residue.central_atom;
 	        basepairMesh.updateMatrix();
@@ -74327,7 +74401,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      totalGeom.computeFaceNormals();
 	      var material = new _three2.default.MeshLambertMaterial({
-	        color: getSsColor('D')
+	        vertexColors: _three2.default.VertexColors
 	      });
 	      this.objects.basepairs = new _three2.default.Mesh(totalGeom, material);
 	    }
@@ -74358,7 +74432,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function buildScene() {
 	      this.objects.ligands.notBuilt = true;
 	      this.objects.backbone.notBuilt = true;
-	      this.objects.peptides.notBuilt = true;
 	      this.objects.water.notBuilt = true;
 	
 	      this.findChainsAndPieces();
@@ -74380,6 +74453,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      for (var k in this.objects) {
 	        this.threeJsScene.add(this.objects[k]);
 	      }
+	
+	      this.pickingGeometry.computeFaceNormals();
+	      this.pickingGeometry.computeVertexNormals();
+	      this.pickingScene.add(new _three2.default.Mesh(this.pickingGeometry, this.pickingMaterial));
 	    }
 	  }, {
 	    key: 'setTargetFromResId',
@@ -74502,6 +74579,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.renderer.setSize(this.width(), this.height());
 	      }
 	
+	      this.pickingTexture.setSize(this.width(), this.height());
+	
 	      this.zSlab.resize();
 	
 	      if (this.isGrid) {
@@ -74525,24 +74604,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getMouse',
 	    value: function getMouse(event) {
-	      // if ( exists( event.touches ) && ( event.touches.length == 2 ) ) {
-	      //     var x0 = event.touches[0].x;
-	      //     var y0 = event.touches[0].y;
-	      //     var x1 = event.touches[1].x;
-	      //     var y1 = event.touches[1].y;
-	      //     var x = x1 - x0;
-	      //     var y = y1 - y0;
-	      //     this.pinchR = Math.sqrt( x*x + y*y );
-	      //     this.mouseT = Math.atan( y / x );
-	      //     if ( x < 0 ) {
-	      //         if ( y > 0 ) {
-	      //             this.mouseT += Math.PI;
-	      //         } else {
-	      //             this.mouseT -= Math.PI;
-	      //         }
-	      //     }
-	      // }
-	
 	      if ((0, _util.exists)(event.touches) && event.touches.length > 0) {
 	        this.eventX = event.touches[0].clientX;
 	        this.eventY = event.touches[0].clientY;
@@ -74622,10 +74683,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return null;
 	      }
 	
+	      // create buffer for reading single pixel
+	      var pixelBuffer = new Uint8Array(4);
+	
+	      // render the picking scene off-screen
+	      this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
+	
+	      // read the pixel under the mouse from the texture
+	      this.renderer.readRenderTargetPixels(this.pickingTexture, this.mouseX, this.pickingTexture.height - y, 1, 1, pixelBuffer);
+	
+	      // interpret the pixel as an ID
+	      var i = pixelBuffer[0] << 16 | pixelBuffer[1] << 8 | pixelBuffer[2];
+	
+	      if (i < this.protein.atoms.length) {
+	        return this.protein.atoms[i];
+	      }
+	
+	      // convert to 2D coordinates in OpenGL frame
 	      var vector = new _three2.default.Vector3(x / this.width() * 2 - 1, -(y / this.height()) * 2 + 1, 0.5);
 	
+	      // project into world space at origin
 	      vector.unproject(this.camera);
 	
+	      // raycast with shifted coordinates at camera position
 	      var raycaster = new _three2.default.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
 	
 	      var intersects = raycaster.intersectObjects(this.clickMeshes);
@@ -74633,6 +74713,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var show = this.scene.current_view.show;
 	
 	      for (var i = 0; i < intersects.length; i += 1) {
+	
 	        var intersect = intersects[i];
 	
 	        var atom = intersect.object.atom;
@@ -74877,8 +74958,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'selectVisibleObjects',
 	    value: function selectVisibleObjects() {
-	      var _this10 = this;
-	
 	      var show = this.scene.current_view.show;
 	
 	      (0, _glgeometry.setVisible)(this.objects.tube, show.trace);
@@ -74889,11 +74968,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      if (this.objects.backbone.notBuilt && show.all_atom) {
 	        this.buildBackbone();
-	        this.buildPeptideBonds();
 	        delete this.objects.backbone.notBuilt;
 	      }
 	      (0, _glgeometry.setVisible)(this.objects.backbone, show.all_atom);
-	      (0, _glgeometry.setVisible)(this.objects.peptides, show.all_atom);
 	
 	      if (this.objects.ligands.notBuilt && show.ligands) {
 	        this.buildLigands();
@@ -74907,19 +74984,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      (0, _glgeometry.setVisible)(this.objects.water, show.water);
 	
-	      if (this.isGrid) {
-	        if ((0, _util.exists)(this.scene.grid) && this.objects.grid) {
-	          this.objects.grid.traverse(function (child) {
-	            if (child instanceof _three2.default.Mesh && (0, _util.exists)(child.atom)) {
-	              if (child.atom.bfactor > _this10.scene.grid && _this10.scene.grid_atoms[child.atom.elem]) {
-	                child.visible = true;
-	              } else {
-	                child.visible = false;
-	              }
-	            }
-	          });
-	        }
-	      }
+	      // if (this.isGrid) {
+	      //   if (exists(this.scene.grid) && this.objects.grid) {
+	      //     this.objects.grid.traverse((child) => {
+	      //       if ((child instanceof THREE.Mesh) && exists(child.atom)) {
+	      //         if ((child.atom.bfactor > this.scene.grid) &&
+	      //           (this.scene.grid_atoms[child.atom.elem])) {
+	      //           child.visible = true
+	      //         } else {
+	      //           child.visible = false
+	      //         }
+	      //       }
+	      //     })
+	      //   }
+	      // }
 	
 	      for (var i = 0; i < this.trace.residues.length; i += 1) {
 	        var residue = this.trace.residues[i];
@@ -75014,24 +75092,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return;
 	      }
 	      this.resize();
+	
 	      this.setCameraFromCurrentView();
+	
 	      this.selectVisibleObjects();
+	
 	      this.drawAtomLabels();
 	      this.drawDistanceLabels();
+	
 	      this.moveCrossHairs();
+	
+	      if (this.scene.gridChanged) {
+	        this.buildGrid();
+	        this.scene.gridChanged = false;
+	      }
+	
+	      // leave this to the very last moment
+	      // to avoid the dreaded black canvas
 	      if (!(0, _util.exists)(this.renderer)) {
-	        // leave this to the very last moment 
-	        // to avoid the dreaded black canvas
 	        this.initWebglRenderer();
 	      }
 	      this.renderer.render(this.threeJsScene, this.camera);
+	
 	      this.drawAtomLabels();
 	      this.drawDistanceLabels();
+	
 	      this.zSlab.draw();
 	      if (this.isGrid) {
 	        this.gridBar.draw();
 	      }
+	
 	      this.sequenceWidget.draw();
+	
 	      this.scene.changed = false;
 	    }
 	  }, {
@@ -75104,12 +75196,12 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
-	exports.setGeometryVerticesColor = exports.getFractionRotation = exports.getUnitVectorRotation = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.perpVector = exports.expandPath = exports.setVisible = exports.drawBlockArrow = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = exports.PathAndFrenetFrames = undefined;
+	exports.clearObject3D = exports.setGeometryVerticesColor = exports.getFractionRotation = exports.getUnitVectorRotation = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.perpVector = exports.expandPath = exports.setVisible = exports.drawBlockArrow = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = exports.PathAndFrenetFrames = undefined;
 	
 	var _three = __webpack_require__(8);
 	
@@ -75121,12 +75213,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	var TCo = _three2.default.Color;
 	
 	function exists(x) {
-	    return typeof x !== 'undefined';
+	  return typeof x !== 'undefined';
 	}
 	
 	function catmulRomSpline(t, p1, p2, p3, p4) {
 	
-	    return new TV3(_three2.default.CurveUtils.interpolate(p1.x, p2.x, p3.x, p4.x, t), _three2.default.CurveUtils.interpolate(p1.y, p2.y, p3.y, p4.y, t), _three2.default.CurveUtils.interpolate(p1.z, p2.z, p3.z, p4.z, t));
+	  return new TV3(_three2.default.CurveUtils.interpolate(p1.x, p2.x, p3.x, p4.x, t), _three2.default.CurveUtils.interpolate(p1.y, p2.y, p3.y, p4.y, t), _three2.default.CurveUtils.interpolate(p1.z, p2.z, p3.z, p4.z, t));
 	}
 	
 	/**
@@ -75140,23 +75232,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	function PathAndFrenetFrames() {
-	    this.points = [];
-	    this.normals = [];
-	    this.tangents = [];
-	    this.binormals = [];
+	  this.points = [];
+	  this.normals = [];
+	  this.tangents = [];
+	  this.binormals = [];
 	
-	    this.getSpacedPoints = function (steps) {
-	        return this.points;
-	    };
+	  this.getSpacedPoints = function (steps) {
+	    return this.points;
+	  };
 	
-	    this.slice = function (i, j) {
-	        var subPath = new PathAndFrenetFrames();
-	        subPath.points = this.points.slice(i, j);
-	        subPath.normals = this.normals.slice(i, j);
-	        subPath.tangents = this.tangents.slice(i, j);
-	        subPath.binormals = this.binormals.slice(i, j);
-	        return subPath;
-	    };
+	  this.slice = function (i, j) {
+	    var subPath = new PathAndFrenetFrames();
+	    subPath.points = this.points.slice(i, j);
+	    subPath.normals = this.normals.slice(i, j);
+	    subPath.tangents = this.tangents.slice(i, j);
+	    subPath.binormals = this.binormals.slice(i, j);
+	    return subPath;
+	  };
 	}
 	
 	/**
@@ -75174,105 +75266,105 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function expandPath(oldPath, n, iOldPoint, jOldPoint) {
 	
-	    if (typeof iOldPoint == "undefined") {
-	        iOldPoint = 0;
+	  if (typeof iOldPoint == 'undefined') {
+	    iOldPoint = 0;
+	  }
+	
+	  if (typeof jOldPoint == 'undefined') {
+	    jOldPoint = oldPath.points.length;
+	  }
+	
+	  var newPath = new PathAndFrenetFrames();
+	
+	  newPath.points.push(oldPath.points[iOldPoint]);
+	
+	  for (var i = iOldPoint; i < jOldPoint - 1; i += 1) {
+	
+	    var j_start = 1;
+	    var j_end = n + 1;
+	
+	    for (var j = j_start; j < j_end; j += 1) {
+	
+	      var t = 1.0 * j / n;
+	
+	      var prevOldPoint, nextOldPoint;
+	
+	      if (i > 0) {
+	        prevOldPoint = oldPath.points[i - 1];
+	      } else {
+	        prevOldPoint = oldPath.points[i].clone().sub(oldPath.tangents[i]);
+	      }
+	
+	      if (i < oldPath.points.length - 2) {
+	        nextOldPoint = oldPath.points[i + 2];
+	      } else {
+	        nextOldPoint = oldPath.points[i + 1].clone().add(oldPath.tangents[i]);
+	      }
+	
+	      newPath.points.push(catmulRomSpline(t, prevOldPoint, oldPath.points[i], oldPath.points[i + 1], nextOldPoint));
 	    }
+	  }
 	
-	    if (typeof jOldPoint == "undefined") {
-	        jOldPoint = oldPath.points.length;
+	  newPath.normals.push(oldPath.normals[iOldPoint]);
+	  for (var i = iOldPoint; i < jOldPoint - 1; i += 1) {
+	
+	    for (var j = 1; j < n + 1; j += 1) {
+	
+	      var t = 1.0 * j / n;
+	
+	      var prevOldNormal, nextOldNormal;
+	
+	      if (i > 0) {
+	        prevOldNormal = oldPath.normals[i - 1];
+	      } else {
+	        prevOldNormal = oldPath.normals[i];
+	      }
+	
+	      if (i < oldPath.normals.length - 2) {
+	        nextOldNormal = oldPath.normals[i + 2];
+	      } else {
+	        nextOldNormal = oldPath.normals[i + 1];
+	      }
+	
+	      newPath.normals.push(catmulRomSpline(t, prevOldNormal, oldPath.normals[i], oldPath.normals[i + 1], nextOldNormal).normalize());
 	    }
+	  }
 	
-	    var newPath = new PathAndFrenetFrames();
-	
-	    newPath.points.push(oldPath.points[iOldPoint]);
-	
-	    for (var i = iOldPoint; i < jOldPoint - 1; i += 1) {
-	
-	        var j_start = 1;
-	        var j_end = n + 1;
-	
-	        for (var j = j_start; j < j_end; j += 1) {
-	
-	            var t = 1.0 * j / n;
-	
-	            var prevOldPoint, nextOldPoint;
-	
-	            if (i > 0) {
-	                prevOldPoint = oldPath.points[i - 1];
-	            } else {
-	                prevOldPoint = oldPath.points[i].clone().sub(oldPath.tangents[i]);
-	            }
-	
-	            if (i < oldPath.points.length - 2) {
-	                nextOldPoint = oldPath.points[i + 2];
-	            } else {
-	                nextOldPoint = oldPath.points[i + 1].clone().add(oldPath.tangents[i]);
-	            }
-	
-	            newPath.points.push(catmulRomSpline(t, prevOldPoint, oldPath.points[i], oldPath.points[i + 1], nextOldPoint));
-	        }
+	  for (var i = 0; i < newPath.points.length; i += 1) {
+	    if (i == 0) {
+	      newPath.tangents.push(oldPath.tangents[0]);
+	    } else if (i == newPath.points.length - 1) {
+	      newPath.tangents.push(oldPath.tangents[jOldPoint - 1]);
+	    } else {
+	      newPath.tangents.push(newPath.points[i + 1].clone().sub(newPath.points[i - 1]).normalize());
 	    }
+	  }
 	
-	    newPath.normals.push(oldPath.normals[iOldPoint]);
-	    for (var i = iOldPoint; i < jOldPoint - 1; i += 1) {
+	  for (var i = 0; i < newPath.points.length; i += 1) {
+	    newPath.binormals.push(new TV3().crossVectors(newPath.tangents[i], newPath.normals[i]));
+	  }
 	
-	        for (var j = 1; j < n + 1; j += 1) {
-	
-	            var t = 1.0 * j / n;
-	
-	            var prevOldNormal, nextOldNormal;
-	
-	            if (i > 0) {
-	                prevOldNormal = oldPath.normals[i - 1];
-	            } else {
-	                prevOldNormal = oldPath.normals[i];
-	            }
-	
-	            if (i < oldPath.normals.length - 2) {
-	                nextOldNormal = oldPath.normals[i + 2];
-	            } else {
-	                nextOldNormal = oldPath.normals[i + 1];
-	            }
-	
-	            newPath.normals.push(catmulRomSpline(t, prevOldNormal, oldPath.normals[i], oldPath.normals[i + 1], nextOldNormal).normalize());
-	        }
-	    }
-	
-	    for (var i = 0; i < newPath.points.length; i += 1) {
-	        if (i == 0) {
-	            newPath.tangents.push(oldPath.tangents[0]);
-	        } else if (i == newPath.points.length - 1) {
-	            newPath.tangents.push(oldPath.tangents[jOldPoint - 1]);
-	        } else {
-	            newPath.tangents.push(newPath.points[i + 1].clone().sub(newPath.points[i - 1]).normalize());
-	        }
-	    }
-	
-	    for (var i = 0; i < newPath.points.length; i += 1) {
-	        newPath.binormals.push(new TV3().crossVectors(newPath.tangents[i], newPath.normals[i]));
-	    }
-	
-	    return newPath;
+	  return newPath;
 	}
 	
 	function BlockArrowGeometry() {
 	
-	    // Block arrow that points in the -Z direction
-	    // So can be reorientated using a lookAt() call
+	  // Block arrow that points in the -Z direction
+	  // So can be reorientated using a lookAt() call
 	
-	    var shape = new _three2.default.Shape([new _three2.default.Vector2(-0.4, -0.5), new _three2.default.Vector2(0.0, +0.5), new _three2.default.Vector2(+0.4, -0.5)]);
+	  var shape = new _three2.default.Shape([new _three2.default.Vector2(-0.4, -0.5), new _three2.default.Vector2(0.0, +0.5), new _three2.default.Vector2(+0.4, -0.5)]);
 	
-	    var path = new _three2.default.CatmullRomCurve3([new TV3(0, -0.3, 0), new TV3(0, 0.3, 0)]);
+	  var path = new _three2.default.CatmullRomCurve3([new TV3(0, -0.3, 0), new TV3(0, 0.3, 0)]);
 	
-	    _three2.default.ExtrudeGeometry.call(this, shape, {
-	        steps: 2,
-	        bevelEnabled: false,
-	        extrudePath: path
-	    });
+	  _three2.default.ExtrudeGeometry.call(this, shape, {
+	    steps: 2,
+	    bevelEnabled: false,
+	    extrudePath: path
+	  });
 	
-	    this.type = 'BlockArrowGeometry';
+	  this.type = 'BlockArrowGeometry';
 	
-	    this.applyMatrix(new _three2.default.Matrix4().makeRotationFromEuler(new _three2.default.Euler(0, Math.PI / 2, 0)));
+	  this.applyMatrix(new _three2.default.Matrix4().makeRotationFromEuler(new _three2.default.Euler(0, Math.PI / 2, 0)));
 	}
 	
 	BlockArrowGeometry.prototype = Object.create(_three2.default.ExtrudeGeometry.prototype);
@@ -75282,14 +75374,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function UnitCylinderGeometry() {
 	
-	    // rotate cylinder to point in z-direction, 
-	    // allows lookAt to orientate along cylinder
+	  // rotate cylinder to point in z-direction,
+	  // allows lookAt to orientate along cylinder
 	
-	    _three2.default.CylinderGeometry.call(this, 1, 1, 1, 4, 1, false);
+	  _three2.default.CylinderGeometry.call(this, 1, 1, 1, 4, 1, false);
 	
-	    this.type = 'UnitCylinderGeometry';
+	  this.type = 'UnitCylinderGeometry';
 	
-	    this.applyMatrix(new _three2.default.Matrix4().makeRotationFromEuler(new _three2.default.Euler(Math.PI / 2, Math.PI, 0)));
+	  this.applyMatrix(new _three2.default.Matrix4().makeRotationFromEuler(new _three2.default.Euler(Math.PI / 2, Math.PI, 0)));
 	}
 	
 	UnitCylinderGeometry.prototype = Object.create(_three2.default.CylinderGeometry.prototype);
@@ -75297,100 +75389,100 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function drawBlockArrow(point, tangent, normal, color) {
 	
-	    if (typeof blockArrowGeometry == 'undefined') {
-	        var blockArrowGeometry = new BlockArrowGeometry();
-	    }
+	  if (typeof blockArrowGeometry == 'undefined') {
+	    var blockArrowGeometry = new BlockArrowGeometry();
+	  }
 	
-	    var mesh = new _three2.default.Mesh(blockArrowGeometry, new _three2.default.MeshLambertMaterial({
-	        color: color,
-	        wireframe: false
-	    }));
+	  var mesh = new _three2.default.Mesh(blockArrowGeometry, new _three2.default.MeshLambertMaterial({
+	    color: color,
+	    wireframe: false
+	  }));
 	
-	    mesh.position.copy(point);
-	    mesh.up.copy(normal);
-	    mesh.lookAt(point.clone().add(tangent));
+	  mesh.position.copy(point);
+	  mesh.up.copy(normal);
+	  mesh.lookAt(point.clone().add(tangent));
 	
-	    return mesh;
+	  return mesh;
 	}
 	
 	var setVisible = function setVisible(obj, b) {
 	
-	    if (!exists(obj)) {
-	        return;
-	    }
+	  if (!exists(obj)) {
+	    return;
+	  }
 	
-	    obj.traverse(function (c) {
-	        c.visible = b;
-	    });
+	  obj.traverse(function (c) {
+	    c.visible = b;
+	  });
 	};
 	
 	function perpVector(ref, vec) {
 	
-	    var vec_along_ref = ref.clone().multiplyScalar(vec.dot(ref));
+	  var vec_along_ref = ref.clone().multiplyScalar(vec.dot(ref));
 	
-	    return vec.clone().sub(vec_along_ref);
+	  return vec.clone().sub(vec_along_ref);
 	}
 	
 	function threePointNormal(vertices) {
 	
-	    var cb = new _three2.default.Vector3();
-	    var ab = new _three2.default.Vector3();
+	  var cb = new _three2.default.Vector3();
+	  var ab = new _three2.default.Vector3();
 	
-	    cb.subVectors(vertices[2], vertices[1]);
-	    ab.subVectors(vertices[0], vertices[1]);
-	    cb.cross(ab);
+	  cb.subVectors(vertices[2], vertices[1]);
+	  ab.subVectors(vertices[0], vertices[1]);
+	  cb.cross(ab);
 	
-	    cb.normalize();
+	  cb.normalize();
 	
-	    return cb;
+	  return cb;
 	}
 	
 	function RaisedShapeGeometry(vertices, thickness) {
 	
-	    _three2.default.Geometry.call(this);
+	  _three2.default.Geometry.call(this);
 	
-	    this.type = 'RaisedShapeGeometry';
+	  this.type = 'RaisedShapeGeometry';
 	
-	    this.parameters = {
-	        vertices: vertices,
-	        thickness: thickness
-	    };
+	  this.parameters = {
+	    vertices: vertices,
+	    thickness: thickness
+	  };
 	
-	    nVertex = vertices.length;
+	  nVertex = vertices.length;
 	
-	    var normal = threePointNormal(vertices.slice(0, 3));
+	  var normal = threePointNormal(vertices.slice(0, 3));
 	
-	    var displacement = normal.clone().multiplyScalar(+thickness / 2);
+	  var displacement = normal.clone().multiplyScalar(+thickness / 2);
 	
-	    var nVertex = vertices.length;
-	    var iLast = nVertex - 1;
-	    var offset = nVertex;
+	  var nVertex = vertices.length;
+	  var iLast = nVertex - 1;
+	  var offset = nVertex;
 	
-	    for (var i = 0; i < vertices.length; i += 1) {
-	        this.vertices.push(vertices[i].clone().add(displacement));
+	  for (var i = 0; i < vertices.length; i += 1) {
+	    this.vertices.push(vertices[i].clone().add(displacement));
+	  }
+	  for (var i = 0; i < vertices.length; i += 1) {
+	    this.vertices.push(vertices[i].clone().sub(displacement));
+	  }
+	
+	  for (var i = 0; i < nVertex - 2; i += 1) {
+	    this.faces.push(new _three2.default.Face3(i, i + 1, iLast));
+	  }
+	
+	  for (var i = 0; i < nVertex - 2; i += 1) {
+	    this.faces.push(new _three2.default.Face3(offset + i, offset + iLast, offset + i + 1));
+	  }
+	
+	  for (var i = 0; i < nVertex; i += 1) {
+	    var j;
+	    if (i == nVertex - 1) {
+	      j = 0;
+	    } else {
+	      j = i + 1;
 	    }
-	    for (var i = 0; i < vertices.length; i += 1) {
-	        this.vertices.push(vertices[i].clone().sub(displacement));
-	    }
-	
-	    for (var i = 0; i < nVertex - 2; i += 1) {
-	        this.faces.push(new _three2.default.Face3(i, i + 1, iLast));
-	    }
-	
-	    for (var i = 0; i < nVertex - 2; i += 1) {
-	        this.faces.push(new _three2.default.Face3(offset + i, offset + iLast, offset + i + 1));
-	    }
-	
-	    for (var i = 0; i < nVertex; i += 1) {
-	        var j;
-	        if (i == nVertex - 1) {
-	            j = 0;
-	        } else {
-	            j = i + 1;
-	        }
-	        this.faces.push(new _three2.default.Face3(i, i + offset, j + offset));
-	        this.faces.push(new _three2.default.Face3(i, j + offset, j));
-	    }
+	    this.faces.push(new _three2.default.Face3(i, i + offset, j + offset));
+	    this.faces.push(new _three2.default.Face3(i, j + offset, j));
+	  }
 	}
 	
 	RaisedShapeGeometry.prototype = Object.create(_three2.default.Geometry.prototype);
@@ -75399,172 +75491,172 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * Extrusion along a path that aligns a 2D shape as cross-section, with
 	 * orientation along the normal for the cross-section.
-	 * 
+	 *
 	 * Accepts a cross-section shape, which is a collection of 2D points around
 	 * the origin, and a path, which contains points, normals and binormals
 	 * and builds a oriented extrusion out of it.
-	 * 
-	 * If round is set, then the vertex normals are set to orient along the 
+	 *
+	 * If round is set, then the vertex normals are set to orient along the
 	 * normal/binormal axis from the origin, otherwise, face normals are defined
 	 * perpedicular to the face.
-	 * 
+	 *
 	 * For a segment between two path points and a repitition of the cross-section,
 	 * two triangles are defined.
-	 * 
+	 *
 	 * @param {THREE.Shape} shape - collection of 2D points for cross section
 	 * @param {THREE.FrenetFrame} path - collection of points, normals, and binormals
-	 * @param {boolean} round - boolean 
+	 * @param {boolean} round - boolean
 	 */
 	function RibbonGeometry(shape, path, round, front, back) {
 	
-	    _three2.default.Geometry.call(this);
+	  _three2.default.Geometry.call(this);
 	
-	    this.type = 'RibbonGeometry';
+	  this.type = 'RibbonGeometry';
 	
-	    this.parameters = {
-	        shape: shape,
-	        path: path,
-	        round: round
-	    };
+	  this.parameters = {
+	    shape: shape,
+	    path: path,
+	    round: round
+	  };
 	
-	    if (path.points.length < 2) {
-	        return;
+	  if (path.points.length < 2) {
+	    return;
+	  }
+	
+	  var shapePoints = shape.extractPoints(4).shape;
+	  var nVertex = shapePoints.length;
+	
+	  if (!exists(round)) {
+	    round = false;
+	  }
+	
+	  if (!round) {
+	
+	    var shapeEdgeNormals = [];
+	    for (var j = 0; j < nVertex; j += 1) {
+	      var i = j - 1;
+	      if (i == -1) {
+	        i = nVertex - 1;
+	      }
+	      var v0 = shapePoints[i];
+	      var v1 = shapePoints[j];
+	      var x = -(v1.y - v0.y);
+	      var y = v1.x - v0.x;
+	      shapeEdgeNormals.push(new _three2.default.Vector2(x, y));
+	    }
+	  }
+	
+	  for (var iPoint = 0; iPoint < path.points.length; iPoint += 1) {
+	
+	    var point = path.points[iPoint];
+	    var normal = path.normals[iPoint];
+	    var binormal = path.binormals[iPoint];
+	
+	    for (var iShapePoint = 0; iShapePoint < nVertex; iShapePoint += 1) {
+	
+	      var shapePoint = shapePoints[iShapePoint];
+	
+	      var x = normal.clone().multiplyScalar(shapePoint.x);
+	      var y = binormal.clone().multiplyScalar(shapePoint.y);
+	
+	      var vertex = point.clone().add(x).add(y);
+	
+	      this.vertices.push(vertex);
 	    }
 	
-	    var shapePoints = shape.extractPoints(4).shape;
-	    var nVertex = shapePoints.length;
-	
-	    if (!exists(round)) {
-	        round = false;
+	    var topOffset = this.vertices.length - 2 * nVertex;
+	    if (topOffset < 0) {
+	      continue;
 	    }
 	
-	    if (!round) {
-	
-	        var shapeEdgeNormals = [];
-	        for (var j = 0; j < nVertex; j += 1) {
-	            var i = j - 1;
-	            if (i == -1) {
-	                i = nVertex - 1;
-	            }
-	            var v0 = shapePoints[i];
-	            var v1 = shapePoints[j];
-	            var x = -(v1.y - v0.y);
-	            var y = v1.x - v0.x;
-	            shapeEdgeNormals.push(new _three2.default.Vector2(x, y));
-	        }
-	    }
-	
-	    for (var iPoint = 0; iPoint < path.points.length; iPoint += 1) {
-	
-	        var point = path.points[iPoint];
-	        var normal = path.normals[iPoint];
-	        var binormal = path.binormals[iPoint];
-	
-	        for (var iShapePoint = 0; iShapePoint < nVertex; iShapePoint += 1) {
-	
-	            var shapePoint = shapePoints[iShapePoint];
-	
-	            var x = normal.clone().multiplyScalar(shapePoint.x);
-	            var y = binormal.clone().multiplyScalar(shapePoint.y);
-	
-	            var vertex = point.clone().add(x).add(y);
-	
-	            this.vertices.push(vertex);
-	        }
-	
-	        var topOffset = this.vertices.length - 2 * nVertex;
-	        if (topOffset < 0) {
-	            continue;
-	        }
-	
-	        if (round) {
-	            // Smoothed normals to give a rounded look
-	            for (var j = 0; j < nVertex; j += 1) {
-	                if (j == 0) {
-	                    i = nVertex - 1;
-	                } else {
-	                    i = j - 1;
-	                }
-	                var k = topOffset + i;
-	                var l = topOffset + j;
-	
-	                var x = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[j].x);
-	                var y = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[j].y);
-	                var normal01 = x.add(y);
-	
-	                var x = path.normals[iPoint].clone().multiplyScalar(shapePoints[j].x);
-	                var y = path.binormals[iPoint].clone().multiplyScalar(shapePoints[j].y);
-	                var normal11 = x.add(y);
-	
-	                var x = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[i].x);
-	                var y = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[i].y);
-	                var normal00 = x.add(y);
-	
-	                var x = path.normals[iPoint].clone().multiplyScalar(shapePoints[i].x);
-	                var y = path.binormals[iPoint].clone().multiplyScalar(shapePoints[i].y);
-	                var normal10 = x.add(y);
-	
-	                var face = new _three2.default.Face3(k, k + nVertex, l + nVertex);
-	                face.vertexNormals = [normal00, normal10, normal11];
-	                this.faces.push(face);
-	
-	                var face = new _three2.default.Face3(k, l + nVertex, l);
-	                face.vertexNormals = [normal00, normal11, normal01];
-	                this.faces.push(face);
-	            }
+	    if (round) {
+	      // Smoothed normals to give a rounded look
+	      for (var j = 0; j < nVertex; j += 1) {
+	        if (j == 0) {
+	          i = nVertex - 1;
 	        } else {
-	            // Continuous normals but keep faces distinct
-	            // along ribbon
-	            for (var j = 0; j < nVertex; j += 1) {
-	                if (j == 0) {
-	                    i = nVertex - 1;
-	                } else {
-	                    i = j - 1;
-	                }
-	                var k = topOffset + i;
-	                var l = topOffset + j;
-	
-	                var x = path.normals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[j].x);
-	                var y = path.binormals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[j].y);
-	                var normal0 = x.add(y);
-	
-	                var x = path.normals[iPoint].clone().multiplyScalar(shapeEdgeNormals[j].x);
-	                var y = path.binormals[iPoint].clone().multiplyScalar(shapeEdgeNormals[j].y);
-	                var normal1 = x.add(y);
-	
-	                var face = new _three2.default.Face3(k, k + nVertex, l + nVertex);
-	                face.vertexNormals = [normal0, normal1, normal1];
-	                this.faces.push(face);
-	
-	                var face = new _three2.default.Face3(k, l + nVertex, l);
-	                face.vertexNormals = [normal0, normal1, normal0];
-	                this.faces.push(face);
-	            }
+	          i = j - 1;
 	        }
-	    }
+	        var k = topOffset + i;
+	        var l = topOffset + j;
 	
-	    if (front) {
-	        // Draw front face
-	        normal = threePointNormal([this.vertices[0], this.vertices[1], this.vertices[2]]);
-	        for (var i = 0; i < nVertex - 2; i += 1) {
-	            var face = new _three2.default.Face3(i, i + 1, nVertex - 1);
-	            face.normal.copy(normal);
-	            this.faces.push(face);
+	        var x = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[j].x);
+	        var y = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[j].y);
+	        var normal01 = x.add(y);
+	
+	        var x = path.normals[iPoint].clone().multiplyScalar(shapePoints[j].x);
+	        var y = path.binormals[iPoint].clone().multiplyScalar(shapePoints[j].y);
+	        var normal11 = x.add(y);
+	
+	        var x = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[i].x);
+	        var y = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[i].y);
+	        var normal00 = x.add(y);
+	
+	        var x = path.normals[iPoint].clone().multiplyScalar(shapePoints[i].x);
+	        var y = path.binormals[iPoint].clone().multiplyScalar(shapePoints[i].y);
+	        var normal10 = x.add(y);
+	
+	        var face = new _three2.default.Face3(k, k + nVertex, l + nVertex);
+	        face.vertexNormals = [normal00, normal10, normal11];
+	        this.faces.push(face);
+	
+	        var face = new _three2.default.Face3(k, l + nVertex, l);
+	        face.vertexNormals = [normal00, normal11, normal01];
+	        this.faces.push(face);
+	      }
+	    } else {
+	      // Continuous normals but keep faces distinct
+	      // along ribbon
+	      for (var j = 0; j < nVertex; j += 1) {
+	        if (j == 0) {
+	          i = nVertex - 1;
+	        } else {
+	          i = j - 1;
 	        }
+	        var k = topOffset + i;
+	        var l = topOffset + j;
+	
+	        var x = path.normals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[j].x);
+	        var y = path.binormals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[j].y);
+	        var normal0 = x.add(y);
+	
+	        var x = path.normals[iPoint].clone().multiplyScalar(shapeEdgeNormals[j].x);
+	        var y = path.binormals[iPoint].clone().multiplyScalar(shapeEdgeNormals[j].y);
+	        var normal1 = x.add(y);
+	
+	        var face = new _three2.default.Face3(k, k + nVertex, l + nVertex);
+	        face.vertexNormals = [normal0, normal1, normal1];
+	        this.faces.push(face);
+	
+	        var face = new _three2.default.Face3(k, l + nVertex, l);
+	        face.vertexNormals = [normal0, normal1, normal0];
+	        this.faces.push(face);
+	      }
 	    }
+	  }
 	
-	    if (back) {
-	        // draw back face
-	        var offset = this.vertices.length - 1 - nVertex;
-	
-	        normal = threePointNormal([this.vertices[offset], this.vertices[offset + nVertex - 1], this.vertices[offset + 1]]);
-	
-	        for (var i = 0; i < nVertex - 2; i += 1) {
-	            face = new _three2.default.Face3(offset + i, offset + nVertex - 1, offset + i + 1);
-	            face.normal.copy(normal);
-	            this.faces.push(face);
-	        }
+	  if (front) {
+	    // Draw front face
+	    normal = threePointNormal([this.vertices[0], this.vertices[1], this.vertices[2]]);
+	    for (var i = 0; i < nVertex - 2; i += 1) {
+	      var face = new _three2.default.Face3(i, i + 1, nVertex - 1);
+	      face.normal.copy(normal);
+	      this.faces.push(face);
 	    }
+	  }
+	
+	  if (back) {
+	    // draw back face
+	    var offset = this.vertices.length - 1 - nVertex;
+	
+	    normal = threePointNormal([this.vertices[offset], this.vertices[offset + nVertex - 1], this.vertices[offset + 1]]);
+	
+	    for (var i = 0; i < nVertex - 2; i += 1) {
+	      face = new _three2.default.Face3(offset + i, offset + nVertex - 1, offset + i + 1);
+	      face.normal.copy(normal);
+	      this.faces.push(face);
+	    }
+	  }
 	}
 	
 	RibbonGeometry.prototype = Object.create(_three2.default.Geometry.prototype);
@@ -75572,23 +75664,99 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function getUnitVectorRotation(reference, target) {
 	
-	    return new _three2.default.Quaternion().setFromUnitVectors(reference, target);
+	  return new _three2.default.Quaternion().setFromUnitVectors(reference, target);
 	}
 	
 	function getFractionRotation(rotation, t) {
 	
-	    var identity = new _three2.default.Quaternion();
-	    return identity.slerp(rotation, t);
+	  var identity = new _three2.default.Quaternion();
+	  return identity.slerp(rotation, t);
 	}
 	
 	function setGeometryVerticesColor(geom, color) {
 	
-	    for (var i = 0; i < geom.faces.length; i += 1) {
-	        var face = geom.faces[i];
-	        face.vertexColors[0] = color;
-	        face.vertexColors[1] = color;
-	        face.vertexColors[2] = color;
+	  for (var i = 0; i < geom.faces.length; i += 1) {
+	    var face = geom.faces[i];
+	    face.vertexColors[0] = color;
+	    face.vertexColors[1] = color;
+	    face.vertexColors[2] = color;
+	  }
+	}
+	
+	function clearObject3D(obj) {
+	  // clearing obj does not clear scene
+	  var j = obj.children.length - 1;
+	  for (var i = j; i >= 0; i -= 1) {
+	    var child = obj.children[i];
+	    if (!_.isUndefined(child.dontDelete)) {
+	      return;
 	    }
+	    if (!_.isUndefined(child.geometry)) {
+	      child.geometry.dispose();
+	    }
+	    if (!_.isUndefined(child.material)) {
+	      child.material.dispose();
+	    }
+	    obj.remove(child);
+	  }
+	}
+	
+	function calcContinuousTangents(trace, iStart, iEnd) {
+	  var points = trace.points;
+	
+	  var iLast = iEnd - 1;
+	
+	  var i;
+	
+	  if (iEnd - iStart > 2) {
+	    trace.tangents[iStart] = points[iStart + 1].clone().sub(points[iStart]).normalize();
+	
+	    for (i = iStart + 1; i < iLast; i += 1) {
+	      trace.tangents[i] = points[i + 1].clone().sub(points[i - 1]).normalize();
+	    }
+	
+	    trace.tangents[iLast] = points[iLast].clone().sub(points[iLast - 1]).normalize();
+	
+	    for (i = iStart + 1; i < iLast; i += 1) {
+	      if (trace.residues[i].normal !== null) {
+	        trace.normals[i] = perpVector(trace.tangents[i], v3.clone(trace.residues[i].normal)).normalize();
+	      } else {
+	        var diff = points[i].clone().sub(points[i - 1]);
+	        trace.normals[i] = new TV3().crossVectors(diff, trace.tangents[i]).normalize();
+	      }
+	    }
+	
+	    trace.normals[iStart] = trace.normals[iStart + 1];
+	
+	    trace.normals[iLast] = trace.normals[iLast - 1];
+	  } else {
+	    // for 2 point loops
+	    var tangent = points[iLast].clone().sub(points[iStart]).normalize();
+	
+	    trace.tangents[iStart] = tangent;
+	    trace.tangents[iLast] = tangent;
+	
+	    for (i = iStart; i <= iLast; i += 1) {
+	      if (trace.residues[i].normal !== null) {
+	        trace.normals[i] = perpVector(trace.tangents[i], v3.clone(trace.residues[i].normal)).normalize();
+	      } else {
+	        var randomDir = points[i];
+	        trace.normals[i] = new TV3().crossVectors(randomDir, tangent).normalize();
+	      }
+	    }
+	  }
+	
+	  for (i = iStart + 1; i < iEnd; i += 1) {
+	    if (trace.residues[i].ss != 'D' && trace.residues[i - 1].ss != 'D') {
+	      if (trace.normals[i].dot(trace.normals[i - 1]) < 0) {
+	        trace.normals[i].negate();
+	      }
+	    }
+	  }
+	
+	  for (i = iStart; i < iEnd; i += 1) {
+	    trace.binormals[i] = new TV3().crossVectors(trace.tangents[i], trace.normals[i]);
+	  }
 	}
 	
 	exports.PathAndFrenetFrames = PathAndFrenetFrames;
@@ -75603,6 +75771,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getUnitVectorRotation = getUnitVectorRotation;
 	exports.getFractionRotation = getFractionRotation;
 	exports.setGeometryVerticesColor = setGeometryVerticesColor;
+	exports.clearObject3D = clearObject3D;
 	
 	// function drawExtrusion( shape, pathAndFrenetFrames, color ) {
 	
