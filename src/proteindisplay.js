@@ -1265,90 +1265,155 @@ function cylinderMatrix (from, to, radius) {
 }
 
 
-function calcContinuousTangents (trace, iStart, iEnd) {
-  var points = trace.points
+class MyTrace extends PathAndFrenetFrames {
 
-  var iLast = iEnd - 1
+  constructor () {
+    super()
+    this.indices = []
+    this.referenceObjects = []
+    this.detail = 4
+  }
 
-  var i
+  getReferenceObject (i) {
+    let iRef = this.indices[i]
+    return this.referenceObjects[iRef]
+  }
 
-  if ((iEnd - iStart) > 2) {
-    trace.tangents[iStart] = points[iStart + 1].clone()
-      .sub(points[iStart])
-      .normalize()
-
-    for (i = iStart + 1; i < iLast; i += 1) {
-      trace.tangents[i] = points[i + 1].clone()
-        .sub(points[i - 1])
+  /**
+   * Calculates tangents as an average on neighbouring points
+   * so that we get a smooth path
+   * 
+   * @param {*} iStart 
+   * @param {*} iEnd 
+   */
+  calcContinuousTangents (iStart, iEnd) {
+    let trace = this
+    var points = trace.points
+  
+    var iLast = iEnd - 1
+  
+    var i
+  
+    if ((iEnd - iStart) > 2) {
+      // project out first tangent from main chain
+      trace.tangents[iStart] = points[iStart + 1].clone()
+        .sub(points[iStart])
         .normalize()
-    }
-
-    trace.tangents[iLast] = points[iLast].clone()
-      .sub(points[iLast - 1])
-      .normalize()
-
-    for (i = iStart + 1; i < iLast; i += 1) {
-      if (trace.residues[i].normal !== null) {
-        trace.normals[i] = perpVector(
-          trace.tangents[i],
-          v3.clone(trace.residues[i].normal)
-        )
-          .normalize()
-      } else {
-        var diff = points[i].clone()
+  
+      // calculate tangents as averages of neighbouring residues
+      for (i = iStart + 1; i < iLast; i += 1) {
+        trace.tangents[i] = points[i + 1].clone()
           .sub(points[i - 1])
-        trace.normals[i] = new TV3()
-          .crossVectors(
-            diff, trace.tangents[i])
           .normalize()
+      }
+  
+      // project out last tangent from main chain
+      trace.tangents[iLast] = points[iLast].clone()
+        .sub(points[iLast - 1])
+        .normalize()
+  
+      // generate normals 
+      for (i = iStart + 1; i < iLast; i += 1) {
+
+        // check if reference object provides a normal
+        if (trace.referenceObjects[i].normal !== null) {
+          trace.normals[i] = perpVector(
+            trace.tangents[i],
+            v3.clone(trace.referenceObjects[i].normal)
+          )
+            .normalize()
+        } else {
+          var diff = points[i].clone()
+            .sub(points[i - 1])
+          trace.normals[i] = new TV3()
+            .crossVectors(
+              diff, trace.tangents[i])
+            .normalize()
+        }
+      }
+  
+      trace.normals[iStart] = trace.normals[iStart + 1]
+      trace.normals[iLast] = trace.normals[iLast - 1]
+  
+    } else {
+      // for short 2 point traces, tangents are a bit harder to do
+      var tangent = points[iLast].clone()
+        .sub(points[iStart])
+        .normalize()
+  
+      trace.tangents[iStart] = tangent
+      trace.tangents[iLast] = tangent
+  
+      for (i = iStart; i <= iLast; i += 1) {
+        if (trace.referenceObjects[i].normal !== null) {
+          trace.normals[i] = perpVector(
+            trace.tangents[i],
+            v3.clone(trace.referenceObjects[i].normal)
+          )
+            .normalize()
+        } else {
+          var randomDir = points[i]
+          trace.normals[i] = new TV3()
+            .crossVectors(randomDir, tangent)
+            .normalize()
+        }
       }
     }
-
-    trace.normals[iStart] = trace.normals[iStart + 1]
-
-    trace.normals[iLast] = trace.normals[iLast - 1]
-  } else {
-    // for 2 point loops
-    var tangent = points[iLast].clone()
-      .sub(points[iStart])
-      .normalize()
-
-    trace.tangents[iStart] = tangent
-    trace.tangents[iLast] = tangent
-
-    for (i = iStart; i <= iLast; i += 1) {
-      if (trace.residues[i].normal !== null) {
-        trace.normals[i] = perpVector(
-          trace.tangents[i],
-          v3.clone(trace.residues[i].normal)
-        )
-          .normalize()
-      } else {
-        var randomDir = points[i]
-        trace.normals[i] = new TV3()
-          .crossVectors(randomDir, tangent)
-          .normalize()
+  
+    // flip normals so that they are all pointing in same direction
+    for (i = iStart + 1; i < iEnd; i += 1) {
+      if (trace.referenceObjects[i].ss != 'D' 
+          && trace.referenceObjects[i - 1].ss != 'D') {
+        if (trace.normals[i].dot(trace.normals[i - 1]) < 0) {
+          trace.normals[i].negate()
+        }
       }
+    }
+  
+    // calculate binormals from tangents and normals
+    for (i = iStart; i < iEnd; i += 1) {
+      trace.binormals[i] = new TV3()
+        .crossVectors(trace.tangents[i], trace.normals[i])
     }
   }
-
-  for (i = iStart + 1; i < iEnd; i += 1) {
-    if (trace.residues[i].ss != 'D' && trace.residues[i -
-      1].ss != 'D') {
-      if (trace.normals[i].dot(trace.normals[i - 1]) <
-        0) {
-        trace.normals[i].negate()
-      }
-    }
+  
+  expand () {
+    this.calcContinuousTangents(0, this.points.length)
+    this.detailedPath = expandPath(this, 2 * this.detail)    
   }
 
-  for (i = iStart; i < iEnd; i += 1) {
-    trace.binormals[i] = new TV3()
-      .crossVectors(
-        trace.tangents[i], trace.normals[i])
+   /**    
+    * A path is generated with 2*detail.
+    *
+    * If a residue is not at the end of a piece,
+    * will be extended to detail beyond that is
+    * half-way between the residue and the neighboring
+    * residue in a different piece.
+    **/
+  getSegmentGeometry (iRes, face, isRound, isFront, isBack, color) {
+    let path = this.detailedPath
+
+    // works out start on expanded path, including overhang
+    let iPathStart = (iRes * 2 * this.detail) - this.detail
+    if (iPathStart < 0) {
+      iPathStart = 0
+    }
+
+    // works out end of expanded path, including overhang
+    let iPathEnd = ((iRes + 1) * 2 * this.detail) - this.detail + 1
+    if (iPathEnd >= path.points.length) {
+      iPathEnd = path.points.length - 1
+    }
+
+    let segmentPath = path.slice(iPathStart, iPathEnd)
+    let geom = new RibbonGeometry(
+      face, segmentPath, isRound, isFront, isBack)
+
+    setGeometryVerticesColor(geom, color)
+      
+    return geom
   }
 }
-
 
 /**
  *
@@ -1646,30 +1711,28 @@ class ProteinDisplay {
     return v3.crossProduct(forward, up)
   }
 
-  getTraceResidue(iTrace) {
-    let iRes = this.trace.indices[iTrace]
-    return this.protein.residues[iRes]
-  }
-
-  findChainsAndPieces () {
-    // Chains are continuous pieces of proteins or dna
-    // Pieces are continuous pieces of secondary structure
-
+  findContinuousTraces () {
     this.traces = []
+    
+    let makeNewTrace = () => {
+      this.shortTrace = new MyTrace()
+      this.shortTrace.residues = this.protein.residues
+      this.shortTrace.referenceObjects = this.protein.residues
+      this.traces.push(this.shortTrace)
+    }
 
-    this.trace = new PathAndFrenetFrames()
+    let nResidue = this.protein.residues.length
+    for (let iResidue = 0; iResidue < nResidue; iResidue += 1) {
 
-    this.trace.indices = []
-    this.trace.residues = this.protein.residues
-
-    var nResidue = this.protein.residues.length
-    for (var iResidue = 0; iResidue < nResidue; iResidue += 1) {
-      var residue = this.protein.residues[iResidue]
+      let residue = this.protein.residues[iResidue]
       var isResInTrace = false
 
       if (residue.is_protein_or_nuc) {
         isResInTrace = true
       } else {
+        // Handles non-standard amino-acids and nucleotides that are
+        // covalently bonded with the correct atom types to 
+        // neighbouring residues
         if (iResidue > 0) {
           if (this.isPeptideConnected(iResidue - 1, iResidue)) {
             residue.central_atom = residue.atoms['CA']
@@ -1696,43 +1759,26 @@ class ProteinDisplay {
       }
 
       if (isResInTrace) {
-        this.trace.indices.push(iResidue)
-        this.trace.points.push(v3.clone(residue.central_atom.pos))
+        if (iResidue === 0) {
+          makeNewTrace()
+        } else {
+          let iLastResidue = iResidue - 1
+          let peptideConnect = this.isPeptideConnected(iLastResidue, iResidue) 
+          let nucleotideConnect = this.isSugarPhosphateConnected(iLastResidue, iResidue)
+          if (!peptideConnect && !nucleotideConnect) {
+            makeNewTrace()
+          }
+        }
+        this.shortTrace.indices.push(iResidue)
+        this.shortTrace.points.push(v3.clone(residue.central_atom.pos))
       }
     }
 
-    this.trace.chains = []
-
-    var iStart = 0
-    for (var iEnd = 1; iEnd < this.trace.points.length + 1; iEnd +=
-      1) {
-      var isBreak = false
-
-      if (iEnd == this.trace.points.length) {
-        isBreak = true
-      } else {
-        var iRes0 = this.trace.indices[iEnd - 1]
-        var iRes1 = this.trace.indices[iEnd]
-        isBreak = !this.isPeptideConnected(iRes0, iRes1) && !this.isSugarPhosphateConnected(iRes0, iRes1)
-      }
-
-      if (!isBreak) {
-        continue
-      }
-
-      if (iStart == this.trace.points.length - 1) {
-        continue
-      }
-
-      var chain = {
-        iStart: iStart,
-        iEnd: iEnd,
-      }
-
-      this.trace.chains.push(chain)
-
-      iStart = iEnd
+    for (let trace of this.traces) {
+      trace.expand()
     }
+    console.log('this.traces', this.traces)
+
   }
 
   getAtomColor (atom) {
@@ -1780,142 +1826,61 @@ class ProteinDisplay {
     return ribbonFace
   }
 
-  getTraceResColor (iResTrace) {
-    return getResColor(this.getTraceResidue(iResTrace))
-  }
-
-  getTraceResDarkColor (iResTrace) {
-    return getDarkSsColor(this.getTraceResidue(iResTrace).ss)
-  }
-
   buildTube () {
     clearObject3D(this.meshObjects.tube)
-
-    var detail = 4
-
-    for (var iChain = 0; iChain < this.trace.chains.length; iChain +=
-      1) {
-      var chain = this.trace.chains[iChain]
-      var iStart = chain.iStart
-      var iEnd = chain.iEnd
-
-      calcContinuousTangents(this.trace, iStart, iEnd)
-      var path = expandPath(this.trace.slice(iStart, iEnd), 2 * detail)
-
-      let geom = new THREE.Geometry()
-        
-      for (var iRes of _.range(chain.iStart, chain.iEnd)) {
-
-        let iResInChain = iRes - chain.iStart
-
-        // works out start on expanded path, including overhang
-        var iPathStart = (iResInChain * 2 * detail) - detail
-        let isFront = false
-        if (iPathStart < 0) {
-          iPathStart = 0
-          isFront = true
-        }
-
-        // works out end of expanded path, including overhang
-        var iPathEnd = ((iResInChain + 1) * 2 * detail) - detail + 1
-        let isBack = false
-        if (iPathEnd >= path.points.length) {
-          iPathEnd = path.points.length - 1
-          isBack = true
-        }
-
-        var resPath = path.slice(iPathStart, iPathEnd)
-
-        var resGeom = new RibbonGeometry(
-          fatCoilFace, resPath, true, isFront, isBack)
-
-        let color = this.getTraceResColor(iRes)
-        setGeometryVerticesColor(resGeom, color)
-
-        geom.merge(resGeom, resGeom.matrix)
+    let geom = new THREE.Geometry()
+    for (let trace of this.traces) {
+      let n = trace.points.length
+      for (let i of _.range(n)) {
+        let res = trace.getReferenceObject(i)
+        let ss = res.ss
+        let color = getResColor(res)
+        var isRound = true
+        let isFront = (i === 0) 
+        let isBack = (i === n - 1) 
+        var resGeom = trace.getSegmentGeometry(
+          i, fatCoilFace, isRound, isFront, isBack, color)
+        geom.merge(resGeom)
+        let iAtom = res.central_atom.i
+        setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom))
+        this.pickingGeometry.merge(resGeom, resGeom.matrix)
       }
-
-      var material = new THREE.MeshLambertMaterial({
-        vertexColors: THREE.VertexColors
-      })
-      var mesh = new THREE.Mesh(geom, material)
-      mesh.visible = false
-      this.meshObjects.tube.add(mesh)
     }
+    var material = new THREE.MeshLambertMaterial({
+      vertexColors: THREE.VertexColors
+    })
+    var mesh = new THREE.Mesh(geom, material)
+    mesh.visible = false
+    this.meshObjects.tube.add(mesh)
   }
 
   buildRibbons () {
     clearObject3D(this.meshObjects.ribbons)
-
-    /**
-     *
-     * The connected residues are grouped into:
-     *  - chains - list of [i,j] of trace residues
-     *
-     * A path is generated with 2*detail.
-     *
-     * If a residue is not at the end of a piece,
-     * will be extended to detail beyond that is
-     * half-way between the residue and the neighboring
-     * residue in a different piece.
-     *
-     **/
-
-    var detail = 4
-
-    for (let chain of this.trace.chains) {
-
-      calcContinuousTangents(this.trace, chain.iStart, chain.iEnd)
-      var path = expandPath(this.trace.slice(chain.iStart, chain.iEnd), 2 * detail)
-
-      let geom = new THREE.Geometry()
-
-      for (let iRes of _.range(chain.iStart, chain.iEnd)) {
-        let ss = this.getTraceResidue(iRes).ss
-        var face = this.getSsFace(ss)
-        var isRound = ss == 'C'
-
-        let iResInChain = iRes - chain.iStart
-
-        // works out start on expanded path, including overhang
-        var iPathStart = (iResInChain * 2 * detail) - detail
-        let isFront = ((iRes === 0) 
-          || (ss !== this.getTraceResidue(iRes - 1).ss))
-        if (iPathStart < 0) {
-          iPathStart = 0
-        }
-
-        // works out end of expanded path, including overhang
-        var iPathEnd = ((iResInChain + 1) * 2 * detail) - detail + 1
-        let isBack = ((iRes === chain.iEnd - 1) 
-          || (ss !== this.getTraceResidue(iRes + 1).ss)) 
-        if (iPathEnd >= path.points.length) {
-          iPathEnd = path.points.length - 1
-        }
-
-        var resPath = path.slice(iPathStart, iPathEnd)
-
-        var resGeom = new RibbonGeometry(
-          face, resPath, isRound, isFront, isBack)
-
-        let color = this.getTraceResColor(iRes)
-        setGeometryVerticesColor(resGeom, color)
-
+    let geom = new THREE.Geometry()
+    for (let trace of this.traces) {
+      let n = trace.points.length
+      for (let i of _.range(n)) {
+        let res = trace.getReferenceObject(i)
+        var face = this.getSsFace(res.ss)
+        let color = getResColor(res)
+        var isRound = res.ss == 'C'
+        let isFront = ((i === 0) 
+          || (res.ss !== trace.getReferenceObject(i - 1).ss))
+        let isBack = ((i === n - 1) 
+          || (res.ssss !== trace.getReferenceObject(i + 1).ss)) 
+        var resGeom = trace.getSegmentGeometry(
+          i, face, isRound, isFront, isBack, color)
         geom.merge(resGeom)
-
-        let i = this.getTraceResidue(iRes).central_atom.i
-        setGeometryVerticesColor(resGeom, new THREE.Color().setHex(i))
+        let iAtom = res.central_atom.i
+        setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom))
         this.pickingGeometry.merge(resGeom, resGeom.matrix)
       }
-
-      var material = new THREE.MeshLambertMaterial({
-        vertexColors: THREE.VertexColors
-      })
-
-      var mesh = new THREE.Mesh(geom, material)
-
-      this.meshObjects.ribbons.add(mesh)
     }
+    var material = new THREE.MeshLambertMaterial({
+      vertexColors: THREE.VertexColors
+    })
+    var mesh = new THREE.Mesh(geom, material)
+    this.meshObjects.ribbons.add(mesh)
   }
 
   buildArrows () {
@@ -1925,21 +1890,23 @@ class ProteinDisplay {
     let blockArrowGeometry = new BlockArrowGeometry()
     blockArrowGeometry.computeFaceNormals()
 
-    for (let i of _.range(this.trace.points.length)) {
-      let point = this.trace.points[i]
-      let tangent = this.trace.tangents[i]
-      let normal = this.trace.binormals[i]
+    for (let trace of this.traces) {
+      for (let i of _.range(trace.points.length)) {
+        let point = trace.points[i]
+        let tangent = trace.tangents[i]
+        let normal = trace.binormals[i]
 
-      let obj = new THREE.Object3D()
-      obj.position.copy(point)
-      obj.up.copy(normal)
-      obj.lookAt(point.clone().add(tangent))
-      obj.updateMatrix()
+        let obj = new THREE.Object3D()
+        obj.position.copy(point)
+        obj.up.copy(normal)
+        obj.lookAt(point.clone().add(tangent))
+        obj.updateMatrix()
 
-      var color = this.getTraceResDarkColor(i)
-      setGeometryVerticesColor(blockArrowGeometry, color)
+        var color = getDarkSsColor(trace.getReferenceObject(i).ss)
+        setGeometryVerticesColor(blockArrowGeometry, color)
 
-      geom.merge(blockArrowGeometry, obj.matrix)
+        geom.merge(blockArrowGeometry, obj.matrix)
+      }
     }
 
     let material = new THREE.MeshLambertMaterial({
@@ -2327,7 +2294,7 @@ class ProteinDisplay {
     this.meshObjects.backbone.notBuilt = true
     this.meshObjects.water.notBuilt = true
 
-    this.findChainsAndPieces()
+    this.findContinuousTraces()
 
     this.unitSphereGeom = new THREE.SphereGeometry(1, 8, 8)
 
@@ -2925,20 +2892,22 @@ class ProteinDisplay {
       }
     }
 
-    for (var i = 0; i < this.trace.indices.length; i += 1) {
-      var residue = this.getTraceResidue(i)
+    for (let trace of this.traces) {
+      for (var i = 0; i < trace.indices.length; i += 1) {
+        var residue = trace.getReferenceObject(i)
 
-      var residueShow
-      if (show.sidechain) {
-        residueShow = true
-      } else {
-        residueShow = residue.selected
-      }
+        var residueShow
+        if (show.sidechain) {
+          residueShow = true
+        } else {
+          residueShow = residue.selected
+        }
 
-      if (residueShow && !exists(residue.sidechain)) {
-        this.buildSidechain(residue)
+        if (residueShow && !exists(residue.sidechain)) {
+          this.buildSidechain(residue)
+        }
+        setVisible(residue.sidechain, residueShow)
       }
-      setVisible(residue.sidechain, residueShow)
     }
   }
 
