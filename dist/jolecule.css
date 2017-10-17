@@ -43,7 +43,7 @@ a.jolecule-small-button:visited {
     text-align: center;
     margin-right: 2px;
     margin-bottom: 5px;
-    padding: 2px 2px;
+    padding: 6px 8px;
     font-weight: normal;
     font-size: 10px;
     letter-spacing: 0.1em;
@@ -63,9 +63,9 @@ a.jolecule-large-button:active {
     font-weight: normal;
 }
 .jolecule-dialog {
-    background-color: #222;
+    background-color: #CCC;
     padding: 10px;
-    border: 2px solid #444;
+    border: 2px solid #AAA;
     font-size: 12px;
     letter-spacing: 0.1em;
     line-height: 1.5em;

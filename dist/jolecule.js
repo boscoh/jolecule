@@ -72055,6 +72055,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	/**
+	 * Converts the older view datastructure to a target data
+	 * structure that can be easily converted into a THREE.js
+	 * camera
+	 *
 	 * - camera
 	 *     - pos: scene center, camera focus
 	 *     - up: gives the direction of the y vector from pos
@@ -72427,7 +72431,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var bind = function bind(eventType, callback) {
 	      _this3.canvasDom.addEventListener(eventType, callback);
 	    };
-	
 	    bind('mousedown', function (e) {
 	      return _this3.mousedown(e);
 	    });
@@ -73171,6 +73174,64 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return obj.matrix;
 	}
 	
+	function calcContinuousTangents(trace, iStart, iEnd) {
+	  var points = trace.points;
+	
+	  var iLast = iEnd - 1;
+	
+	  var i;
+	
+	  if (iEnd - iStart > 2) {
+	    trace.tangents[iStart] = points[iStart + 1].clone().sub(points[iStart]).normalize();
+	
+	    for (i = iStart + 1; i < iLast; i += 1) {
+	      trace.tangents[i] = points[i + 1].clone().sub(points[i - 1]).normalize();
+	    }
+	
+	    trace.tangents[iLast] = points[iLast].clone().sub(points[iLast - 1]).normalize();
+	
+	    for (i = iStart + 1; i < iLast; i += 1) {
+	      if (trace.residues[i].normal !== null) {
+	        trace.normals[i] = (0, _glgeometry.perpVector)(trace.tangents[i], _v2.default.clone(trace.residues[i].normal)).normalize();
+	      } else {
+	        var diff = points[i].clone().sub(points[i - 1]);
+	        trace.normals[i] = new TV3().crossVectors(diff, trace.tangents[i]).normalize();
+	      }
+	    }
+	
+	    trace.normals[iStart] = trace.normals[iStart + 1];
+	
+	    trace.normals[iLast] = trace.normals[iLast - 1];
+	  } else {
+	    // for 2 point loops
+	    var tangent = points[iLast].clone().sub(points[iStart]).normalize();
+	
+	    trace.tangents[iStart] = tangent;
+	    trace.tangents[iLast] = tangent;
+	
+	    for (i = iStart; i <= iLast; i += 1) {
+	      if (trace.residues[i].normal !== null) {
+	        trace.normals[i] = (0, _glgeometry.perpVector)(trace.tangents[i], _v2.default.clone(trace.residues[i].normal)).normalize();
+	      } else {
+	        var randomDir = points[i];
+	        trace.normals[i] = new TV3().crossVectors(randomDir, tangent).normalize();
+	      }
+	    }
+	  }
+	
+	  for (i = iStart + 1; i < iEnd; i += 1) {
+	    if (trace.residues[i].ss != 'D' && trace.residues[i - 1].ss != 'D') {
+	      if (trace.normals[i].dot(trace.normals[i - 1]) < 0) {
+	        trace.normals[i].negate();
+	      }
+	    }
+	  }
+	
+	  for (i = iStart; i < iEnd; i += 1) {
+	    trace.binormals[i] = new TV3().crossVectors(trace.tangents[i], trace.normals[i]);
+	  }
+	}
+	
 	/**
 	 *
 	 * GlProteinDisplay: The main window for drawing the protein
@@ -73289,6 +73350,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.renderer.setClearColor(this.backgroundColor);
 	      this.renderer.setSize(this.width(), this.height());
 	      var dom = this.renderer.domElement;
+	      this.webglDiv[0].appendChild(dom);
 	      var bind = function bind(w, fn) {
 	        dom.addEventListener(w, fn);
 	      };
@@ -73328,7 +73390,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      bind('gestureend', function (e) {
 	        return _this9.gestureend(e);
 	      });
-	      this.webglDiv[0].appendChild(dom);
 	    }
 	  }, {
 	    key: 'setProcessingMesssage',
@@ -73345,27 +73406,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'displayProcessMessageAndRun',
-	    value: function displayProcessMessageAndRun(message, fn) {
+	
+	
+	    /**
+	     * Allow the DOM to show a message before a compute-intensive function
+	     *
+	     * @param message
+	     * @param computeHeavyFn
+	     */
+	    value: function displayProcessMessageAndRun(message, computeHeavyFn) {
 	      this.setProcessingMesssage(message);
-	      setTimeout(fn, 0);
+	      setTimeout(computeHeavyFn, 0);
 	    }
 	  }, {
-	    key: 'createObjects',
-	    value: function createObjects() {
-	      this.objects = {};
-	      this.objects.tube = new _three2.default.Object3D();
-	      this.objects.water = new _three2.default.Object3D();
-	      this.objects.ribbons = new _three2.default.Object3D();
-	      this.objects.grid = new _three2.default.Object3D();
-	      this.objects.arrows = new _three2.default.Object3D();
-	      this.objects.backbone = new _three2.default.Object3D();
-	      this.objects.ligands = new _three2.default.Object3D();
+	    key: 'initMeshObjects',
+	    value: function initMeshObjects() {
+	      this.meshObjects = {};
+	      this.meshObjects.tube = new _three2.default.Object3D();
+	      this.meshObjects.water = new _three2.default.Object3D();
+	      this.meshObjects.ribbons = new _three2.default.Object3D();
+	      this.meshObjects.grid = new _three2.default.Object3D();
+	      this.meshObjects.arrows = new _three2.default.Object3D();
+	      this.meshObjects.backbone = new _three2.default.Object3D();
+	      this.meshObjects.ligands = new _three2.default.Object3D();
 	    }
 	  }, {
 	    key: 'buildAfterDataLoad',
 	    value: function buildAfterDataLoad(defaultHtml) {
 	
-	      this.createObjects();
+	      this.initMeshObjects();
 	
 	      var _iteratorNormalCompletion = true;
 	      var _didIteratorError = false;
@@ -73498,28 +73567,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return _v2.default.crossProduct(forward, up);
 	    }
 	  }, {
+	    key: 'getTraceResidue',
+	    value: function getTraceResidue(iTrace) {
+	      var iRes = this.trace.indices[iTrace];
+	      return this.protein.residues[iRes];
+	    }
+	  }, {
 	    key: 'findChainsAndPieces',
 	    value: function findChainsAndPieces() {
 	      // Chains are continuous pieces of proteins or dna
 	      // Pieces are continuous pieces of secondary structure
 	
+	      this.traces = [];
+	
 	      this.trace = new _glgeometry.PathAndFrenetFrames();
 	
-	      this.trace.residues = [];
+	      this.trace.indices = [];
+	      this.trace.residues = this.protein.residues;
 	
-	      var n_residue = this.protein.residues.length;
-	      for (var j = 0; j < n_residue; j += 1) {
-	        var residue = this.protein.residues[j];
+	      var nResidue = this.protein.residues.length;
+	      for (var iResidue = 0; iResidue < nResidue; iResidue += 1) {
+	        var residue = this.protein.residues[iResidue];
 	        var isResInTrace = false;
 	
 	        if (residue.is_protein_or_nuc) {
 	          isResInTrace = true;
 	        } else {
-	          if (j > 0) {
-	            if (this.isPeptideConnected(j - 1, j)) {
+	          if (iResidue > 0) {
+	            if (this.isPeptideConnected(iResidue - 1, iResidue)) {
 	              residue.central_atom = residue.atoms['CA'];
 	              isResInTrace = true;
-	            } else if (this.isSugarPhosphateConnected(j - 1, j)) {
+	            } else if (this.isSugarPhosphateConnected(iResidue - 1, iResidue)) {
 	              residue.central_atom = residue.atoms['C3\''];
 	              isResInTrace = true;
 	              residue.ss = 'R';
@@ -73527,11 +73605,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	          }
 	
-	          if (j < n_residue - 1) {
-	            if (this.isPeptideConnected(j, j + 1)) {
+	          if (iResidue < nResidue - 1) {
+	            if (this.isPeptideConnected(iResidue, iResidue + 1)) {
 	              residue.central_atom = residue.atoms['CA'];
 	              isResInTrace = true;
-	            } else if (this.isSugarPhosphateConnected(j, j + 1)) {
+	            } else if (this.isSugarPhosphateConnected(iResidue, iResidue + 1)) {
 	              residue.central_atom = residue.atoms['C3\''];
 	              isResInTrace = true;
 	              residue.ss = 'R';
@@ -73541,13 +73619,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        if (isResInTrace) {
-	          this.trace.residues.push(residue);
+	          this.trace.indices.push(iResidue);
 	          this.trace.points.push(_v2.default.clone(residue.central_atom.pos));
 	        }
 	      }
 	
 	      this.trace.chains = [];
-	      this.trace.pieces = [];
 	
 	      var iStart = 0;
 	      for (var iEnd = 1; iEnd < this.trace.points.length + 1; iEnd += 1) {
@@ -73556,8 +73633,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (iEnd == this.trace.points.length) {
 	          isBreak = true;
 	        } else {
-	          var iRes0 = this.trace.residues[iEnd - 1].i;
-	          var iRes1 = this.trace.residues[iEnd].i;
+	          var iRes0 = this.trace.indices[iEnd - 1];
+	          var iRes1 = this.trace.indices[iEnd];
 	          isBreak = !this.isPeptideConnected(iRes0, iRes1) && !this.isSugarPhosphateConnected(iRes0, iRes1);
 	        }
 	
@@ -73571,106 +73648,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var chain = {
 	          iStart: iStart,
-	          iEnd: iEnd,
-	          pieces: []
+	          iEnd: iEnd
 	        };
 	
 	        this.trace.chains.push(chain);
 	
-	        var ss = this.trace.residues[iStart].ss;
-	        var iPieceStart = iStart;
-	
-	        for (var iPieceEnd = iStart + 1; iPieceEnd < iEnd + 1; iPieceEnd += 1) {
-	          isBreak = false;
-	          if (iPieceEnd == iEnd) {
-	            isBreak = true;
-	          } else {
-	            var end_ss = this.trace.residues[iPieceEnd].ss;
-	            if (end_ss != ss) {
-	              // if ( ( end_ss == "R" || ss == "D" ) &&
-	              //      ( end_ss == "D" || ss == "R" ) ) {
-	              //     continue;
-	              // }
-	              isBreak = true;
-	            }
-	          }
-	
-	          if (!isBreak) {
-	            continue;
-	          }
-	
-	          chain.pieces.push({
-	            iStart: iPieceStart,
-	            iEnd: iPieceEnd,
-	            ss: ss
-	          });
-	
-	          iPieceStart = iPieceEnd;
-	          if (iPieceEnd < iEnd) {
-	            ss = this.trace.residues[iPieceEnd].ss;
-	          }
-	        }
-	
 	        iStart = iEnd;
-	      }
-	    }
-	  }, {
-	    key: 'calcContinuousTangents',
-	    value: function calcContinuousTangents(trace, iStart, iEnd) {
-	      var points = trace.points;
-	
-	      var iLast = iEnd - 1;
-	
-	      var i;
-	
-	      if (iEnd - iStart > 2) {
-	        trace.tangents[iStart] = points[iStart + 1].clone().sub(points[iStart]).normalize();
-	
-	        for (i = iStart + 1; i < iLast; i += 1) {
-	          trace.tangents[i] = points[i + 1].clone().sub(points[i - 1]).normalize();
-	        }
-	
-	        trace.tangents[iLast] = points[iLast].clone().sub(points[iLast - 1]).normalize();
-	
-	        for (i = iStart + 1; i < iLast; i += 1) {
-	          if (trace.residues[i].normal !== null) {
-	            trace.normals[i] = (0, _glgeometry.perpVector)(trace.tangents[i], _v2.default.clone(trace.residues[i].normal)).normalize();
-	          } else {
-	            var diff = points[i].clone().sub(points[i - 1]);
-	            trace.normals[i] = new TV3().crossVectors(diff, trace.tangents[i]).normalize();
-	          }
-	        }
-	
-	        trace.normals[iStart] = trace.normals[iStart + 1];
-	
-	        trace.normals[iLast] = trace.normals[iLast - 1];
-	      } else {
-	        // for 2 point loops
-	        var tangent = points[iLast].clone().sub(points[iStart]).normalize();
-	
-	        trace.tangents[iStart] = tangent;
-	        trace.tangents[iLast] = tangent;
-	
-	        for (i = iStart; i <= iLast; i += 1) {
-	          if (trace.residues[i].normal !== null) {
-	            trace.normals[i] = (0, _glgeometry.perpVector)(trace.tangents[i], _v2.default.clone(trace.residues[i].normal)).normalize();
-	          } else {
-	            var randomDir = points[i];
-	            trace.normals[i] = new TV3().crossVectors(randomDir, tangent).normalize();
-	          }
-	        }
-	      }
-	
-	      for (i = iStart + 1; i < iEnd; i += 1) {
-	        if (trace.residues[i].ss != 'D' && trace.residues[i - 1].ss != 'D') {
-	          if (trace.normals[i].dot(trace.normals[i - 1]) < 0) {
-	            trace.normals[i].negate();
-	          }
-	        }
-	      }
-	
-	      for (i = iStart; i < iEnd; i += 1) {
-	        trace.binormals[i] = new TV3().crossVectors(trace.tangents[i], trace.normals[i]);
 	      }
 	    }
 	  }, {
@@ -73718,19 +73701,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getTraceResColor',
 	    value: function getTraceResColor(iResTrace) {
-	      var res = this.trace.residues[iResTrace];
-	      return getResColor(res);
+	      return getResColor(this.getTraceResidue(iResTrace));
 	    }
 	  }, {
 	    key: 'getTraceResDarkColor',
 	    value: function getTraceResDarkColor(iResTrace) {
-	      var res = this.trace.residues[iResTrace];
-	      return getDarkSsColor(res.ss);
+	      return getDarkSsColor(this.getTraceResidue(iResTrace).ss);
 	    }
 	  }, {
 	    key: 'buildTube',
 	    value: function buildTube() {
-	      (0, _glgeometry.clearObject3D)(this.objects.tube);
+	      (0, _glgeometry.clearObject3D)(this.meshObjects.tube);
 	
 	      var detail = 4;
 	
@@ -73739,88 +73720,79 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var iStart = chain.iStart;
 	        var iEnd = chain.iEnd;
 	
-	        this.calcContinuousTangents(this.trace, iStart, iEnd);
+	        calcContinuousTangents(this.trace, iStart, iEnd);
 	        var path = (0, _glgeometry.expandPath)(this.trace.slice(iStart, iEnd), 2 * detail);
 	
-	        for (var iPiece = 0; iPiece < chain.pieces.length; iPiece += 1) {
-	          var piece = chain.pieces[iPiece];
-	          var iPieceStart = piece.iStart - iStart;
-	          var iPieceEnd = piece.iEnd - iStart;
-	          var ss = piece.ss;
+	        var geom = new _three2.default.Geometry();
 	
-	          var ssPieceGeom = new _three2.default.Geometry();
+	        var _iteratorNormalCompletion2 = true;
+	        var _didIteratorError2 = false;
+	        var _iteratorError2 = undefined;
 	
-	          var _iteratorNormalCompletion2 = true;
-	          var _didIteratorError2 = false;
-	          var _iteratorError2 = undefined;
+	        try {
+	          for (var _iterator2 = _lodash2.default.range(chain.iStart, chain.iEnd)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	            var iRes = _step2.value;
 	
-	          try {
-	            for (var _iterator2 = _lodash2.default.range(piece.iStart, piece.iEnd)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	              var iRes = _step2.value;
 	
-	              var iResInChain = iRes - iStart;
+	            var iResInChain = iRes - chain.iStart;
 	
-	              // works out start on expanded path, including overhang
-	              var iPathStart = iResInChain * 2 * detail - detail;
-	              var isFront = false;
-	              if (iPathStart < 0) {
-	                iPathStart = 0;
-	                isFront = true;
-	              }
-	
-	              // works out end of expanded path, including overhang
-	              var iPathEnd = (iResInChain + 1) * 2 * detail - detail + 1;
-	              var isBack = false;
-	              if (iPathEnd >= path.points.length) {
-	                iPathEnd = path.points.length - 1;
-	                isBack = true;
-	              }
-	
-	              var resPath = path.slice(iPathStart, iPathEnd);
-	
-	              var resGeom = new _glgeometry.RibbonGeometry(fatCoilFace, resPath, true, isFront, isBack);
-	
-	              var color = this.getTraceResColor(iRes);
-	              (0, _glgeometry.setGeometryVerticesColor)(resGeom, color);
-	
-	              ssPieceGeom.merge(resGeom, resGeom.matrix);
+	            // works out start on expanded path, including overhang
+	            var iPathStart = iResInChain * 2 * detail - detail;
+	            var isFront = false;
+	            if (iPathStart < 0) {
+	              iPathStart = 0;
+	              isFront = true;
 	            }
-	          } catch (err) {
-	            _didIteratorError2 = true;
-	            _iteratorError2 = err;
+	
+	            // works out end of expanded path, including overhang
+	            var iPathEnd = (iResInChain + 1) * 2 * detail - detail + 1;
+	            var isBack = false;
+	            if (iPathEnd >= path.points.length) {
+	              iPathEnd = path.points.length - 1;
+	              isBack = true;
+	            }
+	
+	            var resPath = path.slice(iPathStart, iPathEnd);
+	
+	            var resGeom = new _glgeometry.RibbonGeometry(fatCoilFace, resPath, true, isFront, isBack);
+	
+	            var color = this.getTraceResColor(iRes);
+	            (0, _glgeometry.setGeometryVerticesColor)(resGeom, color);
+	
+	            geom.merge(resGeom, resGeom.matrix);
+	          }
+	        } catch (err) {
+	          _didIteratorError2 = true;
+	          _iteratorError2 = err;
+	        } finally {
+	          try {
+	            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	              _iterator2.return();
+	            }
 	          } finally {
-	            try {
-	              if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	                _iterator2.return();
-	              }
-	            } finally {
-	              if (_didIteratorError2) {
-	                throw _iteratorError2;
-	              }
+	            if (_didIteratorError2) {
+	              throw _iteratorError2;
 	            }
 	          }
-	
-	          var material = new _three2.default.MeshLambertMaterial({
-	            vertexColors: _three2.default.VertexColors
-	          });
-	
-	          var mesh = new _three2.default.Mesh(ssPieceGeom, material);
-	
-	          mesh.visible = false;
-	          this.objects.tube.add(mesh);
 	        }
+	
+	        var material = new _three2.default.MeshLambertMaterial({
+	          vertexColors: _three2.default.VertexColors
+	        });
+	        var mesh = new _three2.default.Mesh(geom, material);
+	        mesh.visible = false;
+	        this.meshObjects.tube.add(mesh);
 	      }
 	    }
 	  }, {
 	    key: 'buildRibbons',
 	    value: function buildRibbons() {
-	      (0, _glgeometry.clearObject3D)(this.objects.ribbons);
+	      (0, _glgeometry.clearObject3D)(this.meshObjects.ribbons);
 	
 	      /**
 	       *
 	       * The connected residues are grouped into:
 	       *  - chains - list of [i,j] of trace residues
-	       *  - pieces - list of [i,j] belonging to same SS
 	       *
 	       * A path is generated with 2*detail.
 	       *
@@ -73841,85 +73813,52 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var _iterator3 = this.trace.chains[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
 	          var chain = _step3.value;
 	
-	          var iChainStart = chain.iStart;
-	          var iChainEnd = chain.iEnd;
 	
-	          this.calcContinuousTangents(this.trace, iChainStart, iChainEnd);
-	          var path = (0, _glgeometry.expandPath)(this.trace.slice(iChainStart, iChainEnd), 2 * detail);
+	          calcContinuousTangents(this.trace, chain.iStart, chain.iEnd);
+	          var path = (0, _glgeometry.expandPath)(this.trace.slice(chain.iStart, chain.iEnd), 2 * detail);
+	
+	          var geom = new _three2.default.Geometry();
 	
 	          var _iteratorNormalCompletion4 = true;
 	          var _didIteratorError4 = false;
 	          var _iteratorError4 = undefined;
 	
 	          try {
-	            for (var _iterator4 = chain.pieces[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	              var piece = _step4.value;
+	            for (var _iterator4 = _lodash2.default.range(chain.iStart, chain.iEnd)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	              var iRes = _step4.value;
 	
-	              var ss = piece.ss;
+	              var ss = this.getTraceResidue(iRes).ss;
 	              var face = this.getSsFace(ss);
 	              var isRound = ss == 'C';
 	
-	              var ssPieceGeom = new _three2.default.Geometry();
+	              var iResInChain = iRes - chain.iStart;
 	
-	              var _iteratorNormalCompletion5 = true;
-	              var _didIteratorError5 = false;
-	              var _iteratorError5 = undefined;
-	
-	              try {
-	                for (var _iterator5 = _lodash2.default.range(piece.iStart, piece.iEnd)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	                  var iRes = _step5.value;
-	
-	                  var iResInChain = iRes - iChainStart;
-	
-	                  // works out start on expanded path, including overhang
-	                  var iPathStart = iResInChain * 2 * detail - detail;
-	                  var isFront = iRes === piece.iStart;
-	                  if (iPathStart < 0) {
-	                    iPathStart = 0;
-	                  }
-	
-	                  // works out end of expanded path, including overhang
-	                  var iPathEnd = (iResInChain + 1) * 2 * detail - detail + 1;
-	                  var isBack = iRes === piece.iEnd - 1;
-	                  if (iPathEnd >= path.points.length) {
-	                    iPathEnd = path.points.length - 1;
-	                  }
-	
-	                  var resPath = path.slice(iPathStart, iPathEnd);
-	
-	                  var resGeom = new _glgeometry.RibbonGeometry(face, resPath, isRound, isFront, isBack);
-	
-	                  var color = this.getTraceResColor(iRes);
-	                  (0, _glgeometry.setGeometryVerticesColor)(resGeom, color);
-	
-	                  ssPieceGeom.merge(resGeom, resGeom.matrix);
-	
-	                  var i = this.trace.residues[iRes].central_atom.i;
-	                  (0, _glgeometry.setGeometryVerticesColor)(resGeom, new _three2.default.Color().setHex(i));
-	                  this.pickingGeometry.merge(resGeom, resGeom.matrix);
-	                }
-	              } catch (err) {
-	                _didIteratorError5 = true;
-	                _iteratorError5 = err;
-	              } finally {
-	                try {
-	                  if (!_iteratorNormalCompletion5 && _iterator5.return) {
-	                    _iterator5.return();
-	                  }
-	                } finally {
-	                  if (_didIteratorError5) {
-	                    throw _iteratorError5;
-	                  }
-	                }
+	              // works out start on expanded path, including overhang
+	              var iPathStart = iResInChain * 2 * detail - detail;
+	              var isFront = iRes === 0 || ss !== this.getTraceResidue(iRes - 1).ss;
+	              if (iPathStart < 0) {
+	                iPathStart = 0;
 	              }
 	
-	              var material = new _three2.default.MeshLambertMaterial({
-	                vertexColors: _three2.default.VertexColors
-	              });
+	              // works out end of expanded path, including overhang
+	              var iPathEnd = (iResInChain + 1) * 2 * detail - detail + 1;
+	              var isBack = iRes === chain.iEnd - 1 || ss !== this.getTraceResidue(iRes + 1).ss;
+	              if (iPathEnd >= path.points.length) {
+	                iPathEnd = path.points.length - 1;
+	              }
 	
-	              var mesh = new _three2.default.Mesh(ssPieceGeom, material);
+	              var resPath = path.slice(iPathStart, iPathEnd);
 	
-	              this.objects.ribbons.add(mesh);
+	              var resGeom = new _glgeometry.RibbonGeometry(face, resPath, isRound, isFront, isBack);
+	
+	              var color = this.getTraceResColor(iRes);
+	              (0, _glgeometry.setGeometryVerticesColor)(resGeom, color);
+	
+	              geom.merge(resGeom);
+	
+	              var i = this.getTraceResidue(iRes).central_atom.i;
+	              (0, _glgeometry.setGeometryVerticesColor)(resGeom, new _three2.default.Color().setHex(i));
+	              this.pickingGeometry.merge(resGeom, resGeom.matrix);
 	            }
 	          } catch (err) {
 	            _didIteratorError4 = true;
@@ -73935,6 +73874,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	              }
 	            }
 	          }
+	
+	          var material = new _three2.default.MeshLambertMaterial({
+	            vertexColors: _three2.default.VertexColors
+	          });
+	
+	          var mesh = new _three2.default.Mesh(geom, material);
+	
+	          this.meshObjects.ribbons.add(mesh);
 	        }
 	      } catch (err) {
 	        _didIteratorError3 = true;
@@ -73954,71 +73901,46 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildArrows',
 	    value: function buildArrows() {
-	      (0, _glgeometry.clearObject3D)(this.objects.arrows);
+	      (0, _glgeometry.clearObject3D)(this.meshObjects.arrows);
 	
 	      var geom = new _three2.default.Geometry();
 	      var blockArrowGeometry = new _glgeometry.BlockArrowGeometry();
 	      blockArrowGeometry.computeFaceNormals();
 	
-	      var _iteratorNormalCompletion6 = true;
-	      var _didIteratorError6 = false;
-	      var _iteratorError6 = undefined;
+	      var _iteratorNormalCompletion5 = true;
+	      var _didIteratorError5 = false;
+	      var _iteratorError5 = undefined;
 	
 	      try {
-	        for (var _iterator6 = this.trace.chains[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-	          var chain = _step6.value;
-	          var _iteratorNormalCompletion7 = true;
-	          var _didIteratorError7 = false;
-	          var _iteratorError7 = undefined;
+	        for (var _iterator5 = _lodash2.default.range(this.trace.points.length)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+	          var i = _step5.value;
 	
-	          try {
-	            for (var _iterator7 = chain.pieces[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-	              var piece = _step7.value;
+	          var point = this.trace.points[i];
+	          var tangent = this.trace.tangents[i];
+	          var normal = this.trace.binormals[i];
 	
-	              for (var i = piece.iStart; i < piece.iEnd; i += 1) {
+	          var obj = new _three2.default.Object3D();
+	          obj.position.copy(point);
+	          obj.up.copy(normal);
+	          obj.lookAt(point.clone().add(tangent));
+	          obj.updateMatrix();
 	
-	                var point = this.trace.points[i];
-	                var tangent = this.trace.tangents[i];
-	                var normal = this.trace.binormals[i];
+	          var color = this.getTraceResDarkColor(i);
+	          (0, _glgeometry.setGeometryVerticesColor)(blockArrowGeometry, color);
 	
-	                var obj = new _three2.default.Object3D();
-	                obj.position.copy(point);
-	                obj.up.copy(normal);
-	                obj.lookAt(point.clone().add(tangent));
-	                obj.updateMatrix();
-	
-	                var color = this.getTraceResDarkColor(i);
-	                (0, _glgeometry.setGeometryVerticesColor)(blockArrowGeometry, color);
-	
-	                geom.merge(blockArrowGeometry, obj.matrix);
-	              }
-	            }
-	          } catch (err) {
-	            _didIteratorError7 = true;
-	            _iteratorError7 = err;
-	          } finally {
-	            try {
-	              if (!_iteratorNormalCompletion7 && _iterator7.return) {
-	                _iterator7.return();
-	              }
-	            } finally {
-	              if (_didIteratorError7) {
-	                throw _iteratorError7;
-	              }
-	            }
-	          }
+	          geom.merge(blockArrowGeometry, obj.matrix);
 	        }
 	      } catch (err) {
-	        _didIteratorError6 = true;
-	        _iteratorError6 = err;
+	        _didIteratorError5 = true;
+	        _iteratorError5 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion6 && _iterator6.return) {
-	            _iterator6.return();
+	          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+	            _iterator5.return();
 	          }
 	        } finally {
-	          if (_didIteratorError6) {
-	            throw _iteratorError6;
+	          if (_didIteratorError5) {
+	            throw _iteratorError5;
 	          }
 	        }
 	      }
@@ -74027,7 +73949,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        vertexColors: _three2.default.VertexColors
 	      });
 	      var mesh = new _three2.default.Mesh(geom, material);
-	      this.objects.arrows.add(mesh);
+	      this.meshObjects.arrows.add(mesh);
 	    }
 	  }, {
 	    key: 'mergeBond',
@@ -74063,26 +73985,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	          totalGeom.merge(geom, cylinderMatrix(p2, midpoint, radius));
 	        }
 	      }
-	    }
-	  }, {
-	    key: 'mergeAtom',
-	    value: function mergeAtom(totalGeom, atom) {
-	      if (atom.is_alt) {
-	        return;
-	      }
-	
-	      var pos = _v2.default.clone(atom.pos);
-	      var color = this.getAtomColor(atom);
-	      var geom = this.unitSphereGeom;
-	      (0, _glgeometry.setGeometryVerticesColor)(geom, color);
-	
-	      var radius = 0.35;
-	      var obj = new _three2.default.Object3D();
-	      obj.scale.set(radius, radius, radius);
-	      obj.position.copy(pos);
-	      obj.updateMatrix();
-	
-	      totalGeom.merge(geom, obj.matrix);
 	    }
 	  }, {
 	    key: 'pushAtom',
@@ -74129,7 +74031,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildBackbone',
 	    value: function buildBackbone() {
-	      (0, _glgeometry.clearObject3D)(this.objects.backbone);
+	      (0, _glgeometry.clearObject3D)(this.meshObjects.backbone);
 	
 	      var geom = new _three2.default.Geometry();
 	
@@ -74149,7 +74051,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var a in residue.atoms) {
 	          var atom = residue.atoms[a];
 	          if ((0, _util.inArray)(atom.type, backboneAtoms)) {
-	            this.pushAtom(this.objects.backbone, atom);
+	            this.pushAtom(this.meshObjects.backbone, atom);
 	          }
 	        }
 	      }
@@ -74158,12 +74060,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        vertexColors: _three2.default.VertexColors
 	      });
 	      var mesh = new _three2.default.Mesh(geom, material);
-	      this.objects.backbone.add(mesh);
+	      this.meshObjects.backbone.add(mesh);
 	    }
 	  }, {
 	    key: 'buildLigands',
 	    value: function buildLigands() {
-	      (0, _glgeometry.clearObject3D)(this.objects.ligands);
+	      (0, _glgeometry.clearObject3D)(this.meshObjects.ligands);
 	      var geom = new _three2.default.Geometry();
 	
 	      for (var i = 0; i < this.protein.residues.length; i += 1) {
@@ -74178,7 +74080,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        for (var a in residue.atoms) {
-	          this.pushAtom(this.objects.ligands, residue.atoms[a]);
+	          this.pushAtom(this.meshObjects.ligands, residue.atoms[a]);
 	        }
 	      }
 	
@@ -74186,14 +74088,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        vertexColors: _three2.default.VertexColors
 	      });
 	      var mesh = new _three2.default.Mesh(geom, material);
-	      this.objects.ligands.add(mesh);
+	      this.meshObjects.ligands.add(mesh);
 	    }
 	  }, {
 	    key: 'buildWaters',
 	    value: function buildWaters() {
 	      console.log('buildWaters');
 	
-	      (0, _glgeometry.clearObject3D)(this.objects.water);
+	      (0, _glgeometry.clearObject3D)(this.meshObjects.water);
 	
 	      var geom = new _three2.default.Geometry();
 	
@@ -74209,7 +74111,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        for (var a in residue.atoms) {
-	          this.pushAtom(this.objects.water, residue.atoms[a]);
+	          this.pushAtom(this.meshObjects.water, residue.atoms[a]);
 	        }
 	      }
 	
@@ -74217,7 +74119,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        vertexColors: _three2.default.VertexColors
 	      });
 	      var mesh = new _three2.default.Mesh(geom, material);
-	      this.objects.water.add(mesh);
+	      this.meshObjects.water.add(mesh);
 	    }
 	
 	    /**
@@ -74271,14 +74173,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!this.isGrid) {
 	        return;
 	      }
-	      (0, _glgeometry.clearObject3D)(this.objects.grid);
-	      var _iteratorNormalCompletion8 = true;
-	      var _didIteratorError8 = false;
-	      var _iteratorError8 = undefined;
+	      (0, _glgeometry.clearObject3D)(this.meshObjects.grid);
+	      var _iteratorNormalCompletion6 = true;
+	      var _didIteratorError6 = false;
+	      var _iteratorError6 = undefined;
 	
 	      try {
-	        for (var _iterator8 = this.protein.residues[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-	          var residue = _step8.value;
+	        for (var _iterator6 = this.protein.residues[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+	          var residue = _step6.value;
 	
 	          if (residue.is_grid) {
 	            for (var a in residue.atoms) {
@@ -74292,23 +74194,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	                mesh.scale.set(radius, radius, radius);
 	                mesh.position.copy(atom.pos);
 	                mesh.atom = atom;
-	                this.objects.grid.add(mesh);
+	                this.meshObjects.grid.add(mesh);
 	                this.clickMeshes.push(mesh);
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError8 = true;
-	        _iteratorError8 = err;
+	        _didIteratorError6 = true;
+	        _iteratorError6 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-	            _iterator8.return();
+	          if (!_iteratorNormalCompletion6 && _iterator6.return) {
+	            _iterator6.return();
 	          }
 	        } finally {
-	          if (_didIteratorError8) {
-	            throw _iteratorError8;
+	          if (_didIteratorError6) {
+	            throw _iteratorError6;
 	          }
 	        }
 	      }
@@ -74403,7 +74305,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var material = new _three2.default.MeshLambertMaterial({
 	        vertexColors: _three2.default.VertexColors
 	      });
-	      this.objects.basepairs = new _three2.default.Mesh(totalGeom, material);
+	      this.meshObjects.basepairs = new _three2.default.Mesh(totalGeom, material);
 	    }
 	  }, {
 	    key: 'buildCrossHairs',
@@ -74430,9 +74332,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildScene',
 	    value: function buildScene() {
-	      this.objects.ligands.notBuilt = true;
-	      this.objects.backbone.notBuilt = true;
-	      this.objects.water.notBuilt = true;
+	      this.meshObjects.ligands.notBuilt = true;
+	      this.meshObjects.backbone.notBuilt = true;
+	      this.meshObjects.water.notBuilt = true;
 	
 	      this.findChainsAndPieces();
 	
@@ -74450,8 +74352,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.assignBonds();
 	
-	      for (var k in this.objects) {
-	        this.threeJsScene.add(this.objects[k]);
+	      for (var k in this.meshObjects) {
+	        this.threeJsScene.add(this.meshObjects[k]);
 	      }
 	
 	      this.pickingGeometry.computeFaceNormals();
@@ -74958,49 +74860,50 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'selectVisibleObjects',
 	    value: function selectVisibleObjects() {
+	      var _this10 = this;
+	
 	      var show = this.scene.current_view.show;
 	
-	      (0, _glgeometry.setVisible)(this.objects.tube, show.trace);
+	      (0, _glgeometry.setVisible)(this.meshObjects.tube, show.trace);
 	
-	      (0, _glgeometry.setVisible)(this.objects.ribbons, show.ribbon);
+	      (0, _glgeometry.setVisible)(this.meshObjects.ribbons, show.ribbon);
 	
-	      (0, _glgeometry.setVisible)(this.objects.arrows, !show.all_atom);
+	      (0, _glgeometry.setVisible)(this.meshObjects.arrows, !show.all_atom);
 	
-	      if (this.objects.backbone.notBuilt && show.all_atom) {
+	      if (this.meshObjects.backbone.notBuilt && show.all_atom) {
 	        this.buildBackbone();
-	        delete this.objects.backbone.notBuilt;
+	        delete this.meshObjects.backbone.notBuilt;
 	      }
-	      (0, _glgeometry.setVisible)(this.objects.backbone, show.all_atom);
+	      (0, _glgeometry.setVisible)(this.meshObjects.backbone, show.all_atom);
 	
-	      if (this.objects.ligands.notBuilt && show.ligands) {
+	      if (this.meshObjects.ligands.notBuilt && show.ligands) {
 	        this.buildLigands();
-	        delete this.objects.ligands.notBuilt;
+	        delete this.meshObjects.ligands.notBuilt;
 	      }
-	      (0, _glgeometry.setVisible)(this.objects.ligands, show.ligands);
+	      (0, _glgeometry.setVisible)(this.meshObjects.ligands, show.ligands);
 	
-	      if (this.objects.water.notBuilt && show.water) {
+	      if (this.meshObjects.water.notBuilt && show.water) {
 	        this.buildWaters();
-	        delete this.objects.water.notBuilt;
+	        delete this.meshObjects.water.notBuilt;
 	      }
-	      (0, _glgeometry.setVisible)(this.objects.water, show.water);
+	      (0, _glgeometry.setVisible)(this.meshObjects.water, show.water);
 	
-	      // if (this.isGrid) {
-	      //   if (exists(this.scene.grid) && this.objects.grid) {
-	      //     this.objects.grid.traverse((child) => {
-	      //       if ((child instanceof THREE.Mesh) && exists(child.atom)) {
-	      //         if ((child.atom.bfactor > this.scene.grid) &&
-	      //           (this.scene.grid_atoms[child.atom.elem])) {
-	      //           child.visible = true
-	      //         } else {
-	      //           child.visible = false
-	      //         }
-	      //       }
-	      //     })
-	      //   }
-	      // }
+	      if (this.isGrid) {
+	        if ((0, _util.exists)(this.scene.grid) && this.meshObjects.grid) {
+	          this.meshObjects.grid.traverse(function (child) {
+	            if (child instanceof _three2.default.Mesh && (0, _util.exists)(child.atom)) {
+	              if (child.atom.bfactor > _this10.scene.grid && _this10.scene.grid_atoms[child.atom.elem]) {
+	                child.visible = true;
+	              } else {
+	                child.visible = false;
+	              }
+	            }
+	          });
+	        }
+	      }
 	
-	      for (var i = 0; i < this.trace.residues.length; i += 1) {
-	        var residue = this.trace.residues[i];
+	      for (var i = 0; i < this.trace.indices.length; i += 1) {
+	        var residue = this.getTraceResidue(i);
 	
 	        var residueShow;
 	        if (show.sidechain) {
@@ -75085,7 +74988,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'draw',
 	    value: function draw() {
-	      if (_lodash2.default.isUndefined(this.objects)) {
+	      if (_lodash2.default.isUndefined(this.meshObjects)) {
 	        return;
 	      }
 	      if (!this.isChanged()) {
@@ -75101,11 +75004,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.drawDistanceLabels();
 	
 	      this.moveCrossHairs();
-	
-	      if (this.scene.gridChanged) {
-	        this.buildGrid();
-	        this.scene.gridChanged = false;
-	      }
 	
 	      // leave this to the very last moment
 	      // to avoid the dreaded black canvas
@@ -75685,8 +75583,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function clearObject3D(obj) {
 	  // clearing obj does not clear scene
-	  var j = obj.children.length - 1;
-	  for (var i = j; i >= 0; i -= 1) {
+	  var iLast = obj.children.length - 1;
+	  for (var i = iLast; i >= 0; i -= 1) {
 	    var child = obj.children[i];
 	    if (!_.isUndefined(child.dontDelete)) {
 	      return;

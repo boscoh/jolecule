@@ -595,8 +595,8 @@ function setGeometryVerticesColor (geom, color) {
 
 function clearObject3D (obj) {
   // clearing obj does not clear scene
-  var j = obj.children.length - 1
-  for (var i = j; i >= 0; i -= 1) {
+  var iLast = obj.children.length - 1
+  for (var i = iLast; i >= 0; i -= 1) {
     var child = obj.children[i]
     if (!_.isUndefined(child.dontDelete)) {
       return

@@ -221,6 +221,10 @@ function textEntryDialog (parentDiv, label, callback) {
 }
 
 /**
+ * Converts the older view datastructure to a target data
+ * structure that can be easily converted into a THREE.js
+ * camera
+ *
  * - camera
  *     - pos: scene center, camera focus
  *     - up: gives the direction of the y vector from pos
@@ -567,10 +571,9 @@ class CanvasWrapper {
 
     this.mousePressed = false
 
-    var bind = (eventType, callback) => {
+    const bind = (eventType, callback) => {
       this.canvasDom.addEventListener(eventType, callback)
     }
-
     bind('mousedown', e => this.mousedown(e))
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
@@ -1261,6 +1264,92 @@ function cylinderMatrix (from, to, radius) {
   return obj.matrix
 }
 
+
+function calcContinuousTangents (trace, iStart, iEnd) {
+  var points = trace.points
+
+  var iLast = iEnd - 1
+
+  var i
+
+  if ((iEnd - iStart) > 2) {
+    trace.tangents[iStart] = points[iStart + 1].clone()
+      .sub(points[iStart])
+      .normalize()
+
+    for (i = iStart + 1; i < iLast; i += 1) {
+      trace.tangents[i] = points[i + 1].clone()
+        .sub(points[i - 1])
+        .normalize()
+    }
+
+    trace.tangents[iLast] = points[iLast].clone()
+      .sub(points[iLast - 1])
+      .normalize()
+
+    for (i = iStart + 1; i < iLast; i += 1) {
+      if (trace.residues[i].normal !== null) {
+        trace.normals[i] = perpVector(
+          trace.tangents[i],
+          v3.clone(trace.residues[i].normal)
+        )
+          .normalize()
+      } else {
+        var diff = points[i].clone()
+          .sub(points[i - 1])
+        trace.normals[i] = new TV3()
+          .crossVectors(
+            diff, trace.tangents[i])
+          .normalize()
+      }
+    }
+
+    trace.normals[iStart] = trace.normals[iStart + 1]
+
+    trace.normals[iLast] = trace.normals[iLast - 1]
+  } else {
+    // for 2 point loops
+    var tangent = points[iLast].clone()
+      .sub(points[iStart])
+      .normalize()
+
+    trace.tangents[iStart] = tangent
+    trace.tangents[iLast] = tangent
+
+    for (i = iStart; i <= iLast; i += 1) {
+      if (trace.residues[i].normal !== null) {
+        trace.normals[i] = perpVector(
+          trace.tangents[i],
+          v3.clone(trace.residues[i].normal)
+        )
+          .normalize()
+      } else {
+        var randomDir = points[i]
+        trace.normals[i] = new TV3()
+          .crossVectors(randomDir, tangent)
+          .normalize()
+      }
+    }
+  }
+
+  for (i = iStart + 1; i < iEnd; i += 1) {
+    if (trace.residues[i].ss != 'D' && trace.residues[i -
+      1].ss != 'D') {
+      if (trace.normals[i].dot(trace.normals[i - 1]) <
+        0) {
+        trace.normals[i].negate()
+      }
+    }
+  }
+
+  for (i = iStart; i < iEnd; i += 1) {
+    trace.binormals[i] = new TV3()
+      .crossVectors(
+        trace.tangents[i], trace.normals[i])
+  }
+}
+
+
 /**
  *
  * GlProteinDisplay: The main window for drawing the protein
@@ -1285,12 +1374,10 @@ class ProteinDisplay {
     this.controller = controller
     this.isGrid = isGrid
 
-    this.controller.set_target_view_by_res_id =
-      (resId) => {
-        this.setTargetFromResId(resId)
-      }
-    this.controller.calculate_current_abs_camera = function() {
+    this.controller.set_target_view_by_res_id = (resId) => {
+      this.setTargetFromResId(resId)
     }
+    this.controller.calculate_current_abs_camera = function() {}
 
     // stores any meshes that can be clicked
     this.clickMeshes = []
@@ -1384,9 +1471,8 @@ class ProteinDisplay {
     this.renderer.setClearColor(this.backgroundColor)
     this.renderer.setSize(this.width(), this.height())
     let dom = this.renderer.domElement
-    let bind = (w, fn) => {
-      dom.addEventListener(w, fn)
-    }
+    this.webglDiv[0].appendChild(dom)
+    const bind = (w, fn) => { dom.addEventListener(w, fn) }
     bind('mousedown', e => this.mousedown(e))
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
@@ -1399,7 +1485,6 @@ class ProteinDisplay {
     bind('gesturestart', e => this.gesturestart(e))
     bind('gesturechange', e => this.gesturechange(e))
     bind('gestureend', e => this.gestureend(e))
-    this.webglDiv[0].appendChild(dom)
   }
 
   setProcessingMesssage (message) {
@@ -1413,25 +1498,31 @@ class ProteinDisplay {
     this.messageDiv.hide()
   };
 
-  displayProcessMessageAndRun (message, fn) {
+  /**
+   * Allow the DOM to show a message before a compute-intensive function
+   *
+   * @param message
+   * @param computeHeavyFn
+   */
+  displayProcessMessageAndRun (message, computeHeavyFn) {
     this.setProcessingMesssage(message)
-    setTimeout(fn, 0)
+    setTimeout(computeHeavyFn, 0)
   }
 
-  createObjects () {
-    this.objects = {}
-    this.objects.tube = new THREE.Object3D()
-    this.objects.water = new THREE.Object3D()
-    this.objects.ribbons = new THREE.Object3D()
-    this.objects.grid = new THREE.Object3D()
-    this.objects.arrows = new THREE.Object3D()
-    this.objects.backbone = new THREE.Object3D()
-    this.objects.ligands = new THREE.Object3D()
+  initMeshObjects () {
+    this.meshObjects = {}
+    this.meshObjects.tube = new THREE.Object3D()
+    this.meshObjects.water = new THREE.Object3D()
+    this.meshObjects.ribbons = new THREE.Object3D()
+    this.meshObjects.grid = new THREE.Object3D()
+    this.meshObjects.arrows = new THREE.Object3D()
+    this.meshObjects.backbone = new THREE.Object3D()
+    this.meshObjects.ligands = new THREE.Object3D()
   }
 
   buildAfterDataLoad (defaultHtml) {
 
-    this.createObjects()
+    this.initMeshObjects()
 
     for (let res of this.protein.residues) {
       res.color = getSsColor(res.ss)
@@ -1555,27 +1646,35 @@ class ProteinDisplay {
     return v3.crossProduct(forward, up)
   }
 
+  getTraceResidue(iTrace) {
+    let iRes = this.trace.indices[iTrace]
+    return this.protein.residues[iRes]
+  }
+
   findChainsAndPieces () {
     // Chains are continuous pieces of proteins or dna
     // Pieces are continuous pieces of secondary structure
 
+    this.traces = []
+
     this.trace = new PathAndFrenetFrames()
 
-    this.trace.residues = []
+    this.trace.indices = []
+    this.trace.residues = this.protein.residues
 
-    var n_residue = this.protein.residues.length
-    for (var j = 0; j < n_residue; j += 1) {
-      var residue = this.protein.residues[j]
+    var nResidue = this.protein.residues.length
+    for (var iResidue = 0; iResidue < nResidue; iResidue += 1) {
+      var residue = this.protein.residues[iResidue]
       var isResInTrace = false
 
       if (residue.is_protein_or_nuc) {
         isResInTrace = true
       } else {
-        if (j > 0) {
-          if (this.isPeptideConnected(j - 1, j)) {
+        if (iResidue > 0) {
+          if (this.isPeptideConnected(iResidue - 1, iResidue)) {
             residue.central_atom = residue.atoms['CA']
             isResInTrace = true
-          } else if (this.isSugarPhosphateConnected(j - 1, j)) {
+          } else if (this.isSugarPhosphateConnected(iResidue - 1, iResidue)) {
             residue.central_atom = residue.atoms['C3\'']
             isResInTrace = true
             residue.ss = 'R'
@@ -1583,11 +1682,11 @@ class ProteinDisplay {
           }
         }
 
-        if (j < n_residue - 1) {
-          if (this.isPeptideConnected(j, j + 1)) {
+        if (iResidue < nResidue - 1) {
+          if (this.isPeptideConnected(iResidue, iResidue + 1)) {
             residue.central_atom = residue.atoms['CA']
             isResInTrace = true
-          } else if (this.isSugarPhosphateConnected(j, j + 1)) {
+          } else if (this.isSugarPhosphateConnected(iResidue, iResidue + 1)) {
             residue.central_atom = residue.atoms['C3\'']
             isResInTrace = true
             residue.ss = 'R'
@@ -1597,13 +1696,12 @@ class ProteinDisplay {
       }
 
       if (isResInTrace) {
-        this.trace.residues.push(residue)
+        this.trace.indices.push(iResidue)
         this.trace.points.push(v3.clone(residue.central_atom.pos))
       }
     }
 
     this.trace.chains = []
-    this.trace.pieces = []
 
     var iStart = 0
     for (var iEnd = 1; iEnd < this.trace.points.length + 1; iEnd +=
@@ -1613,8 +1711,8 @@ class ProteinDisplay {
       if (iEnd == this.trace.points.length) {
         isBreak = true
       } else {
-        var iRes0 = this.trace.residues[iEnd - 1].i
-        var iRes1 = this.trace.residues[iEnd].i
+        var iRes0 = this.trace.indices[iEnd - 1]
+        var iRes1 = this.trace.indices[iEnd]
         isBreak = !this.isPeptideConnected(iRes0, iRes1) && !this.isSugarPhosphateConnected(iRes0, iRes1)
       }
 
@@ -1629,131 +1727,11 @@ class ProteinDisplay {
       var chain = {
         iStart: iStart,
         iEnd: iEnd,
-        pieces: []
       }
 
       this.trace.chains.push(chain)
 
-      var ss = this.trace.residues[iStart].ss
-      var iPieceStart = iStart
-
-      for (var iPieceEnd = iStart + 1; iPieceEnd < iEnd + 1; iPieceEnd +=
-        1) {
-        isBreak = false
-        if (iPieceEnd == iEnd) {
-          isBreak = true
-        } else {
-          var end_ss = this.trace.residues[iPieceEnd].ss
-          if (end_ss != ss) {
-            // if ( ( end_ss == "R" || ss == "D" ) &&
-            //      ( end_ss == "D" || ss == "R" ) ) {
-            //     continue;
-            // }
-            isBreak = true
-          }
-        }
-
-        if (!isBreak) {
-          continue
-        }
-
-        chain.pieces.push({
-          iStart: iPieceStart,
-          iEnd: iPieceEnd,
-          ss: ss
-        })
-
-        iPieceStart = iPieceEnd
-        if (iPieceEnd < iEnd) {
-          ss = this.trace.residues[iPieceEnd].ss
-        }
-      }
-
       iStart = iEnd
-    }
-  }
-
-  calcContinuousTangents (trace, iStart, iEnd) {
-    var points = trace.points
-
-    var iLast = iEnd - 1
-
-    var i
-
-    if ((iEnd - iStart) > 2) {
-      trace.tangents[iStart] = points[iStart + 1].clone()
-        .sub(points[iStart])
-        .normalize()
-
-      for (i = iStart + 1; i < iLast; i += 1) {
-        trace.tangents[i] = points[i + 1].clone()
-          .sub(points[i - 1])
-          .normalize()
-      }
-
-      trace.tangents[iLast] = points[iLast].clone()
-        .sub(points[iLast - 1])
-        .normalize()
-
-      for (i = iStart + 1; i < iLast; i += 1) {
-        if (trace.residues[i].normal !== null) {
-          trace.normals[i] = perpVector(
-            trace.tangents[i],
-            v3.clone(trace.residues[i].normal)
-          )
-            .normalize()
-        } else {
-          var diff = points[i].clone()
-            .sub(points[i - 1])
-          trace.normals[i] = new TV3()
-            .crossVectors(
-              diff, trace.tangents[i])
-            .normalize()
-        }
-      }
-
-      trace.normals[iStart] = trace.normals[iStart + 1]
-
-      trace.normals[iLast] = trace.normals[iLast - 1]
-    } else {
-      // for 2 point loops
-      var tangent = points[iLast].clone()
-        .sub(points[iStart])
-        .normalize()
-
-      trace.tangents[iStart] = tangent
-      trace.tangents[iLast] = tangent
-
-      for (i = iStart; i <= iLast; i += 1) {
-        if (trace.residues[i].normal !== null) {
-          trace.normals[i] = perpVector(
-            trace.tangents[i],
-            v3.clone(trace.residues[i].normal)
-          )
-            .normalize()
-        } else {
-          var randomDir = points[i]
-          trace.normals[i] = new TV3()
-            .crossVectors(randomDir, tangent)
-            .normalize()
-        }
-      }
-    }
-
-    for (i = iStart + 1; i < iEnd; i += 1) {
-      if (trace.residues[i].ss != 'D' && trace.residues[i -
-        1].ss != 'D') {
-        if (trace.normals[i].dot(trace.normals[i - 1]) <
-          0) {
-          trace.normals[i].negate()
-        }
-      }
-    }
-
-    for (i = iStart; i < iEnd; i += 1) {
-      trace.binormals[i] = new TV3()
-        .crossVectors(
-          trace.tangents[i], trace.normals[i])
     }
   }
 
@@ -1803,17 +1781,15 @@ class ProteinDisplay {
   }
 
   getTraceResColor (iResTrace) {
-    let res = this.trace.residues[iResTrace]
-    return getResColor(res)
+    return getResColor(this.getTraceResidue(iResTrace))
   }
 
   getTraceResDarkColor (iResTrace) {
-    let res = this.trace.residues[iResTrace]
-    return getDarkSsColor(res.ss)
+    return getDarkSsColor(this.getTraceResidue(iResTrace).ss)
   }
 
   buildTube () {
-    clearObject3D(this.objects.tube)
+    clearObject3D(this.meshObjects.tube)
 
     var detail = 4
 
@@ -1823,69 +1799,58 @@ class ProteinDisplay {
       var iStart = chain.iStart
       var iEnd = chain.iEnd
 
-      this.calcContinuousTangents(this.trace, iStart, iEnd)
-      var path = expandPath(this.trace.slice(iStart, iEnd),
-        2 * detail)
+      calcContinuousTangents(this.trace, iStart, iEnd)
+      var path = expandPath(this.trace.slice(iStart, iEnd), 2 * detail)
 
-      for (var iPiece = 0; iPiece < chain.pieces.length; iPiece +=
-        1) {
-        var piece = chain.pieces[iPiece]
-        var iPieceStart = piece.iStart - iStart
-        var iPieceEnd = piece.iEnd - iStart
-        var ss = piece.ss
+      let geom = new THREE.Geometry()
+        
+      for (var iRes of _.range(chain.iStart, chain.iEnd)) {
 
-        let ssPieceGeom = new THREE.Geometry()
+        let iResInChain = iRes - chain.iStart
 
-        for (let iRes of _.range(piece.iStart, piece.iEnd)) {
-          let iResInChain = iRes - iStart
-
-          // works out start on expanded path, including overhang
-          var iPathStart = (iResInChain * 2 * detail) - detail
-          let isFront = false
-          if (iPathStart < 0) {
-            iPathStart = 0
-            isFront = true
-          }
-
-          // works out end of expanded path, including overhang
-          var iPathEnd = ((iResInChain + 1) * 2 * detail) - detail + 1
-          let isBack = false
-          if (iPathEnd >= path.points.length) {
-            iPathEnd = path.points.length - 1
-            isBack = true
-          }
-
-          var resPath = path.slice(iPathStart, iPathEnd)
-
-          var resGeom = new RibbonGeometry(
-            fatCoilFace, resPath, true, isFront, isBack)
-
-          let color = this.getTraceResColor(iRes)
-          setGeometryVerticesColor(resGeom, color)
-
-          ssPieceGeom.merge(resGeom, resGeom.matrix)
+        // works out start on expanded path, including overhang
+        var iPathStart = (iResInChain * 2 * detail) - detail
+        let isFront = false
+        if (iPathStart < 0) {
+          iPathStart = 0
+          isFront = true
         }
 
-        var material = new THREE.MeshLambertMaterial({
-          vertexColors: THREE.VertexColors
-        })
+        // works out end of expanded path, including overhang
+        var iPathEnd = ((iResInChain + 1) * 2 * detail) - detail + 1
+        let isBack = false
+        if (iPathEnd >= path.points.length) {
+          iPathEnd = path.points.length - 1
+          isBack = true
+        }
 
-        var mesh = new THREE.Mesh(ssPieceGeom, material)
+        var resPath = path.slice(iPathStart, iPathEnd)
 
-        mesh.visible = false
-        this.objects.tube.add(mesh)
+        var resGeom = new RibbonGeometry(
+          fatCoilFace, resPath, true, isFront, isBack)
+
+        let color = this.getTraceResColor(iRes)
+        setGeometryVerticesColor(resGeom, color)
+
+        geom.merge(resGeom, resGeom.matrix)
       }
+
+      var material = new THREE.MeshLambertMaterial({
+        vertexColors: THREE.VertexColors
+      })
+      var mesh = new THREE.Mesh(geom, material)
+      mesh.visible = false
+      this.meshObjects.tube.add(mesh)
     }
   }
 
   buildRibbons () {
-    clearObject3D(this.objects.ribbons)
+    clearObject3D(this.meshObjects.ribbons)
 
     /**
      *
      * The connected residues are grouped into:
      *  - chains - list of [i,j] of trace residues
-     *  - pieces - list of [i,j] belonging to same SS
      *
      * A path is generated with 2*detail.
      *
@@ -1899,97 +1864,89 @@ class ProteinDisplay {
     var detail = 4
 
     for (let chain of this.trace.chains) {
-      var iChainStart = chain.iStart
-      var iChainEnd = chain.iEnd
 
-      this.calcContinuousTangents(this.trace, iChainStart, iChainEnd)
-      var path = expandPath(this.trace.slice(iChainStart, iChainEnd),
-        2 * detail)
+      calcContinuousTangents(this.trace, chain.iStart, chain.iEnd)
+      var path = expandPath(this.trace.slice(chain.iStart, chain.iEnd), 2 * detail)
 
-      for (let piece of chain.pieces) {
-        var ss = piece.ss
+      let geom = new THREE.Geometry()
+
+      for (let iRes of _.range(chain.iStart, chain.iEnd)) {
+        let ss = this.getTraceResidue(iRes).ss
         var face = this.getSsFace(ss)
         var isRound = ss == 'C'
 
-        let ssPieceGeom = new THREE.Geometry()
+        let iResInChain = iRes - chain.iStart
 
-        for (let iRes of _.range(piece.iStart, piece.iEnd)) {
-          let iResInChain = iRes - iChainStart
-
-          // works out start on expanded path, including overhang
-          var iPathStart = (iResInChain * 2 * detail) - detail
-          let isFront = iRes === piece.iStart
-          if (iPathStart < 0) {
-            iPathStart = 0
-          }
-
-          // works out end of expanded path, including overhang
-          var iPathEnd = ((iResInChain + 1) * 2 * detail) - detail + 1
-          let isBack = iRes === (piece.iEnd - 1)
-          if (iPathEnd >= path.points.length) {
-            iPathEnd = path.points.length - 1
-          }
-
-          var resPath = path.slice(iPathStart, iPathEnd)
-
-          var resGeom = new RibbonGeometry(
-            face, resPath, isRound, isFront, isBack)
-
-          let color = this.getTraceResColor(iRes)
-          setGeometryVerticesColor(resGeom, color)
-
-          ssPieceGeom.merge(resGeom, resGeom.matrix)
-
-          let i = this.trace.residues[iRes].central_atom.i
-          setGeometryVerticesColor(resGeom, new THREE.Color().setHex(i))
-          this.pickingGeometry.merge(resGeom, resGeom.matrix)
+        // works out start on expanded path, including overhang
+        var iPathStart = (iResInChain * 2 * detail) - detail
+        let isFront = ((iRes === 0) 
+          || (ss !== this.getTraceResidue(iRes - 1).ss))
+        if (iPathStart < 0) {
+          iPathStart = 0
         }
 
-        var material = new THREE.MeshLambertMaterial({
-          vertexColors: THREE.VertexColors
-        })
+        // works out end of expanded path, including overhang
+        var iPathEnd = ((iResInChain + 1) * 2 * detail) - detail + 1
+        let isBack = ((iRes === chain.iEnd - 1) 
+          || (ss !== this.getTraceResidue(iRes + 1).ss)) 
+        if (iPathEnd >= path.points.length) {
+          iPathEnd = path.points.length - 1
+        }
 
-        var mesh = new THREE.Mesh(ssPieceGeom, material)
+        var resPath = path.slice(iPathStart, iPathEnd)
 
-        this.objects.ribbons.add(mesh)
+        var resGeom = new RibbonGeometry(
+          face, resPath, isRound, isFront, isBack)
+
+        let color = this.getTraceResColor(iRes)
+        setGeometryVerticesColor(resGeom, color)
+
+        geom.merge(resGeom)
+
+        let i = this.getTraceResidue(iRes).central_atom.i
+        setGeometryVerticesColor(resGeom, new THREE.Color().setHex(i))
+        this.pickingGeometry.merge(resGeom, resGeom.matrix)
       }
+
+      var material = new THREE.MeshLambertMaterial({
+        vertexColors: THREE.VertexColors
+      })
+
+      var mesh = new THREE.Mesh(geom, material)
+
+      this.meshObjects.ribbons.add(mesh)
     }
   }
 
   buildArrows () {
-    clearObject3D(this.objects.arrows)
+    clearObject3D(this.meshObjects.arrows)
 
     let geom = new THREE.Geometry()
     let blockArrowGeometry = new BlockArrowGeometry()
     blockArrowGeometry.computeFaceNormals()
 
-    for (let chain of this.trace.chains) {
-      for (let piece of chain.pieces) {
-        for (let i = piece.iStart; i < piece.iEnd; i += 1) {
+    for (let i of _.range(this.trace.points.length)) {
+      let point = this.trace.points[i]
+      let tangent = this.trace.tangents[i]
+      let normal = this.trace.binormals[i]
 
-          let point = this.trace.points[i]
-          let tangent = this.trace.tangents[i]
-          let normal = this.trace.binormals[i]
+      let obj = new THREE.Object3D()
+      obj.position.copy(point)
+      obj.up.copy(normal)
+      obj.lookAt(point.clone().add(tangent))
+      obj.updateMatrix()
 
-          let obj = new THREE.Object3D()
-          obj.position.copy(point)
-          obj.up.copy(normal)
-          obj.lookAt(point.clone().add(tangent))
-          obj.updateMatrix()
+      var color = this.getTraceResDarkColor(i)
+      setGeometryVerticesColor(blockArrowGeometry, color)
 
-          var color = this.getTraceResDarkColor(i)
-          setGeometryVerticesColor(blockArrowGeometry, color)
-
-          geom.merge(blockArrowGeometry, obj.matrix)
-        }
-      }
+      geom.merge(blockArrowGeometry, obj.matrix)
     }
 
     let material = new THREE.MeshLambertMaterial({
       vertexColors: THREE.VertexColors,
     })
     let mesh = new THREE.Mesh(geom, material)
-    this.objects.arrows.add(mesh)
+    this.meshObjects.arrows.add(mesh)
   }
 
   mergeBond (totalGeom, bond, residue) {
@@ -2028,25 +1985,6 @@ class ProteinDisplay {
           radius))
       }
     }
-  }
-
-  mergeAtom (totalGeom, atom) {
-    if (atom.is_alt) {
-      return
-    }
-
-    var pos = v3.clone(atom.pos)
-    var color = this.getAtomColor(atom)
-    var geom = this.unitSphereGeom
-    setGeometryVerticesColor(geom, color)
-
-    var radius = 0.35
-    var obj = new THREE.Object3D()
-    obj.scale.set(radius, radius, radius)
-    obj.position.copy(pos)
-    obj.updateMatrix()
-
-    totalGeom.merge(geom, obj.matrix)
   }
 
   pushAtom (object, atom) {
@@ -2090,7 +2028,7 @@ class ProteinDisplay {
   }
 
   buildBackbone () {
-    clearObject3D(this.objects.backbone)
+    clearObject3D(this.meshObjects.backbone)
 
     var geom = new THREE.Geometry()
 
@@ -2111,7 +2049,7 @@ class ProteinDisplay {
       for (var a in residue.atoms) {
         var atom = residue.atoms[a]
         if (inArray(atom.type, backboneAtoms)) {
-          this.pushAtom(this.objects.backbone, atom)
+          this.pushAtom(this.meshObjects.backbone, atom)
         }
       }
     }
@@ -2120,11 +2058,11 @@ class ProteinDisplay {
       vertexColors: THREE.VertexColors
     })
     var mesh = new THREE.Mesh(geom, material)
-    this.objects.backbone.add(mesh)
+    this.meshObjects.backbone.add(mesh)
   }
 
   buildLigands () {
-    clearObject3D(this.objects.ligands)
+    clearObject3D(this.meshObjects.ligands)
     var geom = new THREE.Geometry()
 
     for (var i = 0; i < this.protein.residues.length; i += 1) {
@@ -2139,7 +2077,7 @@ class ProteinDisplay {
       }
 
       for (var a in residue.atoms) {
-        this.pushAtom(this.objects.ligands, residue.atoms[a])
+        this.pushAtom(this.meshObjects.ligands, residue.atoms[a])
       }
     }
 
@@ -2147,13 +2085,13 @@ class ProteinDisplay {
       vertexColors: THREE.VertexColors
     })
     var mesh = new THREE.Mesh(geom, material)
-    this.objects.ligands.add(mesh)
+    this.meshObjects.ligands.add(mesh)
   }
 
   buildWaters () {
     console.log('buildWaters')
 
-    clearObject3D(this.objects.water)
+    clearObject3D(this.meshObjects.water)
 
     var geom = new THREE.Geometry()
 
@@ -2169,7 +2107,7 @@ class ProteinDisplay {
       }
 
       for (var a in residue.atoms) {
-        this.pushAtom(this.objects.water, residue.atoms[a])
+        this.pushAtom(this.meshObjects.water, residue.atoms[a])
       }
     }
 
@@ -2177,7 +2115,7 @@ class ProteinDisplay {
       vertexColors: THREE.VertexColors
     })
     var mesh = new THREE.Mesh(geom, material)
-    this.objects.water.add(mesh)
+    this.meshObjects.water.add(mesh)
   }
 
   /**
@@ -2227,7 +2165,7 @@ class ProteinDisplay {
     if (!this.isGrid) {
       return
     }
-    clearObject3D(this.objects.grid)
+    clearObject3D(this.meshObjects.grid)
     for (let residue of this.protein.residues) {
       if (residue.is_grid) {
         for (let a in residue.atoms) {
@@ -2242,7 +2180,7 @@ class ProteinDisplay {
             mesh.scale.set(radius, radius, radius)
             mesh.position.copy(atom.pos)
             mesh.atom = atom
-            this.objects.grid.add(mesh)
+            this.meshObjects.grid.add(mesh)
             this.clickMeshes.push(mesh)
           }
         }
@@ -2262,7 +2200,8 @@ class ProteinDisplay {
     for (var j = 0; j < residue.bonds.length; j += 1) {
       var bond = residue.bonds[j]
 
-      if (!inArray(bond.atom1.type, backboneAtoms) || !inArray(bond.atom2.type, backboneAtoms)) {
+      if (!inArray(bond.atom1.type, backboneAtoms) 
+        || !inArray(bond.atom2.type, backboneAtoms)) {
         this.mergeBond(scGeom, bond, residue)
       }
     }
@@ -2359,7 +2298,7 @@ class ProteinDisplay {
     var material = new THREE.MeshLambertMaterial({
       vertexColors: THREE.VertexColors
     })
-    this.objects.basepairs = new THREE.Mesh(totalGeom, material)
+    this.meshObjects.basepairs = new THREE.Mesh(totalGeom, material)
   }
 
   buildCrossHairs () {
@@ -2384,9 +2323,9 @@ class ProteinDisplay {
   }
 
   buildScene () {
-    this.objects.ligands.notBuilt = true
-    this.objects.backbone.notBuilt = true
-    this.objects.water.notBuilt = true
+    this.meshObjects.ligands.notBuilt = true
+    this.meshObjects.backbone.notBuilt = true
+    this.meshObjects.water.notBuilt = true
 
     this.findChainsAndPieces()
 
@@ -2404,8 +2343,8 @@ class ProteinDisplay {
 
     this.assignBonds()
 
-    for (var k in this.objects) {
-      this.threeJsScene.add(this.objects[k])
+    for (var k in this.meshObjects) {
+      this.threeJsScene.add(this.meshObjects[k])
     }
 
     this.pickingGeometry.computeFaceNormals()
@@ -2947,47 +2886,47 @@ class ProteinDisplay {
   selectVisibleObjects () {
     var show = this.scene.current_view.show
 
-    setVisible(this.objects.tube, show.trace)
+    setVisible(this.meshObjects.tube, show.trace)
 
-    setVisible(this.objects.ribbons, show.ribbon)
+    setVisible(this.meshObjects.ribbons, show.ribbon)
 
-    setVisible(this.objects.arrows, !show.all_atom)
+    setVisible(this.meshObjects.arrows, !show.all_atom)
 
-    if (this.objects.backbone.notBuilt && show.all_atom) {
+    if (this.meshObjects.backbone.notBuilt && show.all_atom) {
       this.buildBackbone()
-      delete this.objects.backbone.notBuilt
+      delete this.meshObjects.backbone.notBuilt
     }
-    setVisible(this.objects.backbone, show.all_atom)
+    setVisible(this.meshObjects.backbone, show.all_atom)
 
-    if (this.objects.ligands.notBuilt && show.ligands) {
+    if (this.meshObjects.ligands.notBuilt && show.ligands) {
       this.buildLigands()
-      delete this.objects.ligands.notBuilt
+      delete this.meshObjects.ligands.notBuilt
     }
-    setVisible(this.objects.ligands, show.ligands)
+    setVisible(this.meshObjects.ligands, show.ligands)
 
-    if (this.objects.water.notBuilt && show.water) {
+    if (this.meshObjects.water.notBuilt && show.water) {
       this.buildWaters()
-      delete this.objects.water.notBuilt
+      delete this.meshObjects.water.notBuilt
     }
-    setVisible(this.objects.water, show.water)
+    setVisible(this.meshObjects.water, show.water)
 
-    // if (this.isGrid) {
-    //   if (exists(this.scene.grid) && this.objects.grid) {
-    //     this.objects.grid.traverse((child) => {
-    //       if ((child instanceof THREE.Mesh) && exists(child.atom)) {
-    //         if ((child.atom.bfactor > this.scene.grid) &&
-    //           (this.scene.grid_atoms[child.atom.elem])) {
-    //           child.visible = true
-    //         } else {
-    //           child.visible = false
-    //         }
-    //       }
-    //     })
-    //   }
-    // }
+    if (this.isGrid) {
+      if (exists(this.scene.grid) && this.meshObjects.grid) {
+        this.meshObjects.grid.traverse((child) => {
+          if ((child instanceof THREE.Mesh) && exists(child.atom)) {
+            if ((child.atom.bfactor > this.scene.grid) &&
+              (this.scene.grid_atoms[child.atom.elem])) {
+              child.visible = true
+            } else {
+              child.visible = false
+            }
+          }
+        })
+      }
+    }
 
-    for (var i = 0; i < this.trace.residues.length; i += 1) {
-      var residue = this.trace.residues[i]
+    for (var i = 0; i < this.trace.indices.length; i += 1) {
+      var residue = this.getTraceResidue(i)
 
       var residueShow
       if (show.sidechain) {
@@ -3078,7 +3017,7 @@ class ProteinDisplay {
   }
 
   draw () {
-    if (_.isUndefined(this.objects)) {
+    if (_.isUndefined(this.meshObjects)) {
       return
     }
     if (!this.isChanged()) {
@@ -3094,11 +3033,6 @@ class ProteinDisplay {
     this.drawDistanceLabels()
 
     this.moveCrossHairs()
-
-    if (this.scene.gridChanged) {
-      this.buildGrid()
-      this.scene.gridChanged = false
-    }
 
     // leave this to the very last moment
     // to avoid the dreaded black canvas
