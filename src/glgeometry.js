@@ -215,9 +215,6 @@ BlockArrowGeometry.prototype = Object.create(THREE.ExtrudeGeometry.prototype)
 BlockArrowGeometry.prototype.constructor = BlockArrowGeometry
 
 
-let cylinderGeometry
-
-
 function UnitCylinderGeometry () {
 
   // rotate cylinder to point in z-direction,
@@ -236,30 +233,6 @@ function UnitCylinderGeometry () {
 
 UnitCylinderGeometry.prototype = Object.create(THREE.CylinderGeometry.prototype)
 UnitCylinderGeometry.prototype.constructor = UnitCylinderGeometry
-
-
-function drawBlockArrow (point, tangent, normal, color) {
-
-  if (typeof blockArrowGeometry == 'undefined') {
-    var blockArrowGeometry = new BlockArrowGeometry()
-  }
-
-  var mesh = new THREE.Mesh(
-    blockArrowGeometry,
-    new THREE.MeshLambertMaterial({
-      color: color,
-      wireframe: false
-    })
-  )
-
-  mesh.position.copy(point)
-  mesh.up.copy(normal)
-  mesh.lookAt(point.clone()
-    .add(tangent))
-
-  return mesh
-
-}
 
 
 var setVisible = function(obj, b) {
@@ -612,95 +585,10 @@ function clearObject3D (obj) {
 }
 
 
-function calcContinuousTangents (trace, iStart, iEnd) {
-  var points = trace.points
-
-  var iLast = iEnd - 1
-
-  var i
-
-  if ((iEnd - iStart) > 2) {
-    trace.tangents[iStart] = points[iStart + 1].clone()
-      .sub(points[iStart])
-      .normalize()
-
-    for (i = iStart + 1; i < iLast; i += 1) {
-      trace.tangents[i] = points[i + 1].clone()
-        .sub(points[i - 1])
-        .normalize()
-    }
-
-    trace.tangents[iLast] = points[iLast].clone()
-      .sub(points[iLast - 1])
-      .normalize()
-
-    for (i = iStart + 1; i < iLast; i += 1) {
-      if (trace.residues[i].normal !== null) {
-        trace.normals[i] = perpVector(
-          trace.tangents[i],
-          v3.clone(trace.residues[i].normal)
-        )
-          .normalize()
-      } else {
-        var diff = points[i].clone()
-          .sub(points[i - 1])
-        trace.normals[i] = new TV3()
-          .crossVectors(
-            diff, trace.tangents[i])
-          .normalize()
-      }
-    }
-
-    trace.normals[iStart] = trace.normals[iStart + 1]
-
-    trace.normals[iLast] = trace.normals[iLast - 1]
-  } else {
-    // for 2 point loops
-    var tangent = points[iLast].clone()
-      .sub(points[iStart])
-      .normalize()
-
-    trace.tangents[iStart] = tangent
-    trace.tangents[iLast] = tangent
-
-    for (i = iStart; i <= iLast; i += 1) {
-      if (trace.residues[i].normal !== null) {
-        trace.normals[i] = perpVector(
-          trace.tangents[i],
-          v3.clone(trace.residues[i].normal)
-        )
-          .normalize()
-      } else {
-        var randomDir = points[i]
-        trace.normals[i] = new TV3()
-          .crossVectors(randomDir, tangent)
-          .normalize()
-      }
-    }
-  }
-
-  for (i = iStart + 1; i < iEnd; i += 1) {
-    if (trace.residues[i].ss != 'D' && trace.residues[i -
-      1].ss != 'D') {
-      if (trace.normals[i].dot(trace.normals[i - 1]) <
-        0) {
-        trace.normals[i].negate()
-      }
-    }
-  }
-
-  for (i = iStart; i < iEnd; i += 1) {
-    trace.binormals[i] = new TV3()
-      .crossVectors(
-        trace.tangents[i], trace.normals[i])
-  }
-}
-
 export {
   PathAndFrenetFrames,
   BlockArrowGeometry,
   UnitCylinderGeometry,
-  drawBlockArrow,
   setVisible,
   expandPath,
   perpVector,

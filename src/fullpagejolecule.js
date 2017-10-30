@@ -259,7 +259,7 @@ class FullPageJolecule {
       backgroundColor: 0xCCCCCC
     };
 
-    console.log('FullPageJolecule.constructor params', params);
+    console.log('> FullPageJolecule.constructor params', params);
 
     if (exists(params)) {
       this.params = _.assign(this.params, params);

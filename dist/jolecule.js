@@ -28414,7 +28414,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      } catch (e) {
 	        this.parsing_error = 'line ' + i;
-	        console.log("Error: \"" + lines[i] + "\"");
+	        console.log("> Error: \"" + lines[i] + "\"");
 	        return;
 	      }
 	    }
@@ -28932,21 +28932,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  this.load = function (protein_data) {
 	    this.pdb_id = protein_data['pdb_id'];
-	    console.log("Protein.load parsing " + this.pdb_id);
+	    console.log("> Protein.load parsing " + this.pdb_id);
 	    var atom_lines = extract_atom_lines(protein_data['pdb_text']);
 	    this.default_html = this.pdb_id + ": " + parsetTitleFromPdbText(protein_data['pdb_text']);
 	    var atoms = this.make_atoms_from_pdb_lines(atom_lines, this.pdb_id);
 	    this.make_residues(atoms);
 	    this.atoms = _.concat(this.atoms, atoms);
-	    console.log("Protein.load parsed " + atoms.length + " atoms");
+	    console.log("> Protein.load parsed " + atoms.length + " atoms");
 	    for (var i = 0; i < this.atoms.length; i += 1) {
 	      this.atoms[i].i = i;
 	    }
 	    this.make_bonds(this.calc_bonds(this.atoms));
-	    console.log("Protein.load parsed " + this.bonds.length + " bonds");
+	    console.log("> Protein.load parsed " + this.bonds.length + " bonds");
 	    this.max_length = this.calc_max_length(this.atoms);
 	    this.find_ss();
-	    console.log("Protein.load parsed " + this.residues.length + " residues");
+	    console.log("> Protein.load parsed " + this.residues.length + " residues");
 	  };
 	
 	  this.transform = function (matrix) {
@@ -29699,7 +29699,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  this.set_show_option = function (option, bool) {
-	    console.log('set_show_option', option, bool);
+	    console.log('> set_show_option', option, bool);
 	    this.scene.current_view.show[option] = bool;
 	    this.scene.changed = true;
 	  };
@@ -72427,9 +72427,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.drawContext = this.canvasDom.getContext('2d');
 	
 	    this.mousePressed = false;
-	
-	    var bind = function bind(eventType, callback) {
-	      _this3.canvasDom.addEventListener(eventType, callback);
+	    var dom = this.canvasDom;
+	    var bind = function bind(ev, fn) {
+	      dom.addEventListener(ev, fn);
 	    };
 	    bind('mousedown', function (e) {
 	      return _this3.mousedown(e);
@@ -73026,7 +73026,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function makeElemButton(elem, y) {
 	      var _this7 = this;
 	
-	      console.log('make grid atoms', elem, this.scene.grid_atoms[elem]);
+	      console.log('> make grid atoms', elem, this.scene.grid_atoms[elem]);
 	      var color = new _three2.default.Color(ElementColors[elem]);
 	      var colorHexStr = color.getHexString();
 	      var text_button = (0, _util.toggleButton)('toggle_text', elem, 'jolecule-button', function () {
@@ -73174,13 +73174,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return obj.matrix;
 	}
 	
-	var MyTrace = function (_PathAndFrenetFrames) {
-	  _inherits(MyTrace, _PathAndFrenetFrames);
+	var Trace = function (_PathAndFrenetFrames) {
+	  _inherits(Trace, _PathAndFrenetFrames);
 	
-	  function MyTrace() {
-	    _classCallCheck(this, MyTrace);
+	  function Trace() {
+	    _classCallCheck(this, Trace);
 	
-	    var _this8 = _possibleConstructorReturn(this, (MyTrace.__proto__ || Object.getPrototypeOf(MyTrace)).call(this));
+	    var _this8 = _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this));
 	
 	    _this8.indices = [];
 	    _this8.referenceObjects = [];
@@ -73188,7 +73188,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return _this8;
 	  }
 	
-	  _createClass(MyTrace, [{
+	  _createClass(Trace, [{
 	    key: 'getReferenceObject',
 	    value: function getReferenceObject(i) {
 	      var iRef = this.indices[i];
@@ -73312,7 +73312,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }]);
 	
-	  return MyTrace;
+	  return Trace;
 	}(_glgeometry.PathAndFrenetFrames);
 	
 	/**
@@ -73478,7 +73478,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'setProcessingMesssage',
 	    value: function setProcessingMesssage(message) {
-	      console.log('ProteinDisplay.setProcessingMessage:', message);
+	      console.log('> ProteinDisplay.setProcessingMessage:', message);
 	      this.messageDiv.html(message).show();
 	      (0, _util.stickJqueryDivInTopLeft)(this.mainDiv, this.messageDiv, 100, 90);
 	    }
@@ -73658,10 +73658,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.traces = [];
 	
 	      var makeNewTrace = function makeNewTrace() {
-	        _this11.shortTrace = new MyTrace();
-	        _this11.shortTrace.residues = _this11.protein.residues;
-	        _this11.shortTrace.referenceObjects = _this11.protein.residues;
-	        _this11.traces.push(_this11.shortTrace);
+	        _this11.trace = new Trace();
+	        _this11.trace.residues = _this11.protein.residues;
+	        _this11.trace.referenceObjects = _this11.protein.residues;
+	        _this11.traces.push(_this11.trace);
 	      };
 	
 	      var nResidue = this.protein.residues.length;
@@ -73712,8 +73712,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	              makeNewTrace();
 	            }
 	          }
-	          this.shortTrace.indices.push(iResidue);
-	          this.shortTrace.points.push(_v2.default.clone(residue.central_atom.pos));
+	          this.trace.indices.push(iResidue);
+	          this.trace.points.push(_v2.default.clone(residue.central_atom.pos));
 	        }
 	      }
 	
@@ -73741,8 +73741,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	        }
 	      }
-	
-	      console.log('this.traces', this.traces);
 	    }
 	  }, {
 	    key: 'getAtomColor',
@@ -73889,7 +73887,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              geom.merge(resGeom);
 	              var iAtom = res.central_atom.i;
 	              (0, _glgeometry.setGeometryVerticesColor)(resGeom, new _three2.default.Color().setHex(iAtom));
-	              this.pickingGeometry.merge(resGeom, resGeom.matrix);
+	              this.pickingGeometry.merge(resGeom);
 	            }
 	          } catch (err) {
 	            _didIteratorError6 = true;
@@ -73936,6 +73934,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var blockArrowGeometry = new _glgeometry.BlockArrowGeometry();
 	      blockArrowGeometry.computeFaceNormals();
 	
+	      var obj = new _three2.default.Object3D();
+	
 	      var _iteratorNormalCompletion7 = true;
 	      var _didIteratorError7 = false;
 	      var _iteratorError7 = undefined;
@@ -73954,15 +73954,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	              var point = trace.points[i];
 	              var tangent = trace.tangents[i];
 	              var normal = trace.binormals[i];
+	              var target = point.clone().add(tangent);
 	
-	              var obj = new _three2.default.Object3D();
+	              var res = trace.getReferenceObject(i);
+	              var color = getDarkSsColor(res.ss);
+	              (0, _glgeometry.setGeometryVerticesColor)(blockArrowGeometry, color);
+	
+	              obj.matrix.identity();
 	              obj.position.copy(point);
 	              obj.up.copy(normal);
-	              obj.lookAt(point.clone().add(tangent));
+	              obj.lookAt(target);
 	              obj.updateMatrix();
-	
-	              var color = getDarkSsColor(trace.getReferenceObject(i).ss);
-	              (0, _glgeometry.setGeometryVerticesColor)(blockArrowGeometry, color);
 	
 	              geom.merge(blockArrowGeometry, obj.matrix);
 	            }
@@ -74021,7 +74023,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      if (color1 == color2) {
 	        (0, _glgeometry.setGeometryVerticesColor)(geom, color1);
-	
 	        totalGeom.merge(geom, cylinderMatrix(p1, p2, radius));
 	      } else {
 	        var midpoint = p2.clone().add(p1).multiplyScalar(0.5);
@@ -74039,7 +74040,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'pushAtom',
-	    value: function pushAtom(object, atom) {
+	    value: function pushAtom(meshObject, atom) {
 	      var pos = _v2.default.clone(atom.pos);
 	      var material = new _three2.default.MeshLambertMaterial({
 	        color: this.getAtomColor(atom)
@@ -74049,7 +74050,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      mesh.scale.set(radius, radius, radius);
 	      mesh.position.copy(pos);
 	      mesh.atom = atom;
-	      object.add(mesh);
+	      meshObject.add(mesh);
 	      this.clickMeshes.push(mesh);
 	    }
 	  }, {
@@ -74082,11 +74083,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildBackbone',
 	    value: function buildBackbone() {
+	
 	      (0, _glgeometry.clearObject3D)(this.meshObjects.backbone);
 	
 	      var geom = new _three2.default.Geometry();
 	
 	      for (var i = 0; i < this.protein.residues.length; i += 1) {
+	
 	        var residue = this.protein.residues[i];
 	        if (!residue.is_protein_or_nuc) {
 	          continue;
@@ -74144,7 +74147,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildWaters',
 	    value: function buildWaters() {
-	      console.log('buildWaters');
+	      console.log('> buildWaters');
 	
 	      (0, _glgeometry.clearObject3D)(this.meshObjects.water);
 	
@@ -74216,7 +74219,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      this.gridBar.diffB = this.gridBar.maxB - this.gridBar.minB;
 	      this.scene.grid = this.gridBar.minB;
-	      console.log('ProteinDisplay.initGrid', this.scene.grid_atoms);
+	      console.log('> ProteinDisplay.initGrid', this.scene.grid_atoms);
 	    }
 	  }, {
 	    key: 'buildGrid',
@@ -74393,15 +74396,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.buildRibbons();
 	
-	      this.buildTube();
+	      // this.buildTube()
 	
-	      this.buildGrid();
+	      // this.buildGrid()
 	
-	      this.buildNucleotides();
+	      // this.buildNucleotides()
 	
-	      this.buildArrows();
+	      // this.buildArrows()
 	
-	      this.assignBonds();
+	      // this.assignBonds()
 	
 	      for (var k in this.meshObjects) {
 	        this.threeJsScene.add(this.meshObjects[k]);
@@ -75173,7 +75176,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.clearObject3D = exports.setGeometryVerticesColor = exports.getFractionRotation = exports.getUnitVectorRotation = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.perpVector = exports.expandPath = exports.setVisible = exports.drawBlockArrow = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = exports.PathAndFrenetFrames = undefined;
+	exports.clearObject3D = exports.setGeometryVerticesColor = exports.getFractionRotation = exports.getUnitVectorRotation = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.perpVector = exports.expandPath = exports.setVisible = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = exports.PathAndFrenetFrames = undefined;
 	
 	var _three = __webpack_require__(8);
 	
@@ -75342,8 +75345,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	BlockArrowGeometry.prototype = Object.create(_three2.default.ExtrudeGeometry.prototype);
 	BlockArrowGeometry.prototype.constructor = BlockArrowGeometry;
 	
-	var cylinderGeometry = void 0;
-	
 	function UnitCylinderGeometry() {
 	
 	  // rotate cylinder to point in z-direction,
@@ -75358,24 +75359,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	UnitCylinderGeometry.prototype = Object.create(_three2.default.CylinderGeometry.prototype);
 	UnitCylinderGeometry.prototype.constructor = UnitCylinderGeometry;
-	
-	function drawBlockArrow(point, tangent, normal, color) {
-	
-	  if (typeof blockArrowGeometry == 'undefined') {
-	    var blockArrowGeometry = new BlockArrowGeometry();
-	  }
-	
-	  var mesh = new _three2.default.Mesh(blockArrowGeometry, new _three2.default.MeshLambertMaterial({
-	    color: color,
-	    wireframe: false
-	  }));
-	
-	  mesh.position.copy(point);
-	  mesh.up.copy(normal);
-	  mesh.lookAt(point.clone().add(tangent));
-	
-	  return mesh;
-	}
 	
 	var setVisible = function setVisible(obj, b) {
 	
@@ -75673,68 +75656,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	}
 	
-	function calcContinuousTangents(trace, iStart, iEnd) {
-	  var points = trace.points;
-	
-	  var iLast = iEnd - 1;
-	
-	  var i;
-	
-	  if (iEnd - iStart > 2) {
-	    trace.tangents[iStart] = points[iStart + 1].clone().sub(points[iStart]).normalize();
-	
-	    for (i = iStart + 1; i < iLast; i += 1) {
-	      trace.tangents[i] = points[i + 1].clone().sub(points[i - 1]).normalize();
-	    }
-	
-	    trace.tangents[iLast] = points[iLast].clone().sub(points[iLast - 1]).normalize();
-	
-	    for (i = iStart + 1; i < iLast; i += 1) {
-	      if (trace.residues[i].normal !== null) {
-	        trace.normals[i] = perpVector(trace.tangents[i], v3.clone(trace.residues[i].normal)).normalize();
-	      } else {
-	        var diff = points[i].clone().sub(points[i - 1]);
-	        trace.normals[i] = new TV3().crossVectors(diff, trace.tangents[i]).normalize();
-	      }
-	    }
-	
-	    trace.normals[iStart] = trace.normals[iStart + 1];
-	
-	    trace.normals[iLast] = trace.normals[iLast - 1];
-	  } else {
-	    // for 2 point loops
-	    var tangent = points[iLast].clone().sub(points[iStart]).normalize();
-	
-	    trace.tangents[iStart] = tangent;
-	    trace.tangents[iLast] = tangent;
-	
-	    for (i = iStart; i <= iLast; i += 1) {
-	      if (trace.residues[i].normal !== null) {
-	        trace.normals[i] = perpVector(trace.tangents[i], v3.clone(trace.residues[i].normal)).normalize();
-	      } else {
-	        var randomDir = points[i];
-	        trace.normals[i] = new TV3().crossVectors(randomDir, tangent).normalize();
-	      }
-	    }
-	  }
-	
-	  for (i = iStart + 1; i < iEnd; i += 1) {
-	    if (trace.residues[i].ss != 'D' && trace.residues[i - 1].ss != 'D') {
-	      if (trace.normals[i].dot(trace.normals[i - 1]) < 0) {
-	        trace.normals[i].negate();
-	      }
-	    }
-	  }
-	
-	  for (i = iStart; i < iEnd; i += 1) {
-	    trace.binormals[i] = new TV3().crossVectors(trace.tangents[i], trace.normals[i]);
-	  }
-	}
-	
 	exports.PathAndFrenetFrames = PathAndFrenetFrames;
 	exports.BlockArrowGeometry = BlockArrowGeometry;
 	exports.UnitCylinderGeometry = UnitCylinderGeometry;
-	exports.drawBlockArrow = drawBlockArrow;
 	exports.setVisible = setVisible;
 	exports.expandPath = expandPath;
 	exports.perpVector = perpVector;
@@ -76064,7 +75988,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      backgroundColor: 0xCCCCCC
 	    };
 	
-	    console.log('FullPageJolecule.constructor params', params);
+	    console.log('> FullPageJolecule.constructor params', params);
 	
 	    if ((0, _util.exists)(params)) {
 	      this.params = _lodash2.default.assign(this.params, params);

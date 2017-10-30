@@ -59,9 +59,9 @@ function convertMapToFakeWatersPdb(
 
   let minV = _.min(vals);
   let maxV = _.max(vals);
-  console.log(`E-limits: [${minV}, ${maxV}]`);
+  console.log(`> E-limits: [${minV}, ${maxV}]`);
 
-  console.log(`Output-pdb: ${fakeWatersPdb}`);
+  console.log(`> Output-pdb: ${fakeWatersPdb}`);
 
   let wstream = fs.createWriteStream(fakeWatersPdb);
   let iAtom = 0;
@@ -106,7 +106,7 @@ function convertMapToFakeWatersPdb(
   }
   wstream.end();
 
-  console.log(`N: ${iAtom} (E < ${upperCutoff})`);
+  console.log(`> N: ${iAtom} (E < ${upperCutoff})`);
 }
 
 

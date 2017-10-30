@@ -182,7 +182,7 @@ if (remain.length < 1) {
     pdbLines = _.map(pdbLines, (l) => l.replace(/"/g, '\\"'));
     let pdbId = base;
     let viewsJson = pdb.replace('.pdb', '') + '.views.json';
-    console.log(`Checking ${viewsJson}`);
+    console.log(`> Checking ${viewsJson}`);
     let views = {};
     if (fs.existsSync(viewsJson)) {
       let text = fs.readFileSync(viewsJson, 'utf8');

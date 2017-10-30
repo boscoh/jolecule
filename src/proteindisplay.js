@@ -9,7 +9,6 @@ import {
   perpVector,
   BlockArrowGeometry,
   expandPath,
-  drawBlockArrow,
   setVisible,
   RaisedShapeGeometry,
   RibbonGeometry,
@@ -570,10 +569,8 @@ class CanvasWrapper {
     this.drawContext = this.canvasDom.getContext('2d')
 
     this.mousePressed = false
-
-    const bind = (eventType, callback) => {
-      this.canvasDom.addEventListener(eventType, callback)
-    }
+    const dom = this.canvasDom
+    const bind = (ev, fn) => { dom.addEventListener(ev, fn) }
     bind('mousedown', e => this.mousedown(e))
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
@@ -1125,7 +1122,7 @@ class GridBar extends CanvasWrapper {
   }
 
   makeElemButton (elem, y) {
-    console.log('make grid atoms', elem, this.scene.grid_atoms[elem])
+    console.log('> make grid atoms', elem, this.scene.grid_atoms[elem])
     var color = new THREE.Color(ElementColors[elem])
     var colorHexStr = color.getHexString()
     var text_button = toggleButton(
@@ -1265,7 +1262,7 @@ function cylinderMatrix (from, to, radius) {
 }
 
 
-class MyTrace extends PathAndFrenetFrames {
+class Trace extends PathAndFrenetFrames {
 
   constructor () {
     super()
@@ -1553,7 +1550,7 @@ class ProteinDisplay {
   }
 
   setProcessingMesssage (message) {
-    console.log('ProteinDisplay.setProcessingMessage:', message)
+    console.log('> ProteinDisplay.setProcessingMessage:', message)
     this.messageDiv.html(message).show()
     stickJqueryDivInTopLeft(this.mainDiv, this.messageDiv, 100, 90)
   };
@@ -1715,10 +1712,10 @@ class ProteinDisplay {
     this.traces = []
     
     let makeNewTrace = () => {
-      this.shortTrace = new MyTrace()
-      this.shortTrace.residues = this.protein.residues
-      this.shortTrace.referenceObjects = this.protein.residues
-      this.traces.push(this.shortTrace)
+      this.trace = new Trace()
+      this.trace.residues = this.protein.residues
+      this.trace.referenceObjects = this.protein.residues
+      this.traces.push(this.trace)
     }
 
     let nResidue = this.protein.residues.length
@@ -1769,16 +1766,14 @@ class ProteinDisplay {
             makeNewTrace()
           }
         }
-        this.shortTrace.indices.push(iResidue)
-        this.shortTrace.points.push(v3.clone(residue.central_atom.pos))
+        this.trace.indices.push(iResidue)
+        this.trace.points.push(v3.clone(residue.central_atom.pos))
       }
     }
 
     for (let trace of this.traces) {
       trace.expand()
     }
-    console.log('this.traces', this.traces)
-
   }
 
   getAtomColor (atom) {
@@ -1873,7 +1868,7 @@ class ProteinDisplay {
         geom.merge(resGeom)
         let iAtom = res.central_atom.i
         setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom))
-        this.pickingGeometry.merge(resGeom, resGeom.matrix)
+        this.pickingGeometry.merge(resGeom)
       }
     }
     var material = new THREE.MeshLambertMaterial({
@@ -1890,20 +1885,24 @@ class ProteinDisplay {
     let blockArrowGeometry = new BlockArrowGeometry()
     blockArrowGeometry.computeFaceNormals()
 
+    let obj = new THREE.Object3D()
+
     for (let trace of this.traces) {
       for (let i of _.range(trace.points.length)) {
         let point = trace.points[i]
         let tangent = trace.tangents[i]
         let normal = trace.binormals[i]
+        let target = point.clone().add(tangent)
 
-        let obj = new THREE.Object3D()
+        let res = trace.getReferenceObject(i)
+        let color = getDarkSsColor(res.ss)
+        setGeometryVerticesColor(blockArrowGeometry, color)
+
+        obj.matrix.identity()
         obj.position.copy(point)
         obj.up.copy(normal)
-        obj.lookAt(point.clone().add(tangent))
+        obj.lookAt(target)
         obj.updateMatrix()
-
-        var color = getDarkSsColor(trace.getReferenceObject(i).ss)
-        setGeometryVerticesColor(blockArrowGeometry, color)
 
         geom.merge(blockArrowGeometry, obj.matrix)
       }
@@ -1933,12 +1932,9 @@ class ProteinDisplay {
 
     if (color1 == color2) {
       setGeometryVerticesColor(geom, color1)
-
       totalGeom.merge(geom, cylinderMatrix(p1, p2, radius))
     } else {
-      var midpoint = p2.clone()
-        .add(p1)
-        .multiplyScalar(0.5)
+      var midpoint = p2.clone().add(p1).multiplyScalar(0.5)
 
       if (bond.atom1.res_id == residue.id) {
         setGeometryVerticesColor(geom, color1)
@@ -1954,7 +1950,7 @@ class ProteinDisplay {
     }
   }
 
-  pushAtom (object, atom) {
+  pushAtom (meshObject, atom) {
     var pos = v3.clone(atom.pos)
     var material = new THREE.MeshLambertMaterial({
       color: this.getAtomColor(atom)
@@ -1964,7 +1960,7 @@ class ProteinDisplay {
     mesh.scale.set(radius, radius, radius)
     mesh.position.copy(pos)
     mesh.atom = atom
-    object.add(mesh)
+    meshObject.add(mesh)
     this.clickMeshes.push(mesh)
   }
 
@@ -1994,38 +1990,41 @@ class ProteinDisplay {
     }
   }
 
-  buildBackbone () {
-    clearObject3D(this.meshObjects.backbone)
+  buildBackbone() {
 
-    var geom = new THREE.Geometry()
+    clearObject3D(this.meshObjects.backbone);
+
+    var geom = new THREE.Geometry();
 
     for (var i = 0; i < this.protein.residues.length; i += 1) {
-      var residue = this.protein.residues[i]
+
+      var residue = this.protein.residues[i];
       if (!residue.is_protein_or_nuc) {
-        continue
+        continue;
       }
 
       for (var j = 0; j < residue.bonds.length; j += 1) {
-        var bond = residue.bonds[j]
+        var bond = residue.bonds[j];
         if (inArray(bond.atom1.type, backboneAtoms) ||
           inArray(bond.atom2.type, backboneAtoms)) {
-          this.mergeBond(geom, bond, residue)
+          this.mergeBond(geom, bond, residue);
         }
       }
 
       for (var a in residue.atoms) {
-        var atom = residue.atoms[a]
+        var atom = residue.atoms[a];
         if (inArray(atom.type, backboneAtoms)) {
-          this.pushAtom(this.meshObjects.backbone, atom)
+          this.pushAtom(this.meshObjects.backbone, atom);
         }
       }
+
     }
 
     var material = new THREE.MeshLambertMaterial({
       vertexColors: THREE.VertexColors
-    })
-    var mesh = new THREE.Mesh(geom, material)
-    this.meshObjects.backbone.add(mesh)
+    });
+    var mesh = new THREE.Mesh(geom, material);
+    this.meshObjects.backbone.add(mesh);
   }
 
   buildLigands () {
@@ -2056,7 +2055,7 @@ class ProteinDisplay {
   }
 
   buildWaters () {
-    console.log('buildWaters')
+    console.log('> buildWaters')
 
     clearObject3D(this.meshObjects.water)
 
@@ -2125,7 +2124,7 @@ class ProteinDisplay {
     }
     this.gridBar.diffB = this.gridBar.maxB - this.gridBar.minB
     this.scene.grid = this.gridBar.minB
-    console.log('ProteinDisplay.initGrid', this.scene.grid_atoms)
+    console.log('> ProteinDisplay.initGrid', this.scene.grid_atoms)
   }
 
   buildGrid () {
@@ -2300,15 +2299,15 @@ class ProteinDisplay {
 
     this.buildRibbons()
 
-    this.buildTube()
+    // this.buildTube()
 
-    this.buildGrid()
+    // this.buildGrid()
 
-    this.buildNucleotides()
+    // this.buildNucleotides()
 
-    this.buildArrows()
+    // this.buildArrows()
 
-    this.assignBonds()
+    // this.assignBonds()
 
     for (var k in this.meshObjects) {
       this.threeJsScene.add(this.meshObjects[k])

@@ -174,7 +174,7 @@ var Protein = function () {
         }
       } catch (e) {
         this.parsing_error = 'line ' + i;
-        console.log(`Error: "${lines[i]}"`);
+        console.log(`> Error: "${lines[i]}"`);
         return;
       }
     }
@@ -715,22 +715,22 @@ var Protein = function () {
 
   this.load = function (protein_data) {
     this.pdb_id = protein_data['pdb_id'];
-    console.log(`Protein.load parsing ${this.pdb_id}`);
+    console.log(`> Protein.load parsing ${this.pdb_id}`);
     var atom_lines = extract_atom_lines(protein_data['pdb_text']);
     this.default_html = this.pdb_id + ": "
       + parsetTitleFromPdbText(protein_data['pdb_text']);
     let atoms = this.make_atoms_from_pdb_lines(atom_lines, this.pdb_id);
     this.make_residues(atoms);
     this.atoms = _.concat(this.atoms, atoms);
-    console.log(`Protein.load parsed ${atoms.length} atoms`);
+    console.log(`> Protein.load parsed ${atoms.length} atoms`);
     for (var i=0; i<this.atoms.length; i+=1) {
       this.atoms[i].i = i;
     }
     this.make_bonds(this.calc_bonds(this.atoms));
-    console.log(`Protein.load parsed ${this.bonds.length} bonds`);
+    console.log(`> Protein.load parsed ${this.bonds.length} bonds`);
     this.max_length = this.calc_max_length(this.atoms);
     this.find_ss();
-    console.log(`Protein.load parsed ${this.residues.length} residues`);
+    console.log(`> Protein.load parsed ${this.residues.length} residues`);
   }
 
   this.transform = function (matrix) {
@@ -1536,7 +1536,7 @@ var Controller = function (scene) {
   }
 
   this.set_show_option = function (option, bool) {
-    console.log('set_show_option', option, bool);
+    console.log('> set_show_option', option, bool);
     this.scene.current_view.show[option] = bool;
     this.scene.changed = true;
   }
