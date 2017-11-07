@@ -67,6 +67,10 @@ var ElementColors = {
   'Rn': 0xE29EC5
 }
 
+for (let [k, v] of _.toPairs(ElementColors)) {
+  ElementColors[k] = new THREE.Color(v)
+}
+
 function getSsColor (ss) {
   if (ss == 'E') {
     return yellow
@@ -101,6 +105,11 @@ function getDarkSsColor (ss) {
 
 function getResColor (res) {
   return res.color
+}
+
+
+function getAtomColor (atom) {
+  return new THREE.Color().setHex(atom.i)
 }
 
 
@@ -1313,10 +1322,11 @@ class Trace extends PathAndFrenetFrames {
       for (i = iStart + 1; i < iLast; i += 1) {
 
         // check if reference object provides a normal
-        if (trace.referenceObjects[i].normal !== null) {
+        let refNormal = this.getReferenceObject(i).normal
+        if (refNormal !== null) {
           trace.normals[i] = perpVector(
             trace.tangents[i],
-            v3.clone(trace.referenceObjects[i].normal)
+            v3.clone(refNormal)
           )
             .normalize()
         } else {
@@ -1342,10 +1352,11 @@ class Trace extends PathAndFrenetFrames {
       trace.tangents[iLast] = tangent
   
       for (i = iStart; i <= iLast; i += 1) {
-        if (trace.referenceObjects[i].normal !== null) {
+        let refNormal = this.getReferenceObject(i).normal
+        if (refNormal !== null) {
           trace.normals[i] = perpVector(
             trace.tangents[i],
-            v3.clone(trace.referenceObjects[i].normal)
+            v3.clone(refNormal)
           )
             .normalize()
         } else {
@@ -1359,8 +1370,8 @@ class Trace extends PathAndFrenetFrames {
   
     // flip normals so that they are all pointing in same direction
     for (i = iStart + 1; i < iEnd; i += 1) {
-      if (trace.referenceObjects[i].ss != 'D' 
-          && trace.referenceObjects[i - 1].ss != 'D') {
+      if (this.getReferenceObject(i).ss != 'D'
+          && this.getReferenceObject(i - 1).ss != 'D') {
         if (trace.normals[i].dot(trace.normals[i - 1]) < 0) {
           trace.normals[i].negate()
         }
@@ -1511,11 +1522,16 @@ class ProteinDisplay {
     this.threeJsScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
     this.threeJsScene.fog.near = this.zoom + 1
     this.threeJsScene.fog.far = this.zoom + this.zBack
+    this.displayMaterial = new THREE.MeshLambertMaterial({
+      vertexColors: THREE.VertexColors
+    })
+    this.radius = 0.35 // small atom radius
+    this.obj = new THREE.Object3D() // utility object
 
     this.pickingScene = new THREE.Scene()
+    this.pickingMeshes = {}
     this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height())
     this.pickingTexture.texture.minFilter = THREE.LinearFilter
-    this.pickingGeometry = new THREE.Geometry()
     this.pickingMaterial = new THREE.MeshBasicMaterial(
       {vertexColors: THREE.VertexColors})
 
@@ -1572,14 +1588,15 @@ class ProteinDisplay {
   }
 
   initMeshObjects () {
-    this.meshObjects = {}
-    this.meshObjects.tube = new THREE.Object3D()
-    this.meshObjects.water = new THREE.Object3D()
-    this.meshObjects.ribbons = new THREE.Object3D()
-    this.meshObjects.grid = new THREE.Object3D()
-    this.meshObjects.arrows = new THREE.Object3D()
-    this.meshObjects.backbone = new THREE.Object3D()
-    this.meshObjects.ligands = new THREE.Object3D()
+    this.displayMeshes = {}
+    this.displayMeshes.tube = new THREE.Object3D()
+    this.displayMeshes.water = new THREE.Object3D()
+    this.displayMeshes.ribbons = new THREE.Object3D()
+    this.displayMeshes.grid = new THREE.Object3D()
+    this.displayMeshes.arrows = new THREE.Object3D()
+    this.displayMeshes.backbone = new THREE.Object3D()
+    this.displayMeshes.ligands = new THREE.Object3D()
+    // this.displayMeshes.basepairs = new THREE.Object3D()
   }
 
   buildAfterDataLoad (defaultHtml) {
@@ -1710,18 +1727,18 @@ class ProteinDisplay {
 
   findContinuousTraces () {
     this.traces = []
-    
+
+    let residues = this.protein.residues
     let makeNewTrace = () => {
       this.trace = new Trace()
-      this.trace.residues = this.protein.residues
-      this.trace.referenceObjects = this.protein.residues
+      this.trace.referenceObjects = residues
       this.traces.push(this.trace)
     }
 
-    let nResidue = this.protein.residues.length
+    let nResidue = residues.length
     for (let iResidue = 0; iResidue < nResidue; iResidue += 1) {
 
-      let residue = this.protein.residues[iResidue]
+      let residue = residues[iResidue]
       var isResInTrace = false
 
       if (residue.is_protein_or_nuc) {
@@ -1822,7 +1839,7 @@ class ProteinDisplay {
   }
 
   buildTube () {
-    clearObject3D(this.meshObjects.tube)
+    clearObject3D(this.displayMeshes.tube)
     let geom = new THREE.Geometry()
     for (let trace of this.traces) {
       let n = trace.points.length
@@ -1838,20 +1855,17 @@ class ProteinDisplay {
         geom.merge(resGeom)
         let iAtom = res.central_atom.i
         setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom))
-        this.pickingGeometry.merge(resGeom, resGeom.matrix)
       }
     }
-    var material = new THREE.MeshLambertMaterial({
-      vertexColors: THREE.VertexColors
-    })
-    var mesh = new THREE.Mesh(geom, material)
+    var mesh = new THREE.Mesh(geom, this.displayMaterial)
     mesh.visible = false
-    this.meshObjects.tube.add(mesh)
+    this.displayMeshes.tube.add(mesh)
   }
 
   buildRibbons () {
-    clearObject3D(this.meshObjects.ribbons)
+    clearObject3D(this.displayMeshes.ribbons)
     let geom = new THREE.Geometry()
+    let pickingGeom = new THREE.Geometry()
     for (let trace of this.traces) {
       let n = trace.points.length
       for (let i of _.range(n)) {
@@ -1868,18 +1882,16 @@ class ProteinDisplay {
         geom.merge(resGeom)
         let iAtom = res.central_atom.i
         setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom))
-        this.pickingGeometry.merge(resGeom)
+        pickingGeom.merge(resGeom)
       }
     }
-    var material = new THREE.MeshLambertMaterial({
-      vertexColors: THREE.VertexColors
-    })
-    var mesh = new THREE.Mesh(geom, material)
-    this.meshObjects.ribbons.add(mesh)
+    this.displayMeshes.ribbons.add(new THREE.Mesh(geom, this.displayMaterial))
+    this.pickingMeshes.ribbons = new THREE.Object3D()
+    this.pickingMeshes.ribbons.add(new THREE.Mesh(pickingGeom, this.pickingMaterial))
   }
 
   buildArrows () {
-    clearObject3D(this.meshObjects.arrows)
+    clearObject3D(this.displayMeshes.arrows)
 
     let geom = new THREE.Geometry()
     let blockArrowGeometry = new BlockArrowGeometry()
@@ -1908,14 +1920,49 @@ class ProteinDisplay {
       }
     }
 
-    let material = new THREE.MeshLambertMaterial({
-      vertexColors: THREE.VertexColors,
-    })
-    let mesh = new THREE.Mesh(geom, material)
-    this.meshObjects.arrows.add(mesh)
+    let mesh = new THREE.Mesh(geom, this.displayMaterial)
+    this.displayMeshes.arrows.add(mesh)
   }
 
-  mergeBond (totalGeom, bond, residue) {
+  pushAtom (meshObject, atom) {
+    var material = new THREE.MeshLambertMaterial({
+      color: this.getAtomColor(atom)
+    })
+    var radius = 0.35
+
+    // var mesh = new THREE.Mesh(this.unitSphereGeom, material)
+    // mesh.scale.set(radius, radius, radius)
+    // mesh.position.copy(atom.pos)
+    // mesh.atom = atom
+    // meshObject.add(mesh)
+    // this.clickMeshes.push(mesh)
+  }
+
+  mergeUnitGeom (totalGeom, unitGeom, color, matrix) {
+    setGeometryVerticesColor(unitGeom, color)
+    totalGeom.merge(unitGeom, matrix)
+  }
+
+  getAtomIndexColor(atom) {
+    return new THREE.Color().setHex(atom.i)
+  }
+
+  getSphereMatrix(pos, radius) {
+    this.obj.matrix.identity()
+    this.obj.position.copy(pos)
+    this.obj.scale.set(radius, radius, radius)
+    this.obj.updateMatrix()
+    return this.obj.matrix
+  }
+
+  mergeAtomToGeom (geom, pickGeom, atom) {
+    let matrix = this.getSphereMatrix(atom.pos, this.radius)
+    let unitGeom = this.unitSphereGeom
+    this.mergeUnitGeom(geom, unitGeom, this.getAtomColor(atom), matrix)
+    this.mergeUnitGeom(pickGeom, unitGeom, this.getAtomIndexColor(atom), matrix)
+  }
+
+  mergeBondToGeom (totalGeom, bond, residue) {
 
     var p1 = v3.clone(bond.atom1.pos)
     var p2 = v3.clone(bond.atom2.pos)
@@ -1931,40 +1978,30 @@ class ProteinDisplay {
     var radius = 0.2
 
     if (color1 == color2) {
-      setGeometryVerticesColor(geom, color1)
-      totalGeom.merge(geom, cylinderMatrix(p1, p2, radius))
+
+      this.mergeUnitGeom(
+        totalGeom, geom, color1, cylinderMatrix(p1, p2, radius))
+
     } else {
+
       var midpoint = p2.clone().add(p1).multiplyScalar(0.5)
 
       if (bond.atom1.res_id == residue.id) {
-        setGeometryVerticesColor(geom, color1)
-        totalGeom.merge(geom, cylinderMatrix(p1, midpoint,
-          radius))
+
+        this.mergeUnitGeom(
+          totalGeom, geom, color1, cylinderMatrix(p1, midpoint, radius))
+
+      } else if (bond.atom2.res_id == residue.id) {
+
+        this.mergeUnitGeom(
+          totalGeom, geom, color2, cylinderMatrix(p2, midpoint, radius))
+
       }
 
-      if (bond.atom2.res_id == residue.id) {
-        setGeometryVerticesColor(geom, color2)
-        totalGeom.merge(geom, cylinderMatrix(p2, midpoint,
-          radius))
-      }
     }
   }
 
-  pushAtom (meshObject, atom) {
-    var pos = v3.clone(atom.pos)
-    var material = new THREE.MeshLambertMaterial({
-      color: this.getAtomColor(atom)
-    })
-    var radius = 0.35
-    var mesh = new THREE.Mesh(this.unitSphereGeom, material)
-    mesh.scale.set(radius, radius, radius)
-    mesh.position.copy(pos)
-    mesh.atom = atom
-    meshObject.add(mesh)
-    this.clickMeshes.push(mesh)
-  }
-
-  assignBonds () {
+  assignBondsToResidues () {
     for (let j = 0; j < this.protein.residues.length; j += 1) {
       var res = this.protein.residues[j]
       res.bonds = []
@@ -1992,7 +2029,7 @@ class ProteinDisplay {
 
   buildBackbone() {
 
-    clearObject3D(this.meshObjects.backbone);
+    clearObject3D(this.displayMeshes.backbone);
 
     var geom = new THREE.Geometry();
 
@@ -2007,59 +2044,97 @@ class ProteinDisplay {
         var bond = residue.bonds[j];
         if (inArray(bond.atom1.type, backboneAtoms) ||
           inArray(bond.atom2.type, backboneAtoms)) {
-          this.mergeBond(geom, bond, residue);
+          this.mergeBondToGeom(geom, bond, residue);
         }
       }
 
       for (var a in residue.atoms) {
         var atom = residue.atoms[a];
         if (inArray(atom.type, backboneAtoms)) {
-          this.pushAtom(this.meshObjects.backbone, atom);
+          this.pushAtom(this.displayMeshes.backbone, atom);
         }
       }
 
     }
 
-    var material = new THREE.MeshLambertMaterial({
-      vertexColors: THREE.VertexColors
-    });
-    var mesh = new THREE.Mesh(geom, material);
-    this.meshObjects.backbone.add(mesh);
+    var mesh = new THREE.Mesh(geom, this.displayMaterial);
+    this.displayMeshes.backbone.add(mesh);
   }
 
-  buildLigands () {
-    clearObject3D(this.meshObjects.ligands)
-    var geom = new THREE.Geometry()
+  getSphereMatrix(pos, radius) {
+    this.obj.matrix.identity()
+    this.obj.position.copy(pos)
+    this.obj.scale.set(radius, radius, radius)
+    this.obj.updateMatrix()
+    return this.obj.matrix
+  }
 
-    for (var i = 0; i < this.protein.residues.length; i += 1) {
-      var residue = this.protein.residues[i]
+  buildSidechain (residue) {
+    if (!residue.is_protein_or_nuc) {
+      return
+    }
 
-      if (!residue.is_ligands) {
-        continue
-      }
+    var scGeom = new THREE.Geometry()
+    var scPickingGeom = new THREE.Geometry()
 
-      for (var j = 0; j < residue.bonds.length; j += 1) {
-        this.mergeBond(geom, residue.bonds[j], residue)
-      }
-
-      for (var a in residue.atoms) {
-        this.pushAtom(this.meshObjects.ligands, residue.atoms[a])
+    for (let bond of residue.bonds) {
+      if (!inArray(bond.atom1.type, backboneAtoms)
+        || !inArray(bond.atom2.type, backboneAtoms)) {
+        this.mergeBondToGeom(scGeom, bond, residue)
       }
     }
 
-    var material = new THREE.MeshLambertMaterial({
-      vertexColors: THREE.VertexColors
-    })
-    var mesh = new THREE.Mesh(geom, material)
-    this.meshObjects.ligands.add(mesh)
+    for (let atom of _.values(residue.atoms)) {
+      if (!inArray(atom.type, backboneAtoms)) {
+        atom.is_sidechain = true
+        let matrix = this.getSphereMatrix(atom.pos, this.radius)
+        this.mergeUnitGeom(
+          scGeom, this.unitSphereGeom, this.getAtomColor(atom), matrix)
+        this.mergeUnitGeom(
+          scPickingGeom, this.unitSphereGeom, this.getAtomIndexColor(atom), matrix)
+      }
+    }
+
+    residue.sidechainMeshes = new THREE.Object3D()
+    residue.sidechainMeshes.add(new THREE.Mesh(scGeom, this.displayMaterial))
+    residue.sidechainPickingMeshes = new THREE.Object3D()
+    residue.sidechainPickingMeshes.add(new THREE.Mesh(scPickingGeom, this.pickingMaterial))
+  }
+
+  buildLigands () {
+    clearObject3D(this.displayMeshes.ligands)
+    this.pickingMeshes.ligands = new THREE.Object3D()
+
+    var geom = new THREE.Geometry()
+    var pickGeom = new THREE.Geometry()
+
+    for (let residue of this.protein.residues) {
+      if (!residue.is_ligands) {
+        continue
+      }
+      for (let bond of residue.bonds) {
+        this.mergeBondToGeom(geom, bond, residue)
+      }
+      for (let atom of _.values(residue.atoms)) {
+        this.mergeAtomToGeom(geom, pickGeom, atom)
+      }
+    }
+
+    if (geom.vertices.length > 0) {
+      var mesh = new THREE.Mesh(geom, this.displayMaterial)
+      this.displayMeshes.ligands.add(mesh)
+      var mesh = new THREE.Mesh(pickGeom, this.pickingMaterial)
+      this.pickingMeshes.ligands.add(mesh)
+    }
+
   }
 
   buildWaters () {
-    console.log('> buildWaters')
-
-    clearObject3D(this.meshObjects.water)
+    clearObject3D(this.displayMeshes.water)
+    this.pickingMeshes.water = new THREE.Object3D()
 
     var geom = new THREE.Geometry()
+    var pickGeom = new THREE.Geometry()
 
     for (var i = 0; i < this.protein.residues.length; i += 1) {
       var residue = this.protein.residues[i]
@@ -2069,19 +2144,18 @@ class ProteinDisplay {
       }
 
       for (var j = 0; j < residue.bonds.length; j += 1) {
-        this.mergeBond(geom, residue.bonds[j], residue)
+        this.mergeBondToGeom(geom, residue.bonds[j], residue)
       }
 
-      for (var a in residue.atoms) {
-        this.pushAtom(this.meshObjects.water, residue.atoms[a])
+      for (let atom of _.values(residue.atoms)) {
+        this.mergeAtomToGeom(geom, pickGeom, atom)
       }
     }
 
-    var material = new THREE.MeshLambertMaterial({
-      vertexColors: THREE.VertexColors
-    })
-    var mesh = new THREE.Mesh(geom, material)
-    this.meshObjects.water.add(mesh)
+    var mesh = new THREE.Mesh(geom, this.displayMaterial)
+    this.displayMeshes.water.add(mesh)
+    var mesh = new THREE.Mesh(pickGeom, this.pickingMaterial)
+    this.pickingMeshes.water.add(mesh)
   }
 
   /**
@@ -2131,7 +2205,11 @@ class ProteinDisplay {
     if (!this.isGrid) {
       return
     }
-    clearObject3D(this.meshObjects.grid)
+    if (!exists(this.pickingMeshes.grid)) {
+      this.pickingMeshes.grid = new THREE.Object3D()
+    }
+    clearObject3D(this.displayMeshes.grid)
+    clearObject3D(this.pickingMeshes.grid)
     for (let residue of this.protein.residues) {
       if (residue.is_grid) {
         for (let a in residue.atoms) {
@@ -2146,43 +2224,18 @@ class ProteinDisplay {
             mesh.scale.set(radius, radius, radius)
             mesh.position.copy(atom.pos)
             mesh.atom = atom
-            this.meshObjects.grid.add(mesh)
-            this.clickMeshes.push(mesh)
+            this.displayMeshes.grid.add(mesh)
+
+            let indexMaterial = new THREE.MeshBasicMaterial({
+              color: this.getAtomIndexColor(atom)
+            })
+            let pickingMesh = new THREE.Mesh(this.unitSphereGeom, indexMaterial)
+            pickingMesh.scale.set(radius, radius, radius)
+            pickingMesh.position.copy(atom.pos)
+            pickingMesh.atom = atom
+            this.pickingMeshes.grid.add(pickingMesh)
           }
         }
-      }
-    }
-  }
-
-  buildSidechain (residue) {
-    if (!residue.is_protein_or_nuc) {
-      return
-    }
-
-    var scGeom = new THREE.Geometry()
-    residue.sidechain = new THREE.Object3D()
-    this.threeJsScene.add(residue.sidechain)
-
-    for (var j = 0; j < residue.bonds.length; j += 1) {
-      var bond = residue.bonds[j]
-
-      if (!inArray(bond.atom1.type, backboneAtoms) 
-        || !inArray(bond.atom2.type, backboneAtoms)) {
-        this.mergeBond(scGeom, bond, residue)
-      }
-    }
-
-    var material = new THREE.MeshLambertMaterial({
-      vertexColors: THREE.VertexColors
-    })
-    var mesh = new THREE.Mesh(scGeom, material)
-    residue.sidechain.add(mesh)
-
-    for (var a in residue.atoms) {
-      var atom = residue.atoms[a]
-      if (!inArray(atom.type, backboneAtoms)) {
-        atom.is_sidechain = true
-        this.pushAtom(residue.sidechain, atom)
       }
     }
   }
@@ -2251,20 +2304,18 @@ class ProteinDisplay {
 
       setGeometryVerticesColor(basepairGeom, getResColor(residue))
 
-      let basepairMesh = new THREE.Mesh(basepairGeom, material)
+      let basepairMesh = new THREE.Mesh(basepairGeom, this.displayMaterial)
       basepairMesh.atom = residue.central_atom
       basepairMesh.updateMatrix()
       this.clickMeshes.push(basepairMesh)
 
       totalGeom.merge(basepairGeom)
-
     }
 
     totalGeom.computeFaceNormals()
-    var material = new THREE.MeshLambertMaterial({
-      vertexColors: THREE.VertexColors
-    })
-    this.meshObjects.basepairs = new THREE.Mesh(totalGeom, material)
+
+    let mesh = new THREE.Mesh(totalGeom, this.displayMaterial)
+    // this.displayMeshes.basepairs.add(mesh)
   }
 
   buildCrossHairs () {
@@ -2288,35 +2339,129 @@ class ProteinDisplay {
     this.crossHairs.updateMatrix()
   }
 
+  addMeshObjectsToScene () {
+    clearObject3D(this.threeJsScene)
+    clearObject3D(this.pickingScene)
+    for (let [k, v] of _.toPairs(this.displayMeshes)) {
+      if (v.children.length > 0) {
+        this.threeJsScene.add(this.displayMeshes[k])
+      }
+    }
+    for (let [k, v] of _.toPairs(this.pickingMeshes)) {
+      if (v.children.length > 0) {
+        this.pickingScene.add(v)
+      }
+    }
+    for (let trace of this.traces) {
+      for (let residue of trace.referenceObjects) {
+        if (residue.sidechainMeshes) {
+          this.threeJsScene.add(residue.sidechainMeshes)
+        }
+        if (residue.sidechainPickingMeshes) {
+          this.pickingScene.add(residue.sidechainPickingMeshes)
+        }
+      }
+    }
+  }
+
+  /**
+   * Ligands are not built but added to Scene -> primcount = 0
+   */
   buildScene () {
-    this.meshObjects.ligands.notBuilt = true
-    this.meshObjects.backbone.notBuilt = true
-    this.meshObjects.water.notBuilt = true
-
-    this.findContinuousTraces()
-
     this.unitSphereGeom = new THREE.SphereGeometry(1, 8, 8)
-
+    this.assignBondsToResidues()
+    this.displayMeshes.ligands.notBuilt = true
+    this.displayMeshes.backbone.notBuilt = true
+    this.displayMeshes.water.notBuilt = true
+    this.findContinuousTraces()
     this.buildRibbons()
-
-    // this.buildTube()
-
-    // this.buildGrid()
-
-    // this.buildNucleotides()
-
+    this.buildTube()
+    this.buildGrid()
+    this.buildNucleotides()
     // this.buildArrows()
+    this.addMeshObjectsToScene()
+  }
 
-    // this.assignBonds()
+  selectVisibleObjects () {
+    console.log('> ProteinDisplay.selectVisibleObjects')
+    var show = this.scene.current_view.show
 
-    for (var k in this.meshObjects) {
-      this.threeJsScene.add(this.meshObjects[k])
+    var resetScene = false
+
+    setVisible(this.displayMeshes.tube, show.trace)
+
+    setVisible(this.displayMeshes.ribbons, show.ribbon)
+
+    setVisible(this.displayMeshes.arrows, !show.all_atom)
+
+    if (this.displayMeshes.backbone.notBuilt && show.all_atom) {
+      this.buildBackbone()
+      resetScene = true
+      delete this.displayMeshes.backbone.notBuilt
+    }
+    setVisible(this.displayMeshes.backbone, show.all_atom)
+
+    if (this.displayMeshes.ligands.notBuilt && show.ligands) {
+      this.buildLigands()
+      resetScene = true
+      delete this.displayMeshes.ligands.notBuilt
+    }
+    setVisible(this.displayMeshes.ligands, show.ligands)
+
+    if (this.displayMeshes.water.notBuilt && show.water) {
+      this.buildWaters()
+      resetScene = true
+      delete this.displayMeshes.water.notBuilt
+    }
+    setVisible(this.displayMeshes.water, show.water)
+
+    if (this.isGrid) {
+      if (exists(this.displayMeshes.grid)) {
+        this.displayMeshes.grid.traverse((child) => {
+          if (exists(child.atom)) {
+            if ((child.atom.bfactor > this.scene.grid) &&
+              (this.scene.grid_atoms[child.atom.elem])) {
+              child.visible = true
+            } else {
+              child.visible = false
+            }
+          }
+        })
+        this.pickingMeshes.grid.traverse((child) => {
+          if (exists(child.atom)) {
+            if ((child.atom.bfactor > this.scene.grid) &&
+              (this.scene.grid_atoms[child.atom.elem])) {
+              child.visible = true
+            } else {
+              child.visible = false
+            }
+          }
+        })
+      }
     }
 
-    this.pickingGeometry.computeFaceNormals()
-    this.pickingGeometry.computeVertexNormals()
-    this.pickingScene.add(new THREE.Mesh(this.pickingGeometry, this.pickingMaterial))
+    for (let trace of this.traces) {
+      for (var i = 0; i < trace.indices.length; i += 1) {
+        var residue = trace.getReferenceObject(i)
 
+        var residueShow
+        if (show.sidechain) {
+          residueShow = true
+        } else {
+          residueShow = residue.selected
+        }
+
+        if (residueShow && !exists(residue.sidechainMeshes)) {
+          resetScene = true
+          this.buildSidechain(residue)
+        }
+        setVisible(residue.sidechainMeshes, residueShow)
+      }
+    }
+
+    if (resetScene) {
+      this.addMeshObjectsToScene()
+    }
   }
 
   setTargetFromResId (resId) {
@@ -2580,57 +2725,6 @@ class ProteinDisplay {
       return this.protein.atoms[i]
     }
 
-    // convert to 2D coordinates in OpenGL frame
-    var vector = new THREE.Vector3(
-      ( x / this.width() ) * 2 - 1,
-      -( y / this.height() ) * 2 + 1,
-      0.5
-    );
-
-    // project into world space at origin
-    vector.unproject(this.camera);
-
-    // raycast with shifted coordinates at camera position
-    var raycaster = new THREE.Raycaster(
-      this.camera.position,
-      vector.sub(this.camera.position)
-        .normalize()
-    );
-
-    var intersects = raycaster.intersectObjects(
-      this.clickMeshes);
-
-    var show = this.scene.current_view.show;
-
-    for (var i = 0; i < intersects.length; i += 1) {
-
-      var intersect = intersects[i];
-
-      var atom = intersect.object.atom;
-      var res = this.protein.res_by_id[atom.res_id];
-
-      if (atom.is_sidechain && !show.sidechain && !res.selected) {
-        continue;
-      }
-
-      if (atom.is_backbone && !atom.is_central && !show.all_atom) {
-        continue;
-      }
-
-      if (atom.is_ligand && !show.ligands) {
-        continue;
-      }
-
-      if (atom.is_water && !show.water) {
-        continue;
-      }
-
-      if (this.inZlab(v3.clone(intersect.object.atom.pos))) {
-        return intersects[i].object.atom;
-      }
-
-    }
-
     return null;
 
   }
@@ -2849,66 +2943,6 @@ class ProteinDisplay {
     return this.scene.changed
   }
 
-  selectVisibleObjects () {
-    var show = this.scene.current_view.show
-
-    setVisible(this.meshObjects.tube, show.trace)
-
-    setVisible(this.meshObjects.ribbons, show.ribbon)
-
-    setVisible(this.meshObjects.arrows, !show.all_atom)
-
-    if (this.meshObjects.backbone.notBuilt && show.all_atom) {
-      this.buildBackbone()
-      delete this.meshObjects.backbone.notBuilt
-    }
-    setVisible(this.meshObjects.backbone, show.all_atom)
-
-    if (this.meshObjects.ligands.notBuilt && show.ligands) {
-      this.buildLigands()
-      delete this.meshObjects.ligands.notBuilt
-    }
-    setVisible(this.meshObjects.ligands, show.ligands)
-
-    if (this.meshObjects.water.notBuilt && show.water) {
-      this.buildWaters()
-      delete this.meshObjects.water.notBuilt
-    }
-    setVisible(this.meshObjects.water, show.water)
-
-    if (this.isGrid) {
-      if (exists(this.scene.grid) && this.meshObjects.grid) {
-        this.meshObjects.grid.traverse((child) => {
-          if ((child instanceof THREE.Mesh) && exists(child.atom)) {
-            if ((child.atom.bfactor > this.scene.grid) &&
-              (this.scene.grid_atoms[child.atom.elem])) {
-              child.visible = true
-            } else {
-              child.visible = false
-            }
-          }
-        })
-      }
-    }
-
-    for (let trace of this.traces) {
-      for (var i = 0; i < trace.indices.length; i += 1) {
-        var residue = trace.getReferenceObject(i)
-
-        var residueShow
-        if (show.sidechain) {
-          residueShow = true
-        } else {
-          residueShow = residue.selected
-        }
-
-        if (residueShow && !exists(residue.sidechain)) {
-          this.buildSidechain(residue)
-        }
-        setVisible(residue.sidechain, residueShow)
-      }
-    }
-  }
 
   drawDistanceLabels () {
     var distances = this.scene.current_view.distances
@@ -2985,7 +3019,7 @@ class ProteinDisplay {
   }
 
   draw () {
-    if (_.isUndefined(this.meshObjects)) {
+    if (_.isUndefined(this.displayMeshes)) {
       return
     }
     if (!this.isChanged()) {

@@ -572,7 +572,7 @@ function clearObject3D (obj) {
   for (var i = iLast; i >= 0; i -= 1) {
     var child = obj.children[i]
     if (!_.isUndefined(child.dontDelete)) {
-      return
+      continue
     }
     if (!_.isUndefined(child.geometry)) {
       child.geometry.dispose()
