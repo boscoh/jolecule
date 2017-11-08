@@ -108,11 +108,6 @@ function getResColor (res) {
 }
 
 
-function getAtomColor (atom) {
-  return new THREE.Color().setHex(atom.i)
-}
-
-
 // Backbone atom names
 
 var backboneAtoms = [
@@ -495,13 +490,13 @@ class DistanceMeasure {
 }
 
 /**
- * LineElement
+ * LineWidget
  * - instantiates a DOM object is to draw a line between (x1, y1) and
  *   (x2, y2) within a jquery div
  * - used to display the mouse tool for making distance labels
  */
 
-class LineElement {
+class LineWidget {
   constructor (selector, color) {
     this.color = color
 
@@ -1289,7 +1284,9 @@ class Trace extends PathAndFrenetFrames {
 
   /**
    * Calculates tangents as an average on neighbouring points
-   * so that we get a smooth path
+   * so that we get a smooth path. If normal[i] is not null,
+   * it will use the normal, otherwise it will generate own
+   * normal
    *
    * @param {*} iStart
    * @param {*} iEnd
@@ -1324,20 +1321,13 @@ class Trace extends PathAndFrenetFrames {
       for (i = iStart + 1; i < iLast; i += 1) {
 
         // check if reference object provides a normal
-        let refNormal = this.getReferenceObject(i).normal
-        if (refNormal !== null) {
-          trace.normals[i] = perpVector(
-            trace.tangents[i],
-            v3.clone(refNormal)
-          )
-            .normalize()
+        if (trace.normals[i] !== null) {
+          trace.normals[i] = perpVector(trace.tangents[i], trace.normals[i])
+          trace.normals[i].normalize()
         } else {
-          var diff = points[i].clone()
-            .sub(points[i - 1])
+          var diff = points[i].clone().sub(points[i - 1])
           trace.normals[i] = new TV3()
-            .crossVectors(
-              diff, trace.tangents[i])
-            .normalize()
+            .crossVectors(diff, trace.tangents[i]).normalize()
         }
       }
 
@@ -1354,29 +1344,14 @@ class Trace extends PathAndFrenetFrames {
       trace.tangents[iLast] = tangent
 
       for (i = iStart; i <= iLast; i += 1) {
-        let refNormal = this.getReferenceObject(i).normal
-        if (refNormal !== null) {
-          trace.normals[i] = perpVector(
-            trace.tangents[i],
-            v3.clone(refNormal)
-          )
+        if (trace.normals[i] !== null) {
+          trace.normals[i] = perpVector(trace.tangents[i], trace.normals[i])
             .normalize()
         } else {
           var randomDir = points[i]
           trace.normals[i] = new TV3()
             .crossVectors(randomDir, tangent)
             .normalize()
-        }
-      }
-    }
-
-    // flip normals so that they are all pointing in same direction
-    // this is from beta-sheets so should do at the next level up
-    for (i = iStart + 1; i < iEnd; i += 1) {
-      if (this.getReferenceObject(i).ss !== 'D'
-        && this.getReferenceObject(i - 1).ss !== 'D') {
-        if (trace.normals[i].dot(trace.normals[i - 1]) < 0) {
-          trace.normals[i].negate()
         }
       }
     }
@@ -1527,9 +1502,8 @@ class ProteinDisplay {
     this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
     this.displayScene.fog.near = this.zoom + 1
     this.displayScene.fog.far = this.zoom + this.zBack
-    this.displayMaterial = new THREE.MeshLambertMaterial({
-      vertexColors: THREE.VertexColors
-    })
+    this.displayMaterial = new THREE.MeshLambertMaterial(
+      {vertexColors: THREE.VertexColors})
 
     this.radius = 0.35 // small atom radius
     this.obj = new THREE.Object3D() // utility object
@@ -1546,7 +1520,7 @@ class ProteinDisplay {
 
     this.buildCrossHairs()
 
-    this.distancePartnerPointer = new LineElement(this.webglDivTag, '#FF7777')
+    this.lineWidget = new LineWidget(this.webglDivTag, '#FF7777')
   }
 
   initWebglRenderer () {
@@ -1722,6 +1696,7 @@ class ProteinDisplay {
     this.traces = []
 
     let residues = this.protein.residues
+
     let makeNewTrace = () => {
       this.trace = new Trace()
       this.trace.referenceObjects = residues
@@ -1778,10 +1753,30 @@ class ProteinDisplay {
         }
         this.trace.indices.push(iResidue)
         this.trace.points.push(v3.clone(residue.central_atom.pos))
+        let normal = null
+        if (residues[iResidue].normal) {
+          normal = residues[iResidue].normal
+        }
+        this.trace.normals.push(normal)
       }
     }
 
     for (let trace of this.traces) {
+      // flip normals so that they are all pointing in same direction
+      // this is from beta-sheets so should do at the next level up
+      for (let i = 1; i < trace.indices.length; i += 1) {
+        if (residues[trace.indices[i]].ss !== 'D' &&
+            residues[trace.indices[i - 1]].ss !== 'D') {
+          let normal = trace.normals[i]
+          let prevNormal = trace.normals[i - 1]
+          if (normal !== null && prevNormal !== null) {
+            if (normal.dot(prevNormal) < 0) {
+              trace.normals[i].negate()
+            }
+          }
+        }
+      }
+
       trace.expand()
     }
   }
@@ -1821,13 +1816,11 @@ class ProteinDisplay {
   }
 
   assignBondsToResidues () {
-    for (let j = 0; j < this.protein.residues.length; j += 1) {
-      var res = this.protein.residues[j]
+    for (let res of this.protein.residues) {
       res.bonds = []
     }
 
-    for (let j = 0; j < this.protein.bonds.length; j += 1) {
-      var bond = this.protein.bonds[j]
+    for (let bond of this.protein.bonds) {
       var atom1 = bond.atom1
       var atom2 = bond.atom2
 
@@ -1835,8 +1828,8 @@ class ProteinDisplay {
         continue
       }
 
-      var res1 = this.protein.res_by_id[atom1.res_id]
-      var res2 = this.protein.res_by_id[atom2.res_id]
+      let res1 = this.protein.res_by_id[atom1.res_id]
+      let res2 = this.protein.res_by_id[atom2.res_id]
 
       res1.bonds.push(bond)
 
@@ -1970,9 +1963,9 @@ class ProteinDisplay {
 
   selectVisibleMeshes () {
 
-    var show = this.scene.current_view.show
     this.updateMeshesInScene = false
 
+    var show = this.scene.current_view.show
     this.setMeshVisible('tube', show.trace)
     this.setMeshVisible('water', show.water)
     this.setMeshVisible('ribbons', show.ribbon)
@@ -2047,19 +2040,21 @@ class ProteinDisplay {
   }
 
   addGeomToDisplayMesh (meshName, geom) {
-    if (geom.vertices > 0) {
-      this.displayMeshes[meshName].add(
-        new THREE.Mesh(geom, this.displayMaterial)
-      )
+    if (geom.vertices === 0) {
+      return
     }
+    this.displayMeshes[meshName].add(
+      new THREE.Mesh(geom, this.displayMaterial)
+    )
   }
 
   addGeomToPickingMesh (meshName, geom) {
-    if (geom.vertices > 0) {
-      this.pickingMeshes[meshName].add(
-        new THREE.Mesh(geom, this.pickingMaterial)
-      )
+    if (geom.vertices === 0) {
+      return
     }
+    this.pickingMeshes[meshName].add(
+      new THREE.Mesh(geom, this.pickingMaterial)
+    )
   }
 
   buildMeshOfRibbons () {
@@ -2965,9 +2960,7 @@ class ProteinDisplay {
       var mainDivPos = this.mainDiv.position()
       var v = this.posXY(v3.clone(this.downAtom.pos))
 
-      this.distancePartnerPointer.move(this.mouseX, this.mouseY,
-        v.x,
-        v.y)
+      this.lineWidget.move(this.mouseX, this.mouseY, v.x, v.y)
     } else {
       var shiftDown = (event.shiftKey === 1)
 
@@ -3032,7 +3025,7 @@ class ProteinDisplay {
         }
       }
 
-      this.distancePartnerPointer.hide()
+      this.lineWidget.hide()
 
       this.isDraggingCentralAtom = false
     }
