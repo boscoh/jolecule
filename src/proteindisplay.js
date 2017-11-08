@@ -1506,6 +1506,7 @@ class ProteinDisplay {
       .attr('id', this.webglDivId)
       .css('overflow', 'hidden')
       .css('background-color', '#CCC')
+    this.webglDiv.contextmenu(() => false)
 
     this.mainDiv.append(this.webglDiv)
     this.mainDiv.css('background-color', '#CCC')
@@ -1588,7 +1589,7 @@ class ProteinDisplay {
    * @param message
    * @param computeHeavyFn
    */
-  displayProcessMessageAndRun (message, computeHeavyFn) {
+  displayMessageBeforeCompute (message, computeHeavyFn) {
     this.setProcessingMesssage(message)
     // this pause allows the DOM to update before compute
     setTimeout(computeHeavyFn, 0)
@@ -1819,14 +1820,6 @@ class ProteinDisplay {
     return new THREE.Color().setHex(atom.i)
   }
 
-  getSphereMatrix (pos, radius) {
-    this.obj.matrix.identity()
-    this.obj.position.copy(pos)
-    this.obj.scale.set(radius, radius, radius)
-    this.obj.updateMatrix()
-    return this.obj.matrix
-  }
-
   assignBondsToResidues () {
     for (let j = 0; j < this.protein.residues.length; j += 1) {
       var res = this.protein.residues[j]
@@ -1889,6 +1882,519 @@ class ProteinDisplay {
    * this.pickingMeshes
    *
    */
+
+  buildScene () {
+    // calculate protein parameters
+    this.assignBondsToResidues()
+    this.findContinuousTraces()
+    this.findGridLimits()
+
+    // create default Meshes
+    this.buildMeshOfRibbons()
+    this.buildMeshOfGrid()
+    // this.buildMeshOfNucleotides()
+    this.buildMeshOfArrows()
+    this.rebuildSceneWithMeshes()
+  }
+
+  /**
+   * Creates a mesh entry in mesh collection, so that a scene
+   * can be generated
+   *
+   * @param meshName - the handle for this mesh in the centralized
+   *   repository
+   */
+  clearMesh (meshName) {
+    if (!(meshName in this.displayMeshes)) {
+      this.displayMeshes[meshName] = new THREE.Object3D()
+    } else {
+      clearObject3D(this.displayMeshes[meshName])
+    }
+    if (!(meshName in this.pickingMeshes)) {
+      this.pickingMeshes[meshName] = new THREE.Object3D()
+    } else {
+      clearObject3D(this.pickingMeshes[meshName])
+    }
+  }
+
+  /**
+   * Rebuild scene from meshes in this.displayMeshes &
+   * this.pickingMeshes
+   */
+  rebuildSceneWithMeshes () {
+    clearObject3D(this.displayScene)
+    clearObject3D(this.pickingScene)
+    for (let [k, v] of _.toPairs(this.displayMeshes)) {
+      if (v.children.length > 0) {
+        this.displayScene.add(this.displayMeshes[k])
+      }
+    }
+    for (let [k, v] of _.toPairs(this.pickingMeshes)) {
+      if (v.children.length > 0) {
+        this.pickingScene.add(v)
+      }
+    }
+    for (let trace of this.traces) {
+      for (let residue of trace.referenceObjects) {
+        if (residue.sidechainMeshes) {
+          this.displayScene.add(residue.sidechainMeshes)
+        }
+        if (residue.sidechainPickingMeshes) {
+          this.pickingScene.add(residue.sidechainPickingMeshes)
+        }
+      }
+    }
+  }
+
+  /**
+   * Sets the visibility of a mesh this.displayMeshes & this.pickingMeshes.
+   * If it does not exist, create it, and look for the corresponding method
+   * to build the mesh this.build<CaptializaedMeshName>
+   *
+   * @param meshName
+   * @param visible
+   */
+  setMeshVisible (meshName, visible) {
+    if (visible) {
+      if (!(meshName in this.displayMeshes)) {
+        let buildMeshOfFunctionName = 'buildMeshOf' + _.capitalize(meshName)
+        console.log('> ProteinDisplay.' + buildMeshOfFunctionName)
+        this[buildMeshOfFunctionName]()
+        this.updateMeshesInScene = true
+      }
+    }
+    if (meshName in this.displayMeshes) {
+      setVisible(this.displayMeshes[meshName], visible)
+    }
+  }
+
+  selectVisibleMeshes () {
+
+    var show = this.scene.current_view.show
+    this.updateMeshesInScene = false
+
+    this.setMeshVisible('tube', show.trace)
+    this.setMeshVisible('water', show.water)
+    this.setMeshVisible('ribbons', show.ribbon)
+    this.setMeshVisible('arrows', !show.all_atom)
+    this.setMeshVisible('backbone', show.all_atom)
+    this.setMeshVisible('ligands', show.ligands)
+
+    if (exists(this.displayMeshes.grid)) {
+      for (let mesh of [this.displayMeshes.grid, this.pickingMeshes.grid]) {
+        mesh.traverse(child => {
+          if (exists(child.i)) {
+            child.visible = this.isVisibleGridAtom(child.i)
+          }
+        })
+      }
+    }
+
+    for (let trace of this.traces) {
+      for (let i of _.range(trace.indices.length)) {
+        let residue = trace.getReferenceObject(i)
+        let residueShow = show.sidechain || residue.selected
+        if (residueShow && !exists(residue.mesh)) {
+          this.buildMeshOfSidechain(residue)
+          this.updateMeshesInScene = true
+          residue.mesh = true
+        }
+      }
+    }
+
+    for (let trace of this.traces) {
+      for (let i of _.range(trace.indices.length)) {
+        let residue = trace.getReferenceObject(i)
+        let residueShow = show.sidechain || residue.selected
+        setVisible(residue.sidechainMeshes, residueShow)
+      }
+    }
+
+    if (this.updateMeshesInScene) {
+      this.rebuildSceneWithMeshes()
+    }
+  }
+
+  /**
+   ***************************************
+   * Mesh-building methods
+   ***************************************
+   */
+
+  mergeAtomToGeom (geom, pickGeom, atom) {
+    let matrix = this.getSphereMatrix(atom.pos, this.radius)
+    let unitGeom = this.unitSphereGeom
+    this.mergeUnitGeom(geom, unitGeom, this.getAtomColor(atom), matrix)
+    this.mergeUnitGeom(pickGeom, unitGeom, this.getAtomIndexColor(atom), matrix)
+  }
+
+  mergeBondToGeom (totalGeom, bond, residue) {
+    let p1 = bond.atom1.pos
+    let p2 = bond.atom2.pos
+    if (bond.atom1.res_id !== bond.atom2.res_id) {
+      let midpoint = p2.clone().add(p1).multiplyScalar(0.5)
+      if (bond.atom1.res_id === residue.id) {
+        p2 = midpoint
+      } else if (bond.atom2.res_id === residue.id) {
+        p1 = midpoint
+      }
+    }
+    this.mergeUnitGeom(
+      totalGeom,
+      new UnitCylinderGeometry(),
+      getResColor(residue),
+      cylinderMatrix(p1, p2, 0.2))
+  }
+
+  addGeomToDisplayMesh (meshName, geom) {
+    if (geom.vertices > 0) {
+      this.displayMeshes[meshName].add(
+        new THREE.Mesh(geom, this.displayMaterial)
+      )
+    }
+  }
+
+  addGeomToPickingMesh (meshName, geom) {
+    if (geom.vertices > 0) {
+      this.pickingMeshes[meshName].add(
+        new THREE.Mesh(geom, this.pickingMaterial)
+      )
+    }
+  }
+
+  buildMeshOfRibbons () {
+    this.clearMesh('ribbons')
+    let displayGeom = new THREE.Geometry()
+    let pickingGeom = new THREE.Geometry()
+    for (let trace of this.traces) {
+      let n = trace.points.length
+      for (let i of _.range(n)) {
+        let res = trace.getReferenceObject(i)
+        let face = this.getSsFace(res.ss)
+        let color = getResColor(res)
+        let isRound = res.ss === 'C'
+        let isFront = ((i === 0) ||
+          (res.ss !== trace.getReferenceObject(i - 1).ss))
+        let isBack = ((i === n - 1) ||
+          (res.ss !== trace.getReferenceObject(i + 1).ss))
+        let resGeom = trace.getSegmentGeometry(
+          i, face, isRound, isFront, isBack, color)
+        displayGeom.merge(resGeom)
+        let atom = res.central_atom
+        setGeometryVerticesColor(
+          resGeom, this.getAtomIndexColor(atom))
+        pickingGeom.merge(resGeom)
+      }
+    }
+    this.addGeomToDisplayMesh('ribbons', displayGeom)
+    this.addGeomToPickingMesh('ribbons', pickingGeom)
+  }
+
+  buildMeshOfArrows () {
+    this.clearMesh('arrows')
+
+    let geom = new THREE.Geometry()
+    let blockArrowGeometry = new BlockArrowGeometry()
+    blockArrowGeometry.computeFaceNormals()
+
+    let obj = new THREE.Object3D()
+
+    for (let trace of this.traces) {
+      for (let i of _.range(trace.points.length)) {
+        let point = trace.points[i]
+        let tangent = trace.tangents[i]
+        let normal = trace.binormals[i]
+        let target = point.clone().add(tangent)
+
+        let res = trace.getReferenceObject(i)
+        let color = getDarkSsColor(res.ss)
+        setGeometryVerticesColor(blockArrowGeometry, color)
+
+        obj.matrix.identity()
+        obj.position.copy(point)
+        obj.up.copy(normal)
+        obj.lookAt(target)
+        obj.updateMatrix()
+
+        geom.merge(blockArrowGeometry, obj.matrix)
+      }
+    }
+
+    this.addGeomToDisplayMesh('arrows', geom)
+  }
+
+  buildMeshOfTube () {
+    this.clearMesh('tube')
+    let geom = new THREE.Geometry()
+    for (let trace of this.traces) {
+      let n = trace.points.length
+      for (let i of _.range(n)) {
+        let res = trace.getReferenceObject(i)
+        let ss = res.ss
+        let color = getResColor(res)
+        let isRound = true
+        let isFront = (i === 0)
+        let isBack = (i === n - 1)
+        let resGeom = trace.getSegmentGeometry(
+          i, fatCoilFace, isRound, isFront, isBack, color)
+        geom.merge(resGeom)
+        let iAtom = res.central_atom.i
+        setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom))
+      }
+    }
+    this.addGeomToDisplayMesh('tube', geom)
+  }
+
+  buildMeshOfSidechain (residue) {
+    if (!residue.is_protein_or_nuc) {
+      return
+    }
+
+    var displayGeom = new THREE.Geometry()
+    var pickingGeom = new THREE.Geometry()
+
+    for (let bond of residue.bonds) {
+      if (!inArray(bond.atom1.type, backboneAtoms)
+        || !inArray(bond.atom2.type, backboneAtoms)) {
+        this.mergeBondToGeom(displayGeom, bond, residue)
+      }
+    }
+
+    for (let atom of _.values(residue.atoms)) {
+      if (!inArray(atom.type, backboneAtoms)) {
+        atom.is_sidechain = true
+        let matrix = this.getSphereMatrix(atom.pos, this.radius)
+        this.mergeUnitGeom(
+          displayGeom, this.unitSphereGeom, this.getAtomColor(atom), matrix)
+        this.mergeUnitGeom(
+          pickingGeom, this.unitSphereGeom, this.getAtomIndexColor(atom), matrix)
+      }
+    }
+
+    residue.sidechainMeshes = new THREE.Object3D()
+    residue.sidechainMeshes.add(new THREE.Mesh(displayGeom, this.displayMaterial))
+    residue.sidechainPickingMeshes = new THREE.Object3D()
+    residue.sidechainPickingMeshes.add(new THREE.Mesh(pickingGeom, this.pickingMaterial))
+  }
+
+  buildMeshOfBackbone () {
+    this.clearMesh('backbone')
+    let displayGeom = new THREE.Geometry()
+    let pickingGeom = new THREE.Geometry()
+    for (let residue of this.protein.residues) {
+      if (residue.is_protein_or_nuc) {
+        for (let bond of residue.bonds) {
+          if (inArray(bond.atom1.type, backboneAtoms) ||
+            inArray(bond.atom2.type, backboneAtoms)) {
+            this.mergeBondToGeom(displayGeom, bond, residue)
+          }
+        }
+        for (let atom of _.values(residue.atoms)) {
+          if (inArray(atom.type, backboneAtoms)) {
+            this.mergeAtomToGeom(displayGeom, pickingGeom, atom)
+          }
+        }
+      }
+    }
+    this.addGeomToDisplayMesh('backbone', displayGeom)
+    this.addGeomToPickingMesh('backbone', pickingGeom)
+  }
+
+  buildMeshOfLigands () {
+    this.clearMesh('ligands')
+    let displayGeom = new THREE.Geometry()
+    let pickingGeom = new THREE.Geometry()
+    for (let residue of this.protein.residues) {
+      if (residue.is_ligands) {
+        for (let bond of residue.bonds) {
+          this.mergeBondToGeom(displayGeom, bond, residue)
+        }
+        for (let atom of _.values(residue.atoms)) {
+          this.mergeAtomToGeom(displayGeom, pickingGeom, atom)
+        }
+      }
+    }
+    this.addGeomToDisplayMesh('ligands', displayGeom)
+    this.addGeomToPickingMesh('ligands', pickingGeom)
+  }
+
+  buildMeshOfWater () {
+    this.clearMesh('water')
+    let displayGeom = new THREE.Geometry()
+    let pickingGeom = new THREE.Geometry()
+    for (let residue of this.protein.residues) {
+      if (residue.is_water) {
+        for (let bond of residue.bonds) {
+          this.mergeBondToGeom(displayGeom, bond, residue)
+        }
+        for (let atom of _.values(residue.atoms)) {
+          this.mergeAtomToGeom(displayGeom, pickingGeom, atom)
+        }
+      }
+    }
+    this.addGeomToDisplayMesh('water', displayGeom)
+    this.addGeomToPickingMesh('water', pickingGeom)
+  }
+
+  /**
+   * Searches autodock grid atoms for B-factor limits
+   */
+  findGridLimits () {
+    this.scene.grid_atoms = {}
+
+    for (let residue of this.protein.residues) {
+      if (residue.is_grid) {
+        for (let atom of _.values(residue.atoms)) {
+          if (!(atom.elem in this.scene.grid_atoms)) {
+            this.scene.grid_atoms[atom.elem] = true
+          }
+
+          if (this.gridControlWidget.minB === null) {
+            this.gridControlWidget.minB = atom.bfactor
+            this.gridControlWidget.maxB = atom.bfactor
+          } else {
+            if (atom.bfactor > this.gridControlWidget.maxB) {
+              this.gridControlWidget.maxB = atom.bfactor
+            }
+            if (atom.bfactor < this.gridControlWidget.minB) {
+              this.gridControlWidget.minB = atom.bfactor
+            }
+          }
+        }
+      }
+    }
+
+    if (this.gridControlWidget.minB === null) {
+      this.gridControlWidget.minB = 0
+    }
+    if (this.gridControlWidget.maxB === null) {
+      this.gridControlWidget.minB = 0
+    }
+    this.gridControlWidget.diffB = this.gridControlWidget.maxB - this.gridControlWidget.minB
+    this.scene.grid = this.gridControlWidget.minB
+    console.log('> ProteinDisplay.findGridLimits', this.scene.grid_atoms)
+  }
+
+  isVisibleGridAtom (iAtom) {
+    let atom = this.protein.atoms[iAtom]
+    let isAtomInRange = atom.bfactor > this.scene.grid
+    let isAtomElemSelected = this.scene.grid_atoms[atom.elem]
+    return isAtomElemSelected && isAtomInRange
+  }
+
+  buildMeshOfGrid () {
+    if (!this.isGrid) {
+      return
+    }
+    this.clearMesh('grid')
+    for (let residue of this.protein.residues) {
+      if (residue.is_grid) {
+        for (let a in residue.atoms) {
+          let atom = residue.atoms[a]
+          if ((atom.bfactor > this.scene.grid) &&
+            (this.scene.grid_atoms[atom.elem])) {
+            var radius = 0.35
+            var material = new THREE.MeshLambertMaterial({
+              color: this.getAtomColor(atom)
+            })
+
+            var mesh = new THREE.Mesh(this.unitSphereGeom, material)
+            mesh.scale.set(radius, radius, radius)
+            mesh.position.copy(atom.pos)
+            mesh.i = atom.i
+            this.displayMeshes.grid.add(mesh)
+
+            let indexMaterial = new THREE.MeshBasicMaterial({
+              color: this.getAtomIndexColor(atom)
+            })
+            let pickingMesh = new THREE.Mesh(this.unitSphereGeom, indexMaterial)
+            pickingMesh.scale.set(radius, radius, radius)
+            pickingMesh.position.copy(atom.pos)
+            pickingMesh.i = atom.i
+            this.pickingMeshes.grid.add(pickingMesh)
+          }
+        }
+      }
+    }
+  }
+
+  buildMeshOfNucleotides () {
+    this.clearMesh('basepairs')
+
+    let displayGeom = new THREE.Geometry()
+    let pickingGeom = new THREE.Geometry()
+
+    let cylinderGeom = new UnitCylinderGeometry()
+
+    for (let residue of this.protein.residues) {
+      if (residue.ss !== 'D' || !residue.is_protein_or_nuc) {
+        continue
+      }
+
+      let basepairGeom = new THREE.Geometry()
+
+      let atomTypes, bondTypes
+      if (residue.type === 'DA' || residue.type === 'A') {
+        atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
+        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']
+        ]
+      } else if (residue.type === 'DG' || residue.type === 'G') {
+        atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
+        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']
+        ]
+      } else if (residue.type === 'DT' || residue.type === 'U') {
+        atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
+        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']
+        ]
+      } else if (residue.type === 'DC' || residue.type === 'C') {
+        atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
+        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']
+        ]
+      } else {
+        continue
+      }
+      let vertices = getVerticesFromAtomDict(residue.atoms, atomTypes)
+      basepairGeom.merge(new RaisedShapeGeometry(vertices, 0.3))
+
+      let radius = 0.2
+      for (let bond of bondTypes) {
+        let vertices = getVerticesFromAtomDict(residue.atoms, [bond[0], bond[1]])
+        basepairGeom.merge(cylinderGeom, cylinderMatrix(vertices[0], vertices[1], radius))
+      }
+
+      basepairGeom.computeFaceNormals()
+
+      setGeometryVerticesColor(basepairGeom, getResColor(residue))
+      displayGeom.merge(basepairGeom)
+
+      setGeometryVerticesColor(basepairGeom, this.getAtomIndexColor(residue.central_atom))
+      pickingGeom.merge(basepairGeom)
+    }
+
+    this.addGeomToDisplayMesh('basepairs', displayGeom)
+    this.addGeomToPickingMesh('basepairs', pickingGeom)
+  }
+
+  /**
+   ******************************************
+   * Draw/Animate Graphical objects
+   ******************************************
+   */
+
+  buildCrossHairs () {
+    var radius = 1.2,
+      segments = 60,
+      material = new THREE.LineDashedMaterial(
+        {color: 0xFF7777, linewidth: 2})
+    var geometry = new THREE.CircleGeometry(radius, segments)
+
+    // Remove center vertex
+    geometry.vertices.shift()
+
+    this.crossHairs = new THREE.Line(geometry, material)
+    this.crossHairs.dontDelete = true
+    this.displayScene.add(this.crossHairs)
+  }
 
   isChanged () {
     return this.scene.changed
@@ -2080,551 +2586,17 @@ class ProteinDisplay {
     this.updateHover()
   }
 
-  buildScene () {
-    // calculate protein parameters
-    this.assignBondsToResidues()
-    this.findContinuousTraces()
-    this.findGridLimits()
-
-    // create default Meshes
-    this.buildMeshOfRibbons()
-    this.buildMeshOfGrid()
-    // this.buildMeshOfNucleotides()
-    this.buildMeshOfArrows()
-    this.rebuildSceneWithMeshes()
-  }
-
-  /**
-   * Creates a mesh entry in mesh collection, so that a scene
-   * can be generated
-   *
-   * @param meshName - the handle for this mesh in the centralized
-   *   repository
-   */
-  clearMesh (meshName) {
-    if (!(meshName in this.displayMeshes)) {
-      this.displayMeshes[meshName] = new THREE.Object3D()
-    } else {
-      clearObject3D(this.displayMeshes[meshName])
-    }
-    if (!(meshName in this.pickingMeshes)) {
-      this.pickingMeshes[meshName] = new THREE.Object3D()
-    } else {
-      clearObject3D(this.pickingMeshes[meshName])
-    }
-  }
-
-  /**
-   * Rebuild scene from meshes in this.displayMeshes &
-   * this.pickingMeshes
-   */
-  rebuildSceneWithMeshes () {
-    clearObject3D(this.displayScene)
-    clearObject3D(this.pickingScene)
-    for (let [k, v] of _.toPairs(this.displayMeshes)) {
-      if (v.children.length > 0) {
-        this.displayScene.add(this.displayMeshes[k])
-      }
-    }
-    for (let [k, v] of _.toPairs(this.pickingMeshes)) {
-      if (v.children.length > 0) {
-        this.pickingScene.add(v)
-      }
-    }
-    for (let trace of this.traces) {
-      for (let residue of trace.referenceObjects) {
-        if (residue.sidechainMeshes) {
-          this.displayScene.add(residue.sidechainMeshes)
-        }
-        if (residue.sidechainPickingMeshes) {
-          this.pickingScene.add(residue.sidechainPickingMeshes)
-        }
-      }
-    }
-  }
-
-  /**
-   * Sets the visibility of a mesh this.displayMeshes & this.pickingMeshes.
-   * If it does not exist, create it, and look for the corresponding method
-   * to build the mesh this.build<CaptializaedMeshName>
-   *
-   * @param meshName
-   * @param visible
-   */
-  setMeshVisible (meshName, visible) {
-    if (visible) {
-      if (!(meshName in this.displayMeshes)) {
-        let buildMeshOfFunctionName = 'buildMeshOf' + _.capitalize(meshName)
-        console.log('> ProteinDisplay.' + buildMeshOfFunctionName)
-        this[buildMeshOfFunctionName]()
-        this.updateMeshesInScene = true
-      }
-    }
-    if (meshName in this.displayMeshes) {
-      setVisible(this.displayMeshes[meshName], visible)
-    }
-  }
-
-  selectVisibleMeshes () {
-
-    var show = this.scene.current_view.show
-    this.updateMeshesInScene = false
-
-    this.setMeshVisible('tube', show.trace)
-    this.setMeshVisible('water', show.water)
-    this.setMeshVisible('ribbons', show.ribbon)
-    this.setMeshVisible('arrows', !show.all_atom)
-    this.setMeshVisible('backbone', show.all_atom)
-    this.setMeshVisible('ligands', show.ligands)
-
-    if (exists(this.displayMeshes.grid)) {
-      for (let mesh of [this.displayMeshes.grid, this.pickingMeshes.grid]) {
-        mesh.traverse(child => {
-          if (exists(child.i)) {
-            child.visible = this.isVisibleGridAtom(child.i)
-          }
-        })
-      }
-    }
-
-    for (let trace of this.traces) {
-      for (let i of _.range(trace.indices.length)) {
-        let residue = trace.getReferenceObject(i)
-        let residueShow = show.sidechain || residue.selected
-        if (residueShow && !exists(residue.mesh)) {
-          this.buildMeshOfSidechain(residue)
-          this.updateMeshesInScene = true
-          residue.mesh = true
-        }
-      }
-    }
-
-    for (let trace of this.traces) {
-      for (let i of _.range(trace.indices.length)) {
-        let residue = trace.getReferenceObject(i)
-        let residueShow = show.sidechain || residue.selected
-        setVisible(residue.sidechainMeshes, residueShow)
-      }
-    }
-
-    if (this.updateMeshesInScene) {
-      this.rebuildSceneWithMeshes()
-    }
-  }
-
-  /**
-   ***************************************
-   * Mesh-building methods
-   ***************************************
-   */
-
-  mergeAtomToGeom (geom, pickGeom, atom) {
-    let matrix = this.getSphereMatrix(atom.pos, this.radius)
-    let unitGeom = this.unitSphereGeom
-    this.mergeUnitGeom(geom, unitGeom, this.getAtomColor(atom), matrix)
-    this.mergeUnitGeom(pickGeom, unitGeom, this.getAtomIndexColor(atom), matrix)
-  }
-
-  mergeBondToGeom (totalGeom, bond, residue) {
-
-    var p1 = v3.clone(bond.atom1.pos)
-    var p2 = v3.clone(bond.atom2.pos)
-
-    var res1 = this.protein.res_by_id[bond.atom1.res_id]
-    var res2 = this.protein.res_by_id[bond.atom2.res_id]
-
-    var color1 = getResColor(res1)
-    var color2 = getResColor(res2)
-
-    var geom = new UnitCylinderGeometry()
-
-    var radius = 0.2
-
-    if (color1 === color2) {
-
-      this.mergeUnitGeom(
-        totalGeom, geom, color1, cylinderMatrix(p1, p2, radius))
-
-    } else {
-
-      var midpoint = p2.clone().add(p1).multiplyScalar(0.5)
-
-      if (bond.atom1.res_id === residue.id) {
-
-        this.mergeUnitGeom(
-          totalGeom, geom, color1, cylinderMatrix(p1, midpoint, radius))
-
-      } else if (bond.atom2.res_id === residue.id) {
-
-        this.mergeUnitGeom(
-          totalGeom, geom, color2, cylinderMatrix(p2, midpoint, radius))
-
-      }
-
-    }
-  }
-
-  addGeomToDisplayMesh (meshName, geom) {
-    if (geom.vertices == 0) {
-      return
-    }
-    this.displayMeshes[meshName].add(
-      new THREE.Mesh(geom, this.displayMaterial)
-    )
-  }
-
-  addGeomToPickingMesh (meshName, geom) {
-    if (geom.vertices == 0) {
-      return
-    }
-    this.pickingMeshes[meshName].add(
-      new THREE.Mesh(geom, this.pickingMaterial)
-    )
-  }
-
-  buildMeshOfTube () {
-    this.clearMesh('tube')
-    let geom = new THREE.Geometry()
-    for (let trace of this.traces) {
-      let n = trace.points.length
-      for (let i of _.range(n)) {
-        let res = trace.getReferenceObject(i)
-        let ss = res.ss
-        let color = getResColor(res)
-        let isRound = true
-        let isFront = (i === 0)
-        let isBack = (i === n - 1)
-        let resGeom = trace.getSegmentGeometry(
-          i, fatCoilFace, isRound, isFront, isBack, color)
-        geom.merge(resGeom)
-        let iAtom = res.central_atom.i
-        setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom))
-      }
-    }
-    this.addGeomToDisplayMesh('tube', geom)
-  }
-
-  buildMeshOfRibbons () {
-    this.clearMesh('ribbons')
-    let displayGeom = new THREE.Geometry()
-    let pickingGeom = new THREE.Geometry()
-    for (let trace of this.traces) {
-      let n = trace.points.length
-      for (let i of _.range(n)) {
-        let res = trace.getReferenceObject(i)
-        let face = this.getSsFace(res.ss)
-        let color = getResColor(res)
-        let isRound = res.ss === 'C'
-        let isFront = ((i === 0) ||
-          (res.ss !== trace.getReferenceObject(i - 1).ss))
-        let isBack = ((i === n - 1) ||
-          (res.ss !== trace.getReferenceObject(i + 1).ss))
-        let resGeom = trace.getSegmentGeometry(
-          i, face, isRound, isFront, isBack, color)
-        displayGeom.merge(resGeom)
-        let iAtom = res.central_atom.i
-        setGeometryVerticesColor(
-          resGeom, this.getAtomIndexColor(res.central_atom))
-        pickingGeom.merge(resGeom)
-      }
-    }
-    this.addGeomToDisplayMesh('ribbons', displayGeom)
-    this.addGeomToPickingMesh('ribbons', pickingGeom)
-  }
-
-  buildMeshOfArrows () {
-    this.clearMesh('arrows')
-
-    let geom = new THREE.Geometry()
-    let blockArrowGeometry = new BlockArrowGeometry()
-    blockArrowGeometry.computeFaceNormals()
-
-    let obj = new THREE.Object3D()
-
-    for (let trace of this.traces) {
-      for (let i of _.range(trace.points.length)) {
-        let point = trace.points[i]
-        let tangent = trace.tangents[i]
-        let normal = trace.binormals[i]
-        let target = point.clone().add(tangent)
-
-        let res = trace.getReferenceObject(i)
-        let color = getDarkSsColor(res.ss)
-        setGeometryVerticesColor(blockArrowGeometry, color)
-
-        obj.matrix.identity()
-        obj.position.copy(point)
-        obj.up.copy(normal)
-        obj.lookAt(target)
-        obj.updateMatrix()
-
-        geom.merge(blockArrowGeometry, obj.matrix)
-      }
-    }
-
-    this.addGeomToDisplayMesh('arrows', geom)
-  }
-
-  buildMeshOfSidechain (residue) {
-    if (!residue.is_protein_or_nuc) {
-      return
-    }
-
-    var displayGeom = new THREE.Geometry()
-    var pickingGeom = new THREE.Geometry()
-
-    for (let bond of residue.bonds) {
-      if (!inArray(bond.atom1.type, backboneAtoms)
-        || !inArray(bond.atom2.type, backboneAtoms)) {
-        this.mergeBondToGeom(displayGeom, bond, residue)
-      }
-    }
-
-    for (let atom of _.values(residue.atoms)) {
-      if (!inArray(atom.type, backboneAtoms)) {
-        atom.is_sidechain = true
-        let matrix = this.getSphereMatrix(atom.pos, this.radius)
-        this.mergeUnitGeom(
-          displayGeom, this.unitSphereGeom, this.getAtomColor(atom), matrix)
-        this.mergeUnitGeom(
-          pickingGeom, this.unitSphereGeom, this.getAtomIndexColor(atom), matrix)
-      }
-    }
-
-    residue.sidechainMeshes = new THREE.Object3D()
-    residue.sidechainMeshes.add(new THREE.Mesh(displayGeom, this.displayMaterial))
-    residue.sidechainPickingMeshes = new THREE.Object3D()
-    residue.sidechainPickingMeshes.add(new THREE.Mesh(pickingGeom, this.pickingMaterial))
-  }
-
-  buildMeshOfBackbone () {
-    this.clearMesh('backbone')
-    let displayGeom = new THREE.Geometry()
-    let pickingGeom = new THREE.Geometry()
-    for (let residue of this.protein.residues) {
-      if (residue.is_protein_or_nuc) {
-        for (let bond of residue.bonds) {
-          if (inArray(bond.atom1.type, backboneAtoms) ||
-            inArray(bond.atom2.type, backboneAtoms)) {
-            this.mergeBondToGeom(displayGeom, bond, residue)
-          }
-        }
-        for (let atom of _.values(residue.atoms)) {
-          if (inArray(atom.type, backboneAtoms)) {
-            this.mergeAtomToGeom(displayGeom, pickingGeom, atom)
-          }
-        }
-      }
-    }
-    this.addGeomToDisplayMesh('backbone', displayGeom)
-    this.addGeomToPickingMesh('backbone', pickingGeom)
-  }
-
-  buildMeshOfLigands () {
-    this.clearMesh('ligands')
-    let displayGeom = new THREE.Geometry()
-    let pickingGeom = new THREE.Geometry()
-    for (let residue of this.protein.residues) {
-      if (residue.is_ligands) {
-        for (let bond of residue.bonds) {
-          this.mergeBondToGeom(displayGeom, bond, residue)
-        }
-        for (let atom of _.values(residue.atoms)) {
-          this.mergeAtomToGeom(displayGeom, pickingGeom, atom)
-        }
-      }
-    }
-    this.addGeomToDisplayMesh('ligands', displayGeom)
-    this.addGeomToPickingMesh('ligands', pickingGeom)
-  }
-
-  buildMeshOfWater () {
-    this.clearMesh('water')
-    let displayGeom = new THREE.Geometry()
-    let pickingGeom = new THREE.Geometry()
-    for (let residue of this.protein.residues) {
-      if (residue.is_water) {
-        for (let bond of residue.bonds) {
-          this.mergeBondToGeom(displayGeom, bond, residue)
-        }
-        for (let atom of _.values(residue.atoms)) {
-          this.mergeAtomToGeom(displayGeom, pickingGeom, atom)
-        }
-      }
-    }
-    this.addGeomToDisplayMesh('water', displayGeom)
-    this.addGeomToPickingMesh('water', pickingGeom)
-  }
-
-  /**
-   * Searches atoms for autodock grid atoms and gets the
-   * B-factor limits for the grid atoms
-   */
-  findGridLimits () {
-    this.scene.grid_atoms = {}
-
-    for (var i = 0; i < this.protein.residues.length; i += 1) {
-      var residue = this.protein.residues[i]
-      if (residue.is_grid) {
-        for (var a in residue.atoms) {
-          var atom = residue.atoms[a]
-
-          if (!(atom.elem in this.scene.grid_atoms)) {
-            this.scene.grid_atoms[atom.elem] = true
-          }
-
-          if (this.gridControlWidget.minB === null) {
-            this.gridControlWidget.minB = atom.bfactor
-            this.gridControlWidget.maxB = atom.bfactor
-          } else {
-            if (atom.bfactor > this.gridControlWidget.maxB) {
-              this.gridControlWidget.maxB = atom.bfactor
-            }
-            if (atom.bfactor < this.gridControlWidget.minB) {
-              this.gridControlWidget.minB = atom.bfactor
-            }
-          }
-        }
-      }
-    }
-
-    if (this.gridControlWidget.minB === null) {
-      this.gridControlWidget.minB = 0
-    }
-    if (this.gridControlWidget.maxB === null) {
-      this.gridControlWidget.minB = 0
-    }
-    this.gridControlWidget.diffB = this.gridControlWidget.maxB - this.gridControlWidget.minB
-    this.scene.grid = this.gridControlWidget.minB
-    console.log('> ProteinDisplay.findGridLimits', this.scene.grid_atoms)
-  }
-
-  isVisibleGridAtom (iAtom) {
-    let atom = this.protein.atoms[iAtom]
-    let isAtomInRange = atom.bfactor > this.scene.grid
-    let isAtomElemSelected = this.scene.grid_atoms[atom.elem]
-    return isAtomElemSelected && isAtomInRange
-  }
-
-  buildMeshOfGrid () {
-    if (!this.isGrid) {
-      return
-    }
-    this.clearMesh('grid')
-    for (let residue of this.protein.residues) {
-      if (residue.is_grid) {
-        for (let a in residue.atoms) {
-          let atom = residue.atoms[a]
-          if ((atom.bfactor > this.scene.grid) &&
-            (this.scene.grid_atoms[atom.elem])) {
-            var radius = 0.35
-            var material = new THREE.MeshLambertMaterial({
-              color: this.getAtomColor(atom)
-            })
-
-            var mesh = new THREE.Mesh(this.unitSphereGeom, material)
-            mesh.scale.set(radius, radius, radius)
-            mesh.position.copy(atom.pos)
-            mesh.i = atom.i
-            this.displayMeshes.grid.add(mesh)
-
-            let indexMaterial = new THREE.MeshBasicMaterial({
-              color: this.getAtomIndexColor(atom)
-            })
-            let pickingMesh = new THREE.Mesh(this.unitSphereGeom, indexMaterial)
-            pickingMesh.scale.set(radius, radius, radius)
-            pickingMesh.position.copy(atom.pos)
-            pickingMesh.i = atom.i
-            this.pickingMeshes.grid.add(pickingMesh)
-          }
-        }
-      }
-    }
-  }
-
-  buildMeshOfNucleotides () {
-    this.clearMesh('basepairs')
-
-    let displayGeom = new THREE.Geometry()
-    let pickingGeom = new THREE.Geometry()
-
-    let cylinderGeom = new UnitCylinderGeometry()
-
-    for (let residue of this.protein.residues) {
-      if (residue.ss !== 'D' || !residue.is_protein_or_nuc) {
-        continue
-      }
-
-      let basepairGeom = new THREE.Geometry()
-
-      let atomTypes, bondTypes
-      if (residue.type === 'DA' || residue.type === 'A') {
-        atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
-        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']
-        ]
-      } else if (residue.type === 'DG' || residue.type === 'G') {
-        atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
-        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']
-        ]
-      } else if (residue.type === 'DT' || residue.type === 'U') {
-        atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
-        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']
-        ]
-      } else if (residue.type === 'DC' || residue.type === 'C') {
-        atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
-        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']
-        ]
-      } else {
-        continue
-      }
-      let vertices = getVerticesFromAtomDict(residue.atoms, atomTypes)
-      basepairGeom.merge(new RaisedShapeGeometry(vertices, 0.3))
-
-      let radius = 0.2
-      for (let bond of bondTypes) {
-        let vertices = getVerticesFromAtomDict(residue.atoms, [bond[0], bond[1]])
-        basepairGeom.merge(cylinderGeom, cylinderMatrix(vertices[0], vertices[1], radius))
-      }
-
-      basepairGeom.computeFaceNormals()
-
-      setGeometryVerticesColor(basepairGeom, getResColor(residue))
-      displayGeom.merge(basepairGeom)
-
-      setGeometryVerticesColor(basepairGeom, this.getAtomIndexColor(residue.central_atom))
-      pickingGeom.merge(basepairGeom)
-    }
-
-    this.addGeomToDisplayMesh('basepairs', displayGeom)
-    this.addGeomToPickingMesh('basepairs', pickingGeom)
-  }
-
-  /**
-   ******************************************
-   * Other Graphical objects
-   ******************************************
-   */
-
-  buildCrossHairs () {
-    var radius = 1.2,
-      segments = 60,
-      material = new THREE.LineDashedMaterial(
-        {color: 0xFF7777, linewidth: 2})
-    var geometry = new THREE.CircleGeometry(radius, segments)
-
-    // Remove center vertex
-    geometry.vertices.shift()
-
-    this.crossHairs = new THREE.Line(geometry, material)
-    this.crossHairs.dontDelete = true
-    this.displayScene.add(this.crossHairs)
-  }
-
   moveCrossHairs () {
     this.crossHairs.position.copy(this.cameraTarget)
     this.crossHairs.lookAt(this.camera.position)
     this.crossHairs.updateMatrix()
   }
+
+  /**
+   ******************************************
+   * Handle camera
+   ******************************************
+   */
 
   setTargetFromResId (resId) {
     var atom = this.protein.res_by_id[resId].central_atom

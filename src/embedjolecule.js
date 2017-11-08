@@ -291,7 +291,7 @@ class EmbedJolecule {
       (isProcessingFlag) => {
         dataServer.get_protein_data(
           (proteinData) => {
-            this.proteinDisplay.displayProcessMessageAndRun(
+            this.proteinDisplay.displayMessageBeforeCompute(
               "Parsing '" + proteinData.pdb_id + "'", 
               () => { 
                 this.loadProteinData(
