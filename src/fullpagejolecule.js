@@ -41,7 +41,7 @@ class ViewPieceList {
           .append(
             linkButton(
               '', '+l[a]bel', 'jolecule-button',
-              () => { this.proteinDisplay.atom_label_dialog(); }
+              () => { this.proteinDisplay.atomLabelDialog(); }
             ))
           .append("<br>")
         )
@@ -399,7 +399,7 @@ class FullPageJolecule {
       } else if (c == 'N') {
         this.proteinDisplay.controller.toggle_neighbors();
       } else if (c == 'A') {
-        this.proteinDisplay.atom_label_dialog();
+        this.proteinDisplay.atomLabelDialog();
       } else {
         let i = parseInt(c)-1;
         if ((i || i==0) && (i<this.scene.saved_views.length)) {
