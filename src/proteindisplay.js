@@ -4,18 +4,18 @@ import _ from 'lodash'
 import v3 from './v3'
 import {View} from './protein'
 import {
-  PathAndFrenetFrames,
   UnitCylinderGeometry,
-  perpVector,
   BlockArrowGeometry,
-  expandPath,
   setVisible,
   RaisedShapeGeometry,
-  RibbonGeometry,
   getUnitVectorRotation,
   getFractionRotation,
   setGeometryVerticesColor,
-  clearObject3D
+  clearObject3D,
+  Trace,
+  mergeUnitGeom,
+  getSphereMatrix,
+  getCylinderMatrix
 } from './glgeometry'
 import {
   toggleButton,
@@ -28,25 +28,25 @@ import {
 } from './util'
 
 
-var TV3 = THREE.Vector3
+let TV3 = THREE.Vector3
 
 // Color constants
 
-var green = new THREE.Color(0x639941)
-var blue = new THREE.Color(0x568AB5)
-var yellow = new THREE.Color(0xFFC900)
-var purple = new THREE.Color(0x9578AA)
-var grey = new THREE.Color(0xBBBBBB)
-var red = new THREE.Color(0x993333)
+const green = new THREE.Color(0x639941)
+const blue = new THREE.Color(0x568AB5)
+const yellow = new THREE.Color(0xFFC900)
+const purple = new THREE.Color(0x9578AA)
+const grey = new THREE.Color(0xBBBBBB)
+const red = new THREE.Color(0x993333)
 
-var darkGreen = new THREE.Color(0x2E471E)
-var darkBlue = new THREE.Color(0x406786)
-var darkYellow = new THREE.Color(0xC39900)
-var darkPurple = new THREE.Color(0x5E4C6B)
-var darkGrey = new THREE.Color(0x555555)
-var darkRed = new THREE.Color(0x662222)
+const darkGreen = new THREE.Color(0x2E471E)
+const darkBlue = new THREE.Color(0x406786)
+const darkYellow = new THREE.Color(0xC39900)
+const darkPurple = new THREE.Color(0x5E4C6B)
+const darkGrey = new THREE.Color(0x555555)
+const darkRed = new THREE.Color(0x662222)
 
-var ElementColors = {
+let ElementColors = {
   'H': 0xCCCCCC,
   'C': 0xAAAAAA,
   'O': 0xCC0000,
@@ -71,6 +71,10 @@ for (let [k, v] of _.toPairs(ElementColors)) {
   ElementColors[k] = new THREE.Color(v)
 }
 
+function getIndexColor (i) {
+  return new THREE.Color().setHex(i)
+}
+
 function getSsColor (ss) {
   if (ss === 'E') {
     return yellow
@@ -85,7 +89,6 @@ function getSsColor (ss) {
   }
   return grey
 }
-
 
 function getDarkSsColor (ss) {
   if (ss === 'E') {
@@ -102,6 +105,12 @@ function getDarkSsColor (ss) {
   return darkGrey
 }
 
+function getSsFace (ss) {
+  if (ss === 'C' || ss === '-') {
+    return coilFace
+  }
+  return ribbonFace
+}
 
 function getResColor (res) {
   return res.color
@@ -110,7 +119,7 @@ function getResColor (res) {
 
 // Backbone atom names
 
-var backboneAtoms = [
+const backboneAtoms = [
   'N', 'C', 'O', 'H', 'HA', 'CA', 'OXT',
   'C3\'', 'P', 'OP1', 'O5\'', 'OP2',
   'C5\'', 'O5\'', 'O3\'', 'C4\'', 'O4\'', 'C1\'', 'C2\'', 'O2\'',
@@ -119,14 +128,14 @@ var backboneAtoms = [
 
 // Cartoon cross-sections
 
-var ribbonFace = new THREE.Shape([
+const ribbonFace = new THREE.Shape([
   new THREE.Vector2(-1.5, -0.2),
   new THREE.Vector2(-1.5, +0.2),
   new THREE.Vector2(+1.5, +0.2),
   new THREE.Vector2(+1.5, -0.2)
 ])
 
-var coilFace = new THREE.Shape([
+const coilFace = new THREE.Shape([
   new THREE.Vector2(-0.2, -0.2),
   new THREE.Vector2(-0.2, +0.2),
   new THREE.Vector2(+0.2, +0.2),
@@ -135,7 +144,7 @@ var coilFace = new THREE.Shape([
 
 // Tube cross-sections
 
-var fatCoilFace = new THREE.Shape([
+const fatCoilFace = new THREE.Shape([
   new THREE.Vector2(-0.25, -0.25),
   new THREE.Vector2(-0.25, +0.25),
   new THREE.Vector2(+0.25, +0.25),
@@ -421,7 +430,6 @@ class DistanceMeasure {
         'position': 'absolute',
         'top': 0,
         'left': 0,
-        // 'z-index': 100,
         'background-color': '#FFDDDD',
         'padding': '5',
         'opacity': 0.7,
@@ -729,7 +737,6 @@ var resToAa = {
 
 }
 
-
 /**
  * SequenceWidget
  *   - creates a dual band across the top of the selected div
@@ -815,7 +822,7 @@ class SequenceWidget extends CanvasWrapper {
       this.textXOffset)
   }
 
-  resetResidues () {
+  reset () {
     let nRawResidue = this.scene.protein.residues.length
 
     this.residues = []
@@ -955,11 +962,11 @@ class SequenceWidget extends CanvasWrapper {
       this.iStartChar = parseInt(this.iStartChar)
 
       this.proteinDisplay.setTargetFromAtom(
-        this.scene.protein.residues[this.getFullIRes()].central_atom)
+        this.scene.protein.residues[this.getFullIRes()].central_atom.i)
     } else {
       this.iRes = this.xToIChar(this.pointerX)
       this.proteinDisplay.setTargetFromAtom(
-        this.scene.protein.residues[this.getFullIRes()].central_atom)
+        this.scene.protein.residues[this.getFullIRes()].central_atom.i)
     }
   }
 }
@@ -1254,152 +1261,6 @@ class GridControlWidget extends CanvasWrapper {
   }
 }
 
-function cylinderMatrix (from, to, radius) {
-  var midpoint = from.clone()
-    .add(to)
-    .multiplyScalar(0.5)
-
-  var obj = new THREE.Object3D()
-  obj.scale.set(radius, radius, from.distanceTo(to))
-  obj.position.copy(midpoint)
-  obj.lookAt(to)
-  obj.updateMatrix()
-  return obj.matrix
-}
-
-
-class Trace extends PathAndFrenetFrames {
-
-  constructor () {
-    super()
-    this.indices = []
-    this.referenceObjects = []
-    this.detail = 4
-  }
-
-  getReferenceObject (i) {
-    let iRef = this.indices[i]
-    return this.referenceObjects[iRef]
-  }
-
-  /**
-   * Calculates tangents as an average on neighbouring points
-   * so that we get a smooth path. If normal[i] is not null,
-   * it will use the normal, otherwise it will generate own
-   * normal
-   *
-   * @param {*} iStart
-   * @param {*} iEnd
-   */
-  calcContinuousTangents (iStart, iEnd) {
-    let trace = this
-    var points = trace.points
-
-    var iLast = iEnd - 1
-
-    var i
-
-    if ((iEnd - iStart) > 2) {
-      // project out first tangent from main chain
-      trace.tangents[iStart] = points[iStart + 1].clone()
-        .sub(points[iStart])
-        .normalize()
-
-      // calculate tangents as averages of neighbouring residues
-      for (i = iStart + 1; i < iLast; i += 1) {
-        trace.tangents[i] = points[i + 1].clone()
-          .sub(points[i - 1])
-          .normalize()
-      }
-
-      // project out last tangent from main chain
-      trace.tangents[iLast] = points[iLast].clone()
-        .sub(points[iLast - 1])
-        .normalize()
-
-      // generate normals 
-      for (i = iStart + 1; i < iLast; i += 1) {
-
-        // check if reference object provides a normal
-        if (trace.normals[i] !== null) {
-          trace.normals[i] = perpVector(trace.tangents[i], trace.normals[i])
-          trace.normals[i].normalize()
-        } else {
-          var diff = points[i].clone().sub(points[i - 1])
-          trace.normals[i] = new TV3()
-            .crossVectors(diff, trace.tangents[i]).normalize()
-        }
-      }
-
-      trace.normals[iStart] = trace.normals[iStart + 1]
-      trace.normals[iLast] = trace.normals[iLast - 1]
-
-    } else {
-      // for short 2 point traces, tangents are a bit harder to do
-      var tangent = points[iLast].clone()
-        .sub(points[iStart])
-        .normalize()
-
-      trace.tangents[iStart] = tangent
-      trace.tangents[iLast] = tangent
-
-      for (i = iStart; i <= iLast; i += 1) {
-        if (trace.normals[i] !== null) {
-          trace.normals[i] = perpVector(trace.tangents[i], trace.normals[i])
-            .normalize()
-        } else {
-          var randomDir = points[i]
-          trace.normals[i] = new TV3()
-            .crossVectors(randomDir, tangent)
-            .normalize()
-        }
-      }
-    }
-
-    // calculate binormals from tangents and normals
-    for (i = iStart; i < iEnd; i += 1) {
-      trace.binormals[i] = new TV3()
-        .crossVectors(trace.tangents[i], trace.normals[i])
-    }
-  }
-
-  expand () {
-    this.calcContinuousTangents(0, this.points.length)
-    this.detailedPath = expandPath(this, 2 * this.detail)
-  }
-
-  /**
-   * A path is generated with 2*detail.
-   *
-   * If a residue is not at the end of a piece,
-   * will be extended to detail beyond that is
-   * half-way between the residue and the neighboring
-   * residue in a different piece.
-   **/
-  getSegmentGeometry (iRes, face, isRound, isFront, isBack, color) {
-    let path = this.detailedPath
-
-    // works out start on expanded path, including overhang
-    let iPathStart = (iRes * 2 * this.detail) - this.detail
-    if (iPathStart < 0) {
-      iPathStart = 0
-    }
-
-    // works out end of expanded path, including overhang
-    let iPathEnd = ((iRes + 1) * 2 * this.detail) - this.detail + 1
-    if (iPathEnd >= path.points.length) {
-      iPathEnd = path.points.length - 1
-    }
-
-    let segmentPath = path.slice(iPathStart, iPathEnd)
-    let geom = new RibbonGeometry(
-      face, segmentPath, isRound, isFront, isBack)
-
-    setGeometryVerticesColor(geom, color)
-
-    return geom
-  }
-}
 
 /**
  *
@@ -1428,8 +1289,7 @@ class ProteinDisplay {
     this.controller.set_target_view_by_res_id = (resId) => {
       this.setTargetFromResId(resId)
     }
-    this.controller.calculate_current_abs_camera = function() {
-    }
+    this.controller.calculate_current_abs_camera = function() {}
 
     this.saveMouseX = null
     this.saveMouseY = null
@@ -1577,7 +1437,7 @@ class ProteinDisplay {
 
     this.buildScene()
 
-    this.sequenceWidget.resetResidues()
+    this.sequenceWidget.reset()
 
     // this is some mangling to link openGL
     // with the coordinate system that I had
@@ -1635,16 +1495,15 @@ class ProteinDisplay {
   }
 
   buildAfterAddProteinData () {
-    clearObject3D(this.displayScene)
     this.buildScene()
-    this.sequenceWidget.resetResidues()
     this.scene.changed = true
+    this.sequenceWidget.reset()
     this.gridControlWidget.reset()
   }
 
-  isPeptideConnected (i0, i1) {
-    var res0 = this.protein.residues[i0]
-    var res1 = this.protein.residues[i1]
+  isPeptideConnected (iRes0, iRes1) {
+    var res0 = this.protein.residues[iRes0]
+    var res1 = this.protein.residues[iRes1]
 
     if (('C' in res0.atoms) &&
       ('N' in res1.atoms) &&
@@ -1662,9 +1521,9 @@ class ProteinDisplay {
     return false
   }
 
-  isSugarPhosphateConnected (i0, i1) {
-    var res0 = this.protein.residues[i0]
-    var res1 = this.protein.residues[i1]
+  isSugarPhosphateConnected (iRes0, iRes1) {
+    var res0 = this.protein.residues[iRes0]
+    var res1 = this.protein.residues[iRes1]
 
     if (('C3\'' in res0.atoms) &&
       ('C1\'' in res0.atoms) &&
@@ -1685,10 +1544,10 @@ class ProteinDisplay {
     return false
   }
 
-  getNormalOfNuc (res) {
-    var atoms = res.atoms
-    var forward = v3.diff(atoms['C3\''].pos, atoms['C5\''].pos)
-    var up = v3.diff(atoms['C1\''].pos, atoms['C3\''].pos)
+  getNormalOfNuc (iRes) {
+    let atoms = this.protein.residues[iRes].atoms
+    let forward = v3.diff(atoms['C3\''].pos, atoms['C5\''].pos)
+    let up = v3.diff(atoms['C1\''].pos, atoms['C3\''].pos)
     return v3.crossProduct(forward, up)
   }
 
@@ -1723,7 +1582,7 @@ class ProteinDisplay {
             residue.central_atom = residue.atoms['C3\'']
             isResInTrace = true
             residue.ss = 'R'
-            residue.normal = this.getNormalOfNuc(residue)
+            residue.normal = this.getNormalOfNuc(iResidue)
           }
         }
 
@@ -1761,27 +1620,29 @@ class ProteinDisplay {
       }
     }
 
+    // flip normals so that they are all pointing in same direction
+    // within the same piece of chain
     for (let trace of this.traces) {
-      // flip normals so that they are all pointing in same direction
-      // this is from beta-sheets so should do at the next level up
-      for (let i = 1; i < trace.indices.length; i += 1) {
-        if (residues[trace.indices[i]].ss !== 'D' &&
-            residues[trace.indices[i - 1]].ss !== 'D') {
+      for (let i of _.range(1, trace.indices.length)) {
+        if (trace.getReferenceObject(i).ss !== 'D' &&
+            trace.getReferenceObject(i - 1).ss !== 'D') {
           let normal = trace.normals[i]
           let prevNormal = trace.normals[i - 1]
-          if (normal !== null && prevNormal !== null) {
+          if (normal !== null && prevNormal !== null)
             if (normal.dot(prevNormal) < 0) {
               trace.normals[i].negate()
             }
-          }
         }
       }
+    }
 
+    for (let trace of this.traces) {
       trace.expand()
     }
   }
 
-  getAtomColor (atom) {
+  getAtomColor (iAtom) {
+    let atom = this.protein.atoms[iAtom]
     if (atom.elem === 'C' || atom.elem === 'H') {
       var res = this.protein.res_by_id[atom.res_id]
       return getResColor(res)
@@ -1789,30 +1650,6 @@ class ProteinDisplay {
       return ElementColors[atom.elem]
     }
     return darkGrey
-  }
-
-  getSsFace (ss) {
-    if (ss === 'C' || ss === '-') {
-      return coilFace
-    }
-    return ribbonFace
-  }
-
-  mergeUnitGeom (totalGeom, unitGeom, color, matrix) {
-    setGeometryVerticesColor(unitGeom, color)
-    totalGeom.merge(unitGeom, matrix)
-  }
-
-  getSphereMatrix (pos, radius) {
-    this.obj.matrix.identity()
-    this.obj.position.copy(pos)
-    this.obj.scale.set(radius, radius, radius)
-    this.obj.updateMatrix()
-    return this.obj.matrix
-  }
-
-  getAtomIndexColor (atom) {
-    return new THREE.Color().setHex(atom.i)
   }
 
   assignBondsToResidues () {
@@ -1868,12 +1705,15 @@ class ProteinDisplay {
   }
 
   /**
+   **********************************************************
+   * Mesh-building methods
+   *
    * Routines to build meshes that will be incorporated into
    * scenes, and to be used for gpu-picking.
    *
    * Meshes are stored in a dictionary: this.displayMeshes &
    * this.pickingMeshes
-   *
+   **********************************************************
    */
 
   buildScene () {
@@ -1985,10 +1825,11 @@ class ProteinDisplay {
 
     for (let trace of this.traces) {
       for (let i of _.range(trace.indices.length)) {
+        let iRes = trace.indices[i]
         let residue = trace.getReferenceObject(i)
         let residueShow = show.sidechain || residue.selected
         if (residueShow && !exists(residue.mesh)) {
-          this.buildMeshOfSidechain(residue)
+          this.buildMeshOfSidechain(iRes)
           this.updateMeshesInScene = true
           residue.mesh = true
         }
@@ -2008,35 +1849,35 @@ class ProteinDisplay {
     }
   }
 
-  /**
-   ***************************************
-   * Mesh-building methods
-   ***************************************
-   */
-
-  mergeAtomToGeom (geom, pickGeom, atom) {
-    let matrix = this.getSphereMatrix(atom.pos, this.radius)
+  mergeAtomToGeom (geom, pickGeom, iAtom) {
+    let atom = this.protein.atoms[iAtom]
+    let matrix = getSphereMatrix(atom.pos, this.radius)
     let unitGeom = this.unitSphereGeom
-    this.mergeUnitGeom(geom, unitGeom, this.getAtomColor(atom), matrix)
-    this.mergeUnitGeom(pickGeom, unitGeom, this.getAtomIndexColor(atom), matrix)
+    mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix)
+    mergeUnitGeom(pickGeom, unitGeom, getIndexColor(iAtom), matrix)
   }
 
-  mergeBondToGeom (totalGeom, bond, residue) {
-    let p1 = bond.atom1.pos
-    let p2 = bond.atom2.pos
-    if (bond.atom1.res_id !== bond.atom2.res_id) {
-      let midpoint = p2.clone().add(p1).multiplyScalar(0.5)
-      if (bond.atom1.res_id === residue.id) {
-        p2 = midpoint
-      } else if (bond.atom2.res_id === residue.id) {
-        p1 = midpoint
+  mergeBondsInResidue (geom, iRes, bondFilterFn) {
+    let residue = this.protein.residues[iRes]
+    let unitGeom = new UnitCylinderGeometry()
+    let color = getResColor(residue)
+    for (let bond of residue.bonds) {
+      if (bondFilterFn && !bondFilterFn(bond)) {
+        continue
       }
+      let p1 = bond.atom1.pos
+      let p2 = bond.atom2.pos
+      if (bond.atom1.res_id !== bond.atom2.res_id) {
+        let midpoint = p2.clone().add(p1).multiplyScalar(0.5)
+        if (bond.atom1.res_id === residue.id) {
+          p2 = midpoint
+        } else if (bond.atom2.res_id === residue.id) {
+          p1 = midpoint
+        }
+      }
+      mergeUnitGeom(
+        geom, unitGeom, color, getCylinderMatrix(p1, p2, 0.2))
     }
-    this.mergeUnitGeom(
-      totalGeom,
-      new UnitCylinderGeometry(),
-      getResColor(residue),
-      cylinderMatrix(p1, p2, 0.2))
   }
 
   addGeomToDisplayMesh (meshName, geom) {
@@ -2065,7 +1906,7 @@ class ProteinDisplay {
       let n = trace.points.length
       for (let i of _.range(n)) {
         let res = trace.getReferenceObject(i)
-        let face = this.getSsFace(res.ss)
+        let face = getSsFace(res.ss)
         let color = getResColor(res)
         let isRound = res.ss === 'C'
         let isFront = ((i === 0) ||
@@ -2076,8 +1917,7 @@ class ProteinDisplay {
           i, face, isRound, isFront, isBack, color)
         displayGeom.merge(resGeom)
         let atom = res.central_atom
-        setGeometryVerticesColor(
-          resGeom, this.getAtomIndexColor(atom))
+        setGeometryVerticesColor(resGeom, getIndexColor(atom.i))
         pickingGeom.merge(resGeom)
       }
     }
@@ -2140,29 +1980,29 @@ class ProteinDisplay {
     this.addGeomToDisplayMesh('tube', geom)
   }
 
-  buildMeshOfSidechain (residue) {
+  buildMeshOfSidechain (iRes) {
+    let residue = this.protein.residues[iRes]
     if (!residue.is_protein_or_nuc) {
       return
     }
 
-    var displayGeom = new THREE.Geometry()
-    var pickingGeom = new THREE.Geometry()
+    let displayGeom = new THREE.Geometry()
+    let pickingGeom = new THREE.Geometry()
 
-    for (let bond of residue.bonds) {
-      if (!inArray(bond.atom1.type, backboneAtoms)
-        || !inArray(bond.atom2.type, backboneAtoms)) {
-        this.mergeBondToGeom(displayGeom, bond, residue)
-      }
-    }
+    this.mergeBondsInResidue(
+      displayGeom, iRes, bond => {
+        return !_.includes(backboneAtoms, bond.atom1.type) ||
+               !_.includes(backboneAtoms, bond.atom2.type)
+      })
 
     for (let atom of _.values(residue.atoms)) {
       if (!inArray(atom.type, backboneAtoms)) {
         atom.is_sidechain = true
-        let matrix = this.getSphereMatrix(atom.pos, this.radius)
-        this.mergeUnitGeom(
-          displayGeom, this.unitSphereGeom, this.getAtomColor(atom), matrix)
-        this.mergeUnitGeom(
-          pickingGeom, this.unitSphereGeom, this.getAtomIndexColor(atom), matrix)
+        let matrix = getSphereMatrix(atom.pos, this.radius)
+        mergeUnitGeom(
+          displayGeom, this.unitSphereGeom, this.getAtomColor(atom.i), matrix)
+        mergeUnitGeom(
+          pickingGeom, this.unitSphereGeom, getIndexColor(atom.i), matrix)
       }
     }
 
@@ -2176,17 +2016,18 @@ class ProteinDisplay {
     this.clearMesh('backbone')
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
-    for (let residue of this.protein.residues) {
+    for (let [iRes, residue] of this.protein.residues.entries()) {
       if (residue.is_protein_or_nuc) {
         for (let bond of residue.bonds) {
-          if (inArray(bond.atom1.type, backboneAtoms) ||
-            inArray(bond.atom2.type, backboneAtoms)) {
-            this.mergeBondToGeom(displayGeom, bond, residue)
-          }
+          this.mergeBondsInResidue(
+            displayGeom, iRes, bond => {
+              return _.includes(backboneAtoms, bond.atom1.type) &&
+                     _.includes(backboneAtoms, bond.atom2.type)
+            })
         }
         for (let atom of _.values(residue.atoms)) {
           if (inArray(atom.type, backboneAtoms)) {
-            this.mergeAtomToGeom(displayGeom, pickingGeom, atom)
+            this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
           }
         }
       }
@@ -2199,13 +2040,11 @@ class ProteinDisplay {
     this.clearMesh('ligands')
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
-    for (let residue of this.protein.residues) {
+    for (let [iRes, residue] of this.protein.residues.entries()) {
       if (residue.is_ligands) {
-        for (let bond of residue.bonds) {
-          this.mergeBondToGeom(displayGeom, bond, residue)
-        }
+        this.mergeBondsInResidue(displayGeom, iRes)
         for (let atom of _.values(residue.atoms)) {
-          this.mergeAtomToGeom(displayGeom, pickingGeom, atom)
+          this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
         }
       }
     }
@@ -2217,13 +2056,11 @@ class ProteinDisplay {
     this.clearMesh('water')
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
-    for (let residue of this.protein.residues) {
+    for (let [iRes, residue] of this.protein.residues.entries()) {
       if (residue.is_water) {
-        for (let bond of residue.bonds) {
-          this.mergeBondToGeom(displayGeom, bond, residue)
-        }
+        this.mergeBondsInResidue(displayGeom, iRes)
         for (let atom of _.values(residue.atoms)) {
-          this.mergeAtomToGeom(displayGeom, pickingGeom, atom)
+          this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
         }
       }
     }
@@ -2284,23 +2121,23 @@ class ProteinDisplay {
     this.clearMesh('grid')
     for (let residue of this.protein.residues) {
       if (residue.is_grid) {
-        for (let a in residue.atoms) {
-          let atom = residue.atoms[a]
+        for (let atom of _.values(residue.atoms)) {
           if ((atom.bfactor > this.scene.grid) &&
             (this.scene.grid_atoms[atom.elem])) {
-            var radius = 0.35
-            var material = new THREE.MeshLambertMaterial({
-              color: this.getAtomColor(atom)
+            let radius = 0.35
+
+            let material = new THREE.MeshLambertMaterial({
+              color: this.getAtomColor(atom.i)
             })
 
-            var mesh = new THREE.Mesh(this.unitSphereGeom, material)
+            let mesh = new THREE.Mesh(this.unitSphereGeom, material)
             mesh.scale.set(radius, radius, radius)
             mesh.position.copy(atom.pos)
             mesh.i = atom.i
             this.displayMeshes.grid.add(mesh)
 
             let indexMaterial = new THREE.MeshBasicMaterial({
-              color: this.getAtomIndexColor(atom)
+              color: getIndexColor(atom.i)
             })
             let pickingMesh = new THREE.Mesh(this.unitSphereGeom, indexMaterial)
             pickingMesh.scale.set(radius, radius, radius)
@@ -2354,7 +2191,7 @@ class ProteinDisplay {
       let radius = 0.2
       for (let bond of bondTypes) {
         let vertices = getVerticesFromAtomDict(residue.atoms, [bond[0], bond[1]])
-        basepairGeom.merge(cylinderGeom, cylinderMatrix(vertices[0], vertices[1], radius))
+        basepairGeom.merge(cylinderGeom, getCylinderMatrix(vertices[0], vertices[1], radius))
       }
 
       basepairGeom.computeFaceNormals()
@@ -2362,7 +2199,7 @@ class ProteinDisplay {
       setGeometryVerticesColor(basepairGeom, getResColor(residue))
       displayGeom.merge(basepairGeom)
 
-      setGeometryVerticesColor(basepairGeom, this.getAtomIndexColor(residue.central_atom))
+      setGeometryVerticesColor(basepairGeom, getIndexColor(residue.central_atom.i))
       pickingGeom.merge(basepairGeom)
     }
 
@@ -2595,10 +2432,11 @@ class ProteinDisplay {
 
   setTargetFromResId (resId) {
     var atom = this.protein.res_by_id[resId].central_atom
-    this.setTargetFromAtom(atom)
+    this.setTargetFromAtom(atom.i)
   }
 
-  setTargetFromAtom (atom) {
+  setTargetFromAtom (iAtom) {
+    let atom = this.protein.atoms[iAtom]
     var position = v3.clone(atom.pos)
     var sceneDisplacement = position.clone()
       .sub(this.cameraTarget)
@@ -2823,7 +2661,7 @@ class ProteinDisplay {
     return opacity
   }
 
-  getHoverAtom () {
+  getIAtomHover () {
     var x = this.mouseX
     var y = this.mouseY
 
@@ -2851,7 +2689,7 @@ class ProteinDisplay {
       | ( pixelBuffer[2] )
 
     if (i < this.protein.atoms.length) {
-      return this.protein.atoms[i]
+      return i
     }
 
     return null
@@ -2887,18 +2725,23 @@ class ProteinDisplay {
   }
 
   updateHover () {
-    this.hoverAtom = this.getHoverAtom()
+    if (this.getIAtomHover() !== null) {
+      this.iHoverAtom = this.getIAtomHover()
+    } else {
+      this.iHoverAtom = null
+    }
 
-    if (this.hoverAtom) {
-      var text = this.hoverAtom.label
-      if (this.hoverAtom === this.scene.centered_atom()) {
+    if (this.iHoverAtom) {
+      let atom = this.protein.atoms[this.iHoverAtom]
+      var text = atom.label
+      if (atom === this.scene.centered_atom()) {
         text = '<div style="text-align: center">'
         text += '<br>[drag distances]<br>'
         text += '[double-click labels]'
         text += '</div>'
       }
       this.hover.html(text)
-      var vector = this.posXY(v3.clone(this.hoverAtom.pos))
+      var vector = this.posXY(v3.clone(atom.pos))
       this.hover.move(vector.x, vector.y)
     } else {
       this.hover.hide()
@@ -2906,11 +2749,11 @@ class ProteinDisplay {
   }
 
   doubleclick () {
-    if (this.hoverAtom !== null) {
-      if (this.hoverAtom === this.scene.centered_atom()) {
+    if (this.iHoverAtom !== null) {
+      if (this.iHoverAtom === this.scene.centered_atom().i) {
         this.atomLabelDialog()
       } else {
-        this.setTargetFromAtom(this.hoverAtom)
+        this.setTargetFromAtom(this.iHoverAtom)
       }
       this.isDraggingCentralAtom = false
     }
@@ -2927,14 +2770,14 @@ class ProteinDisplay {
 
     this.updateHover()
 
-    this.downAtom = this.getHoverAtom()
+    this.iDownAtom = this.getIAtomHover()
 
     if (isDoubleClick) {
       this.doubleclick()
     } else {
       this.isDraggingCentralAtom = false
 
-      if (this.downAtom !== null) {
+      if (this.iDownAtom !== null) {
         this.isDraggingCentralAtom = true
       }
     }
@@ -2957,8 +2800,7 @@ class ProteinDisplay {
     this.updateHover()
 
     if (this.isDraggingCentralAtom) {
-      var mainDivPos = this.mainDiv.position()
-      var v = this.posXY(v3.clone(this.downAtom.pos))
+      var v = this.posXY(this.protein.atoms[this.iDownAtom].pos)
 
       this.lineWidget.move(this.mouseX, this.mouseY, v.x, v.y)
     } else {
@@ -3016,12 +2858,11 @@ class ProteinDisplay {
     event.preventDefault()
 
     if (this.isDraggingCentralAtom) {
-      if (this.hoverAtom !== null) {
-        var centralAtom = this.scene.centered_atom()
-
-        if (this.hoverAtom !== this.downAtom) {
+      if (this.iHoverAtom !== null) {
+        if (this.iHoverAtom !== this.iDownAtom) {
           this.controller.make_dist(
-            this.hoverAtom, this.downAtom)
+            this.protein.atoms[this.iHoverAtom],
+            this.protein.atoms[this.iDownAtom])
         }
       }
 
@@ -3036,7 +2877,7 @@ class ProteinDisplay {
       this.mouseY = null
     }
 
-    this.downAtom = null
+    this.iDownAtom = null
 
     this.mousePressed = false
   }
@@ -3063,7 +2904,7 @@ class ProteinDisplay {
   gestureend (event) {
     event.preventDefault()
     this.isGesture = false
-    this.downAtom = null
+    this.iDownAtom = null
     this.mousePressed = false
   }
 

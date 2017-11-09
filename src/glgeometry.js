@@ -176,6 +176,154 @@ function expandPath (oldPath, n, iOldPoint, jOldPoint) {
 }
 
 
+/**
+ * Trace is an object designed to be built up progressively
+ * by adding to this.indices, this.points and this.normals.
+ *
+ * Once built, it can be expanded into a more detailed
+ * trace, which is used to generate geometric pieces of
+ * an extrusion where the normals and tangents are
+ * controlled.
+ */
+class Trace extends PathAndFrenetFrames {
+
+  constructor () {
+    super()
+    this.indices = []
+    this.referenceObjects = []
+    this.detail = 4
+  }
+
+  getReferenceObject (i) {
+    let iRef = this.indices[i]
+    return this.referenceObjects[iRef]
+  }
+
+  /**
+   * Calculates tangents as an average on neighbouring points
+   * so that we get a smooth path. If normal[i] is not null,
+   * it will use the normal, otherwise it will generate own
+   * normal from the path curvature
+   *
+   * @param {*} iStart
+   * @param {*} iEnd
+   */
+  calcContinuousTangents (iStart, iEnd) {
+    let iLast = iEnd - 1
+
+    if ((iEnd - iStart) > 2) {
+
+      // calculate tangents
+      // project out first tangent from main chain
+      this.tangents[iStart] = this.points[iStart + 1].clone()
+        .sub(this.points[iStart])
+        .normalize()
+
+      // calculate tangents as averages of neighbouring residues
+      for (let i = iStart + 1; i < iLast; i += 1) {
+        this.tangents[i] = this.points[i + 1].clone()
+          .sub(this.points[i - 1])
+          .normalize()
+      }
+
+      // project out last tangent from main chain
+      this.tangents[iLast] = this.points[iLast].clone()
+        .sub(this.points[iLast - 1])
+        .normalize()
+
+      // generate normals
+      for (let i = iStart + 1; i < iLast; i += 1) {
+
+        if (this.normals[i] !== null) {
+          // normal already provided, normalize properly against tangent
+          this.normals[i] = perpVector(this.tangents[i], this.normals[i])
+          this.normals[i].normalize()
+        } else {
+          // generate a normal from curvature
+          let diff = this.points[i].clone().sub(this.points[i - 1])
+          this.normals[i] = new TV3()
+            .crossVectors(diff, this.tangents[i]).normalize()
+
+          // smooth out auto-generated normal if flipped 180deg from prev
+          let prevNormal = this.normals[i - 1]
+          if (prevNormal !== null) {
+            if (this.normals[i].dot(prevNormal) < 0) {
+              this.normals[i].negate()
+            }
+          }
+        }
+      }
+
+      this.normals[iStart] = this.normals[iStart + 1]
+      this.normals[iLast] = this.normals[iLast - 1]
+
+    } else {
+      // for short 2 point traces, tangents are a bit harder to do
+      let tangent = this.points[iLast].clone()
+        .sub(this.points[iStart])
+        .normalize()
+
+      this.tangents[iStart] = tangent
+      this.tangents[iLast] = tangent
+
+      for (let i = iStart; i <= iLast; i += 1) {
+        if (this.normals[i] !== null) {
+          this.normals[i] = perpVector(this.tangents[i], this.normals[i])
+            .normalize()
+        } else {
+          let randomDir = this.points[i]
+          this.normals[i] = new TV3()
+            .crossVectors(randomDir, tangent)
+            .normalize()
+        }
+      }
+    }
+
+    // calculate binormals from tangents and normals
+    for (let i = iStart; i < iEnd; i += 1) {
+      this.binormals[i] = new TV3()
+        .crossVectors(this.tangents[i], this.normals[i])
+    }
+  }
+
+  expand () {
+    this.calcContinuousTangents(0, this.points.length)
+    this.detailedPath = expandPath(this, 2 * this.detail)
+  }
+
+  /**
+   * A path is generated with 2*detail. If a
+   * residue is not at the end of a piece,
+   * will be extended to detail beyond that is
+   * half-way between the residue and the neighboring
+   * residue in a different piece.
+   **/
+  getSegmentGeometry (iRes, face, isRound, isFront, isBack, color) {
+    let path = this.detailedPath
+
+    // works out start on expanded path, including overhang
+    let iPathStart = (iRes * 2 * this.detail) - this.detail
+    if (iPathStart < 0) {
+      iPathStart = 0
+    }
+
+    // works out end of expanded path, including overhang
+    let iPathEnd = ((iRes + 1) * 2 * this.detail) - this.detail + 1
+    if (iPathEnd >= path.points.length) {
+      iPathEnd = path.points.length - 1
+    }
+
+    let segmentPath = path.slice(iPathStart, iPathEnd)
+
+    let geom = new RibbonGeometry(
+      face, segmentPath, isRound, isFront, isBack)
+    setGeometryVerticesColor(geom, color)
+
+    return geom
+  }
+}
+
+
 function BlockArrowGeometry () {
 
   // Block arrow that points in the -Z direction
@@ -566,6 +714,36 @@ function setGeometryVerticesColor (geom, color) {
 }
 
 
+function mergeUnitGeom (totalGeom, unitGeom, color, matrix) {
+  setGeometryVerticesColor(unitGeom, color)
+  totalGeom.merge(unitGeom, matrix)
+}
+
+
+function getSphereMatrix (pos, radius) {
+  let obj = new THREE.Object3D()
+  obj.matrix.identity()
+  obj.position.copy(pos)
+  obj.scale.set(radius, radius, radius)
+  obj.updateMatrix()
+  return obj.matrix
+}
+
+
+function getCylinderMatrix (from, to, radius) {
+  var midpoint = from.clone()
+    .add(to)
+    .multiplyScalar(0.5)
+
+  var obj = new THREE.Object3D()
+  obj.scale.set(radius, radius, from.distanceTo(to))
+  obj.position.copy(midpoint)
+  obj.lookAt(to)
+  obj.updateMatrix()
+  return obj.matrix
+}
+
+
 function clearObject3D (obj) {
   // clearing obj does not clear scene
   var iLast = obj.children.length - 1
@@ -585,6 +763,7 @@ function clearObject3D (obj) {
 }
 
 
+
 export {
   PathAndFrenetFrames,
   BlockArrowGeometry,
@@ -597,7 +776,11 @@ export {
   getUnitVectorRotation,
   getFractionRotation,
   setGeometryVerticesColor,
-  clearObject3D
+  clearObject3D,
+  Trace,
+  mergeUnitGeom,
+  getSphereMatrix,
+  getCylinderMatrix
 }
 
 
