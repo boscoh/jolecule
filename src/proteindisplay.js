@@ -274,7 +274,69 @@ function convertTargetToView (target) {
 }
 
 /**
- * PopupText
+ * LineElement
+ * - instantiates a DOM object is to draw a line between (x1, y1) and
+ *   (x2, y2) within a jquery div
+ * - used to display the mouse tool for making distance labels
+ */
+
+class LineElement {
+  constructor (selector, color) {
+    this.color = color
+
+    this.div = $('<canvas>')
+      .css({
+        'position': 'absolute',
+        'z-index': '1000',
+        'display': 'none',
+        'pointer-events': 'none'
+      })
+
+    this.canvas = this.div[0]
+    this.context2d = this.canvas.getContext('2d')
+
+    this.parentDiv = $(selector)
+    this.parentDiv.append(this.div)
+  }
+
+  hide () {
+    this.div.css('display', 'none')
+  }
+
+  move (x1, y1, x2, y2) {
+    var parentDivPos = this.parentDiv.position()
+
+    var width = Math.abs(x1 - x2)
+    var height = Math.abs(y1 - y2)
+
+    var left = Math.min(x1, x2)
+    var top = Math.min(y1, y2)
+
+    this.div
+      .css('display', 'block')
+      .css('width', width)
+      .css('height', height)
+      .css('top', top + parentDivPos.top)
+      .css('left', left + parentDivPos.left)
+
+    this.canvas.width = width
+    this.canvas.height = height
+
+    this.context2d.clearRect(0, 0, width, height)
+    this.context2d.beginPath()
+    this.context2d.moveTo(x1 - left, y1 - top)
+    this.context2d.lineTo(x2 - left, y2 - top)
+    this.context2d.lineWidth = 2
+    this.context2d.strokeStyle = this.color
+    this.context2d.stroke()
+  }
+}
+
+
+/**
+ * PopupText is a little blob of text with a down
+ * arrow that can be displayed in a (x, y) position
+ * within a parent div denoted by selector
  **/
 
 class PopupText {
@@ -350,281 +412,6 @@ class PopupText {
   }
 }
 
-/**
- * AtomLabel
- */
-
-class AtomLabel {
-  constructor (selector, controller, parentList) {
-    this.popup = new PopupText(selector)
-    this.controller = controller
-    this.parentList = parentList
-    this.popup.div.click(() => this.remove())
-  }
-
-  update (i, text, x, y, opacity) {
-    this.i = i
-    this.popup.html(text)
-    this.popup.div.css('opacity', opacity)
-    this.popup.arrow.css('opacity', opacity)
-    this.popup.move(x, y)
-  }
-
-  remove () {
-    this.popup.remove()
-    this.controller.delete_label(this.i)
-    this.parentList.splice(this.i, 1)
-  }
-
-  hide () {
-    this.popup.div.css('display', 'none')
-    this.popup.arrow.css('display', 'none')
-  }
-}
-
-class AtomLabelsWidget {
-
-  constructor(proteinDisplay) {
-    this.atomlabels = []
-    this.threeJsScene = proteinDisplay.displayScene
-    this.scene = proteinDisplay.scene
-    this.controller = proteinDisplay.controller
-    this.webglDivTag = proteinDisplay.webglDivTag
-    this.proteinDisplay = proteinDisplay
-  }
-
-  draw() {
-    var labels = this.scene.current_view.labels
-
-    for (let i = this.atomlabels.length; i < labels.length; i += 1) {
-      var atomLabel = new AtomLabel(
-        this.webglDivTag, this.controller, this.atomlabels)
-      this.atomlabels.push(atomLabel)
-    }
-
-    for (let i = this.atomlabels.length - 1; i >= 0; i -= 1) {
-      if (i >= labels.length) {
-        this.atomlabels[i].remove()
-      }
-    }
-
-    var atoms = this.scene.protein.atoms
-
-    for (let i = 0; i < labels.length; i += 1) {
-      var atom = atoms[labels[i].i_atom]
-      var pos = atom.pos
-      var v = this.proteinDisplay.posXY(pos)
-      var opacity = 0.7 * this.proteinDisplay.opacity(pos) + 0.2
-
-      this.atomlabels[i].update(
-        i, labels[i].text, v.x, v.y, opacity)
-
-      if (!this.proteinDisplay.inZlab(pos)) {
-        this.atomlabels[i].hide()
-      }
-    }
-  }
-}
-
-/**
- * DistanceMeasure
- */
-
-class DistanceMeasure {
-  constructor (selector, threeJsScene, controller, parentList) {
-    this.displayScene = threeJsScene
-    this.controller = controller
-    this.parentList = parentList
-
-    this.div = $('<div>')
-      .css({
-        'position': 'absolute',
-        'top': 0,
-        'left': 0,
-        'background-color': '#FFDDDD',
-        'padding': '5',
-        'opacity': 0.7,
-        'font-family': 'sans-serif'
-      })
-
-    var geometry = new THREE.Geometry()
-    geometry.vertices.push(new TV3(0, 0, 0))
-    geometry.vertices.push(new TV3(1, 1, 1))
-
-    var material = new THREE.LineDashedMaterial({
-      color: 0xFF7777,
-      dashSize: 3,
-      gapSize: 4,
-      linewidth: 2
-    })
-
-    this.line = new THREE.Line(geometry, material)
-
-    this.displayScene.add(this.line)
-
-    this.parentDiv = $(selector)
-    this.parentDiv.append(this.div)
-
-    this.div.click(() => this.remove())
-  }
-
-  update (i, text, x, y, p1, p2, opacity) {
-    this.i = i
-
-    if ((x < 0) || (x > this.parentDiv.width()) || (y < 0) ||
-      (y > this.parentDiv.height())) {
-      this.hide()
-      return
-    }
-
-    var parentDivPos = this.parentDiv.position()
-
-    this.div.text(text)
-
-    var width = this.div.innerHeight()
-    var height = this.div.innerWidth()
-
-    this.div.css({
-      'top': y - width / 2 + parentDivPos.top,
-      'left': x - height / 2 + parentDivPos.left,
-      'display': 'block',
-      'cursor': 'pointer',
-      'opacity': opacity
-    })
-
-    this.line.geometry.vertices[0].copy(p1)
-    this.line.geometry.vertices[1].copy(p2)
-  }
-
-  remove () {
-    this.displayScene.remove(this.line)
-    this.div.remove()
-    this.controller.delete_dist(this.i)
-    this.parentList.splice(this.i, 1)
-  }
-
-  hide () {
-    this.div.css('display', 'none')
-  }
-}
-
-class DistanceMeasuresWidget {
-
-  constructor(proteinDisplay) {
-    this.distanceMeasures = []
-    this.threeJsScene = proteinDisplay.displayScene
-    this.scene = proteinDisplay.scene
-    this.controller = proteinDisplay.controller
-    this.webglDivTag = proteinDisplay.webglDivTag
-    this.proteinDisplay = proteinDisplay
-  }
-
-  draw() {
-    let distances = this.scene.current_view.distances
-    let atoms = this.scene.protein.atoms
-
-    for (let i = 0; i < distances.length; i += 1) {
-      let distance = distances[i]
-      let p1 = atoms[distance.i_atom1].pos
-      let p2 = atoms[distance.i_atom2].pos
-      let m = p1.clone().add(p2).multiplyScalar(0.5)
-
-      let opacity = 0.7 * this.proteinDisplay.opacity(m) + 0.3
-
-      let v = this.proteinDisplay.posXY(m)
-
-      let text = p1.distanceTo(p2).toFixed(1)
-
-      if (i >= this.distanceMeasures.length) {
-        this.distanceMeasures.push(
-          new DistanceMeasure(
-            this.webglDivTag, this.threeJsScene,
-            this.controller, this.distanceMeasures))
-      }
-
-      this.distanceMeasures[i].update(i, text, v.x, v.y, p1, p2, opacity)
-
-      if (!this.proteinDisplay.inZlab(m)) {
-        this.distanceMeasures[i].hide()
-      }
-    }
-
-    for (let i = this.distanceMeasures.length - 1; i >= 0; i -= 1) {
-      if (i >= distances.length) {
-        this.distanceMeasures[i].remove()
-      }
-    }
-  }
-}
-
-
-/**
- * LineElement
- * - instantiates a DOM object is to draw a line between (x1, y1) and
- *   (x2, y2) within a jquery div
- * - used to display the mouse tool for making distance labels
- */
-
-class LineElement {
-  constructor (selector, color) {
-    this.color = color
-
-    this.div = $('<canvas>')
-      .css({
-        'position': 'absolute',
-        'z-index': '1000',
-        'display': 'none',
-        'pointer-events': 'none'
-      })
-
-    this.canvas = this.div[0]
-    this.context2d = this.canvas.getContext('2d')
-
-    this.parentDiv = $(selector)
-    this.parentDiv.append(this.div)
-  }
-
-  hide () {
-    this.div.css('display', 'none')
-  }
-
-  move (x1, y1, x2, y2) {
-    var parentDivPos = this.parentDiv.position()
-
-    var width = Math.abs(x1 - x2)
-    var height = Math.abs(y1 - y2)
-
-    var left = Math.min(x1, x2)
-    var top = Math.min(y1, y2)
-
-    this.div
-      .css('display', 'block')
-      .css('width', width)
-      .css('height', height)
-      .css('top', top + parentDivPos.top)
-      .css('left', left + parentDivPos.left)
-
-    this.canvas.width = width
-    this.canvas.height = height
-
-    this.context2d.clearRect(0, 0, width, height)
-    this.context2d.beginPath()
-    this.context2d.moveTo(x1 - left, y1 - top)
-    this.context2d.lineTo(x2 - left, y2 - top)
-    this.context2d.lineWidth = 2
-    this.context2d.strokeStyle = this.color
-    this.context2d.stroke()
-  }
-}
-
-
-/**
- * Widget interface
- *
- * this.reset - called after model rebuild
- * this.draw - called at every draw draw
- * this.resize - called after every resize of window
- */
 
 /**
  * CanvasWrapper
@@ -769,6 +556,196 @@ class CanvasWrapper {
       this.y()
   }
 }
+
+/**
+ * Widget interface
+ *
+ * decorated graphical objects on top of ProteinDisplay. It uses
+ * a mix of HTML DOM elements calibrated with the 3D models of the
+ * protein inProteinDisplay
+ *
+ * this.reset - called after model rebuild
+ * this.draw - called at every draw event
+ * this.resize - called after every resize of window
+ */
+
+
+/**
+ * A set of pop-up text labels over specified atoms, rendered as
+ * DIV text on the DOM on top of ProteinDisplay but using opacity
+ * of the given z position of the associated atoms
+ */
+
+class AtomLabelsWidget {
+
+  constructor(proteinDisplay) {
+    this.popups = []
+    this.scene = proteinDisplay.scene
+    this.controller = proteinDisplay.controller
+    this.proteinDisplay = proteinDisplay
+  }
+
+  removePopup (i) {
+    this.atomLabels[i].popup.remove()
+    this.atomLabels.splice(i, 1)
+    this.controller.delete_label(i)
+  }
+
+  createPopup (i) {
+    let popup = new PopupText(this.proteinDisplay.webglDivTag)
+    popup.div.click(() => { this.removePopup(i) })
+    return popup
+  }
+
+  draw() {
+    let labels = this.scene.current_view.labels
+
+    if (labels.length > this.popups.length) {
+      for (let i = this.popups.length; i < labels.length; i += 1) {
+        this.popups.push(this.createPopup(i))
+      }
+    }
+
+    if (this.popups.length > labels.length) {
+      for (let i = this.popups.length - 1; i >= labels.length; i -= 1) {
+        this.removePopup(i)
+      }
+    }
+
+    let atoms = this.scene.protein.atoms
+
+    for (let i = 0; i < labels.length; i += 1) {
+      let atom = atoms[labels[i].i_atom]
+
+      this.popups[i].html(labels[i].text)
+
+      let opacity = 0.7 * this.proteinDisplay.opacity(atom.pos) + 0.2
+      this.popups[i].div.css('opacity', opacity)
+      this.popups[i].arrow.css('opacity', opacity)
+
+      let v = this.proteinDisplay.posXY(atom.pos)
+      this.popups[i].move(v.x, v.y)
+
+      if (!this.proteinDisplay.inZlab(atom.pos)) {
+        this.popups[i].div.css('display', 'none')
+        this.popups[i].arrow.css('display', 'none')
+      }
+    }
+  }
+}
+
+
+class DistanceMeasuresWidget {
+
+  constructor(proteinDisplay) {
+    this.distanceMeasures = []
+    this.threeJsScene = proteinDisplay.displayScene
+    this.scene = proteinDisplay.scene
+    this.controller = proteinDisplay.controller
+    this.webglDivTag = proteinDisplay.webglDivTag
+    this.proteinDisplay = proteinDisplay
+    this.parentDiv = $(this.webglDivTag)
+  }
+
+  removeDistance (i) {
+    this.threeJsScene.remove(this.distanceMeasures[i].line)
+    this.distanceMeasures[i].div.remove()
+    this.controller.delete_dist(i)
+    this.distanceMeasures.splice(i, 1)
+  }
+
+  createDistanceMeasure (i) {
+    let div = $('<div>')
+      .css({
+        'position': 'absolute',
+        'top': 0,
+        'left': 0,
+        'background-color': '#FFDDDD',
+        'padding': '5',
+        'opacity': 0.7,
+        'font-family': 'sans-serif'
+      })
+    div.click(() => { this.removeDistance(i) })
+    this.parentDiv.append(div)
+
+    let geometry = new THREE.Geometry()
+    geometry.vertices.push(new TV3(0, 0, 0))
+    geometry.vertices.push(new TV3(1, 1, 1))
+    let material = new THREE.LineDashedMaterial({
+      color: 0xFF7777,
+      dashSize: 3,
+      gapSize: 4,
+      linewidth: 2
+    })
+    let line = new THREE.Line(geometry, material)
+    this.threeJsScene.add(line)
+
+    let distanceMeasure = { line, div }
+    return distanceMeasure
+  }
+
+  draw() {
+    let distances = this.scene.current_view.distances
+    let atoms = this.scene.protein.atoms
+
+    if (distances.length > this.distanceMeasures.length) {
+      for (let i = this.distanceMeasures.length; i < distances.length; i += 1) {
+        this.distanceMeasures.push(this.createDistanceMeasure(i))
+      }
+    }
+
+    if (this.distanceMeasures.length > distances.length) {
+      for (let i = this.distanceMeasures.length - 1; i >= distances.length; i -= 1) {
+        this.removeDistance(i)
+      }
+    }
+
+    let parentDivPos = this.parentDiv.position()
+
+    for (let i = 0; i < distances.length; i += 1) {
+      let distance = distances[i]
+      let distanceMeasure = this.distanceMeasures[i]
+
+      let p1 = atoms[distance.i_atom1].pos
+      let p2 = atoms[distance.i_atom2].pos
+
+      let text = p1.distanceTo(p2).toFixed(1)
+      distanceMeasure.div.text(text)
+
+      let m = p1.clone().add(p2).multiplyScalar(0.5)
+      let opacity = 0.7 * this.proteinDisplay.opacity(m) + 0.3
+
+      let v = this.proteinDisplay.posXY(m)
+      let x = v.x
+      let y = v.y
+
+      if ((x < 0) || (x > this.parentDiv.width()) || (y < 0) ||
+        (y > this.parentDiv.height())) {
+        distanceMeasure.div.hide()
+        continue
+      }
+
+      let width = distanceMeasure.div.innerHeight()
+      let height = distanceMeasure.div.innerWidth()
+      distanceMeasure.div.css({
+        'top': y - width / 2 + parentDivPos.top,
+        'left': x - height / 2 + parentDivPos.left,
+        'display': 'block',
+        'cursor': 'pointer',
+        'opacity': opacity
+      })
+
+      distanceMeasure.line.geometry.vertices[0].copy(p1)
+      distanceMeasure.line.geometry.vertices[1].copy(p2)
+
+      if (!this.proteinDisplay.inZlab(m)) {
+        distanceMeasure.div.css('display', 'none')
+      }
+    }
+
+  }
+}
+
 
 /**
  * SequenceWidget
@@ -1132,8 +1109,9 @@ class ZSlabWidget extends CanvasWrapper {
  **/
 
 class GridControlWidget extends CanvasWrapper {
-  constructor (selector, scene) {
+  constructor (selector, scene, isGrid) {
     super(selector)
+    this.isGrid = isGrid
     this.scene = scene
     this.maxB = 2
     this.minB = 0.4
@@ -1191,6 +1169,10 @@ class GridControlWidget extends CanvasWrapper {
   }
 
   reset () {
+    if (!this.isGrid) {
+      return
+    }
+
     this.buttonsDiv.empty()
 
     var y = 10
@@ -1231,6 +1213,9 @@ class GridControlWidget extends CanvasWrapper {
   }
 
   resize () {
+    if (!this.isGrid) {
+      return
+    }
     let parentDivPos = this.parentDiv.position()
     this.div.css({
       'width': this.width(),
@@ -1277,6 +1262,9 @@ class GridControlWidget extends CanvasWrapper {
   }
 
   draw () {
+    if (!this.isGrid) {
+      return
+    }
     let protein = this.scene.protein
     let camera = this.scene.current_view.abs_camera
 
@@ -1345,8 +1333,6 @@ class GridControlWidget extends CanvasWrapper {
 class ProteinDisplay {
 
   /**
-   * ProteinDisplay Constructor
-   *
    * @param scene - Scene object that holds a protein and views
    * @param divTag - a tag for a DOM element
    * @param controller - the controller for the scene
@@ -1452,9 +1438,7 @@ class ProteinDisplay {
     this.atomLabelsWidget = new AtomLabelsWidget(this)
     this.sequenceWidget = new SequenceWidget(this.divTag, this)
     this.zSlabWidget = new ZSlabWidget(this.divTag, this.scene)
-    if (this.isGrid) {
-      this.gridControlWidget = new GridControlWidget(this.divTag, this.scene)
-    }
+    this.gridControlWidget = new GridControlWidget(this.divTag, this.scene, this.isGrid)
 
     this.lineElement = new LineElement(this.webglDivTag, '#FF7777')
   }
@@ -2293,13 +2277,11 @@ class ProteinDisplay {
 
     this.updateCrossHairs()
 
+    // needs to be drawn before render
     this.distanceMeasuresWidgets.draw()
 
     this.zSlabWidget.draw()
-
-    if (this.isGrid) {
-      this.gridControlWidget.draw()
-    }
+    this.gridControlWidget.draw()
     this.sequenceWidget.draw()
 
     // leave this to the very last moment
@@ -2309,6 +2291,7 @@ class ProteinDisplay {
     }
     this.renderer.render(this.displayScene, this.camera)
 
+    // needs to be drawn after render
     this.atomLabelsWidget.draw()
 
     this.scene.changed = false
@@ -2526,21 +2509,19 @@ class ProteinDisplay {
   }
 
   resize () {
+    if (!exists(this.renderer)) {
+      return
+    }
+
     this.camera.aspect = this.width() / this.height()
     this.camera.updateProjectionMatrix()
 
-    if (exists(this.renderer)) {
-      this.renderer.setSize(this.width(), this.height())
-    }
+    this.renderer.setSize(this.width(), this.height())
 
     this.pickingTexture.setSize(this.width(), this.height())
 
     this.zSlabWidget.resize()
-
-    if (this.isGrid) {
-      this.gridControlWidget.resize()
-    }
-
+    this.gridControlWidget.resize()
     this.sequenceWidget.resize()
 
     this.controller.flag_changed()

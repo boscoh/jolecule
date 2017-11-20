@@ -72187,7 +72187,70 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	/**
-	 * PopupText
+	 * LineElement
+	 * - instantiates a DOM object is to draw a line between (x1, y1) and
+	 *   (x2, y2) within a jquery div
+	 * - used to display the mouse tool for making distance labels
+	 */
+	
+	var LineElement = function () {
+	  function LineElement(selector, color) {
+	    _classCallCheck(this, LineElement);
+	
+	    this.color = color;
+	
+	    this.div = (0, _jquery2.default)('<canvas>').css({
+	      'position': 'absolute',
+	      'z-index': '1000',
+	      'display': 'none',
+	      'pointer-events': 'none'
+	    });
+	
+	    this.canvas = this.div[0];
+	    this.context2d = this.canvas.getContext('2d');
+	
+	    this.parentDiv = (0, _jquery2.default)(selector);
+	    this.parentDiv.append(this.div);
+	  }
+	
+	  _createClass(LineElement, [{
+	    key: 'hide',
+	    value: function hide() {
+	      this.div.css('display', 'none');
+	    }
+	  }, {
+	    key: 'move',
+	    value: function move(x1, y1, x2, y2) {
+	      var parentDivPos = this.parentDiv.position();
+	
+	      var width = Math.abs(x1 - x2);
+	      var height = Math.abs(y1 - y2);
+	
+	      var left = Math.min(x1, x2);
+	      var top = Math.min(y1, y2);
+	
+	      this.div.css('display', 'block').css('width', width).css('height', height).css('top', top + parentDivPos.top).css('left', left + parentDivPos.left);
+	
+	      this.canvas.width = width;
+	      this.canvas.height = height;
+	
+	      this.context2d.clearRect(0, 0, width, height);
+	      this.context2d.beginPath();
+	      this.context2d.moveTo(x1 - left, y1 - top);
+	      this.context2d.lineTo(x2 - left, y2 - top);
+	      this.context2d.lineWidth = 2;
+	      this.context2d.strokeStyle = this.color;
+	      this.context2d.stroke();
+	    }
+	  }]);
+	
+	  return LineElement;
+	}();
+	
+	/**
+	 * PopupText is a little blob of text with a down
+	 * arrow that can be displayed in a (x, y) position
+	 * within a parent div denoted by selector
 	 **/
 	
 	var PopupText = function () {
@@ -72271,313 +72334,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 	
 	/**
-	 * AtomLabel
-	 */
-	
-	var AtomLabel = function () {
-	  function AtomLabel(selector, controller, parentList) {
-	    var _this = this;
-	
-	    _classCallCheck(this, AtomLabel);
-	
-	    this.popup = new PopupText(selector);
-	    this.controller = controller;
-	    this.parentList = parentList;
-	    this.popup.div.click(function () {
-	      return _this.remove();
-	    });
-	  }
-	
-	  _createClass(AtomLabel, [{
-	    key: 'update',
-	    value: function update(i, text, x, y, opacity) {
-	      this.i = i;
-	      this.popup.html(text);
-	      this.popup.div.css('opacity', opacity);
-	      this.popup.arrow.css('opacity', opacity);
-	      this.popup.move(x, y);
-	    }
-	  }, {
-	    key: 'remove',
-	    value: function remove() {
-	      this.popup.remove();
-	      this.controller.delete_label(this.i);
-	      this.parentList.splice(this.i, 1);
-	    }
-	  }, {
-	    key: 'hide',
-	    value: function hide() {
-	      this.popup.div.css('display', 'none');
-	      this.popup.arrow.css('display', 'none');
-	    }
-	  }]);
-	
-	  return AtomLabel;
-	}();
-	
-	var AtomLabelsWidget = function () {
-	  function AtomLabelsWidget(proteinDisplay) {
-	    _classCallCheck(this, AtomLabelsWidget);
-	
-	    this.atomlabels = [];
-	    this.threeJsScene = proteinDisplay.displayScene;
-	    this.scene = proteinDisplay.scene;
-	    this.controller = proteinDisplay.controller;
-	    this.webglDivTag = proteinDisplay.webglDivTag;
-	    this.proteinDisplay = proteinDisplay;
-	  }
-	
-	  _createClass(AtomLabelsWidget, [{
-	    key: 'draw',
-	    value: function draw() {
-	      var labels = this.scene.current_view.labels;
-	
-	      for (var i = this.atomlabels.length; i < labels.length; i += 1) {
-	        var atomLabel = new AtomLabel(this.webglDivTag, this.controller, this.atomlabels);
-	        this.atomlabels.push(atomLabel);
-	      }
-	
-	      for (var _i = this.atomlabels.length - 1; _i >= 0; _i -= 1) {
-	        if (_i >= labels.length) {
-	          this.atomlabels[_i].remove();
-	        }
-	      }
-	
-	      var atoms = this.scene.protein.atoms;
-	
-	      for (var _i2 = 0; _i2 < labels.length; _i2 += 1) {
-	        var atom = atoms[labels[_i2].i_atom];
-	        var pos = atom.pos;
-	        var v = this.proteinDisplay.posXY(pos);
-	        var opacity = 0.7 * this.proteinDisplay.opacity(pos) + 0.2;
-	
-	        this.atomlabels[_i2].update(_i2, labels[_i2].text, v.x, v.y, opacity);
-	
-	        if (!this.proteinDisplay.inZlab(pos)) {
-	          this.atomlabels[_i2].hide();
-	        }
-	      }
-	    }
-	  }]);
-	
-	  return AtomLabelsWidget;
-	}();
-	
-	/**
-	 * DistanceMeasure
-	 */
-	
-	var DistanceMeasure = function () {
-	  function DistanceMeasure(selector, threeJsScene, controller, parentList) {
-	    var _this2 = this;
-	
-	    _classCallCheck(this, DistanceMeasure);
-	
-	    this.displayScene = threeJsScene;
-	    this.controller = controller;
-	    this.parentList = parentList;
-	
-	    this.div = (0, _jquery2.default)('<div>').css({
-	      'position': 'absolute',
-	      'top': 0,
-	      'left': 0,
-	      'background-color': '#FFDDDD',
-	      'padding': '5',
-	      'opacity': 0.7,
-	      'font-family': 'sans-serif'
-	    });
-	
-	    var geometry = new _three2.default.Geometry();
-	    geometry.vertices.push(new TV3(0, 0, 0));
-	    geometry.vertices.push(new TV3(1, 1, 1));
-	
-	    var material = new _three2.default.LineDashedMaterial({
-	      color: 0xFF7777,
-	      dashSize: 3,
-	      gapSize: 4,
-	      linewidth: 2
-	    });
-	
-	    this.line = new _three2.default.Line(geometry, material);
-	
-	    this.displayScene.add(this.line);
-	
-	    this.parentDiv = (0, _jquery2.default)(selector);
-	    this.parentDiv.append(this.div);
-	
-	    this.div.click(function () {
-	      return _this2.remove();
-	    });
-	  }
-	
-	  _createClass(DistanceMeasure, [{
-	    key: 'update',
-	    value: function update(i, text, x, y, p1, p2, opacity) {
-	      this.i = i;
-	
-	      if (x < 0 || x > this.parentDiv.width() || y < 0 || y > this.parentDiv.height()) {
-	        this.hide();
-	        return;
-	      }
-	
-	      var parentDivPos = this.parentDiv.position();
-	
-	      this.div.text(text);
-	
-	      var width = this.div.innerHeight();
-	      var height = this.div.innerWidth();
-	
-	      this.div.css({
-	        'top': y - width / 2 + parentDivPos.top,
-	        'left': x - height / 2 + parentDivPos.left,
-	        'display': 'block',
-	        'cursor': 'pointer',
-	        'opacity': opacity
-	      });
-	
-	      this.line.geometry.vertices[0].copy(p1);
-	      this.line.geometry.vertices[1].copy(p2);
-	    }
-	  }, {
-	    key: 'remove',
-	    value: function remove() {
-	      this.displayScene.remove(this.line);
-	      this.div.remove();
-	      this.controller.delete_dist(this.i);
-	      this.parentList.splice(this.i, 1);
-	    }
-	  }, {
-	    key: 'hide',
-	    value: function hide() {
-	      this.div.css('display', 'none');
-	    }
-	  }]);
-	
-	  return DistanceMeasure;
-	}();
-	
-	var DistanceMeasuresWidget = function () {
-	  function DistanceMeasuresWidget(proteinDisplay) {
-	    _classCallCheck(this, DistanceMeasuresWidget);
-	
-	    this.distanceMeasures = [];
-	    this.threeJsScene = proteinDisplay.displayScene;
-	    this.scene = proteinDisplay.scene;
-	    this.controller = proteinDisplay.controller;
-	    this.webglDivTag = proteinDisplay.webglDivTag;
-	    this.proteinDisplay = proteinDisplay;
-	  }
-	
-	  _createClass(DistanceMeasuresWidget, [{
-	    key: 'draw',
-	    value: function draw() {
-	      var distances = this.scene.current_view.distances;
-	      var atoms = this.scene.protein.atoms;
-	
-	      for (var i = 0; i < distances.length; i += 1) {
-	        var distance = distances[i];
-	        var p1 = atoms[distance.i_atom1].pos;
-	        var p2 = atoms[distance.i_atom2].pos;
-	        var m = p1.clone().add(p2).multiplyScalar(0.5);
-	
-	        var opacity = 0.7 * this.proteinDisplay.opacity(m) + 0.3;
-	
-	        var v = this.proteinDisplay.posXY(m);
-	
-	        var text = p1.distanceTo(p2).toFixed(1);
-	
-	        if (i >= this.distanceMeasures.length) {
-	          this.distanceMeasures.push(new DistanceMeasure(this.webglDivTag, this.threeJsScene, this.controller, this.distanceMeasures));
-	        }
-	
-	        this.distanceMeasures[i].update(i, text, v.x, v.y, p1, p2, opacity);
-	
-	        if (!this.proteinDisplay.inZlab(m)) {
-	          this.distanceMeasures[i].hide();
-	        }
-	      }
-	
-	      for (var _i3 = this.distanceMeasures.length - 1; _i3 >= 0; _i3 -= 1) {
-	        if (_i3 >= distances.length) {
-	          this.distanceMeasures[_i3].remove();
-	        }
-	      }
-	    }
-	  }]);
-	
-	  return DistanceMeasuresWidget;
-	}();
-	
-	/**
-	 * LineElement
-	 * - instantiates a DOM object is to draw a line between (x1, y1) and
-	 *   (x2, y2) within a jquery div
-	 * - used to display the mouse tool for making distance labels
-	 */
-	
-	var LineElement = function () {
-	  function LineElement(selector, color) {
-	    _classCallCheck(this, LineElement);
-	
-	    this.color = color;
-	
-	    this.div = (0, _jquery2.default)('<canvas>').css({
-	      'position': 'absolute',
-	      'z-index': '1000',
-	      'display': 'none',
-	      'pointer-events': 'none'
-	    });
-	
-	    this.canvas = this.div[0];
-	    this.context2d = this.canvas.getContext('2d');
-	
-	    this.parentDiv = (0, _jquery2.default)(selector);
-	    this.parentDiv.append(this.div);
-	  }
-	
-	  _createClass(LineElement, [{
-	    key: 'hide',
-	    value: function hide() {
-	      this.div.css('display', 'none');
-	    }
-	  }, {
-	    key: 'move',
-	    value: function move(x1, y1, x2, y2) {
-	      var parentDivPos = this.parentDiv.position();
-	
-	      var width = Math.abs(x1 - x2);
-	      var height = Math.abs(y1 - y2);
-	
-	      var left = Math.min(x1, x2);
-	      var top = Math.min(y1, y2);
-	
-	      this.div.css('display', 'block').css('width', width).css('height', height).css('top', top + parentDivPos.top).css('left', left + parentDivPos.left);
-	
-	      this.canvas.width = width;
-	      this.canvas.height = height;
-	
-	      this.context2d.clearRect(0, 0, width, height);
-	      this.context2d.beginPath();
-	      this.context2d.moveTo(x1 - left, y1 - top);
-	      this.context2d.lineTo(x2 - left, y2 - top);
-	      this.context2d.lineWidth = 2;
-	      this.context2d.strokeStyle = this.color;
-	      this.context2d.stroke();
-	    }
-	  }]);
-	
-	  return LineElement;
-	}();
-	
-	/**
-	 * Widget interface
-	 *
-	 * this.reset - called after model rebuild
-	 * this.draw - called at every draw draw
-	 * this.resize - called after every resize of window
-	 */
-	
-	/**
 	 * CanvasWrapper
 	 *   - abstract class to wrap a canvas element
 	 *   - instantiates an absolute div that fits the $(selector)
@@ -72587,7 +72343,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var CanvasWrapper = function () {
 	  function CanvasWrapper(selector) {
-	    var _this3 = this;
+	    var _this = this;
 	
 	    _classCallCheck(this, CanvasWrapper);
 	
@@ -72609,28 +72365,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	      dom.addEventListener(ev, fn);
 	    };
 	    bind('mousedown', function (e) {
-	      return _this3.mousedown(e);
+	      return _this.mousedown(e);
 	    });
 	    bind('mousemove', function (e) {
-	      return _this3.mousemove(e);
+	      return _this.mousemove(e);
 	    });
 	    bind('mouseup', function (e) {
-	      return _this3.mouseup(e);
+	      return _this.mouseup(e);
 	    });
 	    bind('mouseout', function (e) {
-	      return _this3.mouseup(e);
+	      return _this.mouseup(e);
 	    });
 	    bind('touchstart', function (e) {
-	      return _this3.mousedown(e);
+	      return _this.mousedown(e);
 	    });
 	    bind('touchmove', function (e) {
-	      return _this3.mousemove(e);
+	      return _this.mousemove(e);
 	    });
 	    bind('touchend', function (e) {
-	      return _this3.mouseup(e);
+	      return _this.mouseup(e);
 	    });
 	    bind('touchcancel', function (e) {
-	      return _this3.mouseup(e);
+	      return _this.mouseup(e);
 	    });
 	  }
 	
@@ -72745,6 +72501,214 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }]);
 	
 	  return CanvasWrapper;
+	}();
+	
+	/**
+	 * Widget interface
+	 *
+	 * decorated graphical objects on top of ProteinDisplay. It uses
+	 * a mix of HTML DOM elements calibrated with the 3D models of the
+	 * protein inProteinDisplay
+	 *
+	 * this.reset - called after model rebuild
+	 * this.draw - called at every draw event
+	 * this.resize - called after every resize of window
+	 */
+	
+	/**
+	 * A set of pop-up text labels over specified atoms, rendered as
+	 * DIV text on the DOM on top of ProteinDisplay but using opacity
+	 * of the given z position of the associated atoms
+	 */
+	
+	var AtomLabelsWidget = function () {
+	  function AtomLabelsWidget(proteinDisplay) {
+	    _classCallCheck(this, AtomLabelsWidget);
+	
+	    this.popups = [];
+	    this.scene = proteinDisplay.scene;
+	    this.controller = proteinDisplay.controller;
+	    this.proteinDisplay = proteinDisplay;
+	  }
+	
+	  _createClass(AtomLabelsWidget, [{
+	    key: 'removePopup',
+	    value: function removePopup(i) {
+	      this.atomLabels[i].popup.remove();
+	      this.atomLabels.splice(i, 1);
+	      this.controller.delete_label(i);
+	    }
+	  }, {
+	    key: 'createPopup',
+	    value: function createPopup(i) {
+	      var _this2 = this;
+	
+	      var popup = new PopupText(this.proteinDisplay.webglDivTag);
+	      popup.div.click(function () {
+	        _this2.removePopup(i);
+	      });
+	      return popup;
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      var labels = this.scene.current_view.labels;
+	
+	      if (labels.length > this.popups.length) {
+	        for (var i = this.popups.length; i < labels.length; i += 1) {
+	          this.popups.push(this.createPopup(i));
+	        }
+	      }
+	
+	      if (this.popups.length > labels.length) {
+	        for (var _i = this.popups.length - 1; _i >= labels.length; _i -= 1) {
+	          this.removePopup(_i);
+	        }
+	      }
+	
+	      var atoms = this.scene.protein.atoms;
+	
+	      for (var _i2 = 0; _i2 < labels.length; _i2 += 1) {
+	        var atom = atoms[labels[_i2].i_atom];
+	
+	        this.popups[_i2].html(labels[_i2].text);
+	
+	        var opacity = 0.7 * this.proteinDisplay.opacity(atom.pos) + 0.2;
+	        this.popups[_i2].div.css('opacity', opacity);
+	        this.popups[_i2].arrow.css('opacity', opacity);
+	
+	        var v = this.proteinDisplay.posXY(atom.pos);
+	        this.popups[_i2].move(v.x, v.y);
+	
+	        if (!this.proteinDisplay.inZlab(atom.pos)) {
+	          this.popups[_i2].div.css('display', 'none');
+	          this.popups[_i2].arrow.css('display', 'none');
+	        }
+	      }
+	    }
+	  }]);
+	
+	  return AtomLabelsWidget;
+	}();
+	
+	var DistanceMeasuresWidget = function () {
+	  function DistanceMeasuresWidget(proteinDisplay) {
+	    _classCallCheck(this, DistanceMeasuresWidget);
+	
+	    this.distanceMeasures = [];
+	    this.threeJsScene = proteinDisplay.displayScene;
+	    this.scene = proteinDisplay.scene;
+	    this.controller = proteinDisplay.controller;
+	    this.webglDivTag = proteinDisplay.webglDivTag;
+	    this.proteinDisplay = proteinDisplay;
+	    this.parentDiv = (0, _jquery2.default)(this.webglDivTag);
+	  }
+	
+	  _createClass(DistanceMeasuresWidget, [{
+	    key: 'removeDistance',
+	    value: function removeDistance(i) {
+	      this.threeJsScene.remove(this.distanceMeasures[i].line);
+	      this.distanceMeasures[i].div.remove();
+	      this.controller.delete_dist(i);
+	      this.distanceMeasures.splice(i, 1);
+	    }
+	  }, {
+	    key: 'createDistanceMeasure',
+	    value: function createDistanceMeasure(i) {
+	      var _this3 = this;
+	
+	      var div = (0, _jquery2.default)('<div>').css({
+	        'position': 'absolute',
+	        'top': 0,
+	        'left': 0,
+	        'background-color': '#FFDDDD',
+	        'padding': '5',
+	        'opacity': 0.7,
+	        'font-family': 'sans-serif'
+	      });
+	      div.click(function () {
+	        _this3.removeDistance(i);
+	      });
+	      this.parentDiv.append(div);
+	
+	      var geometry = new _three2.default.Geometry();
+	      geometry.vertices.push(new TV3(0, 0, 0));
+	      geometry.vertices.push(new TV3(1, 1, 1));
+	      var material = new _three2.default.LineDashedMaterial({
+	        color: 0xFF7777,
+	        dashSize: 3,
+	        gapSize: 4,
+	        linewidth: 2
+	      });
+	      var line = new _three2.default.Line(geometry, material);
+	      this.threeJsScene.add(line);
+	
+	      var distanceMeasure = { line: line, div: div };
+	      return distanceMeasure;
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      var distances = this.scene.current_view.distances;
+	      var atoms = this.scene.protein.atoms;
+	
+	      if (distances.length > this.distanceMeasures.length) {
+	        for (var i = this.distanceMeasures.length; i < distances.length; i += 1) {
+	          this.distanceMeasures.push(this.createDistanceMeasure(i));
+	        }
+	      }
+	
+	      if (this.distanceMeasures.length > distances.length) {
+	        for (var _i3 = this.distanceMeasures.length - 1; _i3 >= distances.length; _i3 -= 1) {
+	          this.removeDistance(_i3);
+	        }
+	      }
+	
+	      var parentDivPos = this.parentDiv.position();
+	
+	      for (var _i4 = 0; _i4 < distances.length; _i4 += 1) {
+	        var distance = distances[_i4];
+	        var distanceMeasure = this.distanceMeasures[_i4];
+	
+	        var p1 = atoms[distance.i_atom1].pos;
+	        var p2 = atoms[distance.i_atom2].pos;
+	
+	        var text = p1.distanceTo(p2).toFixed(1);
+	        distanceMeasure.div.text(text);
+	
+	        var m = p1.clone().add(p2).multiplyScalar(0.5);
+	        var opacity = 0.7 * this.proteinDisplay.opacity(m) + 0.3;
+	
+	        var v = this.proteinDisplay.posXY(m);
+	        var x = v.x;
+	        var y = v.y;
+	
+	        if (x < 0 || x > this.parentDiv.width() || y < 0 || y > this.parentDiv.height()) {
+	          distanceMeasure.div.hide();
+	          continue;
+	        }
+	
+	        var width = distanceMeasure.div.innerHeight();
+	        var height = distanceMeasure.div.innerWidth();
+	        distanceMeasure.div.css({
+	          'top': y - width / 2 + parentDivPos.top,
+	          'left': x - height / 2 + parentDivPos.left,
+	          'display': 'block',
+	          'cursor': 'pointer',
+	          'opacity': opacity
+	        });
+	
+	        distanceMeasure.line.geometry.vertices[0].copy(p1);
+	        distanceMeasure.line.geometry.vertices[1].copy(p2);
+	
+	        if (!this.proteinDisplay.inZlab(m)) {
+	          distanceMeasure.div.css('display', 'none');
+	        }
+	      }
+	    }
+	  }]);
+	
+	  return DistanceMeasuresWidget;
 	}();
 	
 	/**
@@ -73163,11 +73127,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	var GridControlWidget = function (_CanvasWrapper3) {
 	  _inherits(GridControlWidget, _CanvasWrapper3);
 	
-	  function GridControlWidget(selector, scene) {
+	  function GridControlWidget(selector, scene, isGrid) {
 	    _classCallCheck(this, GridControlWidget);
 	
 	    var _this6 = _possibleConstructorReturn(this, (GridControlWidget.__proto__ || Object.getPrototypeOf(GridControlWidget)).call(this, selector));
 	
+	    _this6.isGrid = isGrid;
 	    _this6.scene = scene;
 	    _this6.maxB = 2;
 	    _this6.minB = 0.4;
@@ -73273,6 +73238,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'reset',
 	    value: function reset() {
+	      if (!this.isGrid) {
+	        return;
+	      }
+	
 	      this.buttonsDiv.empty();
 	
 	      var y = 10;
@@ -73312,6 +73281,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'resize',
 	    value: function resize() {
+	      if (!this.isGrid) {
+	        return;
+	      }
 	      var parentDivPos = this.parentDiv.position();
 	      this.div.css({
 	        'width': this.width(),
@@ -73365,6 +73337,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'draw',
 	    value: function draw() {
+	      if (!this.isGrid) {
+	        return;
+	      }
 	      var protein = this.scene.protein;
 	      var camera = this.scene.current_view.abs_camera;
 	
@@ -73441,8 +73416,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var ProteinDisplay = function () {
 	
 	  /**
-	   * ProteinDisplay Constructor
-	   *
 	   * @param scene - Scene object that holds a protein and views
 	   * @param divTag - a tag for a DOM element
 	   * @param controller - the controller for the scene
@@ -73543,9 +73516,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.atomLabelsWidget = new AtomLabelsWidget(this);
 	    this.sequenceWidget = new SequenceWidget(this.divTag, this);
 	    this.zSlabWidget = new ZSlabWidget(this.divTag, this.scene);
-	    if (this.isGrid) {
-	      this.gridControlWidget = new GridControlWidget(this.divTag, this.scene);
-	    }
+	    this.gridControlWidget = new GridControlWidget(this.divTag, this.scene, this.isGrid);
 	
 	    this.lineElement = new LineElement(this.webglDivTag, '#FF7777');
 	  }
@@ -74232,8 +74203,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if ((0, _util.exists)(this.displayMeshes.grid)) {
 	        var _arr = [this.displayMeshes.grid, this.pickingMeshes.grid];
 	
-	        for (var _i4 = 0; _i4 < _arr.length; _i4++) {
-	          var mesh = _arr[_i4];
+	        for (var _i5 = 0; _i5 < _arr.length; _i5++) {
+	          var mesh = _arr[_i5];
 	          mesh.traverse(function (child) {
 	            if ((0, _util.exists)(child.i)) {
 	              child.visible = _this11.isVisibleGridAtom(child.i);
@@ -74299,8 +74270,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if ((0, _util.exists)(this.displayMeshes.sidechains)) {
 	        var _arr2 = [this.displayMeshes.sidechains, this.pickingMeshes.sidechains];
 	
-	        for (var _i5 = 0; _i5 < _arr2.length; _i5++) {
-	          var _mesh = _arr2[_i5];
+	        for (var _i6 = 0; _i6 < _arr2.length; _i6++) {
+	          var _mesh = _arr2[_i6];
 	          _mesh.traverse(function (child) {
 	            if ((0, _util.exists)(child.i)) {
 	              var residue = _this11.protein.residues[child.i];
@@ -75093,13 +75064,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.updateCrossHairs();
 	
+	      // needs to be drawn before render
 	      this.distanceMeasuresWidgets.draw();
 	
 	      this.zSlabWidget.draw();
-	
-	      if (this.isGrid) {
-	        this.gridControlWidget.draw();
-	      }
+	      this.gridControlWidget.draw();
 	      this.sequenceWidget.draw();
 	
 	      // leave this to the very last moment
@@ -75109,6 +75078,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      this.renderer.render(this.displayScene, this.camera);
 	
+	      // needs to be drawn after render
 	      this.atomLabelsWidget.draw();
 	
 	      this.scene.changed = false;
@@ -75248,11 +75218,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var residues = this.protein.residues;
 	      var view = this.scene.current_view;
-	      for (var _i6 = 0; _i6 < residues.length; _i6 += 1) {
-	        residues[_i6].selected = false;
+	      for (var _i7 = 0; _i7 < residues.length; _i7 += 1) {
+	        residues[_i7].selected = false;
 	      }
-	      for (var _i7 = 0; _i7 < view.selected.length; _i7 += 1) {
-	        var i_res = view.selected[_i7];
+	      for (var _i8 = 0; _i8 < view.selected.length; _i8 += 1) {
+	        var i_res = view.selected[_i8];
 	        residues[i_res].selected = true;
 	      }
 	    }
@@ -75294,21 +75264,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'resize',
 	    value: function resize() {
+	      if (!(0, _util.exists)(this.renderer)) {
+	        return;
+	      }
+	
 	      this.camera.aspect = this.width() / this.height();
 	      this.camera.updateProjectionMatrix();
 	
-	      if ((0, _util.exists)(this.renderer)) {
-	        this.renderer.setSize(this.width(), this.height());
-	      }
+	      this.renderer.setSize(this.width(), this.height());
 	
 	      this.pickingTexture.setSize(this.width(), this.height());
 	
 	      this.zSlabWidget.resize();
-	
-	      if (this.isGrid) {
-	        this.gridControlWidget.resize();
-	      }
-	
+	      this.gridControlWidget.resize();
 	      this.sequenceWidget.resize();
 	
 	      this.controller.flag_changed();
