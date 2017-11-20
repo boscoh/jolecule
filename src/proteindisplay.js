@@ -1111,18 +1111,62 @@ class GridControlWidget extends CanvasWrapper {
     this.reset()
   }
 
+  /**
+   * Searches autodock grid atoms for B-factor limits
+   */
+  findLimits () {
+    this.scene.grid_atoms = {}
+
+    for (let residue of this.scene.protein.residues) {
+      if (residue.is_grid) {
+        for (let atom of _.values(residue.atoms)) {
+          if (!(atom.elem in this.scene.grid_atoms)) {
+            this.scene.grid_atoms[atom.elem] = true
+          }
+
+          if (this.minB === null) {
+            this.minB = atom.bfactor
+            this.maxB = atom.bfactor
+          } else {
+            if (atom.bfactor > this.maxB) {
+              this.maxB = atom.bfactor
+            }
+            if (atom.bfactor < this.minB) {
+              this.minB = atom.bfactor
+            }
+          }
+        }
+      }
+    }
+
+    if (this.minB === null) {
+      this.minB = 0
+    }
+    if (this.maxB === null) {
+      this.minB = 0
+    }
+    this.diffB = this.maxB - this.minB
+    this.scene.grid = this.minB
+    console.log('> GridControlWidget.findLimits', this.scene.grid_atoms)
+  }
+
   reset () {
     this.buttonsDiv.empty()
+
     var y = 10
     for (var elem in this.scene.grid_atoms) {
       this.buttonsDiv.append(this.makeElemButton(elem, y))
       y += this.buttonHeight
     }
+
     if (_.keys(this.scene.grid_atoms).length === 0) {
       this.div.hide()
     } else {
       this.div.show()
     }
+
+    this.findLimits()
+
   }
 
   makeElemButton (elem, y) {
@@ -1668,29 +1712,23 @@ class ProteinDisplay {
   }
 
   buildLights () {
-    var directionalLight =
-      new THREE.DirectionalLight(0xFFFFFF)
+    let directionalLight = new THREE.DirectionalLight(0xFFFFFF)
     directionalLight.position.copy(
-      new TV3(0.2, 0.2, 100)
-        .normalize())
+      new TV3(0.2, 0.2, 100).normalize())
     directionalLight.dontDelete = true
-    // directionalLight.intensity = 1.2;
     this.lights.push(directionalLight)
 
-    var directionalLight2 =
-      new THREE.DirectionalLight(0xFFFFFF)
+    let directionalLight2 = new THREE.DirectionalLight(0xFFFFFF)
     directionalLight2.position.copy(
-      new TV3(0.2, 0.2, -100)
-        .normalize())
+      new TV3(0.2, 0.2, -100).normalize())
     directionalLight2.dontDelete = true
-    // directionalLight2.intensity = 1.2;
     this.lights.push(directionalLight2)
 
-    var ambientLight = new THREE.AmbientLight(0x202020)
+    let ambientLight = new THREE.AmbientLight(0x202020)
     ambientLight.dontDelete = true
     this.lights.push(ambientLight)
 
-    for (var i = 0; i < this.lights.length; i += 1) {
+    for (let i = 0; i < this.lights.length; i += 1) {
       this.displayScene.add(this.lights[i])
     }
   }
@@ -1711,7 +1749,6 @@ class ProteinDisplay {
     // calculate protein parameters
     this.assignBondsToResidues()
     this.findContinuousTraces()
-    this.findGridLimits()
 
     // create default Meshes
     this.buildMeshOfRibbons()
@@ -2063,45 +2100,6 @@ class ProteinDisplay {
     }
     this.addGeomToDisplayMesh('water', displayGeom)
     this.addGeomToPickingMesh('water', pickingGeom)
-  }
-
-  /**
-   * Searches autodock grid atoms for B-factor limits
-   */
-  findGridLimits () {
-    this.scene.grid_atoms = {}
-
-    for (let residue of this.protein.residues) {
-      if (residue.is_grid) {
-        for (let atom of _.values(residue.atoms)) {
-          if (!(atom.elem in this.scene.grid_atoms)) {
-            this.scene.grid_atoms[atom.elem] = true
-          }
-
-          if (this.gridControlWidget.minB === null) {
-            this.gridControlWidget.minB = atom.bfactor
-            this.gridControlWidget.maxB = atom.bfactor
-          } else {
-            if (atom.bfactor > this.gridControlWidget.maxB) {
-              this.gridControlWidget.maxB = atom.bfactor
-            }
-            if (atom.bfactor < this.gridControlWidget.minB) {
-              this.gridControlWidget.minB = atom.bfactor
-            }
-          }
-        }
-      }
-    }
-
-    if (this.gridControlWidget.minB === null) {
-      this.gridControlWidget.minB = 0
-    }
-    if (this.gridControlWidget.maxB === null) {
-      this.gridControlWidget.minB = 0
-    }
-    this.gridControlWidget.diffB = this.gridControlWidget.maxB - this.gridControlWidget.minB
-    this.scene.grid = this.gridControlWidget.minB
-    console.log('> ProteinDisplay.findGridLimits', this.scene.grid_atoms)
   }
 
   isVisibleGridAtom (iAtom) {
