@@ -174,15 +174,79 @@ function getCurrentDateStr() {
 }
 
 
+function textEntryDialog (parentDiv, label, callback) {
+  if (!label) {
+    label = ''
+  }
+
+  window.keyboard_lock = true
+
+  function cleanup () {
+    dialog.remove()
+    window.keyboard_lock = false
+  }
+
+  function accept () {
+    callback(textarea.val())
+    cleanup()
+    window.keyboard_lock = false
+  }
+
+  function discard () {
+    cleanup()
+    window.keyboard_lock = false
+  }
+
+  var save_button = linkButton(
+    'okay', 'okay', 'jolecule-small-button', accept)
+
+  var discard_button = linkButton(
+    'discard', 'discard', 'jolecule-small-button', discard)
+
+  var textarea = $('<textarea>')
+    .css('width', '100%')
+    .addClass('jolecule-view-text')
+    .keydown(
+      function(e) {
+        if (e.keyCode === 27) {
+          discard()
+          return true
+        }
+      })
+
+  var editbox = $('<div>')
+    .css('width', '100%')
+    .append(label)
+    .append(textarea)
+    .append(save_button)
+    .append(' ')
+    .append(discard_button)
+
+  var dialog = $('<div>')
+    .addClass('jolecule-dialog')
+    .css('display', 'block')
+    .css('z-index', '2000')
+    .css('width', Math.min(400, parentDiv.width() - 100))
+    .append(editbox)
+
+  stickJqueryDivInCenter(parentDiv, dialog, 0, 70)
+
+  setTimeout(() => {
+    editbox.find('textarea').focus()
+  }, 100)
+}
+
+
 export {
   exists,
   getWindowUrl,
   getDomPosition,
   linkButton,
   toggleButton,
-  stickJqueryDivInTopLeft,
   stickJqueryDivInCenter,
+  stickJqueryDivInTopLeft,
   inArray,
   randomId,
   getCurrentDateStr,
+  textEntryDialog
 }

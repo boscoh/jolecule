@@ -3,6 +3,7 @@ import $ from 'jquery'
 import _ from 'lodash'
 import v3 from './v3'
 import {View} from './protein'
+
 import {
   UnitCylinderGeometry,
   BlockArrowGeometry,
@@ -17,14 +18,14 @@ import {
   getSphereMatrix,
   getCylinderMatrix
 } from './glgeometry'
+
 import {
   toggleButton,
-  linkButton,
   exists,
   getDomPosition,
-  stickJqueryDivInCenter,
   inArray,
-  stickJqueryDivInTopLeft
+  stickJqueryDivInTopLeft,
+  textEntryDialog
 } from './util'
 
 
@@ -105,6 +106,43 @@ function getDarkSsColor (ss) {
   return darkGrey
 }
 
+const resToAa = {
+  'ALA': 'A',
+  'CYS': 'C',
+  'ASP': 'D',
+  'GLU': 'E',
+  'PHE': 'F',
+  'GLY': 'G',
+  'HIS': 'H',
+  'ILE': 'I',
+  'LYS': 'K',
+  'LEU': 'L',
+  'MET': 'M',
+  'ASN': 'N',
+  'PRO': 'P',
+  'GLN': 'Q',
+  'ARG': 'R',
+  'SER': 'S',
+  'THR': 'T',
+  'VAL': 'V',
+  'TRP': 'W',
+  'TYR': 'Y',
+  'DA': 'A',
+  'DT': 'T',
+  'DG': 'G',
+  'DC': 'C',
+  'A': 'A',
+  'T': 'T',
+  'G': 'G',
+  'C': 'C',
+  'RA': 'A',
+  'RU': 'U',
+  'RC': 'C',
+  'RG': 'G',
+  'U': 'U'
+
+}
+
 // Backbone atom names
 
 const backboneAtoms = [
@@ -159,68 +197,6 @@ function getVerticesFromAtomDict (atoms, atomTypes) {
 
 function fraction (reference, target, t) {
   return t * (target - reference) + reference
-}
-
-function textEntryDialog (parentDiv, label, callback) {
-  if (!label) {
-    label = ''
-  }
-
-  window.keyboard_lock = true
-
-  function cleanup () {
-    dialog.remove()
-    window.keyboard_lock = false
-  }
-
-  function accept () {
-    callback(textarea.val())
-    cleanup()
-    window.keyboard_lock = false
-  }
-
-  function discard () {
-    cleanup()
-    window.keyboard_lock = false
-  }
-
-  var save_button = linkButton(
-    'okay', 'okay', 'jolecule-small-button', accept)
-
-  var discard_button = linkButton(
-    'discard', 'discard', 'jolecule-small-button', discard)
-
-  var textarea = $('<textarea>')
-    .css('width', '100%')
-    .addClass('jolecule-view-text')
-    .keydown(
-      function(e) {
-        if (e.keyCode === 27) {
-          discard()
-          return true
-        }
-      })
-
-  var editbox = $('<div>')
-    .css('width', '100%')
-    .append(label)
-    .append(textarea)
-    .append(save_button)
-    .append(' ')
-    .append(discard_button)
-
-  var dialog = $('<div>')
-    .addClass('jolecule-dialog')
-    .css('display', 'block')
-    .css('z-index', '2000')
-    .css('width', Math.min(400, parentDiv.width() - 100))
-    .append(editbox)
-
-  stickJqueryDivInCenter(parentDiv, dialog, 0, 70)
-
-  setTimeout(() => {
-    editbox.find('textarea').focus()
-  }, 100)
 }
 
 /**
@@ -406,6 +382,50 @@ class AtomLabel {
   }
 }
 
+class AtomLabelsWidget {
+
+  constructor(proteinDisplay) {
+    this.atomlabels = []
+    this.threeJsScene = proteinDisplay.displayScene
+    this.scene = proteinDisplay.scene
+    this.controller = proteinDisplay.controller
+    this.webglDivTag = proteinDisplay.webglDivTag
+    this.proteinDisplay = proteinDisplay
+  }
+
+  draw() {
+    var labels = this.scene.current_view.labels
+
+    for (let i = this.atomlabels.length; i < labels.length; i += 1) {
+      var atomLabel = new AtomLabel(
+        this.webglDivTag, this.controller, this.atomlabels)
+      this.atomlabels.push(atomLabel)
+    }
+
+    for (let i = this.atomlabels.length - 1; i >= 0; i -= 1) {
+      if (i >= labels.length) {
+        this.atomlabels[i].remove()
+      }
+    }
+
+    var atoms = this.scene.protein.atoms
+
+    for (let i = 0; i < labels.length; i += 1) {
+      var atom = atoms[labels[i].i_atom]
+      var pos = atom.pos
+      var v = this.proteinDisplay.posXY(pos)
+      var opacity = 0.7 * this.proteinDisplay.opacity(pos) + 0.2
+
+      this.atomlabels[i].update(
+        i, labels[i].text, v.x, v.y, opacity)
+
+      if (!this.proteinDisplay.inZlab(pos)) {
+        this.atomlabels[i].hide()
+      }
+    }
+  }
+}
+
 /**
  * DistanceMeasure
  */
@@ -488,14 +508,64 @@ class DistanceMeasure {
   }
 }
 
+class DistanceMeasuresWidget {
+
+  constructor(proteinDisplay) {
+    this.distanceMeasures = []
+    this.threeJsScene = proteinDisplay.displayScene
+    this.scene = proteinDisplay.scene
+    this.controller = proteinDisplay.controller
+    this.webglDivTag = proteinDisplay.webglDivTag
+    this.proteinDisplay = proteinDisplay
+  }
+
+  draw() {
+    let distances = this.scene.current_view.distances
+    let atoms = this.scene.protein.atoms
+
+    for (let i = 0; i < distances.length; i += 1) {
+      let distance = distances[i]
+      let p1 = atoms[distance.i_atom1].pos
+      let p2 = atoms[distance.i_atom2].pos
+      let m = p1.clone().add(p2).multiplyScalar(0.5)
+
+      let opacity = 0.7 * this.proteinDisplay.opacity(m) + 0.3
+
+      let v = this.proteinDisplay.posXY(m)
+
+      let text = p1.distanceTo(p2).toFixed(1)
+
+      if (i >= this.distanceMeasures.length) {
+        this.distanceMeasures.push(
+          new DistanceMeasure(
+            this.webglDivTag, this.threeJsScene,
+            this.controller, this.distanceMeasures))
+      }
+
+      this.distanceMeasures[i].update(i, text, v.x, v.y, p1, p2, opacity)
+
+      if (!this.proteinDisplay.inZlab(m)) {
+        this.distanceMeasures[i].hide()
+      }
+    }
+
+    for (let i = this.distanceMeasures.length - 1; i >= 0; i -= 1) {
+      if (i >= distances.length) {
+        this.distanceMeasures[i].remove()
+      }
+    }
+  }
+}
+
+
 /**
- * LineWidget
+ * LineElement
  * - instantiates a DOM object is to draw a line between (x1, y1) and
  *   (x2, y2) within a jquery div
  * - used to display the mouse tool for making distance labels
  */
 
-class LineWidget {
+class LineElement {
   constructor (selector, color) {
     this.color = color
 
@@ -547,6 +617,15 @@ class LineWidget {
   }
 }
 
+
+/**
+ * Widget interface
+ *
+ * this.reset - called after model rebuild
+ * this.draw - called at every draw draw
+ * this.resize - called after every resize of window
+ */
+
 /**
  * CanvasWrapper
  *   - abstract class to wrap a canvas element
@@ -595,7 +674,7 @@ class CanvasWrapper {
   }
 
   x () {
-    var parentDivPos = this.parentDiv.position()
+    let parentDivPos = this.parentDiv.position()
     return parentDivPos.left
   }
 
@@ -691,43 +770,6 @@ class CanvasWrapper {
   }
 }
 
-var resToAa = {
-  'ALA': 'A',
-  'CYS': 'C',
-  'ASP': 'D',
-  'GLU': 'E',
-  'PHE': 'F',
-  'GLY': 'G',
-  'HIS': 'H',
-  'ILE': 'I',
-  'LYS': 'K',
-  'LEU': 'L',
-  'MET': 'M',
-  'ASN': 'N',
-  'PRO': 'P',
-  'GLN': 'Q',
-  'ARG': 'R',
-  'SER': 'S',
-  'THR': 'T',
-  'VAL': 'V',
-  'TRP': 'W',
-  'TYR': 'Y',
-  'DA': 'A',
-  'DT': 'T',
-  'DG': 'G',
-  'DC': 'C',
-  'A': 'A',
-  'T': 'T',
-  'G': 'G',
-  'C': 'C',
-  'RA': 'A',
-  'RU': 'U',
-  'RC': 'C',
-  'RG': 'G',
-  'U': 'U'
-
-}
-
 /**
  * SequenceWidget
  *   - creates a dual band across the top of the selected div
@@ -738,13 +780,13 @@ var resToAa = {
  **/
 
 class SequenceWidget extends CanvasWrapper {
-  constructor (selector, scene, proteinDisplay) {
+  constructor (selector, proteinDisplay) {
     super(selector)
 
-    this.scene = scene
-    this.protein = scene.protein
-
     this.proteinDisplay = proteinDisplay
+    this.scene = proteinDisplay.scene
+    this.traces = proteinDisplay.traces
+
     this.iRes = 0
 
     this.offsetY = 4
@@ -814,29 +856,28 @@ class SequenceWidget extends CanvasWrapper {
   }
 
   reset () {
-    let nRawResidue = this.scene.protein.residues.length
-
     this.residues = []
-    for (let iRes = 0; iRes < nRawResidue; iRes += 1) {
-      let residue = this.scene.protein.residues[iRes]
-      if (_.includes(['-', 'W'], residue.ss)) {
-        continue
-      }
+    for (let trace of this.traces) {
+      for (let i of _.range(trace.points.length)) {
+        let iRes = trace.indices[i]
+        let residue = trace.getReferenceObject(i)
 
-      let entry = {
-        i: iRes,
-        ss: residue.ss,
-        resId: residue.id
-      }
+        let entry = {
+          iRes,
+          ss: residue.ss,
+          resId: residue.id,
+          iAtom: residue.central_atom.i
+        }
 
-      let resType = residue.type
-      if (resType in resToAa) {
-        entry.c = resToAa[resType]
-      } else {
-        entry.c = '.'
-      }
+        let resType = residue.type
+        if (resType in resToAa) {
+          entry.c = resToAa[resType]
+        } else {
+          entry.c = '.'
+        }
 
-      this.residues.push(entry)
+        this.residues.push(entry)
+      }
     }
 
     this.nResidue = this.residues.length
@@ -935,8 +976,8 @@ class SequenceWidget extends CanvasWrapper {
     }
   }
 
-  getFullIRes () {
-    return this.residues[this.iRes].i
+  getCurrIAtom () {
+    return this.residues[this.iRes].iAtom
   }
 
   mousemove (event) {
@@ -952,12 +993,11 @@ class SequenceWidget extends CanvasWrapper {
       this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar)
       this.iStartChar = parseInt(this.iStartChar)
 
-      this.proteinDisplay.setTargetFromAtom(
-        this.scene.protein.residues[this.getFullIRes()].central_atom.i)
+      this.proteinDisplay.setTargetFromAtom(this.getCurrIAtom())
+
     } else {
       this.iRes = this.xToIChar(this.pointerX)
-      this.proteinDisplay.setTargetFromAtom(
-        this.scene.protein.residues[this.getFullIRes()].central_atom.i)
+      this.proteinDisplay.setTargetFromAtom(this.getCurrIAtom())
     }
   }
 }
@@ -1337,7 +1377,6 @@ class ProteinDisplay {
     this.mousePressed = false
 
     this.labels = []
-    this.distanceLabels = []
 
     // relative to the scene position from camera
     this.zFront = -40
@@ -1352,11 +1391,6 @@ class ProteinDisplay {
     this.hover = new PopupText(this.divTag, 'lightblue')
     this.hover.div.css('pointer-events', 'none')
     this.hover.arrow.css('pointer-events', 'none')
-
-    this.zSlabWidget = new ZSlabWidget(this.divTag, this.scene)
-    if (this.isGrid) {
-      this.gridControlWidget = new GridControlWidget(this.divTag, this.scene)
-    }
 
     this.messageDiv = $('<div>')
       .attr('id', 'loading-message')
@@ -1388,8 +1422,7 @@ class ProteinDisplay {
       this.zFront + this.zoom,
       this.zBack + this.zoom)
 
-    this.sequenceWidget = new SequenceWidget(
-      this.divTag, this.scene, this)
+    this.traces = []
 
     this.displayMeshes = {}
     this.displayScene = new THREE.Scene()
@@ -1415,7 +1448,15 @@ class ProteinDisplay {
 
     this.buildCrossHairs()
 
-    this.lineWidget = new LineWidget(this.webglDivTag, '#FF7777')
+    this.distanceMeasuresWidgets = new DistanceMeasuresWidget(this)
+    this.atomLabelsWidget = new AtomLabelsWidget(this)
+    this.sequenceWidget = new SequenceWidget(this.divTag, this)
+    this.zSlabWidget = new ZSlabWidget(this.divTag, this.scene)
+    if (this.isGrid) {
+      this.gridControlWidget = new GridControlWidget(this.divTag, this.scene)
+    }
+
+    this.lineElement = new LineElement(this.webglDivTag, '#FF7777')
   }
 
   initWebglRenderer () {
@@ -1460,7 +1501,7 @@ class ProteinDisplay {
    */
   displayMessageBeforeCompute (message, computeHeavyFn) {
     this.setProcessingMesssage(message)
-    // this pause allows the DOM to update before compute
+    // this pause allows the DOM to draw before compute
     setTimeout(computeHeavyFn, 0)
   }
 
@@ -1587,7 +1628,7 @@ class ProteinDisplay {
   }
 
   findContinuousTraces () {
-    this.traces = []
+    this.traces.splice(0, this.traces.length)
 
     let residues = this.protein.residues
 
@@ -1746,8 +1787,11 @@ class ProteinDisplay {
    */
 
   buildScene () {
+
     // calculate protein parameters
     this.assignBondsToResidues()
+
+    // generate the Trace for ribbons and tubes
     this.findContinuousTraces()
 
     // create default Meshes
@@ -1756,6 +1800,7 @@ class ProteinDisplay {
     // this.buildMeshOfNucleotides()
     this.buildMeshOfArrows()
     this.clearMesh('sidechains')
+
     this.rebuildSceneWithMeshes()
   }
 
@@ -2226,81 +2271,7 @@ class ProteinDisplay {
     return this.scene.changed
   }
 
-  drawDistanceLabels () {
-    var distances = this.scene.current_view.distances
-    var distanceLabels = this.distanceLabels
-    var atoms = this.protein.atoms
-
-    for (var i = 0; i < distances.length; i += 1) {
-      var distance = distances[i]
-
-      var p1 = v3.clone(atoms[distance.i_atom1].pos)
-      var p2 = v3.clone(atoms[distance.i_atom2].pos)
-      var m = p1.clone()
-        .add(p2)
-        .multiplyScalar(0.5)
-      var opacity = 0.7 * this.opacity(m) + 0.3
-
-      var v = this.posXY(m)
-      var text = p1.distanceTo(p2)
-        .toFixed(1)
-
-      if (i >= distanceLabels.length) {
-        this.distanceLabels.push(
-          new DistanceMeasure(
-            this.webglDivTag, this.displayScene,
-            this.controller, this.distanceLabels))
-      }
-
-      distanceLabels[i].update(
-        i, text, v.x, v.y, p1, p2, opacity)
-
-      if (!this.inZlab(m)) {
-        distanceLabels[i].hide()
-      }
-    }
-
-    for (var i = distanceLabels.length - 1; i >= 0; i -= 1) {
-      if (i >= distances.length) {
-        distanceLabels[i].remove()
-      }
-    }
-  }
-
-  drawAtomLabels () {
-    var labels = this.scene.current_view.labels
-    var atomLabels = this.labels
-
-    for (let i = atomLabels.length; i < labels.length; i += 1) {
-      var atomLabel = new AtomLabel(
-        this.webglDivTag, this.controller, atomLabels)
-      atomLabels.push(atomLabel)
-    }
-
-    for (let i = atomLabels.length - 1; i >= 0; i -= 1) {
-      if (i >= labels.length) {
-        atomLabels[i].remove()
-      }
-    }
-
-    var atoms = this.protein.atoms
-
-    for (let i = 0; i < labels.length; i += 1) {
-      var atom = atoms[labels[i].i_atom]
-      var pos = atom.pos
-      var v = this.posXY(pos)
-      var opacity = 0.7 * this.opacity(pos) + 0.2
-
-      atomLabels[i].update(
-        i, labels[i].text, v.x, v.y, opacity)
-
-      if (!this.inZlab(pos)) {
-        atomLabels[i].hide()
-      }
-    }
-  }
-
-  moveCrossHairs () {
+  updateCrossHairs () {
     this.crossHairs.position.copy(this.cameraTarget)
     this.crossHairs.lookAt(this.camera.position)
     this.crossHairs.updateMatrix()
@@ -2320,9 +2291,16 @@ class ProteinDisplay {
 
     this.selectVisibleMeshes()
 
-    this.drawAtomLabels()
-    this.drawDistanceLabels()
-    this.moveCrossHairs()
+    this.updateCrossHairs()
+
+    this.distanceMeasuresWidgets.draw()
+
+    this.zSlabWidget.draw()
+
+    if (this.isGrid) {
+      this.gridControlWidget.draw()
+    }
+    this.sequenceWidget.draw()
 
     // leave this to the very last moment
     // to avoid the dreaded black canvas
@@ -2331,14 +2309,7 @@ class ProteinDisplay {
     }
     this.renderer.render(this.displayScene, this.camera)
 
-    this.drawAtomLabels()
-    this.drawDistanceLabels()
-
-    this.zSlabWidget.draw()
-    if (this.isGrid) {
-      this.gridControlWidget.draw()
-    }
-    this.sequenceWidget.draw()
+    this.atomLabelsWidget.draw()
 
     this.scene.changed = false
   }
@@ -2794,7 +2765,7 @@ class ProteinDisplay {
     if (this.isDraggingCentralAtom) {
       var v = this.posXY(this.protein.atoms[this.iDownAtom].pos)
 
-      this.lineWidget.move(this.mouseX, this.mouseY, v.x, v.y)
+      this.lineElement.move(this.mouseX, this.mouseY, v.x, v.y)
     } else {
       var shiftDown = (event.shiftKey === 1)
 
@@ -2858,7 +2829,7 @@ class ProteinDisplay {
         }
       }
 
-      this.lineWidget.hide()
+      this.lineElement.hide()
 
       this.isDraggingCentralAtom = false
     }

@@ -1,8 +1,8 @@
 import $ from "jquery";
 import scrollTo from "jquery.scrollto";
 import _ from "lodash";
-import { EmbedJolecule, ViewPiece } from "./embedjolecule";
-import { getWindowUrl, linkButton, randomId, exists } from "./util";
+import {EmbedJolecule, ViewPiece} from "./embedjolecule";
+import {getWindowUrl, linkButton, randomId, exists} from "./util";
 
 
 /**
@@ -29,28 +29,36 @@ class ViewPieceList {
           .append(
             linkButton(
               '', '+[v]iew', 'jolecule-button',
-              () => { this.makeNewView(); }))
+              () => {
+                this.makeNewView();
+              }))
           .append(
             linkButton(
               '', 'prev[&uarr;]', 'jolecule-button',
-              () => { this.gotoPrevView(); }))
+              () => {
+                this.gotoPrevView();
+              }))
           .append(
             linkButton(
               '', 'next[&darr;]', 'jolecule-button',
-              () => { this.gotoNextView(); }))
+              () => {
+                this.gotoNextView();
+              }))
           .append(
             linkButton(
               '', '+l[a]bel', 'jolecule-button',
-              () => { this.proteinDisplay.atomLabelDialog(); }
+              () => {
+                this.proteinDisplay.atomLabelDialog();
+              }
             ))
           .append("<br>")
-        )
+      )
       .append(
         $("<div>")
           .attr("id", "jolecule-views")
       );
   }
-  
+
   saveViewsToDataServer(success) {
     console.log('> ViewPieceList.saveViewsToDataServer')
     this.data_server.save_views(
@@ -64,7 +72,7 @@ class ViewPieceList {
         delete this.viewPiece[id];
       }
     }
-    for (let i=0; i<this.scene.saved_views.length; i++) {
+    for (let i = 0; i < this.scene.saved_views.length; i++) {
       let view = this.scene.saved_views[i];
       let id = view.id;
 
@@ -98,21 +106,21 @@ class ViewPieceList {
     $("#jolecule-views")
       .stop()
       .scrollTo(
-        this.viewPiece[id].div, 1000, {offset:{top:-80}});
+        this.viewPiece[id].div, 1000, {offset: {top: -80}});
   }
-  
+
   setTargetByViewId(id) {
     this.controller.set_target_view_by_id(id);
     this.redrawSelectedViewId(id);
     window.location.hash = id;
   }
-  
+
   gotoPrevView() {
     let id = this.controller.set_target_prev_view();
     this.redrawSelectedViewId(id);
     window.location.hash = id;
   }
-  
+
   gotoNextView() {
     let id = this.controller.set_target_next_view();
     this.redrawSelectedViewId(id);
@@ -154,15 +162,15 @@ class ViewPieceList {
     if (i < 2) {
       return;
     }
-    this.swapViews(i-1, i);
+    this.swapViews(i - 1, i);
   }
 
   swapDown(view_id) {
     let i = this.scene.get_i_saved_view_from_id(view_id);
-    if (i > this.scene.saved_views.length-2) {
+    if (i > this.scene.saved_views.length - 2) {
       return;
     }
-    this.swapViews(i, i+1);
+    this.swapViews(i, i + 1);
   }
 
   makeViewDiv(id) {
@@ -170,7 +178,9 @@ class ViewPieceList {
     this.viewPiece[id] = new ViewPiece({
       view: view,
       isEditable: this.isEditable,
-      delete_view: () => { this.removeView(id); },
+      delete_view: () => {
+        this.removeView(id);
+      },
       save_change: (changed_text, sucess) => {
         view.text = changed_text;
         this.viewPiece[id].div.css('background-color', 'lightgray');
@@ -179,10 +189,16 @@ class ViewPieceList {
         });
         this.scene.changed = true;
       },
-      pick: () => { this.setTargetByViewId(id); },
-      goto: view.order+1, 
-      swapUp: () => { this.swapUp(id) },
-      swapDown: () => { this.swapDown(id) },
+      pick: () => {
+        this.setTargetByViewId(id);
+      },
+      goto: view.order + 1,
+      swapUp: () => {
+        this.swapUp(id)
+      },
+      swapDown: () => {
+        this.swapDown(id)
+      },
       embed_view: () => {
         window.location.href = '/embed/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id;
       },
@@ -191,7 +207,7 @@ class ViewPieceList {
   }
 
   makeAllViews() {
-    for (let i=0; i<this.scene.saved_views.length; i+=1) {
+    for (let i = 0; i < this.scene.saved_views.length; i += 1) {
       let id = this.scene.saved_views[i].id;
       let div = this.makeViewDiv(id);
       $('#jolecule-views').append(div);
@@ -201,10 +217,10 @@ class ViewPieceList {
   insertNewViewDiv(new_id) {
     let div = this.makeViewDiv(new_id);
 
-    if (this.scene.i_last_view == this.scene.saved_views.length-1) {
+    if (this.scene.i_last_view == this.scene.saved_views.length - 1) {
       $("#jolecule-views").append(div);
     } else {
-      let j = this.scene.i_last_view-1;
+      let j = this.scene.i_last_view - 1;
       let j_id = this.scene.saved_views[j].id;
       let j_div = this.viewPiece[j_id].div;
       div.insertAfter(j_div);
@@ -224,7 +240,7 @@ class ViewPieceList {
       this.viewPiece[newId].div.css('background-color', '');
       $("#jolecule-views").stop();
       $("#jolecule-views").scrollTo(
-        this.viewPiece[newId].div, 1000, {offset:{top:-80}});
+        this.viewPiece[newId].div, 1000, {offset: {top: -80}});
     });
   }
 
@@ -239,11 +255,10 @@ class ViewPieceList {
 
 class FullPageJolecule {
 
-  constructor(
-      proteinDisplayTag,
-      sequenceDisplayTag,
-      viewsDisplayTag,
-      params) {
+  constructor(proteinDisplayTag,
+              sequenceDisplayTag,
+              viewsDisplayTag,
+              params) {
 
     this.viewsDisplayTag = viewsDisplayTag;
     this.sequenceDisplayTag = sequenceDisplayTag;
@@ -310,7 +325,7 @@ class FullPageJolecule {
 
   isChanged() {
     if (typeof this.scene !== "undefined") {
-      return this.scene.changed; 
+      return this.scene.changed;
     }
     return false;
   };
@@ -331,7 +346,7 @@ class FullPageJolecule {
       this.embedJolecule.animate();
     }
   }
-  
+
   resize(event) {
     if (typeof this.scene !== "undefined") {
       this.scene.changed = true;
@@ -377,7 +392,7 @@ class FullPageJolecule {
           this.controller.set_backbone_option('ribbon');
         } else if (this.scene.current_view.show.ribbon) {
           this.controller.set_backbone_option('trace');
-        } else if (this.scene.current_view.show.trace){
+        } else if (this.scene.current_view.show.trace) {
           this.controller.set_backbone_option('all_atom');
         }
       } else if (c == 'L') {
@@ -386,8 +401,8 @@ class FullPageJolecule {
         this.controller.toggle_show_option('sidechain');
       } else if (c == 'W') {
         this.controller.toggle_show_option('water');
-      // } else if (c == 'H') {
-      //   this.controller.toggle_show_option('hydrogen');
+        // } else if (c == 'H') {
+        //   this.controller.toggle_show_option('hydrogen');
       } else if (c == 'C') {
         this.proteinDisplay.controller.clear_selected();
       } else if (c == 'E') {
@@ -401,8 +416,8 @@ class FullPageJolecule {
       } else if (c == 'A') {
         this.proteinDisplay.atomLabelDialog();
       } else {
-        let i = parseInt(c)-1;
-        if ((i || i==0) && (i<this.scene.saved_views.length)) {
+        let i = parseInt(c) - 1;
+        if ((i || i == 0) && (i < this.scene.saved_views.length)) {
           let id = this.scene.saved_views[i].id;
           this.viewsDisplay.setTargetByViewId(id);
         }
@@ -414,7 +429,7 @@ class FullPageJolecule {
 }
 
 
-export { FullPageJolecule }
+export {FullPageJolecule}
 
 
 
