@@ -1,22 +1,14 @@
 import THREE from 'three'
-
-var TV3 = THREE.Vector3
-var TCo = THREE.Color
-
-
-function exists (x) {
-  return typeof x !== 'undefined'
-}
+import v3 from './v3'
+import _ from 'lodash'
 
 
 function catmulRomSpline (t, p1, p2, p3, p4) {
-
-  return new TV3(
+  return v3.create(
     THREE.CurveUtils.interpolate(p1.x, p2.x, p3.x, p4.x, t),
     THREE.CurveUtils.interpolate(p1.y, p2.y, p3.y, p4.y, t),
     THREE.CurveUtils.interpolate(p1.z, p2.z, p3.z, p4.z, t)
   )
-
 }
 
 
@@ -36,12 +28,10 @@ function PathAndFrenetFrames () {
   this.tangents = []
   this.binormals = []
 
-  this.getSpacedPoints = function(steps) {
-    return this.points
-  }
+  this.getSpacedPoints = () => this.points
 
   this.slice = function(i, j) {
-    var subPath = new PathAndFrenetFrames()
+    let subPath = new PathAndFrenetFrames()
     subPath.points = this.points.slice(i, j)
     subPath.normals = this.normals.slice(i, j)
     subPath.tangents = this.tangents.slice(i, j)
@@ -66,28 +56,28 @@ function PathAndFrenetFrames () {
  */
 function expandPath (oldPath, n, iOldPoint, jOldPoint) {
 
-  if (typeof iOldPoint == 'undefined') {
+  if (typeof iOldPoint === 'undefined') {
     iOldPoint = 0
   }
 
-  if (typeof jOldPoint == 'undefined') {
+  if (typeof jOldPoint === 'undefined') {
     jOldPoint = oldPath.points.length
   }
 
-  var newPath = new PathAndFrenetFrames()
+  let newPath = new PathAndFrenetFrames()
 
   newPath.points.push(oldPath.points[iOldPoint])
 
-  for (var i = iOldPoint; i < jOldPoint - 1; i += 1) {
+  for (let i = iOldPoint; i < jOldPoint - 1; i += 1) {
 
-    var j_start = 1
-    var j_end = n + 1
+    let j_start = 1
+    let j_end = n + 1
 
-    for (var j = j_start; j < j_end; j += 1) {
+    for (let j = j_start; j < j_end; j += 1) {
 
-      var t = 1.0 * j / n
+      let t = 1.0 * j / n
 
-      var prevOldPoint, nextOldPoint
+      let prevOldPoint, nextOldPoint
 
       if (i > 0) {
         prevOldPoint = oldPath.points[i - 1]
@@ -116,13 +106,13 @@ function expandPath (oldPath, n, iOldPoint, jOldPoint) {
   }
 
   newPath.normals.push(oldPath.normals[iOldPoint])
-  for (var i = iOldPoint; i < jOldPoint - 1; i += 1) {
+  for (let i = iOldPoint; i < jOldPoint - 1; i += 1) {
 
-    for (var j = 1; j < n + 1; j += 1) {
+    for (let j = 1; j < n + 1; j += 1) {
 
-      var t = 1.0 * j / n
+      let t = 1.0 * j / n
 
-      var prevOldNormal, nextOldNormal
+      let prevOldNormal, nextOldNormal
 
       if (i > 0) {
         prevOldNormal = oldPath.normals[i - 1]
@@ -149,11 +139,11 @@ function expandPath (oldPath, n, iOldPoint, jOldPoint) {
     }
   }
 
-  for (var i = 0; i < newPath.points.length; i += 1) {
-    if (i == 0) {
+  for (let i = 0; i < newPath.points.length; i += 1) {
+    if (i === 0) {
       newPath.tangents.push(
         oldPath.tangents[0])
-    } else if (i == newPath.points.length - 1) {
+    } else if (i === newPath.points.length - 1) {
       newPath.tangents.push(
         oldPath.tangents[jOldPoint - 1])
     } else {
@@ -164,9 +154,9 @@ function expandPath (oldPath, n, iOldPoint, jOldPoint) {
     }
   }
 
-  for (var i = 0; i < newPath.points.length; i += 1) {
+  for (let i = 0; i < newPath.points.length; i += 1) {
     newPath.binormals.push(
-      new TV3()
+      v3.create()
         .crossVectors(
           newPath.tangents[i], newPath.normals[i])
     )
@@ -241,7 +231,7 @@ class Trace extends PathAndFrenetFrames {
         } else {
           // generate a normal from curvature
           let diff = this.points[i].clone().sub(this.points[i - 1])
-          this.normals[i] = new TV3()
+          this.normals[i] = v3.create()
             .crossVectors(diff, this.tangents[i]).normalize()
 
           // smooth out auto-generated normal if flipped 180deg from prev
@@ -272,7 +262,7 @@ class Trace extends PathAndFrenetFrames {
             .normalize()
         } else {
           let randomDir = this.points[i]
-          this.normals[i] = new TV3()
+          this.normals[i] = v3.create()
             .crossVectors(randomDir, tangent)
             .normalize()
         }
@@ -281,7 +271,7 @@ class Trace extends PathAndFrenetFrames {
 
     // calculate binormals from tangents and normals
     for (let i = iStart; i < iEnd; i += 1) {
-      this.binormals[i] = new TV3()
+      this.binormals[i] = v3.create()
         .crossVectors(this.tangents[i], this.normals[i])
     }
   }
@@ -329,15 +319,15 @@ function BlockArrowGeometry () {
   // Block arrow that points in the -Z direction
   // So can be reorientated using a lookAt() call
 
-  var shape = new THREE.Shape([
+  let shape = new THREE.Shape([
     new THREE.Vector2(-0.4, -0.5),
     new THREE.Vector2(0.0, +0.5),
     new THREE.Vector2(+0.4, -0.5)
   ])
 
-  var path = new THREE.CatmullRomCurve3(
-    [new TV3(0, -0.3, 0),
-      new TV3(0, 0.3, 0)
+  let path = new THREE.CatmullRomCurve3(
+    [v3.create(0, -0.3, 0),
+      v3.create(0, 0.3, 0)
     ])
 
   THREE.ExtrudeGeometry.call(
@@ -383,9 +373,9 @@ UnitCylinderGeometry.prototype = Object.create(THREE.CylinderGeometry.prototype)
 UnitCylinderGeometry.prototype.constructor = UnitCylinderGeometry
 
 
-var setVisible = function(obj, b) {
+let setVisible = function(obj, b) {
 
-  if (!exists(obj)) {
+  if (_.isUndefined(obj)) {
     return
   }
 
@@ -398,7 +388,7 @@ var setVisible = function(obj, b) {
 
 function perpVector (ref, vec) {
 
-  var vec_along_ref = ref.clone()
+  let vec_along_ref = ref.clone()
     .multiplyScalar(vec.dot(ref))
 
   return vec.clone().sub(vec_along_ref)
@@ -408,8 +398,8 @@ function perpVector (ref, vec) {
 
 function threePointNormal (vertices) {
 
-  var cb = new THREE.Vector3()
-  var ab = new THREE.Vector3()
+  let cb = new THREE.Vector3()
+  let ab = new THREE.Vector3()
 
   cb.subVectors(vertices[2], vertices[1])
   ab.subVectors(vertices[0], vertices[1])
@@ -432,38 +422,36 @@ function RaisedShapeGeometry (vertices, thickness) {
     thickness: thickness
   }
 
-  nVertex = vertices.length
+  let normal = threePointNormal(vertices.slice(0, 3))
 
-  var normal = threePointNormal(vertices.slice(0, 3))
-
-  var displacement = normal.clone()
+  let displacement = normal.clone()
     .multiplyScalar(+thickness / 2)
 
-  var nVertex = vertices.length
-  var iLast = nVertex - 1
-  var offset = nVertex
+  let nVertex = vertices.length
+  let iLast = nVertex - 1
+  let offset = nVertex
 
-  for (var i = 0; i < vertices.length; i += 1) {
+  for (let i = 0; i < vertices.length; i += 1) {
     this.vertices.push(vertices[i].clone()
       .add(displacement))
   }
-  for (var i = 0; i < vertices.length; i += 1) {
+  for (let i = 0; i < vertices.length; i += 1) {
     this.vertices.push(vertices[i].clone()
       .sub(displacement))
   }
 
-  for (var i = 0; i < nVertex - 2; i += 1) {
+  for (let i = 0; i < nVertex - 2; i += 1) {
     this.faces.push(new THREE.Face3(i, i + 1, iLast))
   }
 
-  for (var i = 0; i < nVertex - 2; i += 1) {
+  for (let i = 0; i < nVertex - 2; i += 1) {
     this.faces.push(new THREE.Face3(
       offset + i, offset + iLast, offset + i + 1))
   }
 
-  for (var i = 0; i < nVertex; i += 1) {
-    var j
-    if (i == nVertex - 1) {
+  for (let i = 0; i < nVertex; i += 1) {
+    let j
+    if (i === nVertex - 1) {
       j = 0
     } else {
       j = i + 1
@@ -494,8 +482,10 @@ RaisedShapeGeometry.prototype.constructor = RaisedShapeGeometry
  * two triangles are defined.
  *
  * @param {THREE.Shape} shape - collection of 2D points for cross section
- * @param {THREE.FrenetFrame} path - collection of points, normals, and binormals
- * @param {boolean} round - boolean
+ * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
+ * @param {boolean} round - normals are draw from centre, otherwise perp to edge
+ * @param {boolean} front - draw front cross-section
+ * @param {boolean} back - draw back cross-section
  */
 function RibbonGeometry (shape, path, round, front, back) {
 
@@ -513,48 +503,49 @@ function RibbonGeometry (shape, path, round, front, back) {
     return
   }
 
-  var shapePoints = shape.extractPoints(4)
+  let shapePoints = shape.extractPoints(4)
     .shape
-  var nVertex = shapePoints.length
+  let nVertex = shapePoints.length
 
-  if (!exists(round)) {
+  if (_.isUndefined(round)) {
     round = false
   }
 
+  let shapeEdgeNormals = []
+
   if (!round) {
 
-    var shapeEdgeNormals = []
-    for (var j = 0; j < nVertex; j += 1) {
-      var i = j - 1
-      if (i == -1) {
+    for (let j = 0; j < nVertex; j += 1) {
+      let i = j - 1
+      if (i === -1) {
         i = nVertex - 1
       }
-      var v0 = shapePoints[i]
-      var v1 = shapePoints[j]
-      var x = -( v1.y - v0.y )
-      var y = v1.x - v0.x
+      let v0 = shapePoints[i]
+      let v1 = shapePoints[j]
+      let x = -( v1.y - v0.y )
+      let y = v1.x - v0.x
       shapeEdgeNormals.push(new THREE.Vector2(x, y))
     }
 
   }
 
-  for (var iPoint = 0; iPoint < path.points.length; iPoint += 1) {
+  for (let iPoint = 0; iPoint < path.points.length; iPoint += 1) {
 
-    var point = path.points[iPoint]
-    var normal = path.normals[iPoint]
-    var binormal = path.binormals[iPoint]
+    let point = path.points[iPoint]
+    let normal = path.normals[iPoint]
+    let binormal = path.binormals[iPoint]
 
-    for (var iShapePoint = 0; iShapePoint < nVertex; iShapePoint +=
+    for (let iShapePoint = 0; iShapePoint < nVertex; iShapePoint +=
       1) {
 
-      var shapePoint = shapePoints[iShapePoint]
+      let shapePoint = shapePoints[iShapePoint]
 
-      var x = normal.clone()
+      let x = normal.clone()
         .multiplyScalar(shapePoint.x)
-      var y = binormal.clone()
+      let y = binormal.clone()
         .multiplyScalar(shapePoint.y)
 
-      var vertex = point.clone()
+      let vertex = point.clone()
         .add(x)
         .add(y)
 
@@ -562,52 +553,55 @@ function RibbonGeometry (shape, path, round, front, back) {
 
     }
 
-    var topOffset = this.vertices.length - 2 * nVertex
+    let topOffset = this.vertices.length - 2 * nVertex
     if (topOffset < 0) {
       continue
     }
 
     if (round) {
       // Smoothed normals to give a rounded look
-      for (var j = 0; j < nVertex; j += 1) {
-        if (j == 0) {
+      for (let j = 0; j < nVertex; j += 1) {
+        let i
+        if (j === 0) {
           i = nVertex - 1
         } else {
           i = j - 1
         }
-        var k = topOffset + i
-        var l = topOffset + j
+        let k = topOffset + i
+        let l = topOffset + j
 
-        var x = path.normals[iPoint - 1].clone()
+        let x, y
+
+        x = path.normals[iPoint - 1].clone()
           .multiplyScalar(shapePoints[j].x)
-        var y = path.binormals[iPoint - 1].clone()
+        y = path.binormals[iPoint - 1].clone()
           .multiplyScalar(shapePoints[j].y)
-        var normal01 = x.add(y)
+        let normal01 = x.add(y)
 
-        var x = path.normals[iPoint].clone()
+        x = path.normals[iPoint].clone()
           .multiplyScalar(shapePoints[j].x)
-        var y = path.binormals[iPoint].clone()
+        y = path.binormals[iPoint].clone()
           .multiplyScalar(shapePoints[j].y)
-        var normal11 = x.add(y)
+        let normal11 = x.add(y)
 
-        var x = path.normals[iPoint - 1].clone()
+        x = path.normals[iPoint - 1].clone()
           .multiplyScalar(shapePoints[i].x)
-        var y = path.binormals[iPoint - 1].clone()
+        y = path.binormals[iPoint - 1].clone()
           .multiplyScalar(shapePoints[i].y)
-        var normal00 = x.add(y)
+        let normal00 = x.add(y)
 
-        var x = path.normals[iPoint].clone()
+        x = path.normals[iPoint].clone()
           .multiplyScalar(shapePoints[i].x)
-        var y = path.binormals[iPoint].clone()
+        y = path.binormals[iPoint].clone()
           .multiplyScalar(shapePoints[i].y)
-        var normal10 = x.add(y)
+        let normal10 = x.add(y)
 
-        var face = new THREE.Face3(k, k + nVertex, l +
+        let face = new THREE.Face3(k, k + nVertex, l +
           nVertex)
         face.vertexNormals = [normal00, normal10, normal11]
         this.faces.push(face)
 
-        var face = new THREE.Face3(k, l + nVertex, l)
+        face = new THREE.Face3(k, l + nVertex, l)
         face.vertexNormals = [normal00, normal11, normal01]
         this.faces.push(face)
       }
@@ -615,33 +609,36 @@ function RibbonGeometry (shape, path, round, front, back) {
     } else {
       // Continuous normals but keep faces distinct
       // along ribbon
-      for (var j = 0; j < nVertex; j += 1) {
-        if (j == 0) {
+      for (let j = 0; j < nVertex; j += 1) {
+        let i
+        if (j === 0) {
           i = nVertex - 1
         } else {
           i = j - 1
         }
-        var k = topOffset + i
-        var l = topOffset + j
+        let k = topOffset + i
+        let l = topOffset + j
 
-        var x = path.normals[iPoint - 1].clone()
+        let x, y
+
+        x = path.normals[iPoint - 1].clone()
           .multiplyScalar(shapeEdgeNormals[j].x)
-        var y = path.binormals[iPoint - 1].clone()
+        y = path.binormals[iPoint - 1].clone()
           .multiplyScalar(shapeEdgeNormals[j].y)
-        var normal0 = x.add(y)
+        let normal0 = x.add(y)
 
-        var x = path.normals[iPoint].clone()
+        x = path.normals[iPoint].clone()
           .multiplyScalar(shapeEdgeNormals[j].x)
-        var y = path.binormals[iPoint].clone()
+        y = path.binormals[iPoint].clone()
           .multiplyScalar(shapeEdgeNormals[j].y)
-        var normal1 = x.add(y)
+        let normal1 = x.add(y)
 
-        var face = new THREE.Face3(k, k + nVertex, l +
+        let face = new THREE.Face3(k, k + nVertex, l +
           nVertex)
         face.vertexNormals = [normal0, normal1, normal1]
         this.faces.push(face)
 
-        var face = new THREE.Face3(k, l + nVertex, l)
+        face = new THREE.Face3(k, l + nVertex, l)
         face.vertexNormals = [normal0, normal1, normal0]
         this.faces.push(face)
       }
@@ -650,13 +647,13 @@ function RibbonGeometry (shape, path, round, front, back) {
 
   if (front) {
     // Draw front face
-    normal = threePointNormal([
+    let normal = threePointNormal([
       this.vertices[0],
       this.vertices[1],
       this.vertices[2]
     ])
-    for (var i = 0; i < nVertex - 2; i += 1) {
-      var face = new THREE.Face3(i, i + 1, nVertex - 1)
+    for (let i = 0; i < nVertex - 2; i += 1) {
+      let face = new THREE.Face3(i, i + 1, nVertex - 1)
       face.normal.copy(normal)
       this.faces.push(face)
     }
@@ -664,16 +661,16 @@ function RibbonGeometry (shape, path, round, front, back) {
 
   if (back) {
     // draw back face
-    var offset = this.vertices.length - 1 - nVertex
+    let offset = this.vertices.length - 1 - nVertex
 
-    normal = threePointNormal([
+    let normal = threePointNormal([
       this.vertices[offset],
       this.vertices[offset + nVertex - 1],
       this.vertices[offset + 1]
     ])
 
-    for (var i = 0; i < nVertex - 2; i += 1) {
-      face = new THREE.Face3(
+    for (let i = 0; i < nVertex - 2; i += 1) {
+      let face = new THREE.Face3(
         offset + i, offset + nVertex - 1, offset + i + 1)
       face.normal.copy(normal)
       this.faces.push(face)
@@ -696,7 +693,7 @@ function getUnitVectorRotation (reference, target) {
 
 function getFractionRotation (rotation, t) {
 
-  var identity = new THREE.Quaternion()
+  let identity = new THREE.Quaternion()
   return identity.slerp(rotation, t)
 
 }
@@ -704,8 +701,8 @@ function getFractionRotation (rotation, t) {
 
 function setGeometryVerticesColor (geom, color) {
 
-  for (var i = 0; i < geom.faces.length; i += 1) {
-    var face = geom.faces[i]
+  for (let i = 0; i < geom.faces.length; i += 1) {
+    let face = geom.faces[i]
     face.vertexColors[0] = color
     face.vertexColors[1] = color
     face.vertexColors[2] = color
@@ -731,11 +728,11 @@ function getSphereMatrix (pos, radius) {
 
 
 function getCylinderMatrix (from, to, radius) {
-  var midpoint = from.clone()
+  let midpoint = from.clone()
     .add(to)
     .multiplyScalar(0.5)
 
-  var obj = new THREE.Object3D()
+  let obj = new THREE.Object3D()
   obj.scale.set(radius, radius, from.distanceTo(to))
   obj.position.copy(midpoint)
   obj.lookAt(to)
@@ -746,9 +743,9 @@ function getCylinderMatrix (from, to, radius) {
 
 function clearObject3D (obj) {
   // clearing obj does not clear scene
-  var iLast = obj.children.length - 1
-  for (var i = iLast; i >= 0; i -= 1) {
-    var child = obj.children[i]
+  let iLast = obj.children.length - 1
+  for (let i = iLast; i >= 0; i -= 1) {
+    let child = obj.children[i]
     if (!_.isUndefined(child.dontDelete)) {
       continue
     }
@@ -761,7 +758,6 @@ function clearObject3D (obj) {
     obj.remove(child)
   }
 }
-
 
 
 export {
@@ -783,28 +779,3 @@ export {
   getCylinderMatrix
 }
 
-
-// function drawExtrusion( shape, pathAndFrenetFrames, color ) {
-
-//     var steps = pathAndFrenetFrames.points.length - 1;
-//     var frames = pathAndFrenetFrames;
-
-//     var geometry = new THREE.ExtrudeGeometry(
-//             shape, {
-//                 // curveSegments: 4,
-//                 steps: steps,
-//                 bevelEnabled: false,
-//                 extrudePath: pathAndFrenetFrames,
-//                 frames: pathAndFrenetFrames
-//             }
-//         )
-//         // geometry.mergeVertices();
-//     geometry.computeFaceNormals();
-//     geometry.computeVertexNormals();
-
-//     var material = new THREE.MeshLambertMaterial( {
-//         color: color
-//     } );
-
-//     return new THREE.Mesh( geometry, material );
-// }

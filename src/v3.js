@@ -13,7 +13,7 @@
 import THREE from "three";
 
 
-var SMALL = 1E-6;
+const SMALL = 1E-6;
 
 
 function isNearZero(a) {
@@ -32,7 +32,7 @@ function clone( v ) {
 
 
 function scaled(v, s) {
-  var w = create(v.x, v.y, v.z);
+  let w = create(v.x, v.y, v.z);
   w.multiplyScalar(s);
   return w;
 }
@@ -54,12 +54,12 @@ function sum(a, b) {
 
 
 function parallel(v, axis) {
-  var axis_len = axis.length();
-  var result;
+  let axis_len = axis.length();
+  let result;
   if (isNearZero(axis_len)) {
     result = create(v.x, v.y, v.z);
   } else {
-    var scale = dot_product(v, axis)/axis_len/axis_len;
+    let scale = dot_product(v, axis)/axis_len/axis_len;
     result = scaled(axis, scale);
   }
   return result;
@@ -84,12 +84,12 @@ function distance(p1, p2) {
 
 
 function angle(a, b) {
-  var a_len = a.length();
-  var b_len = b.length();
+  let a_len = a.length();
+  let b_len = b.length();
   if (isNearZero(a_len * b_len)) {
     return 0.0;
   }
-  var c = dot_product(a, b) / a_len / b_len;
+  let c = dot_product(a, b) / a_len / b_len;
   if (c >=  1.0) {
     return 0.0;
   }
@@ -103,10 +103,10 @@ function angle(a, b) {
 function dihedral(ref, axis, v) {
   // + values: right-hand screw rotation of v
   //           around axis relative to ref
-  var ref_perp = perpendicular(ref, axis);
-  var v_perp = perpendicular(v, axis);
-  var a = angle(ref_perp, v_perp);
-  var cross = crossProduct(ref_perp, v_perp);
+  let ref_perp = perpendicular(ref, axis);
+  let v_perp = perpendicular(v, axis);
+  let a = angle(ref_perp, v_perp);
+  let cross = crossProduct(ref_perp, v_perp);
   if (dot_product(cross, axis) > 0) {
     a = -a;
   }
@@ -114,7 +114,7 @@ function dihedral(ref, axis, v) {
 }
 
 function midPoint(p, q) {
-  var s = sum(p, q);
+  let s = sum(p, q);
   return scaled(s, 0.5);
 }
 
@@ -140,23 +140,30 @@ function isAligned(v, w) {
   return isNearZero(angle(v, w));
 }
 
-var Matrix4 = THREE.Matrix4;
+let Matrix4 = THREE.Matrix4;
 
 function matrixProduct(lhs, rhs) {
-  var c = new Matrix4();
+  let c = new Matrix4();
   c.multiplyMatrices(lhs, rhs);
   return c;
 }
 
 function rotation(axis, theta) {
-  var a = axis.clone().normalize();
+  let a = axis.clone().normalize();
   return new Matrix4().makeRotationAxis(a, theta);
 }
 
 function translation(p) {
-  var c = new Matrix4();
+  let c = new Matrix4();
   return c.makeTranslation(p.x, p.y, p.z);
 }
+
+function degToRad (deg) {
+  return deg * Math.PI / 180.0
+}
+
+
+
 
 export default {
   SMALL,
@@ -182,5 +189,6 @@ export default {
   matrixProduct,
   rotation,
   translation,
+  degToRad
 };
 

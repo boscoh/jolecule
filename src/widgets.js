@@ -1,9 +1,23 @@
+/**
+ * Widget interface
+ *
+ * decorated graphical objects on top of ProteinDisplay. It uses
+ * a mix of HTML DOM elements calibrated with the 3D models of the
+ * protein inProteinDisplay
+ *
+ * this.reset - called after model rebuild
+ * this.draw - called at every draw event
+ * this.resize - called after every resize of window
+ */
+
+
 import $ from 'jquery'
 import THREE from 'three'
 import _ from 'lodash'
 
 import * as data from './data'
 import * as util from './util'
+
 
 /**
  * LineElement
@@ -291,18 +305,6 @@ class PopupText {
 
 
 /**
- * Widget interface
- *
- * decorated graphical objects on top of ProteinDisplay. It uses
- * a mix of HTML DOM elements calibrated with the 3D models of the
- * protein inProteinDisplay
- *
- * this.reset - called after model rebuild
- * this.draw - called at every draw event
- * this.resize - called after every resize of window
- */
-
-/**
  * A set of pop-up text labels over specified atoms, rendered as
  * DIV text on the DOM on top of ProteinDisplay but using opacity
  * of the given z position of the associated atoms
@@ -314,6 +316,7 @@ class AtomLabelsWidget {
     this.scene = proteinDisplay.scene
     this.controller = proteinDisplay.controller
     this.proteinDisplay = proteinDisplay
+    this.webglDivTag = proteinDisplay.webglDivTag
   }
 
   removePopup (i) {
@@ -323,7 +326,7 @@ class AtomLabelsWidget {
   }
 
   createPopup (i) {
-    let popup = new PopupText(this.proteinDisplay.webglDivTag)
+    let popup = new PopupText(this.webglDivTag)
     popup.div.click(() => { this.removePopup(i) })
     return popup
   }
@@ -404,8 +407,8 @@ class DistanceMeasuresWidget {
     this.parentDiv.append(div)
 
     let geometry = new THREE.Geometry()
-    geometry.vertices.push(new TV3(0, 0, 0))
-    geometry.vertices.push(new TV3(1, 1, 1))
+    geometry.vertices.push(new THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new THREE.Vector3(1, 1, 1))
     let material = new THREE.LineDashedMaterial({
       color: 0xFF7777,
       dashSize: 3,
@@ -420,7 +423,6 @@ class DistanceMeasuresWidget {
 
   draw() {
     let distances = this.scene.current_view.distances
-    let atoms = this.scene.protein.atoms
 
     if (distances.length > this.distanceMeasures.length) {
       for (let i = this.distanceMeasures.length; i < distances.length; i += 1) {
@@ -436,6 +438,7 @@ class DistanceMeasuresWidget {
 
     let parentDivPos = this.parentDiv.position()
 
+    let atoms = this.scene.protein.atoms
     for (let i = 0; i < distances.length; i += 1) {
       let distance = distances[i]
       let distanceMeasure = this.distanceMeasures[i]
@@ -479,6 +482,7 @@ class DistanceMeasuresWidget {
 
   }
 }
+
 
 /**
  * SequenceWidget
@@ -897,7 +901,6 @@ class GridControlWidget extends CanvasWrapper {
     }
     this.diffB = this.maxB - this.minB
     this.scene.grid = this.minB
-    console.log('> GridControlWidget.findLimits', this.scene.grid_atoms)
   }
 
   reset () {
@@ -923,7 +926,7 @@ class GridControlWidget extends CanvasWrapper {
 
   makeElemButton (elem, y) {
     console.log('> make grid atoms', elem, this.scene.grid_atoms[elem])
-    let color = new THREE.Color(data.ElementColors[elem])
+    let color = data.ElementColors[elem]
     let colorHexStr = color.getHexString()
     let text_button = util.toggleButton(
       'toggle_text',

@@ -24,7 +24,6 @@ import v3 from "./v3";
 
 import { getWindowUrl, inArray, getCurrentDateStr } from "./util.js";
 
-
 var user = 'public'; // will be overriden by server
 
 var atom_radius = 0.3;
@@ -318,6 +317,36 @@ var Protein = function () {
     return false;
   };
 
+  this.isSugarPhosphateConnected = function(iRes0, iRes1) {
+    let res0 = this.residues[iRes0]
+    let res1 = this.residues[iRes1]
+
+    if (('C3\'' in res0.atoms) &&
+      ('C1\'' in res0.atoms) &&
+      ('C5\'' in res0.atoms) &&
+      ('O3\'' in res0.atoms) &&
+      ('P' in res1.atoms) &&
+      ('C3\'' in res1.atoms) &&
+      ('C1\'' in res1.atoms) &&
+      ('C5\'' in res1.atoms)) {
+      // detect nucloetide phosphate sugar bond
+      let o3 = res0.atoms['O3\'']
+      let p = res1.atoms['P']
+      if (v3.distance(o3.pos, p.pos) < 2.5) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  this.getNormalOfNuc = function (iRes) {
+    let atoms = this.residues[iRes].atoms
+    let forward = v3.diff(atoms['C3\''].pos, atoms['C5\''].pos)
+    let up = v3.diff(atoms['C1\''].pos, atoms['C3\''].pos)
+    return v3.crossProduct(forward, up)
+  }
+
   this.has_aa_bb = function (i) {
     if ((i < 0) || (i >= this.residues.length)) {
       return false;
@@ -330,24 +359,46 @@ var Protein = function () {
     return false;
   };
 
-  this.make_trace = function () {
-    this.trace = [];
-    for (var j = 1; j < this.residues.length; j += 1) {
-      if (this.has_aa_bb(j - 1) && this.has_aa_bb(j)) {
-        var ca1 = this.residues[j - 1].atoms["CA"];
-        var ca2 = this.residues[j].atoms["CA"];
-        if ((ca1.chain == ca2.chain) &&
-          (v3.distance(ca1.pos, ca2.pos) < 8)) {
-          this.trace.push({atom1: ca1, atom2: ca2});
-        }
+  this.isPeptideConnected = function(iRes0, iRes1) {
+    let res0 = this.residues[iRes0]
+    let res1 = this.residues[iRes1]
+
+    if (('C' in res0.atoms) &&
+      ('N' in res1.atoms) &&
+      ('CA' in res0.atoms) &&
+      ('CA' in res1.atoms)) {
+      // detect a potential peptide bond
+
+      let c = res0.atoms['C']
+      let n = res1.atoms['N']
+      if (v3.distance(c.pos, n.pos) < 2) {
+        return true
       }
-      if (this.has_nuc_bb(j - 1) && this.has_nuc_bb(j)) {
-        var c31 = this.residues[j - 1].atoms["C3'"];
-        var c32 = this.residues[j].atoms["C3'"];
-        if ((c31.chain == c32.chain) &&
-          (v3.distance(c31.pos, c32.pos) < 8)) {
-          this.trace.push({atom1: c31, atom2: c32});
-        }
+    }
+
+    return false
+  }
+
+  this.assignBondsToResidues = function() {
+    for (let res of this.residues) {
+      res.bonds = []
+    }
+
+    for (let bond of this.bonds) {
+      let atom1 = bond.atom1
+      let atom2 = bond.atom2
+
+      if (atom1.is_alt || atom2.is_alt) {
+        continue
+      }
+
+      let res1 = this.res_by_id[atom1.res_id]
+      let res2 = this.res_by_id[atom2.res_id]
+
+      res1.bonds.push(bond)
+
+      if (res1 !== res2) {
+        res2.bonds.push(bond)
       }
     }
   }
@@ -716,20 +767,29 @@ var Protein = function () {
   this.load = function (protein_data) {
     this.pdb_id = protein_data['pdb_id'];
     console.log(`> Protein.load parsing ${this.pdb_id}`);
-    var atom_lines = extract_atom_lines(protein_data['pdb_text']);
+
     this.default_html = this.pdb_id + ": "
       + parsetTitleFromPdbText(protein_data['pdb_text']);
+
+    var atom_lines = extract_atom_lines(protein_data['pdb_text']);
     let atoms = this.make_atoms_from_pdb_lines(atom_lines, this.pdb_id);
     this.make_residues(atoms);
     this.atoms = _.concat(this.atoms, atoms);
+
     console.log(`> Protein.load parsed ${atoms.length} atoms`);
+
     for (var i=0; i<this.atoms.length; i+=1) {
       this.atoms[i].i = i;
     }
+
     this.make_bonds(this.calc_bonds(this.atoms));
+    this.assignBondsToResidues()
     console.log(`> Protein.load parsed ${this.bonds.length} bonds`);
+
     this.max_length = this.calc_max_length(this.atoms);
+
     this.find_ss();
+
     console.log(`> Protein.load parsed ${this.residues.length} residues`);
   }
 

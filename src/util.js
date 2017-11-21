@@ -17,9 +17,9 @@ function getWindowUrl() {
 
 
 function getDomPosition(dom) {
-  var currDom = dom;
-  var currLeft = 0;
-  var currTop = 0;
+  let currDom = dom;
+  let currLeft = 0;
+  let currTop = 0;
   if (currDom.offsetParent) {
     currLeft = currDom.offsetLeft;
     currTop = currDom.offsetTop;
@@ -38,7 +38,7 @@ function getDomPosition(dom) {
 
 
 function linkButton(idTag, text, classTag, callback) {
-  var item = 
+  let item = 
     $('<a>')
       .attr('id', idTag)
       .attr('href', '')
@@ -64,7 +64,7 @@ function linkButton(idTag, text, classTag, callback) {
 function toggleButton(
   idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
 
-  var item =
+  let item =
     $('<a>')
       .attr('id', idTag)
       .attr('href', '')
@@ -114,8 +114,8 @@ function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
     'position':'absolute',
     'z-index':'9000'
   });
-  var top = parent.position().top;
-  var left = parent.position().left;
+  let top = parent.position().top;
+  let left = parent.position().left;
   parent.append(target);
   target.css({
       'top': top + yOffset,
@@ -129,13 +129,13 @@ function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
     'position':'absolute',
     'z-index':'9000'
   });
-  var top = parent.position().top;
-  var left = parent.position().left;
-  var widthParent = parent.outerWidth();
-  var heightParent = parent.outerHeight();
+  let top = parent.position().top;
+  let left = parent.position().left;
+  let widthParent = parent.outerWidth();
+  let heightParent = parent.outerHeight();
   parent.prepend(target);
-  var widthTarget = target.outerWidth();
-  var heightTarget = target.outerHeight();
+  let widthTarget = target.outerWidth();
+  let heightTarget = target.outerHeight();
   target.css({
       'top': top + heightParent/2 - heightTarget/2 - yOffset,
       'left': left + widthParent/2 - widthTarget/2 - xOffset,
@@ -149,11 +149,11 @@ function inArray(v, aList) {
 
 
 function randomString(n_char) {
-	var chars = 
+	let chars = 
 	   "0123456789abcdefghiklmnopqrstuvwxyz";
-	var s = '';
-	for (var i=0; i<n_char; i++) {
-		var j = Math.floor(Math.random()*chars.length);
+	let s = '';
+	for (let i=0; i<n_char; i++) {
+		let j = Math.floor(Math.random()*chars.length);
 		s += chars.substring(j,j+1);
 	}
 	return s;
@@ -166,10 +166,10 @@ function randomId() {
 
 
 function getCurrentDateStr() {
-  var now = new Date();
-  var month = now.getMonth() + 1;
-  var day = now.getDate();
-  var year = now.getFullYear();
+  let now = new Date();
+  let month = now.getMonth() + 1;
+  let day = now.getDate();
+  let year = now.getFullYear();
   return day + "/" + month + "/" + year;
 }
 
@@ -197,13 +197,13 @@ function textEntryDialog (parentDiv, label, callback) {
     window.keyboard_lock = false
   }
 
-  var save_button = linkButton(
+  let save_button = linkButton(
     'okay', 'okay', 'jolecule-small-button', accept)
 
-  var discard_button = linkButton(
+  let discard_button = linkButton(
     'discard', 'discard', 'jolecule-small-button', discard)
 
-  var textarea = $('<textarea>')
+  let textarea = $('<textarea>')
     .css('width', '100%')
     .addClass('jolecule-view-text')
     .keydown(
@@ -214,7 +214,7 @@ function textEntryDialog (parentDiv, label, callback) {
         }
       })
 
-  var editbox = $('<div>')
+  let editbox = $('<div>')
     .css('width', '100%')
     .append(label)
     .append(textarea)
@@ -222,7 +222,7 @@ function textEntryDialog (parentDiv, label, callback) {
     .append(' ')
     .append(discard_button)
 
-  var dialog = $('<div>')
+  let dialog = $('<div>')
     .addClass('jolecule-dialog')
     .css('display', 'block')
     .css('z-index', '2000')
