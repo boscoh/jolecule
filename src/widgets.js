@@ -1,9 +1,9 @@
 /**
  * Widget interface
  *
- * decorated graphical objects on top of ProteinDisplay. It uses
- * a mix of HTML DOM elements calibrated with the 3D models of the
- * protein inProteinDisplay
+ * decorated graphical objects on top of ProteinDisplay that are a hybrid
+ * of HTML DOM elements and WebGL elements such as lines, atom labels,
+ * distance measures, sequence bars, z-slab control, grid controls
  *
  * this.reset - called after model rebuild
  * this.draw - called at every draw event

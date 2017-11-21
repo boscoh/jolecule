@@ -4,22 +4,7 @@ import _ from 'lodash'
 import v3 from './v3'
 import {View} from './protein'
 
-import {
-  UnitCylinderGeometry,
-  BlockArrowGeometry,
-  setVisible,
-  RaisedShapeGeometry,
-  getUnitVectorRotation,
-  getFractionRotation,
-  setGeometryVerticesColor,
-  clearObject3D,
-  Trace,
-  mergeUnitGeom,
-  getSphereMatrix,
-  getCylinderMatrix
-} from './glgeometry'
-
-
+import * as glgeom from './glgeometry'
 import * as util from './util'
 import widgets from './widgets'
 import * as data from './data'
@@ -35,6 +20,12 @@ function getVerticesFromAtomDict(atoms, atomTypes) {
 
 function fraction(reference, target, t) {
   return t * (target - reference) + reference
+}
+
+function extendArray(array, extension) {
+  for (let elem of extension) {
+    array.push(elem)
+  }
 }
 
 /**
@@ -146,22 +137,121 @@ function makeDefaultView(view, protein) {
 }
 
 
+function makeTracesFromProtein(protein) {
+
+  let traces = []
+  let residues = protein.residues
+  let trace
+
+  let makeNewTrace = () => {
+    trace = new glgeom.Trace()
+    trace.referenceObjects = residues
+    traces.push(trace)
+  }
+
+  let nResidue = residues.length
+  for (let iResidue = 0; iResidue < nResidue; iResidue += 1) {
+
+    let residue = residues[iResidue]
+    let isResInTrace = false
+
+    if (residue.is_protein_or_nuc) {
+      isResInTrace = true
+    } else {
+      // Handles non-standard amino-acids and nucleotides that are
+      // covalently bonded with the correct atom types to
+      // neighbouring residues
+      if (iResidue > 0) {
+        if (protein.isPeptideConnected(iResidue - 1, iResidue)) {
+          residue.central_atom = residue.atoms['CA']
+          isResInTrace = true
+        } else if (protein.isSugarPhosphateConnected(iResidue - 1, iResidue)) {
+          residue.central_atom = residue.atoms['C3\'']
+          isResInTrace = true
+          residue.ss = 'R'
+          residue.normal = protein.getNormalOfNuc(iResidue)
+        }
+      }
+
+      if (iResidue < nResidue - 1) {
+        if (protein.isPeptideConnected(iResidue, iResidue + 1)) {
+          residue.central_atom = residue.atoms['CA']
+          isResInTrace = true
+        } else if (protein.isSugarPhosphateConnected(iResidue, iResidue + 1)) {
+          residue.central_atom = residue.atoms['C3\'']
+          isResInTrace = true
+          residue.ss = 'R'
+          residue.normal = protein.getNormalOfNuc(residue)
+        }
+      }
+    }
+
+    if (isResInTrace) {
+      if (iResidue === 0) {
+        makeNewTrace()
+      } else {
+        let iLastResidue = iResidue - 1
+        let peptideConnect = protein.isPeptideConnected(
+          iLastResidue, iResidue)
+        let nucleotideConnect = protein.isSugarPhosphateConnected(
+          iLastResidue, iResidue)
+        if (!peptideConnect && !nucleotideConnect) {
+          makeNewTrace()
+        }
+      }
+      trace.indices.push(iResidue)
+      trace.points.push(v3.clone(residue.central_atom.pos))
+      let normal = null
+      if (residues[iResidue].normal) {
+        normal = residues[iResidue].normal
+      }
+      trace.normals.push(normal)
+    }
+  }
+
+  // flip normals so that they are all pointing in same direction
+  // within the same piece of chain
+  for (let trace of traces) {
+    for (let i of _.range(1, trace.indices.length)) {
+      if (trace.getReferenceObject(i).ss !== 'D' &&
+        trace.getReferenceObject(i - 1).ss !== 'D') {
+        let normal = trace.normals[i]
+        let prevNormal = trace.normals[i - 1]
+        if (normal !== null && prevNormal !== null)
+          if (normal.dot(prevNormal) < 0) {
+            trace.normals[i].negate()
+          }
+      }
+    }
+  }
+
+  return traces
+
+}
+
+
 /**
  *
  * ProteinDisplay: The main window for drawing the protein
- * in a WebGL HTML5 canvas, with a Z-Slabe and Sequence Display
+ * in a WebGL HTML5 canvas, includes various widgets that
+ * are described in widgets.js.
+ *
+ * ProteinDisplay takes a protein, and builds three.js from
+ * it. ProteinDisplay also handles mouse input and
+ * uses controller to make changes to the underlying protein
+ * and their associated views
  */
 class ProteinDisplay {
 
   /**
    * @param scene - Scene object that holds a protein and views
-   * @param divTag - a tag for a DOM element
+   * @param divTag - a selector tag for a DOM element
    * @param controller - the controller for the scene
-   * @param isGrid - flat to show autodock 3D grid
-   * @param backgroundColor - the background color of the canvas
-   *                          and protein
+   * @param isGrid - flat to show autodock 3D grid control panel
+   * @param backgroundColor - the background color of canvas and webgl
    */
   constructor(scene, divTag, controller, isGrid, backgroundColor) {
+
     this.divTag = divTag
     this.scene = scene
     this.protein = scene.protein
@@ -193,8 +283,8 @@ class ProteinDisplay {
     // determines how far away the camera is from the scene
     this.zoom = 50.0
 
-    this.mainDiv = $(this.divTag)
-    this.mainDiv.css('overflow', 'hidden')
+    this.div = $(this.divTag)
+    this.div.css('overflow', 'hidden')
 
     this.hover = new widgets.PopupText(this.divTag, 'lightblue')
     this.hover.div.css('pointer-events', 'none')
@@ -212,7 +302,7 @@ class ProteinDisplay {
 
     this.backgroundColor = backgroundColor
 
-    this.webglDivId = this.mainDiv.attr('id') + '-canvas-wrapper'
+    this.webglDivId = this.div.attr('id') + '-canvas-wrapper'
     this.webglDivTag = '#' + this.webglDivId
     this.webglDiv = $('<div>')
       .attr('id', this.webglDivId)
@@ -220,8 +310,8 @@ class ProteinDisplay {
       .css('background-color', '#CCC')
     this.webglDiv.contextmenu(() => false)
 
-    this.mainDiv.append(this.webglDiv)
-    this.mainDiv.css('background-color', '#CCC')
+    this.div.append(this.webglDiv)
+    this.div.css('background-color', '#CCC')
 
     this.cameraTarget = new THREE.Vector3(0, 0, 0)
     this.camera = new THREE.PerspectiveCamera(
@@ -232,14 +322,14 @@ class ProteinDisplay {
 
     this.traces = []
 
+    let vertexColors = THREE.VertexColors
     this.displayMeshes = {}
     this.displayScene = new THREE.Scene()
     this.displayScene.background = new THREE.Color(this.backgroundColor)
     this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
     this.displayScene.fog.near = this.zoom + 1
     this.displayScene.fog.far = this.zoom + this.zBack
-    this.displayMaterial = new THREE.MeshLambertMaterial(
-      {vertexColors: THREE.VertexColors})
+    this.displayMaterial = new THREE.MeshLambertMaterial({vertexColors})
 
     this.radius = 0.35 // small atom radius
     this.obj = new THREE.Object3D() // utility object
@@ -248,8 +338,7 @@ class ProteinDisplay {
     this.pickingScene = new THREE.Scene()
     this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height())
     this.pickingTexture.texture.minFilter = THREE.LinearFilter
-    this.pickingMaterial = new THREE.MeshBasicMaterial(
-      {vertexColors: THREE.VertexColors})
+    this.pickingMaterial = new THREE.MeshBasicMaterial({vertexColors})
 
     this.lights = []
     this.buildLights()
@@ -269,11 +358,14 @@ class ProteinDisplay {
     this.renderer = new THREE.WebGLRenderer()
     this.renderer.setClearColor(this.backgroundColor)
     this.renderer.setSize(this.width(), this.height())
+
     let dom = this.renderer.domElement
     this.webglDiv[0].appendChild(dom)
+
     const bind = (w, fn) => {
       dom.addEventListener(w, fn)
     }
+
     bind('mousedown', e => this.mousedown(e))
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
@@ -291,7 +383,7 @@ class ProteinDisplay {
   setProcessingMesssage(message) {
     console.log('> ProteinDisplay.setProcessingMessage:', message)
     this.messageDiv.html(message).show()
-    util.stickJqueryDivInTopLeft(this.mainDiv, this.messageDiv, 100, 90)
+    util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 100, 90)
   };
 
   cleanupProcessingMessage() {
@@ -300,15 +392,11 @@ class ProteinDisplay {
   };
 
   /**
-   * Allow the DOM to show a message before a compute-intensive function
-   *
-   * @param message
-   * @param computeHeavyFn
+   * Short pause before a computeFn to allow the DOM to show a message
    */
-  displayMessageBeforeCompute(message, computeHeavyFn) {
+  displayMessageBeforeCompute(message, computeFn) {
     this.setProcessingMesssage(message)
-    // this pause allows the DOM to draw before compute
-    setTimeout(computeHeavyFn, 0)
+    setTimeout(computeFn, 0)
   }
 
   buildAfterDataLoad() {
@@ -349,91 +437,7 @@ class ProteinDisplay {
 
   findContinuousTraces() {
     this.traces.length = 0
-
-    let residues = this.protein.residues
-
-    let makeNewTrace = () => {
-      this.trace = new Trace()
-      this.trace.referenceObjects = residues
-      this.traces.push(this.trace)
-    }
-
-    let nResidue = residues.length
-    for (let iResidue = 0; iResidue < nResidue; iResidue += 1) {
-
-      let residue = residues[iResidue]
-      let isResInTrace = false
-
-      if (residue.is_protein_or_nuc) {
-        isResInTrace = true
-      } else {
-        // Handles non-standard amino-acids and nucleotides that are
-        // covalently bonded with the correct atom types to 
-        // neighbouring residues
-        if (iResidue > 0) {
-          if (this.protein.isPeptideConnected(iResidue - 1, iResidue)) {
-            residue.central_atom = residue.atoms['CA']
-            isResInTrace = true
-          } else if (this.protein.isSugarPhosphateConnected(iResidue - 1, iResidue)) {
-            residue.central_atom = residue.atoms['C3\'']
-            isResInTrace = true
-            residue.ss = 'R'
-            residue.normal = this.protein.getNormalOfNuc(iResidue)
-          }
-        }
-
-        if (iResidue < nResidue - 1) {
-          if (this.protein.isPeptideConnected(iResidue, iResidue + 1)) {
-            residue.central_atom = residue.atoms['CA']
-            isResInTrace = true
-          } else if (this.protein.isSugarPhosphateConnected(iResidue, iResidue + 1)) {
-            residue.central_atom = residue.atoms['C3\'']
-            isResInTrace = true
-            residue.ss = 'R'
-            residue.normal = this.protein.getNormalOfNuc(residue)
-          }
-        }
-      }
-
-      if (isResInTrace) {
-        if (iResidue === 0) {
-          makeNewTrace()
-        } else {
-          let iLastResidue = iResidue - 1
-          let peptideConnect = this.protein.isPeptideConnected(
-            iLastResidue, iResidue)
-          let nucleotideConnect = this.protein.isSugarPhosphateConnected(
-            iLastResidue, iResidue)
-          if (!peptideConnect && !nucleotideConnect) {
-            makeNewTrace()
-          }
-        }
-        this.trace.indices.push(iResidue)
-        this.trace.points.push(v3.clone(residue.central_atom.pos))
-        let normal = null
-        if (residues[iResidue].normal) {
-          normal = residues[iResidue].normal
-        }
-        this.trace.normals.push(normal)
-      }
-    }
-
-    // flip normals so that they are all pointing in same direction
-    // within the same piece of chain
-    for (let trace of this.traces) {
-      for (let i of _.range(1, trace.indices.length)) {
-        if (trace.getReferenceObject(i).ss !== 'D' &&
-          trace.getReferenceObject(i - 1).ss !== 'D') {
-          let normal = trace.normals[i]
-          let prevNormal = trace.normals[i - 1]
-          if (normal !== null && prevNormal !== null)
-            if (normal.dot(prevNormal) < 0) {
-              trace.normals[i].negate()
-            }
-        }
-      }
-    }
-
+    extendArray(this.traces, makeTracesFromProtein(this.protein))
     for (let trace of this.traces) {
       trace.expand()
     }
@@ -511,12 +515,12 @@ class ProteinDisplay {
     if (!(meshName in this.displayMeshes)) {
       this.displayMeshes[meshName] = new THREE.Object3D()
     } else {
-      clearObject3D(this.displayMeshes[meshName])
+      glgeom.clearObject3D(this.displayMeshes[meshName])
     }
     if (!(meshName in this.pickingMeshes)) {
       this.pickingMeshes[meshName] = new THREE.Object3D()
     } else {
-      clearObject3D(this.pickingMeshes[meshName])
+      glgeom.clearObject3D(this.pickingMeshes[meshName])
     }
   }
 
@@ -525,8 +529,8 @@ class ProteinDisplay {
    * this.pickingMeshes
    */
   rebuildSceneWithMeshes() {
-    clearObject3D(this.displayScene)
-    clearObject3D(this.pickingScene)
+    glgeom.clearObject3D(this.displayScene)
+    glgeom.clearObject3D(this.pickingScene)
     for (let mesh of _.values(this.displayMeshes)) {
       if (mesh.children.length > 0) {
         this.displayScene.add(mesh)
@@ -551,13 +555,18 @@ class ProteinDisplay {
     if (visible) {
       if (!(meshName in this.displayMeshes)) {
         let buildMeshOfFunctionName = 'buildMeshOf' + _.capitalize(meshName)
+
         console.log('> ProteinDisplay.' + buildMeshOfFunctionName)
         this[buildMeshOfFunctionName]()
+
         this.updateMeshesInScene = true
       }
     }
     if (meshName in this.displayMeshes) {
-      setVisible(this.displayMeshes[meshName], visible)
+      glgeom.setVisible(this.displayMeshes[meshName], visible)
+    }
+    if (meshName in this.pickingMeshes) {
+      glgeom.setVisible(this.pickingMeshes[meshName], visible)
     }
   }
 
@@ -614,15 +623,15 @@ class ProteinDisplay {
 
   mergeAtomToGeom(geom, pickGeom, iAtom) {
     let atom = this.protein.atoms[iAtom]
-    let matrix = getSphereMatrix(atom.pos, this.radius)
+    let matrix = glgeom.getSphereMatrix(atom.pos, this.radius)
     let unitGeom = this.unitSphereGeom
-    mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix)
-    mergeUnitGeom(pickGeom, unitGeom, data.getIndexColor(iAtom), matrix)
+    glgeom.mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix)
+    glgeom.mergeUnitGeom(pickGeom, unitGeom, data.getIndexColor(iAtom), matrix)
   }
 
   mergeBondsInResidue(geom, iRes, bondFilterFn) {
     let residue = this.protein.residues[iRes]
-    let unitGeom = new UnitCylinderGeometry()
+    let unitGeom = new glgeom.UnitCylinderGeometry()
     let color = residue.color
     let p1, p2
     for (let bond of residue.bonds) {
@@ -639,7 +648,7 @@ class ProteinDisplay {
           p1 = midpoint
         }
       }
-      mergeUnitGeom(geom, unitGeom, color, getCylinderMatrix(p1, p2, 0.2))
+      glgeom.mergeUnitGeom(geom, unitGeom, color, glgeom.getCylinderMatrix(p1, p2, 0.2))
     }
   }
 
@@ -684,7 +693,7 @@ class ProteinDisplay {
           i, face, isRound, isFront, isBack, color)
         displayGeom.merge(resGeom)
         let atom = res.central_atom
-        setGeometryVerticesColor(resGeom, data.getIndexColor(atom.i))
+        glgeom.setGeometryVerticesColor(resGeom, data.getIndexColor(atom.i))
         pickingGeom.merge(resGeom)
       }
     }
@@ -696,7 +705,7 @@ class ProteinDisplay {
     this.clearMesh('arrows')
 
     let geom = new THREE.Geometry()
-    let blockArrowGeometry = new BlockArrowGeometry()
+    let blockArrowGeometry = new glgeom.BlockArrowGeometry()
     blockArrowGeometry.computeFaceNormals()
 
     let obj = new THREE.Object3D()
@@ -710,7 +719,7 @@ class ProteinDisplay {
 
         let res = trace.getReferenceObject(i)
         let color = data.getDarkSsColor(res.ss)
-        setGeometryVerticesColor(blockArrowGeometry, color)
+        glgeom.setGeometryVerticesColor(blockArrowGeometry, color)
 
         obj.matrix.identity()
         obj.position.copy(point)
@@ -740,7 +749,7 @@ class ProteinDisplay {
           i, data.fatCoilFace, isRound, isFront, isBack, color)
         geom.merge(resGeom)
         let iAtom = res.central_atom.i
-        setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom))
+        glgeom.setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom))
       }
     }
     this.addGeomToDisplayMesh('tube', geom)
@@ -764,10 +773,10 @@ class ProteinDisplay {
     for (let atom of _.values(residue.atoms)) {
       if (!util.inArray(atom.type, data.backboneAtoms)) {
         atom.is_sidechain = true
-        let matrix = getSphereMatrix(atom.pos, this.radius)
-        mergeUnitGeom(
+        let matrix = glgeom.getSphereMatrix(atom.pos, this.radius)
+        glgeom.mergeUnitGeom(
           displayGeom, this.unitSphereGeom, this.getAtomColor(atom.i), matrix)
-        mergeUnitGeom(
+        glgeom.mergeUnitGeom(
           pickingGeom, this.unitSphereGeom, data.getIndexColor(atom.i), matrix)
       }
     }
@@ -846,13 +855,11 @@ class ProteinDisplay {
       if (residue.is_grid) {
         for (let atom of _.values(residue.atoms)) {
           if (this.isVisibleGridAtom(atom.i)) {
-            let radius = 0.35
-
             let material = new THREE.MeshLambertMaterial({
               color: this.getAtomColor(atom.i)
             })
             let mesh = new THREE.Mesh(this.unitSphereGeom, material)
-            mesh.scale.set(radius, radius, radius)
+            mesh.scale.set(this.radius, this.radius, this.radius)
             mesh.position.copy(atom.pos)
             mesh.i = atom.i
             this.displayMeshes.grid.add(mesh)
@@ -861,7 +868,7 @@ class ProteinDisplay {
               color: data.getIndexColor(atom.i)
             })
             let pickingMesh = new THREE.Mesh(this.unitSphereGeom, indexMaterial)
-            pickingMesh.scale.set(radius, radius, radius)
+            pickingMesh.scale.set(this.radius, this.radius, this.radius)
             pickingMesh.position.copy(atom.pos)
             pickingMesh.i = atom.i
             this.pickingMeshes.grid.add(pickingMesh)
@@ -877,7 +884,7 @@ class ProteinDisplay {
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
 
-    let cylinderGeom = new UnitCylinderGeometry()
+    let cylinderGeom = new glgeom.UnitCylinderGeometry()
 
     for (let residue of this.protein.residues) {
       if (residue.ss !== 'D' || !residue.is_protein_or_nuc) {
@@ -889,38 +896,35 @@ class ProteinDisplay {
       let atomTypes, bondTypes
       if (residue.type === 'DA' || residue.type === 'A') {
         atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
-        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']
-        ]
+        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
       } else if (residue.type === 'DG' || residue.type === 'G') {
         atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
-        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']
-        ]
+        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
       } else if (residue.type === 'DT' || residue.type === 'U') {
         atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
-        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']
-        ]
+        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
       } else if (residue.type === 'DC' || residue.type === 'C') {
         atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
-        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']
-        ]
+        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
       } else {
         continue
       }
       let vertices = getVerticesFromAtomDict(residue.atoms, atomTypes)
-      basepairGeom.merge(new RaisedShapeGeometry(vertices, 0.3))
+      basepairGeom.merge(new glgeom.RaisedShapeGeometry(vertices, 0.3))
 
-      let radius = 0.2
       for (let bond of bondTypes) {
         let vertices = getVerticesFromAtomDict(residue.atoms, [bond[0], bond[1]])
-        basepairGeom.merge(cylinderGeom, getCylinderMatrix(vertices[0], vertices[1], radius))
+        basepairGeom.merge(cylinderGeom, glgeom.getCylinderMatrix(vertices[0], vertices[1], this.radius))
       }
 
       basepairGeom.computeFaceNormals()
 
-      setGeometryVerticesColor(basepairGeom, residue.color)
+      glgeom.setGeometryVerticesColor(
+        basepairGeom, residue.color)
       displayGeom.merge(basepairGeom)
 
-      setGeometryVerticesColor(basepairGeom, data.getIndexColor(residue.central_atom.i))
+      glgeom.setGeometryVerticesColor(
+        basepairGeom, data.getIndexColor(residue.central_atom.i))
       pickingGeom.merge(basepairGeom)
     }
 
@@ -929,10 +933,10 @@ class ProteinDisplay {
   }
 
   buildCrossHairs() {
-    let radius = 1.2,
-      segments = 60,
-      material = new THREE.LineDashedMaterial(
-        {color: 0xFF7777, linewidth: 2})
+    let radius = 1.2
+    let segments = 60
+    let material = new THREE.LineDashedMaterial(
+      {color: 0xFF7777, linewidth: 2})
     let geometry = new THREE.CircleGeometry(radius, segments)
 
     // Remove center vertex
@@ -1031,17 +1035,17 @@ class ProteinDisplay {
     let targetZoom = targetCameraDirection.length()
     targetCameraDirection.normalize()
 
-    let targetCameraDirRotation = getUnitVectorRotation(
+    let targetCameraDirRotation = glgeom.getUnitVectorRotation(
       oldCameraDirection, targetCameraDirection)
 
     let rotatedCameraUp = old.cameraUp.clone()
       .applyQuaternion(targetCameraDirRotation)
 
-    let newCameraRotation = getUnitVectorRotation(
+    let newCameraRotation = glgeom.getUnitVectorRotation(
       rotatedCameraUp, target.cameraUp)
     newCameraRotation.multiply(
       targetCameraDirRotation)
-    newCameraRotation = getFractionRotation(
+    newCameraRotation = glgeom.getFractionRotation(
       newCameraRotation, t)
 
     let current = {}
@@ -1118,7 +1122,7 @@ class ProteinDisplay {
     this.zoom = targetCameraDirection.length()
     targetCameraDirection.normalize()
 
-    let rotation = getUnitVectorRotation(
+    let rotation = glgeom.getUnitVectorRotation(
       cameraDirection, targetCameraDirection)
 
     for (let i = 0; i < this.lights.length; i += 1) {
@@ -1227,11 +1231,11 @@ class ProteinDisplay {
   }
 
   width() {
-    return this.mainDiv.width()
+    return this.div.width()
   }
 
   height() {
-    return this.mainDiv.height()
+    return this.div.height()
   }
 
   getMouse(event) {
@@ -1243,7 +1247,7 @@ class ProteinDisplay {
       this.eventY = event.clientY
     }
 
-    let result = util.getDomPosition(this.mainDiv[0])
+    let result = util.getDomPosition(this.div[0])
     this.mouseX = this.eventX - result[0]
     this.mouseY = this.eventY - result[1]
 
@@ -1361,7 +1365,7 @@ class ProteinDisplay {
       let atom = this.protein.atoms[i_atom]
       let label = 'Label atom : ' + atom.label
 
-      util.textEntryDialog(this.mainDiv, label, success)
+      util.textEntryDialog(this.div, label, success)
     }
   }
 

@@ -65,7 +65,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _embedjolecule = __webpack_require__(2);
 	
-	var _fullpagejolecule = __webpack_require__(12);
+	var _fullpagejolecule = __webpack_require__(14);
 	
 	var _lodash = __webpack_require__(4);
 	
@@ -72039,15 +72039,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _glgeometry = __webpack_require__(11);
 	
+	var glgeom = _interopRequireWildcard(_glgeometry);
+	
 	var _util = __webpack_require__(9);
 	
 	var util = _interopRequireWildcard(_util);
 	
-	var _widgets = __webpack_require__(14);
+	var _widgets = __webpack_require__(12);
 	
 	var _widgets2 = _interopRequireDefault(_widgets);
 	
-	var _data = __webpack_require__(15);
+	var _data = __webpack_require__(13);
 	
 	var data = _interopRequireWildcard(_data);
 	
@@ -72089,6 +72091,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function fraction(reference, target, t) {
 	  return t * (target - reference) + reference;
+	}
+	
+	function extendArray(array, extension) {
+	  var _iteratorNormalCompletion2 = true;
+	  var _didIteratorError2 = false;
+	  var _iteratorError2 = undefined;
+	
+	  try {
+	    for (var _iterator2 = extension[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	      var elem = _step2.value;
+	
+	      array.push(elem);
+	    }
+	  } catch (err) {
+	    _didIteratorError2 = true;
+	    _iteratorError2 = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	        _iterator2.return();
+	      }
+	    } finally {
+	      if (_didIteratorError2) {
+	        throw _iteratorError2;
+	      }
+	    }
+	  }
 	}
 	
 	/**
@@ -72184,21 +72213,154 @@ return /******/ (function(modules) { // webpackBootstrap
 	  view.pdb_id = protein.pdb_id;
 	}
 	
+	function makeTracesFromProtein(protein) {
+	
+	  var traces = [];
+	  var residues = protein.residues;
+	  var trace = void 0;
+	
+	  var makeNewTrace = function makeNewTrace() {
+	    trace = new glgeom.Trace();
+	    trace.referenceObjects = residues;
+	    traces.push(trace);
+	  };
+	
+	  var nResidue = residues.length;
+	  for (var iResidue = 0; iResidue < nResidue; iResidue += 1) {
+	
+	    var residue = residues[iResidue];
+	    var isResInTrace = false;
+	
+	    if (residue.is_protein_or_nuc) {
+	      isResInTrace = true;
+	    } else {
+	      // Handles non-standard amino-acids and nucleotides that are
+	      // covalently bonded with the correct atom types to
+	      // neighbouring residues
+	      if (iResidue > 0) {
+	        if (protein.isPeptideConnected(iResidue - 1, iResidue)) {
+	          residue.central_atom = residue.atoms['CA'];
+	          isResInTrace = true;
+	        } else if (protein.isSugarPhosphateConnected(iResidue - 1, iResidue)) {
+	          residue.central_atom = residue.atoms['C3\''];
+	          isResInTrace = true;
+	          residue.ss = 'R';
+	          residue.normal = protein.getNormalOfNuc(iResidue);
+	        }
+	      }
+	
+	      if (iResidue < nResidue - 1) {
+	        if (protein.isPeptideConnected(iResidue, iResidue + 1)) {
+	          residue.central_atom = residue.atoms['CA'];
+	          isResInTrace = true;
+	        } else if (protein.isSugarPhosphateConnected(iResidue, iResidue + 1)) {
+	          residue.central_atom = residue.atoms['C3\''];
+	          isResInTrace = true;
+	          residue.ss = 'R';
+	          residue.normal = protein.getNormalOfNuc(residue);
+	        }
+	      }
+	    }
+	
+	    if (isResInTrace) {
+	      if (iResidue === 0) {
+	        makeNewTrace();
+	      } else {
+	        var iLastResidue = iResidue - 1;
+	        var peptideConnect = protein.isPeptideConnected(iLastResidue, iResidue);
+	        var nucleotideConnect = protein.isSugarPhosphateConnected(iLastResidue, iResidue);
+	        if (!peptideConnect && !nucleotideConnect) {
+	          makeNewTrace();
+	        }
+	      }
+	      trace.indices.push(iResidue);
+	      trace.points.push(_v2.default.clone(residue.central_atom.pos));
+	      var normal = null;
+	      if (residues[iResidue].normal) {
+	        normal = residues[iResidue].normal;
+	      }
+	      trace.normals.push(normal);
+	    }
+	  }
+	
+	  // flip normals so that they are all pointing in same direction
+	  // within the same piece of chain
+	  var _iteratorNormalCompletion3 = true;
+	  var _didIteratorError3 = false;
+	  var _iteratorError3 = undefined;
+	
+	  try {
+	    for (var _iterator3 = traces[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	      var _trace = _step3.value;
+	      var _iteratorNormalCompletion4 = true;
+	      var _didIteratorError4 = false;
+	      var _iteratorError4 = undefined;
+	
+	      try {
+	        for (var _iterator4 = _lodash2.default.range(1, _trace.indices.length)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	          var i = _step4.value;
+	
+	          if (_trace.getReferenceObject(i).ss !== 'D' && _trace.getReferenceObject(i - 1).ss !== 'D') {
+	            var _normal = _trace.normals[i];
+	            var prevNormal = _trace.normals[i - 1];
+	            if (_normal !== null && prevNormal !== null) if (_normal.dot(prevNormal) < 0) {
+	              _trace.normals[i].negate();
+	            }
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError4 = true;
+	        _iteratorError4 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion4 && _iterator4.return) {
+	            _iterator4.return();
+	          }
+	        } finally {
+	          if (_didIteratorError4) {
+	            throw _iteratorError4;
+	          }
+	        }
+	      }
+	    }
+	  } catch (err) {
+	    _didIteratorError3 = true;
+	    _iteratorError3 = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	        _iterator3.return();
+	      }
+	    } finally {
+	      if (_didIteratorError3) {
+	        throw _iteratorError3;
+	      }
+	    }
+	  }
+	
+	  return traces;
+	}
+	
 	/**
 	 *
 	 * ProteinDisplay: The main window for drawing the protein
-	 * in a WebGL HTML5 canvas, with a Z-Slabe and Sequence Display
+	 * in a WebGL HTML5 canvas, includes various widgets that
+	 * are described in widgets.js.
+	 *
+	 * ProteinDisplay takes a protein, and builds three.js from
+	 * it. ProteinDisplay also handles mouse input and
+	 * uses controller to make changes to the underlying protein
+	 * and their associated views
 	 */
 	
 	var ProteinDisplay = function () {
 	
 	  /**
 	   * @param scene - Scene object that holds a protein and views
-	   * @param divTag - a tag for a DOM element
+	   * @param divTag - a selector tag for a DOM element
 	   * @param controller - the controller for the scene
-	   * @param isGrid - flat to show autodock 3D grid
-	   * @param backgroundColor - the background color of the canvas
-	   *                          and protein
+	   * @param isGrid - flat to show autodock 3D grid control panel
+	   * @param backgroundColor - the background color of canvas and webgl
 	   */
 	  function ProteinDisplay(scene, divTag, controller, isGrid, backgroundColor) {
 	    var _this = this;
@@ -72236,8 +72398,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // determines how far away the camera is from the scene
 	    this.zoom = 50.0;
 	
-	    this.mainDiv = (0, _jquery2.default)(this.divTag);
-	    this.mainDiv.css('overflow', 'hidden');
+	    this.div = (0, _jquery2.default)(this.divTag);
+	    this.div.css('overflow', 'hidden');
 	
 	    this.hover = new _widgets2.default.PopupText(this.divTag, 'lightblue');
 	    this.hover.div.css('pointer-events', 'none');
@@ -72253,28 +72415,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.backgroundColor = backgroundColor;
 	
-	    this.webglDivId = this.mainDiv.attr('id') + '-canvas-wrapper';
+	    this.webglDivId = this.div.attr('id') + '-canvas-wrapper';
 	    this.webglDivTag = '#' + this.webglDivId;
 	    this.webglDiv = (0, _jquery2.default)('<div>').attr('id', this.webglDivId).css('overflow', 'hidden').css('background-color', '#CCC');
 	    this.webglDiv.contextmenu(function () {
 	      return false;
 	    });
 	
-	    this.mainDiv.append(this.webglDiv);
-	    this.mainDiv.css('background-color', '#CCC');
+	    this.div.append(this.webglDiv);
+	    this.div.css('background-color', '#CCC');
 	
 	    this.cameraTarget = new _three2.default.Vector3(0, 0, 0);
 	    this.camera = new _three2.default.PerspectiveCamera(45, this.width() / this.height(), this.zFront + this.zoom, this.zBack + this.zoom);
 	
 	    this.traces = [];
 	
+	    var vertexColors = _three2.default.VertexColors;
 	    this.displayMeshes = {};
 	    this.displayScene = new _three2.default.Scene();
 	    this.displayScene.background = new _three2.default.Color(this.backgroundColor);
 	    this.displayScene.fog = new _three2.default.Fog(this.backgroundColor, 1, 100);
 	    this.displayScene.fog.near = this.zoom + 1;
 	    this.displayScene.fog.far = this.zoom + this.zBack;
-	    this.displayMaterial = new _three2.default.MeshLambertMaterial({ vertexColors: _three2.default.VertexColors });
+	    this.displayMaterial = new _three2.default.MeshLambertMaterial({ vertexColors: vertexColors });
 	
 	    this.radius = 0.35; // small atom radius
 	    this.obj = new _three2.default.Object3D(); // utility object
@@ -72283,7 +72446,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.pickingScene = new _three2.default.Scene();
 	    this.pickingTexture = new _three2.default.WebGLRenderTarget(this.width(), this.height());
 	    this.pickingTexture.texture.minFilter = _three2.default.LinearFilter;
-	    this.pickingMaterial = new _three2.default.MeshBasicMaterial({ vertexColors: _three2.default.VertexColors });
+	    this.pickingMaterial = new _three2.default.MeshBasicMaterial({ vertexColors: vertexColors });
 	
 	    this.lights = [];
 	    this.buildLights();
@@ -72307,11 +72470,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.renderer = new _three2.default.WebGLRenderer();
 	      this.renderer.setClearColor(this.backgroundColor);
 	      this.renderer.setSize(this.width(), this.height());
+	
 	      var dom = this.renderer.domElement;
 	      this.webglDiv[0].appendChild(dom);
+	
 	      var bind = function bind(w, fn) {
 	        dom.addEventListener(w, fn);
 	      };
+	
 	      bind('mousedown', function (e) {
 	        return _this2.mousedown(e);
 	      });
@@ -72354,7 +72520,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function setProcessingMesssage(message) {
 	      console.log('> ProteinDisplay.setProcessingMessage:', message);
 	      this.messageDiv.html(message).show();
-	      util.stickJqueryDivInTopLeft(this.mainDiv, this.messageDiv, 100, 90);
+	      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 100, 90);
 	    }
 	  }, {
 	    key: 'cleanupProcessingMessage',
@@ -72367,41 +72533,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	    /**
-	     * Allow the DOM to show a message before a compute-intensive function
-	     *
-	     * @param message
-	     * @param computeHeavyFn
+	     * Short pause before a computeFn to allow the DOM to show a message
 	     */
-	    value: function displayMessageBeforeCompute(message, computeHeavyFn) {
+	    value: function displayMessageBeforeCompute(message, computeFn) {
 	      this.setProcessingMesssage(message);
-	      // this pause allows the DOM to draw before compute
-	      setTimeout(computeHeavyFn, 0);
+	      setTimeout(computeFn, 0);
 	    }
 	  }, {
 	    key: 'buildAfterDataLoad',
 	    value: function buildAfterDataLoad() {
-	      var _iteratorNormalCompletion2 = true;
-	      var _didIteratorError2 = false;
-	      var _iteratorError2 = undefined;
+	      var _iteratorNormalCompletion5 = true;
+	      var _didIteratorError5 = false;
+	      var _iteratorError5 = undefined;
 	
 	      try {
 	
-	        for (var _iterator2 = this.protein.residues[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	          var res = _step2.value;
+	        for (var _iterator5 = this.protein.residues[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+	          var res = _step5.value;
 	
 	          res.color = data.getSsColor(res.ss);
 	        }
 	      } catch (err) {
-	        _didIteratorError2 = true;
-	        _iteratorError2 = err;
+	        _didIteratorError5 = true;
+	        _iteratorError5 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	            _iterator2.return();
+	          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+	            _iterator5.return();
 	          }
 	        } finally {
-	          if (_didIteratorError2) {
-	            throw _iteratorError2;
+	          if (_didIteratorError5) {
+	            throw _iteratorError5;
 	          }
 	        }
 	      }
@@ -72439,152 +72601,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'findContinuousTraces',
 	    value: function findContinuousTraces() {
-	      var _this3 = this;
-	
 	      this.traces.length = 0;
-	
-	      var residues = this.protein.residues;
-	
-	      var makeNewTrace = function makeNewTrace() {
-	        _this3.trace = new _glgeometry.Trace();
-	        _this3.trace.referenceObjects = residues;
-	        _this3.traces.push(_this3.trace);
-	      };
-	
-	      var nResidue = residues.length;
-	      for (var iResidue = 0; iResidue < nResidue; iResidue += 1) {
-	
-	        var residue = residues[iResidue];
-	        var isResInTrace = false;
-	
-	        if (residue.is_protein_or_nuc) {
-	          isResInTrace = true;
-	        } else {
-	          // Handles non-standard amino-acids and nucleotides that are
-	          // covalently bonded with the correct atom types to 
-	          // neighbouring residues
-	          if (iResidue > 0) {
-	            if (this.protein.isPeptideConnected(iResidue - 1, iResidue)) {
-	              residue.central_atom = residue.atoms['CA'];
-	              isResInTrace = true;
-	            } else if (this.protein.isSugarPhosphateConnected(iResidue - 1, iResidue)) {
-	              residue.central_atom = residue.atoms['C3\''];
-	              isResInTrace = true;
-	              residue.ss = 'R';
-	              residue.normal = this.protein.getNormalOfNuc(iResidue);
-	            }
-	          }
-	
-	          if (iResidue < nResidue - 1) {
-	            if (this.protein.isPeptideConnected(iResidue, iResidue + 1)) {
-	              residue.central_atom = residue.atoms['CA'];
-	              isResInTrace = true;
-	            } else if (this.protein.isSugarPhosphateConnected(iResidue, iResidue + 1)) {
-	              residue.central_atom = residue.atoms['C3\''];
-	              isResInTrace = true;
-	              residue.ss = 'R';
-	              residue.normal = this.protein.getNormalOfNuc(residue);
-	            }
-	          }
-	        }
-	
-	        if (isResInTrace) {
-	          if (iResidue === 0) {
-	            makeNewTrace();
-	          } else {
-	            var iLastResidue = iResidue - 1;
-	            var peptideConnect = this.protein.isPeptideConnected(iLastResidue, iResidue);
-	            var nucleotideConnect = this.protein.isSugarPhosphateConnected(iLastResidue, iResidue);
-	            if (!peptideConnect && !nucleotideConnect) {
-	              makeNewTrace();
-	            }
-	          }
-	          this.trace.indices.push(iResidue);
-	          this.trace.points.push(_v2.default.clone(residue.central_atom.pos));
-	          var normal = null;
-	          if (residues[iResidue].normal) {
-	            normal = residues[iResidue].normal;
-	          }
-	          this.trace.normals.push(normal);
-	        }
-	      }
-	
-	      // flip normals so that they are all pointing in same direction
-	      // within the same piece of chain
-	      var _iteratorNormalCompletion3 = true;
-	      var _didIteratorError3 = false;
-	      var _iteratorError3 = undefined;
+	      extendArray(this.traces, makeTracesFromProtein(this.protein));
+	      var _iteratorNormalCompletion6 = true;
+	      var _didIteratorError6 = false;
+	      var _iteratorError6 = undefined;
 	
 	      try {
-	        for (var _iterator3 = this.traces[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	          var trace = _step3.value;
-	          var _iteratorNormalCompletion5 = true;
-	          var _didIteratorError5 = false;
-	          var _iteratorError5 = undefined;
+	        for (var _iterator6 = this.traces[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+	          var trace = _step6.value;
 	
-	          try {
-	            for (var _iterator5 = _lodash2.default.range(1, trace.indices.length)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	              var i = _step5.value;
-	
-	              if (trace.getReferenceObject(i).ss !== 'D' && trace.getReferenceObject(i - 1).ss !== 'D') {
-	                var _normal = trace.normals[i];
-	                var prevNormal = trace.normals[i - 1];
-	                if (_normal !== null && prevNormal !== null) if (_normal.dot(prevNormal) < 0) {
-	                  trace.normals[i].negate();
-	                }
-	              }
-	            }
-	          } catch (err) {
-	            _didIteratorError5 = true;
-	            _iteratorError5 = err;
-	          } finally {
-	            try {
-	              if (!_iteratorNormalCompletion5 && _iterator5.return) {
-	                _iterator5.return();
-	              }
-	            } finally {
-	              if (_didIteratorError5) {
-	                throw _iteratorError5;
-	              }
-	            }
-	          }
+	          trace.expand();
 	        }
 	      } catch (err) {
-	        _didIteratorError3 = true;
-	        _iteratorError3 = err;
+	        _didIteratorError6 = true;
+	        _iteratorError6 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion3 && _iterator3.return) {
-	            _iterator3.return();
+	          if (!_iteratorNormalCompletion6 && _iterator6.return) {
+	            _iterator6.return();
 	          }
 	        } finally {
-	          if (_didIteratorError3) {
-	            throw _iteratorError3;
-	          }
-	        }
-	      }
-	
-	      var _iteratorNormalCompletion4 = true;
-	      var _didIteratorError4 = false;
-	      var _iteratorError4 = undefined;
-	
-	      try {
-	        for (var _iterator4 = this.traces[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	          var _trace = _step4.value;
-	
-	          _trace.expand();
-	        }
-	      } catch (err) {
-	        _didIteratorError4 = true;
-	        _iteratorError4 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	            _iterator4.return();
-	          }
-	        } finally {
-	          if (_didIteratorError4) {
-	            throw _iteratorError4;
+	          if (_didIteratorError6) {
+	            throw _iteratorError6;
 	          }
 	        }
 	      }
@@ -72667,12 +72706,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!(meshName in this.displayMeshes)) {
 	        this.displayMeshes[meshName] = new _three2.default.Object3D();
 	      } else {
-	        (0, _glgeometry.clearObject3D)(this.displayMeshes[meshName]);
+	        glgeom.clearObject3D(this.displayMeshes[meshName]);
 	      }
 	      if (!(meshName in this.pickingMeshes)) {
 	        this.pickingMeshes[meshName] = new _three2.default.Object3D();
 	      } else {
-	        (0, _glgeometry.clearObject3D)(this.pickingMeshes[meshName]);
+	        glgeom.clearObject3D(this.pickingMeshes[meshName]);
 	      }
 	    }
 	
@@ -72684,45 +72723,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'rebuildSceneWithMeshes',
 	    value: function rebuildSceneWithMeshes() {
-	      (0, _glgeometry.clearObject3D)(this.displayScene);
-	      (0, _glgeometry.clearObject3D)(this.pickingScene);
-	      var _iteratorNormalCompletion6 = true;
-	      var _didIteratorError6 = false;
-	      var _iteratorError6 = undefined;
-	
-	      try {
-	        for (var _iterator6 = _lodash2.default.values(this.displayMeshes)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-	          var mesh = _step6.value;
-	
-	          if (mesh.children.length > 0) {
-	            this.displayScene.add(mesh);
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError6 = true;
-	        _iteratorError6 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion6 && _iterator6.return) {
-	            _iterator6.return();
-	          }
-	        } finally {
-	          if (_didIteratorError6) {
-	            throw _iteratorError6;
-	          }
-	        }
-	      }
-	
+	      glgeom.clearObject3D(this.displayScene);
+	      glgeom.clearObject3D(this.pickingScene);
 	      var _iteratorNormalCompletion7 = true;
 	      var _didIteratorError7 = false;
 	      var _iteratorError7 = undefined;
 	
 	      try {
-	        for (var _iterator7 = _lodash2.default.values(this.pickingMeshes)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-	          var _mesh = _step7.value;
+	        for (var _iterator7 = _lodash2.default.values(this.displayMeshes)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+	          var mesh = _step7.value;
 	
-	          if (_mesh.children.length > 0) {
-	            this.pickingScene.add(_mesh);
+	          if (mesh.children.length > 0) {
+	            this.displayScene.add(mesh);
 	          }
 	        }
 	      } catch (err) {
@@ -72736,6 +72748,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } finally {
 	          if (_didIteratorError7) {
 	            throw _iteratorError7;
+	          }
+	        }
+	      }
+	
+	      var _iteratorNormalCompletion8 = true;
+	      var _didIteratorError8 = false;
+	      var _iteratorError8 = undefined;
+	
+	      try {
+	        for (var _iterator8 = _lodash2.default.values(this.pickingMeshes)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+	          var _mesh = _step8.value;
+	
+	          if (_mesh.children.length > 0) {
+	            this.pickingScene.add(_mesh);
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError8 = true;
+	        _iteratorError8 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+	            _iterator8.return();
+	          }
+	        } finally {
+	          if (_didIteratorError8) {
+	            throw _iteratorError8;
 	          }
 	        }
 	      }
@@ -72756,19 +72795,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (visible) {
 	        if (!(meshName in this.displayMeshes)) {
 	          var buildMeshOfFunctionName = 'buildMeshOf' + _lodash2.default.capitalize(meshName);
+	
 	          console.log('> ProteinDisplay.' + buildMeshOfFunctionName);
 	          this[buildMeshOfFunctionName]();
+	
 	          this.updateMeshesInScene = true;
 	        }
 	      }
 	      if (meshName in this.displayMeshes) {
-	        (0, _glgeometry.setVisible)(this.displayMeshes[meshName], visible);
+	        glgeom.setVisible(this.displayMeshes[meshName], visible);
+	      }
+	      if (meshName in this.pickingMeshes) {
+	        glgeom.setVisible(this.pickingMeshes[meshName], visible);
 	      }
 	    }
 	  }, {
 	    key: 'selectVisibleMeshes',
 	    value: function selectVisibleMeshes() {
-	      var _this4 = this;
+	      var _this3 = this;
 	
 	      this.updateMeshesInScene = false;
 	
@@ -72787,26 +72831,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var mesh = _arr[_i];
 	          mesh.traverse(function (child) {
 	            if (util.exists(child.i)) {
-	              child.visible = _this4.isVisibleGridAtom(child.i);
+	              child.visible = _this3.isVisibleGridAtom(child.i);
 	            }
 	          });
 	        }
 	      }
 	
-	      var _iteratorNormalCompletion8 = true;
-	      var _didIteratorError8 = false;
-	      var _iteratorError8 = undefined;
+	      var _iteratorNormalCompletion9 = true;
+	      var _didIteratorError9 = false;
+	      var _iteratorError9 = undefined;
 	
 	      try {
-	        for (var _iterator8 = this.traces[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-	          var trace = _step8.value;
-	          var _iteratorNormalCompletion9 = true;
-	          var _didIteratorError9 = false;
-	          var _iteratorError9 = undefined;
+	        for (var _iterator9 = this.traces[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+	          var trace = _step9.value;
+	          var _iteratorNormalCompletion10 = true;
+	          var _didIteratorError10 = false;
+	          var _iteratorError10 = undefined;
 	
 	          try {
-	            for (var _iterator9 = _lodash2.default.range(trace.indices.length)[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-	              var i = _step9.value;
+	            for (var _iterator10 = _lodash2.default.range(trace.indices.length)[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+	              var i = _step10.value;
 	
 	              var iRes = trace.indices[i];
 	              var residue = trace.getReferenceObject(i);
@@ -72818,31 +72862,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	              }
 	            }
 	          } catch (err) {
-	            _didIteratorError9 = true;
-	            _iteratorError9 = err;
+	            _didIteratorError10 = true;
+	            _iteratorError10 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion9 && _iterator9.return) {
-	                _iterator9.return();
+	              if (!_iteratorNormalCompletion10 && _iterator10.return) {
+	                _iterator10.return();
 	              }
 	            } finally {
-	              if (_didIteratorError9) {
-	                throw _iteratorError9;
+	              if (_didIteratorError10) {
+	                throw _iteratorError10;
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError8 = true;
-	        _iteratorError8 = err;
+	        _didIteratorError9 = true;
+	        _iteratorError9 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-	            _iterator8.return();
+	          if (!_iteratorNormalCompletion9 && _iterator9.return) {
+	            _iterator9.return();
 	          }
 	        } finally {
-	          if (_didIteratorError8) {
-	            throw _iteratorError8;
+	          if (_didIteratorError9) {
+	            throw _iteratorError9;
 	          }
 	        }
 	      }
@@ -72854,7 +72898,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var _mesh2 = _arr2[_i2];
 	          _mesh2.traverse(function (child) {
 	            if (util.exists(child.i)) {
-	              var residue = _this4.protein.residues[child.i];
+	              var residue = _this3.protein.residues[child.i];
 	              child.visible = show.sidechain || residue.selected;
 	            }
 	          });
@@ -72869,26 +72913,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'mergeAtomToGeom',
 	    value: function mergeAtomToGeom(geom, pickGeom, iAtom) {
 	      var atom = this.protein.atoms[iAtom];
-	      var matrix = (0, _glgeometry.getSphereMatrix)(atom.pos, this.radius);
+	      var matrix = glgeom.getSphereMatrix(atom.pos, this.radius);
 	      var unitGeom = this.unitSphereGeom;
-	      (0, _glgeometry.mergeUnitGeom)(geom, unitGeom, this.getAtomColor(iAtom), matrix);
-	      (0, _glgeometry.mergeUnitGeom)(pickGeom, unitGeom, data.getIndexColor(iAtom), matrix);
+	      glgeom.mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix);
+	      glgeom.mergeUnitGeom(pickGeom, unitGeom, data.getIndexColor(iAtom), matrix);
 	    }
 	  }, {
 	    key: 'mergeBondsInResidue',
 	    value: function mergeBondsInResidue(geom, iRes, bondFilterFn) {
 	      var residue = this.protein.residues[iRes];
-	      var unitGeom = new _glgeometry.UnitCylinderGeometry();
+	      var unitGeom = new glgeom.UnitCylinderGeometry();
 	      var color = residue.color;
 	      var p1 = void 0,
 	          p2 = void 0;
-	      var _iteratorNormalCompletion10 = true;
-	      var _didIteratorError10 = false;
-	      var _iteratorError10 = undefined;
+	      var _iteratorNormalCompletion11 = true;
+	      var _didIteratorError11 = false;
+	      var _iteratorError11 = undefined;
 	
 	      try {
-	        for (var _iterator10 = residue.bonds[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-	          var bond = _step10.value;
+	        for (var _iterator11 = residue.bonds[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+	          var bond = _step11.value;
 	
 	          if (bondFilterFn && !bondFilterFn(bond)) {
 	            continue;
@@ -72903,19 +72947,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	              p1 = midpoint;
 	            }
 	          }
-	          (0, _glgeometry.mergeUnitGeom)(geom, unitGeom, color, (0, _glgeometry.getCylinderMatrix)(p1, p2, 0.2));
+	          glgeom.mergeUnitGeom(geom, unitGeom, color, glgeom.getCylinderMatrix(p1, p2, 0.2));
 	        }
 	      } catch (err) {
-	        _didIteratorError10 = true;
-	        _iteratorError10 = err;
+	        _didIteratorError11 = true;
+	        _iteratorError11 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion10 && _iterator10.return) {
-	            _iterator10.return();
+	          if (!_iteratorNormalCompletion11 && _iterator11.return) {
+	            _iterator11.return();
 	          }
 	        } finally {
-	          if (_didIteratorError10) {
-	            throw _iteratorError10;
+	          if (_didIteratorError11) {
+	            throw _iteratorError11;
 	          }
 	        }
 	      }
@@ -72950,22 +72994,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.clearMesh('ribbons');
 	      var displayGeom = new _three2.default.Geometry();
 	      var pickingGeom = new _three2.default.Geometry();
-	      var _iteratorNormalCompletion11 = true;
-	      var _didIteratorError11 = false;
-	      var _iteratorError11 = undefined;
+	      var _iteratorNormalCompletion12 = true;
+	      var _didIteratorError12 = false;
+	      var _iteratorError12 = undefined;
 	
 	      try {
-	        for (var _iterator11 = this.traces[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-	          var trace = _step11.value;
+	        for (var _iterator12 = this.traces[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+	          var trace = _step12.value;
 	
 	          var n = trace.points.length;
-	          var _iteratorNormalCompletion12 = true;
-	          var _didIteratorError12 = false;
-	          var _iteratorError12 = undefined;
+	          var _iteratorNormalCompletion13 = true;
+	          var _didIteratorError13 = false;
+	          var _iteratorError13 = undefined;
 	
 	          try {
-	            for (var _iterator12 = _lodash2.default.range(n)[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-	              var i = _step12.value;
+	            for (var _iterator13 = _lodash2.default.range(n)[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+	              var i = _step13.value;
 	
 	              var res = trace.getReferenceObject(i);
 	              var face = data.getSsFace(res.ss);
@@ -72976,35 +73020,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	              var resGeom = trace.getSegmentGeometry(i, face, isRound, isFront, isBack, color);
 	              displayGeom.merge(resGeom);
 	              var atom = res.central_atom;
-	              (0, _glgeometry.setGeometryVerticesColor)(resGeom, data.getIndexColor(atom.i));
+	              glgeom.setGeometryVerticesColor(resGeom, data.getIndexColor(atom.i));
 	              pickingGeom.merge(resGeom);
 	            }
 	          } catch (err) {
-	            _didIteratorError12 = true;
-	            _iteratorError12 = err;
+	            _didIteratorError13 = true;
+	            _iteratorError13 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion12 && _iterator12.return) {
-	                _iterator12.return();
+	              if (!_iteratorNormalCompletion13 && _iterator13.return) {
+	                _iterator13.return();
 	              }
 	            } finally {
-	              if (_didIteratorError12) {
-	                throw _iteratorError12;
+	              if (_didIteratorError13) {
+	                throw _iteratorError13;
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError11 = true;
-	        _iteratorError11 = err;
+	        _didIteratorError12 = true;
+	        _iteratorError12 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion11 && _iterator11.return) {
-	            _iterator11.return();
+	          if (!_iteratorNormalCompletion12 && _iterator12.return) {
+	            _iterator12.return();
 	          }
 	        } finally {
-	          if (_didIteratorError11) {
-	            throw _iteratorError11;
+	          if (_didIteratorError12) {
+	            throw _iteratorError12;
 	          }
 	        }
 	      }
@@ -73018,25 +73062,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.clearMesh('arrows');
 	
 	      var geom = new _three2.default.Geometry();
-	      var blockArrowGeometry = new _glgeometry.BlockArrowGeometry();
+	      var blockArrowGeometry = new glgeom.BlockArrowGeometry();
 	      blockArrowGeometry.computeFaceNormals();
 	
 	      var obj = new _three2.default.Object3D();
 	
-	      var _iteratorNormalCompletion13 = true;
-	      var _didIteratorError13 = false;
-	      var _iteratorError13 = undefined;
+	      var _iteratorNormalCompletion14 = true;
+	      var _didIteratorError14 = false;
+	      var _iteratorError14 = undefined;
 	
 	      try {
-	        for (var _iterator13 = this.traces[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-	          var trace = _step13.value;
-	          var _iteratorNormalCompletion14 = true;
-	          var _didIteratorError14 = false;
-	          var _iteratorError14 = undefined;
+	        for (var _iterator14 = this.traces[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+	          var trace = _step14.value;
+	          var _iteratorNormalCompletion15 = true;
+	          var _didIteratorError15 = false;
+	          var _iteratorError15 = undefined;
 	
 	          try {
-	            for (var _iterator14 = _lodash2.default.range(trace.points.length)[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-	              var i = _step14.value;
+	            for (var _iterator15 = _lodash2.default.range(trace.points.length)[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+	              var i = _step15.value;
 	
 	              var point = trace.points[i];
 	              var tangent = trace.tangents[i];
@@ -73045,7 +73089,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	              var res = trace.getReferenceObject(i);
 	              var color = data.getDarkSsColor(res.ss);
-	              (0, _glgeometry.setGeometryVerticesColor)(blockArrowGeometry, color);
+	              glgeom.setGeometryVerticesColor(blockArrowGeometry, color);
 	
 	              obj.matrix.identity();
 	              obj.position.copy(point);
@@ -73056,31 +73100,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	              geom.merge(blockArrowGeometry, obj.matrix);
 	            }
 	          } catch (err) {
-	            _didIteratorError14 = true;
-	            _iteratorError14 = err;
+	            _didIteratorError15 = true;
+	            _iteratorError15 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion14 && _iterator14.return) {
-	                _iterator14.return();
+	              if (!_iteratorNormalCompletion15 && _iterator15.return) {
+	                _iterator15.return();
 	              }
 	            } finally {
-	              if (_didIteratorError14) {
-	                throw _iteratorError14;
+	              if (_didIteratorError15) {
+	                throw _iteratorError15;
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError13 = true;
-	        _iteratorError13 = err;
+	        _didIteratorError14 = true;
+	        _iteratorError14 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion13 && _iterator13.return) {
-	            _iterator13.return();
+	          if (!_iteratorNormalCompletion14 && _iterator14.return) {
+	            _iterator14.return();
 	          }
 	        } finally {
-	          if (_didIteratorError13) {
-	            throw _iteratorError13;
+	          if (_didIteratorError14) {
+	            throw _iteratorError14;
 	          }
 	        }
 	      }
@@ -73092,22 +73136,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function buildMeshOfTube() {
 	      this.clearMesh('tube');
 	      var geom = new _three2.default.Geometry();
-	      var _iteratorNormalCompletion15 = true;
-	      var _didIteratorError15 = false;
-	      var _iteratorError15 = undefined;
+	      var _iteratorNormalCompletion16 = true;
+	      var _didIteratorError16 = false;
+	      var _iteratorError16 = undefined;
 	
 	      try {
-	        for (var _iterator15 = this.traces[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-	          var trace = _step15.value;
+	        for (var _iterator16 = this.traces[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+	          var trace = _step16.value;
 	
 	          var n = trace.points.length;
-	          var _iteratorNormalCompletion16 = true;
-	          var _didIteratorError16 = false;
-	          var _iteratorError16 = undefined;
+	          var _iteratorNormalCompletion17 = true;
+	          var _didIteratorError17 = false;
+	          var _iteratorError17 = undefined;
 	
 	          try {
-	            for (var _iterator16 = _lodash2.default.range(n)[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-	              var i = _step16.value;
+	            for (var _iterator17 = _lodash2.default.range(n)[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+	              var i = _step17.value;
 	
 	              var res = trace.getReferenceObject(i);
 	              var color = res.color;
@@ -73117,34 +73161,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	              var resGeom = trace.getSegmentGeometry(i, data.fatCoilFace, isRound, isFront, isBack, color);
 	              geom.merge(resGeom);
 	              var iAtom = res.central_atom.i;
-	              (0, _glgeometry.setGeometryVerticesColor)(resGeom, new _three2.default.Color().setHex(iAtom));
+	              glgeom.setGeometryVerticesColor(resGeom, new _three2.default.Color().setHex(iAtom));
 	            }
 	          } catch (err) {
-	            _didIteratorError16 = true;
-	            _iteratorError16 = err;
+	            _didIteratorError17 = true;
+	            _iteratorError17 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion16 && _iterator16.return) {
-	                _iterator16.return();
+	              if (!_iteratorNormalCompletion17 && _iterator17.return) {
+	                _iterator17.return();
 	              }
 	            } finally {
-	              if (_didIteratorError16) {
-	                throw _iteratorError16;
+	              if (_didIteratorError17) {
+	                throw _iteratorError17;
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError15 = true;
-	        _iteratorError15 = err;
+	        _didIteratorError16 = true;
+	        _iteratorError16 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion15 && _iterator15.return) {
-	            _iterator15.return();
+	          if (!_iteratorNormalCompletion16 && _iterator16.return) {
+	            _iterator16.return();
 	          }
 	        } finally {
-	          if (_didIteratorError15) {
-	            throw _iteratorError15;
+	          if (_didIteratorError16) {
+	            throw _iteratorError16;
 	          }
 	        }
 	      }
@@ -73167,86 +73211,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	      this.mergeBondsInResidue(displayGeom, iRes, bondFilter);
 	
-	      var _iteratorNormalCompletion17 = true;
-	      var _didIteratorError17 = false;
-	      var _iteratorError17 = undefined;
-	
-	      try {
-	        for (var _iterator17 = _lodash2.default.values(residue.atoms)[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
-	          var atom = _step17.value;
-	
-	          if (!util.inArray(atom.type, data.backboneAtoms)) {
-	            atom.is_sidechain = true;
-	            var matrix = (0, _glgeometry.getSphereMatrix)(atom.pos, this.radius);
-	            (0, _glgeometry.mergeUnitGeom)(displayGeom, this.unitSphereGeom, this.getAtomColor(atom.i), matrix);
-	            (0, _glgeometry.mergeUnitGeom)(pickingGeom, this.unitSphereGeom, data.getIndexColor(atom.i), matrix);
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError17 = true;
-	        _iteratorError17 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion17 && _iterator17.return) {
-	            _iterator17.return();
-	          }
-	        } finally {
-	          if (_didIteratorError17) {
-	            throw _iteratorError17;
-	          }
-	        }
-	      }
-	
-	      this.addGeomToDisplayMesh('sidechains', displayGeom, iRes);
-	      this.addGeomToPickingMesh('sidechains', pickingGeom, iRes);
-	    }
-	  }, {
-	    key: 'buildMeshOfBackbone',
-	    value: function buildMeshOfBackbone() {
-	      this.clearMesh('backbone');
-	      var displayGeom = new _three2.default.Geometry();
-	      var pickingGeom = new _three2.default.Geometry();
 	      var _iteratorNormalCompletion18 = true;
 	      var _didIteratorError18 = false;
 	      var _iteratorError18 = undefined;
 	
 	      try {
-	        for (var _iterator18 = this.protein.residues.entries()[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-	          var _step18$value = _slicedToArray(_step18.value, 2),
-	              iRes = _step18$value[0],
-	              residue = _step18$value[1];
+	        for (var _iterator18 = _lodash2.default.values(residue.atoms)[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+	          var atom = _step18.value;
 	
-	          if (residue.is_protein_or_nuc) {
-	            var bondFilter = function bondFilter(bond) {
-	              return _lodash2.default.includes(data.backboneAtoms, bond.atom1.type) && _lodash2.default.includes(data.backboneAtoms, bond.atom2.type);
-	            };
-	            this.mergeBondsInResidue(displayGeom, iRes, bondFilter);
-	            var _iteratorNormalCompletion19 = true;
-	            var _didIteratorError19 = false;
-	            var _iteratorError19 = undefined;
-	
-	            try {
-	              for (var _iterator19 = _lodash2.default.values(residue.atoms)[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-	                var atom = _step19.value;
-	
-	                if (util.inArray(atom.type, data.backboneAtoms)) {
-	                  this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i);
-	                }
-	              }
-	            } catch (err) {
-	              _didIteratorError19 = true;
-	              _iteratorError19 = err;
-	            } finally {
-	              try {
-	                if (!_iteratorNormalCompletion19 && _iterator19.return) {
-	                  _iterator19.return();
-	                }
-	              } finally {
-	                if (_didIteratorError19) {
-	                  throw _iteratorError19;
-	                }
-	              }
-	            }
+	          if (!util.inArray(atom.type, data.backboneAtoms)) {
+	            atom.is_sidechain = true;
+	            var matrix = glgeom.getSphereMatrix(atom.pos, this.radius);
+	            glgeom.mergeUnitGeom(displayGeom, this.unitSphereGeom, this.getAtomColor(atom.i), matrix);
+	            glgeom.mergeUnitGeom(pickingGeom, this.unitSphereGeom, data.getIndexColor(atom.i), matrix);
 	          }
 	        }
 	      } catch (err) {
@@ -73264,6 +73241,73 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 	
+	      this.addGeomToDisplayMesh('sidechains', displayGeom, iRes);
+	      this.addGeomToPickingMesh('sidechains', pickingGeom, iRes);
+	    }
+	  }, {
+	    key: 'buildMeshOfBackbone',
+	    value: function buildMeshOfBackbone() {
+	      this.clearMesh('backbone');
+	      var displayGeom = new _three2.default.Geometry();
+	      var pickingGeom = new _three2.default.Geometry();
+	      var _iteratorNormalCompletion19 = true;
+	      var _didIteratorError19 = false;
+	      var _iteratorError19 = undefined;
+	
+	      try {
+	        for (var _iterator19 = this.protein.residues.entries()[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+	          var _step19$value = _slicedToArray(_step19.value, 2),
+	              iRes = _step19$value[0],
+	              residue = _step19$value[1];
+	
+	          if (residue.is_protein_or_nuc) {
+	            var bondFilter = function bondFilter(bond) {
+	              return _lodash2.default.includes(data.backboneAtoms, bond.atom1.type) && _lodash2.default.includes(data.backboneAtoms, bond.atom2.type);
+	            };
+	            this.mergeBondsInResidue(displayGeom, iRes, bondFilter);
+	            var _iteratorNormalCompletion20 = true;
+	            var _didIteratorError20 = false;
+	            var _iteratorError20 = undefined;
+	
+	            try {
+	              for (var _iterator20 = _lodash2.default.values(residue.atoms)[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+	                var atom = _step20.value;
+	
+	                if (util.inArray(atom.type, data.backboneAtoms)) {
+	                  this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i);
+	                }
+	              }
+	            } catch (err) {
+	              _didIteratorError20 = true;
+	              _iteratorError20 = err;
+	            } finally {
+	              try {
+	                if (!_iteratorNormalCompletion20 && _iterator20.return) {
+	                  _iterator20.return();
+	                }
+	              } finally {
+	                if (_didIteratorError20) {
+	                  throw _iteratorError20;
+	                }
+	              }
+	            }
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError19 = true;
+	        _iteratorError19 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion19 && _iterator19.return) {
+	            _iterator19.return();
+	          }
+	        } finally {
+	          if (_didIteratorError19) {
+	            throw _iteratorError19;
+	          }
+	        }
+	      }
+	
 	      this.addGeomToDisplayMesh('backbone', displayGeom);
 	      this.addGeomToPickingMesh('backbone', pickingGeom);
 	    }
@@ -73273,55 +73317,55 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.clearMesh('ligands');
 	      var displayGeom = new _three2.default.Geometry();
 	      var pickingGeom = new _three2.default.Geometry();
-	      var _iteratorNormalCompletion20 = true;
-	      var _didIteratorError20 = false;
-	      var _iteratorError20 = undefined;
+	      var _iteratorNormalCompletion21 = true;
+	      var _didIteratorError21 = false;
+	      var _iteratorError21 = undefined;
 	
 	      try {
-	        for (var _iterator20 = this.protein.residues.entries()[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-	          var _step20$value = _slicedToArray(_step20.value, 2),
-	              iRes = _step20$value[0],
-	              residue = _step20$value[1];
+	        for (var _iterator21 = this.protein.residues.entries()[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+	          var _step21$value = _slicedToArray(_step21.value, 2),
+	              iRes = _step21$value[0],
+	              residue = _step21$value[1];
 	
 	          if (residue.is_ligands) {
 	            this.mergeBondsInResidue(displayGeom, iRes);
-	            var _iteratorNormalCompletion21 = true;
-	            var _didIteratorError21 = false;
-	            var _iteratorError21 = undefined;
+	            var _iteratorNormalCompletion22 = true;
+	            var _didIteratorError22 = false;
+	            var _iteratorError22 = undefined;
 	
 	            try {
-	              for (var _iterator21 = _lodash2.default.values(residue.atoms)[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-	                var atom = _step21.value;
+	              for (var _iterator22 = _lodash2.default.values(residue.atoms)[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+	                var atom = _step22.value;
 	
 	                this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i);
 	              }
 	            } catch (err) {
-	              _didIteratorError21 = true;
-	              _iteratorError21 = err;
+	              _didIteratorError22 = true;
+	              _iteratorError22 = err;
 	            } finally {
 	              try {
-	                if (!_iteratorNormalCompletion21 && _iterator21.return) {
-	                  _iterator21.return();
+	                if (!_iteratorNormalCompletion22 && _iterator22.return) {
+	                  _iterator22.return();
 	                }
 	              } finally {
-	                if (_didIteratorError21) {
-	                  throw _iteratorError21;
+	                if (_didIteratorError22) {
+	                  throw _iteratorError22;
 	                }
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError20 = true;
-	        _iteratorError20 = err;
+	        _didIteratorError21 = true;
+	        _iteratorError21 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion20 && _iterator20.return) {
-	            _iterator20.return();
+	          if (!_iteratorNormalCompletion21 && _iterator21.return) {
+	            _iterator21.return();
 	          }
 	        } finally {
-	          if (_didIteratorError20) {
-	            throw _iteratorError20;
+	          if (_didIteratorError21) {
+	            throw _iteratorError21;
 	          }
 	        }
 	      }
@@ -73335,55 +73379,55 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.clearMesh('water');
 	      var displayGeom = new _three2.default.Geometry();
 	      var pickingGeom = new _three2.default.Geometry();
-	      var _iteratorNormalCompletion22 = true;
-	      var _didIteratorError22 = false;
-	      var _iteratorError22 = undefined;
+	      var _iteratorNormalCompletion23 = true;
+	      var _didIteratorError23 = false;
+	      var _iteratorError23 = undefined;
 	
 	      try {
-	        for (var _iterator22 = this.protein.residues.entries()[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-	          var _step22$value = _slicedToArray(_step22.value, 2),
-	              iRes = _step22$value[0],
-	              residue = _step22$value[1];
+	        for (var _iterator23 = this.protein.residues.entries()[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+	          var _step23$value = _slicedToArray(_step23.value, 2),
+	              iRes = _step23$value[0],
+	              residue = _step23$value[1];
 	
 	          if (residue.is_water) {
 	            this.mergeBondsInResidue(displayGeom, iRes);
-	            var _iteratorNormalCompletion23 = true;
-	            var _didIteratorError23 = false;
-	            var _iteratorError23 = undefined;
+	            var _iteratorNormalCompletion24 = true;
+	            var _didIteratorError24 = false;
+	            var _iteratorError24 = undefined;
 	
 	            try {
-	              for (var _iterator23 = _lodash2.default.values(residue.atoms)[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-	                var atom = _step23.value;
+	              for (var _iterator24 = _lodash2.default.values(residue.atoms)[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
+	                var atom = _step24.value;
 	
 	                this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i);
 	              }
 	            } catch (err) {
-	              _didIteratorError23 = true;
-	              _iteratorError23 = err;
+	              _didIteratorError24 = true;
+	              _iteratorError24 = err;
 	            } finally {
 	              try {
-	                if (!_iteratorNormalCompletion23 && _iterator23.return) {
-	                  _iterator23.return();
+	                if (!_iteratorNormalCompletion24 && _iterator24.return) {
+	                  _iterator24.return();
 	                }
 	              } finally {
-	                if (_didIteratorError23) {
-	                  throw _iteratorError23;
+	                if (_didIteratorError24) {
+	                  throw _iteratorError24;
 	                }
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError22 = true;
-	        _iteratorError22 = err;
+	        _didIteratorError23 = true;
+	        _iteratorError23 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion22 && _iterator22.return) {
-	            _iterator22.return();
+	          if (!_iteratorNormalCompletion23 && _iterator23.return) {
+	            _iterator23.return();
 	          }
 	        } finally {
-	          if (_didIteratorError22) {
-	            throw _iteratorError22;
+	          if (_didIteratorError23) {
+	            throw _iteratorError23;
 	          }
 	        }
 	      }
@@ -73406,31 +73450,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return;
 	      }
 	      this.clearMesh('grid');
-	      var _iteratorNormalCompletion24 = true;
-	      var _didIteratorError24 = false;
-	      var _iteratorError24 = undefined;
+	      var _iteratorNormalCompletion25 = true;
+	      var _didIteratorError25 = false;
+	      var _iteratorError25 = undefined;
 	
 	      try {
-	        for (var _iterator24 = this.protein.residues[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-	          var residue = _step24.value;
+	        for (var _iterator25 = this.protein.residues[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
+	          var residue = _step25.value;
 	
 	          if (residue.is_grid) {
-	            var _iteratorNormalCompletion25 = true;
-	            var _didIteratorError25 = false;
-	            var _iteratorError25 = undefined;
+	            var _iteratorNormalCompletion26 = true;
+	            var _didIteratorError26 = false;
+	            var _iteratorError26 = undefined;
 	
 	            try {
-	              for (var _iterator25 = _lodash2.default.values(residue.atoms)[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
-	                var atom = _step25.value;
+	              for (var _iterator26 = _lodash2.default.values(residue.atoms)[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
+	                var atom = _step26.value;
 	
 	                if (this.isVisibleGridAtom(atom.i)) {
-	                  var radius = 0.35;
-	
 	                  var material = new _three2.default.MeshLambertMaterial({
 	                    color: this.getAtomColor(atom.i)
 	                  });
 	                  var mesh = new _three2.default.Mesh(this.unitSphereGeom, material);
-	                  mesh.scale.set(radius, radius, radius);
+	                  mesh.scale.set(this.radius, this.radius, this.radius);
 	                  mesh.position.copy(atom.pos);
 	                  mesh.i = atom.i;
 	                  this.displayMeshes.grid.add(mesh);
@@ -73439,39 +73481,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    color: data.getIndexColor(atom.i)
 	                  });
 	                  var pickingMesh = new _three2.default.Mesh(this.unitSphereGeom, indexMaterial);
-	                  pickingMesh.scale.set(radius, radius, radius);
+	                  pickingMesh.scale.set(this.radius, this.radius, this.radius);
 	                  pickingMesh.position.copy(atom.pos);
 	                  pickingMesh.i = atom.i;
 	                  this.pickingMeshes.grid.add(pickingMesh);
 	                }
 	              }
 	            } catch (err) {
-	              _didIteratorError25 = true;
-	              _iteratorError25 = err;
+	              _didIteratorError26 = true;
+	              _iteratorError26 = err;
 	            } finally {
 	              try {
-	                if (!_iteratorNormalCompletion25 && _iterator25.return) {
-	                  _iterator25.return();
+	                if (!_iteratorNormalCompletion26 && _iterator26.return) {
+	                  _iterator26.return();
 	                }
 	              } finally {
-	                if (_didIteratorError25) {
-	                  throw _iteratorError25;
+	                if (_didIteratorError26) {
+	                  throw _iteratorError26;
 	                }
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError24 = true;
-	        _iteratorError24 = err;
+	        _didIteratorError25 = true;
+	        _iteratorError25 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion24 && _iterator24.return) {
-	            _iterator24.return();
+	          if (!_iteratorNormalCompletion25 && _iterator25.return) {
+	            _iterator25.return();
 	          }
 	        } finally {
-	          if (_didIteratorError24) {
-	            throw _iteratorError24;
+	          if (_didIteratorError25) {
+	            throw _iteratorError25;
 	          }
 	        }
 	      }
@@ -73484,15 +73526,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var displayGeom = new _three2.default.Geometry();
 	      var pickingGeom = new _three2.default.Geometry();
 	
-	      var cylinderGeom = new _glgeometry.UnitCylinderGeometry();
+	      var cylinderGeom = new glgeom.UnitCylinderGeometry();
 	
-	      var _iteratorNormalCompletion26 = true;
-	      var _didIteratorError26 = false;
-	      var _iteratorError26 = undefined;
+	      var _iteratorNormalCompletion27 = true;
+	      var _didIteratorError27 = false;
+	      var _iteratorError27 = undefined;
 	
 	      try {
-	        for (var _iterator26 = this.protein.residues[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
-	          var residue = _step26.value;
+	        for (var _iterator27 = this.protein.residues[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
+	          var residue = _step27.value;
 	
 	          if (residue.ss !== 'D' || !residue.is_protein_or_nuc) {
 	            continue;
@@ -73518,54 +73560,53 @@ return /******/ (function(modules) { // webpackBootstrap
 	            continue;
 	          }
 	          var vertices = getVerticesFromAtomDict(residue.atoms, atomTypes);
-	          basepairGeom.merge(new _glgeometry.RaisedShapeGeometry(vertices, 0.3));
+	          basepairGeom.merge(new glgeom.RaisedShapeGeometry(vertices, 0.3));
 	
-	          var radius = 0.2;
-	          var _iteratorNormalCompletion27 = true;
-	          var _didIteratorError27 = false;
-	          var _iteratorError27 = undefined;
+	          var _iteratorNormalCompletion28 = true;
+	          var _didIteratorError28 = false;
+	          var _iteratorError28 = undefined;
 	
 	          try {
-	            for (var _iterator27 = bondTypes[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
-	              var bond = _step27.value;
+	            for (var _iterator28 = bondTypes[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
+	              var bond = _step28.value;
 	
 	              var _vertices = getVerticesFromAtomDict(residue.atoms, [bond[0], bond[1]]);
-	              basepairGeom.merge(cylinderGeom, (0, _glgeometry.getCylinderMatrix)(_vertices[0], _vertices[1], radius));
+	              basepairGeom.merge(cylinderGeom, glgeom.getCylinderMatrix(_vertices[0], _vertices[1], this.radius));
 	            }
 	          } catch (err) {
-	            _didIteratorError27 = true;
-	            _iteratorError27 = err;
+	            _didIteratorError28 = true;
+	            _iteratorError28 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion27 && _iterator27.return) {
-	                _iterator27.return();
+	              if (!_iteratorNormalCompletion28 && _iterator28.return) {
+	                _iterator28.return();
 	              }
 	            } finally {
-	              if (_didIteratorError27) {
-	                throw _iteratorError27;
+	              if (_didIteratorError28) {
+	                throw _iteratorError28;
 	              }
 	            }
 	          }
 	
 	          basepairGeom.computeFaceNormals();
 	
-	          (0, _glgeometry.setGeometryVerticesColor)(basepairGeom, residue.color);
+	          glgeom.setGeometryVerticesColor(basepairGeom, residue.color);
 	          displayGeom.merge(basepairGeom);
 	
-	          (0, _glgeometry.setGeometryVerticesColor)(basepairGeom, data.getIndexColor(residue.central_atom.i));
+	          glgeom.setGeometryVerticesColor(basepairGeom, data.getIndexColor(residue.central_atom.i));
 	          pickingGeom.merge(basepairGeom);
 	        }
 	      } catch (err) {
-	        _didIteratorError26 = true;
-	        _iteratorError26 = err;
+	        _didIteratorError27 = true;
+	        _iteratorError27 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion26 && _iterator26.return) {
-	            _iterator26.return();
+	          if (!_iteratorNormalCompletion27 && _iterator27.return) {
+	            _iterator27.return();
 	          }
 	        } finally {
-	          if (_didIteratorError26) {
-	            throw _iteratorError26;
+	          if (_didIteratorError27) {
+	            throw _iteratorError27;
 	          }
 	        }
 	      }
@@ -73576,9 +73617,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildCrossHairs',
 	    value: function buildCrossHairs() {
-	      var radius = 1.2,
-	          segments = 60,
-	          material = new _three2.default.LineDashedMaterial({ color: 0xFF7777, linewidth: 2 });
+	      var radius = 1.2;
+	      var segments = 60;
+	      var material = new _three2.default.LineDashedMaterial({ color: 0xFF7777, linewidth: 2 });
 	      var geometry = new _three2.default.CircleGeometry(radius, segments);
 	
 	      // Remove center vertex
@@ -73679,13 +73720,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var targetZoom = targetCameraDirection.length();
 	      targetCameraDirection.normalize();
 	
-	      var targetCameraDirRotation = (0, _glgeometry.getUnitVectorRotation)(oldCameraDirection, targetCameraDirection);
+	      var targetCameraDirRotation = glgeom.getUnitVectorRotation(oldCameraDirection, targetCameraDirection);
 	
 	      var rotatedCameraUp = old.cameraUp.clone().applyQuaternion(targetCameraDirRotation);
 	
-	      var newCameraRotation = (0, _glgeometry.getUnitVectorRotation)(rotatedCameraUp, target.cameraUp);
+	      var newCameraRotation = glgeom.getUnitVectorRotation(rotatedCameraUp, target.cameraUp);
 	      newCameraRotation.multiply(targetCameraDirRotation);
-	      newCameraRotation = (0, _glgeometry.getFractionRotation)(newCameraRotation, t);
+	      newCameraRotation = glgeom.getFractionRotation(newCameraRotation, t);
 	
 	      var current = {};
 	      var disp = void 0;
@@ -73751,7 +73792,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.zoom = targetCameraDirection.length();
 	      targetCameraDirection.normalize();
 	
-	      var rotation = (0, _glgeometry.getUnitVectorRotation)(cameraDirection, targetCameraDirection);
+	      var rotation = glgeom.getUnitVectorRotation(cameraDirection, targetCameraDirection);
 	
 	      for (var i = 0; i < this.lights.length; i += 1) {
 	        this.lights[i].position.applyQuaternion(rotation);
@@ -73846,12 +73887,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'width',
 	    value: function width() {
-	      return this.mainDiv.width();
+	      return this.div.width();
 	    }
 	  }, {
 	    key: 'height',
 	    value: function height() {
-	      return this.mainDiv.height();
+	      return this.div.height();
 	    }
 	  }, {
 	    key: 'getMouse',
@@ -73864,7 +73905,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.eventY = event.clientY;
 	      }
 	
-	      var result = util.getDomPosition(this.mainDiv[0]);
+	      var result = util.getDomPosition(this.div[0]);
 	      this.mouseX = this.eventX - result[0];
 	      this.mouseY = this.eventY - result[1];
 	
@@ -73967,7 +74008,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'atomLabelDialog',
 	    value: function atomLabelDialog() {
-	      var _this5 = this;
+	      var _this4 = this;
 	
 	      var i_atom = this.scene.current_view.i_atom;
 	      if (i_atom >= 0) {
@@ -73976,12 +74017,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            controller.make_label(i_atom, text);
 	          };
 	
-	          var controller = _this5.controller;
+	          var controller = _this4.controller;
 	
-	          var atom = _this5.protein.atoms[i_atom];
+	          var atom = _this4.protein.atoms[i_atom];
 	          var label = 'Label atom : ' + atom.label;
 	
-	          util.textEntryDialog(_this5.mainDiv, label, success);
+	          util.textEntryDialog(_this4.div, label, success);
 	        })();
 	      }
 	    }
@@ -74877,681 +74918,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.FullPageJolecule = undefined;
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _jquery = __webpack_require__(3);
-	
-	var _jquery2 = _interopRequireDefault(_jquery);
-	
-	var _jquery3 = __webpack_require__(13);
-	
-	var _jquery4 = _interopRequireDefault(_jquery3);
-	
-	var _lodash = __webpack_require__(4);
-	
-	var _lodash2 = _interopRequireDefault(_lodash);
-	
-	var _embedjolecule = __webpack_require__(2);
-	
-	var _util = __webpack_require__(9);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	/**
-	 * ViewPieceList keeps track of the views
-	 **/
-	
-	var ViewPieceList = function () {
-	  function ViewPieceList(divTag, controller, proteinDisplay, data_server, isEditable) {
-	    var _this = this;
-	
-	    _classCallCheck(this, ViewPieceList);
-	
-	    this.divTag = divTag;
-	    this.proteinDisplay = proteinDisplay;
-	    this.scene = controller.scene;
-	    this.controller = controller;
-	    this.isEditable = isEditable;
-	    this.data_server = data_server;
-	    this.viewPiece = {};
-	    this.topDiv = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)("<div>").addClass("jolecule-sub-header").append("VIEWS OF PROTEIN").append("<br>").append("<br>").append((0, _util.linkButton)('', '+[v]iew', 'jolecule-button', function () {
-	      _this.makeNewView();
-	    })).append((0, _util.linkButton)('', 'prev[&uarr;]', 'jolecule-button', function () {
-	      _this.gotoPrevView();
-	    })).append((0, _util.linkButton)('', 'next[&darr;]', 'jolecule-button', function () {
-	      _this.gotoNextView();
-	    })).append((0, _util.linkButton)('', '+l[a]bel', 'jolecule-button', function () {
-	      _this.proteinDisplay.atomLabelDialog();
-	    })).append("<br>")).append((0, _jquery2.default)("<div>").attr("id", "jolecule-views"));
-	  }
-	
-	  _createClass(ViewPieceList, [{
-	    key: "saveViewsToDataServer",
-	    value: function saveViewsToDataServer(success) {
-	      console.log('> ViewPieceList.saveViewsToDataServer');
-	      this.data_server.save_views(this.controller.get_view_dicts(), success);
-	    }
-	  }, {
-	    key: "updateViews",
-	    value: function updateViews() {
-	      for (var id in this.viewPiece) {
-	        if (!(id in this.scene.saved_views_by_id)) {
-	          this.viewPiece[id].div.remove();
-	          delete this.viewPiece[id];
-	        }
-	      }
-	      for (var i = 0; i < this.scene.saved_views.length; i++) {
-	        var view = this.scene.saved_views[i];
-	        var _id = view.id;
-	
-	        if (!(view.id in this.viewPiece)) {
-	          this.insertNewViewDiv(view.id);
-	        }
-	
-	        var i_last_view = this.scene.i_last_view;
-	        var last_id = this.scene.saved_views[i_last_view].id;
-	
-	        if (last_id == _id) {
-	          this.viewPiece[_id].div.removeClass("jolecule-unselected-box");
-	          this.viewPiece[_id].div.addClass("jolecule-selected-box");
-	        } else {
-	          this.viewPiece[_id].div.removeClass("jolecule-selected-box");
-	          this.viewPiece[_id].div.addClass("jolecule-unselected-box");
-	        }
-	
-	        var viewPiece = this.viewPiece[_id];
-	        if (view.text != viewPiece.showTextDiv.html()) {
-	          viewPiece.showTextDiv.html(view.text);
-	        }
-	
-	        var a = viewPiece.div.find('a').eq(0);
-	        a.text(view.order + 1);
-	      }
-	    }
-	  }, {
-	    key: "redrawSelectedViewId",
-	    value: function redrawSelectedViewId(id) {
-	      this.updateViews();
-	      (0, _jquery2.default)("#jolecule-views").stop().scrollTo(this.viewPiece[id].div, 1000, { offset: { top: -80 } });
-	    }
-	  }, {
-	    key: "setTargetByViewId",
-	    value: function setTargetByViewId(id) {
-	      this.controller.set_target_view_by_id(id);
-	      this.redrawSelectedViewId(id);
-	      window.location.hash = id;
-	    }
-	  }, {
-	    key: "gotoPrevView",
-	    value: function gotoPrevView() {
-	      var id = this.controller.set_target_prev_view();
-	      this.redrawSelectedViewId(id);
-	      window.location.hash = id;
-	    }
-	  }, {
-	    key: "gotoNextView",
-	    value: function gotoNextView() {
-	      var id = this.controller.set_target_next_view();
-	      this.redrawSelectedViewId(id);
-	      window.location.hash = id;
-	    }
-	  }, {
-	    key: "removeView",
-	    value: function removeView(id) {
-	      var _this2 = this;
-	
-	      console.log('> ViewPieceList.removeView');
-	      this.viewPiece[id].div.css('background-color', 'lightgray');
-	      this.data_server.delete_protein_view(id, function () {
-	        _this2.controller.delete_view(id);
-	        _this2.viewPiece[id].div.remove();
-	        delete _this2.viewPiece[id];
-	        _this2.updateViews();
-	      });
-	    }
-	  }, {
-	    key: "swapViews",
-	    value: function swapViews(i, j) {
-	      var _this3 = this;
-	
-	      var i_id = this.scene.saved_views[i].id;
-	      var j_id = this.scene.saved_views[j].id;
-	      var i_div = this.viewPiece[i_id].div;
-	      var j_div = this.viewPiece[j_id].div;
-	
-	      this.controller.swapViews(i, j);
-	
-	      i_div.css('background-color', 'lightgray');
-	      j_div.css('background-color', 'lightgray');
-	
-	      this.saveViewsToDataServer(function () {
-	        j_div.insertBefore(i_div);
-	        _this3.updateViews();
-	        i_div.css('background-color', '');
-	        j_div.css('background-color', '');
-	      });
-	    }
-	  }, {
-	    key: "swapUp",
-	    value: function swapUp(view_id) {
-	      var i = this.scene.get_i_saved_view_from_id(view_id);
-	      if (i < 2) {
-	        return;
-	      }
-	      this.swapViews(i - 1, i);
-	    }
-	  }, {
-	    key: "swapDown",
-	    value: function swapDown(view_id) {
-	      var i = this.scene.get_i_saved_view_from_id(view_id);
-	      if (i > this.scene.saved_views.length - 2) {
-	        return;
-	      }
-	      this.swapViews(i, i + 1);
-	    }
-	  }, {
-	    key: "makeViewDiv",
-	    value: function makeViewDiv(id) {
-	      var _this4 = this;
-	
-	      var view = this.scene.saved_views_by_id[id];
-	      this.viewPiece[id] = new _embedjolecule.ViewPiece({
-	        view: view,
-	        isEditable: this.isEditable,
-	        delete_view: function delete_view() {
-	          _this4.removeView(id);
-	        },
-	        save_change: function save_change(changed_text, sucess) {
-	          view.text = changed_text;
-	          _this4.viewPiece[id].div.css('background-color', 'lightgray');
-	          _this4.saveViewsToDataServer(function () {
-	            _this4.viewPiece[id].div.css('background-color', '');
-	          });
-	          _this4.scene.changed = true;
-	        },
-	        pick: function pick() {
-	          _this4.setTargetByViewId(id);
-	        },
-	        goto: view.order + 1,
-	        swapUp: function swapUp() {
-	          _this4.swapUp(id);
-	        },
-	        swapDown: function swapDown() {
-	          _this4.swapDown(id);
-	        },
-	        embed_view: function embed_view() {
-	          window.location.href = '/embed/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id;
-	        }
-	      });
-	      return this.viewPiece[id].div;
-	    }
-	  }, {
-	    key: "makeAllViews",
-	    value: function makeAllViews() {
-	      for (var i = 0; i < this.scene.saved_views.length; i += 1) {
-	        var id = this.scene.saved_views[i].id;
-	        var div = this.makeViewDiv(id);
-	        (0, _jquery2.default)('#jolecule-views').append(div);
-	      }
-	    }
-	  }, {
-	    key: "insertNewViewDiv",
-	    value: function insertNewViewDiv(new_id) {
-	      var div = this.makeViewDiv(new_id);
-	
-	      if (this.scene.i_last_view == this.scene.saved_views.length - 1) {
-	        (0, _jquery2.default)("#jolecule-views").append(div);
-	      } else {
-	        var j = this.scene.i_last_view - 1;
-	        var j_id = this.scene.saved_views[j].id;
-	        var j_div = this.viewPiece[j_id].div;
-	        div.insertAfter(j_div);
-	      }
-	    }
-	  }, {
-	    key: "makeNewView",
-	    value: function makeNewView() {
-	      var _this5 = this;
-	
-	      console.log('> ViewPieceList.makeNewView');
-	      var newId = (0, _util.randomId)();
-	      this.controller.calculate_current_abs_camera();
-	      this.controller.save_current_view(newId);
-	      this.insertNewViewDiv(newId);
-	      this.updateViews();
-	      this.viewPiece[newId].div.css('background-color', 'lightgray');
-	      this.saveViewsToDataServer(function () {
-	        console.log('> ViewPieceList.makeNewView success');
-	        _this5.viewPiece[newId].div.css('background-color', '');
-	        (0, _jquery2.default)("#jolecule-views").stop();
-	        (0, _jquery2.default)("#jolecule-views").scrollTo(_this5.viewPiece[newId].div, 1000, { offset: { top: -80 } });
-	      });
-	    }
-	  }]);
-	
-	  return ViewPieceList;
-	}();
-	
-	/**
-	 * FullPageJolecule - full page wrapper around an embedd EmbedJolecule
-	 * widget. Handles keypresses and urls and adds a better views annotation
-	 * list tool
-	 **/
-	
-	var FullPageJolecule = function () {
-	  function FullPageJolecule(proteinDisplayTag, sequenceDisplayTag, viewsDisplayTag, params) {
-	    var _this6 = this;
-	
-	    _classCallCheck(this, FullPageJolecule);
-	
-	    this.viewsDisplayTag = viewsDisplayTag;
-	    this.sequenceDisplayTag = sequenceDisplayTag;
-	
-	    this.params = {
-	      divTag: proteinDisplayTag,
-	      viewId: '',
-	      viewHeight: 170,
-	      isViewTextShown: false,
-	      isEditable: true,
-	      isLoop: false,
-	      isGrid: true,
-	      backgroundColor: 0xCCCCCC
-	    };
-	
-	    console.log('> FullPageJolecule.constructor params', params);
-	
-	    if ((0, _util.exists)(params)) {
-	      this.params = _lodash2.default.assign(this.params, params);
-	    }
-	
-	    this.embedJolecule = new _embedjolecule.EmbedJolecule(this.params);
-	
-	    document.oncontextmenu = _lodash2.default.noop;
-	    document.onkeydown = function (e) {
-	      return _this6.onkeydown(e);
-	    };
-	    var resize_fn = function resize_fn() {
-	      _this6.resize();
-	    };
-	    (0, _jquery2.default)(window).resize(resize_fn);
-	    window.onorientationchange = resize_fn;
-	
-	    this.noData = true;
-	  }
-	
-	  _createClass(FullPageJolecule, [{
-	    key: "addDataServer",
-	    value: function addDataServer(dataServer) {
-	      var _this7 = this;
-	
-	      this.embedJolecule.addDataServer(dataServer, function () {
-	        if (_this7.noData) {
-	          _this7.noData = false;
-	
-	          _this7.scene = _this7.embedJolecule.scene;
-	          _this7.controller = _this7.embedJolecule.controller;
-	          _this7.proteinDisplay = _this7.embedJolecule.proteinDisplay;
-	
-	          _this7.viewsDisplay = new ViewPieceList(_this7.viewsDisplayTag, _this7.controller, _this7.proteinDisplay, dataServer, _this7.params.isEditable);
-	
-	          _this7.viewsDisplay.makeAllViews();
-	          var hashTag = (0, _util.getWindowUrl)().split('#')[1];
-	          if (hashTag in _this7.scene.saved_views_by_id) {
-	            _this7.viewsDisplay.setTargetByViewId(hashTag);
-	          } else {
-	            _this7.viewsDisplay.setTargetByViewId('view:000000');
-	          }
-	          _this7.viewsDisplay.updateViews();
-	        }
-	
-	        _this7.resize();
-	      });
-	    }
-	  }, {
-	    key: "isChanged",
-	    value: function isChanged() {
-	      if (typeof this.scene !== "undefined") {
-	        return this.scene.changed;
-	      }
-	      return false;
-	    }
-	  }, {
-	    key: "draw",
-	    value: function draw() {
-	      if (this.scene.changed) {
-	        this.viewsDisplay.updateViews();
-	        if (this.scene.is_new_view_chosen) {
-	          this.scene.is_new_view_chosen = false;
-	        }
-	        this.embedJolecule.draw();
-	        this.scene.changed = false;
-	      }
-	    }
-	  }, {
-	    key: "animate",
-	    value: function animate() {
-	      if (typeof this.embedJolecule !== "undefined") {
-	        this.embedJolecule.animate();
-	      }
-	    }
-	  }, {
-	    key: "resize",
-	    value: function resize(event) {
-	      if (typeof this.scene !== "undefined") {
-	        this.scene.changed = true;
-	      }
-	      if (typeof this.embedJolecule !== "undefined") {
-	        this.embedJolecule.resize();
-	      }
-	    }
-	  }, {
-	    key: "gotoPrevResidue",
-	    value: function gotoPrevResidue() {
-	      this.controller.set_target_prev_residue();
-	      window.location.hash = this.scene.target_view.res_id;
-	    }
-	  }, {
-	    key: "gotoNextResidue",
-	    value: function gotoNextResidue() {
-	      this.controller.set_target_next_residue();
-	      window.location.hash = this.scene.target_view.res_id;
-	    }
-	  }, {
-	    key: "onkeydown",
-	    value: function onkeydown(event) {
-	      if (!window.keyboard_lock) {
-	        var c = String.fromCharCode(event.keyCode).toUpperCase();
-	        var s = "[" + c + "]";
-	        if (c == 'V') {
-	          this.viewsDisplay.makeNewView();
-	          return;
-	        } else if (c == "K" || event.keyCode == 37) {
-	          this.gotoPrevResidue();
-	        } else if (c == "J" || event.keyCode == 39) {
-	          this.gotoNextResidue();
-	        } else if (c == "X") {
-	          var i_atom = this.scene.current_view.i_atom;
-	          if (i_atom >= 0) {
-	            var res_id = this.controller.protein.atoms[i_atom].res_id;
-	          }
-	        } else if (event.keyCode == 38) {
-	          this.viewsDisplay.gotoPrevView();
-	        } else if (c == " " || event.keyCode == 40) {
-	          this.viewsDisplay.gotoNextView();
-	        } else if (c == 'B') {
-	          if (this.scene.current_view.show.all_atom) {
-	            this.controller.set_backbone_option('ribbon');
-	          } else if (this.scene.current_view.show.ribbon) {
-	            this.controller.set_backbone_option('trace');
-	          } else if (this.scene.current_view.show.trace) {
-	            this.controller.set_backbone_option('all_atom');
-	          }
-	        } else if (c == 'L') {
-	          this.controller.toggle_show_option('ligands');
-	        } else if (c == 'S') {
-	          this.controller.toggle_show_option('sidechain');
-	        } else if (c == 'W') {
-	          this.controller.toggle_show_option('water');
-	          // } else if (c == 'H') {
-	          //   this.controller.toggle_show_option('hydrogen');
-	        } else if (c == 'C') {
-	          this.proteinDisplay.controller.clear_selected();
-	        } else if (c == 'E') {
-	          var i_view = this.proteinDisplay.scene.i_last_view;
-	          if (i_view > 0) {
-	            var view_id = this.proteinDisplay.scene.saved_views[i_view].id;
-	            this.viewsDisplay.div[view_id].edit_fn();
-	          }
-	        } else if (c == 'N') {
-	          this.proteinDisplay.controller.toggle_neighbors();
-	        } else if (c == 'A') {
-	          this.proteinDisplay.atomLabelDialog();
-	        } else {
-	          var i = parseInt(c) - 1;
-	          if ((i || i == 0) && i < this.scene.saved_views.length) {
-	            var id = this.scene.saved_views[i].id;
-	            this.viewsDisplay.setTargetByViewId(id);
-	          }
-	        }
-	        this.proteinDisplay.scene.changed = true;
-	      }
-	    }
-	  }]);
-	
-	  return FullPageJolecule;
-	}();
-	
-	exports.FullPageJolecule = FullPageJolecule;
-
-/***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	 * jQuery.scrollTo
-	 * Copyright (c) 2007-2015 Ariel Flesler - aflesler<a>gmail<d>com | http://flesler.blogspot.com
-	 * Licensed under MIT
-	 * http://flesler.blogspot.com/2007/10/jqueryscrollto.html
-	 * @projectDescription Lightweight, cross-browser and highly customizable animated scrolling with jQuery
-	 * @author Ariel Flesler
-	 * @version 2.1.2
-	 */
-	;(function(factory) {
-		'use strict';
-		if (true) {
-			// AMD
-			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(3)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-		} else if (typeof module !== 'undefined' && module.exports) {
-			// CommonJS
-			module.exports = factory(require('jquery'));
-		} else {
-			// Global
-			factory(jQuery);
-		}
-	})(function($) {
-		'use strict';
-	
-		var $scrollTo = $.scrollTo = function(target, duration, settings) {
-			return $(window).scrollTo(target, duration, settings);
-		};
-	
-		$scrollTo.defaults = {
-			axis:'xy',
-			duration: 0,
-			limit:true
-		};
-	
-		function isWin(elem) {
-			return !elem.nodeName ||
-				$.inArray(elem.nodeName.toLowerCase(), ['iframe','#document','html','body']) !== -1;
-		}		
-	
-		$.fn.scrollTo = function(target, duration, settings) {
-			if (typeof duration === 'object') {
-				settings = duration;
-				duration = 0;
-			}
-			if (typeof settings === 'function') {
-				settings = { onAfter:settings };
-			}
-			if (target === 'max') {
-				target = 9e9;
-			}
-	
-			settings = $.extend({}, $scrollTo.defaults, settings);
-			// Speed is still recognized for backwards compatibility
-			duration = duration || settings.duration;
-			// Make sure the settings are given right
-			var queue = settings.queue && settings.axis.length > 1;
-			if (queue) {
-				// Let's keep the overall duration
-				duration /= 2;
-			}
-			settings.offset = both(settings.offset);
-			settings.over = both(settings.over);
-	
-			return this.each(function() {
-				// Null target yields nothing, just like jQuery does
-				if (target === null) return;
-	
-				var win = isWin(this),
-					elem = win ? this.contentWindow || window : this,
-					$elem = $(elem),
-					targ = target, 
-					attr = {},
-					toff;
-	
-				switch (typeof targ) {
-					// A number will pass the regex
-					case 'number':
-					case 'string':
-						if (/^([+-]=?)?\d+(\.\d+)?(px|%)?$/.test(targ)) {
-							targ = both(targ);
-							// We are done
-							break;
-						}
-						// Relative/Absolute selector
-						targ = win ? $(targ) : $(targ, elem);
-						/* falls through */
-					case 'object':
-						if (targ.length === 0) return;
-						// DOMElement / jQuery
-						if (targ.is || targ.style) {
-							// Get the real position of the target
-							toff = (targ = $(targ)).offset();
-						}
-				}
-	
-				var offset = $.isFunction(settings.offset) && settings.offset(elem, targ) || settings.offset;
-	
-				$.each(settings.axis.split(''), function(i, axis) {
-					var Pos	= axis === 'x' ? 'Left' : 'Top',
-						pos = Pos.toLowerCase(),
-						key = 'scroll' + Pos,
-						prev = $elem[key](),
-						max = $scrollTo.max(elem, axis);
-	
-					if (toff) {// jQuery / DOMElement
-						attr[key] = toff[pos] + (win ? 0 : prev - $elem.offset()[pos]);
-	
-						// If it's a dom element, reduce the margin
-						if (settings.margin) {
-							attr[key] -= parseInt(targ.css('margin'+Pos), 10) || 0;
-							attr[key] -= parseInt(targ.css('border'+Pos+'Width'), 10) || 0;
-						}
-	
-						attr[key] += offset[pos] || 0;
-	
-						if (settings.over[pos]) {
-							// Scroll to a fraction of its width/height
-							attr[key] += targ[axis === 'x'?'width':'height']() * settings.over[pos];
-						}
-					} else {
-						var val = targ[pos];
-						// Handle percentage values
-						attr[key] = val.slice && val.slice(-1) === '%' ?
-							parseFloat(val) / 100 * max
-							: val;
-					}
-	
-					// Number or 'number'
-					if (settings.limit && /^\d+$/.test(attr[key])) {
-						// Check the limits
-						attr[key] = attr[key] <= 0 ? 0 : Math.min(attr[key], max);
-					}
-	
-					// Don't waste time animating, if there's no need.
-					if (!i && settings.axis.length > 1) {
-						if (prev === attr[key]) {
-							// No animation needed
-							attr = {};
-						} else if (queue) {
-							// Intermediate animation
-							animate(settings.onAfterFirst);
-							// Don't animate this axis again in the next iteration.
-							attr = {};
-						}
-					}
-				});
-	
-				animate(settings.onAfter);
-	
-				function animate(callback) {
-					var opts = $.extend({}, settings, {
-						// The queue setting conflicts with animate()
-						// Force it to always be true
-						queue: true,
-						duration: duration,
-						complete: callback && function() {
-							callback.call(elem, targ, settings);
-						}
-					});
-					$elem.animate(attr, opts);
-				}
-			});
-		};
-	
-		// Max scrolling position, works on quirks mode
-		// It only fails (not too badly) on IE, quirks mode.
-		$scrollTo.max = function(elem, axis) {
-			var Dim = axis === 'x' ? 'Width' : 'Height',
-				scroll = 'scroll'+Dim;
-	
-			if (!isWin(elem))
-				return elem[scroll] - $(elem)[Dim.toLowerCase()]();
-	
-			var size = 'client' + Dim,
-				doc = elem.ownerDocument || elem.document,
-				html = doc.documentElement,
-				body = doc.body;
-	
-			return Math.max(html[scroll], body[scroll]) - Math.min(html[size], body[size]);
-		};
-	
-		function both(val) {
-			return $.isFunction(val) || $.isPlainObject(val) ? val : { top:val, left:val };
-		}
-	
-		// Add special hooks so that window scroll properties can be animated
-		$.Tween.propHooks.scrollLeft = 
-		$.Tween.propHooks.scrollTop = {
-			get: function(t) {
-				return $(t.elem)[t.prop]();
-			},
-			set: function(t) {
-				var curr = this.get(t);
-				// If interrupt is true and user scrolled, stop animating
-				if (t.options.interrupt && t._last && t._last !== curr) {
-					return $(t.elem).stop();
-				}
-				var next = Math.round(t.now);
-				// Don't waste CPU
-				// Browsers don't render floating point scroll
-				if (curr !== next) {
-					$(t.elem)[t.prop](next);
-					t._last = this.get(t);
-				}
-			}
-		};
-	
-		// AMD requirement
-		return $scrollTo;
-	});
-
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
@@ -75563,9 +74929,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Widget interface
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * decorated graphical objects on top of ProteinDisplay. It uses
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * a mix of HTML DOM elements calibrated with the 3D models of the
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * protein inProteinDisplay
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * decorated graphical objects on top of ProteinDisplay that are a hybrid
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * of HTML DOM elements and WebGL elements such as lines, atom labels,
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distance measures, sequence bars, z-slab control, grid controls
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * this.reset - called after model rebuild
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * this.draw - called at every draw event
@@ -75584,7 +74950,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _lodash2 = _interopRequireDefault(_lodash);
 	
-	var _data = __webpack_require__(15);
+	var _data = __webpack_require__(13);
 	
 	var data = _interopRequireWildcard(_data);
 	
@@ -76844,7 +76210,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 15 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -77039,6 +76405,681 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.darkGrey = darkGrey;
 	exports.darkRed = darkRed;
 	exports.ElementColors = ElementColors;
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.FullPageJolecule = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _jquery = __webpack_require__(3);
+	
+	var _jquery2 = _interopRequireDefault(_jquery);
+	
+	var _jquery3 = __webpack_require__(15);
+	
+	var _jquery4 = _interopRequireDefault(_jquery3);
+	
+	var _lodash = __webpack_require__(4);
+	
+	var _lodash2 = _interopRequireDefault(_lodash);
+	
+	var _embedjolecule = __webpack_require__(2);
+	
+	var _util = __webpack_require__(9);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	/**
+	 * ViewPieceList keeps track of the views
+	 **/
+	
+	var ViewPieceList = function () {
+	  function ViewPieceList(divTag, controller, proteinDisplay, data_server, isEditable) {
+	    var _this = this;
+	
+	    _classCallCheck(this, ViewPieceList);
+	
+	    this.divTag = divTag;
+	    this.proteinDisplay = proteinDisplay;
+	    this.scene = controller.scene;
+	    this.controller = controller;
+	    this.isEditable = isEditable;
+	    this.data_server = data_server;
+	    this.viewPiece = {};
+	    this.topDiv = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)("<div>").addClass("jolecule-sub-header").append("VIEWS OF PROTEIN").append("<br>").append("<br>").append((0, _util.linkButton)('', '+[v]iew', 'jolecule-button', function () {
+	      _this.makeNewView();
+	    })).append((0, _util.linkButton)('', 'prev[&uarr;]', 'jolecule-button', function () {
+	      _this.gotoPrevView();
+	    })).append((0, _util.linkButton)('', 'next[&darr;]', 'jolecule-button', function () {
+	      _this.gotoNextView();
+	    })).append((0, _util.linkButton)('', '+l[a]bel', 'jolecule-button', function () {
+	      _this.proteinDisplay.atomLabelDialog();
+	    })).append("<br>")).append((0, _jquery2.default)("<div>").attr("id", "jolecule-views"));
+	  }
+	
+	  _createClass(ViewPieceList, [{
+	    key: "saveViewsToDataServer",
+	    value: function saveViewsToDataServer(success) {
+	      console.log('> ViewPieceList.saveViewsToDataServer');
+	      this.data_server.save_views(this.controller.get_view_dicts(), success);
+	    }
+	  }, {
+	    key: "updateViews",
+	    value: function updateViews() {
+	      for (var id in this.viewPiece) {
+	        if (!(id in this.scene.saved_views_by_id)) {
+	          this.viewPiece[id].div.remove();
+	          delete this.viewPiece[id];
+	        }
+	      }
+	      for (var i = 0; i < this.scene.saved_views.length; i++) {
+	        var view = this.scene.saved_views[i];
+	        var _id = view.id;
+	
+	        if (!(view.id in this.viewPiece)) {
+	          this.insertNewViewDiv(view.id);
+	        }
+	
+	        var i_last_view = this.scene.i_last_view;
+	        var last_id = this.scene.saved_views[i_last_view].id;
+	
+	        if (last_id == _id) {
+	          this.viewPiece[_id].div.removeClass("jolecule-unselected-box");
+	          this.viewPiece[_id].div.addClass("jolecule-selected-box");
+	        } else {
+	          this.viewPiece[_id].div.removeClass("jolecule-selected-box");
+	          this.viewPiece[_id].div.addClass("jolecule-unselected-box");
+	        }
+	
+	        var viewPiece = this.viewPiece[_id];
+	        if (view.text != viewPiece.showTextDiv.html()) {
+	          viewPiece.showTextDiv.html(view.text);
+	        }
+	
+	        var a = viewPiece.div.find('a').eq(0);
+	        a.text(view.order + 1);
+	      }
+	    }
+	  }, {
+	    key: "redrawSelectedViewId",
+	    value: function redrawSelectedViewId(id) {
+	      this.updateViews();
+	      (0, _jquery2.default)("#jolecule-views").stop().scrollTo(this.viewPiece[id].div, 1000, { offset: { top: -80 } });
+	    }
+	  }, {
+	    key: "setTargetByViewId",
+	    value: function setTargetByViewId(id) {
+	      this.controller.set_target_view_by_id(id);
+	      this.redrawSelectedViewId(id);
+	      window.location.hash = id;
+	    }
+	  }, {
+	    key: "gotoPrevView",
+	    value: function gotoPrevView() {
+	      var id = this.controller.set_target_prev_view();
+	      this.redrawSelectedViewId(id);
+	      window.location.hash = id;
+	    }
+	  }, {
+	    key: "gotoNextView",
+	    value: function gotoNextView() {
+	      var id = this.controller.set_target_next_view();
+	      this.redrawSelectedViewId(id);
+	      window.location.hash = id;
+	    }
+	  }, {
+	    key: "removeView",
+	    value: function removeView(id) {
+	      var _this2 = this;
+	
+	      console.log('> ViewPieceList.removeView');
+	      this.viewPiece[id].div.css('background-color', 'lightgray');
+	      this.data_server.delete_protein_view(id, function () {
+	        _this2.controller.delete_view(id);
+	        _this2.viewPiece[id].div.remove();
+	        delete _this2.viewPiece[id];
+	        _this2.updateViews();
+	      });
+	    }
+	  }, {
+	    key: "swapViews",
+	    value: function swapViews(i, j) {
+	      var _this3 = this;
+	
+	      var i_id = this.scene.saved_views[i].id;
+	      var j_id = this.scene.saved_views[j].id;
+	      var i_div = this.viewPiece[i_id].div;
+	      var j_div = this.viewPiece[j_id].div;
+	
+	      this.controller.swapViews(i, j);
+	
+	      i_div.css('background-color', 'lightgray');
+	      j_div.css('background-color', 'lightgray');
+	
+	      this.saveViewsToDataServer(function () {
+	        j_div.insertBefore(i_div);
+	        _this3.updateViews();
+	        i_div.css('background-color', '');
+	        j_div.css('background-color', '');
+	      });
+	    }
+	  }, {
+	    key: "swapUp",
+	    value: function swapUp(view_id) {
+	      var i = this.scene.get_i_saved_view_from_id(view_id);
+	      if (i < 2) {
+	        return;
+	      }
+	      this.swapViews(i - 1, i);
+	    }
+	  }, {
+	    key: "swapDown",
+	    value: function swapDown(view_id) {
+	      var i = this.scene.get_i_saved_view_from_id(view_id);
+	      if (i > this.scene.saved_views.length - 2) {
+	        return;
+	      }
+	      this.swapViews(i, i + 1);
+	    }
+	  }, {
+	    key: "makeViewDiv",
+	    value: function makeViewDiv(id) {
+	      var _this4 = this;
+	
+	      var view = this.scene.saved_views_by_id[id];
+	      this.viewPiece[id] = new _embedjolecule.ViewPiece({
+	        view: view,
+	        isEditable: this.isEditable,
+	        delete_view: function delete_view() {
+	          _this4.removeView(id);
+	        },
+	        save_change: function save_change(changed_text, sucess) {
+	          view.text = changed_text;
+	          _this4.viewPiece[id].div.css('background-color', 'lightgray');
+	          _this4.saveViewsToDataServer(function () {
+	            _this4.viewPiece[id].div.css('background-color', '');
+	          });
+	          _this4.scene.changed = true;
+	        },
+	        pick: function pick() {
+	          _this4.setTargetByViewId(id);
+	        },
+	        goto: view.order + 1,
+	        swapUp: function swapUp() {
+	          _this4.swapUp(id);
+	        },
+	        swapDown: function swapDown() {
+	          _this4.swapDown(id);
+	        },
+	        embed_view: function embed_view() {
+	          window.location.href = '/embed/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id;
+	        }
+	      });
+	      return this.viewPiece[id].div;
+	    }
+	  }, {
+	    key: "makeAllViews",
+	    value: function makeAllViews() {
+	      for (var i = 0; i < this.scene.saved_views.length; i += 1) {
+	        var id = this.scene.saved_views[i].id;
+	        var div = this.makeViewDiv(id);
+	        (0, _jquery2.default)('#jolecule-views').append(div);
+	      }
+	    }
+	  }, {
+	    key: "insertNewViewDiv",
+	    value: function insertNewViewDiv(new_id) {
+	      var div = this.makeViewDiv(new_id);
+	
+	      if (this.scene.i_last_view == this.scene.saved_views.length - 1) {
+	        (0, _jquery2.default)("#jolecule-views").append(div);
+	      } else {
+	        var j = this.scene.i_last_view - 1;
+	        var j_id = this.scene.saved_views[j].id;
+	        var j_div = this.viewPiece[j_id].div;
+	        div.insertAfter(j_div);
+	      }
+	    }
+	  }, {
+	    key: "makeNewView",
+	    value: function makeNewView() {
+	      var _this5 = this;
+	
+	      console.log('> ViewPieceList.makeNewView');
+	      var newId = (0, _util.randomId)();
+	      this.controller.calculate_current_abs_camera();
+	      this.controller.save_current_view(newId);
+	      this.insertNewViewDiv(newId);
+	      this.updateViews();
+	      this.viewPiece[newId].div.css('background-color', 'lightgray');
+	      this.saveViewsToDataServer(function () {
+	        console.log('> ViewPieceList.makeNewView success');
+	        _this5.viewPiece[newId].div.css('background-color', '');
+	        (0, _jquery2.default)("#jolecule-views").stop();
+	        (0, _jquery2.default)("#jolecule-views").scrollTo(_this5.viewPiece[newId].div, 1000, { offset: { top: -80 } });
+	      });
+	    }
+	  }]);
+	
+	  return ViewPieceList;
+	}();
+	
+	/**
+	 * FullPageJolecule - full page wrapper around an embedd EmbedJolecule
+	 * widget. Handles keypresses and urls and adds a better views annotation
+	 * list tool
+	 **/
+	
+	var FullPageJolecule = function () {
+	  function FullPageJolecule(proteinDisplayTag, sequenceDisplayTag, viewsDisplayTag, params) {
+	    var _this6 = this;
+	
+	    _classCallCheck(this, FullPageJolecule);
+	
+	    this.viewsDisplayTag = viewsDisplayTag;
+	    this.sequenceDisplayTag = sequenceDisplayTag;
+	
+	    this.params = {
+	      divTag: proteinDisplayTag,
+	      viewId: '',
+	      viewHeight: 170,
+	      isViewTextShown: false,
+	      isEditable: true,
+	      isLoop: false,
+	      isGrid: true,
+	      backgroundColor: 0xCCCCCC
+	    };
+	
+	    console.log('> FullPageJolecule.constructor params', params);
+	
+	    if ((0, _util.exists)(params)) {
+	      this.params = _lodash2.default.assign(this.params, params);
+	    }
+	
+	    this.embedJolecule = new _embedjolecule.EmbedJolecule(this.params);
+	
+	    document.oncontextmenu = _lodash2.default.noop;
+	    document.onkeydown = function (e) {
+	      return _this6.onkeydown(e);
+	    };
+	    var resize_fn = function resize_fn() {
+	      _this6.resize();
+	    };
+	    (0, _jquery2.default)(window).resize(resize_fn);
+	    window.onorientationchange = resize_fn;
+	
+	    this.noData = true;
+	  }
+	
+	  _createClass(FullPageJolecule, [{
+	    key: "addDataServer",
+	    value: function addDataServer(dataServer) {
+	      var _this7 = this;
+	
+	      this.embedJolecule.addDataServer(dataServer, function () {
+	        if (_this7.noData) {
+	          _this7.noData = false;
+	
+	          _this7.scene = _this7.embedJolecule.scene;
+	          _this7.controller = _this7.embedJolecule.controller;
+	          _this7.proteinDisplay = _this7.embedJolecule.proteinDisplay;
+	
+	          _this7.viewsDisplay = new ViewPieceList(_this7.viewsDisplayTag, _this7.controller, _this7.proteinDisplay, dataServer, _this7.params.isEditable);
+	
+	          _this7.viewsDisplay.makeAllViews();
+	          var hashTag = (0, _util.getWindowUrl)().split('#')[1];
+	          if (hashTag in _this7.scene.saved_views_by_id) {
+	            _this7.viewsDisplay.setTargetByViewId(hashTag);
+	          } else {
+	            _this7.viewsDisplay.setTargetByViewId('view:000000');
+	          }
+	          _this7.viewsDisplay.updateViews();
+	        }
+	
+	        _this7.resize();
+	      });
+	    }
+	  }, {
+	    key: "isChanged",
+	    value: function isChanged() {
+	      if (typeof this.scene !== "undefined") {
+	        return this.scene.changed;
+	      }
+	      return false;
+	    }
+	  }, {
+	    key: "draw",
+	    value: function draw() {
+	      if (this.scene.changed) {
+	        this.viewsDisplay.updateViews();
+	        if (this.scene.is_new_view_chosen) {
+	          this.scene.is_new_view_chosen = false;
+	        }
+	        this.embedJolecule.draw();
+	        this.scene.changed = false;
+	      }
+	    }
+	  }, {
+	    key: "animate",
+	    value: function animate() {
+	      if (typeof this.embedJolecule !== "undefined") {
+	        this.embedJolecule.animate();
+	      }
+	    }
+	  }, {
+	    key: "resize",
+	    value: function resize(event) {
+	      if (typeof this.scene !== "undefined") {
+	        this.scene.changed = true;
+	      }
+	      if (typeof this.embedJolecule !== "undefined") {
+	        this.embedJolecule.resize();
+	      }
+	    }
+	  }, {
+	    key: "gotoPrevResidue",
+	    value: function gotoPrevResidue() {
+	      this.controller.set_target_prev_residue();
+	      window.location.hash = this.scene.target_view.res_id;
+	    }
+	  }, {
+	    key: "gotoNextResidue",
+	    value: function gotoNextResidue() {
+	      this.controller.set_target_next_residue();
+	      window.location.hash = this.scene.target_view.res_id;
+	    }
+	  }, {
+	    key: "onkeydown",
+	    value: function onkeydown(event) {
+	      if (!window.keyboard_lock) {
+	        var c = String.fromCharCode(event.keyCode).toUpperCase();
+	        var s = "[" + c + "]";
+	        if (c == 'V') {
+	          this.viewsDisplay.makeNewView();
+	          return;
+	        } else if (c == "K" || event.keyCode == 37) {
+	          this.gotoPrevResidue();
+	        } else if (c == "J" || event.keyCode == 39) {
+	          this.gotoNextResidue();
+	        } else if (c == "X") {
+	          var i_atom = this.scene.current_view.i_atom;
+	          if (i_atom >= 0) {
+	            var res_id = this.controller.protein.atoms[i_atom].res_id;
+	          }
+	        } else if (event.keyCode == 38) {
+	          this.viewsDisplay.gotoPrevView();
+	        } else if (c == " " || event.keyCode == 40) {
+	          this.viewsDisplay.gotoNextView();
+	        } else if (c == 'B') {
+	          if (this.scene.current_view.show.all_atom) {
+	            this.controller.set_backbone_option('ribbon');
+	          } else if (this.scene.current_view.show.ribbon) {
+	            this.controller.set_backbone_option('trace');
+	          } else if (this.scene.current_view.show.trace) {
+	            this.controller.set_backbone_option('all_atom');
+	          }
+	        } else if (c == 'L') {
+	          this.controller.toggle_show_option('ligands');
+	        } else if (c == 'S') {
+	          this.controller.toggle_show_option('sidechain');
+	        } else if (c == 'W') {
+	          this.controller.toggle_show_option('water');
+	          // } else if (c == 'H') {
+	          //   this.controller.toggle_show_option('hydrogen');
+	        } else if (c == 'C') {
+	          this.proteinDisplay.controller.clear_selected();
+	        } else if (c == 'E') {
+	          var i_view = this.proteinDisplay.scene.i_last_view;
+	          if (i_view > 0) {
+	            var view_id = this.proteinDisplay.scene.saved_views[i_view].id;
+	            this.viewsDisplay.div[view_id].edit_fn();
+	          }
+	        } else if (c == 'N') {
+	          this.proteinDisplay.controller.toggle_neighbors();
+	        } else if (c == 'A') {
+	          this.proteinDisplay.atomLabelDialog();
+	        } else {
+	          var i = parseInt(c) - 1;
+	          if ((i || i == 0) && i < this.scene.saved_views.length) {
+	            var id = this.scene.saved_views[i].id;
+	            this.viewsDisplay.setTargetByViewId(id);
+	          }
+	        }
+	        this.proteinDisplay.scene.changed = true;
+	      }
+	    }
+	  }]);
+	
+	  return FullPageJolecule;
+	}();
+	
+	exports.FullPageJolecule = FullPageJolecule;
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+	 * jQuery.scrollTo
+	 * Copyright (c) 2007-2015 Ariel Flesler - aflesler<a>gmail<d>com | http://flesler.blogspot.com
+	 * Licensed under MIT
+	 * http://flesler.blogspot.com/2007/10/jqueryscrollto.html
+	 * @projectDescription Lightweight, cross-browser and highly customizable animated scrolling with jQuery
+	 * @author Ariel Flesler
+	 * @version 2.1.2
+	 */
+	;(function(factory) {
+		'use strict';
+		if (true) {
+			// AMD
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(3)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		} else if (typeof module !== 'undefined' && module.exports) {
+			// CommonJS
+			module.exports = factory(require('jquery'));
+		} else {
+			// Global
+			factory(jQuery);
+		}
+	})(function($) {
+		'use strict';
+	
+		var $scrollTo = $.scrollTo = function(target, duration, settings) {
+			return $(window).scrollTo(target, duration, settings);
+		};
+	
+		$scrollTo.defaults = {
+			axis:'xy',
+			duration: 0,
+			limit:true
+		};
+	
+		function isWin(elem) {
+			return !elem.nodeName ||
+				$.inArray(elem.nodeName.toLowerCase(), ['iframe','#document','html','body']) !== -1;
+		}		
+	
+		$.fn.scrollTo = function(target, duration, settings) {
+			if (typeof duration === 'object') {
+				settings = duration;
+				duration = 0;
+			}
+			if (typeof settings === 'function') {
+				settings = { onAfter:settings };
+			}
+			if (target === 'max') {
+				target = 9e9;
+			}
+	
+			settings = $.extend({}, $scrollTo.defaults, settings);
+			// Speed is still recognized for backwards compatibility
+			duration = duration || settings.duration;
+			// Make sure the settings are given right
+			var queue = settings.queue && settings.axis.length > 1;
+			if (queue) {
+				// Let's keep the overall duration
+				duration /= 2;
+			}
+			settings.offset = both(settings.offset);
+			settings.over = both(settings.over);
+	
+			return this.each(function() {
+				// Null target yields nothing, just like jQuery does
+				if (target === null) return;
+	
+				var win = isWin(this),
+					elem = win ? this.contentWindow || window : this,
+					$elem = $(elem),
+					targ = target, 
+					attr = {},
+					toff;
+	
+				switch (typeof targ) {
+					// A number will pass the regex
+					case 'number':
+					case 'string':
+						if (/^([+-]=?)?\d+(\.\d+)?(px|%)?$/.test(targ)) {
+							targ = both(targ);
+							// We are done
+							break;
+						}
+						// Relative/Absolute selector
+						targ = win ? $(targ) : $(targ, elem);
+						/* falls through */
+					case 'object':
+						if (targ.length === 0) return;
+						// DOMElement / jQuery
+						if (targ.is || targ.style) {
+							// Get the real position of the target
+							toff = (targ = $(targ)).offset();
+						}
+				}
+	
+				var offset = $.isFunction(settings.offset) && settings.offset(elem, targ) || settings.offset;
+	
+				$.each(settings.axis.split(''), function(i, axis) {
+					var Pos	= axis === 'x' ? 'Left' : 'Top',
+						pos = Pos.toLowerCase(),
+						key = 'scroll' + Pos,
+						prev = $elem[key](),
+						max = $scrollTo.max(elem, axis);
+	
+					if (toff) {// jQuery / DOMElement
+						attr[key] = toff[pos] + (win ? 0 : prev - $elem.offset()[pos]);
+	
+						// If it's a dom element, reduce the margin
+						if (settings.margin) {
+							attr[key] -= parseInt(targ.css('margin'+Pos), 10) || 0;
+							attr[key] -= parseInt(targ.css('border'+Pos+'Width'), 10) || 0;
+						}
+	
+						attr[key] += offset[pos] || 0;
+	
+						if (settings.over[pos]) {
+							// Scroll to a fraction of its width/height
+							attr[key] += targ[axis === 'x'?'width':'height']() * settings.over[pos];
+						}
+					} else {
+						var val = targ[pos];
+						// Handle percentage values
+						attr[key] = val.slice && val.slice(-1) === '%' ?
+							parseFloat(val) / 100 * max
+							: val;
+					}
+	
+					// Number or 'number'
+					if (settings.limit && /^\d+$/.test(attr[key])) {
+						// Check the limits
+						attr[key] = attr[key] <= 0 ? 0 : Math.min(attr[key], max);
+					}
+	
+					// Don't waste time animating, if there's no need.
+					if (!i && settings.axis.length > 1) {
+						if (prev === attr[key]) {
+							// No animation needed
+							attr = {};
+						} else if (queue) {
+							// Intermediate animation
+							animate(settings.onAfterFirst);
+							// Don't animate this axis again in the next iteration.
+							attr = {};
+						}
+					}
+				});
+	
+				animate(settings.onAfter);
+	
+				function animate(callback) {
+					var opts = $.extend({}, settings, {
+						// The queue setting conflicts with animate()
+						// Force it to always be true
+						queue: true,
+						duration: duration,
+						complete: callback && function() {
+							callback.call(elem, targ, settings);
+						}
+					});
+					$elem.animate(attr, opts);
+				}
+			});
+		};
+	
+		// Max scrolling position, works on quirks mode
+		// It only fails (not too badly) on IE, quirks mode.
+		$scrollTo.max = function(elem, axis) {
+			var Dim = axis === 'x' ? 'Width' : 'Height',
+				scroll = 'scroll'+Dim;
+	
+			if (!isWin(elem))
+				return elem[scroll] - $(elem)[Dim.toLowerCase()]();
+	
+			var size = 'client' + Dim,
+				doc = elem.ownerDocument || elem.document,
+				html = doc.documentElement,
+				body = doc.body;
+	
+			return Math.max(html[scroll], body[scroll]) - Math.min(html[size], body[size]);
+		};
+	
+		function both(val) {
+			return $.isFunction(val) || $.isPlainObject(val) ? val : { top:val, left:val };
+		}
+	
+		// Add special hooks so that window scroll properties can be animated
+		$.Tween.propHooks.scrollLeft = 
+		$.Tween.propHooks.scrollTop = {
+			get: function(t) {
+				return $(t.elem)[t.prop]();
+			},
+			set: function(t) {
+				var curr = this.get(t);
+				// If interrupt is true and user scrolled, stop animating
+				if (t.options.interrupt && t._last && t._last !== curr) {
+					return $(t.elem).stop();
+				}
+				var next = Math.round(t.now);
+				// Don't waste CPU
+				// Browsers don't render floating point scroll
+				if (curr !== next) {
+					$(t.elem)[t.prop](next);
+					t._last = this.get(t);
+				}
+			}
+		};
+	
+		// AMD requirement
+		return $scrollTo;
+	});
+
 
 /***/ }
 /******/ ])
