@@ -26,9 +26,6 @@ import { getWindowUrl, inArray, getCurrentDateStr } from "./util.js";
 
 var user = 'public'; // will be overriden by server
 
-var atom_radius = 0.3;
-
-
 function extract_atom_lines(data) {
   var lines = data.split(/\r?\n/);
   var pdb_lines = [];
@@ -765,6 +762,7 @@ var Protein = function () {
   }
 
   this.load = function (protein_data) {
+
     this.pdb_id = protein_data['pdb_id'];
     console.log(`> Protein.load parsing ${this.pdb_id}`);
 
@@ -906,19 +904,6 @@ var Camera = function () {
   this.z_front = 0.0;
   this.z_back = 0.0;
 
-  this.is_visible_z = function (z) {
-    if (z < (2 * atom_radius - this.zoom)) {
-      return false;
-    }
-    if (z > this.z_back) {
-      return false;
-    }
-    if (z < this.z_front) {
-      return false;
-    }
-    return true;
-  };
-
   this.clone = function () {
     var c = new Camera();
     c.pos = this.pos.clone(),
@@ -935,19 +920,6 @@ var Camera = function () {
     this.up_v.applyMatrix4(matrix);
     this.in_v.applyMatrix4(matrix);
   }
-}
-
-
-function is_equal_camera(v, w) {
-  if (v3.isEqual(v.pos, w.pos) &&
-    v3.isEqual(v.up_v, w.up_v) &&
-    v3.isEqual(v.in_v, w.in_v) &&
-    (v.zoom == w.zoom) &&
-    (v.z_front == w.z_front) &&
-    (v.z_back == w.z_back)) {
-    return true;
-  }
-  return false;
 }
 
 
@@ -1622,11 +1594,8 @@ var Controller = function (scene) {
 
 
 export {
-  atom_radius,
   Protein,
   Camera,
-  is_equal_camera,
-  get_camera_transform,
   View,
   Controller,
   Scene

@@ -4,7 +4,7 @@ import _ from 'lodash'
 import v3 from './v3'
 import {View} from './protein'
 
-import * as glgeom from './glgeometry'
+import * as glgeom from './glgeom'
 import * as util from './util'
 import widgets from './widgets'
 import * as data from './data'
@@ -16,10 +16,6 @@ function getVerticesFromAtomDict(atoms, atomTypes) {
     vertices.push(v3.clone(atoms[aType].pos))
   }
   return vertices
-}
-
-function fraction(reference, target, t) {
-  return t * (target - reference) + reference
 }
 
 function extendArray(array, extension) {
@@ -139,15 +135,15 @@ function makeDefaultView(view, protein) {
 
 function makeTracesFromProtein(protein) {
 
-  let traces = []
-  let residues = protein.residues
   let trace
-
   let makeNewTrace = () => {
     trace = new glgeom.Trace()
     trace.referenceObjects = residues
     traces.push(trace)
   }
+
+  let traces = []
+  let residues = protein.residues
 
   let nResidue = residues.length
   for (let iResidue = 0; iResidue < nResidue; iResidue += 1) {
@@ -256,32 +252,17 @@ class ProteinDisplay {
     this.scene = scene
     this.protein = scene.protein
     this.controller = controller
-    this.isGrid = isGrid
 
     // hack - circular reference
     this.controller.set_target_view_by_res_id = (resId) => {
       this.setTargetFromResId(resId)
     }
-    this.controller.calculate_current_abs_camera = function () {}
+    this.controller.calculate_current_abs_camera = function () {
+    }
 
-    this.saveMouseX = null
-    this.saveMouseY = null
-    this.saveMouseR = null
-    this.saveMouseT = null
-    this.mouseX = null
-    this.mouseY = null
-    this.mouseR = null
-    this.mouseT = null
-    this.mousePressed = false
-
-    this.labels = []
-
-    // relative to the scene position from camera
-    this.zFront = -40
-    this.zBack = 20
-
-    // determines how far away the camera is from the scene
-    this.zoom = 50.0
+    // stores the trace of the protein & DNA backbones, used
+    // to generate the ribbons and tubes
+    this.traces = []
 
     this.div = $(this.divTag)
     this.div.css('overflow', 'hidden')
@@ -313,16 +294,27 @@ class ProteinDisplay {
     this.div.append(this.webglDiv)
     this.div.css('background-color', '#CCC')
 
+    let vertexColors = THREE.VertexColors
+
+    // atom radius used to display on the screen
+    this.radius = 0.35
+
+    // Camera parameters
+    // the target position for the camera
     this.cameraTarget = new THREE.Vector3(0, 0, 0)
+    // the front and back of viewable area relative to the origin
+    this.zFront = -40
+    this.zBack = 20
+    // determines how far away the camera is from the target
+    this.zoom = 50.0
+    // a THREE.js camera tailored for the screen-size
+    // and above parameters
     this.camera = new THREE.PerspectiveCamera(
       45,
       this.width() / this.height(),
       this.zFront + this.zoom,
       this.zBack + this.zoom)
 
-    this.traces = []
-
-    let vertexColors = THREE.VertexColors
     this.displayMeshes = {}
     this.displayScene = new THREE.Scene()
     this.displayScene.background = new THREE.Color(this.backgroundColor)
@@ -331,27 +323,39 @@ class ProteinDisplay {
     this.displayScene.fog.far = this.zoom + this.zBack
     this.displayMaterial = new THREE.MeshLambertMaterial({vertexColors})
 
-    this.radius = 0.35 // small atom radius
-    this.obj = new THREE.Object3D() // utility object
-
     this.pickingMeshes = {}
     this.pickingScene = new THREE.Scene()
     this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height())
     this.pickingTexture.texture.minFilter = THREE.LinearFilter
     this.pickingMaterial = new THREE.MeshBasicMaterial({vertexColors})
 
+    // webGL objects that only need to build once
     this.lights = []
     this.buildLights()
-
     this.buildCrossHairs()
 
     this.distanceWidget = new widgets.DistanceMeasuresWidget(this)
     this.labelWidget = new widgets.AtomLabelsWidget(this)
     this.sequenceWidget = new widgets.SequenceWidget(this.divTag, this)
     this.zSlabWidget = new widgets.ZSlabWidget(this.divTag, this.scene)
-    this.gridControlWidget = new widgets.GridControlWidget(this.divTag, this.scene, this.isGrid)
+
+    this.isGrid = isGrid
+    this.gridControlWidget = new widgets.GridControlWidget(
+      this.divTag, this.scene, this.isGrid)
 
     this.lineElement = new widgets.LineElement(this.webglDivTag, '#FF7777')
+
+    // input control parametsrs
+    this.saveMouseX = null
+    this.saveMouseY = null
+    this.saveMouseR = null
+    this.saveMouseT = null
+    this.mouseX = null
+    this.mouseY = null
+    this.mouseR = null
+    this.mouseT = null
+    this.mousePressed = false
+
   }
 
   initWebglRenderer() {
@@ -592,18 +596,10 @@ class ProteinDisplay {
       }
     }
 
-    for (let trace of this.traces) {
-      for (let i of _.range(trace.indices.length)) {
-        let iRes = trace.indices[i]
-        let residue = trace.getReferenceObject(i)
-        let residueShow = show.sidechain || residue.selected
-        if (residueShow && !util.exists(residue.mesh)) {
-          this.buildMeshOfSidechain(iRes)
-          this.updateMeshesInScene = true
-          residue.mesh = true
-        }
-      }
-    }
+    // since residues are built on demand (when clicked)
+    // this loop must be run every draw event to check on
+    // residue.selected
+    this.buildSelectedResidues(show.sidechain)
 
     if (util.exists(this.displayMeshes.sidechains)) {
       for (let mesh of [this.displayMeshes.sidechains, this.pickingMeshes.sidechains]) {
@@ -755,35 +751,46 @@ class ProteinDisplay {
     this.addGeomToDisplayMesh('tube', geom)
   }
 
-  buildMeshOfSidechain(iRes) {
-    let residue = this.protein.residues[iRes]
-    if (!residue.is_protein_or_nuc) {
-      return
-    }
+  buildSelectedResidues(showAllResidues) {
 
-    let displayGeom = new THREE.Geometry()
-    let pickingGeom = new THREE.Geometry()
-
-    let bondFilter = bond => {
+    function bondFilter(bond) {
       return !_.includes(data.backboneAtoms, bond.atom1.type) ||
         !_.includes(data.backboneAtoms, bond.atom2.type)
     }
-    this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
 
-    for (let atom of _.values(residue.atoms)) {
-      if (!util.inArray(atom.type, data.backboneAtoms)) {
-        atom.is_sidechain = true
-        let matrix = glgeom.getSphereMatrix(atom.pos, this.radius)
-        glgeom.mergeUnitGeom(
-          displayGeom, this.unitSphereGeom, this.getAtomColor(atom.i), matrix)
-        glgeom.mergeUnitGeom(
-          pickingGeom, this.unitSphereGeom, data.getIndexColor(atom.i), matrix)
+    for (let trace of this.traces) {
+      for (let i of _.range(trace.indices.length)) {
+        let iRes = trace.indices[i]
+        let residue = trace.getReferenceObject(i)
+        let residueShow = showAllResidues || residue.selected
+        if (residueShow && !util.exists(residue.mesh)) {
+
+          let displayGeom = new THREE.Geometry()
+          let pickingGeom = new THREE.Geometry()
+
+          this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
+
+          for (let atom of _.values(residue.atoms)) {
+            if (!util.inArray(atom.type, data.backboneAtoms)) {
+              atom.is_sidechain = true
+              let matrix = glgeom.getSphereMatrix(atom.pos, this.radius)
+              glgeom.mergeUnitGeom(
+                displayGeom, this.unitSphereGeom, this.getAtomColor(atom.i), matrix)
+              glgeom.mergeUnitGeom(
+                pickingGeom, this.unitSphereGeom, data.getIndexColor(atom.i), matrix)
+            }
+          }
+
+          this.addGeomToDisplayMesh('sidechains', displayGeom, iRes)
+          this.addGeomToPickingMesh('sidechains', pickingGeom, iRes)
+
+          this.updateMeshesInScene = true
+          residue.mesh = true
+        }
       }
     }
-
-    this.addGeomToDisplayMesh('sidechains', displayGeom, iRes)
-    this.addGeomToPickingMesh('sidechains', pickingGeom, iRes)
   }
+
 
   buildMeshOfBackbone() {
     this.clearMesh('backbone')
@@ -1055,7 +1062,7 @@ class ProteinDisplay {
       .multiplyScalar(t)
     current.cameraTarget = old.cameraTarget.clone()
       .add(disp)
-    let zoom = fraction(oldZoom, targetZoom, t)
+    let zoom = glgeom.fraction(oldZoom, targetZoom, t)
     disp = oldCameraDirection.clone()
       .applyQuaternion(newCameraRotation)
       .multiplyScalar(zoom)
@@ -1063,8 +1070,8 @@ class ProteinDisplay {
       .add(disp)
     current.cameraUp = old.cameraUp.clone()
       .applyQuaternion(newCameraRotation)
-    current.zFront = fraction(old.zFront, target.zFront, t)
-    current.zBack = fraction(old.zBack, target.zBack, t)
+    current.zFront = glgeom.fraction(old.zFront, target.zFront, t)
+    current.zBack = glgeom.fraction(old.zBack, target.zBack, t)
 
     let view = convertTargetToView(current)
     view.copy_metadata_from_view(this.scene.target_view)

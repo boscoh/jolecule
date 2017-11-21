@@ -291,19 +291,11 @@ class RibbonGeometry extends THREE.Geometry {
  *
  * @param {PathAndFrenetFrames} oldPath
  * @param {Number} n
- * @param {Integer} iOldPoint
- * @param {Integer} jOldPoint
+ * @param {Number} iOldPoint
+ * @param {Number} jOldPoint
  * @returns {PathAndFrenetFrames}
  */
 function expandPath (oldPath, n, iOldPoint, jOldPoint) {
-
-  if (typeof iOldPoint === 'undefined') {
-    iOldPoint = 0
-  }
-
-  if (typeof jOldPoint === 'undefined') {
-    jOldPoint = oldPath.points.length
-  }
 
   let newPath = new PathAndFrenetFrames()
 
@@ -316,7 +308,7 @@ function expandPath (oldPath, n, iOldPoint, jOldPoint) {
 
     for (let j = j_start; j < j_end; j += 1) {
 
-      let t = 1.0 * j / n
+      let t = j / n
 
       let prevOldPoint, nextOldPoint
 
@@ -351,7 +343,7 @@ function expandPath (oldPath, n, iOldPoint, jOldPoint) {
 
     for (let j = 1; j < n + 1; j += 1) {
 
-      let t = 1.0 * j / n
+      let t = j / n
 
       let prevOldNormal, nextOldNormal
 
@@ -519,7 +511,8 @@ class Trace extends PathAndFrenetFrames {
 
   expand () {
     this.calcContinuousTangents(0, this.points.length)
-    this.detailedPath = expandPath(this, 2 * this.detail)
+    this.detailedPath = expandPath(
+      this, 2 * this.detail, 0, this.points.length)
   }
 
   /**
@@ -564,17 +557,6 @@ class BlockArrowGeometry extends THREE.ExtrudeGeometry {
 
   constructor () {
 
-    super(
-      shape,
-      {
-        steps: 2,
-        bevelEnabled: false,
-        extrudePath: path,
-      }
-    )
-
-    this.type = 'BlockArrowGeometry'
-
     let shape = new THREE.Shape([
       new THREE.Vector2(-0.4, -0.5),
       new THREE.Vector2(0.0, +0.5),
@@ -585,6 +567,17 @@ class BlockArrowGeometry extends THREE.ExtrudeGeometry {
       v3.create(0, -0.3, 0),
       v3.create(0, 0.3, 0)
     ])
+
+    super(
+      shape,
+      {
+        steps: 2,
+        bevelEnabled: false,
+        extrudePath: path,
+      }
+    )
+
+    this.type = 'BlockArrowGeometry'
 
     this.applyMatrix(
       new THREE.Matrix4()
@@ -676,7 +669,7 @@ class RaisedShapeGeometry extends THREE.Geometry {
  * Convenience function to set the visibility of a THREE
  * Object3D collection of meshes and other objects
  *
- * @param {THREE.Object3d} obj
+ * @param {THREE.Object3D} obj
  * @param {boolean} visibility
  */
 function setVisible(obj, visibility) {
@@ -747,6 +740,10 @@ function getUnitVectorRotation (reference, target) {
 }
 
 
+function fraction(reference, target, t) {
+  return t * (target - reference) + reference
+}
+
 function getFractionRotation (rotation, t) {
   let identity = new THREE.Quaternion()
   return identity.slerp(rotation, t)
@@ -806,18 +803,15 @@ function getCylinderMatrix (from, to, radius) {
 }
 
 
-
 export {
-  PathAndFrenetFrames,
   BlockArrowGeometry,
   UnitCylinderGeometry,
   setVisible,
-  expandPath,
-  perpVector,
   RaisedShapeGeometry,
   RibbonGeometry,
   getUnitVectorRotation,
   getFractionRotation,
+  fraction,
   setGeometryVerticesColor,
   clearObject3D,
   Trace,
