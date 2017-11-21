@@ -122,7 +122,6 @@ function makeDefaultView(view, protein) {
 
   let atom = protein.get_central_atom()
   view.res_id = atom.res_id
-  let residue = protein.res_by_id[view.res_id]
   view.i_atom = atom.i
   let center = atom.pos
   view.abs_camera.transform(v3.translation(center))
@@ -206,7 +205,7 @@ function makeTracesFromProtein(protein) {
   }
 
   // flip normals so that they are all pointing in same direction
-  // within the same piece of chain
+  // within the same trace
   for (let trace of traces) {
     for (let i of _.range(1, trace.indices.length)) {
       if (trace.getReferenceObject(i).ss !== 'D' &&
@@ -299,6 +298,7 @@ class ProteinDisplay {
     // atom radius used to display on the screen
     this.radius = 0.35
 
+    // TODO: convert into new-style view, and store
     // Camera parameters
     // the target position for the camera
     this.cameraTarget = new THREE.Vector3(0, 0, 0)
@@ -315,13 +315,21 @@ class ProteinDisplay {
       this.zFront + this.zoom,
       this.zBack + this.zoom)
 
+    // this.displayMeshes is a dictionary that holds THREE.Object3D
+    // collections of meshes. This allows collections to be collectively
+    // turned on and off. The meshes will be regenerated into this.displayScene
+    // if the underlying data changes. The convenience function
+    // will send geometries into the displayMeshes, using this.displayMaterial
+    // as the default. This assumes vertexColors are used, allowing multiple
+    // colors within the same geometry.
     this.displayMeshes = {}
+    this.displayMaterial = new THREE.MeshLambertMaterial({vertexColors})
+
     this.displayScene = new THREE.Scene()
     this.displayScene.background = new THREE.Color(this.backgroundColor)
     this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
     this.displayScene.fog.near = this.zoom + 1
     this.displayScene.fog.far = this.zoom + this.zBack
-    this.displayMaterial = new THREE.MeshLambertMaterial({vertexColors})
 
     this.pickingMeshes = {}
     this.pickingScene = new THREE.Scene()
@@ -329,7 +337,7 @@ class ProteinDisplay {
     this.pickingTexture.texture.minFilter = THREE.LinearFilter
     this.pickingMaterial = new THREE.MeshBasicMaterial({vertexColors})
 
-    // webGL objects that only need to build once
+    // webGL objects that only need to build once in the life-cycle
     this.lights = []
     this.buildLights()
     this.buildCrossHairs()
@@ -338,7 +346,6 @@ class ProteinDisplay {
     this.labelWidget = new widgets.AtomLabelsWidget(this)
     this.sequenceWidget = new widgets.SequenceWidget(this.divTag, this)
     this.zSlabWidget = new widgets.ZSlabWidget(this.divTag, this.scene)
-
     this.isGrid = isGrid
     this.gridControlWidget = new widgets.GridControlWidget(
       this.divTag, this.scene, this.isGrid)
@@ -439,7 +446,7 @@ class ProteinDisplay {
     this.gridControlWidget.reset()
   }
 
-  findContinuousTraces() {
+  calculateTracesForRibbons() {
     this.traces.length = 0
     extendArray(this.traces, makeTracesFromProtein(this.protein))
     for (let trace of this.traces) {
@@ -493,29 +500,26 @@ class ProteinDisplay {
    */
 
   buildScene() {
-    // generate the trace for ribbons and tubes
-    this.findContinuousTraces()
-
-    this.gridControlWidget.findLimits()
+    // pre-calculations needed before building meshes
+    this.gridControlWidget.findLimitsAndElements()
+    this.calculateTracesForRibbons()
 
     // create default Meshes
     this.buildMeshOfRibbons()
     this.buildMeshOfGrid()
     // this.buildMeshOfNucleotides()
     this.buildMeshOfArrows()
-    this.clearMesh('sidechains')
+    this.createOrClearMesh('sidechains')
 
     this.rebuildSceneWithMeshes()
   }
 
   /**
-   * Clears a mesh and/or creates a mesh entry in mesh collection,
-   * so that a mesh collection can be altered independently of
-   * other meshes
+   * Clears/creates a mesh entry in the mesh collection
    *
    * @param meshName - the name for a mesh collection
    */
-  clearMesh(meshName) {
+  createOrClearMesh(meshName) {
     if (!(meshName in this.displayMeshes)) {
       this.displayMeshes[meshName] = new THREE.Object3D()
     } else {
@@ -671,7 +675,7 @@ class ProteinDisplay {
   }
 
   buildMeshOfRibbons() {
-    this.clearMesh('ribbons')
+    this.createOrClearMesh('ribbons')
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
     for (let trace of this.traces) {
@@ -698,7 +702,7 @@ class ProteinDisplay {
   }
 
   buildMeshOfArrows() {
-    this.clearMesh('arrows')
+    this.createOrClearMesh('arrows')
 
     let geom = new THREE.Geometry()
     let blockArrowGeometry = new glgeom.BlockArrowGeometry()
@@ -731,7 +735,7 @@ class ProteinDisplay {
   }
 
   buildMeshOfTube() {
-    this.clearMesh('tube')
+    this.createOrClearMesh('tube')
     let geom = new THREE.Geometry()
     for (let trace of this.traces) {
       let n = trace.points.length
@@ -791,9 +795,8 @@ class ProteinDisplay {
     }
   }
 
-
   buildMeshOfBackbone() {
-    this.clearMesh('backbone')
+    this.createOrClearMesh('backbone')
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
     for (let [iRes, residue] of this.protein.residues.entries()) {
@@ -815,7 +818,7 @@ class ProteinDisplay {
   }
 
   buildMeshOfLigands() {
-    this.clearMesh('ligands')
+    this.createOrClearMesh('ligands')
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
     for (let [iRes, residue] of this.protein.residues.entries()) {
@@ -831,7 +834,7 @@ class ProteinDisplay {
   }
 
   buildMeshOfWater() {
-    this.clearMesh('water')
+    this.createOrClearMesh('water')
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
     for (let [iRes, residue] of this.protein.residues.entries()) {
@@ -857,7 +860,7 @@ class ProteinDisplay {
     if (!this.isGrid) {
       return
     }
-    this.clearMesh('grid')
+    this.createOrClearMesh('grid')
     for (let residue of this.protein.residues) {
       if (residue.is_grid) {
         for (let atom of _.values(residue.atoms)) {
@@ -886,7 +889,7 @@ class ProteinDisplay {
   }
 
   buildMeshOfNucleotides() {
-    this.clearMesh('basepairs')
+    this.createOrClearMesh('basepairs')
 
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()

@@ -868,7 +868,7 @@ class GridControlWidget extends CanvasWrapper {
   /**
    * Searches autodock grid atoms for B-factor limits
    */
-  findLimits () {
+  findLimitsAndElements () {
     this.scene.grid_atoms = {}
 
     for (let residue of this.scene.protein.residues) {

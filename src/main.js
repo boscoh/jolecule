@@ -1,5 +1,5 @@
 import {registerGlobalAnimationLoop} from "./animation";
-import {EmbedJolecule, defaultArgs } from "./embedjolecule.js";
+import {EmbedJolecule, defaultArgs} from "./embedjolecule.js";
 import {FullPageJolecule} from "./fullpagejolecule.js";
 import _ from "lodash";
 import $ from "jquery";
@@ -41,7 +41,7 @@ function initFullPageJolecule(...args) {
 function remoteDataServer(pdbId) {
   return {
     pdb_id: pdbId,
-    get_protein_data: function(processProteinData) {
+    get_protein_data: function (processProteinData) {
       let url;
       if (pdbId.length == 4) {
         url = `https://files.rcsb.org/download/${pdbId}.pdb1`;
@@ -53,15 +53,15 @@ function remoteDataServer(pdbId) {
         processProteinData({pdb_id: pdbId, pdb_text: pdbText});
       });
     },
-    get_views: function(processViews) {
+    get_views: function (processViews) {
       console.log('> remoteDataServer.get_views', `/pdb/${pdbId}.views.json`)
       $.getJSON(`/pdb/${pdbId}.views.json`, processViews);
     },
-    save_views: function(views, success) {
+    save_views: function (views, success) {
       console.log('> remoteDataServer.save_views', '/save/views')
       $.post('/save/views', JSON.stringify(views), success);
     },
-    delete_protein_view: function(viewId, success) {
+    delete_protein_view: function (viewId, success) {
       console.log('> remoteDataServer.delete_protein_view', '/delete/view')
       $.post('/delete/view', JSON.stringify({pdbId, viewId}), success);
     }

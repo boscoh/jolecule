@@ -72175,7 +72175,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  var atom = protein.get_central_atom();
 	  view.res_id = atom.res_id;
-	  var residue = protein.res_by_id[view.res_id];
 	  view.i_atom = atom.i;
 	  var center = atom.pos;
 	  view.abs_camera.transform(_v2.default.translation(center));
@@ -72256,7 +72255,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  // flip normals so that they are all pointing in same direction
-	  // within the same piece of chain
+	  // within the same trace
 	  var _iteratorNormalCompletion3 = true;
 	  var _didIteratorError3 = false;
 	  var _iteratorError3 = undefined;
@@ -72386,6 +72385,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // atom radius used to display on the screen
 	    this.radius = 0.35;
 	
+	    // TODO: convert into new-style view, and store
 	    // Camera parameters
 	    // the target position for the camera
 	    this.cameraTarget = new _three2.default.Vector3(0, 0, 0);
@@ -72398,13 +72398,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // and above parameters
 	    this.camera = new _three2.default.PerspectiveCamera(45, this.width() / this.height(), this.zFront + this.zoom, this.zBack + this.zoom);
 	
+	    // this.displayMeshes is a dictionary that holds THREE.Object3D
+	    // collections of meshes. This allows collections to be collectively
+	    // turned on and off. The meshes will be regenerated into this.displayScene
+	    // if the underlying data changes. The convenience function
+	    // will send geometries into the displayMeshes, using this.displayMaterial
+	    // as the default. This assumes vertexColors are used, allowing multiple
+	    // colors within the same geometry.
 	    this.displayMeshes = {};
+	    this.displayMaterial = new _three2.default.MeshLambertMaterial({ vertexColors: vertexColors });
+	
 	    this.displayScene = new _three2.default.Scene();
 	    this.displayScene.background = new _three2.default.Color(this.backgroundColor);
 	    this.displayScene.fog = new _three2.default.Fog(this.backgroundColor, 1, 100);
 	    this.displayScene.fog.near = this.zoom + 1;
 	    this.displayScene.fog.far = this.zoom + this.zBack;
-	    this.displayMaterial = new _three2.default.MeshLambertMaterial({ vertexColors: vertexColors });
 	
 	    this.pickingMeshes = {};
 	    this.pickingScene = new _three2.default.Scene();
@@ -72412,7 +72420,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.pickingTexture.texture.minFilter = _three2.default.LinearFilter;
 	    this.pickingMaterial = new _three2.default.MeshBasicMaterial({ vertexColors: vertexColors });
 	
-	    // webGL objects that only need to build once
+	    // webGL objects that only need to build once in the life-cycle
 	    this.lights = [];
 	    this.buildLights();
 	    this.buildCrossHairs();
@@ -72421,7 +72429,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.labelWidget = new _widgets2.default.AtomLabelsWidget(this);
 	    this.sequenceWidget = new _widgets2.default.SequenceWidget(this.divTag, this);
 	    this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.divTag, this.scene);
-	
 	    this.isGrid = isGrid;
 	    this.gridControlWidget = new _widgets2.default.GridControlWidget(this.divTag, this.scene, this.isGrid);
 	
@@ -72576,8 +72583,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.gridControlWidget.reset();
 	    }
 	  }, {
-	    key: 'findContinuousTraces',
-	    value: function findContinuousTraces() {
+	    key: 'calculateTracesForRibbons',
+	    value: function calculateTracesForRibbons() {
 	      this.traces.length = 0;
 	      extendArray(this.traces, makeTracesFromProtein(this.protein));
 	      var _iteratorNormalCompletion6 = true;
@@ -72654,32 +72661,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildScene',
 	    value: function buildScene() {
-	      // generate the trace for ribbons and tubes
-	      this.findContinuousTraces();
-	
-	      this.gridControlWidget.findLimits();
+	      // pre-calculations needed before building meshes
+	      this.gridControlWidget.findLimitsAndElements();
+	      this.calculateTracesForRibbons();
 	
 	      // create default Meshes
 	      this.buildMeshOfRibbons();
 	      this.buildMeshOfGrid();
 	      // this.buildMeshOfNucleotides()
 	      this.buildMeshOfArrows();
-	      this.clearMesh('sidechains');
+	      this.createOrClearMesh('sidechains');
 	
 	      this.rebuildSceneWithMeshes();
 	    }
 	
 	    /**
-	     * Clears a mesh and/or creates a mesh entry in mesh collection,
-	     * so that a mesh collection can be altered independently of
-	     * other meshes
+	     * Clears/creates a mesh entry in the mesh collection
 	     *
 	     * @param meshName - the name for a mesh collection
 	     */
 	
 	  }, {
-	    key: 'clearMesh',
-	    value: function clearMesh(meshName) {
+	    key: 'createOrClearMesh',
+	    value: function createOrClearMesh(meshName) {
 	      if (!(meshName in this.displayMeshes)) {
 	        this.displayMeshes[meshName] = new _three2.default.Object3D();
 	      } else {
@@ -72919,7 +72923,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildMeshOfRibbons',
 	    value: function buildMeshOfRibbons() {
-	      this.clearMesh('ribbons');
+	      this.createOrClearMesh('ribbons');
 	      var displayGeom = new _three2.default.Geometry();
 	      var pickingGeom = new _three2.default.Geometry();
 	      var _iteratorNormalCompletion10 = true;
@@ -72987,7 +72991,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildMeshOfArrows',
 	    value: function buildMeshOfArrows() {
-	      this.clearMesh('arrows');
+	      this.createOrClearMesh('arrows');
 	
 	      var geom = new _three2.default.Geometry();
 	      var blockArrowGeometry = new glgeom.BlockArrowGeometry();
@@ -73062,7 +73066,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildMeshOfTube',
 	    value: function buildMeshOfTube() {
-	      this.clearMesh('tube');
+	      this.createOrClearMesh('tube');
 	      var geom = new _three2.default.Geometry();
 	      var _iteratorNormalCompletion14 = true;
 	      var _didIteratorError14 = false;
@@ -73226,7 +73230,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildMeshOfBackbone',
 	    value: function buildMeshOfBackbone() {
-	      this.clearMesh('backbone');
+	      this.createOrClearMesh('backbone');
 	      var displayGeom = new _three2.default.Geometry();
 	      var pickingGeom = new _three2.default.Geometry();
 	      var _iteratorNormalCompletion19 = true;
@@ -73293,7 +73297,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildMeshOfLigands',
 	    value: function buildMeshOfLigands() {
-	      this.clearMesh('ligands');
+	      this.createOrClearMesh('ligands');
 	      var displayGeom = new _three2.default.Geometry();
 	      var pickingGeom = new _three2.default.Geometry();
 	      var _iteratorNormalCompletion21 = true;
@@ -73355,7 +73359,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildMeshOfWater',
 	    value: function buildMeshOfWater() {
-	      this.clearMesh('water');
+	      this.createOrClearMesh('water');
 	      var displayGeom = new _three2.default.Geometry();
 	      var pickingGeom = new _three2.default.Geometry();
 	      var _iteratorNormalCompletion23 = true;
@@ -73428,7 +73432,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!this.isGrid) {
 	        return;
 	      }
-	      this.clearMesh('grid');
+	      this.createOrClearMesh('grid');
 	      var _iteratorNormalCompletion25 = true;
 	      var _didIteratorError25 = false;
 	      var _iteratorError25 = undefined;
@@ -73500,7 +73504,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildMeshOfNucleotides',
 	    value: function buildMeshOfNucleotides() {
-	      this.clearMesh('basepairs');
+	      this.createOrClearMesh('basepairs');
 	
 	      var displayGeom = new _three2.default.Geometry();
 	      var pickingGeom = new _three2.default.Geometry();
@@ -76001,8 +76005,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	  _createClass(GridControlWidget, [{
-	    key: 'findLimits',
-	    value: function findLimits() {
+	    key: 'findLimitsAndElements',
+	    value: function findLimitsAndElements() {
 	      this.scene.grid_atoms = {};
 	
 	      var _iteratorNormalCompletion3 = true;
