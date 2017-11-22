@@ -170,7 +170,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *   draw() {}
 	 * }
 	 *
-	 * global storage
+	 * Global storage
 	 * - window.globalWidgets
 	 * - window.lastTime
 	 **/
@@ -29072,6 +29072,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  };
 	
+	  this.getAtom = function (iAtom) {
+	    return this.atoms[iAtom];
+	  };
+	
+	  this.getNAtom = function () {
+	    return this.atoms.length;
+	  };
+	
+	  this.getResidue = function (iRes) {
+	    return this.residues[iRes];
+	  };
+	
 	  this.center = function () {
 	    var x_center = 0;
 	    var y_center = 0;
@@ -29335,7 +29347,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.origin.camera.transform(matrix);
 	    for (var i = 0; i < this.current_view.distances.length; i += 1) {
 	      var dist = this.current_view.distances[i];
-	      this.current_view.distances[i].z = Math.max(this.protein.atoms[dist.i_atom1].pos.z, this.protein.atoms[dist.i_atom2].pos.z);
+	      this.current_view.distances[i].z = Math.max(this.protein.getAtom(dist.i_atom1).pos.z, this.protein.getAtom(dist.i_atom2).pos.z);
 	    }
 	  };
 	
@@ -29350,7 +29362,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  this.centered_atom = function () {
 	    var i = this.current_view.i_atom;
-	    return this.protein.atoms[i];
+	    return this.protein.getAtom(i);
 	  };
 	
 	  this.find_atom_nearest_to_origin = function () {
@@ -29428,7 +29440,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      i_atom = this.current_view.i_atom;
 	      if (i_atom > -1) {
-	        this.current_view.res_id = this.protein.atoms[i_atom].res_id;
+	        this.current_view.res_id = this.protein.getAtom(i_atom).res_id;
 	      } else {
 	        this.current_view.res_id = this.protein.residues[0].id;
 	      }
@@ -71779,8 +71791,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	// Utility functions
-	
+	/**
+	 *
+	 * Utility functions mainly to do with HTML elements
+	 * that can be deferred to functions
+	 *
+	 **/
 	
 	function exists(x) {
 	  return !_lodash2.default.isUndefined(x) && x !== null;
@@ -72398,6 +72414,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // and above parameters
 	    this.camera = new _three2.default.PerspectiveCamera(45, this.width() / this.height(), this.zFront + this.zoom, this.zBack + this.zoom);
 	
+	    this.displayScene = new _three2.default.Scene();
+	    this.displayScene.background = new _three2.default.Color(this.backgroundColor);
+	    this.displayScene.fog = new _three2.default.Fog(this.backgroundColor, 1, 100);
+	    this.displayScene.fog.near = this.zoom + 1;
+	    this.displayScene.fog.far = this.zoom + this.zBack;
+	
 	    // this.displayMeshes is a dictionary that holds THREE.Object3D
 	    // collections of meshes. This allows collections to be collectively
 	    // turned on and off. The meshes will be regenerated into this.displayScene
@@ -72408,16 +72430,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.displayMeshes = {};
 	    this.displayMaterial = new _three2.default.MeshLambertMaterial({ vertexColors: vertexColors });
 	
-	    this.displayScene = new _three2.default.Scene();
-	    this.displayScene.background = new _three2.default.Color(this.backgroundColor);
-	    this.displayScene.fog = new _three2.default.Fog(this.backgroundColor, 1, 100);
-	    this.displayScene.fog.near = this.zoom + 1;
-	    this.displayScene.fog.far = this.zoom + this.zBack;
-	
-	    this.pickingMeshes = {};
 	    this.pickingScene = new _three2.default.Scene();
 	    this.pickingTexture = new _three2.default.WebGLRenderTarget(this.width(), this.height());
 	    this.pickingTexture.texture.minFilter = _three2.default.LinearFilter;
+	
+	    this.pickingMeshes = {};
 	    this.pickingMaterial = new _three2.default.MeshBasicMaterial({ vertexColors: vertexColors });
 	
 	    // webGL objects that only need to build once in the life-cycle
@@ -72561,7 +72578,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.scene.save_view(defaultView);
 	
 	      var iAtom = defaultView.i_atom;
-	      var center = this.protein.atoms[iAtom].pos;
+	      var center = this.protein.getAtom(iAtom).pos;
 	      var translate = _v2.default.translation(_v2.default.scaled(center, -1));
 	      this.scene.origin.camera.transform(translate);
 	      this.cameraTarget.copy(center);
@@ -72615,7 +72632,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getAtomColor',
 	    value: function getAtomColor(iAtom) {
-	      var atom = this.protein.atoms[iAtom];
+	      var atom = this.protein.getAtom(iAtom);
 	      if (atom.elem === 'C' || atom.elem === 'H') {
 	        var res = this.protein.res_by_id[atom.res_id];
 	        return res.color;
@@ -72668,7 +72685,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // create default Meshes
 	      this.buildMeshOfRibbons();
 	      this.buildMeshOfGrid();
-	      // this.buildMeshOfNucleotides()
+	      this.buildMeshOfNucleotides();
 	      this.buildMeshOfArrows();
 	      this.createOrClearMesh('sidechains');
 	
@@ -72830,7 +72847,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var _mesh2 = _arr2[_i2];
 	          _mesh2.traverse(function (child) {
 	            if (util.exists(child.i)) {
-	              var residue = _this3.protein.residues[child.i];
+	              var residue = _this3.protein.getResidue(child.i);
 	              child.visible = show.sidechain || residue.selected;
 	            }
 	          });
@@ -72844,7 +72861,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'mergeAtomToGeom',
 	    value: function mergeAtomToGeom(geom, pickGeom, iAtom) {
-	      var atom = this.protein.atoms[iAtom];
+	      var atom = this.protein.getAtom(iAtom);
 	      var matrix = glgeom.getSphereMatrix(atom.pos, this.radius);
 	      var unitGeom = this.unitSphereGeom;
 	      glgeom.mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix);
@@ -72853,7 +72870,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'mergeBondsInResidue',
 	    value: function mergeBondsInResidue(geom, iRes, bondFilterFn) {
-	      var residue = this.protein.residues[iRes];
+	      var residue = this.protein.getResidue(iRes);
 	      var unitGeom = new glgeom.UnitCylinderGeometry();
 	      var color = residue.color;
 	      var p1 = void 0,
@@ -72899,7 +72916,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'addGeomToDisplayMesh',
 	    value: function addGeomToDisplayMesh(meshName, geom, i) {
-	      if (geom.vertices === 0) {
+	      if (geom.vertices.length === 0) {
 	        return;
 	      }
 	      var mesh = new _three2.default.Mesh(geom, this.displayMaterial);
@@ -72911,7 +72928,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'addGeomToPickingMesh',
 	    value: function addGeomToPickingMesh(meshName, geom, i) {
-	      if (geom.vertices === 0) {
+	      if (geom.vertices.length === 0) {
 	        return;
 	      }
 	      var mesh = new _three2.default.Mesh(geom, this.pickingMaterial);
@@ -73421,7 +73438,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'isVisibleGridAtom',
 	    value: function isVisibleGridAtom(iAtom) {
-	      var atom = this.protein.atoms[iAtom];
+	      var atom = this.protein.getAtom(iAtom);
 	      var isAtomInRange = atom.bfactor > this.scene.grid;
 	      var isAtomElemSelected = this.scene.grid_atoms[atom.elem];
 	      return isAtomElemSelected && isAtomInRange;
@@ -73543,7 +73560,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            continue;
 	          }
 	          var vertices = getVerticesFromAtomDict(residue.atoms, atomTypes);
-	          basepairGeom.merge(new glgeom.RaisedShapeGeometry(vertices, 0.3));
+	          var faceGeom = new glgeom.RaisedShapeGeometry(vertices, 0.2);
+	          basepairGeom.merge(faceGeom);
 	
 	          var _iteratorNormalCompletion28 = true;
 	          var _didIteratorError28 = false;
@@ -73554,8 +73572,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	              var bond = _step28.value;
 	
 	              var _vertices = getVerticesFromAtomDict(residue.atoms, [bond[0], bond[1]]);
-	              basepairGeom.merge(cylinderGeom, glgeom.getCylinderMatrix(_vertices[0], _vertices[1], this.radius));
+	              basepairGeom.merge(cylinderGeom, glgeom.getCylinderMatrix(_vertices[0], _vertices[1], 0.2));
 	            }
+	
+	            // explicitly set to zero-length array as RaisedShapeGeometry
+	            // sets no uv but cylinder does, and the merged geometry causes
+	            // mayhem in THREE V79
 	          } catch (err) {
 	            _didIteratorError28 = true;
 	            _iteratorError28 = err;
@@ -73571,7 +73593,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	          }
 	
-	          basepairGeom.computeFaceNormals();
+	          basepairGeom.faceVertexUvs = [Array()];
 	
 	          glgeom.setGeometryVerticesColor(basepairGeom, residue.color);
 	          displayGeom.merge(basepairGeom);
@@ -73744,7 +73766,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'setTargetFromAtom',
 	    value: function setTargetFromAtom(iAtom) {
-	      var atom = this.protein.atoms[iAtom];
+	      var atom = this.protein.getAtom(iAtom);
 	      var position = _v2.default.clone(atom.pos);
 	      var sceneDisplacement = position.clone().sub(this.cameraTarget);
 	
@@ -73969,7 +73991,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // interpret the pixel as an ID
 	      var i = pixelBuffer[0] << 16 | pixelBuffer[1] << 8 | pixelBuffer[2];
 	
-	      if (i < this.protein.atoms.length) {
+	      if (i < this.protein.getNAtom()) {
 	        return i;
 	      }
 	
@@ -74002,7 +74024,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          var controller = _this4.controller;
 	
-	          var atom = _this4.protein.atoms[i_atom];
+	          var atom = _this4.protein.getAtom(i_atom);
 	          var label = 'Label atom : ' + atom.label;
 	
 	          util.textEntryDialog(_this4.div, label, success);
@@ -74019,7 +74041,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      if (this.iHoverAtom) {
-	        var atom = this.protein.atoms[this.iHoverAtom];
+	        var atom = this.protein.getAtom(this.iHoverAtom);
 	        var text = atom.label;
 	        if (atom === this.scene.centered_atom()) {
 	          text = '<div style="text-align: center">';
@@ -74087,7 +74109,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.updateHover();
 	
 	      if (this.isDraggingCentralAtom) {
-	        var v = this.posXY(this.protein.atoms[this.iDownAtom].pos);
+	        var v = this.posXY(this.protein.getAtom(this.iDownAtom).pos);
 	
 	        this.lineElement.move(this.mouseX, this.mouseY, v.x, v.y);
 	      } else {
@@ -74144,7 +74166,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (this.isDraggingCentralAtom) {
 	        if (this.iHoverAtom !== null) {
 	          if (this.iHoverAtom !== this.iDownAtom) {
-	            this.controller.make_dist(this.protein.atoms[this.iHoverAtom], this.protein.atoms[this.iDownAtom]);
+	            this.controller.make_dist(this.protein.getAtom(this.iHoverAtom), this.protein.getAtom(this.iDownAtom));
 	          }
 	        }
 	
@@ -74593,7 +74615,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var _this2 = _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this));
 	
 	    _this2.indices = [];
-	    _this2.referenceObjects = [];
 	    _this2.detail = 4;
 	    return _this2;
 	  }
@@ -74804,7 +74825,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    var normal = threePointNormal(vertices.slice(0, 3));
 	
-	    var displacement = normal.clone().multiplyScalar(+thickness / 2);
+	    var displacement = normal.clone().multiplyScalar(thickness / 2);
 	
 	    var nVertex = vertices.length;
 	    var iLast = nVertex - 1;
@@ -74818,11 +74839,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	
 	    for (var _i12 = 0; _i12 < nVertex - 2; _i12 += 1) {
-	      _this5.faces.push(new _three2.default.Face3(_i12, _i12 + 1, iLast));
+	      var face = new _three2.default.Face3(_i12, _i12 + 1, iLast);
+	      _this5.faces.push(face);
 	    }
 	
 	    for (var _i13 = 0; _i13 < nVertex - 2; _i13 += 1) {
-	      _this5.faces.push(new _three2.default.Face3(offset + _i13, offset + iLast, offset + _i13 + 1));
+	      var _face4 = new _three2.default.Face3(offset + _i13, offset + iLast, offset + _i13 + 1);
+	      _this5.faces.push(_face4);
 	    }
 	
 	    for (var _i14 = 0; _i14 < nVertex; _i14 += 1) {
@@ -74832,9 +74855,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else {
 	        j = _i14 + 1;
 	      }
+	
 	      _this5.faces.push(new _three2.default.Face3(_i14, _i14 + offset, j + offset));
 	      _this5.faces.push(new _three2.default.Face3(_i14, j + offset, j));
 	    }
+	
+	    _this5.computeFaceNormals();
 	
 	    return _this5;
 	  }
@@ -75409,10 +75435,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 	
-	      var atoms = this.scene.protein.atoms;
-	
 	      for (var _i2 = 0; _i2 < labels.length; _i2 += 1) {
-	        var atom = atoms[labels[_i2].i_atom];
+	        var atom = this.scene.protein.getAtom(labels[_i2].i_atom);
 	
 	        this.popups[_i2].html(labels[_i2].text);
 	
@@ -75514,13 +75538,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var parentDivPos = this.parentDiv.position();
 	
-	      var atoms = this.scene.protein.atoms;
 	      for (var _i4 = 0; _i4 < distances.length; _i4 += 1) {
 	        var distance = distances[_i4];
 	        var distanceMeasure = this.distanceMeasures[_i4];
 	
-	        var p1 = atoms[distance.i_atom1].pos;
-	        var p2 = atoms[distance.i_atom2].pos;
+	        var p1 = this.scene.protein.getAtom(distance.i_atom1).pos;
+	        var p2 = this.scene.protein.getAtom(distance.i_atom2).pos;
 	
 	        var text = p1.distanceTo(p2).toFixed(1);
 	        distanceMeasure.div.text(text);
@@ -76290,7 +76313,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.ElementColors = exports.darkRed = exports.darkGrey = exports.darkPurple = exports.darkYellow = exports.darkBlue = exports.darkGreen = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.fatCoilFace = exports.getSsFace = exports.backboneAtoms = exports.getDarkSsColor = exports.resToAa = exports.getSsColor = exports.getIndexColor = undefined;
 	
-	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }(); /**
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * Central place to store constants and color
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * accesors
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          */
 	
 	var _lodash = __webpack_require__(4);
 	
@@ -76884,7 +76910,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else if (c == "X") {
 	          var i_atom = this.scene.current_view.i_atom;
 	          if (i_atom >= 0) {
-	            var res_id = this.controller.protein.atoms[i_atom].res_id;
+	            var res_id = this.controller.protein.getAtom(i_atom).res_id;
 	          }
 	        } else if (event.keyCode == 38) {
 	          this.viewsDisplay.gotoPrevView();

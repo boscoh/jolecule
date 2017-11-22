@@ -346,10 +346,8 @@ class AtomLabelsWidget {
       }
     }
 
-    let atoms = this.scene.protein.atoms
-
     for (let i = 0; i < labels.length; i += 1) {
-      let atom = atoms[labels[i].i_atom]
+      let atom = this.scene.protein.getAtom(labels[i].i_atom)
 
       this.popups[i].html(labels[i].text)
 
@@ -438,13 +436,12 @@ class DistanceMeasuresWidget {
 
     let parentDivPos = this.parentDiv.position()
 
-    let atoms = this.scene.protein.atoms
     for (let i = 0; i < distances.length; i += 1) {
       let distance = distances[i]
       let distanceMeasure = this.distanceMeasures[i]
 
-      let p1 = atoms[distance.i_atom1].pos
-      let p2 = atoms[distance.i_atom2].pos
+      let p1 = this.scene.protein.getAtom(distance.i_atom1).pos
+      let p2 = this.scene.protein.getAtom(distance.i_atom2).pos
 
       let text = p1.distanceTo(p2).toFixed(1)
       distanceMeasure.div.text(text)

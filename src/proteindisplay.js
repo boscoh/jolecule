@@ -315,6 +315,12 @@ class ProteinDisplay {
       this.zFront + this.zoom,
       this.zBack + this.zoom)
 
+    this.displayScene = new THREE.Scene()
+    this.displayScene.background = new THREE.Color(this.backgroundColor)
+    this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
+    this.displayScene.fog.near = this.zoom + 1
+    this.displayScene.fog.far = this.zoom + this.zBack
+
     // this.displayMeshes is a dictionary that holds THREE.Object3D
     // collections of meshes. This allows collections to be collectively
     // turned on and off. The meshes will be regenerated into this.displayScene
@@ -325,16 +331,11 @@ class ProteinDisplay {
     this.displayMeshes = {}
     this.displayMaterial = new THREE.MeshLambertMaterial({vertexColors})
 
-    this.displayScene = new THREE.Scene()
-    this.displayScene.background = new THREE.Color(this.backgroundColor)
-    this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
-    this.displayScene.fog.near = this.zoom + 1
-    this.displayScene.fog.far = this.zoom + this.zBack
-
-    this.pickingMeshes = {}
     this.pickingScene = new THREE.Scene()
     this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height())
     this.pickingTexture.texture.minFilter = THREE.LinearFilter
+
+    this.pickingMeshes = {}
     this.pickingMaterial = new THREE.MeshBasicMaterial({vertexColors})
 
     // webGL objects that only need to build once in the life-cycle
@@ -425,7 +426,7 @@ class ProteinDisplay {
     this.scene.save_view(defaultView)
 
     let iAtom = defaultView.i_atom
-    let center = this.protein.atoms[iAtom].pos
+    let center = this.protein.getAtom(iAtom).pos
     let translate = v3.translation(v3.scaled(center, -1))
     this.scene.origin.camera.transform(translate)
     this.cameraTarget.copy(center)
@@ -455,7 +456,7 @@ class ProteinDisplay {
   }
 
   getAtomColor(iAtom) {
-    let atom = this.protein.atoms[iAtom]
+    let atom = this.protein.getAtom(iAtom)
     if (atom.elem === 'C' || atom.elem === 'H') {
       let res = this.protein.res_by_id[atom.res_id]
       return res.color
@@ -507,7 +508,7 @@ class ProteinDisplay {
     // create default Meshes
     this.buildMeshOfRibbons()
     this.buildMeshOfGrid()
-    // this.buildMeshOfNucleotides()
+    this.buildMeshOfNucleotides()
     this.buildMeshOfArrows()
     this.createOrClearMesh('sidechains')
 
@@ -609,7 +610,7 @@ class ProteinDisplay {
       for (let mesh of [this.displayMeshes.sidechains, this.pickingMeshes.sidechains]) {
         mesh.traverse(child => {
           if (util.exists(child.i)) {
-            let residue = this.protein.residues[child.i]
+            let residue = this.protein.getResidue(child.i)
             child.visible = show.sidechain || residue.selected
           }
         })
@@ -622,7 +623,7 @@ class ProteinDisplay {
   }
 
   mergeAtomToGeom(geom, pickGeom, iAtom) {
-    let atom = this.protein.atoms[iAtom]
+    let atom = this.protein.getAtom(iAtom)
     let matrix = glgeom.getSphereMatrix(atom.pos, this.radius)
     let unitGeom = this.unitSphereGeom
     glgeom.mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix)
@@ -630,7 +631,7 @@ class ProteinDisplay {
   }
 
   mergeBondsInResidue(geom, iRes, bondFilterFn) {
-    let residue = this.protein.residues[iRes]
+    let residue = this.protein.getResidue(iRes)
     let unitGeom = new glgeom.UnitCylinderGeometry()
     let color = residue.color
     let p1, p2
@@ -653,7 +654,7 @@ class ProteinDisplay {
   }
 
   addGeomToDisplayMesh(meshName, geom, i) {
-    if (geom.vertices === 0) {
+    if (geom.vertices.length === 0) {
       return
     }
     let mesh = new THREE.Mesh(geom, this.displayMaterial)
@@ -664,7 +665,7 @@ class ProteinDisplay {
   }
 
   addGeomToPickingMesh(meshName, geom, i) {
-    if (geom.vertices === 0) {
+    if (geom.vertices.length === 0) {
       return
     }
     let mesh = new THREE.Mesh(geom, this.pickingMaterial)
@@ -850,7 +851,7 @@ class ProteinDisplay {
   }
 
   isVisibleGridAtom(iAtom) {
-    let atom = this.protein.atoms[iAtom]
+    let atom = this.protein.getAtom(iAtom)
     let isAtomInRange = atom.bfactor > this.scene.grid
     let isAtomElemSelected = this.scene.grid_atoms[atom.elem]
     return isAtomElemSelected && isAtomInRange
@@ -920,14 +921,19 @@ class ProteinDisplay {
         continue
       }
       let vertices = getVerticesFromAtomDict(residue.atoms, atomTypes)
-      basepairGeom.merge(new glgeom.RaisedShapeGeometry(vertices, 0.3))
+      let faceGeom = new glgeom.RaisedShapeGeometry(vertices, 0.2)
+      basepairGeom.merge(faceGeom)
 
       for (let bond of bondTypes) {
         let vertices = getVerticesFromAtomDict(residue.atoms, [bond[0], bond[1]])
-        basepairGeom.merge(cylinderGeom, glgeom.getCylinderMatrix(vertices[0], vertices[1], this.radius))
+        basepairGeom.merge(
+          cylinderGeom, glgeom.getCylinderMatrix(vertices[0], vertices[1], 0.2))
       }
 
-      basepairGeom.computeFaceNormals()
+      // explicitly set to zero-length array as RaisedShapeGeometry
+      // sets no uv but cylinder does, and the merged geometry causes
+      // mayhem in THREE V79
+      basepairGeom.faceVertexUvs = [Array()]
 
       glgeom.setGeometryVerticesColor(
         basepairGeom, residue.color)
@@ -1095,7 +1101,7 @@ class ProteinDisplay {
   }
 
   setTargetFromAtom(iAtom) {
-    let atom = this.protein.atoms[iAtom]
+    let atom = this.protein.getAtom(iAtom)
     let position = v3.clone(atom.pos)
     let sceneDisplacement = position.clone()
       .sub(this.cameraTarget)
@@ -1343,7 +1349,7 @@ class ProteinDisplay {
       | ( pixelBuffer[1] << 8 )
       | ( pixelBuffer[2] )
 
-    if (i < this.protein.atoms.length) {
+    if (i < this.protein.getNAtom()) {
       return i
     }
 
@@ -1372,7 +1378,7 @@ class ProteinDisplay {
         controller.make_label(i_atom, text)
       }
 
-      let atom = this.protein.atoms[i_atom]
+      let atom = this.protein.getAtom(i_atom)
       let label = 'Label atom : ' + atom.label
 
       util.textEntryDialog(this.div, label, success)
@@ -1387,7 +1393,7 @@ class ProteinDisplay {
     }
 
     if (this.iHoverAtom) {
-      let atom = this.protein.atoms[this.iHoverAtom]
+      let atom = this.protein.getAtom(this.iHoverAtom)
       let text = atom.label
       if (atom === this.scene.centered_atom()) {
         text = '<div style="text-align: center">'
@@ -1452,7 +1458,7 @@ class ProteinDisplay {
     this.updateHover()
 
     if (this.isDraggingCentralAtom) {
-      let v = this.posXY(this.protein.atoms[this.iDownAtom].pos)
+      let v = this.posXY(this.protein.getAtom(this.iDownAtom).pos)
 
       this.lineElement.move(this.mouseX, this.mouseY, v.x, v.y)
     } else {
@@ -1513,8 +1519,8 @@ class ProteinDisplay {
       if (this.iHoverAtom !== null) {
         if (this.iHoverAtom !== this.iDownAtom) {
           this.controller.make_dist(
-            this.protein.atoms[this.iHoverAtom],
-            this.protein.atoms[this.iDownAtom])
+            this.protein.getAtom(this.iHoverAtom),
+            this.protein.getAtom(this.iDownAtom))
         }
       }
 

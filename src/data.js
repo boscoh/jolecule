@@ -1,3 +1,8 @@
+/**
+ * Central place to store constants and color
+ * accesors
+ */
+
 import _ from 'lodash'
 import THREE from 'three'
 

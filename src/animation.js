@@ -10,7 +10,7 @@
  *   draw() {}
  * }
  *
- * global storage
+ * Global storage
  * - window.globalWidgets
  * - window.lastTime
  **/

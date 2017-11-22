@@ -381,7 +381,7 @@ class FullPageJolecule {
       } else if (c == "X") {
         let i_atom = this.scene.current_view.i_atom;
         if (i_atom >= 0) {
-          let res_id = this.controller.protein.atoms[i_atom].res_id;
+          let res_id = this.controller.protein.getAtom(i_atom).res_id;
         }
       } else if (event.keyCode == 38) {
         this.viewsDisplay.gotoPrevView();

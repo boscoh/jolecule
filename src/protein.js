@@ -22,7 +22,7 @@
 
 import v3 from "./v3";
 
-import { getWindowUrl, inArray, getCurrentDateStr } from "./util.js";
+import {getWindowUrl, inArray, getCurrentDateStr} from "./util.js";
 
 var user = 'public'; // will be overriden by server
 
@@ -122,7 +122,7 @@ var Protein = function () {
           var atom_type = _.trim(lines[i].substr(12, 4));
           var label = res_num + ' - ' + res_type +
             ' - ' + atom_type;
-          var bfactor = parseFloat(lines[i].substr(60,6));
+          var bfactor = parseFloat(lines[i].substr(60, 6));
           var elem = delete_numbers(_.trim(lines[i].substr(76, 2)));
           if (elem == "") {
             elem = delete_numbers(_.trim(atom_type)).substr(0, 1);
@@ -314,7 +314,7 @@ var Protein = function () {
     return false;
   };
 
-  this.isSugarPhosphateConnected = function(iRes0, iRes1) {
+  this.isSugarPhosphateConnected = function (iRes0, iRes1) {
     let res0 = this.residues[iRes0]
     let res1 = this.residues[iRes1]
 
@@ -356,7 +356,7 @@ var Protein = function () {
     return false;
   };
 
-  this.isPeptideConnected = function(iRes0, iRes1) {
+  this.isPeptideConnected = function (iRes0, iRes1) {
     let res0 = this.residues[iRes0]
     let res1 = this.residues[iRes1]
 
@@ -376,7 +376,7 @@ var Protein = function () {
     return false
   }
 
-  this.assignBondsToResidues = function() {
+  this.assignBondsToResidues = function () {
     for (let res of this.residues) {
       res.bonds = []
     }
@@ -776,7 +776,7 @@ var Protein = function () {
 
     console.log(`> Protein.load parsed ${atoms.length} atoms`);
 
-    for (var i=0; i<this.atoms.length; i+=1) {
+    for (var i = 0; i < this.atoms.length; i += 1) {
       this.atoms[i].i = i;
     }
 
@@ -805,14 +805,14 @@ var Protein = function () {
     }
     for (i = 0; i < this.bonds.length; i += 1) {
       this.bonds[i].z = Math.max(
-          this.bonds[i].atom1.pos.z,
-          this.bonds[i].atom2.pos.z)
+        this.bonds[i].atom1.pos.z,
+        this.bonds[i].atom2.pos.z)
         + 0.2;
     }
     for (i = 0; i < this.trace.length; i += 1) {
       this.trace[i].z = Math.max(
-          this.trace[i].atom1.pos.z,
-          this.trace[i].atom2.pos.z)
+        this.trace[i].atom1.pos.z,
+        this.trace[i].atom2.pos.z)
         + 0.2;
     }
     this.max_z = 0;
@@ -825,6 +825,18 @@ var Protein = function () {
         this.max_z = this.atoms[i].pos.z;
       }
     }
+  }
+
+  this.getAtom = function (iAtom) {
+    return this.atoms[iAtom]
+  }
+
+  this.getNAtom = function() {
+    return this.atoms.length
+  }
+
+  this.getResidue = function (iRes) {
+    return this.residues[iRes]
   }
 
   this.center = function () {
@@ -1105,8 +1117,8 @@ var Scene = function (protein) {
     for (var i = 0; i < this.current_view.distances.length; i += 1) {
       var dist = this.current_view.distances[i];
       this.current_view.distances[i].z = Math.max(
-        this.protein.atoms[dist.i_atom1].pos.z,
-        this.protein.atoms[dist.i_atom2].pos.z);
+        this.protein.getAtom(dist.i_atom1).pos.z,
+        this.protein.getAtom(dist.i_atom2).pos.z);
     }
   }
 
@@ -1121,7 +1133,7 @@ var Scene = function (protein) {
 
   this.centered_atom = function () {
     var i = this.current_view.i_atom;
-    return this.protein.atoms[i];
+    return this.protein.getAtom(i)
   }
 
   this.find_atom_nearest_to_origin = function () {
@@ -1200,7 +1212,7 @@ var Scene = function (protein) {
       }
       i_atom = this.current_view.i_atom;
       if (i_atom > -1) {
-        this.current_view.res_id = this.protein.atoms[i_atom].res_id;
+        this.current_view.res_id = this.protein.getAtom(i_atom).res_id;
       } else {
         this.current_view.res_id = this.protein.residues[0].id;
       }

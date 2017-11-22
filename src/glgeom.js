@@ -104,8 +104,7 @@ class RibbonGeometry extends THREE.Geometry {
       return
     }
 
-    let shapePoints = shape.extractPoints(4)
-      .shape
+    let shapePoints = shape.extractPoints(4).shape
     let nVertex = shapePoints.length
 
     if (_.isUndefined(round)) {
@@ -136,19 +135,14 @@ class RibbonGeometry extends THREE.Geometry {
       let normal = path.normals[iPoint]
       let binormal = path.binormals[iPoint]
 
-      for (let iShapePoint = 0; iShapePoint < nVertex; iShapePoint +=
-        1) {
+      for (let iShapePoint = 0; iShapePoint < nVertex; iShapePoint += 1) {
 
         let shapePoint = shapePoints[iShapePoint]
 
-        let x = normal.clone()
-          .multiplyScalar(shapePoint.x)
-        let y = binormal.clone()
-          .multiplyScalar(shapePoint.y)
+        let x = normal.clone().multiplyScalar(shapePoint.x)
+        let y = binormal.clone().multiplyScalar(shapePoint.y)
 
-        let vertex = point.clone()
-          .add(x)
-          .add(y)
+        let vertex = point.clone().add(x).add(y)
 
         this.vertices.push(vertex)
 
@@ -197,8 +191,7 @@ class RibbonGeometry extends THREE.Geometry {
             .multiplyScalar(shapePoints[i].y)
           let normal10 = x.add(y)
 
-          let face = new THREE.Face3(k, k + nVertex, l +
-            nVertex)
+          let face = new THREE.Face3(k, k + nVertex, l + nVertex)
           face.vertexNormals = [normal00, normal10, normal11]
           this.faces.push(face)
 
@@ -413,7 +406,6 @@ class Trace extends PathAndFrenetFrames {
   constructor () {
     super()
     this.indices = []
-    this.referenceObjects = []
     this.detail = 4
   }
 
@@ -626,28 +618,30 @@ class RaisedShapeGeometry extends THREE.Geometry {
     let normal = threePointNormal(vertices.slice(0, 3))
 
     let displacement = normal.clone()
-      .multiplyScalar(+thickness / 2)
+      .multiplyScalar(thickness / 2)
 
     let nVertex = vertices.length
     let iLast = nVertex - 1
     let offset = nVertex
 
     for (let i = 0; i < vertices.length; i += 1) {
-      this.vertices.push(vertices[i].clone()
-        .add(displacement))
+      this.vertices.push(
+        vertices[i].clone().add(displacement))
     }
     for (let i = 0; i < vertices.length; i += 1) {
-      this.vertices.push(vertices[i].clone()
-        .sub(displacement))
+      this.vertices.push(
+        vertices[i].clone().sub(displacement))
     }
 
     for (let i = 0; i < nVertex - 2; i += 1) {
-      this.faces.push(new THREE.Face3(i, i + 1, iLast))
+      let face = new THREE.Face3(i, i + 1, iLast)
+      this.faces.push(face)
     }
 
     for (let i = 0; i < nVertex - 2; i += 1) {
-      this.faces.push(new THREE.Face3(
-        offset + i, offset + iLast, offset + i + 1))
+      let face = new THREE.Face3(
+        offset + i, offset + iLast, offset + i + 1)
+      this.faces.push(face)
     }
 
     for (let i = 0; i < nVertex; i += 1) {
@@ -657,9 +651,12 @@ class RaisedShapeGeometry extends THREE.Geometry {
       } else {
         j = i + 1
       }
+
       this.faces.push(new THREE.Face3(i, i + offset, j + offset))
       this.faces.push(new THREE.Face3(i, j + offset, j))
     }
+
+    this.computeFaceNormals()
 
   }
 }

@@ -19,7 +19,7 @@ function get_random_real() {
 }
 
 /**
- * @returns {Vector} - random vector in the unit circle
+ * @returns {THREE.Vector3} - random vector in the unit circle
  */
 function get_random_vector() {
   return v3.create(
