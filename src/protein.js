@@ -774,7 +774,7 @@ var Protein = function () {
     this.make_residues(atoms);
     this.atoms = _.concat(this.atoms, atoms);
 
-    console.log(`> Protein.load parsed ${atoms.length} atoms`);
+    console.log(`> Protein.load ${atoms.length} atoms`);
 
     for (var i = 0; i < this.atoms.length; i += 1) {
       this.atoms[i].i = i;
@@ -782,13 +782,13 @@ var Protein = function () {
 
     this.make_bonds(this.calc_bonds(this.atoms));
     this.assignBondsToResidues()
-    console.log(`> Protein.load parsed ${this.bonds.length} bonds`);
+    console.log(`> Protein.load ${this.bonds.length} bonds`);
 
     this.max_length = this.calc_max_length(this.atoms);
 
     this.find_ss();
 
-    console.log(`> Protein.load parsed ${this.residues.length} residues`);
+    console.log(`> Protein.load ${this.residues.length} residues`);
   }
 
   this.transform = function (matrix) {

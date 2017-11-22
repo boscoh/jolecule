@@ -922,7 +922,6 @@ class GridControlWidget extends CanvasWrapper {
   }
 
   makeElemButton (elem, y) {
-    console.log('> make grid atoms', elem, this.scene.grid_atoms[elem])
     let color = data.ElementColors[elem]
     let colorHexStr = color.getHexString()
     let text_button = util.toggleButton(
