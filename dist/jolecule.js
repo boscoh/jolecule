@@ -29084,6 +29084,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.residues[iRes];
 	  };
 	
+	  this.getNResidue = function () {
+	    return this.residues.length;
+	  };
+	
 	  this.center = function () {
 	    var x_center = 0;
 	    var y_center = 0;
@@ -29125,6 +29129,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      for (var m in res_k.atoms) {
 	        var atom_m = res_k.atoms[m];
 	        if (_v2.default.distance(atom_l.pos, atom_m.pos) < 4) {
+	          console.log('> Protein.are_close_residues', atom_l.label, atom_m.label);
 	          return true;
 	        }
 	      }
@@ -29133,11 +29138,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  this.select_neighbors = function (i_res, b) {
-	    this.residues[i_res].selected = true;
-	    for (var j = 0; j < this.residues.length; j += 1) {
-	      var res = this.residues[j];
-	      if (this.are_close_residues(j, i_res)) {
-	        this.residues[j].selected = b;
+	    this.residues[i_res].selected = b;
+	    var residue = this.getResidue(i_res);
+	    residue = this.residues[i_res];
+	    for (var j_res = 0; j_res < this.residues.length; j_res += 1) {
+	      if (this.are_close_residues(j_res, i_res)) {
+	        this.residues[j_res].selected = b;
 	      }
 	    }
 	  };
@@ -29785,7 +29791,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  this.set_show_option = function (option, bool) {
-	    console.log('> set_show_option', option, bool);
+	    console.log('> Controller.set_show_option', option, bool);
 	    this.scene.current_view.show[option] = bool;
 	    this.scene.changed = true;
 	  };
@@ -72007,8 +72013,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.ProteinDisplay = undefined;
 	
-	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	var _three = __webpack_require__(8);
@@ -72170,8 +72174,45 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return view;
 	}
 	
+	function interpolateTargets(oldTarget, futureTarget, t) {
+	
+	  var oldCameraDirection = oldTarget.cameraPosition.clone().sub(oldTarget.cameraFocus);
+	  var oldZoom = oldCameraDirection.length();
+	  oldCameraDirection.normalize();
+	
+	  var futureCameraDirection = futureTarget.cameraPosition.clone().sub(futureTarget.cameraFocus);
+	
+	  var futureZoom = futureCameraDirection.length();
+	  futureCameraDirection.normalize();
+	
+	  var cameraDirRotation = glgeom.getUnitVectorRotation(oldCameraDirection, futureCameraDirection);
+	
+	  var partialRotatedCameraUp = oldTarget.cameraUp.clone().applyQuaternion(cameraDirRotation);
+	
+	  var fullCameraUpRotation = glgeom.getUnitVectorRotation(partialRotatedCameraUp, futureTarget.cameraUp).multiply(cameraDirRotation);
+	  var cameraUpRotation = glgeom.getFractionRotation(fullCameraUpRotation, t);
+	
+	  var result = {};
+	
+	  var focusDisp = futureTarget.cameraFocus.clone().sub(oldTarget.cameraFocus).multiplyScalar(t);
+	  result.cameraFocus = oldTarget.cameraFocus.clone().add(focusDisp);
+	
+	  var zoom = glgeom.fraction(oldZoom, futureZoom, t);
+	
+	  var focusToPositionDisp = oldCameraDirection.clone().applyQuaternion(cameraUpRotation).multiplyScalar(zoom);
+	  result.cameraPosition = result.cameraFocus.clone().add(focusToPositionDisp);
+	
+	  result.cameraUp = oldTarget.cameraUp.clone().applyQuaternion(cameraUpRotation);
+	
+	  result.zFront = glgeom.fraction(oldTarget.zFront, futureTarget.zFront, t);
+	
+	  result.zBack = glgeom.fraction(oldTarget.zBack, futureTarget.zBack, t);
+	
+	  return result;
+	}
+	
 	function makeDefaultView(view, protein) {
-	  view.res_id = protein.residues[0].id;
+	  view.res_id = protein.getResidue(0).id;
 	
 	  view.abs_camera.z_front = -protein.max_length / 2;
 	  view.abs_camera.z_back = protein.max_length / 2;
@@ -72203,21 +72244,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	function makeTracesFromProtein(protein) {
 	
 	  var trace = void 0;
+	
 	  var makeNewTrace = function makeNewTrace() {
 	    trace = new glgeom.Trace();
-	    trace.referenceObjects = residues;
+	    trace.referenceObjects = protein.residues;
 	    traces.push(trace);
 	  };
 	
 	  var traces = [];
-	  var residues = protein.residues;
 	
-	  var nResidue = residues.length;
+	  var nResidue = protein.getNResidue();
 	  for (var iResidue = 0; iResidue < nResidue; iResidue += 1) {
 	
-	    var residue = residues[iResidue];
-	    var isResInTrace = false;
+	    var residue = protein.getResidue(iResidue);
 	
+	    var isResInTrace = false;
 	    if (residue.is_protein_or_nuc) {
 	      isResInTrace = true;
 	    } else {
@@ -72263,8 +72304,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      trace.indices.push(iResidue);
 	      trace.points.push(_v2.default.clone(residue.central_atom.pos));
 	      var normal = null;
-	      if (residues[iResidue].normal) {
-	        normal = residues[iResidue].normal;
+	      if (residue.normal) {
+	        normal = residue.normal;
 	      }
 	      trace.normals.push(normal);
 	    }
@@ -72287,7 +72328,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var _iterator4 = _lodash2.default.range(1, _trace.indices.length)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
 	          var i = _step4.value;
 	
-	          if (_trace.getReferenceObject(i).ss !== 'D' && _trace.getReferenceObject(i - 1).ss !== 'D') {
+	          if (_trace.getReference(i).ss !== 'D' && _trace.getReference(i - 1).ss !== 'D') {
 	            var _normal = _trace.normals[i];
 	            var prevNormal = _trace.normals[i - 1];
 	            if (_normal !== null && prevNormal !== null) if (_normal.dot(prevNormal) < 0) {
@@ -72401,8 +72442,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // atom radius used to display on the screen
 	    this.radius = 0.35;
 	
-	    // TODO: convert into new-style view, and store
-	    // Camera parameters
+	    // parameters for viewport and camera
 	    // the target position for the camera
 	    this.cameraFocus = new _three2.default.Vector3(0, 0, 0);
 	    // the front and back of viewable area relative to the origin
@@ -72413,6 +72453,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // a THREE.js camera tailored for the screen-size
 	    // and above parameters
 	    this.camera = new _three2.default.PerspectiveCamera(45, this.width() / this.height(), this.zFront + this.zoom, this.zBack + this.zoom);
+	    this.camera.position.set(0, 0, this.zoom);
 	
 	    this.displayScene = new _three2.default.Scene();
 	    this.displayScene.background = new _three2.default.Color(this.backgroundColor);
@@ -72446,8 +72487,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.labelWidget = new _widgets2.default.AtomLabelsWidget(this);
 	    this.sequenceWidget = new _widgets2.default.SequenceWidget(this.divTag, this);
 	    this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.divTag, this.scene);
-	    this.isGrid = isGrid;
-	    this.gridControlWidget = new _widgets2.default.GridControlWidget(this.divTag, this.scene, this.isGrid);
+	    this.gridControlWidget = new _widgets2.default.GridControlWidget(this.divTag, this.scene, isGrid);
 	
 	    this.lineElement = new _widgets2.default.LineElement(this.webglDivTag, '#FF7777');
 	
@@ -72534,7 +72574,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	    /**
-	     * Short pause before a computeFn to allow the DOM to show a message
+	     * Pause before a computeFn to allow the DOM to show a message
 	     */
 	    value: function displayMessageBeforeCompute(message, computeFn) {
 	      this.setProcessingMesssage(message);
@@ -72549,9 +72589,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      try {
 	
-	        for (var _iterator5 = this.protein.residues[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	          var res = _step5.value;
+	        for (var _iterator5 = _lodash2.default.range(this.protein.getNResidue())[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+	          var i = _step5.value;
 	
+	          var res = this.protein.getResidue(i);
 	          res.color = data.getSsColor(res.ss);
 	        }
 	      } catch (err) {
@@ -72960,12 +73001,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            for (var _iterator11 = _lodash2.default.range(n)[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
 	              var i = _step11.value;
 	
-	              var res = trace.getReferenceObject(i);
+	              var res = trace.getReference(i);
 	              var face = data.getSsFace(res.ss);
 	              var color = res.color;
 	              var isRound = res.ss === 'C';
-	              var isFront = i === 0 || res.ss !== trace.getReferenceObject(i - 1).ss;
-	              var isBack = i === n - 1 || res.ss !== trace.getReferenceObject(i + 1).ss;
+	              var isFront = i === 0 || res.ss !== trace.getReference(i - 1).ss;
+	              var isBack = i === n - 1 || res.ss !== trace.getReference(i + 1).ss;
 	              var resGeom = trace.getSegmentGeometry(i, face, isRound, isFront, isBack, color);
 	              displayGeom.merge(resGeom);
 	              var atom = res.central_atom;
@@ -73036,7 +73077,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              var normal = trace.binormals[i];
 	              var target = point.clone().add(tangent);
 	
-	              var res = trace.getReferenceObject(i);
+	              var res = trace.getReference(i);
 	              var color = data.getDarkSsColor(res.ss);
 	              glgeom.setGeometryVerticesColor(blockArrowGeometry, color);
 	
@@ -73102,7 +73143,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            for (var _iterator15 = _lodash2.default.range(n)[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
 	              var i = _step15.value;
 	
-	              var res = trace.getReferenceObject(i);
+	              var res = trace.getReference(i);
 	              var color = res.color;
 	              var isRound = true;
 	              var isFront = i === 0;
@@ -73168,9 +73209,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	              var i = _step17.value;
 	
 	              var iRes = trace.indices[i];
-	              var residue = trace.getReferenceObject(i);
+	              var residue = trace.getReference(i);
 	              var residueShow = showAllResidues || residue.selected;
 	              if (residueShow && !util.exists(residue.mesh)) {
+	                console.log('> ProteinDisplay.buildSelectedResidues', residue.id, residue.selected);
 	
 	                var displayGeom = new _three2.default.Geometry();
 	                var pickingGeom = new _three2.default.Geometry();
@@ -73255,11 +73297,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _iteratorError19 = undefined;
 	
 	      try {
-	        for (var _iterator19 = this.protein.residues.entries()[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-	          var _step19$value = _slicedToArray(_step19.value, 2),
-	              iRes = _step19$value[0],
-	              residue = _step19$value[1];
+	        for (var _iterator19 = _lodash2.default.range(this.protein.getNResidue())[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+	          var iRes = _step19.value;
 	
+	          var residue = this.protein.getResidue(iRes);
 	          if (residue.is_protein_or_nuc) {
 	            var bondFilter = function bondFilter(bond) {
 	              return _lodash2.default.includes(data.backboneAtoms, bond.atom1.type) && _lodash2.default.includes(data.backboneAtoms, bond.atom2.type);
@@ -73322,11 +73363,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _iteratorError21 = undefined;
 	
 	      try {
-	        for (var _iterator21 = this.protein.residues.entries()[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-	          var _step21$value = _slicedToArray(_step21.value, 2),
-	              iRes = _step21$value[0],
-	              residue = _step21$value[1];
+	        for (var _iterator21 = _lodash2.default.range(this.protein.getNResidue())[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+	          var iRes = _step21.value;
 	
+	          var residue = this.protein.getResidue(iRes);
 	          if (residue.is_ligands) {
 	            this.mergeBondsInResidue(displayGeom, iRes);
 	            var _iteratorNormalCompletion22 = true;
@@ -73384,11 +73424,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _iteratorError23 = undefined;
 	
 	      try {
-	        for (var _iterator23 = this.protein.residues.entries()[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-	          var _step23$value = _slicedToArray(_step23.value, 2),
-	              iRes = _step23$value[0],
-	              residue = _step23$value[1];
+	        for (var _iterator23 = _lodash2.default.range(this.protein.getNResidue())[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+	          var iRes = _step23.value;
 	
+	          var residue = this.protein.getResidue(iRes);
 	          if (residue.is_water) {
 	            this.mergeBondsInResidue(displayGeom, iRes);
 	            var _iteratorNormalCompletion24 = true;
@@ -73446,7 +73485,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'buildMeshOfGrid',
 	    value: function buildMeshOfGrid() {
-	      if (!this.isGrid) {
+	      if (!this.gridControlWidget.isGrid) {
 	        return;
 	      }
 	      this.createOrClearMesh('grid');
@@ -73455,9 +73494,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _iteratorError25 = undefined;
 	
 	      try {
-	        for (var _iterator25 = this.protein.residues[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
-	          var residue = _step25.value;
+	        for (var _iterator25 = _lodash2.default.range(this.protein.getNResidue())[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
+	          var iRes = _step25.value;
 	
+	          var residue = this.protein.getResidue(iRes);
 	          if (residue.is_grid) {
 	            var _iteratorNormalCompletion26 = true;
 	            var _didIteratorError26 = false;
@@ -73533,9 +73573,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _iteratorError27 = undefined;
 	
 	      try {
-	        for (var _iterator27 = this.protein.residues[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
-	          var residue = _step27.value;
+	        for (var _iterator27 = _lodash2.default.range(this.protein.getNResidue())[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
+	          var iRes = _step27.value;
 	
+	          var residue = this.protein.getResidue(iRes);
 	          if (residue.ss !== 'D' || !residue.is_protein_or_nuc) {
 	            continue;
 	          }
@@ -73637,60 +73678,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    /**
 	     ******************************************
-	     * Draw/Animate Graphical objects
+	     * Handle camera
 	     ******************************************
 	     */
 	
-	  }, {
-	    key: 'isChanged',
-	    value: function isChanged() {
-	      return this.scene.changed;
-	    }
-	  }, {
-	    key: 'updateCrossHairs',
-	    value: function updateCrossHairs() {
-	      this.crossHairs.position.copy(this.cameraFocus);
-	      this.crossHairs.lookAt(this.camera.position);
-	      this.crossHairs.updateMatrix();
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      if (_lodash2.default.isUndefined(this.displayMeshes)) {
-	        return;
-	      }
-	      if (!this.isChanged()) {
-	        return;
-	      }
-	
-	      this.resize();
-	
-	      this.setCameraFromCurrentView();
-	
-	      this.selectVisibleMeshes();
-	
-	      this.updateCrossHairs();
-	
-	      // needs to be drawn before render
-	      this.distanceWidget.draw();
-	      this.zSlabWidget.draw();
-	      this.gridControlWidget.draw();
-	      this.sequenceWidget.draw();
-	
-	      // leave this to the very last moment
-	      // to avoid the dreaded black canvas
-	      if (!util.exists(this.renderer)) {
-	        this.initWebglRenderer();
-	      }
-	
-	      // renders visible meshes to the gpu
-	      this.renderer.render(this.displayScene, this.camera);
-	
-	      // needs to be drawn after render
-	      this.labelWidget.draw();
-	
-	      this.scene.changed = false;
-	    }
 	  }, {
 	    key: 'getTarget',
 	    value: function getTarget() {
@@ -73702,65 +73693,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        zBack: this.zBack
 	      };
 	    }
-	  }, {
-	    key: 'animate',
-	    value: function animate() {
-	      if (this.scene.target_view === null) {
-	        return;
-	      }
-	
-	      this.scene.n_update_step -= 1;
-	
-	      var nStep = this.scene.n_update_step;
-	
-	      if (nStep <= 0) {
-	        return;
-	      }
-	
-	      var t = 1.0 / nStep;
-	
-	      var oldTarget = this.getTarget();
-	
-	      var oldCameraDirection = oldTarget.cameraPosition.clone().sub(oldTarget.cameraFocus);
-	      var oldZoom = oldCameraDirection.length();
-	      oldCameraDirection.normalize();
-	
-	      var futureTarget = convertViewToTarget(this.scene.target_view);
-	      var futureCameraDirection = futureTarget.cameraPosition.clone().sub(futureTarget.cameraFocus);
-	      var futureZoom = futureCameraDirection.length();
-	      futureCameraDirection.normalize();
-	
-	      var cameraDirRotation = glgeom.getUnitVectorRotation(oldCameraDirection, futureCameraDirection);
-	
-	      var cameraUp = oldTarget.cameraUp.clone().applyQuaternion(cameraDirRotation);
-	
-	      var cameraUpRotation = glgeom.getUnitVectorRotation(cameraUp, futureTarget.cameraUp);
-	      cameraUpRotation.multiply(cameraDirRotation);
-	      cameraUpRotation = glgeom.getFractionRotation(cameraUpRotation, t);
-	
-	      var newTarget = {};
-	      var focusDisp = futureTarget.cameraFocus.clone().sub(oldTarget.cameraFocus).multiplyScalar(t);
-	      newTarget.cameraFocus = oldTarget.cameraFocus.clone().add(focusDisp);
-	      var zoom = glgeom.fraction(oldZoom, futureZoom, t);
-	      var focusToPositionDisp = oldCameraDirection.clone().applyQuaternion(cameraUpRotation).multiplyScalar(zoom);
-	      newTarget.cameraPosition = newTarget.cameraFocus.clone().add(focusToPositionDisp);
-	      newTarget.cameraUp = oldTarget.cameraUp.clone().applyQuaternion(cameraUpRotation);
-	      newTarget.zFront = glgeom.fraction(oldTarget.zFront, futureTarget.zFront, t);
-	      newTarget.zBack = glgeom.fraction(oldTarget.zBack, futureTarget.zBack, t);
-	
-	      var view = convertTargetToView(newTarget);
-	      view.copy_metadata_from_view(this.scene.target_view);
-	      this.controller.set_current_view(view);
-	
-	      this.updateHover();
-	    }
-	
-	    /**
-	     ******************************************
-	     * Handle camera
-	     ******************************************
-	     */
-	
 	  }, {
 	    key: 'setTargetFromResId',
 	    value: function setTargetFromResId(resId) {
@@ -73828,14 +73760,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.displayScene.fog.near = near;
 	      this.displayScene.fog.far = far;
 	
-	      var residues = this.protein.residues;
 	      var view = this.scene.current_view;
-	      for (var _i3 = 0; _i3 < residues.length; _i3 += 1) {
-	        residues[_i3].selected = false;
+	      for (var _i3 = 0; _i3 < this.protein.getNResidue(); _i3 += 1) {
+	        this.protein.getResidue(_i3).selected = false;
 	      }
 	      for (var _i4 = 0; _i4 < view.selected.length; _i4 += 1) {
 	        var i_res = view.selected[_i4];
-	        residues[i_res].selected = true;
+	        this.protein.getResidue(i_res).selected = true;
 	      }
 	    }
 	  }, {
@@ -73873,6 +73804,214 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.controller.set_current_view(view);
 	    }
+	  }, {
+	    key: 'getZ',
+	    value: function getZ(pos) {
+	      var origin = this.cameraFocus.clone();
+	
+	      var cameraDir = origin.clone().sub(this.camera.position).normalize();
+	
+	      var posRelativeToOrigin = pos.clone().sub(origin);
+	
+	      return posRelativeToOrigin.dot(cameraDir);
+	    }
+	  }, {
+	    key: 'inZlab',
+	    value: function inZlab(pos) {
+	      var z = this.getZ(pos);
+	
+	      return z >= this.zFront && z <= this.zBack;
+	    }
+	  }, {
+	    key: 'opacity',
+	    value: function opacity(pos) {
+	      var z = this.getZ(pos);
+	
+	      if (z < this.zFront) {
+	        return 1.0;
+	      }
+	
+	      if (z > this.zBack) {
+	        return 0.0;
+	      }
+	
+	      return 1 - (z - this.zFront) / (this.zBack - this.zFront);
+	    }
+	  }, {
+	    key: 'posXY',
+	    value: function posXY(pos) {
+	      var widthHalf = 0.5 * this.width();
+	      var heightHalf = 0.5 * this.height();
+	
+	      var vector = pos.clone().project(this.camera);
+	
+	      return {
+	        x: vector.x * widthHalf + widthHalf,
+	        y: -(vector.y * heightHalf) + heightHalf
+	      };
+	    }
+	
+	    /**
+	     ******************************************
+	     * Draw & Animate Graphical objects
+	     ******************************************
+	     */
+	
+	  }, {
+	    key: 'updateCrossHairs',
+	    value: function updateCrossHairs() {
+	      this.crossHairs.position.copy(this.cameraFocus);
+	      this.crossHairs.lookAt(this.camera.position);
+	      this.crossHairs.updateMatrix();
+	    }
+	  }, {
+	    key: 'atomLabelDialog',
+	    value: function atomLabelDialog() {
+	      var _this4 = this;
+	
+	      var i_atom = this.scene.current_view.i_atom;
+	      if (i_atom >= 0) {
+	        var atom = this.protein.getAtom(i_atom);
+	        var label = 'Label atom : ' + atom.label;
+	        var success = function success(text) {
+	          _this4.controller.make_label(i_atom, text);
+	        };
+	        util.textEntryDialog(this.div, label, success);
+	      }
+	    }
+	  }, {
+	    key: 'getIAtomHover',
+	    value: function getIAtomHover() {
+	      var x = this.mouseX;
+	      var y = this.mouseY;
+	
+	      if (x === null || y === null) {
+	        return null;
+	      }
+	
+	      // create buffer for reading single pixel
+	      var pixelBuffer = new Uint8Array(4);
+	
+	      // render the picking scene off-screen
+	      this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
+	
+	      // read the pixel under the mouse from the texture
+	      this.renderer.readRenderTargetPixels(this.pickingTexture, this.mouseX, this.pickingTexture.height - y, 1, 1, pixelBuffer);
+	
+	      // interpret the pixel as an ID
+	      var i = pixelBuffer[0] << 16 | pixelBuffer[1] << 8 | pixelBuffer[2];
+	
+	      if (i < this.protein.getNAtom()) {
+	        return i;
+	      }
+	
+	      return null;
+	    }
+	  }, {
+	    key: 'updateHover',
+	    value: function updateHover() {
+	      if (this.getIAtomHover() !== null) {
+	        this.iHoverAtom = this.getIAtomHover();
+	      } else {
+	        this.iHoverAtom = null;
+	      }
+	
+	      if (this.iHoverAtom) {
+	        var atom = this.protein.getAtom(this.iHoverAtom);
+	        var text = atom.label;
+	        if (atom === this.scene.centered_atom()) {
+	          text = '<div style="text-align: center">';
+	          text += atom.label;
+	          text += '<br>[drag distances]<br>';
+	          text += '[double-click labels]';
+	          text += '</div>';
+	        }
+	        this.hover.html(text);
+	        var vector = this.posXY(_v2.default.clone(atom.pos));
+	        this.hover.move(vector.x, vector.y);
+	      } else {
+	        this.hover.hide();
+	      }
+	    }
+	
+	    /**
+	     ********************************************
+	     * Main event loop methods
+	     ********************************************
+	     */
+	
+	  }, {
+	    key: 'isChanged',
+	    value: function isChanged() {
+	      return this.scene.changed;
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      if (_lodash2.default.isUndefined(this.displayMeshes)) {
+	        return;
+	      }
+	      if (!this.isChanged()) {
+	        return;
+	      }
+	
+	      this.resize();
+	
+	      this.setCameraFromCurrentView();
+	
+	      this.selectVisibleMeshes();
+	
+	      this.updateCrossHairs();
+	
+	      // needs to be drawn before render
+	      this.distanceWidget.draw();
+	      this.zSlabWidget.draw();
+	      this.gridControlWidget.draw();
+	      this.sequenceWidget.draw();
+	
+	      // leave this to the very last moment
+	      // to avoid the dreaded black canvas
+	      if (!util.exists(this.renderer)) {
+	        this.initWebglRenderer();
+	      }
+	
+	      // renders visible meshes to the gpu
+	      this.renderer.render(this.displayScene, this.camera);
+	
+	      // needs to be drawn after render
+	      this.labelWidget.draw();
+	
+	      this.scene.changed = false;
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate() {
+	      if (this.scene.target_view === null) {
+	        return;
+	      }
+	
+	      this.scene.n_update_step -= 1;
+	      var nStep = this.scene.n_update_step;
+	      if (nStep <= 0) {
+	        return;
+	      }
+	
+	      var futureTarget = convertViewToTarget(this.scene.target_view);
+	      var newTarget = interpolateTargets(this.getTarget(), futureTarget, 1.0 / nStep);
+	      var view = convertTargetToView(newTarget);
+	      view.copy_metadata_from_view(this.scene.target_view);
+	
+	      this.controller.set_current_view(view);
+	
+	      this.updateHover();
+	    }
+	
+	    /**
+	     ********************************************
+	     * Standard DOM methods
+	     ********************************************
+	     */
+	
 	  }, {
 	    key: 'resize',
 	    value: function resize() {
@@ -73939,127 +74078,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.saveMouseY = this.mouseY;
 	      this.saveMouseR = this.mouseR;
 	      this.saveMouseT = this.mouseT;
-	    }
-	  }, {
-	    key: 'getZ',
-	    value: function getZ(pos) {
-	      var origin = this.cameraFocus.clone();
-	
-	      var cameraDir = origin.clone().sub(this.camera.position).normalize();
-	
-	      var posRelativeToOrigin = pos.clone().sub(origin);
-	
-	      return posRelativeToOrigin.dot(cameraDir);
-	    }
-	  }, {
-	    key: 'inZlab',
-	    value: function inZlab(pos) {
-	      var z = this.getZ(pos);
-	
-	      return z >= this.zFront && z <= this.zBack;
-	    }
-	  }, {
-	    key: 'opacity',
-	    value: function opacity(pos) {
-	      var z = this.getZ(pos);
-	
-	      if (z < this.zFront) {
-	        return 1.0;
-	      }
-	
-	      if (z > this.zBack) {
-	        return 0.0;
-	      }
-	
-	      return 1 - (z - this.zFront) / (this.zBack - this.zFront);
-	    }
-	  }, {
-	    key: 'getIAtomHover',
-	    value: function getIAtomHover() {
-	      var x = this.mouseX;
-	      var y = this.mouseY;
-	
-	      if (x === null || y === null) {
-	        return null;
-	      }
-	
-	      // create buffer for reading single pixel
-	      var pixelBuffer = new Uint8Array(4);
-	
-	      // render the picking scene off-screen
-	      this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
-	
-	      // read the pixel under the mouse from the texture
-	      this.renderer.readRenderTargetPixels(this.pickingTexture, this.mouseX, this.pickingTexture.height - y, 1, 1, pixelBuffer);
-	
-	      // interpret the pixel as an ID
-	      var i = pixelBuffer[0] << 16 | pixelBuffer[1] << 8 | pixelBuffer[2];
-	
-	      if (i < this.protein.getNAtom()) {
-	        return i;
-	      }
-	
-	      return null;
-	    }
-	  }, {
-	    key: 'posXY',
-	    value: function posXY(pos) {
-	      var widthHalf = 0.5 * this.width();
-	      var heightHalf = 0.5 * this.height();
-	
-	      var vector = pos.clone().project(this.camera);
-	
-	      return {
-	        x: vector.x * widthHalf + widthHalf,
-	        y: -(vector.y * heightHalf) + heightHalf
-	      };
-	    }
-	  }, {
-	    key: 'atomLabelDialog',
-	    value: function atomLabelDialog() {
-	      var _this4 = this;
-	
-	      var i_atom = this.scene.current_view.i_atom;
-	      if (i_atom >= 0) {
-	        (function () {
-	          var success = function success(text) {
-	            controller.make_label(i_atom, text);
-	          };
-	
-	          var controller = _this4.controller;
-	
-	          var atom = _this4.protein.getAtom(i_atom);
-	          var label = 'Label atom : ' + atom.label;
-	
-	          util.textEntryDialog(_this4.div, label, success);
-	        })();
-	      }
-	    }
-	  }, {
-	    key: 'updateHover',
-	    value: function updateHover() {
-	      if (this.getIAtomHover() !== null) {
-	        this.iHoverAtom = this.getIAtomHover();
-	      } else {
-	        this.iHoverAtom = null;
-	      }
-	
-	      if (this.iHoverAtom) {
-	        var atom = this.protein.getAtom(this.iHoverAtom);
-	        var text = atom.label;
-	        if (atom === this.scene.centered_atom()) {
-	          text = '<div style="text-align: center">';
-	          text += atom.label;
-	          text += '<br>[drag distances]<br>';
-	          text += '[double-click labels]';
-	          text += '</div>';
-	        }
-	        this.hover.html(text);
-	        var vector = this.posXY(_v2.default.clone(atom.pos));
-	        this.hover.move(vector.x, vector.y);
-	      } else {
-	        this.hover.hide();
-	      }
 	    }
 	  }, {
 	    key: 'doubleclick',
@@ -74624,8 +74642,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(Trace, [{
-	    key: 'getReferenceObject',
-	    value: function getReferenceObject(i) {
+	    key: 'getReference',
+	    value: function getReference(i) {
 	      var iRef = this.indices[i];
 	      return this.referenceObjects[iRef];
 	    }
@@ -75701,7 +75719,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              var i = _step2.value;
 	
 	              var iRes = trace.indices[i];
-	              var residue = trace.getReferenceObject(i);
+	              var residue = trace.getReference(i);
 	
 	              var entry = {
 	                iRes: iRes,
@@ -76017,8 +76035,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this6.scene.grid_atoms = {};
 	    _this6.buttonHeight = 40;
 	    _this6.sliderHeight = _this6.buttonHeight * 6 - 50;
-	    _this6.div.attr('id', 'gridControlWidget');
-	    _this6.div.css('height', _this6.height());
+	    if (_this6.isGrid) {
+	      _this6.div.attr('id', 'gridControlWidget');
+	      _this6.div.css('height', _this6.height());
+	    }
 	    _this6.backgroundColor = '#AAA';
 	    _this6.buttonsDiv = (0, _jquery2.default)('<div>');
 	    _this6.div.append(_this6.buttonsDiv);

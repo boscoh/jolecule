@@ -571,7 +571,7 @@ class SequenceWidget extends CanvasWrapper {
     for (let trace of this.traces) {
       for (let i of _.range(trace.points.length)) {
         let iRes = trace.indices[i]
-        let residue = trace.getReferenceObject(i)
+        let residue = trace.getReference(i)
 
         let entry = {
           iRes,
@@ -854,8 +854,10 @@ class GridControlWidget extends CanvasWrapper {
     this.scene.grid_atoms = {}
     this.buttonHeight = 40
     this.sliderHeight = this.buttonHeight * 6 - 50
-    this.div.attr('id', 'gridControlWidget')
-    this.div.css('height', this.height())
+    if (this.isGrid) {
+      this.div.attr('id', 'gridControlWidget')
+      this.div.css('height', this.height())
+    }
     this.backgroundColor = '#AAA'
     this.buttonsDiv = $('<div>')
     this.div.append(this.buttonsDiv)

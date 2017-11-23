@@ -409,7 +409,7 @@ class Trace extends PathAndFrenetFrames {
     this.detail = 4
   }
 
-  getReferenceObject (i) {
+  getReference (i) {
     let iRef = this.indices[i]
     return this.referenceObjects[iRef]
   }

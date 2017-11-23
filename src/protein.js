@@ -839,6 +839,10 @@ var Protein = function () {
     return this.residues[iRes]
   }
 
+  this.getNResidue = function() {
+    return this.residues.length
+  }
+
   this.center = function () {
     var x_center = 0;
     var y_center = 0;
@@ -881,6 +885,7 @@ var Protein = function () {
       for (var m in res_k.atoms) {
         var atom_m = res_k.atoms[m];
         if (v3.distance(atom_l.pos, atom_m.pos) < 4) {
+          console.log('> Protein.are_close_residues', atom_l.label, atom_m.label)
           return true;
         }
       }
@@ -889,11 +894,12 @@ var Protein = function () {
   }
 
   this.select_neighbors = function (i_res, b) {
-    this.residues[i_res].selected = true;
-    for (var j = 0; j < this.residues.length; j += 1) {
-      var res = this.residues[j];
-      if (this.are_close_residues(j, i_res)) {
-        this.residues[j].selected = b;
+    this.residues[i_res].selected = b;
+    let residue = this.getResidue(i_res)
+    residue = this.residues[i_res]
+    for (var j_res = 0; j_res < this.residues.length; j_res += 1) {
+      if (this.are_close_residues(j_res, i_res)) {
+        this.residues[j_res].selected = b;
       }
     }
   }
@@ -1580,7 +1586,7 @@ var Controller = function (scene) {
   }
 
   this.set_show_option = function (option, bool) {
-    console.log('> set_show_option', option, bool);
+    console.log('> Controller.set_show_option', option, bool);
     this.scene.current_view.show[option] = bool;
     this.scene.changed = true;
   }
