@@ -577,7 +577,7 @@ class SequenceWidget extends CanvasWrapper {
           iRes,
           ss: residue.ss,
           resId: residue.id,
-          iAtom: residue.central_atom.i
+          iAtom: residue.iAtom
         }
 
         let resType = residue.type

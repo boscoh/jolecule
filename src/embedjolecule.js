@@ -546,7 +546,7 @@ class EmbedJolecule {
     this.residueSelector.change(() => {
       var resId = this.residueSelector.find(":selected").val();
       this.proteinDisplay.setTargetFromAtom(
-        this.scene.protein.res_by_id[resId].central_atom.i);
+        this.scene.protein.res_by_id[resId].iAtom);
     });
 
     this.viewBarDiv = 

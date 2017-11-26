@@ -10,14 +10,6 @@ import widgets from './widgets'
 import * as data from './data'
 
 
-function getVerticesFromAtomDict(atoms, atomTypes) {
-  let vertices = []
-  for (let aType of atomTypes) {
-    vertices.push(v3.clone(atoms[aType].pos))
-  }
-  return vertices
-}
-
 function extendArray(array, extension) {
   for (let elem of extension) {
     array.push(elem)
@@ -209,10 +201,10 @@ function makeTracesFromProtein(protein) {
       // neighbouring residues
       if (iResidue > 0) {
         if (protein.isPeptideConnected(iResidue - 1, iResidue)) {
-          residue.central_atom = residue.atoms['CA']
+          residue.iAtom = residue.atoms['CA'].i
           isResInTrace = true
         } else if (protein.isSugarPhosphateConnected(iResidue - 1, iResidue)) {
-          residue.central_atom = residue.atoms['C3\'']
+          residue.iAtom = residue.atoms['C3\''].i
           isResInTrace = true
           residue.ss = 'R'
           residue.normal = protein.getNormalOfNuc(iResidue)
@@ -221,10 +213,10 @@ function makeTracesFromProtein(protein) {
 
       if (iResidue < nResidue - 1) {
         if (protein.isPeptideConnected(iResidue, iResidue + 1)) {
-          residue.central_atom = residue.atoms['CA']
+          residue.iAtom = residue.atoms['CA'].i
           isResInTrace = true
         } else if (protein.isSugarPhosphateConnected(iResidue, iResidue + 1)) {
-          residue.central_atom = residue.atoms['C3\'']
+          residue.iAtom = residue.atoms['C3\''].i
           isResInTrace = true
           residue.ss = 'R'
           residue.normal = protein.getNormalOfNuc(residue)
@@ -246,7 +238,7 @@ function makeTracesFromProtein(protein) {
         }
       }
       trace.indices.push(iResidue)
-      trace.points.push(v3.clone(residue.central_atom.pos))
+      trace.points.push(protein.getResidueCentralAtom(iResidue).pos)
       let normal = null
       if (residue.normal) {
         normal = residue.normal
@@ -651,9 +643,7 @@ class ProteinDisplay {
       }
     }
 
-    // since residues are built on demand (when clicked)
-    // this loop must be run every draw event to check on
-    // residue.selected
+    // since residues are built on demand at every cycle
     this.buildSelectedResidues(show.sidechain)
 
     if (util.exists(this.displayMeshes.sidechains)) {
@@ -743,8 +733,7 @@ class ProteinDisplay {
         let resGeom = trace.getSegmentGeometry(
           i, face, isRound, isFront, isBack, color)
         displayGeom.merge(resGeom)
-        let atom = res.central_atom
-        glgeom.setGeometryVerticesColor(resGeom, data.getIndexColor(atom.i))
+        glgeom.setGeometryVerticesColor(resGeom, data.getIndexColor(res.iAtom))
         pickingGeom.merge(resGeom)
       }
     }
@@ -799,8 +788,8 @@ class ProteinDisplay {
         let resGeom = trace.getSegmentGeometry(
           i, data.fatCoilFace, isRound, isFront, isBack, color)
         geom.merge(resGeom)
-        let iAtom = res.central_atom.i
-        glgeom.setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom))
+        glgeom.setGeometryVerticesColor(
+          resGeom, new THREE.Color().setHex(res.iAtom))
       }
     }
     this.addGeomToDisplayMesh('tube', geom)
@@ -826,7 +815,7 @@ class ProteinDisplay {
 
           this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
 
-          for (let atom of _.values(residue.atoms)) {
+          this.protein.eachResidueAtom(iRes, atom => {
             if (!util.inArray(atom.type, data.backboneAtoms)) {
               atom.is_sidechain = true
               let matrix = glgeom.getSphereMatrix(atom.pos, this.radius)
@@ -835,7 +824,7 @@ class ProteinDisplay {
               glgeom.mergeUnitGeom(
                 pickingGeom, this.unitSphereGeom, data.getIndexColor(atom.i), matrix)
             }
-          }
+          })
 
           this.addGeomToDisplayMesh('sidechains', displayGeom, iRes)
           this.addGeomToPickingMesh('sidechains', pickingGeom, iRes)
@@ -859,11 +848,11 @@ class ProteinDisplay {
             _.includes(data.backboneAtoms, bond.atom2.type)
         }
         this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
-        for (let atom of _.values(residue.atoms)) {
+        this.protein.eachResidueAtom(iRes, atom => {
           if (util.inArray(atom.type, data.backboneAtoms)) {
             this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
           }
-        }
+        })
       }
     }
     this.addGeomToDisplayMesh('backbone', displayGeom)
@@ -878,9 +867,9 @@ class ProteinDisplay {
       let residue = this.protein.getResidue(iRes)
       if (residue.is_ligands) {
         this.mergeBondsInResidue(displayGeom, iRes)
-        for (let atom of _.values(residue.atoms)) {
+        this.protein.eachResidueAtom(iRes, atom => {
           this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
-        }
+        })
       }
     }
     this.addGeomToDisplayMesh('ligands', displayGeom)
@@ -895,9 +884,9 @@ class ProteinDisplay {
       let residue = this.protein.getResidue(iRes)
       if (residue.is_water) {
         this.mergeBondsInResidue(displayGeom, iRes)
-        for (let atom of _.values(residue.atoms)) {
+        this.protein.eachResidueAtom(iRes, atom => {
           this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
-        }
+        })
       }
     }
     this.addGeomToDisplayMesh('water', displayGeom)
@@ -919,7 +908,7 @@ class ProteinDisplay {
     for (let iRes of _.range(this.protein.getNResidue())) {
       let residue = this.protein.getResidue(iRes)
       if (residue.is_grid) {
-        for (let atom of _.values(residue.atoms)) {
+        this.protein.eachResidueAtom(iRes, atom => {
           if (this.isVisibleGridAtom(atom.i)) {
             let material = new THREE.MeshLambertMaterial({
               color: this.getAtomColor(atom.i)
@@ -939,7 +928,7 @@ class ProteinDisplay {
             pickingMesh.i = atom.i
             this.pickingMeshes.grid.add(pickingMesh)
           }
-        }
+        })
       }
     }
   }
@@ -976,27 +965,32 @@ class ProteinDisplay {
       } else {
         continue
       }
-      let vertices = getVerticesFromAtomDict(residue.atoms, atomTypes)
+
+      let getVerticesFromAtomDict = (iRes, atomTypes) => {
+        return _.map(atomTypes, a => this.protein.getResidueAtom(iRes, a).pos)
+      }
+
+      let vertices = getVerticesFromAtomDict(iRes, atomTypes)
       let faceGeom = new glgeom.RaisedShapeGeometry(vertices, 0.2)
       basepairGeom.merge(faceGeom)
 
       for (let bond of bondTypes) {
-        let vertices = getVerticesFromAtomDict(residue.atoms, [bond[0], bond[1]])
+        let vertices = getVerticesFromAtomDict(iRes, [bond[0], bond[1]])
         basepairGeom.merge(
           cylinderGeom, glgeom.getCylinderMatrix(vertices[0], vertices[1], 0.2))
       }
 
       // explicitly set to zero-length array as RaisedShapeGeometry
       // sets no uv but cylinder does, and the merged geometry causes
-      // mayhem in THREE V79
-      basepairGeom.faceVertexUvs = [Array()]
+      // warnings in THREE.js v0.79
+      basepairGeom.faceVertexUvs = [new Array()]
 
       glgeom.setGeometryVerticesColor(
         basepairGeom, residue.color)
       displayGeom.merge(basepairGeom)
 
       glgeom.setGeometryVerticesColor(
-        basepairGeom, data.getIndexColor(residue.central_atom.i))
+        basepairGeom, data.getIndexColor(residue.iAtom))
       pickingGeom.merge(basepairGeom)
     }
 
@@ -1036,8 +1030,8 @@ class ProteinDisplay {
   }
 
   setTargetFromResId(resId) {
-    let atom = this.protein.res_by_id[resId].central_atom
-    this.setTargetFromAtom(atom.i)
+    let res = this.protein.res_by_id[resId]
+    this.setTargetFromAtom(res.iAtom)
   }
 
   setTargetFromAtom(iAtom) {

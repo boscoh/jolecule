@@ -289,11 +289,11 @@ var Protein = function () {
       var res = this.residues[i];
       res.i = i;
       if (this.has_aa_bb(i)) {
-        res.central_atom = res.atoms["CA"];
+        res.iAtom = res.atoms["CA"].i
       } else if (this.has_nuc_bb(i)) {
-        res.central_atom = res.atoms["C3'"];
+        res.iAtom = res.atoms["C3'"].i
       } else {
-        res.central_atom = get_central_atom_from_atom_dict(res.atoms);
+        res.iAtom = get_central_atom_from_atom_dict(res.atoms).i
       }
     }
   }
@@ -629,9 +629,9 @@ var Protein = function () {
   }
 
   this.res_diff = function (i_res0, i_res1) {
-    var res0 = this.residues[i_res0];
-    var res1 = this.residues[i_res1];
-    return v3.diff(res1.central_atom.pos, res0.central_atom.pos);
+    var atom0 = this.getResidueCentralAtom(i_res0)
+    var atom1 = this.getResidueCentralAtom(i_res1)
+    return v3.diff(atom0.pos, atom1.pos);
   }
 
   this.find_ss = function () {
@@ -839,6 +839,21 @@ var Protein = function () {
     return this.residues[iRes]
   }
 
+  this.getResidueAtom = function(iRes, atomType) {
+    return this.residues[iRes].atoms[atomType]
+  }
+
+  this.getResidueCentralAtom = function(iRes) {
+    let res = this.residues[iRes]
+    return this.getAtom(res.iAtom)
+  }
+
+  this.eachResidueAtom = function(iRes, callback) {
+    for (let atom of _.values(this.residues[iRes].atoms))  {
+      callback(atom)
+    }
+  }
+
   this.getNResidue = function() {
     return this.residues.length
   }
@@ -875,8 +890,8 @@ var Protein = function () {
   this.are_close_residues = function (j, k) {
     var res_j = this.residues[j];
     var res_k = this.residues[k];
-    var atom_j = res_j.central_atom;
-    var atom_k = res_k.central_atom;
+    var atom_j = this.getAtom(res_j.iAtom)
+    var atom_k = this.getAtom(res_k.iAtom)
     if (v3.distance(atom_j.pos, atom_k.pos) > 17) {
       return false;
     }
@@ -1145,7 +1160,7 @@ var Scene = function (protein) {
   this.find_atom_nearest_to_origin = function () {
     for (var i = 0; i < this.protein.residues.length; i += 1) {
       var res = this.protein.residues[i];
-      var p = res.central_atom.pos;
+      var p = this.getResidueCentralAtom(i)
       var d = p.x * p.x + p.y * p.y + p.z * p.z;
       if (d > 400) {
         continue;
@@ -1329,9 +1344,9 @@ var Controller = function (scene) {
   this.set_target_view_by_res_id = function (res_id) {
     var view = this.scene.current_view.clone();
     view.res_id = res_id;
-    view.i_atom = this.protein.res_by_id[res_id].central_atom.i;
-    var pos = this.protein.res_by_id[res_id].central_atom.pos.clone();
-    view.camera.transform(v3.translation(pos));
+    view.i_atom = this.protein.res_by_id[res_id].iAtom;
+    let atom = this.protein.getAtom(view.i_atom)
+    view.camera.transform(v3.translation(atom.pos));
     this.set_target_view(view);
   }
 
