@@ -390,16 +390,7 @@ class ProteinDisplay {
     let defaultView = this.scene.current_view.clone()
     makeDefaultView(defaultView, this.protein)
     this.scene.save_view(defaultView)
-
-    let iAtom = defaultView.i_atom
-    let center = this.protein.getAtom(iAtom).pos
-    let translate = v3.translation(v3.scaled(center, -1))
-    this.cameraFocus.copy(center)
-    this.camera.position.set(0, 0, this.zoom).add(this.cameraFocus)
-    this.camera.lookAt(this.cameraFocus)
-
-    this.displayScene.fog.near = this.zoom + 1
-    this.displayScene.fog.far = this.zoom + this.zBack
+    this.controller.set_current_view(defaultView)
 
     this.scene.is_new_view_chosen = true
     this.scene.changed = true
