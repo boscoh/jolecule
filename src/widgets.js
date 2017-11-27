@@ -521,7 +521,7 @@ class SequenceWidget extends CanvasWrapper {
 
     this.textXOffset = 0
 
-    this.residues = null
+    this.residues = []
     this.iRes = null
     this.iStartChar = null
     this.iEndChar = null
@@ -567,7 +567,7 @@ class SequenceWidget extends CanvasWrapper {
   }
 
   reset () {
-    this.residues = []
+    this.residues.length = 0
     for (let trace of this.traces) {
       for (let i of _.range(trace.points.length)) {
         let iRes = trace.indices[i]
@@ -602,7 +602,7 @@ class SequenceWidget extends CanvasWrapper {
       return
     }
 
-    if (this.residues.length === 0) {
+    if (this.residues.length == 0) {
       return
     }
 
@@ -769,7 +769,7 @@ class ZSlabWidget extends CanvasWrapper {
 
   draw () {
     let protein = this.scene.protein
-    let camera = this.scene.current_view.abs_camera
+    let camera = this.scene.current_view.camera
     this.maxZLength = 2.0 * protein.max_length
 
     let yBack = this.zToY(camera.z_back)
@@ -825,12 +825,12 @@ class ZSlabWidget extends CanvasWrapper {
 
     this.getZ(event)
 
-    let abs_camera = this.scene.current_view.abs_camera
+    let camera = this.scene.current_view.camera
 
     if (this.back) {
-      abs_camera.z_back = Math.max(2, this.z)
+      camera.z_back = Math.max(2, this.z)
     } else if (this.front) {
-      abs_camera.z_front = Math.min(-2, this.z)
+      camera.z_front = Math.min(-2, this.z)
     }
 
     this.scene.changed = true
@@ -854,12 +854,13 @@ class GridControlWidget extends CanvasWrapper {
     this.scene.grid_atoms = {}
     this.buttonHeight = 40
     this.sliderHeight = this.buttonHeight * 6 - 50
-    if (this.isGrid) {
-      this.div.attr('id', 'gridControlWidget')
-      this.div.css('height', this.height())
+    this.div.attr('id', 'grid-control')
+    if (!this.isGrid) {
+      this.div.css('display', 'none')
     }
+    this.div.css('height', this.height())
     this.backgroundColor = '#AAA'
-    this.buttonsDiv = $('<div>')
+    this.buttonsDiv = $('<div id="grid-control-buttons">')
     this.div.append(this.buttonsDiv)
     this.reset()
   }

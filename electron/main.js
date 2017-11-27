@@ -64,7 +64,11 @@ function getPdbLines() {
 
 document.title = "{{{title}}}";   
 
-let j = jolecule.initEmbedJolecule({divTag: '#jolecule'});
+let j = jolecule.initEmbedJolecule({
+  divTag: '#jolecule', 
+  isGrid: false, 
+  backgroundColor: 0xCCCCCC
+});
 j.addDataServer(dataServer);
 
 `;

@@ -85,7 +85,9 @@ const embedIndexHtmlMustache = `
   require( ['jolecule'], function(jolecule) {
     var j = jolecule.initEmbedJolecule({
       divTag: '#jolecule',
-      isGrid: false});
+      isGrid: false,
+      isEditable: false,
+      backgroundColor: 0xCCCCCC});
     require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
       var dataServers = [{{{dataServerArgStr}}}];
       for (var dataServer of dataServers) {
@@ -125,8 +127,7 @@ const fullPageIndexHtmlMustache = `
               '#jolecule-views-container',
               { 
                 isEditable: false,
-                isGrid: true,
-                backgroundColor: 0xCCCCCC
+                isGrid: false,
               });
             require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
               var dataServers = [{{{dataServerArgStr}}}];

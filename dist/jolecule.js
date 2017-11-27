@@ -54,7 +54,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -79,7 +79,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	/**
 	 *
-	 * @param args = {
+	 * @param userArgs = {
 	 *   divTag: '',
 	 *   viewId: '',
 	 *   viewHeight: 170,
@@ -120,10 +120,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    pdb_id: pdbId,
 	    get_protein_data: function get_protein_data(processProteinData) {
 	      var url = void 0;
-	      if (pdbId.length == 4) {
-	        url = "https://files.rcsb.org/download/" + pdbId + ".pdb1";
+	      if (pdbId.length === 4) {
+	        url = 'https://files.rcsb.org/download/' + pdbId + '.pdb1';
 	      } else {
-	        url = "/pdb/" + pdbId + ".txt";
+	        url = '/pdb/' + pdbId + '.txt';
 	      }
 	      console.log('> remoteDataServer.get_protein_data', url);
 	      _jquery2.default.get(url, function (pdbText) {
@@ -131,8 +131,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    },
 	    get_views: function get_views(processViews) {
-	      console.log('> remoteDataServer.get_views', "/pdb/" + pdbId + ".views.json");
-	      _jquery2.default.getJSON("/pdb/" + pdbId + ".views.json", processViews);
+	      console.log('> remoteDataServer.get_views', '/pdb/' + pdbId + '.views.json');
+	      _jquery2.default.getJSON('/pdb/' + pdbId + '.views.json', processViews);
 	    },
 	    save_views: function save_views(views, success) {
 	      console.log('> remoteDataServer.save_views', '/save/views');
@@ -158,7 +158,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	
 	/**
 	 * This is a separate file to allow multiple jolecule
 	 * widgets to be animated in the same global event loop.
@@ -267,7 +266,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -302,7 +301,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      isProcessingFlag.flag = true;
 	      fn(isProcessingFlag);
 	    }
-	  };
+	  }
 	  guardFn();
 	}
 	
@@ -316,10 +315,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _classCallCheck(this, ViewPiece);
 	
 	    this.params = params;
-	    this.div = (0, _jquery2.default)('<div>').addClass("jolecule-view");
+	    this.div = (0, _jquery2.default)('<div>').addClass('jolecule-view');
 	
 	    if ((0, _util.exists)(params.goto)) {
-	      this.div.append((0, _util.linkButton)("", this.params.goto, 'jolecule-button', this.params.pick)).append('<div style="width: 10px">');
+	      this.div.append((0, _util.linkButton)('', this.params.goto, 'jolecule-button', this.params.pick)).append('<div style="width: 10px">');
 	    }
 	    this.params = params;
 	    this.makeEditDiv();
@@ -328,7 +327,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(ViewPiece, [{
-	    key: "saveChange",
+	    key: 'saveChange',
 	    value: function saveChange() {
 	      console.log('> ViewPiece.saveChange');
 	      var changedTet = this.editTextArea.val();
@@ -339,7 +338,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      window.keyboard_lock = false;
 	    }
 	  }, {
-	    key: "startEdit",
+	    key: 'startEdit',
 	    value: function startEdit() {
 	      this.params.pick();
 	      this.editTextArea.text(this.params.view.text);
@@ -352,48 +351,48 @@ return /******/ (function(modules) { // webpackBootstrap
 	      window.keyboard_lock = true;
 	    }
 	  }, {
-	    key: "discardChange",
+	    key: 'discardChange',
 	    value: function discardChange() {
 	      this.editDiv.hide();
 	      this.showDiv.show();
 	      window.keyboard_lock = false;
 	    }
 	  }, {
-	    key: "makeEditDiv",
+	    key: 'makeEditDiv',
 	    value: function makeEditDiv() {
 	      var _this = this;
 	
-	      this.editTextArea = (0, _jquery2.default)("<textarea>").addClass('jolecule-view-text').css('width', '100%').css('height', '5em').click(_lodash2.default.noop);
+	      this.editTextArea = (0, _jquery2.default)('<textarea>').addClass('jolecule-view-text').css('width', '100%').css('height', '5em').click(_lodash2.default.noop);
 	
-	      this.editDiv = (0, _jquery2.default)('<div>').css('width', '100%').click(_lodash2.default.noop).append(this.editTextArea).append('<br><br>').append((0, _util.linkButton)("", "save", "jolecule-small-button", function (event) {
+	      this.editDiv = (0, _jquery2.default)('<div>').css('width', '100%').click(_lodash2.default.noop).append(this.editTextArea).append('<br><br>').append((0, _util.linkButton)('', 'save', 'jolecule-small-button', function (event) {
 	        _this.saveChange();
-	      })).append(' &nbsp; ').append((0, _util.linkButton)("", "discard", "jolecule-small-button", function (event) {
+	      })).append(' &nbsp; ').append((0, _util.linkButton)('', 'discard', 'jolecule-small-button', function (event) {
 	        _this.discardChange();
 	      })).hide();
 	
 	      this.div.append(this.editDiv);
 	    }
 	  }, {
-	    key: "makeShowDiv",
+	    key: 'makeShowDiv',
 	    value: function makeShowDiv() {
 	      var _this2 = this;
 	
 	      var view = this.params.view;
 	
-	      var editButton = (0, _util.linkButton)("", "edit", "jolecule-small-button", function () {
+	      var editButton = (0, _util.linkButton)('', 'edit', 'jolecule-small-button', function () {
 	        _this2.startEdit();
 	      });
 	
-	      var embedButton = (0, _util.linkButton)("", "embed", "jolecule-small-button", function () {
+	      var embedButton = (0, _util.linkButton)('', 'embed', 'jolecule-small-button', function () {
 	        _this2.params.embed_view();
 	      });
 	
-	      this.showTextDiv = (0, _jquery2.default)('<div>').addClass("jolecule-view-text").html(this.params.view.text);
+	      this.showTextDiv = (0, _jquery2.default)('<div>').addClass('jolecule-view-text').html(this.params.view.text);
 	
 	      this.showDiv = (0, _jquery2.default)('<div>').css('width', '100%').append(this.showTextDiv);
 	
 	      if (view.id != 'view:000000') {
-	        this.showDiv.append((0, _jquery2.default)('<div>').addClass("jolecule-author").html(view.creator));
+	        this.showDiv.append((0, _jquery2.default)('<div>').addClass('jolecule-author').html(view.creator));
 	      }
 	
 	      var isEditable = this.params.isEditable && !view.lock && view.id != 'view:000000';
@@ -406,16 +405,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        this.showDiv.append(editButton);
 	
-	        if ((0, _util.exists)(this.params.swapUp) && this.params.swapUp) this.showDiv.append(" ").append((0, _util.linkButton)("", "up", "jolecule-small-button", function () {
+	        if ((0, _util.exists)(this.params.swapUp) && this.params.swapUp) this.showDiv.append(' ').append((0, _util.linkButton)('', 'up', 'jolecule-small-button', function () {
 	          _this2.params.swapUp();
 	        }));
 	
-	        if ((0, _util.exists)(this.params.swapUp) && this.params.swapDown) this.showDiv.append(" ").append((0, _util.linkButton)("", "down", "jolecule-small-button", function () {
+	        if ((0, _util.exists)(this.params.swapUp) && this.params.swapDown) this.showDiv.append(' ').append((0, _util.linkButton)('', 'down', 'jolecule-small-button', function () {
 	          _this2.params.swapDown();
 	        }));
 	
 	        if ((0, _util.exists)(this.params.delete_view)) {
-	          this.showDiv.append((0, _jquery2.default)("<div>").css("float", "right").append((0, _util.linkButton)("", "delete", "jolecule-small-button", function () {
+	          this.showDiv.append((0, _jquery2.default)('<div>').css('float', 'right').append((0, _util.linkButton)('', 'delete', 'jolecule-small-button', function () {
 	            console.log('> ViewPiece.deleteButton');
 	            _this2.params.delete_view();
 	          })));
@@ -444,7 +443,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  isEditable: true,
 	  isLoop: false,
 	  isGrid: false,
-	  backgroundColor: 0x000000
+	  backgroundColor: 0xCCCCCC
 	};
 	
 	var EmbedJolecule = function () {
@@ -472,7 +471,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.createProteinDiv();
 	    this.proteinDisplay = new _proteindisplay.ProteinDisplay(this.scene, '#jolecule-protein-display', this.controller, params.isGrid, params.backgroundColor);
-	    this.proteinDisplay.min_radius = 10;
 	
 	    this.createStatusDiv();
 	    this.createViewDiv();
@@ -490,12 +488,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(EmbedJolecule, [{
-	    key: "loadProteinData",
+	    key: 'loadProteinData',
 	    value: function loadProteinData(isProcessingFlag, dataServer, proteinData, callback) {
 	      var _this4 = this;
 	
 	      if (proteinData.pdb_text.length == 0) {
-	        this.proteinDisplay.setProcessingMesssage("Error: no protein data");
+	        this.proteinDisplay.setProcessingMesssage('Error: no protein data');
 	        isProcessingFlag.flag = false;
 	        return;
 	      }
@@ -505,7 +503,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.populateResidueSelector();
 	
 	      if (this.protein.parsing_error) {
-	        this.proteinDisplay.setProcessingMesssage("Error parsing protein: " + this.protein.parsing_error);
+	        this.proteinDisplay.setProcessingMesssage('Error parsing protein: ' + this.protein.parsing_error);
 	        isProcessingFlag.flag = false;
 	        return;
 	      }
@@ -535,20 +533,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "addDataServer",
+	    key: 'addDataServer',
 	    value: function addDataServer(dataServer, callback) {
 	      var _this5 = this;
 	
 	      runWithProcessQueue(this.isProcessing, function (isProcessingFlag) {
 	        dataServer.get_protein_data(function (proteinData) {
-	          _this5.proteinDisplay.displayMessageBeforeCompute("Parsing '" + proteinData.pdb_id + "'", function () {
+	          _this5.proteinDisplay.displayMessageBeforeCompute('Parsing \'' + proteinData.pdb_id + '\'', function () {
 	            _this5.loadProteinData(isProcessingFlag, dataServer, proteinData, callback);
 	          });
 	        });
 	      });
 	    }
 	  }, {
-	    key: "loadViewsFromDataServer",
+	    key: 'loadViewsFromDataServer',
 	    value: function loadViewsFromDataServer(viewDicts) {
 	
 	      this.controller.load_views_from_flat_views(viewDicts);
@@ -567,13 +565,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "saveViewsToDataServer",
+	    key: 'saveViewsToDataServer',
 	    value: function saveViewsToDataServer(success) {
 	      this.dataServer.save_views(this.controller.get_view_dicts(), success);
 	      this.scene.changed = true;
 	    }
 	  }, {
-	    key: "saveCurrView",
+	    key: 'saveCurrView',
 	    value: function saveCurrView() {
 	      var _this6 = this;
 	
@@ -586,7 +584,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: "getCurrView",
+	    key: 'getCurrView',
 	    value: function getCurrView() {
 	      var i = this.scene.i_last_view;
 	      if (i in this.scene.saved_views) {
@@ -597,7 +595,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "changeText",
+	    key: 'changeText',
 	    value: function changeText(newText) {
 	      var _this7 = this;
 	
@@ -610,7 +608,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.scene.changed = true;
 	    }
 	  }, {
-	    key: "deleteCurrView",
+	    key: 'deleteCurrView',
 	    value: function deleteCurrView() {
 	      var _this8 = this;
 	
@@ -628,7 +626,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: "isChanged",
+	    key: 'isChanged',
 	    value: function isChanged() {
 	      if (!(0, _util.exists)(this.proteinDisplay)) {
 	        return false;
@@ -636,7 +634,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.proteinDisplay.isChanged();
 	    }
 	  }, {
-	    key: "animate",
+	    key: 'animate',
 	    value: function animate() {
 	      if ((0, _util.exists)(this.proteinDisplay)) {
 	        this.proteinDisplay.animate();
@@ -653,7 +651,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "draw",
+	    key: 'draw',
 	    value: function draw() {
 	      if ((0, _util.exists)(this.proteinDisplay)) {
 	        if (this.scene.changed) {
@@ -665,7 +663,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "cycleBackbone",
+	    key: 'cycleBackbone',
 	    value: function cycleBackbone() {
 	      if (this.scene.current_view.show.all_atom) {
 	        this.controller.set_backbone_option('ribbon');
@@ -676,7 +674,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "setTextState",
+	    key: 'setTextState',
 	    value: function setTextState() {
 	      if (this.isViewTextShown) {
 	        this.viewDiv.height(this.hAnnotationView);
@@ -689,32 +687,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.controller.scene.changed = true;
 	    }
 	  }, {
-	    key: "toggleTextState",
+	    key: 'toggleTextState',
 	    value: function toggleTextState() {
 	      this.isViewTextShown = !this.isViewTextShown;
 	      this.setTextState();
 	    }
 	  }, {
-	    key: "gotoPrevView",
+	    key: 'gotoPrevView',
 	    value: function gotoPrevView() {
 	      this.controller.set_target_prev_view();
 	      this.updateView();
 	    }
 	  }, {
-	    key: "gotoNextView",
+	    key: 'gotoNextView',
 	    value: function gotoNextView() {
 	      this.controller.set_target_next_view();
 	      this.updateView();
 	    }
 	  }, {
-	    key: "createProteinDiv",
+	    key: 'createProteinDiv',
 	    value: function createProteinDiv() {
 	      var height = this.div.outerHeight() - this.hAnnotationView;
 	      this.proteinDiv = (0, _jquery2.default)('<div>').attr('id', 'jolecule-protein-display').addClass('jolecule-embed-body').css('overflow', 'hidden').css('width', this.div.outerWidth()).css('height', height);
 	      this.div.append(this.proteinDiv);
 	    }
 	  }, {
-	    key: "populateResidueSelector",
+	    key: 'populateResidueSelector',
 	    value: function populateResidueSelector() {
 	      // clear selector
 	      this.residueSelector.find('option').remove();
@@ -730,7 +728,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.residueSelector.val(this.scene.current_view.res_id);
 	    }
 	  }, {
-	    key: "createStatusDiv",
+	    key: 'createStatusDiv',
 	    value: function createStatusDiv() {
 	      var _this9 = this;
 	
@@ -761,7 +759,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        saveButton = (0, _util.linkButton)('save_view', '+', 'jolecule-button', function () {
 	          _this9.saveCurrView();
 	        });
-	      };
+	      }
 	
 	      this.ligButton = (0, _util.toggleButton)('', 'lig', 'jolecule-button', function () {
 	        return _this9.controller.get_show_option('ligands');
@@ -800,25 +798,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	
 	      this.residueSelector = (0, _jquery2.default)('<select>').addClass('jolecule-residue-selector').css({
-	        "outline": "none",
-	        "-moz-appearance": "none"
+	        'outline': 'none',
+	        '-moz-appearance': 'none'
 	      });
 	
 	      this.residueSelector.change(function () {
-	        var resId = _this9.residueSelector.find(":selected").val();
+	        var resId = _this9.residueSelector.find(':selected').val();
 	        _this9.proteinDisplay.setTargetFromAtom(_this9.scene.protein.res_by_id[resId].iAtom);
 	      });
 	
 	      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton)).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: flex-end;">').append(this.residueSelector));
 	
-	      this.sidechainDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row; margin-top: 5px">').append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">').append(backboneButton).append(" ").append(this.ligButton).append(this.hydButton).append(this.watButton).append(" ")).append((0, _jquery2.default)('<div style="flex: 1; justify-content: flex-end; display: flex; flex-direction: row; align-items: center;">').append(' sidechain: ').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton));
+	      this.sidechainDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row; margin-top: 5px">').append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">').append(backboneButton).append(' ').append(this.ligButton).append(this.hydButton).append(this.watButton).append(' ')).append((0, _jquery2.default)('<div style="flex: 1; justify-content: flex-end; display: flex; flex-direction: row; align-items: center;">').append(' sidechain: ').append(allSidechainButton).append(clearSidechainButton).append(nearSidechainButton));
 	
 	      this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append(this.viewBarDiv).append(this.sidechainDiv);
 	
 	      this.div.append(this.statusDiv);
 	    }
 	  }, {
-	    key: "updateView",
+	    key: 'updateView',
 	    value: function updateView() {
 	      var _this10 = this;
 	
@@ -853,13 +851,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "createViewDiv",
+	    key: 'createViewDiv',
 	    value: function createViewDiv() {
 	      this.viewDiv = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view');
 	      this.div.append(this.viewDiv);
 	    }
 	  }, {
-	    key: "resize",
+	    key: 'resize',
 	    value: function resize() {
 	      this.proteinDiv.width(this.div.outerWidth());
 	      var newHeight = this.div.outerHeight() - this.viewDiv.outerHeight() - this.statusDiv.outerHeight();
@@ -28218,7 +28216,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -28231,7 +28229,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _util = __webpack_require__(9);
 	
+	var _pairs = __webpack_require__(16);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var user = 'public'; // will be overriden by server
+	
 	
 	////////////////////////////////////////////////////
 	//
@@ -28254,18 +28257,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	// 
 	////////////////////////////////////////////////////
 	
-	
-	var user = 'public'; // will be overriden by server
-	
 	function extract_atom_lines(data) {
 	  var lines = data.split(/\r?\n/);
 	  var pdb_lines = [];
 	  for (var i = 0; i < lines.length; i++) {
 	    var line = lines[i];
-	    if (line.slice(0, 4) === "ATOM" || line.slice(0, 6) === "HETATM") {
+	    if (line.slice(0, 4) === 'ATOM' || line.slice(0, 6) === 'HETATM') {
 	      pdb_lines.push(line);
 	    }
-	    if (line.slice(0, 3) == "END") {
+	    if (line.slice(0, 3) === 'END') {
 	      break;
 	    }
 	  }
@@ -28273,7 +28273,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	function parsetTitleFromPdbText(text) {
-	  var result = "";
+	  var result = '';
 	  var lines = text.split(/\r?\n/);
 	  var _iteratorNormalCompletion = true;
 	  var _didIteratorError = false;
@@ -28283,7 +28283,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    for (var _iterator = lines[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 	      var line = _step.value;
 	
-	      if (line.substring(0, 5) == 'TITLE') {
+	      if (line.substring(0, 5) === 'TITLE') {
 	        result += line.substring(10);
 	      }
 	    }
@@ -28316,7 +28316,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var central_atom = null;
 	  var min_d = 1E6;
 	  for (var k in atom_dict) {
-	    if (central_atom == null) {
+	    if (central_atom === null) {
 	      central_atom = atom_dict[k];
 	      continue;
 	    }
@@ -28337,7 +28337,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.ribbons = [];
 	  this.trace = [];
 	  this.parsing_error = '';
-	  this.default_html = "";
+	  this.default_html = '';
 	
 	  var aa = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR'];
 	  var dna = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C'];
@@ -28350,7 +28350,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  this.make_atoms_from_pdb_lines = function (lines, pdb_id) {
 	    var atoms = [];
-	    if (lines.length == 0) {
+	    if (lines.length === 0) {
 	      this.parsing_error = 'No atom lines';
 	      return;
 	    }
@@ -28358,7 +28358,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var i_chain = -1;
 	    for (var i = 0; i < lines.length; i += 1) {
 	      try {
-	        if (lines[i].substr(0, 4) == "ATOM" || lines[i].substr(0, 6) == "HETATM") {
+	        if (lines[i].substr(0, 4) === 'ATOM' || lines[i].substr(0, 6) === 'HETATM') {
 	          var x = parseFloat(lines[i].substr(30, 7));
 	          var y = parseFloat(lines[i].substr(38, 7));
 	          var z = parseFloat(lines[i].substr(46, 7));
@@ -28369,7 +28369,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var label = res_num + ' - ' + res_type + ' - ' + atom_type;
 	          var bfactor = parseFloat(lines[i].substr(60, 6));
 	          var elem = delete_numbers(_.trim(lines[i].substr(76, 2)));
-	          if (elem == "") {
+	          if (elem === '') {
 	            elem = delete_numbers(_.trim(atom_type)).substr(0, 1);
 	          }
 	          var is_chonmp = (0, _util.inArray)(elem, chonp);
@@ -28377,13 +28377,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var alt = _.trim(lines[i].substr(16, 1));
 	
 	          if (chain) {
-	            label = chain + ":" + label;
+	            label = chain + ':' + label;
 	          }
-	          if (chain == " ") {
+	          if (chain === ' ') {
 	            i_chain = -1;
 	          } else {
 	            i_chain = chains.indexOf(chain);
-	            if (i_chain == -1) {
+	            if (i_chain === -1) {
 	              chains.push(chain);
 	              i_chain = chains.length - 1;
 	            }
@@ -28411,7 +28411,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      } catch (e) {
 	        this.parsing_error = 'line ' + i;
-	        console.log("> Error: \"" + lines[i] + "\"");
+	        console.log('> Error: "' + lines[i] + '"');
 	        return;
 	      }
 	    }
@@ -28423,7 +28423,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var central_atom = null;
 	    var min_d = 1E6;
 	    for (var i = 0; i < this.atoms.length; i += 1) {
-	      if (central_atom == null) {
+	      if (central_atom === null) {
 	        central_atom = this.atoms[i];
 	        continue;
 	      }
@@ -28438,7 +28438,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  this.get_res_id_from_atom = function (atom) {
 	    // console.log("Protein.get_res_id_from_atom", atom.pdb_id);
-	    var s = "";
+	    var s = '';
 	    if (atom.pdb_id) {
 	      s += atom.pdb_id + ':';
 	    }
@@ -28447,28 +28447,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    s += atom.res_num;
 	    return s;
-	  };
-	
-	  this.get_prev_res_id = function (res_id) {
-	    var i = this.get_i_res_from_res_id(res_id);
-	    if (i <= 0) {
-	      i = this.residues.length - 1;
-	    } else {
-	      i -= 1;
-	    }
-	    ;
-	    return this.residues[i].id;
-	  };
-	
-	  this.get_next_res_id = function (res_id) {
-	    var i = this.get_i_res_from_res_id(res_id);
-	    if (i >= this.residues.length - 1) {
-	      i = 0;
-	    } else {
-	      i += 1;
-	    }
-	    ;
-	    return this.residues[i].id;
 	  };
 	
 	  this.make_bonds = function (bond_pairs) {
@@ -28494,12 +28472,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      'atoms': {},
 	      'iAtom': null
 	    };
-	    new_r.is_water = a.res_type == "HOH";
+	    new_r.is_water = a.res_type === 'HOH';
 	    var r_type = _.trim(new_r.type);
 	    new_r.is_protein = (0, _util.inArray)(r_type, aa);
 	    new_r.is_nuc = (0, _util.inArray)(r_type, dna) || (0, _util.inArray)(r_type, rna);
 	    new_r.is_protein_or_nuc = new_r.is_protein || new_r.is_nuc;
-	    new_r.is_grid = a.res_type == "XXX";
+	    new_r.is_grid = a.res_type === 'XXX';
 	    new_r.is_ligands = !new_r.is_water && !new_r.is_protein_or_nuc && !new_r.is_grid;
 	    this.res_by_id[res_id] = new_r;
 	    this.residues.push(new_r);
@@ -28531,9 +28509,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var res = this.residues[i];
 	      res.i = i;
 	      if (this.has_aa_bb(i)) {
-	        res.iAtom = res.atoms["CA"].i;
+	        res.iAtom = res.atoms['CA'].i;
 	      } else if (this.has_nuc_bb(i)) {
-	        res.iAtom = res.atoms["C3'"].i;
+	        res.iAtom = res.atoms['C3\''].i;
 	      } else {
 	        res.iAtom = get_central_atom_from_atom_dict(res.atoms).i;
 	      }
@@ -28544,7 +28522,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (i < 0 || i >= this.residues.length) {
 	      return false;
 	    }
-	    if ("C3'" in this.residues[i].atoms && "O3'" in this.residues[i].atoms && "C2'" in this.residues[i].atoms && "C5'" in this.residues[i].atoms && "C4'" in this.residues[i].atoms && "O4'" in this.residues[i].atoms && "C1'" in this.residues[i].atoms) {
+	    if ('C3\'' in this.residues[i].atoms && 'O3\'' in this.residues[i].atoms && 'C2\'' in this.residues[i].atoms && 'C5\'' in this.residues[i].atoms && 'C4\'' in this.residues[i].atoms && 'O4\'' in this.residues[i].atoms && 'C1\'' in this.residues[i].atoms) {
 	      return true;
 	    }
 	    return false;
@@ -28577,7 +28555,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (i < 0 || i >= this.residues.length) {
 	      return false;
 	    }
-	    if ("CA" in this.residues[i].atoms && "N" in this.residues[i].atoms && "C" in this.residues[i].atoms) {
+	    if ('CA' in this.residues[i].atoms && 'N' in this.residues[i].atoms && 'C' in this.residues[i].atoms) {
 	      return true;
 	    }
 	    return false;
@@ -28709,9 +28687,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var spans = [0.0, 0.0, 0.0];
 	
 	    function comp(v, i) {
-	      if (i == 0) return v.x;
-	      if (i == 1) return v.y;
-	      if (i == 2) return v.z;
+	      if (i === 0) return v.x;
+	      if (i === 1) return v.y;
+	      if (i === 2) return v.z;
 	    }
 	
 	    for (var j = 0; j < 3; j++) {
@@ -28728,99 +28706,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return Math.max(spans[0], spans[1], spans[2]);
 	  };
 	
-	  this.get_close_pairs = function (vertices) {
-	    var padding = 0.05;
-	    var div = 5.0;
-	    var inv_div = 1.0 / div;
-	    var maxima = [0.0, 0.0, 0.0];
-	    var minima = [0.0, 0.0, 0.0];
-	    var spans = [0.0, 0.0, 0.0];
-	    var sizes = [0, 0, 0];
-	
-	    for (var i_dim = 0; i_dim < 3; i_dim++) {
-	      for (var i = 0; i < vertices.length; i += 1) {
-	        if (minima[i_dim] > vertices[i][i_dim]) {
-	          minima[i_dim] = vertices[i][i_dim];
-	        }
-	        if (maxima[i_dim] < vertices[i][i_dim]) {
-	          maxima[i_dim] = vertices[i][i_dim];
-	        }
-	      }
-	      minima[i_dim] -= padding;
-	      maxima[i_dim] += padding;
-	      spans[i_dim] = maxima[i_dim] - minima[i_dim];
-	      sizes[i_dim] = Math.ceil(spans[i_dim] * inv_div);
-	    }
-	
-	    function vertex_to_space(v) {
-	      var result = [];
-	      for (var j = 0; j < 3; j++) {
-	        result.push(Math.round((v[j] - minima[j]) * inv_div));
-	      }
-	      return result;
-	    }
-	
-	    function space_to_hash(s) {
-	      return s[0] * sizes[1] * sizes[2] + s[1] * sizes[2] + s[2];
-	    }
-	
-	    var cells = {};
-	    var spaces = [];
-	    for (var i = 0; i < vertices.length; i++) {
-	      var vertex = vertices[i];
-	      var space = vertex_to_space(vertex);
-	      spaces.push(space);
-	      var space_hash = space_to_hash(space);
-	      if (!(space_hash in cells)) {
-	        cells[space_hash] = [];
-	      }
-	      cells[space_hash].push(i);
-	    }
-	
-	    function neighbourhood_in_dim(space, i_dim) {
-	      var start = Math.max(0, space[i_dim] - 1);
-	      var end = Math.min(sizes[i_dim], space[i_dim] + 2);
-	      var result = [];
-	      for (var i = start; i < end; i++) {
-	        result.push(i);
-	      }
-	      return result;
-	    }
-	
-	    function space_neighbourhood(space) {
-	      var result = [];
-	      var neighbourhood0 = neighbourhood_in_dim(space, 0);
-	      var neighbourhood1 = neighbourhood_in_dim(space, 1);
-	      var neighbourhood2 = neighbourhood_in_dim(space, 2);
-	      for (var s0 = 0; s0 < neighbourhood0.length; s0++) {
-	        for (var s1 = 0; s1 < neighbourhood1.length; s1++) {
-	          for (var s2 = 0; s2 < neighbourhood2.length; s2++) {
-	            result.push([neighbourhood0[s0], neighbourhood1[s1], neighbourhood2[s2]]);
-	          }
-	        }
-	      }
-	      return result;
-	    }
-	
-	    var pairs = [];
-	    for (var i = 0; i < vertices.length; i++) {
-	      var neighbourhood = space_neighbourhood(spaces[i]);
-	      for (var j_neigh = 0; j_neigh < neighbourhood.length; j_neigh++) {
-	        var hash = space_to_hash(neighbourhood[j_neigh]);
-	        if (hash in cells) {
-	          var cell = cells[hash];
-	          for (var j_cell = 0; j_cell < cell.length; j_cell++) {
-	            var j = cell[j_cell];
-	            if (i < j) {
-	              pairs.push([i, j]);
-	            }
-	          }
-	        }
-	      }
-	    }
-	    return pairs;
-	  };
-	
 	  this.calc_bonds = function (atoms) {
 	
 	    var vertices = [];
@@ -28828,7 +28713,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var atom = atoms[i];
 	      vertices.push([atom.pos.x, atom.pos.y, atom.pos.z]);
 	    }
-	    var close_pairs = this.get_close_pairs(vertices);
+	    var close_pairs = (0, _pairs.getClosePairs)(vertices);
 	
 	    var result = [];
 	    var small_cutoff = 1.2;
@@ -28840,20 +28725,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var a1 = atoms[close_pairs[i_pair][1]];
 	      // HACK: to avoid the water grid bond calculation
 	      // step that kills the rendering
-	      if (a0.res_type == "HOH" || a1.res_type == "HOH") {
+	      if (a0.res_type === 'HOH' || a1.res_type === 'HOH') {
 	        continue;
 	      }
-	      if (a0.res_type == "XXX" || a1.res_type == "XXX") {
+	      if (a0.res_type === 'XXX' || a1.res_type === 'XXX') {
 	        continue;
 	      }
 	      var dist = _v2.default.distance(a0.pos, a1.pos);
 	      var cutoff;
-	      if (a0.alt != "" && a1.alt != "") {
+	      if (a0.alt != '' && a1.alt != '') {
 	        if (a0.alt != a1.alt) {
 	          continue;
 	        }
 	      }
-	      if (a0.elem == "H" || a1.elem == "H") {
+	      if (a0.elem === 'H' || a1.elem === 'H') {
 	        cutoff = small_cutoff;
 	      } else if ((0, _util.inArray)(a0.elem, CHONPS) && (0, _util.inArray)(a1.elem, CHONPS)) {
 	        cutoff = medium_cutoff;
@@ -28880,24 +28765,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!residue.is_protein_or_nuc) {
 	        continue;
 	      }
-	      if ("O" in residue.atoms) {
-	        var a = residue.atoms["O"];
+	      if ('O' in residue.atoms) {
+	        var a = residue.atoms['O'];
 	        vertices.push([a.pos.x, a.pos.y, a.pos.z]);
 	        atoms.push(a);
 	      }
-	      if ("N" in residue.atoms) {
-	        var a = residue.atoms["N"];
+	      if ('N' in residue.atoms) {
+	        var a = residue.atoms['N'];
 	        vertices.push([a.pos.x, a.pos.y, a.pos.z]);
 	        atoms.push(a);
 	      }
 	    }
 	
 	    var cutoff = 3.5;
-	    var close_pairs = this.get_close_pairs(vertices);
+	    var close_pairs = (0, _pairs.getClosePairs)(vertices);
 	    for (var i_pair = 0; i_pair < close_pairs.length; i_pair++) {
 	      var a0 = atoms[close_pairs[i_pair][0]];
 	      var a1 = atoms[close_pairs[i_pair][1]];
-	      if (a0.res_id == a1.res_id) {
+	      if (a0.res_id === a1.res_id) {
 	        continue;
 	      }
 	      var dist = _v2.default.distance(a0.pos, a1.pos);
@@ -28905,12 +28790,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var res0 = this.res_by_id[a0.res_id];
 	        var res1 = this.res_by_id[a1.res_id];
 	        if (!(0, _util.inArray)(res1.i, res0.hb_partners)) {
-	          if (a0.elem == "O" && a1.elem == "N") {
+	          if (a0.elem === 'O' && a1.elem === 'N') {
 	            res0.hb_partners.push(res1.i);
 	          }
 	        }
 	        if (!(0, _util.inArray)(res0.i, res1.hb_partners)) {
-	          if (a1.elem == "O" && a0.elem == "N") {
+	          if (a1.elem === 'O' && a0.elem === 'N') {
 	            res1.hb_partners.push(res0.i);
 	          }
 	        }
@@ -28948,16 +28833,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    for (var j = 0; j < this.residues.length; j += 1) {
 	      var residue = this.residues[j];
-	      residue.ss = "-";
+	      residue.ss = '-';
 	      if (residue.is_water) {
-	        residue.ss = "W";
+	        residue.ss = 'W';
 	      }
 	      if (residue.is_protein_or_nuc) {
 	        if (this.has_nuc_bb(j)) {
-	          residue.ss = "D";
+	          residue.ss = 'D';
 	        }
 	        if (this.has_aa_bb(j)) {
-	          residue.ss = "C";
+	          residue.ss = 'C';
 	        }
 	      }
 	      residue.normals = [];
@@ -28971,9 +28856,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var residue = this.residues[i_res1];
 	      var atoms = residue.atoms;
 	
-	      if (residue.ss == "D") {
-	        var forward = _v2.default.diff(atoms["C3'"].pos, atoms["C5'"].pos);
-	        var up = _v2.default.diff(atoms["C1'"].pos, atoms["C3'"].pos);
+	      if (residue.ss === 'D') {
+	        var forward = _v2.default.diff(atoms['C3\''].pos, atoms['C5\''].pos);
+	        var up = _v2.default.diff(atoms['C1\''].pos, atoms['C3\''].pos);
 	        var normal = _v2.default.crossProduct(forward, up);
 	        residue.normals.push(normal);
 	      }
@@ -29034,7 +28919,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        for (var i = 0; i < beta_residues.length; i += 1) {
 	          var i_res = beta_residues[i];
-	          this.residues[i_res].ss = "E";
+	          this.residues[i_res].ss = 'E';
 	        }
 	      }
 	    }
@@ -29042,7 +28927,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // average normals to make a nice average
 	    for (var i_res1 = 0; i_res1 < this.residues.length; i_res1 += 1) {
 	      var res = this.residues[i_res1];
-	      if (res.normals.length == 0) {
+	      if (res.normals.length === 0) {
 	        res.normal = null;
 	      } else {
 	        var normal = _v2.default.create(0, 0, 0);
@@ -29058,7 +28943,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    for (var _i_res = 1; _i_res < this.residues.length; _i_res += 1) {
 	      var prevRes = this.residues[_i_res - 1];
 	      var _res = this.residues[_i_res];
-	      if (_res.ss === prevRes.ss && _res.ss === "E") {
+	      if (_res.ss === prevRes.ss && _res.ss === 'E') {
 	        if (_res.normal.dot(prevRes.normal) < 0) {
 	          _res.normal.negate();
 	        }
@@ -29069,9 +28954,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.load = function (protein_data) {
 	
 	    this.pdb_id = protein_data['pdb_id'];
-	    console.log("> Protein.load parsing " + this.pdb_id);
+	    console.log('> Protein.load parsing ' + this.pdb_id);
 	
-	    this.default_html = this.pdb_id + ": " + parsetTitleFromPdbText(protein_data['pdb_text']);
+	    this.default_html = this.pdb_id + ': ' + parsetTitleFromPdbText(protein_data['pdb_text']);
 	
 	    var atom_lines = extract_atom_lines(protein_data['pdb_text']);
 	    var newAtoms = this.make_atoms_from_pdb_lines(atom_lines, this.pdb_id);
@@ -29086,17 +28971,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.checkNonStandardResdiues();
 	
-	    console.log("> Protein.load " + newAtoms.length + " atoms");
+	    console.log('> Protein.load ' + newAtoms.length + ' atoms');
 	
 	    this.make_bonds(this.calc_bonds(this.atoms));
 	    this.assignBondsToResidues();
-	    console.log("> Protein.load " + this.bonds.length + " bonds");
+	    console.log('> Protein.load ' + this.bonds.length + ' bonds');
 	
 	    this.max_length = this.calc_max_length(this.atoms);
 	
 	    this.find_ss();
 	
-	    console.log("> Protein.load " + this.residues.length + " residues");
+	    console.log('> Protein.load ' + this.residues.length + ' residues');
 	  };
 	
 	  this.getAtom = function (iAtom) {
@@ -29166,7 +29051,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  this.get_i_res_from_res_id = function (res_id) {
 	    for (var i = 0; i < this.residues.length; i += 1) {
-	      if (this.residues[i].id == res_id) {
+	      if (this.residues[i].id === res_id) {
 	        return i;
 	      }
 	    }
@@ -29218,7 +29103,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	// should be viewed
 	///////////////////////////////////////////
 	
-	
 	var Camera = function Camera() {
 	  this.pos = _v2.default.create(0, 0, 0);
 	  this.up_v = _v2.default.create(0, 1, 0);
@@ -29229,7 +29113,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  this.clone = function () {
 	    var c = new Camera();
-	    c.pos = this.pos.clone(), c.up_v = this.up_v.clone(), c.in_v = this.in_v.clone(), c.zoom = this.zoom, c.z_front = this.z_front, c.z_back = this.z_back;
+	    c.pos = this.pos.clone();
+	    c.up_v = this.up_v.clone();
+	    c.in_v = this.in_v.clone();
+	    c.zoom = this.zoom;
+	    c.z_front = this.z_front;
+	    c.z_back = this.z_back;
 	    return c;
 	  };
 	
@@ -29239,61 +29128,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.in_v.applyMatrix4(matrix);
 	  };
 	};
-	
-	function get_camera_transform(ref, mov, n_step) {
-	  var ref1 = ref.pos;
-	  var ref2 = ref.up_v;
-	  var ref3 = ref.in_v;
-	  var mov1 = mov.pos;
-	  var mov2 = mov.up_v;
-	  var mov3 = mov.in_v;
-	
-	  var disp = _v2.default.diff(ref1, mov1);
-	  var t = _v2.default.translation(disp);
-	
-	  var axis1, torsion1, r1;
-	  var mov12 = _v2.default.diff(mov2, mov1);
-	  var ref12 = _v2.default.diff(ref2, ref1);
-	  if (_v2.default.isAligned(mov12, ref12)) {
-	    r1 = new _v2.default.Matrix4();
-	    torsion1 = null;
-	  } else {
-	    axis1 = _v2.default.crossProduct(mov12, ref12);
-	    torsion1 = _v2.default.dihedral(ref12, axis1, mov12);
-	    r1 = _v2.default.rotation(axis1, torsion1);
-	  }
-	
-	  var axis2, torsion2, r2;
-	  var ref13 = _v2.default.diff(ref3, ref1);
-	  var mov13 = _v2.default.diff(mov3, mov1);
-	  mov13.applyMatrix4(r1);
-	  if (_v2.default.isNearZero(_v2.default.angle(ref13, mov13))) {
-	    r2 = new _v2.default.Matrix4();
-	    torsion2 = null;
-	  } else {
-	    axis2 = _v2.default.crossProduct(ref13, mov13);
-	    torsion2 = _v2.default.dihedral(ref13, axis2, mov13);
-	    r2 = _v2.default.rotation(axis2, torsion2);
-	  }
-	
-	  // now we have the parameters of the transform
-	  // build the transform (in terms of little steps)
-	  if (torsion1 === null) {
-	    var n = t;
-	  } else {
-	    var r1 = _v2.default.rotation(axis1, torsion1 / n_step);
-	    var n = _v2.default.matrixProduct(r1, t);
-	  }
-	  if (torsion2 === null) {
-	    var m = n;
-	  } else {
-	    var r2 = _v2.default.rotation(axis2, torsion2 / n_step);
-	    var m = _v2.default.matrixProduct(r2, n);
-	  }
-	  var disp2 = _v2.default.scaled(disp, -(n_step - 1) / n_step);
-	
-	  return _v2.default.matrixProduct(_v2.default.translation(disp2), m);
-	}
 	
 	////////////////////////////////////////////////////
 	//
@@ -29313,18 +29147,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	//
 	////////////////////////////////////////////////////
 	
-	
 	var View = function View() {
 	  this.id = 'view:000000';
-	  this.res_id = "";
+	  this.res_id = '';
 	  this.i_atom = -1;
 	  this.order = 1;
-	  this.abs_camera = new Camera();
+	  this.camera = new Camera();
 	  this.selected = [];
 	  this.labels = [];
 	  this.distances = [];
 	  this.text = 'Default view of PDB file';
-	  this.creator = "";
+	  this.creator = '';
 	  this.url = (0, _util.getWindowUrl)();
 	  this.show = {
 	    sidechain: true,
@@ -29349,7 +29182,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    v.text = this.text;
 	    v.time = this.time;
 	    v.url = this.url;
-	    v.abs_camera = this.abs_camera.clone();
+	    v.camera = this.camera.clone();
 	    v.show = _.cloneDeep(this.show);
 	    return v;
 	  };
@@ -29379,13 +29212,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.protein = protein;
 	  this.saved_views_by_id = {};
 	  this.saved_views = [];
-	  this.origin = new View();
 	  this.current_view = new View();
 	  this.target_view = null;
 	  this.n_update_step = -1;
 	  this.is_new_view_chosen = true;
 	  this.i_last_view = 0;
-	  this.saved_show = null;
 	
 	  this.set_target_view = function (view) {
 	    this.n_update_step = this.max_update_step;
@@ -29400,7 +29231,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.get_i_saved_view_from_id = function (id) {
 	    var i = -1;
 	    for (var j = 0; j < this.saved_views.length; j += 1) {
-	      if (this.saved_views[j].id == id) {
+	      if (this.saved_views[j].id === id) {
 	        i = j;
 	      }
 	    }
@@ -29451,7 +29282,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	/////////////////////////////////////////////////
 	
 	var Controller = function Controller(scene) {
-	  this.zoom_min = 2.4;
 	  this.protein = scene.protein;
 	  this.scene = scene;
 	
@@ -29460,24 +29290,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.scene.changed = true;
 	  };
 	
-	  this.make_dist = function (atom1, atom2) {
-	    this.scene.current_view.distances.push({
-	      'i_atom1': atom1.i,
-	      'i_atom2': atom2.i,
-	      'z': atom2.z
-	    });
+	  this.make_dist = function (iAtom1, iAtom2) {
+	    this.scene.current_view.distances.push({ 'i_atom1': iAtom1, 'i_atom2': iAtom2 });
 	    this.scene.changed = true;
 	  };
 	
-	  this.make_label = function (i_atom, text) {
+	  this.make_label = function (iAtom, text) {
 	    this.scene.current_view.labels.push({
-	      'i_atom': i_atom, 'text': text
+	      'i_atom': iAtom, 'text': text
 	    });
 	    this.scene.changed = true;
 	  };
 	
-	  this.delete_label = function (i) {
-	    this.scene.current_view.labels.splice(i, 1);
+	  this.delete_label = function (iLabel) {
+	    this.scene.current_view.labels.splice(iLabel, 1);
 	    this.scene.changed = true;
 	  };
 	
@@ -29485,24 +29311,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.scene.set_target_view(view);
 	  };
 	
-	  this.set_target_view_by_id = function (id) {
-	    var view = this.scene.saved_views_by_id[id];
-	    this.scene.i_last_view = this.scene.saved_views_by_id[id].order;
+	  this.set_target_view_by_id = function (viewId) {
+	    var view = this.scene.saved_views_by_id[viewId];
+	    this.scene.i_last_view = this.scene.saved_views_by_id[viewId].order;
 	    this.set_target_view(view);
 	  };
 	
-	  this.set_target_view_by_res_id = function (res_id) {
+	  this.set_target_view_by_atom = function (iAtom) {
 	    var view = this.scene.current_view.clone();
-	    view.res_id = res_id;
-	    view.i_atom = this.protein.res_by_id[res_id].iAtom;
-	    var atom = this.protein.getAtom(view.i_atom);
-	    this.set_target_view(view);
-	  };
-	
-	  this.set_target_view_by_atom = function (atom) {
-	    var view = this.scene.current_view.clone();
+	    var atom = this.protein.getAtom(iAtom);
 	    view.res_id = atom.res_id;
-	    view.i_atom = atom.i;
+	    view.i_atom = iAtom;
+	    var translate = _v2.default.translation(atom.pos.clone().sub(view.camera.pos));
+	    view.camera.transform(translate);
 	    this.set_target_view(view);
 	  };
 	
@@ -29513,8 +29334,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } else {
 	      curr_res_id = this.scene.current_view.res_id;
 	    }
-	    var res_id = this.protein.get_prev_res_id(curr_res_id);
-	    this.set_target_view_by_res_id(res_id);
+	    var i = this.protein.get_i_res_from_res_id(curr_res_id);
+	    if (i <= 0) {
+	      i = this.protein.getNResidue() - 1;
+	    } else {
+	      i -= 1;
+	    }
+	    var res = this.protein.getResidue(i);
+	    this.set_target_view_by_atom(res.iAtom);
 	  };
 	
 	  this.set_target_next_residue = function () {
@@ -29524,8 +29351,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } else {
 	      curr_res_id = this.scene.current_view.res_id;
 	    }
-	    var res_id = this.protein.get_next_res_id(curr_res_id);
-	    this.set_target_view_by_res_id(res_id);
+	    var i = this.protein.get_i_res_from_res_id(curr_res_id);
+	    if (i >= this.protein.getNResidue() - 1) {
+	      i = 0;
+	    } else {
+	      i += 1;
+	    }
+	    var res = this.protein.getResidue(i);
+	    this.set_target_view_by_atom(res.iAtom);
 	  };
 	
 	  this.set_target_prev_view = function () {
@@ -29574,13 +29407,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      distances: view.distances,
 	      camera: {
 	        slab: {
-	          z_front: view.abs_camera.z_front,
-	          z_back: view.abs_camera.z_back,
-	          zoom: view.abs_camera.zoom
+	          z_front: view.camera.z_front,
+	          z_back: view.camera.z_back,
+	          zoom: view.camera.zoom
 	        },
-	        pos: [view.abs_camera.pos.x, view.abs_camera.pos.y, view.abs_camera.pos.z],
-	        up: [view.abs_camera.up_v.x, view.abs_camera.up_v.y, view.abs_camera.up_v.z],
-	        in: [view.abs_camera.in_v.x, view.abs_camera.in_v.y, view.abs_camera.in_v.z]
+	        pos: [view.camera.pos.x, view.camera.pos.y, view.camera.pos.z],
+	        up: [view.camera.up_v.x, view.camera.up_v.y, view.camera.up_v.z],
+	        in: [view.camera.in_v.x, view.camera.in_v.y, view.camera.in_v.z]
 	      }
 	    };
 	  };
@@ -29622,7 +29455,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.toggle_neighbors = function () {
 	    var res_id = this.scene.current_view.res_id;
 	    var i_res = this.protein.get_i_res_from_res_id(res_id);
-	    if (this.last_neighbour_res_id == res_id) {
+	    if (this.last_neighbour_res_id === res_id) {
 	      var b = false;
 	      this.last_neighbour_res_id = null;
 	    } else {
@@ -29641,7 +29474,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    new_view.text = 'Click edit to change this text.';
 	    new_view.pdb_id = this.protein.pdb_id;
 	    var time = (0, _util.getCurrentDateStr)();
-	    if (user == '' || typeof user == 'undefined') {
+	    if (user === '' || typeof user === 'undefined') {
 	      new_view.creator = '~ [public] @' + time;
 	    } else {
 	      new_view.creator = '~ ' + user + ' @' + time;
@@ -29678,21 +29511,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	      view.show.ribbon = true;
 	    }
 	
-	    view.abs_camera.pos.x = flat_dict.camera.pos[0];
-	    view.abs_camera.pos.y = flat_dict.camera.pos[1];
-	    view.abs_camera.pos.z = flat_dict.camera.pos[2];
+	    view.camera.pos.x = flat_dict.camera.pos[0];
+	    view.camera.pos.y = flat_dict.camera.pos[1];
+	    view.camera.pos.z = flat_dict.camera.pos[2];
 	
-	    view.abs_camera.up_v.x = flat_dict.camera.up[0];
-	    view.abs_camera.up_v.y = flat_dict.camera.up[1];
-	    view.abs_camera.up_v.z = flat_dict.camera.up[2];
+	    view.camera.up_v.x = flat_dict.camera.up[0];
+	    view.camera.up_v.y = flat_dict.camera.up[1];
+	    view.camera.up_v.z = flat_dict.camera.up[2];
 	
-	    view.abs_camera.in_v.x = flat_dict.camera.in[0];
-	    view.abs_camera.in_v.y = flat_dict.camera.in[1];
-	    view.abs_camera.in_v.z = flat_dict.camera.in[2];
+	    view.camera.in_v.x = flat_dict.camera.in[0];
+	    view.camera.in_v.y = flat_dict.camera.in[1];
+	    view.camera.in_v.z = flat_dict.camera.in[2];
 	
-	    view.abs_camera.z_front = flat_dict.camera.slab.z_front;
-	    view.abs_camera.z_back = flat_dict.camera.slab.z_back;
-	    view.abs_camera.zoom = flat_dict.camera.slab.zoom;
+	    view.camera.z_front = flat_dict.camera.slab.z_front;
+	    view.camera.z_back = flat_dict.camera.slab.z_back;
+	    view.camera.zoom = flat_dict.camera.slab.zoom;
 	
 	    return view;
 	  };
@@ -29710,7 +29543,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.load_views_from_flat_views = function (view_dicts) {
 	    for (var i = 0; i < view_dicts.length; i += 1) {
 	      var view = this.view_from_dict(view_dicts[i]);
-	      if (view.id === "view:000000") {
+	      if (view.id === 'view:000000') {
 	        continue;
 	      }
 	      this.scene.save_view(view);
@@ -72042,21 +71875,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	 **/
 	
 	function convertViewToTarget(view) {
-	  var cameraFocus = _v2.default.clone(view.abs_camera.pos);
+	  var cameraFocus = _v2.default.clone(view.camera.pos);
 	
-	  var cameraDirection = _v2.default.clone(view.abs_camera.in_v).sub(cameraFocus).multiplyScalar(view.abs_camera.zoom).negate();
+	  var cameraDirection = _v2.default.clone(view.camera.in_v).sub(cameraFocus).multiplyScalar(view.camera.zoom).negate();
 	
 	  var cameraPosition = cameraFocus.clone().add(cameraDirection);
 	
-	  var cameraUp = _v2.default.clone(view.abs_camera.up_v).sub(cameraFocus).negate();
+	  var cameraUp = _v2.default.clone(view.camera.up_v).sub(cameraFocus).negate();
 	
 	  return {
 	    cameraFocus: cameraFocus,
 	    cameraPosition: cameraPosition,
 	    cameraUp: cameraUp,
-	    zFront: view.abs_camera.z_front,
-	    zBack: view.abs_camera.z_back,
-	    zoom: view.abs_camera.zoom
+	    zFront: view.camera.z_front,
+	    zBack: view.camera.z_back,
+	    zoom: view.camera.zoom
 	  };
 	}
 	
@@ -72065,18 +71898,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  var cameraDirection = target.cameraPosition.clone().sub(target.cameraFocus).negate();
 	
-	  view.abs_camera.zoom = cameraDirection.length();
-	  view.abs_camera.z_front = target.zFront;
-	  view.abs_camera.z_back = target.zBack;
+	  view.camera.zoom = cameraDirection.length();
+	  view.camera.z_front = target.zFront;
+	  view.camera.z_back = target.zBack;
 	
-	  view.abs_camera.pos = _v2.default.clone(target.cameraFocus);
+	  view.camera.pos = _v2.default.clone(target.cameraFocus);
 	
 	  var up = target.cameraUp.clone().negate();
 	
-	  view.abs_camera.up_v = _v2.default.clone(target.cameraFocus.clone().add(up));
+	  view.camera.up_v = _v2.default.clone(target.cameraFocus.clone().add(up));
 	
 	  cameraDirection.normalize();
-	  view.abs_camera.in_v = _v2.default.clone(target.cameraFocus.clone().add(cameraDirection));
+	  view.camera.in_v = _v2.default.clone(target.cameraFocus.clone().add(cameraDirection));
 	
 	  return view;
 	}
@@ -72121,23 +71954,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	function makeDefaultView(view, protein) {
 	  view.res_id = protein.getResidue(0).id;
 	
-	  view.abs_camera.z_front = -protein.max_length / 2;
-	  view.abs_camera.z_back = protein.max_length / 2;
-	  view.abs_camera.zoom = Math.abs(protein.max_length);
+	  view.camera.z_front = -protein.max_length / 2;
+	  view.camera.z_back = protein.max_length / 2;
+	  view.camera.zoom = Math.abs(protein.max_length);
 	
 	  view.show.sidechain = false;
 	
-	  // this is some mangling to link openGL
-	  // with the coordinate system that I had
-	  // chosen unwittingly when I first designed
-	  // the raster jolecule library
-	  view.abs_camera.up_v = _v2.default.create(0, -1, 0);
+	  // mangling with original coordinate system to openGL
+	  view.camera.up_v = _v2.default.create(0, -1, 0);
 	
 	  var atom = protein.get_central_atom();
 	  view.res_id = atom.res_id;
 	  view.i_atom = atom.i;
-	  var center = atom.pos;
-	  view.abs_camera.transform(_v2.default.translation(center));
+	  view.camera.transform(_v2.default.translation(atom.pos));
 	
 	  view.order = 0;
 	  view.text = protein.default_html;
@@ -72148,17 +71977,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var currTrace = void 0;
 	  var traces = [];
 	
-	  for (var iResidue = 0; iResidue < protein.getNResidue(); iResidue += 1) {
-	    var residue = protein.getResidue(iResidue);
+	  for (var iRes = 0; iRes < protein.getNResidue(); iRes += 1) {
+	    var residue = protein.getResidue(iRes);
 	
 	    if (residue.is_protein_or_nuc) {
 	
 	      var isBreak = false;
-	      if (iResidue === 0) {
+	      if (iRes === 0) {
 	        isBreak = true;
 	      } else {
-	        var peptideConnect = protein.isPeptideConnected(iResidue - 1, iResidue);
-	        var nucleotideConnect = protein.isSugarPhosphateConnected(iResidue - 1, iResidue);
+	        var peptideConnect = protein.isPeptideConnected(iRes - 1, iRes);
+	        var nucleotideConnect = protein.isSugarPhosphateConnected(iRes - 1, iRes);
 	        isBreak = !peptideConnect && !nucleotideConnect;
 	      }
 	
@@ -72168,8 +71997,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        traces.push(currTrace);
 	      }
 	
-	      currTrace.indices.push(iResidue);
-	      currTrace.points.push(protein.getResidueCentralAtom(iResidue).pos);
+	      currTrace.indices.push(iRes);
+	      currTrace.points.push(protein.getResidueCentralAtom(iRes).pos);
 	      var normal = null;
 	      if (residue.normal) {
 	        normal = residue.normal;
@@ -72293,7 +72122,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.divTag, this.scene);
 	    this.gridControlWidget = new _widgets2.default.GridControlWidget(this.divTag, this.scene, isGrid);
 	
-	    this.lineElement = new _widgets2.default.LineElement(this.webglDivTag, '#FF7777');
+	    // this.lineElement = new widgets.LineElement(this.webglDivTag, '#FF7777')
 	
 	    // input control parametsrs
 	    this.saveMouseX = null;
@@ -73408,31 +73237,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	    }
 	  }, {
-	    key: 'setTargetFromResId',
-	    value: function setTargetFromResId(resId) {
-	      var res = this.protein.res_by_id[resId];
-	      this.setTargetFromAtom(res.iAtom);
-	    }
-	  }, {
 	    key: 'setTargetFromAtom',
 	    value: function setTargetFromAtom(iAtom) {
-	      var atom = this.protein.getAtom(iAtom);
-	
-	      var sceneDisplacement = atom.pos.clone().sub(this.cameraFocus);
-	
-	      var view = convertTargetToView({
-	        cameraFocus: atom.pos,
-	        cameraPosition: this.camera.position.clone().add(sceneDisplacement),
-	        cameraUp: this.camera.up.clone(),
-	        zFront: this.zFront,
-	        zBack: this.zBack
-	      });
-	
-	      view.copy_metadata_from_view(this.scene.current_view);
-	      view.res_id = atom.res_id;
-	      view.i_atom = atom.i;
-	      this.scene.target_view = view;
-	
+	      this.controller.set_target_view_by_atom(iAtom);
 	      this.scene.is_new_view_chosen = true;
 	      this.scene.n_update_step = this.scene.max_update_step;
 	    }
@@ -73902,7 +73709,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (this.isDraggingCentralAtom) {
 	        if (this.iHoverAtom !== null) {
 	          if (this.iHoverAtom !== this.iDownAtom) {
-	            this.controller.make_dist(this.protein.getAtom(this.iHoverAtom), this.protein.getAtom(this.iDownAtom));
+	            this.controller.make_dist(this.iHoverAtom, this.iDownAtom);
 	          }
 	        }
 	
@@ -74028,11 +73835,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(PathAndFrenetFrames, [{
-	    key: 'getSpacedPoints',
-	    value: function getSpacedPoints() {
-	      return this.points;
-	    }
-	  }, {
 	    key: 'slice',
 	    value: function slice(i, j) {
 	      var subPath = new PathAndFrenetFrames();
@@ -74539,9 +74341,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * Takes a bunch of points and treats it as defining
 	 * a polygon, and raises it to a certain thickness.
-	 *
-	 * TODO: needs to define face-normals
-	 */
+	 **/
 	
 	
 	var RaisedShapeGeometry = function (_THREE$Geometry2) {
@@ -75363,7 +75163,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    _this4.textXOffset = 0;
 	
-	    _this4.residues = null;
+	    _this4.residues = [];
 	    _this4.iRes = null;
 	    _this4.iStartChar = null;
 	    _this4.iEndChar = null;
@@ -75416,7 +75216,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'reset',
 	    value: function reset() {
-	      this.residues = [];
+	      this.residues.length = 0;
 	      var _iteratorNormalCompletion = true;
 	      var _didIteratorError = false;
 	      var _iteratorError = undefined;
@@ -75493,7 +75293,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return;
 	      }
 	
-	      if (this.residues.length === 0) {
+	      if (this.residues.length == 0) {
 	        return;
 	      }
 	
@@ -75659,7 +75459,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'draw',
 	    value: function draw() {
 	      var protein = this.scene.protein;
-	      var camera = this.scene.current_view.abs_camera;
+	      var camera = this.scene.current_view.camera;
 	      this.maxZLength = 2.0 * protein.max_length;
 	
 	      var yBack = this.zToY(camera.z_back);
@@ -75712,12 +75512,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.getZ(event);
 	
-	      var abs_camera = this.scene.current_view.abs_camera;
+	      var camera = this.scene.current_view.camera;
 	
 	      if (this.back) {
-	        abs_camera.z_back = Math.max(2, this.z);
+	        camera.z_back = Math.max(2, this.z);
 	      } else if (this.front) {
-	        abs_camera.z_front = Math.min(-2, this.z);
+	        camera.z_front = Math.min(-2, this.z);
 	      }
 	
 	      this.scene.changed = true;
@@ -75749,12 +75549,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this6.scene.grid_atoms = {};
 	    _this6.buttonHeight = 40;
 	    _this6.sliderHeight = _this6.buttonHeight * 6 - 50;
-	    if (_this6.isGrid) {
-	      _this6.div.attr('id', 'gridControlWidget');
-	      _this6.div.css('height', _this6.height());
+	    _this6.div.attr('id', 'grid-control');
+	    if (!_this6.isGrid) {
+	      _this6.div.css('display', 'none');
 	    }
+	    _this6.div.css('height', _this6.height());
 	    _this6.backgroundColor = '#AAA';
-	    _this6.buttonsDiv = (0, _jquery2.default)('<div>');
+	    _this6.buttonsDiv = (0, _jquery2.default)('<div id="grid-control-buttons">');
 	    _this6.div.append(_this6.buttonsDiv);
 	    _this6.reset();
 	    return _this6;
@@ -76243,7 +76044,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -76289,7 +76090,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.isEditable = isEditable;
 	    this.data_server = data_server;
 	    this.viewPiece = {};
-	    this.topDiv = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)("<div>").addClass("jolecule-sub-header").append("VIEWS OF PROTEIN").append("<br>").append("<br>").append((0, _util.linkButton)('', '+[v]iew', 'jolecule-button', function () {
+	    this.topDiv = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('VIEWS OF PROTEIN').append('<br>').append('<br>').append((0, _util.linkButton)('', '+[v]iew', 'jolecule-button', function () {
 	      _this.makeNewView();
 	    })).append((0, _util.linkButton)('', 'prev[&uarr;]', 'jolecule-button', function () {
 	      _this.gotoPrevView();
@@ -76297,17 +76098,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.gotoNextView();
 	    })).append((0, _util.linkButton)('', '+l[a]bel', 'jolecule-button', function () {
 	      _this.proteinDisplay.atomLabelDialog();
-	    })).append("<br>")).append((0, _jquery2.default)("<div>").attr("id", "jolecule-views"));
+	    })).append('<br>')).append((0, _jquery2.default)('<div>').attr('id', 'jolecule-views'));
 	  }
 	
 	  _createClass(ViewPieceList, [{
-	    key: "saveViewsToDataServer",
+	    key: 'saveViewsToDataServer',
 	    value: function saveViewsToDataServer(success) {
 	      console.log('> ViewPieceList.saveViewsToDataServer');
 	      this.data_server.save_views(this.controller.get_view_dicts(), success);
 	    }
 	  }, {
-	    key: "updateViews",
+	    key: 'updateViews',
 	    value: function updateViews() {
 	      for (var id in this.viewPiece) {
 	        if (!(id in this.scene.saved_views_by_id)) {
@@ -76326,16 +76127,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var i_last_view = this.scene.i_last_view;
 	        var last_id = this.scene.saved_views[i_last_view].id;
 	
-	        if (last_id == _id) {
-	          this.viewPiece[_id].div.removeClass("jolecule-unselected-box");
-	          this.viewPiece[_id].div.addClass("jolecule-selected-box");
+	        if (last_id === _id) {
+	          this.viewPiece[_id].div.removeClass('jolecule-unselected-box');
+	          this.viewPiece[_id].div.addClass('jolecule-selected-box');
 	        } else {
-	          this.viewPiece[_id].div.removeClass("jolecule-selected-box");
-	          this.viewPiece[_id].div.addClass("jolecule-unselected-box");
+	          this.viewPiece[_id].div.removeClass('jolecule-selected-box');
+	          this.viewPiece[_id].div.addClass('jolecule-unselected-box');
 	        }
 	
 	        var viewPiece = this.viewPiece[_id];
-	        if (view.text != viewPiece.showTextDiv.html()) {
+	        if (view.text !== viewPiece.showTextDiv.html()) {
 	          viewPiece.showTextDiv.html(view.text);
 	        }
 	
@@ -76344,34 +76145,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "redrawSelectedViewId",
+	    key: 'redrawSelectedViewId',
 	    value: function redrawSelectedViewId(id) {
 	      this.updateViews();
-	      (0, _jquery2.default)("#jolecule-views").stop().scrollTo(this.viewPiece[id].div, 1000, { offset: { top: -80 } });
+	      (0, _jquery2.default)('#jolecule-views').stop().scrollTo(this.viewPiece[id].div, 1000, { offset: { top: -80 } });
 	    }
 	  }, {
-	    key: "setTargetByViewId",
+	    key: 'setTargetByViewId',
 	    value: function setTargetByViewId(id) {
 	      this.controller.set_target_view_by_id(id);
 	      this.redrawSelectedViewId(id);
 	      window.location.hash = id;
 	    }
 	  }, {
-	    key: "gotoPrevView",
+	    key: 'gotoPrevView',
 	    value: function gotoPrevView() {
 	      var id = this.controller.set_target_prev_view();
 	      this.redrawSelectedViewId(id);
 	      window.location.hash = id;
 	    }
 	  }, {
-	    key: "gotoNextView",
+	    key: 'gotoNextView',
 	    value: function gotoNextView() {
 	      var id = this.controller.set_target_next_view();
 	      this.redrawSelectedViewId(id);
 	      window.location.hash = id;
 	    }
 	  }, {
-	    key: "removeView",
+	    key: 'removeView',
 	    value: function removeView(id) {
 	      var _this2 = this;
 	
@@ -76385,7 +76186,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: "swapViews",
+	    key: 'swapViews',
 	    value: function swapViews(i, j) {
 	      var _this3 = this;
 	
@@ -76407,7 +76208,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: "swapUp",
+	    key: 'swapUp',
 	    value: function swapUp(view_id) {
 	      var i = this.scene.get_i_saved_view_from_id(view_id);
 	      if (i < 2) {
@@ -76416,7 +76217,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.swapViews(i - 1, i);
 	    }
 	  }, {
-	    key: "swapDown",
+	    key: 'swapDown',
 	    value: function swapDown(view_id) {
 	      var i = this.scene.get_i_saved_view_from_id(view_id);
 	      if (i > this.scene.saved_views.length - 2) {
@@ -76425,7 +76226,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.swapViews(i, i + 1);
 	    }
 	  }, {
-	    key: "makeViewDiv",
+	    key: 'makeViewDiv',
 	    value: function makeViewDiv(id) {
 	      var _this4 = this;
 	
@@ -76436,7 +76237,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        delete_view: function delete_view() {
 	          _this4.removeView(id);
 	        },
-	        save_change: function save_change(changed_text, sucess) {
+	        save_change: function save_change(changed_text) {
 	          view.text = changed_text;
 	          _this4.viewPiece[id].div.css('background-color', 'lightgray');
 	          _this4.saveViewsToDataServer(function () {
@@ -76461,7 +76262,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.viewPiece[id].div;
 	    }
 	  }, {
-	    key: "makeAllViews",
+	    key: 'makeAllViews',
 	    value: function makeAllViews() {
 	      for (var i = 0; i < this.scene.saved_views.length; i += 1) {
 	        var id = this.scene.saved_views[i].id;
@@ -76470,12 +76271,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "insertNewViewDiv",
+	    key: 'insertNewViewDiv',
 	    value: function insertNewViewDiv(new_id) {
 	      var div = this.makeViewDiv(new_id);
 	
-	      if (this.scene.i_last_view == this.scene.saved_views.length - 1) {
-	        (0, _jquery2.default)("#jolecule-views").append(div);
+	      if (this.scene.i_last_view === this.scene.saved_views.length - 1) {
+	        (0, _jquery2.default)('#jolecule-views').append(div);
 	      } else {
 	        var j = this.scene.i_last_view - 1;
 	        var j_id = this.scene.saved_views[j].id;
@@ -76484,7 +76285,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "makeNewView",
+	    key: 'makeNewView',
 	    value: function makeNewView() {
 	      var _this5 = this;
 	
@@ -76497,8 +76298,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.saveViewsToDataServer(function () {
 	        console.log('> ViewPieceList.makeNewView success');
 	        _this5.viewPiece[newId].div.css('background-color', '');
-	        (0, _jquery2.default)("#jolecule-views").stop();
-	        (0, _jquery2.default)("#jolecule-views").scrollTo(_this5.viewPiece[newId].div, 1000, { offset: { top: -80 } });
+	        (0, _jquery2.default)('#jolecule-views').stop();
+	        (0, _jquery2.default)('#jolecule-views').scrollTo(_this5.viewPiece[newId].div, 1000, { offset: { top: -80 } });
 	      });
 	    }
 	  }]);
@@ -76554,7 +76355,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(FullPageJolecule, [{
-	    key: "addDataServer",
+	    key: 'addDataServer',
 	    value: function addDataServer(dataServer) {
 	      var _this7 = this;
 	
@@ -76582,15 +76383,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: "isChanged",
+	    key: 'isChanged',
 	    value: function isChanged() {
-	      if (typeof this.scene !== "undefined") {
+	      if (typeof this.scene !== 'undefined') {
 	        return this.scene.changed;
 	      }
 	      return false;
 	    }
 	  }, {
-	    key: "draw",
+	    key: 'draw',
 	    value: function draw() {
 	      if (this.scene.changed) {
 	        this.viewsDisplay.updateViews();
@@ -76602,57 +76403,52 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: "animate",
+	    key: 'animate',
 	    value: function animate() {
-	      if (typeof this.embedJolecule !== "undefined") {
+	      if (typeof this.embedJolecule !== 'undefined') {
 	        this.embedJolecule.animate();
 	      }
 	    }
 	  }, {
-	    key: "resize",
+	    key: 'resize',
 	    value: function resize(event) {
-	      if (typeof this.scene !== "undefined") {
+	      if (typeof this.scene !== 'undefined') {
 	        this.scene.changed = true;
 	      }
-	      if (typeof this.embedJolecule !== "undefined") {
+	      if (typeof this.embedJolecule !== 'undefined') {
 	        this.embedJolecule.resize();
 	      }
 	    }
 	  }, {
-	    key: "gotoPrevResidue",
+	    key: 'gotoPrevResidue',
 	    value: function gotoPrevResidue() {
 	      this.controller.set_target_prev_residue();
 	      window.location.hash = this.scene.target_view.res_id;
 	    }
 	  }, {
-	    key: "gotoNextResidue",
+	    key: 'gotoNextResidue',
 	    value: function gotoNextResidue() {
 	      this.controller.set_target_next_residue();
 	      window.location.hash = this.scene.target_view.res_id;
 	    }
 	  }, {
-	    key: "onkeydown",
+	    key: 'onkeydown',
 	    value: function onkeydown(event) {
 	      if (!window.keyboard_lock) {
 	        var c = String.fromCharCode(event.keyCode).toUpperCase();
-	        var s = "[" + c + "]";
-	        if (c == 'V') {
+	        var s = '[' + c + ']';
+	        if (c === 'V') {
 	          this.viewsDisplay.makeNewView();
 	          return;
-	        } else if (c == "K" || event.keyCode == 37) {
+	        } else if (c === 'K' || event.keyCode === 37) {
 	          this.gotoPrevResidue();
-	        } else if (c == "J" || event.keyCode == 39) {
+	        } else if (c === 'J' || event.keyCode === 39) {
 	          this.gotoNextResidue();
-	        } else if (c == "X") {
-	          var i_atom = this.scene.current_view.i_atom;
-	          if (i_atom >= 0) {
-	            var res_id = this.controller.protein.getAtom(i_atom).res_id;
-	          }
-	        } else if (event.keyCode == 38) {
+	        } else if (event.keyCode === 38) {
 	          this.viewsDisplay.gotoPrevView();
-	        } else if (c == " " || event.keyCode == 40) {
+	        } else if (c === ' ' || event.keyCode === 40) {
 	          this.viewsDisplay.gotoNextView();
-	        } else if (c == 'B') {
+	        } else if (c === 'B') {
 	          if (this.scene.current_view.show.all_atom) {
 	            this.controller.set_backbone_option('ribbon');
 	          } else if (this.scene.current_view.show.ribbon) {
@@ -76660,29 +76456,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	          } else if (this.scene.current_view.show.trace) {
 	            this.controller.set_backbone_option('all_atom');
 	          }
-	        } else if (c == 'L') {
+	        } else if (c === 'L') {
 	          this.controller.toggle_show_option('ligands');
-	        } else if (c == 'S') {
+	        } else if (c === 'S') {
 	          this.controller.toggle_show_option('sidechain');
-	        } else if (c == 'W') {
+	        } else if (c === 'W') {
 	          this.controller.toggle_show_option('water');
-	          // } else if (c == 'H') {
-	          //   this.controller.toggle_show_option('hydrogen');
-	        } else if (c == 'C') {
+	        } else if (c === 'C') {
 	          this.proteinDisplay.controller.clear_selected();
-	        } else if (c == 'E') {
+	        } else if (c === 'E') {
 	          var i_view = this.proteinDisplay.scene.i_last_view;
 	          if (i_view > 0) {
 	            var view_id = this.proteinDisplay.scene.saved_views[i_view].id;
 	            this.viewsDisplay.div[view_id].edit_fn();
 	          }
-	        } else if (c == 'N') {
+	        } else if (c === 'N') {
 	          this.proteinDisplay.controller.toggle_neighbors();
-	        } else if (c == 'A') {
+	        } else if (c === 'A') {
 	          this.proteinDisplay.atomLabelDialog();
 	        } else {
 	          var i = parseInt(c) - 1;
-	          if ((i || i == 0) && i < this.scene.saved_views.length) {
+	          if ((i || i === 0) && i < this.scene.saved_views.length) {
 	            var id = this.scene.saved_views[i].id;
 	            this.viewsDisplay.setTargetByViewId(id);
 	          }
@@ -76912,6 +76706,119 @@ return /******/ (function(modules) { // webpackBootstrap
 		return $scrollTo;
 	});
 
+
+/***/ },
+/* 16 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	/**
+	 * Finds pairs of vertices that have been coarsely grouped together
+	 * using spatial hashes of boxes of div^3. All vertices in neighboring
+	 * boxes are considered close pairs.
+	 *
+	 * @param {Array<Vector3D>} vertices - list of positions
+	 * @returns {Array} - array of tuples of positions
+	 */
+	function getClosePairs(vertices) {
+	  var padding = 0.05;
+	  var div = 5.0;
+	  var inv_div = 1.0 / div;
+	  var maxima = [0.0, 0.0, 0.0];
+	  var minima = [0.0, 0.0, 0.0];
+	  var spans = [0.0, 0.0, 0.0];
+	  var sizes = [0, 0, 0];
+	
+	  for (var i_dim = 0; i_dim < 3; i_dim++) {
+	    for (var i = 0; i < vertices.length; i += 1) {
+	      if (minima[i_dim] > vertices[i][i_dim]) {
+	        minima[i_dim] = vertices[i][i_dim];
+	      }
+	      if (maxima[i_dim] < vertices[i][i_dim]) {
+	        maxima[i_dim] = vertices[i][i_dim];
+	      }
+	    }
+	    minima[i_dim] -= padding;
+	    maxima[i_dim] += padding;
+	    spans[i_dim] = maxima[i_dim] - minima[i_dim];
+	    sizes[i_dim] = Math.ceil(spans[i_dim] * inv_div);
+	  }
+	
+	  function vertex_to_space(v) {
+	    var result = [];
+	    for (var j = 0; j < 3; j++) {
+	      result.push(Math.round((v[j] - minima[j]) * inv_div));
+	    }
+	    return result;
+	  }
+	
+	  function space_to_hash(s) {
+	    return s[0] * sizes[1] * sizes[2] + s[1] * sizes[2] + s[2];
+	  }
+	
+	  var cells = {};
+	  var spaces = [];
+	  for (var i = 0; i < vertices.length; i++) {
+	    var vertex = vertices[i];
+	    var space = vertex_to_space(vertex);
+	    spaces.push(space);
+	    var space_hash = space_to_hash(space);
+	    if (!(space_hash in cells)) {
+	      cells[space_hash] = [];
+	    }
+	    cells[space_hash].push(i);
+	  }
+	
+	  function neighbourhood_in_dim(space, i_dim) {
+	    var start = Math.max(0, space[i_dim] - 1);
+	    var end = Math.min(sizes[i_dim], space[i_dim] + 2);
+	    var result = [];
+	    for (var i = start; i < end; i++) {
+	      result.push(i);
+	    }
+	    return result;
+	  }
+	
+	  function space_neighbourhood(space) {
+	    var result = [];
+	    var neighbourhood0 = neighbourhood_in_dim(space, 0);
+	    var neighbourhood1 = neighbourhood_in_dim(space, 1);
+	    var neighbourhood2 = neighbourhood_in_dim(space, 2);
+	    for (var s0 = 0; s0 < neighbourhood0.length; s0++) {
+	      for (var s1 = 0; s1 < neighbourhood1.length; s1++) {
+	        for (var s2 = 0; s2 < neighbourhood2.length; s2++) {
+	          result.push([neighbourhood0[s0], neighbourhood1[s1], neighbourhood2[s2]]);
+	        }
+	      }
+	    }
+	    return result;
+	  }
+	
+	  var pairs = [];
+	  for (var i = 0; i < vertices.length; i++) {
+	    var neighbourhood = space_neighbourhood(spaces[i]);
+	    for (var j_neigh = 0; j_neigh < neighbourhood.length; j_neigh++) {
+	      var hash = space_to_hash(neighbourhood[j_neigh]);
+	      if (hash in cells) {
+	        var cell = cells[hash];
+	        for (var j_cell = 0; j_cell < cell.length; j_cell++) {
+	          var j = cell[j_cell];
+	          if (i < j) {
+	            pairs.push([i, j]);
+	          }
+	        }
+	      }
+	    }
+	  }
+	  return pairs;
+	}
+	
+	exports.getClosePairs = getClosePairs;
 
 /***/ }
 /******/ ])

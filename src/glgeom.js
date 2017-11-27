@@ -11,7 +11,6 @@ import THREE from 'three'
 import v3 from './v3'
 import _ from 'lodash'
 
-
 /**
  * Interpolation function for a Catmul-Rom spline
  * in 3D space, where the 4 guide-points are given
@@ -32,7 +31,6 @@ function catmulRomSpline (t, p1, p2, p3, p4) {
   )
 }
 
-
 /**
  * Create a path for extrusion where the direction of the
  * normal and binormal is defined, as well as the tangent.
@@ -42,18 +40,14 @@ function catmulRomSpline (t, p1, p2, p3, p4) {
  */
 class PathAndFrenetFrames {
 
-  constructor() {
+  constructor () {
     this.points = []
     this.normals = []
     this.tangents = []
     this.binormals = []
   }
 
-  getSpacedPoints() {
-    return this.points
-  }
-
-  slice(i, j) {
+  slice (i, j) {
     let subPath = new PathAndFrenetFrames()
     subPath.points = this.points.slice(i, j)
     subPath.normals = this.normals.slice(i, j)
@@ -62,7 +56,6 @@ class PathAndFrenetFrames {
     return subPath
   }
 }
-
 
 /**
  * Extrusion along a path that aligns a 2D shape as cross-section, with
@@ -88,7 +81,7 @@ class RibbonGeometry extends THREE.Geometry {
    * @param {boolean} front - draw front cross-section
    * @param {boolean} back - draw back cross-section
    **/
-  constructor(shape, path, round, front, back) {
+  constructor (shape, path, round, front, back) {
 
     super()
 
@@ -274,7 +267,6 @@ class RibbonGeometry extends THREE.Geometry {
 
 }
 
-
 /**
  * Creates a new path out of a slice of the oldPath, with
  * n number of segments between two points, using a Catmul-Rom
@@ -390,7 +382,6 @@ function expandPath (oldPath, n, iOldPoint, jOldPoint) {
 
   return newPath
 }
-
 
 /**
  * Trace is an object designed to be built up progressively
@@ -540,7 +531,6 @@ class Trace extends PathAndFrenetFrames {
   }
 }
 
-
 /**
  * Creates a unit-based block arrow pointing in the -Z direction.
  * It can be reorientated using a lookAt() call
@@ -578,7 +568,6 @@ class BlockArrowGeometry extends THREE.ExtrudeGeometry {
   }
 }
 
-
 /**
  * Creates a cylinder that is orientated along
  * the z-direction. Use lookAt to reorientate
@@ -596,15 +585,12 @@ class UnitCylinderGeometry extends THREE.CylinderGeometry {
   }
 }
 
-
 /**
  * Takes a bunch of points and treats it as defining
  * a polygon, and raises it to a certain thickness.
- *
- * TODO: needs to define face-normals
- */
+ **/
 class RaisedShapeGeometry extends THREE.Geometry {
-  constructor(vertices, thickness) {
+  constructor (vertices, thickness) {
 
     super()
 
@@ -661,7 +647,6 @@ class RaisedShapeGeometry extends THREE.Geometry {
   }
 }
 
-
 /**
  * Convenience function to set the visibility of a THREE
  * Object3D collection of meshes and other objects
@@ -669,12 +654,12 @@ class RaisedShapeGeometry extends THREE.Geometry {
  * @param {THREE.Object3D} obj
  * @param {boolean} visibility
  */
-function setVisible(obj, visibility) {
+function setVisible (obj, visibility) {
 
   if (_.isUndefined(obj)) {
     return
   }
-  obj.traverse(function(c) {
+  obj.traverse(function (c) {
     c.visible = visibility
   })
 
@@ -705,7 +690,6 @@ function clearObject3D (obj) {
   }
 }
 
-
 function perpVector (ref, vec) {
 
   let vec_along_ref = ref.clone()
@@ -714,7 +698,6 @@ function perpVector (ref, vec) {
   return vec.clone().sub(vec_along_ref)
 
 }
-
 
 function threePointNormal (vertices) {
 
@@ -730,14 +713,12 @@ function threePointNormal (vertices) {
   return cb
 }
 
-
 function getUnitVectorRotation (reference, target) {
   return new THREE.Quaternion()
     .setFromUnitVectors(reference, target)
 }
 
-
-function fraction(reference, target, t) {
+function fraction (reference, target, t) {
   return t * (target - reference) + reference
 }
 
@@ -745,7 +726,6 @@ function getFractionRotation (rotation, t) {
   let identity = new THREE.Quaternion()
   return identity.slerp(rotation, t)
 }
-
 
 function setGeometryVerticesColor (geom, color) {
   for (let i = 0; i < geom.faces.length; i += 1) {
@@ -756,12 +736,10 @@ function setGeometryVerticesColor (geom, color) {
   }
 }
 
-
 function mergeUnitGeom (totalGeom, unitGeom, color, matrix) {
   setGeometryVerticesColor(unitGeom, color)
   totalGeom.merge(unitGeom, matrix)
 }
-
 
 /**
  * Calculates the transform matrix for a SphereGeometry
@@ -780,7 +758,6 @@ function getSphereMatrix (pos, radius) {
   return obj.matrix
 }
 
-
 /**
  * Calculates the transform matrix for a UnitCylinderGeometry
  * to orientate along the axis between the 'from' and 'to' vector
@@ -798,7 +775,6 @@ function getCylinderMatrix (from, to, radius) {
   obj.updateMatrix()
   return obj.matrix
 }
-
 
 export {
   BlockArrowGeometry,
