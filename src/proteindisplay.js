@@ -150,9 +150,6 @@ function makeDefaultView(view, protein) {
   view.abs_camera.z_front = -protein.max_length / 2
   view.abs_camera.z_back = protein.max_length / 2
   view.abs_camera.zoom = Math.abs(protein.max_length)
-  view.camera.z_front = -protein.max_length / 2
-  view.camera.z_back = protein.max_length / 2
-  view.camera.zoom = Math.abs(protein.max_length)
 
   view.show.sidechain = false
 
@@ -160,7 +157,6 @@ function makeDefaultView(view, protein) {
   // with the coordinate system that I had
   // chosen unwittingly when I first designed
   // the raster jolecule library
-  view.camera.up_v = v3.create(0, -1, 0)
   view.abs_camera.up_v = v3.create(0, -1, 0)
 
   let atom = protein.get_central_atom()
@@ -176,95 +172,42 @@ function makeDefaultView(view, protein) {
 
 
 function makeTracesFromProtein(protein) {
-
-  let trace
-
-  let makeNewTrace = () => {
-    trace = new glgeom.Trace()
-    trace.referenceObjects = protein.residues
-    traces.push(trace)
-  }
-
+  let currTrace
   let traces = []
 
-  let nResidue = protein.getNResidue()
-  for (let iResidue = 0; iResidue < nResidue; iResidue += 1) {
-
+  for (let iResidue = 0; iResidue < protein.getNResidue(); iResidue += 1) {
     let residue = protein.getResidue(iResidue)
 
-    let isResInTrace = false
     if (residue.is_protein_or_nuc) {
-      isResInTrace = true
-    } else {
-      // Handles non-standard amino-acids and nucleotides that are
-      // covalently bonded with the correct atom types to
-      // neighbouring residues
-      if (iResidue > 0) {
-        if (protein.isPeptideConnected(iResidue - 1, iResidue)) {
-          residue.iAtom = residue.atoms['CA'].i
-          isResInTrace = true
-        } else if (protein.isSugarPhosphateConnected(iResidue - 1, iResidue)) {
-          residue.iAtom = residue.atoms['C3\''].i
-          isResInTrace = true
-          residue.ss = 'R'
-          residue.normal = protein.getNormalOfNuc(iResidue)
-        }
-      }
 
-      if (iResidue < nResidue - 1) {
-        if (protein.isPeptideConnected(iResidue, iResidue + 1)) {
-          residue.iAtom = residue.atoms['CA'].i
-          isResInTrace = true
-        } else if (protein.isSugarPhosphateConnected(iResidue, iResidue + 1)) {
-          residue.iAtom = residue.atoms['C3\''].i
-          isResInTrace = true
-          residue.ss = 'R'
-          residue.normal = protein.getNormalOfNuc(residue)
-        }
-      }
-    }
-
-    if (isResInTrace) {
+      let isBreak = false
       if (iResidue === 0) {
-        makeNewTrace()
+        isBreak = true
       } else {
-        let iLastResidue = iResidue - 1
         let peptideConnect = protein.isPeptideConnected(
-          iLastResidue, iResidue)
+          iResidue - 1, iResidue)
         let nucleotideConnect = protein.isSugarPhosphateConnected(
-          iLastResidue, iResidue)
-        if (!peptideConnect && !nucleotideConnect) {
-          makeNewTrace()
-        }
+          iResidue - 1, iResidue)
+        isBreak = !(peptideConnect) && !(nucleotideConnect)
       }
-      trace.indices.push(iResidue)
-      trace.points.push(protein.getResidueCentralAtom(iResidue).pos)
+
+      if (isBreak) {
+        currTrace = new glgeom.Trace()
+        currTrace.referenceObjects = protein.residues
+        traces.push(currTrace)
+      }
+
+      currTrace.indices.push(iResidue)
+      currTrace.points.push(protein.getResidueCentralAtom(iResidue).pos)
       let normal = null
       if (residue.normal) {
         normal = residue.normal
       }
-      trace.normals.push(normal)
-    }
-  }
-
-  // flip normals so that they are all pointing in same direction
-  // within the same trace
-  for (let trace of traces) {
-    for (let i of _.range(1, trace.indices.length)) {
-      if (trace.getReference(i).ss !== 'D' &&
-        trace.getReference(i - 1).ss !== 'D') {
-        let normal = trace.normals[i]
-        let prevNormal = trace.normals[i - 1]
-        if (normal !== null && prevNormal !== null)
-          if (normal.dot(prevNormal) < 0) {
-            trace.normals[i].negate()
-          }
-      }
+      currTrace.normals.push(normal)
     }
   }
 
   return traces
-
 }
 
 
@@ -294,13 +237,6 @@ class ProteinDisplay {
     this.scene = scene
     this.protein = scene.protein
     this.controller = controller
-
-    // hack - circular reference
-    this.controller.set_target_view_by_res_id = (resId) => {
-      this.setTargetFromResId(resId)
-    }
-    this.controller.calculate_current_abs_camera = function () {
-    }
 
     // stores the trace of the protein & DNA backbones, used
     // to generate the ribbons and tubes
@@ -470,7 +406,6 @@ class ProteinDisplay {
     let iAtom = defaultView.i_atom
     let center = this.protein.getAtom(iAtom).pos
     let translate = v3.translation(v3.scaled(center, -1))
-    this.scene.origin.camera.transform(translate)
     this.cameraFocus.copy(center)
     this.camera.position.set(0, 0, this.zoom).add(this.cameraFocus)
     this.camera.lookAt(this.cameraFocus)
@@ -1036,12 +971,11 @@ class ProteinDisplay {
 
   setTargetFromAtom(iAtom) {
     let atom = this.protein.getAtom(iAtom)
-    let position = v3.clone(atom.pos)
-    let sceneDisplacement = position.clone()
-      .sub(this.cameraFocus)
+
+    let sceneDisplacement = atom.pos.clone().sub(this.cameraFocus)
 
     let view = convertTargetToView({
-      cameraFocus: position,
+      cameraFocus: atom.pos,
       cameraPosition: this.camera.position.clone()
         .add(sceneDisplacement),
       cameraUp: this.camera.up.clone(),
@@ -1346,11 +1280,11 @@ class ProteinDisplay {
     }
 
     let futureTarget = convertViewToTarget(this.scene.target_view)
+
     let newTarget = interpolateTargets(
       this.getTarget(), futureTarget, 1.0 / nStep)
     let view = convertTargetToView(newTarget)
     view.copy_metadata_from_view(this.scene.target_view)
-
     this.controller.set_current_view(view)
 
     this.updateHover()

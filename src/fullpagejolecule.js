@@ -230,7 +230,6 @@ class ViewPieceList {
   makeNewView() {
     console.log('> ViewPieceList.makeNewView')
     let newId = randomId();
-    this.controller.calculate_current_abs_camera();
     this.controller.save_current_view(newId);
     this.insertNewViewDiv(newId);
     this.updateViews();

@@ -231,6 +231,7 @@ var Protein = function () {
   }
 
   this.make_bonds = function (bond_pairs) {
+    this.bonds = []
     for (var i = 0; i < bond_pairs.length; i += 1) {
       var j = bond_pairs[i][0];
       var k = bond_pairs[i][1];
@@ -251,6 +252,7 @@ var Protein = function () {
       'id': res_id,
       'selected': false,
       'atoms': {},
+      'iAtom': null,
     }
     new_r.is_water = a.res_type == "HOH";
     var r_type = _.trim(new_r.type)
@@ -263,7 +265,7 @@ var Protein = function () {
     this.residues.push(new_r);
   }
 
-  this.make_residues = function (atoms) {
+  this.addResiduesFromNewAtoms = function (atoms) {
     var res_id = '';
     for (var i = 0; i < atoms.length; i += 1) {
       var a = atoms[i];
@@ -374,6 +376,43 @@ var Protein = function () {
     }
 
     return false
+  }
+
+  this.checkNonStandardResdiues = function() {
+    let nResidue = this.getNResidue()
+    for (let iResidue = 0; iResidue < nResidue; iResidue += 1) {
+
+      let residue = this.getResidue(iResidue)
+
+      if (!residue.is_protein_or_nuc) {
+        // Handles non-standard amino-acids and nucleotides that are
+        // covalently bonded with the correct atom types to
+        // neighbouring residues
+        if (iResidue > 0) {
+          if (this.isPeptideConnected(iResidue - 1, iResidue)) {
+            residue.iAtom = residue.atoms['CA'].i
+            residue.is_protein_or_nuc = true
+          } else if (this.isSugarPhosphateConnected(iResidue - 1, iResidue)) {
+            residue.iAtom = residue.atoms['C3\''].i
+            residue.is_protein_or_nuc = true
+            residue.ss = 'R'
+            residue.normal = this.getNormalOfNuc(iResidue)
+          }
+        }
+
+        if (iResidue < nResidue - 1) {
+          if (this.isPeptideConnected(iResidue, iResidue + 1)) {
+            residue.iAtom = residue.atoms['CA'].i
+            residue.is_protein_or_nuc = true
+          } else if (this.isSugarPhosphateConnected(iResidue, iResidue + 1)) {
+            residue.iAtom = residue.atoms['C3\''].i
+            residue.is_protein_or_nuc = true
+            residue.ss = 'R'
+            residue.normal = this.getNormalOfNuc(residue)
+          }
+        }
+      }
+    }
   }
 
   this.assignBondsToResidues = function () {
@@ -643,6 +682,7 @@ var Protein = function () {
     // - - ligand
     // W - water
     // D - DNA or RNA
+    // R - non-standard nucleotide
 
     for (var j = 0; j < this.residues.length; j += 1) {
       var residue = this.residues[j];
@@ -747,6 +787,7 @@ var Protein = function () {
 
     }
 
+    // average normals to make a nice average
     for (var i_res1 = 0; i_res1 < this.residues.length; i_res1 += 1) {
       var res = this.residues[i_res1];
       if (res.normals.length == 0) {
@@ -759,6 +800,19 @@ var Protein = function () {
         res.normal = v3.normalized(normal);
       }
     }
+
+    // flip every second beta-strand normal so they are
+    // consistently pointing in the same direction
+    for (let i_res1 = 1; i_res1 < this.residues.length; i_res1 += 1) {
+      let prevRes = this.residues[i_res1 - 1]
+      let res = this.residues[i_res1];
+      if ((res.ss === prevRes.ss) && (res.ss ==="E")) {
+        if (res.normal.dot(prevRes.normal) < 0) {
+          res.normal.negate()
+        }
+      }
+    }
+
   }
 
   this.load = function (protein_data) {
@@ -770,15 +824,19 @@ var Protein = function () {
       + parsetTitleFromPdbText(protein_data['pdb_text']);
 
     var atom_lines = extract_atom_lines(protein_data['pdb_text']);
-    let atoms = this.make_atoms_from_pdb_lines(atom_lines, this.pdb_id);
-    this.make_residues(atoms);
-    this.atoms = _.concat(this.atoms, atoms);
+    let newAtoms = this.make_atoms_from_pdb_lines(atom_lines, this.pdb_id);
 
-    console.log(`> Protein.load ${atoms.length} atoms`);
+    this.atoms = _.concat(this.atoms, newAtoms);
 
     for (var i = 0; i < this.atoms.length; i += 1) {
       this.atoms[i].i = i;
     }
+
+    this.addResiduesFromNewAtoms(newAtoms);
+
+    this.checkNonStandardResdiues()
+
+    console.log(`> Protein.load ${newAtoms.length} atoms`);
 
     this.make_bonds(this.calc_bonds(this.atoms));
     this.assignBondsToResidues()
@@ -789,42 +847,6 @@ var Protein = function () {
     this.find_ss();
 
     console.log(`> Protein.load ${this.residues.length} residues`);
-  }
-
-  this.transform = function (matrix) {
-    for (var i = 0; i < this.atoms.length; i += 1) {
-      this.atoms[i].pos.applyMatrix4(matrix);
-      this.atoms[i].z = this.atoms[i].pos.z
-    }
-    for (i = 0; i < this.ribbons.length; i += 1) {
-      for (j = 0; j < 4; j += 1) {
-        this.ribbons[i].quad_coords[j].applyMatrix4(matrix);
-        this.ribbons[i].z = max_z_of_list(
-          this.ribbons[i].quad_coords)
-      }
-    }
-    for (i = 0; i < this.bonds.length; i += 1) {
-      this.bonds[i].z = Math.max(
-        this.bonds[i].atom1.pos.z,
-        this.bonds[i].atom2.pos.z)
-        + 0.2;
-    }
-    for (i = 0; i < this.trace.length; i += 1) {
-      this.trace[i].z = Math.max(
-        this.trace[i].atom1.pos.z,
-        this.trace[i].atom2.pos.z)
-        + 0.2;
-    }
-    this.max_z = 0;
-    this.min_z = 1E6;
-    for (var i = 0; i < this.atoms.length; i += 1) {
-      if (this.atoms[i].pos.z < this.min_z) {
-        this.min_z = this.atoms[i].pos.z;
-      }
-      if (this.atoms[i].pos.z > this.max_z) {
-        this.max_z = this.atoms[i].pos.z;
-      }
-    }
   }
 
   this.getAtom = function (iAtom) {
@@ -1036,7 +1058,6 @@ var View = function () {
   this.res_id = "";
   this.i_atom = -1;
   this.order = 1;
-  this.camera = new Camera();
   this.abs_camera = new Camera();
   this.selected = [];
   this.labels = [];
@@ -1068,7 +1089,6 @@ var View = function () {
     v.time = this.time;
     v.url = this.url;
     v.abs_camera = this.abs_camera.clone();
-    v.camera = this.camera.clone();
     v.show = _.cloneDeep(this.show);
     return v;
   }
@@ -1107,46 +1127,6 @@ var Scene = function (protein) {
   this.i_last_view = 0;
   this.saved_show = null;
 
-  this.calculate_abs_camera = function (view) {
-    var m = get_camera_transform(
-      view.camera, this.origin.camera, 1);
-    var view_wrt_origin = view.clone();
-    view_wrt_origin.camera.transform(m);
-    view.abs_camera = view_wrt_origin.camera;
-  }
-
-  this.restore_camera_from_abs_camera = function (view) {
-    var current_camera = this.current_view.camera.clone();
-    var m = get_camera_transform(
-      this.current_view.camera, this.origin.camera, 1);
-    current_camera.transform(m);
-    var n = get_camera_transform(
-      this.current_view.camera, current_camera, 1);
-    view.camera = view.abs_camera.clone();
-    view.camera.transform(n);
-  }
-
-  this.transform = function (matrix) {
-    this.protein.transform(matrix);
-    for (i = 0; i < this.saved_views.length; i += 1) {
-      this.saved_views[i].camera.transform(matrix);
-    }
-    if (this.target_view) {
-      this.target_view.camera.transform(matrix);
-    }
-    this.origin.camera.transform(matrix);
-    for (var i = 0; i < this.current_view.distances.length; i += 1) {
-      var dist = this.current_view.distances[i];
-      this.current_view.distances[i].z = Math.max(
-        this.protein.getAtom(dist.i_atom1).pos.z,
-        this.protein.getAtom(dist.i_atom2).pos.z);
-    }
-  }
-
-  this.translate = function (d) {
-    this.transform(v3.translation(d));
-  }
-
   this.set_target_view = function (view) {
     this.n_update_step = this.max_update_step;
     this.target_view = view.clone();
@@ -1155,25 +1135,6 @@ var Scene = function (protein) {
   this.centered_atom = function () {
     var i = this.current_view.i_atom;
     return this.protein.getAtom(i)
-  }
-
-  this.find_atom_nearest_to_origin = function () {
-    for (var i = 0; i < this.protein.residues.length; i += 1) {
-      var res = this.protein.residues[i];
-      var p = this.getResidueCentralAtom(i)
-      var d = p.x * p.x + p.y * p.y + p.z * p.z;
-      if (d > 400) {
-        continue;
-      }
-      for (var k in res.atoms) {
-        p = res.atoms[k].pos;
-        if (Math.abs(p.x) < 0.1 && Math.abs(p.y) < 0.1 &&
-          Math.abs(p.z) < 0.1) {
-          return res.atoms[k].i;
-        }
-      }
-    }
-    return -1;
   }
 
   this.get_i_saved_view_from_id = function (id) {
@@ -1222,50 +1183,6 @@ var Scene = function (protein) {
     this.saved_views.push(view);
   }
 
-  this.animate = function () {
-    if (this.n_update_step < 0) {
-      return;
-    } else if (this.n_update_step == 0) {
-      this.current_view.copy_metadata_from_view(this.target_view);
-      var i_atom = this.current_view.i_atom;
-      if (i_atom == -1 || typeof i_atom == 'undefined') {
-        this.current_view.i_atom = this.find_atom_nearest_to_origin();
-      }
-      i_atom = this.current_view.i_atom;
-      if (i_atom > -1) {
-        this.current_view.res_id = this.protein.getAtom(i_atom).res_id;
-      } else {
-        this.current_view.res_id = this.protein.residues[0].id;
-      }
-      this.protein.clear_selected();
-      for (i = 0; i < this.current_view.selected.length; i += 1) {
-        var j = this.current_view.selected[i];
-        this.protein.residues[j].selected = true;
-      }
-      this.is_new_view_chosen = true;
-    } else {
-      o = get_camera_transform(
-        this.current_view.camera, this.target_view.camera,
-        this.n_update_step);
-      this.transform(o);
-      zoom_diff =
-        (this.target_view.camera.zoom - this.current_view.camera.zoom);
-      this.current_view.camera.zoom += zoom_diff / this.n_update_step;
-      z_front_diff =
-        this.target_view.camera.z_front -
-        this.current_view.camera.z_front;
-      this.current_view.camera.z_front +=
-        z_front_diff / this.n_update_step;
-      z_back_diff =
-        this.target_view.camera.z_back -
-        this.current_view.camera.z_back;
-      this.current_view.camera.z_back +=
-        z_back_diff / this.n_update_step;
-    }
-    this.changed = true;
-    this.n_update_step -= 1;
-  }
-
 }
 
 
@@ -1306,30 +1223,6 @@ var Controller = function (scene) {
     this.scene.changed = true;
   }
 
-  this.rotate_xy = function (x_angle, y_angle) {
-    x_axis = v3.create(1, 0, 0);
-    rot_along_x = v3.rotation(x_axis, x_angle);
-    y_axis = v3.create(0, 1, 0);
-    rot_along_y = v3.rotation(y_axis, y_angle);
-    matrix = v3.matrixProduct(rot_along_x, rot_along_y);
-    this.scene.transform(matrix);
-  }
-
-  this.rotate_z = function (z_angle) {
-    z_axis = v3.create(0, 0, 1);
-    rot_along_z = v3.rotation(z_axis, z_angle);
-    this.scene.transform(rot_along_z);
-  }
-
-  this.adjust_zoom = function (zoom_diff) {
-    var camera = this.scene.current_view.camera;
-    camera.zoom += zoom_diff;
-    if (camera.zoom < this.zoom_min) {
-      camera.zoom = this.zoom_min;
-    }
-    this.changed = true;
-  }
-
   this.set_target_view = function (view) {
     this.scene.set_target_view(view);
   }
@@ -1337,7 +1230,6 @@ var Controller = function (scene) {
   this.set_target_view_by_id = function (id) {
     var view = this.scene.saved_views_by_id[id];
     this.scene.i_last_view = this.scene.saved_views_by_id[id].order;
-    this.scene.restore_camera_from_abs_camera(view);
     this.set_target_view(view);
   }
 
@@ -1346,7 +1238,6 @@ var Controller = function (scene) {
     view.res_id = res_id;
     view.i_atom = this.protein.res_by_id[res_id].iAtom;
     let atom = this.protein.getAtom(view.i_atom)
-    view.camera.transform(v3.translation(atom.pos));
     this.set_target_view(view);
   }
 
@@ -1354,7 +1245,6 @@ var Controller = function (scene) {
     var view = this.scene.current_view.clone();
     view.res_id = atom.res_id;
     view.i_atom = atom.i;
-    view.camera.transform(v3.translation(atom.pos));
     this.set_target_view(view);
   }
 
@@ -1499,11 +1389,6 @@ var Controller = function (scene) {
     this.scene.is_new_view_chosen = true;
   }
 
-  this.calculate_current_abs_camera = function () {
-    var view = this.scene.current_view;
-    this.scene.calculate_abs_camera(view);
-  }
-
   this.save_current_view = function (new_id) {
     var j = this.scene.i_last_view + 1;
     var new_view = this.scene.current_view.clone();
@@ -1558,10 +1443,6 @@ var Controller = function (scene) {
     view.abs_camera.in_v.x = flat_dict.camera.in[0];
     view.abs_camera.in_v.y = flat_dict.camera.in[1];
     view.abs_camera.in_v.z = flat_dict.camera.in[2];
-
-    view.camera.z_front = flat_dict.camera.slab.z_front;
-    view.camera.z_back = flat_dict.camera.slab.z_back;
-    view.camera.zoom = flat_dict.camera.slab.zoom;
 
     view.abs_camera.z_front = flat_dict.camera.slab.z_front;
     view.abs_camera.z_back = flat_dict.camera.slab.z_back;

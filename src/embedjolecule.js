@@ -327,7 +327,6 @@ class EmbedJolecule {
 
   saveCurrView() {
     var newId = randomId();
-    this.controller.calculate_current_abs_camera();
     this.controller.save_current_view(newId);
     this.updateView();
     this.viewDiv.css('background-color', 'lightgray');
