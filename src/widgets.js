@@ -306,7 +306,7 @@ class PopupText {
 
 /**
  * A set of pop-up text labels over specified atoms, rendered as
- * DIV text on the DOM on top of ProteinDisplay but using opacity
+ * DIV text on the DOM on top of Display but using opacity
  * of the given z position of the associated atoms
  */
 class AtomLabelsWidget {
@@ -315,7 +315,7 @@ class AtomLabelsWidget {
     this.popups = []
     this.scene = proteinDisplay.scene
     this.controller = proteinDisplay.controller
-    this.proteinDisplay = proteinDisplay
+    this.display = proteinDisplay
     this.webglDivTag = proteinDisplay.webglDivTag
   }
 
@@ -351,14 +351,14 @@ class AtomLabelsWidget {
 
       this.popups[i].html(labels[i].text)
 
-      let opacity = 0.7 * this.proteinDisplay.opacity(atom.pos) + 0.2
+      let opacity = 0.7 * this.display.opacity(atom.pos) + 0.2
       this.popups[i].div.css('opacity', opacity)
       this.popups[i].arrow.css('opacity', opacity)
 
-      let v = this.proteinDisplay.posXY(atom.pos)
+      let v = this.display.posXY(atom.pos)
       this.popups[i].move(v.x, v.y)
 
-      if (!this.proteinDisplay.inZlab(atom.pos)) {
+      if (!this.display.inZlab(atom.pos)) {
         this.popups[i].div.css('display', 'none')
         this.popups[i].arrow.css('display', 'none')
       }
@@ -379,7 +379,7 @@ class DistanceMeasuresWidget {
     this.scene = proteinDisplay.scene
     this.controller = proteinDisplay.controller
     this.webglDivTag = proteinDisplay.webglDivTag
-    this.proteinDisplay = proteinDisplay
+    this.display = proteinDisplay
     this.parentDiv = $(this.webglDivTag)
   }
 
@@ -447,9 +447,9 @@ class DistanceMeasuresWidget {
       distanceMeasure.div.text(text)
 
       let m = p1.clone().add(p2).multiplyScalar(0.5)
-      let opacity = 0.7 * this.proteinDisplay.opacity(m) + 0.3
+      let opacity = 0.7 * this.display.opacity(m) + 0.3
 
-      let v = this.proteinDisplay.posXY(m)
+      let v = this.display.posXY(m)
       let x = v.x
       let y = v.y
 
@@ -472,7 +472,7 @@ class DistanceMeasuresWidget {
       distanceMeasure.line.geometry.vertices[0].copy(p1)
       distanceMeasure.line.geometry.vertices[1].copy(p2)
 
-      if (!this.proteinDisplay.inZlab(m)) {
+      if (!this.display.inZlab(m)) {
         distanceMeasure.div.css('display', 'none')
       }
     }
@@ -494,7 +494,7 @@ class SequenceWidget extends CanvasWrapper {
   constructor (selector, proteinDisplay) {
     super(selector)
 
-    this.proteinDisplay = proteinDisplay
+    this.display = proteinDisplay
     this.scene = proteinDisplay.scene
     this.traces = proteinDisplay.traces
 
@@ -703,11 +703,11 @@ class SequenceWidget extends CanvasWrapper {
       this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar)
       this.iStartChar = parseInt(this.iStartChar)
 
-      this.proteinDisplay.setTargetViewFromAtom(this.getCurrIAtom())
+      this.display.setTargetViewFromAtom(this.getCurrIAtom())
 
     } else {
       this.iRes = this.xToIChar(this.pointerX)
-      this.proteinDisplay.setTargetViewFromAtom(this.getCurrIAtom())
+      this.display.setTargetViewFromAtom(this.getCurrIAtom())
     }
   }
 }

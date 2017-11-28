@@ -413,8 +413,6 @@ class Trace extends PathAndFrenetFrames {
     let iStart = 0
     let iEnd = this.points.length
     let iLast = iEnd - 1
-
-    // calculate tangents
     if ((iEnd - iStart) > 2) {
 
       // project out first tangent from main chain
@@ -456,8 +454,6 @@ class Trace extends PathAndFrenetFrames {
     let iStart = 0
     let iEnd = this.points.length
     let iLast = iEnd - 1
-
-    // generate normals
     if ((iEnd - iStart) > 2) {
 
       for (let i = iStart + 1; i < iLast; i += 1) {

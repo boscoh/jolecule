@@ -1,7 +1,7 @@
 import $ from 'jquery'
 import _ from 'lodash'
 import { Protein, Controller, Scene } from './protein'
-import { ProteinDisplay } from './proteindisplay'
+import { Display } from './display'
 import {
   exists,
   linkButton,
@@ -219,7 +219,7 @@ class EmbedJolecule {
     this.residueSelector = null
 
     this.createProteinDiv()
-    this.proteinDisplay = new ProteinDisplay(
+    this.display = new Display(
       this.scene,
       '#jolecule-protein-display',
       this.controller,
@@ -241,7 +241,7 @@ class EmbedJolecule {
 
   loadProteinData (isProcessingFlag, dataServer, proteinData, callback) {
     if (proteinData.pdb_text.length == 0) {
-      this.proteinDisplay.setProcessingMesssage('Error: no protein data')
+      this.display.setProcessingMesssage('Error: no protein data')
       isProcessingFlag.flag = false
       return
     }
@@ -251,14 +251,14 @@ class EmbedJolecule {
     this.populateResidueSelector()
 
     if (this.protein.parsing_error) {
-      this.proteinDisplay.setProcessingMesssage('Error parsing protein: ' + this.protein.parsing_error)
+      this.display.setProcessingMesssage('Error parsing protein: ' + this.protein.parsing_error)
       isProcessingFlag.flag = false
       return
     }
 
-    this.proteinDisplay.nDataServer += 1
-    if (this.proteinDisplay.nDataServer == 1) {
-      this.proteinDisplay.buildAfterDataLoad()
+    this.display.nDataServer += 1
+    if (this.display.nDataServer == 1) {
+      this.display.buildAfterInitialLoad()
 
       // need to keep track of a single dataServer
       // to save views, will take the first one
@@ -266,14 +266,14 @@ class EmbedJolecule {
       this.dataServer.get_views((view_dicts) => {
         this.loadViewsFromDataServer(view_dicts)
         isProcessingFlag.flag = false
-        this.proteinDisplay.cleanupProcessingMessage()
+        this.display.cleanupProcessingMessage()
         if (callback) {
           callback()
         }
       })
     } else {
-      this.proteinDisplay.buildAfterAddProteinData()
-      this.proteinDisplay.cleanupProcessingMessage()
+      this.display.buildAfterAdditionalLoad()
+      this.display.cleanupProcessingMessage()
       isProcessingFlag.flag = false
       if (callback) {
         callback()
@@ -287,7 +287,7 @@ class EmbedJolecule {
       (isProcessingFlag) => {
         dataServer.get_protein_data(
           (proteinData) => {
-            this.proteinDisplay.displayMessageBeforeCompute(
+            this.display.displayMessageBeforeCompute(
               'Parsing \'' + proteinData.pdb_id + '\'',
               () => {
                 this.loadProteinData(
@@ -366,15 +366,15 @@ class EmbedJolecule {
   }
 
   isChanged () {
-    if (!exists(this.proteinDisplay)) {
+    if (!exists(this.display)) {
       return false
     }
-    return this.proteinDisplay.isChanged()
+    return this.display.isChanged()
   }
 
   animate () {
-    if (exists(this.proteinDisplay)) {
-      this.proteinDisplay.animate()
+    if (exists(this.display)) {
+      this.display.animate()
       if (this.isLoop) {
         if (this.scene.n_update_step <= 0) {
           // loop started
@@ -389,10 +389,10 @@ class EmbedJolecule {
   };
 
   draw () {
-    if (exists(this.proteinDisplay)) {
+    if (exists(this.display)) {
       if (this.scene.changed) {
         this.updateView()
-        this.proteinDisplay.draw()
+        this.display.draw()
         this.populateResidueSelector()
         this.scene.changed = false
       }
@@ -541,7 +541,7 @@ class EmbedJolecule {
 
     this.residueSelector.change(() => {
       var resId = this.residueSelector.find(':selected').val()
-      this.proteinDisplay.setTargetViewFromAtom(
+      this.display.setTargetViewFromAtom(
         this.scene.protein.res_by_id[resId].iAtom)
     })
 
@@ -627,10 +627,10 @@ class EmbedJolecule {
     var newHeight = this.div.outerHeight()
       - this.viewDiv.outerHeight()
       - this.statusDiv.outerHeight()
-    if (exists(this.proteinDisplay)) {
-      if (exists(this.proteinDisplay.renderer)) {
-        this.proteinDisplay.renderer.domElement.style.height = newHeight
-        this.proteinDisplay.resize()
+    if (exists(this.display)) {
+      if (exists(this.display.renderer)) {
+        this.display.renderer.domElement.style.height = newHeight
+        this.display.resize()
       }
       this.scene.changed = true
     }

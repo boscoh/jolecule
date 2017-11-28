@@ -10,20 +10,17 @@ import * as data from './data'
 import {interpolateCameras} from './protein'
 
 
-
-
 /**
- *
- * ProteinDisplay: The main window for drawing the protein
+ * Display is the main window for drawing the protein
  * in a WebGL HTML5 canvas, includes various widgets that
  * are described in widgets.js.
  *
- * ProteinDisplay takes a protein, and builds three.js from
- * it. ProteinDisplay also handles mouse input and
+ * Display takes a protein, and builds three.js from
+ * it. Display also handles mouse input and
  * uses controller to make changes to the underlying protein
  * and their associated views
  */
-class ProteinDisplay {
+class Display {
 
   /**
    * @param scene - Scene object that holds a protein and views
@@ -168,7 +165,7 @@ class ProteinDisplay {
   }
 
   setProcessingMesssage (message) {
-    console.log('> ProteinDisplay.setProcessingMessage:', message)
+    console.log('> Display.setProcessingMessage:', message)
     this.messageDiv.html(message).show()
     util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 100, 90)
   };
@@ -186,7 +183,10 @@ class ProteinDisplay {
     setTimeout(computeFn, 0)
   }
 
-  buildAfterDataLoad () {
+  buildAfterInitialLoad () {
+    this.scene.current_view.makeDefaultOfProtein(this.protein)
+    this.scene.save_view(this.scene.current_view)
+    this.scene.changed = true
 
     for (let i of _.range(this.protein.getNResidue())) {
       let res = this.protein.getResidue(i)
@@ -197,14 +197,9 @@ class ProteinDisplay {
 
     this.sequenceWidget.reset()
 
-    this.scene.current_view.makeDefaultOfProtein(this.protein)
-
-    this.scene.save_view(this.scene.current_view)
-
-    this.scene.changed = true
   }
 
-  buildAfterAddProteinData () {
+  buildAfterAdditionalLoad () {
     this.buildScene()
     this.scene.changed = true
     this.sequenceWidget.reset()
@@ -250,7 +245,6 @@ class ProteinDisplay {
       trace.calcTangents()
       trace.calcNormals()
       trace.calcBinormals()
-
       trace.expand()
     }
 
@@ -302,16 +296,16 @@ class ProteinDisplay {
    */
 
   buildScene () {
+
     // pre-calculations needed before building meshes
     this.gridControlWidget.findLimitsAndElements()
     this.calculateTracesForRibbons()
 
-    // create default Meshes
     this.buildMeshOfRibbons()
     this.buildMeshOfGrid()
+    this.buildMeshOfLigands()
     this.buildMeshOfNucleotides()
     this.buildMeshOfArrows()
-    this.createOrClearMesh('sidechains')
 
     this.rebuildSceneWithMeshes()
   }
@@ -366,7 +360,7 @@ class ProteinDisplay {
       if (!(meshName in this.displayMeshes)) {
         let buildMeshOfFunctionName = 'buildMeshOf' + _.capitalize(meshName)
 
-        console.log('> ProteinDisplay.' + buildMeshOfFunctionName)
+        console.log('> Display.' + buildMeshOfFunctionName)
         this[buildMeshOfFunctionName]()
 
         this.updateMeshesInScene = true
@@ -556,6 +550,10 @@ class ProteinDisplay {
 
   buildSelectedResidues (showAllResidues) {
 
+    if (!('sidechains' in this.displayMeshes)) {
+      this.createOrClearMesh('sidechains')
+    }
+
     function bondFilter (bond) {
       return !_.includes(data.backboneAtoms, bond.atom1.type) ||
         !_.includes(data.backboneAtoms, bond.atom2.type)
@@ -621,8 +619,10 @@ class ProteinDisplay {
     this.createOrClearMesh('ligands')
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
+    console.log('> Display.buildMeshOfLigands nResidue', this.protein.getNResidue())
     for (let iRes of _.range(this.protein.getNResidue())) {
       let residue = this.protein.getResidue(iRes)
+      console.log('> Display.buildMeshOfLigands', residue.is_ligands)
       if (residue.is_ligands) {
         this.mergeBondsInResidue(displayGeom, iRes)
         this.protein.eachResidueAtom(iRes, atom => {
@@ -779,10 +779,9 @@ class ProteinDisplay {
 
   setTargetViewFromAtom (iAtom) {
     this.controller.set_target_view_by_atom(iAtom)
-    this.scene.n_update_step = this.scene.max_update_step
   }
 
-  getViewCamera () {
+  getCurrentViewCamera () {
     return this.scene.current_view.camera
   }
 
@@ -831,7 +830,7 @@ class ProteinDisplay {
   }
 
   adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-    let camera = this.getViewCamera()
+    let camera = this.getCurrentViewCamera()
 
     let y = camera.up
     let z = camera.position.clone()
@@ -878,7 +877,7 @@ class ProteinDisplay {
   }
 
   getZ (pos) {
-    let camera = this.getViewCamera()
+    let camera = this.getCurrentViewCamera()
     let cameraDir = camera.focus.clone()
       .sub(camera.position)
       .normalize()
@@ -889,14 +888,14 @@ class ProteinDisplay {
 
   inZlab (pos) {
     let z = this.getZ(pos)
-    let camera = this.getViewCamera()
+    let camera = this.getCurrentViewCamera()
     return ((z >= camera.zFront) && (z <= camera.zBack))
   }
 
   opacity (pos) {
     let z = this.getZ(pos)
 
-    let camera = this.getViewCamera()
+    let camera = this.getCurrentViewCamera()
 
     if (z < camera.zFront) {
       return 1.0
@@ -928,7 +927,7 @@ class ProteinDisplay {
    */
 
   updateCrossHairs () {
-    let camera = this.getViewCamera()
+    let camera = this.getCurrentViewCamera()
     this.crossHairs.position.copy(camera.focus)
     this.crossHairs.lookAt(camera.position)
     this.crossHairs.updateMatrix()
@@ -1297,4 +1296,4 @@ class ProteinDisplay {
 
 }
 
-export { ProteinDisplay }
+export { Display }

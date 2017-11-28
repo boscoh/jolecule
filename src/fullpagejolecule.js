@@ -12,7 +12,7 @@ class ViewPieceList {
 
   constructor (divTag, controller, proteinDisplay, data_server, isEditable) {
     this.divTag = divTag
-    this.proteinDisplay = proteinDisplay
+    this.display = proteinDisplay
     this.scene = controller.scene
     this.controller = controller
     this.isEditable = isEditable
@@ -47,7 +47,7 @@ class ViewPieceList {
             linkButton(
               '', '+l[a]bel', 'jolecule-button',
               () => {
-                this.proteinDisplay.atomLabelDialog()
+                this.display.atomLabelDialog()
               }
             ))
           .append('<br>')
@@ -297,12 +297,12 @@ class FullPageJolecule {
 
         this.scene = this.embedJolecule.scene
         this.controller = this.embedJolecule.controller
-        this.proteinDisplay = this.embedJolecule.proteinDisplay
+        this.display = this.embedJolecule.display
 
         this.viewsDisplay = new ViewPieceList(
           this.viewsDisplayTag,
           this.controller,
-          this.proteinDisplay,
+          this.display,
           dataServer,
           this.params.isEditable)
 
@@ -390,17 +390,17 @@ class FullPageJolecule {
       } else if (c === 'W') {
         this.controller.toggle_show_option('water')
       } else if (c === 'C') {
-        this.proteinDisplay.controller.clear_selected()
+        this.display.controller.clear_selected()
       } else if (c === 'E') {
-        let i_view = this.proteinDisplay.scene.i_last_view
+        let i_view = this.display.scene.i_last_view
         if (i_view > 0) {
-          let view_id = this.proteinDisplay.scene.saved_views[i_view].id
+          let view_id = this.display.scene.saved_views[i_view].id
           this.viewsDisplay.div[view_id].edit_fn()
         }
       } else if (c === 'N') {
-        this.proteinDisplay.controller.toggle_neighbors()
+        this.display.controller.toggle_neighbors()
       } else if (c === 'A') {
-        this.proteinDisplay.atomLabelDialog()
+        this.display.atomLabelDialog()
       } else {
         let i = parseInt(c) - 1
         if ((i || i === 0) && (i < this.scene.saved_views.length)) {
@@ -408,7 +408,7 @@ class FullPageJolecule {
           this.viewsDisplay.setTargetByViewId(id)
         }
       }
-      this.proteinDisplay.scene.changed = true
+      this.display.scene.changed = true
     }
   }
 

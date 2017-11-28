@@ -706,6 +706,7 @@ var Protein = function () {
   this.load = function (protein_data) {
 
     this.pdb_id = protein_data['pdb_id']
+
     console.log(`> Protein.load parsing ${this.pdb_id}`)
 
     this.default_html = this.pdb_id + ': '
@@ -851,7 +852,7 @@ var Protein = function () {
  * to the original frame of coordinate of the PDB.
  *
  * Converts JolyCamera to Target, the view structure for
- * ProteinDisplay
+ * Display
  *
  * JolyCamera {
  *    pos: scene center, camera focus
@@ -1134,32 +1135,26 @@ function interpolateCameras (oldCamera, futureCamera, t) {
   let cameraUpRotation = glgeom.getFractionRotation(
     fullCameraUpRotation, t)
 
-  let result = {}
-
   let focusDisp = futureCamera.focus.clone()
     .sub(oldCamera.focus)
     .multiplyScalar(t)
-  result.focus = oldCamera.focus.clone().add(focusDisp)
+
+  let focus = oldCamera.focus.clone().add(focusDisp)
 
   let zoom = glgeom.fraction(oldZoom, futureZoom, t)
 
-  let focusToPositionDisp = oldCameraDirection.clone()
+  let focusToPosition = oldCameraDirection.clone()
     .applyQuaternion(cameraUpRotation)
     .multiplyScalar(zoom)
 
-  result.position = result.focus.clone()
-    .add(focusToPositionDisp)
-
-  result.up = oldCamera.up.clone()
-    .applyQuaternion(cameraUpRotation)
-
-  result.zFront = glgeom.fraction(oldCamera.zFront, futureCamera.zFront, t)
-
-  result.zBack = glgeom.fraction(oldCamera.zBack, futureCamera.zBack, t)
-
-  result.zoom = zoom
-
-  return result
+  return {
+    focus: focus,
+    position: focus.clone().add(focusToPosition),
+    up: oldCamera.up.clone().applyQuaternion(cameraUpRotation),
+    zFront: glgeom.fraction(oldCamera.zFront, futureCamera.zFront, t),
+    zBack: glgeom.fraction(oldCamera.zBack, futureCamera.zBack, t),
+    zoom: zoom
+  }
 }
 
 
@@ -1172,14 +1167,27 @@ function interpolateCameras (oldCamera, futureCamera, t) {
 class Scene {
 
   constructor (protein) {
-    this.max_update_step = 20
+
+    // the protein data for the scene
     this.protein = protein
+
+    // stores the current camera, display
+    // options, distances, labels, selected
+    // residues
+    this.current_view = new View()
+
+    // stores other views that can be reloaded
     this.saved_views_by_id = {}
     this.saved_views = []
-    this.current_view = new View()
-    this.target_view = null
-    this.n_update_step = -1
     this.i_last_view = 0
+
+    // stores a target view for animation
+    this.target_view = null
+    // timing counter that is continually decremented
+    // until it becomes negative
+    this.n_update_step = -1
+    // this is to set the time between transitions of views
+    this.max_update_step = 20
   }
 
   set_target_view (view) {
@@ -1240,9 +1248,9 @@ class Scene {
 
 
 /**
- * The Controlller object that carries out the
- * actions on the protein and the views in the
- * Scene, and also to interact with the server
+ * The Controller for Scene and Protein.
+ *
+ * All mutations to Scene and Protein must go through here.
  */
 class Controller {
 
