@@ -71,7 +71,7 @@ class PathAndFrenetFrames {
  *
  * For a segment between two path points and a repetition of the cross-section,
  * two triangles are defined.
- **/
+ */
 class RibbonGeometry extends THREE.Geometry {
 
   /**
@@ -80,7 +80,7 @@ class RibbonGeometry extends THREE.Geometry {
    * @param {boolean} round - normals are draw from centre, otherwise perp to edge
    * @param {boolean} front - draw front cross-section
    * @param {boolean} back - draw back cross-section
-   **/
+   */
   constructor (shape, path, round, front, back) {
 
     super()
@@ -504,7 +504,7 @@ class Trace extends PathAndFrenetFrames {
    * will be extended to detail beyond that is
    * half-way between the residue and the neighboring
    * residue in a different piece.
-   **/
+   */
   getSegmentGeometry (iRes, face, isRound, isFront, isBack, color) {
     let path = this.detailedPath
 
@@ -571,7 +571,7 @@ class BlockArrowGeometry extends THREE.ExtrudeGeometry {
 /**
  * Creates a cylinder that is orientated along
  * the z-direction. Use lookAt to reorientate
- **/
+ */
 class UnitCylinderGeometry extends THREE.CylinderGeometry {
   constructor () {
     super(1, 1, 1, 4, 1, false)
@@ -588,7 +588,7 @@ class UnitCylinderGeometry extends THREE.CylinderGeometry {
 /**
  * Takes a bunch of points and treats it as defining
  * a polygon, and raises it to a certain thickness.
- **/
+ */
 class RaisedShapeGeometry extends THREE.Geometry {
   constructor (vertices, thickness) {
 

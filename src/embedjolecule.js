@@ -185,7 +185,7 @@ class ViewPiece {
  * EmbedJolecule - the widget that shows proteins and
  * annotations
  *
- **/
+ */
 
 let defaultArgs = {
   divTag: '',

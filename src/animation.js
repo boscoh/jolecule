@@ -12,7 +12,7 @@
  * Global storage
  * - window.globalWidgets
  * - window.lastTime
- **/
+ */
 
 var MS_PER_STEP = 25
 
@@ -48,7 +48,7 @@ function loop () {
 /**
  * run loop() as a singleton by using the global
  * window space to lock one single copy of loop
- **/
+ */
 function registerGlobalAnimationLoop (widget) {
   if (typeof window.globalWidgets == 'undefined') {
     window.globalWidgets = []

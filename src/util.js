@@ -3,7 +3,7 @@
  * Utility functions mainly to do with HTML elements
  * that can be deferred to functions
  *
- **/
+ */
 
 
 import $ from "jquery";

@@ -8,7 +8,7 @@
  * vector library. This was replaced with the fully-featured vector library
  * in THREE.js
  * 
- **/
+ */
 
 import THREE from "three";
 

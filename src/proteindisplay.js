@@ -2,12 +2,12 @@ import THREE from 'three'
 import $ from 'jquery'
 import _ from 'lodash'
 import v3 from './v3'
-import { View } from './protein'
 
 import * as glgeom from './glgeom'
 import * as util from './util'
 import widgets from './widgets'
 import * as data from './data'
+
 
 function extendArray (array, extension) {
   for (let elem of extension) {
@@ -15,80 +15,6 @@ function extendArray (array, extension) {
   }
 }
 
-/**
- * Converts the older view datastructure to a target data
- * structure that can be easily converted into a THREE.js
- * camera
- *
- * - camera
- *     - pos: scene center, camera focus
- *     - up: gives the direction of the y vector from pos
- *     - in: gives the positive z-axis direction
- *     - scene is from 0 to positive z; since canvasjolecule draws +z into screen
- *     - as opengl +z is out of screen, need to flip z direction
- *     - in opengl, the box is -1 to 1 that gets projected on screen + perspective
- *     - by adding a i distance to move the camera further into -z
- *     - z_front and z_back define cutoffs
- * - opengl:
- *     - x right -> left
- *     - y bottom -> top (inverse of classic 2D coordinate)
- *     - z far -> near
- *     - that is positive Z direction is out of the screen
- *     - box -1to +1
- **/
-
-function convertViewToTarget (view) {
-  let cameraFocus = v3.clone(view.camera.pos)
-
-  let cameraDirection = v3
-    .clone(view.camera.in_v)
-    .sub(cameraFocus)
-    .multiplyScalar(view.camera.zoom)
-    .negate()
-
-  let cameraPosition = cameraFocus.clone().add(cameraDirection)
-
-  let cameraUp = v3
-    .clone(view.camera.up_v)
-    .sub(cameraFocus)
-    .negate()
-
-  return {
-    cameraFocus: cameraFocus,
-    cameraPosition: cameraPosition,
-    cameraUp: cameraUp,
-    zFront: view.camera.z_front,
-    zBack: view.camera.z_back,
-    zoom: view.camera.zoom
-  }
-}
-
-function convertTargetToView (target) {
-  let view = new View()
-
-  let cameraDirection = target.cameraPosition.clone()
-    .sub(target.cameraFocus)
-    .negate()
-
-  view.camera.zoom = cameraDirection.length()
-  view.camera.z_front = target.zFront
-  view.camera.z_back = target.zBack
-
-  view.camera.pos = v3.clone(target.cameraFocus)
-
-  let up = target.cameraUp.clone().negate()
-
-  view.camera.up_v = v3.clone(
-    target.cameraFocus.clone()
-      .add(up))
-
-  cameraDirection.normalize()
-  view.camera.in_v = v3.clone(
-    target.cameraFocus.clone()
-      .add(cameraDirection))
-
-  return view
-}
 
 function interpolateTargets (oldTarget, futureTarget, t) {
 
@@ -138,28 +64,6 @@ function interpolateTargets (oldTarget, futureTarget, t) {
   result.zBack = glgeom.fraction(oldTarget.zBack, futureTarget.zBack, t)
 
   return result
-}
-
-function makeDefaultView (view, protein) {
-  view.res_id = protein.getResidue(0).id
-
-  view.camera.z_front = -protein.max_length / 2
-  view.camera.z_back = protein.max_length / 2
-  view.camera.zoom = Math.abs(protein.max_length)
-
-  view.show.sidechain = false
-
-  // mangling with original coordinate system to openGL
-  view.camera.up_v = v3.create(0, -1, 0)
-
-  let atom = protein.get_central_atom()
-  view.res_id = atom.res_id
-  view.i_atom = atom.i
-  view.camera.transform(v3.translation(atom.pos))
-
-  view.order = 0
-  view.text = protein.default_html
-  view.pdb_id = protein.pdb_id
 }
 
 function makeTracesFromProtein (protein) {
@@ -260,10 +164,8 @@ class ProteinDisplay {
     this.div.append(this.webglDiv)
     this.div.css('background-color', '#CCC')
 
-    let vertexColors = THREE.VertexColors
-
     // atom radius used to display on the screen
-    this.radius = 0.35
+    this.atomRadius = 0.35
 
     // parameters for viewport and camera
     // the target position for the camera
@@ -273,20 +175,14 @@ class ProteinDisplay {
     this.zBack = 20
     // determines how far away the camera is from the target
     this.zoom = 50.0
-    // a THREE.js camera tailored for the screen-size
-    // and above parameters
+
+    // a THREE.js camera, will be set properly before draw
     this.camera = new THREE.PerspectiveCamera(
-      45,
-      this.width() / this.height(),
-      this.zFront + this.zoom,
-      this.zBack + this.zoom)
-    this.camera.position.set(0, 0, this.zoom)
+      45, this.width() / this.height())
 
     this.displayScene = new THREE.Scene()
     this.displayScene.background = new THREE.Color(this.backgroundColor)
     this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
-    this.displayScene.fog.near = this.zoom + 1
-    this.displayScene.fog.far = this.zoom + this.zBack
 
     // this.displayMeshes is a dictionary that holds THREE.Object3D
     // collections of meshes. This allows collections to be collectively
@@ -295,6 +191,8 @@ class ProteinDisplay {
     // will send geometries into the displayMeshes, using this.displayMaterial
     // as the default. This assumes vertexColors are used, allowing multiple
     // colors within the same geometry.
+    let vertexColors = THREE.VertexColors
+
     this.displayMeshes = {}
     this.displayMaterial = new THREE.MeshLambertMaterial({vertexColors})
 
@@ -317,7 +215,7 @@ class ProteinDisplay {
     this.gridControlWidget = new widgets.GridControlWidget(
       this.divTag, this.scene, isGrid)
 
-    // this.lineElement = new widgets.LineElement(this.webglDivTag, '#FF7777')
+    this.lineElement = new widgets.LineElement(this.webglDivTag, '#FF7777')
 
     // input control parametsrs
     this.saveMouseX = null
@@ -387,12 +285,10 @@ class ProteinDisplay {
 
     this.sequenceWidget.reset()
 
-    let defaultView = this.scene.current_view.clone()
-    makeDefaultView(defaultView, this.protein)
-    this.scene.save_view(defaultView)
-    this.controller.set_current_view(defaultView)
+    this.scene.current_view.makeDefaultOfProtein(this.protein)
 
-    this.scene.is_new_view_chosen = true
+    this.scene.save_view(this.scene.current_view)
+
     this.scene.changed = true
   }
 
@@ -578,7 +474,7 @@ class ProteinDisplay {
 
   mergeAtomToGeom (geom, pickGeom, iAtom) {
     let atom = this.protein.getAtom(iAtom)
-    let matrix = glgeom.getSphereMatrix(atom.pos, this.radius)
+    let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
     let unitGeom = this.unitSphereGeom
     glgeom.mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix)
     glgeom.mergeUnitGeom(pickGeom, unitGeom, data.getIndexColor(iAtom), matrix)
@@ -722,7 +618,6 @@ class ProteinDisplay {
         let residue = trace.getReference(i)
         let residueShow = showAllResidues || residue.selected
         if (residueShow && !util.exists(residue.mesh)) {
-          console.log('> ProteinDisplay.buildSelectedResidues', residue.id, residue.selected)
 
           let displayGeom = new THREE.Geometry()
           let pickingGeom = new THREE.Geometry()
@@ -732,7 +627,7 @@ class ProteinDisplay {
           this.protein.eachResidueAtom(iRes, atom => {
             if (!util.inArray(atom.type, data.backboneAtoms)) {
               atom.is_sidechain = true
-              let matrix = glgeom.getSphereMatrix(atom.pos, this.radius)
+              let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
               glgeom.mergeUnitGeom(
                 displayGeom, this.unitSphereGeom, this.getAtomColor(atom.i), matrix)
               glgeom.mergeUnitGeom(
@@ -828,7 +723,7 @@ class ProteinDisplay {
               color: this.getAtomColor(atom.i)
             })
             let mesh = new THREE.Mesh(this.unitSphereGeom, material)
-            mesh.scale.set(this.radius, this.radius, this.radius)
+            mesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius)
             mesh.position.copy(atom.pos)
             mesh.i = atom.i
             this.displayMeshes.grid.add(mesh)
@@ -837,7 +732,7 @@ class ProteinDisplay {
               color: data.getIndexColor(atom.i)
             })
             let pickingMesh = new THREE.Mesh(this.unitSphereGeom, indexMaterial)
-            pickingMesh.scale.set(this.radius, this.radius, this.radius)
+            pickingMesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius)
             pickingMesh.position.copy(atom.pos)
             pickingMesh.i = atom.i
             this.pickingMeshes.grid.add(pickingMesh)
@@ -933,26 +828,17 @@ class ProteinDisplay {
    ******************************************
    */
 
-  getTarget () {
-    return {
-      cameraFocus: this.cameraFocus.clone(),
-      cameraPosition: this.camera.position.clone(),
-      cameraUp: this.camera.up.clone(),
-      zFront: this.zFront,
-      zBack: this.zBack
-    }
-  }
-
   setTargetFromAtom (iAtom) {
     this.controller.set_target_view_by_atom(iAtom)
-    this.scene.is_new_view_chosen = true
     this.scene.n_update_step = this.scene.max_update_step
   }
 
+  getTarget () {
+    return this.scene.current_view.target
+  }
+
   setCameraFromCurrentView () {
-    let target = convertViewToTarget(
-      this.scene.current_view
-    )
+    let target = this.getTarget()
 
     let cameraDirection = this.camera.position.clone()
       .sub(this.cameraFocus)
@@ -1037,16 +923,11 @@ class ProteinDisplay {
       .multiplyScalar(newZoom)
       .add(this.cameraFocus)
 
-    let view = convertTargetToView({
-      cameraFocus: this.cameraFocus.clone(),
-      cameraPosition: cameraPosition,
-      cameraUp: this.camera.up.clone()
-        .applyQuaternion(rotation),
-      zFront: this.zFront,
-      zBack: this.zBack
-    })
-
-    view.copy_metadata_from_view(this.scene.current_view)
+    let view = this.scene.current_view.clone()
+    view.target.cameraFocus = this.cameraFocus.clone()
+    view.target.cameraPosition = cameraPosition
+    view.target.cameraUp = this.camera.up.clone().applyQuaternion(rotation)
+    view.target.zoom = newZoom
 
     this.controller.set_current_view(view)
   }
@@ -1066,22 +947,24 @@ class ProteinDisplay {
 
   inZlab (pos) {
     let z = this.getZ(pos)
-
-    return ((z >= this.zFront) && (z <= this.zBack))
+    let target = this.getTarget()
+    return ((z >= target.zFront) && (z <= target.zBack))
   }
 
   opacity (pos) {
     let z = this.getZ(pos)
 
-    if (z < this.zFront) {
+    let target = this.getTarget()
+
+    if (z < target.zFront) {
       return 1.0
     }
 
-    if (z > this.zBack) {
+    if (z > target.zBack) {
       return 0.0
     }
 
-    return 1 - (z - this.zFront) / (this.zBack - this.zFront)
+    return 1 - (z - target.zFront) / (target.zBack - target.zFront)
   }
 
   posXY (pos) {
@@ -1236,12 +1119,13 @@ class ProteinDisplay {
       return
     }
 
-    let futureTarget = convertViewToTarget(this.scene.target_view)
-
     let newTarget = interpolateTargets(
-      this.getTarget(), futureTarget, 1.0 / nStep)
-    let view = convertTargetToView(newTarget)
-    view.copy_metadata_from_view(this.scene.target_view)
+      this.scene.current_view.target,
+      this.scene.target_view.target,
+      1.0 / nStep)
+
+    let view = this.scene.target_view.clone()
+    view.setTarget(newTarget)
     this.controller.set_current_view(view)
 
     this.updateHover()

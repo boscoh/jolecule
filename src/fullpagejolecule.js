@@ -6,7 +6,7 @@ import { getWindowUrl, linkButton, randomId, exists } from './util'
 
 /**
  * ViewPieceList keeps track of the views
- **/
+ */
 
 class ViewPieceList {
 
@@ -248,7 +248,7 @@ class ViewPieceList {
  * FullPageJolecule - full page wrapper around an embedd EmbedJolecule
  * widget. Handles keypresses and urls and adds a better views annotation
  * list tool
- **/
+ */
 
 class FullPageJolecule {
 
@@ -330,9 +330,6 @@ class FullPageJolecule {
   draw () {
     if (this.scene.changed) {
       this.viewsDisplay.updateViews()
-      if (this.scene.is_new_view_chosen) {
-        this.scene.is_new_view_chosen = false
-      }
       this.embedJolecule.draw()
       this.scene.changed = false
     }

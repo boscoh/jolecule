@@ -65,7 +65,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _embedjolecule = __webpack_require__(2);
 	
-	var _fullpagejolecule = __webpack_require__(14);
+	var _fullpagejolecule = __webpack_require__(15);
 	
 	var _lodash = __webpack_require__(4);
 	
@@ -172,7 +172,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Global storage
 	 * - window.globalWidgets
 	 * - window.lastTime
-	 **/
+	 */
 	
 	var MS_PER_STEP = 25;
 	
@@ -250,7 +250,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * run loop() as a singleton by using the global
 	 * window space to lock one single copy of loop
-	 **/
+	 */
 	function registerGlobalAnimationLoop(widget) {
 	  if (typeof window.globalWidgets == 'undefined') {
 	    window.globalWidgets = [];
@@ -285,7 +285,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _protein = __webpack_require__(6);
 	
-	var _proteindisplay = __webpack_require__(10);
+	var _proteindisplay = __webpack_require__(11);
 	
 	var _util = __webpack_require__(9);
 	
@@ -433,7 +433,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * EmbedJolecule - the widget that shows proteins and
 	 * annotations
 	 *
-	 **/
+	 */
 	
 	var defaultArgs = {
 	  divTag: '',
@@ -28221,22 +28221,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.Scene = exports.Controller = exports.View = exports.Camera = exports.Protein = undefined;
+	exports.Scene = exports.Controller = exports.Protein = undefined;
 	
-	var _v = __webpack_require__(7);
-	
-	var _v2 = _interopRequireDefault(_v);
-	
-	var _util = __webpack_require__(9);
-	
-	var _pairs = __webpack_require__(16);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	var user = 'public'; // will be overriden by server
-	
-	
-	////////////////////////////////////////////////////
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); ////////////////////////////////////////////////////
 	//
 	// Protein
 	// -------
@@ -28256,6 +28243,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	// i/o operations with the server.
 	// 
 	////////////////////////////////////////////////////
+	
+	var _v = __webpack_require__(7);
+	
+	var _v2 = _interopRequireDefault(_v);
+	
+	var _util = __webpack_require__(9);
+	
+	var _pairs = __webpack_require__(10);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var user = 'public'; // will be overriden by server
+	
 	
 	function extract_atom_lines(data) {
 	  var lines = data.split(/\r?\n/);
@@ -29077,7 +29079,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      for (var m in res_k.atoms) {
 	        var atom_m = res_k.atoms[m];
 	        if (_v2.default.distance(atom_l.pos, atom_m.pos) < 4) {
-	          console.log('> Protein.are_close_residues', atom_l.label, atom_m.label);
 	          return true;
 	        }
 	      }
@@ -29097,497 +29098,633 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	};
 	
-	///////////////////////////////////////////
-	// Camera stores information about
-	// the direction and zoom that a protein
-	// should be viewed
-	///////////////////////////////////////////
+	/**
+	 *
+	 * View
+	 * ----
+	 * A view includes all pertinent viewing options
+	 * needed to render the protein in the way
+	 * for the user.
+	 *
+	 * JolyCamera stores information about
+	 * the direction and zoom that a protein
+	 * should be viewed
+	 *
+	 * Inside a view are two cameras as a camera is
+	 * defined in terms of an existing frame of
+	 * reference. The first camera refers to the
+	 * current_view camera.
+	 *
+	 * The absolute camera is expressed with respect
+	 * to the original frame of coordinate of the PDB.
+	 *
+	 * Converts JolyCamera to Target, the view structure for
+	 * ProteinDisplay
+	 *
+	 * JolyCamera {
+	 *    pos: scene center, camera focus
+	 *    up: gives the direction of the y vector from pos
+	 *    in: gives the positive z-axis direction
+	 *    zFront: clipping plane in front of the camera focus
+	 *    zBack: clipping plane behind the camera focus
+	 * }
+	 *
+	 * target {
+	 *    cameraFocus: position that camera is looking at
+	 *    cameraPosition: position of camera - distance away gives zoom
+	 *    cameraUp: vector direction denoting the up direction of camera
+	 *    zFront: clipping plane in front of the camera focus
+	 *    zBack: clipping plane behind the camera focus
+	 * }
+	 *
+	 * Coordinates
+	 * - JolyCamera
+	 *     - scene is from 0 to positive z; since canvasjolecule draws +z into screen
+	 *     - as opengl +z is out of screen, need to flip z direction
+	 *     - in opengl, the box is -1 to 1 that gets projected on screen + perspective
+	 *     - by adding a i distance to move the camera further into -z
+	 *     - z_front and z_back define cutoffs
+	 * - opengl:
+	 *     - x right -> left
+	 *     - y bottom -> top (inverse of classic 2D coordinate)
+	 *     - z far -> near
+	 *     - that is positive Z direction is out of the screen
+	 *     - box -1to +1
+	 */
 	
-	var Camera = function Camera() {
-	  this.pos = _v2.default.create(0, 0, 0);
-	  this.up_v = _v2.default.create(0, 1, 0);
-	  this.in_v = _v2.default.create(0, 0, 1);
-	  this.zoom = 0.0;
-	  this.z_front = 0.0;
-	  this.z_back = 0.0;
-	
-	  this.clone = function () {
-	    var c = new Camera();
-	    c.pos = this.pos.clone();
-	    c.up_v = this.up_v.clone();
-	    c.in_v = this.in_v.clone();
-	    c.zoom = this.zoom;
-	    c.z_front = this.z_front;
-	    c.z_back = this.z_back;
-	    return c;
-	  };
-	
-	  this.transform = function (matrix) {
-	    this.pos.applyMatrix4(matrix);
-	    this.up_v.applyMatrix4(matrix);
-	    this.in_v.applyMatrix4(matrix);
-	  };
+	var defaultJolyCamera = {
+	  pos: _v2.default.create(0, 0, 0),
+	  up_v: _v2.default.create(0, 1, 0),
+	  in_v: _v2.default.create(0, 0, 1),
+	  zoom: 1.0,
+	  z_front: 0.0,
+	  z_back: 0.0
 	};
 	
-	////////////////////////////////////////////////////
-	//
-	// View
-	// ----
-	// A view includes all pertinent viewing options
-	// needed to render the protein in the way
-	// for the user.
-	// 
-	// Inside a view are two cameras as a camera is
-	// defined in terms of an existing frame of 
-	// reference. The first camera refers to the 
-	// current_view camera.
-	// 
-	// The absolute camera is expressed with respect
-	// to the original frame of coordinate of the PDB.
-	//
-	////////////////////////////////////////////////////
-	
-	var View = function View() {
-	  this.id = 'view:000000';
-	  this.res_id = '';
-	  this.i_atom = -1;
-	  this.order = 1;
-	  this.camera = new Camera();
-	  this.selected = [];
-	  this.labels = [];
-	  this.distances = [];
-	  this.text = 'Default view of PDB file';
-	  this.creator = '';
-	  this.url = (0, _util.getWindowUrl)();
-	  this.show = {
-	    sidechain: true,
-	    peptide: true,
-	    hydrogen: false,
-	    water: false,
-	    ligands: true,
-	    trace: false,
-	    all_atom: false,
-	    ribbon: true
-	  };
-	
-	  this.clone = function () {
-	    var v = new View();
-	    v.id = this.id;
-	    v.res_id = this.res_id;
-	    v.i_atom = this.i_atom;
-	    v.selected = this.selected;
-	    v.labels = _.cloneDeep(this.labels);
-	    v.distances = _.cloneDeep(this.distances);
-	    v.order = this.order;
-	    v.text = this.text;
-	    v.time = this.time;
-	    v.url = this.url;
-	    v.camera = this.camera.clone();
-	    v.show = _.cloneDeep(this.show);
-	    return v;
-	  };
-	
-	  this.copy_metadata_from_view = function (in_view) {
-	    this.res_id = in_view.res_id;
-	    this.show = _.cloneDeep(in_view.show);
-	    this.labels = _.cloneDeep(in_view.labels);
-	    this.distances = _.cloneDeep(in_view.distances);
-	    this.text = in_view.text;
-	    this.time = in_view.time;
-	    this.url = in_view.url;
-	    this.i_atom = in_view.i_atom;
-	    this.selected = in_view.selected;
-	  };
+	var defaultTarget = {
+	  cameraFocus: _v2.default.create(0, 0, 0),
+	  cameraPosition: _v2.default.create(0, 0, -1),
+	  cameraUp: _v2.default.create(0, 1, 0),
+	  zFront: 0,
+	  zBack: 0,
+	  zoom: 1
 	};
 	
-	/////////////////////////////////////////////////
-	// The Scene object contains the protein data
-	// and all necessary data to display the protein
-	// in the correct view with labels and distance
-	// measures.
-	/////////////////////////////////////////////////
+	var View = function () {
+	  function View() {
+	    _classCallCheck(this, View);
 	
-	var Scene = function Scene(protein) {
-	  this.max_update_step = 20;
-	  this.protein = protein;
-	  this.saved_views_by_id = {};
-	  this.saved_views = [];
-	  this.current_view = new View();
-	  this.target_view = null;
-	  this.n_update_step = -1;
-	  this.is_new_view_chosen = true;
-	  this.i_last_view = 0;
-	
-	  this.set_target_view = function (view) {
-	    this.n_update_step = this.max_update_step;
-	    this.target_view = view.clone();
-	  };
-	
-	  this.centered_atom = function () {
-	    var i = this.current_view.i_atom;
-	    return this.protein.getAtom(i);
-	  };
-	
-	  this.get_i_saved_view_from_id = function (id) {
-	    var i = -1;
-	    for (var j = 0; j < this.saved_views.length; j += 1) {
-	      if (this.saved_views[j].id === id) {
-	        i = j;
-	      }
-	    }
-	    return i;
-	  };
-	
-	  this.insert_view = function (j, new_id, new_view) {
-	    this.saved_views_by_id[new_id] = new_view;
-	    if (j >= this.saved_views.length) {
-	      this.saved_views.push(new_view);
-	    } else {
-	      this.saved_views.splice(j, 0, new_view);
-	    }
-	    this.i_last_view = j;
-	    for (var i = 0; i < this.saved_views.length; i++) {
-	      this.saved_views[i].order = i;
-	    }
-	  };
-	
-	  this.remove_saved_view = function (id) {
-	    var i = this.get_i_saved_view_from_id(id);
-	    if (i < 0) {
-	      return;
-	    }
-	    this.saved_views.splice(i, 1);
-	    delete this.saved_views_by_id[id];
-	    for (var i = 0; i < this.saved_views.length; i++) {
-	      this.saved_views[i].order = i;
-	    }
-	    if (this.i_last_view >= this.saved_views.length) {
-	      this.i_last_view = this.saved_views.length - 1;
-	    }
-	    this.changed = true;
-	    this.is_new_view_chosen = true;
-	  };
-	
-	  this.save_view = function (view) {
-	    var id = view.id;
-	    this.saved_views_by_id[id] = view;
-	    this.saved_views.push(view);
-	  };
-	};
-	
-	/////////////////////////////////////////////////
-	// The Controlller object that carries out the 
-	// actions on the protein and the views in the
-	// Scene, and also to interact with the server
-	/////////////////////////////////////////////////
-	
-	var Controller = function Controller(scene) {
-	  this.protein = scene.protein;
-	  this.scene = scene;
-	
-	  this.delete_dist = function (i) {
-	    this.scene.current_view.distances.splice(i, 1);
-	    this.scene.changed = true;
-	  };
-	
-	  this.make_dist = function (iAtom1, iAtom2) {
-	    this.scene.current_view.distances.push({ 'i_atom1': iAtom1, 'i_atom2': iAtom2 });
-	    this.scene.changed = true;
-	  };
-	
-	  this.make_label = function (iAtom, text) {
-	    this.scene.current_view.labels.push({
-	      'i_atom': iAtom, 'text': text
-	    });
-	    this.scene.changed = true;
-	  };
-	
-	  this.delete_label = function (iLabel) {
-	    this.scene.current_view.labels.splice(iLabel, 1);
-	    this.scene.changed = true;
-	  };
-	
-	  this.set_target_view = function (view) {
-	    this.scene.set_target_view(view);
-	  };
-	
-	  this.set_target_view_by_id = function (viewId) {
-	    var view = this.scene.saved_views_by_id[viewId];
-	    this.scene.i_last_view = this.scene.saved_views_by_id[viewId].order;
-	    this.set_target_view(view);
-	  };
-	
-	  this.set_target_view_by_atom = function (iAtom) {
-	    var view = this.scene.current_view.clone();
-	    var atom = this.protein.getAtom(iAtom);
-	    view.res_id = atom.res_id;
-	    view.i_atom = iAtom;
-	    var translate = _v2.default.translation(atom.pos.clone().sub(view.camera.pos));
-	    view.camera.transform(translate);
-	    this.set_target_view(view);
-	  };
-	
-	  this.set_target_prev_residue = function () {
-	    var curr_res_id;
-	    if (this.scene.n_update_step >= 0) {
-	      curr_res_id = this.scene.target_view.res_id;
-	    } else {
-	      curr_res_id = this.scene.current_view.res_id;
-	    }
-	    var i = this.protein.get_i_res_from_res_id(curr_res_id);
-	    if (i <= 0) {
-	      i = this.protein.getNResidue() - 1;
-	    } else {
-	      i -= 1;
-	    }
-	    var res = this.protein.getResidue(i);
-	    this.set_target_view_by_atom(res.iAtom);
-	  };
-	
-	  this.set_target_next_residue = function () {
-	    var curr_res_id;
-	    if (this.scene.n_update_step >= 0) {
-	      curr_res_id = this.scene.target_view.res_id;
-	    } else {
-	      curr_res_id = this.scene.current_view.res_id;
-	    }
-	    var i = this.protein.get_i_res_from_res_id(curr_res_id);
-	    if (i >= this.protein.getNResidue() - 1) {
-	      i = 0;
-	    } else {
-	      i += 1;
-	    }
-	    var res = this.protein.getResidue(i);
-	    this.set_target_view_by_atom(res.iAtom);
-	  };
-	
-	  this.set_target_prev_view = function () {
-	    var scene = this.scene;
-	    scene.i_last_view -= 1;
-	    if (scene.i_last_view < 0) {
-	      scene.i_last_view = scene.saved_views.length - 1;
-	    }
-	    var id = scene.saved_views[scene.i_last_view].id;
-	    this.set_target_view_by_id(id);
-	    return id;
-	  };
-	
-	  this.set_target_next_view = function () {
-	    var scene = this.scene;
-	    scene.i_last_view += 1;
-	    if (scene.i_last_view >= scene.saved_views.length) {
-	      scene.i_last_view = 0;
-	    }
-	    var id = scene.saved_views[scene.i_last_view].id;
-	    this.set_target_view_by_id(id);
-	    return id;
-	  };
-	
-	  this.swapViews = function (i, j) {
-	    this.scene.saved_views[j].order = i;
-	    this.scene.saved_views[i].order = j;
-	    var dummy = this.scene.saved_views[j];
-	    this.scene.saved_views[j] = this.scene.saved_views[i];
-	    this.scene.saved_views[i] = dummy;
-	  };
-	
-	  this.get_view_dict = function (view) {
-	    return {
-	      version: 2,
-	      view_id: view.id,
-	      creator: view.creator,
-	      pdb_id: view.pdb_id,
-	      order: view.order,
-	      show: view.show,
-	      text: view.text,
-	      res_id: view.res_id,
-	      i_atom: view.i_atom,
-	      labels: view.labels,
-	      selected: view.selected,
-	      distances: view.distances,
-	      camera: {
-	        slab: {
-	          z_front: view.camera.z_front,
-	          z_back: view.camera.z_back,
-	          zoom: view.camera.zoom
-	        },
-	        pos: [view.camera.pos.x, view.camera.pos.y, view.camera.pos.z],
-	        up: [view.camera.up_v.x, view.camera.up_v.y, view.camera.up_v.z],
-	        in: [view.camera.in_v.x, view.camera.in_v.y, view.camera.in_v.z]
-	      }
+	    this.id = 'view:000000';
+	    this.res_id = '';
+	    this.i_atom = -1;
+	    this.order = 1;
+	    this.target = _.cloneDeep(defaultTarget);
+	    this.selected = [];
+	    this.labels = [];
+	    this.distances = [];
+	    this.text = 'Default view of PDB file';
+	    this.creator = '';
+	    this.url = (0, _util.getWindowUrl)();
+	    this.show = {
+	      sidechain: true,
+	      peptide: true,
+	      hydrogen: false,
+	      water: false,
+	      ligands: true,
+	      trace: false,
+	      all_atom: false,
+	      ribbon: true
 	    };
-	  };
+	  }
 	
-	  this.get_view_dicts = function () {
-	    var view_dicts = [];
-	    for (var i = 1; i < this.scene.saved_views.length; i += 1) {
-	      var view = this.scene.saved_views[i];
-	      var view_dict = this.get_view_dict(view);
-	      view_dicts.push(view_dict);
+	  _createClass(View, [{
+	    key: 'setTarget',
+	    value: function setTarget(target) {
+	      this.target = target;
 	    }
-	    return view_dicts;
-	  };
+	  }, {
+	    key: 'makeDefaultOfProtein',
+	    value: function makeDefaultOfProtein(protein) {
+	      this.res_id = protein.getResidue(0).id;
 	
-	  this.make_selected = function () {
-	    var result = [];
-	    for (var i = 0; i < this.protein.residues.length; i += 1) {
-	      if (this.protein.residues[i].selected) {
-	        result.push(i);
+	      var atom = protein.get_central_atom();
+	      this.res_id = atom.res_id;
+	      this.i_atom = atom.i;
+	
+	      this.show.sidechain = false;
+	
+	      this.target.zFront = -protein.max_length / 2;
+	      this.target.zBack = protein.max_length / 2;
+	      this.target.zoom = Math.abs(protein.max_length);
+	      this.target.cameraUp = _v2.default.create(0, 1, 0);
+	      this.target.cameraFocus.copy(atom.pos);
+	      this.target.cameraPosition = _v2.default.create(0, 0, -this.target.zoom).add(atom.pos);
+	
+	      this.order = 0;
+	      this.text = protein.default_html;
+	      this.pdb_id = protein.pdb_id;
+	    }
+	  }, {
+	    key: 'getViewTranslatedTo',
+	    value: function getViewTranslatedTo(pos) {
+	      var view = this.clone();
+	      var disp = pos.clone().sub(view.target.cameraFocus);
+	      view.target.cameraFocus.copy(pos);
+	      view.target.cameraPosition.add(disp);
+	      return view;
+	    }
+	  }, {
+	    key: 'clone',
+	    value: function clone() {
+	      var v = new View();
+	      v.id = this.id;
+	      v.res_id = this.res_id;
+	      v.i_atom = this.i_atom;
+	      v.selected = this.selected;
+	      v.labels = _.cloneDeep(this.labels);
+	      v.distances = _.cloneDeep(this.distances);
+	      v.order = this.order;
+	      v.text = this.text;
+	      v.time = this.time;
+	      v.url = this.url;
+	      v.target = _.cloneDeep(this.target);
+	      v.show = _.cloneDeep(this.show);
+	      return v;
+	    }
+	  }, {
+	    key: 'getJolyCamera',
+	    value: function getJolyCamera() {
+	
+	      var jolyCamera = _.cloneDeep(defaultJolyCamera);
+	
+	      var cameraDirection = this.target.cameraPosition.clone().sub(this.target.cameraFocus).negate();
+	      jolyCamera.zoom = cameraDirection.length();
+	      jolyCamera.z_front = this.target.zFront;
+	      jolyCamera.z_back = this.target.zBack;
+	
+	      jolyCamera.pos.copy(this.target.cameraFocus);
+	
+	      var up = this.target.cameraUp.clone().negate();
+	
+	      jolyCamera.up_v = _v2.default.clone(this.target.cameraFocus.clone().add(up));
+	
+	      cameraDirection.normalize();
+	      jolyCamera.in_v = this.target.cameraFocus.clone().add(cameraDirection);
+	
+	      return jolyCamera;
+	    }
+	  }, {
+	    key: 'getDict',
+	    value: function getDict() {
+	      var jolyCamera = this.getJolyCamera();
+	      return {
+	        version: 2,
+	        view_id: this.id,
+	        creator: this.creator,
+	        pdb_id: this.pdb_id,
+	        order: this.order,
+	        show: this.show,
+	        text: this.text,
+	        res_id: this.res_id,
+	        i_atom: this.i_atom,
+	        labels: this.labels,
+	        selected: this.selected,
+	        distances: this.distances,
+	        camera: {
+	          slab: {
+	            z_front: jolyCamera.z_front,
+	            z_back: jolyCamera.z_back,
+	            zoom: jolyCamera.zoom
+	          },
+	          pos: [jolyCamera.pos.x, jolyCamera.pos.y, jolyCamera.pos.z],
+	          up: [jolyCamera.up_v.x, jolyCamera.up_v.y, jolyCamera.up_v.z],
+	          in: [jolyCamera.in_v.x, jolyCamera.in_v.y, jolyCamera.in_v.z]
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'setTargetFromJolyCamera',
+	    value: function setTargetFromJolyCamera(jolyCamera) {
+	      var cameraFocus = _v2.default.clone(jolyCamera.pos);
+	
+	      var cameraDirection = _v2.default.clone(jolyCamera.in_v).sub(cameraFocus).multiplyScalar(jolyCamera.zoom).negate();
+	
+	      var cameraPosition = _v2.default.clone(cameraFocus).add(cameraDirection);
+	
+	      var cameraUp = _v2.default.clone(jolyCamera.up_v).sub(cameraFocus).negate();
+	
+	      this.target = {
+	        cameraFocus: cameraFocus,
+	        cameraPosition: cameraPosition,
+	        cameraUp: cameraUp,
+	        zFront: jolyCamera.z_front,
+	        zBack: jolyCamera.z_back,
+	        zoom: jolyCamera.zoom
+	      };
+	    }
+	  }, {
+	    key: 'setFromDict',
+	    value: function setFromDict(flat_dict) {
+	      this.id = flat_dict.view_id;
+	      this.view_id = flat_dict.view_id;
+	      this.pdb_id = flat_dict.pdb_id;
+	      this.lock = flat_dict.lock;
+	      this.text = flat_dict.text;
+	      this.creator = flat_dict.creator;
+	      this.order = flat_dict.order;
+	      this.res_id = flat_dict.res_id;
+	      this.i_atom = flat_dict.i_atom;
+	
+	      this.labels = flat_dict.labels;
+	      this.selected = flat_dict.selected;
+	      this.distances = flat_dict.distances;
+	
+	      this.show = flat_dict.show;
+	      if (!(this.show.all_atom || this.show.trace || this.show.ribbon)) {
+	        this.show.ribbon = true;
+	      }
+	
+	      var jolyCamera = _.cloneDeep(defaultJolyCamera);
+	
+	      jolyCamera.pos.x = flat_dict.camera.pos[0];
+	      jolyCamera.pos.y = flat_dict.camera.pos[1];
+	      jolyCamera.pos.z = flat_dict.camera.pos[2];
+	      jolyCamera.up_v.x = flat_dict.camera.up[0];
+	      jolyCamera.up_v.y = flat_dict.camera.up[1];
+	      jolyCamera.up_v.z = flat_dict.camera.up[2];
+	      jolyCamera.in_v.x = flat_dict.camera.in[0];
+	      jolyCamera.in_v.y = flat_dict.camera.in[1];
+	      jolyCamera.in_v.z = flat_dict.camera.in[2];
+	      jolyCamera.z_front = flat_dict.camera.slab.z_front;
+	      jolyCamera.z_back = flat_dict.camera.slab.z_back;
+	      jolyCamera.zoom = flat_dict.camera.slab.zoom;
+	
+	      this.setTargetFromJolyCamera(jolyCamera);
+	    }
+	  }]);
+	
+	  return View;
+	}();
+	
+	/**
+	 * The Scene object contains the protein data
+	 * and all necessary data to display the protein
+	 * in the correct view with labels and distance
+	 * measures.
+	 */
+	
+	
+	var Scene = function () {
+	  function Scene(protein) {
+	    _classCallCheck(this, Scene);
+	
+	    this.max_update_step = 20;
+	    this.protein = protein;
+	    this.saved_views_by_id = {};
+	    this.saved_views = [];
+	    this.current_view = new View();
+	    this.target_view = null;
+	    this.n_update_step = -1;
+	    this.i_last_view = 0;
+	  }
+	
+	  _createClass(Scene, [{
+	    key: 'set_target_view',
+	    value: function set_target_view(view) {
+	      this.n_update_step = this.max_update_step;
+	      this.target_view = view.clone();
+	    }
+	  }, {
+	    key: 'centered_atom',
+	    value: function centered_atom() {
+	      var i = this.current_view.i_atom;
+	      return this.protein.getAtom(i);
+	    }
+	  }, {
+	    key: 'get_i_saved_view_from_id',
+	    value: function get_i_saved_view_from_id(id) {
+	      for (var j = 0; j < this.saved_views.length; j += 1) {
+	        if (this.saved_views[j].id === id) {
+	          return j;
+	        }
+	      }
+	      return -1;
+	    }
+	  }, {
+	    key: 'insert_view',
+	    value: function insert_view(j, new_id, new_view) {
+	      this.saved_views_by_id[new_id] = new_view;
+	      if (j >= this.saved_views.length) {
+	        this.saved_views.push(new_view);
+	      } else {
+	        this.saved_views.splice(j, 0, new_view);
+	      }
+	      this.i_last_view = j;
+	      for (var i = 0; i < this.saved_views.length; i++) {
+	        this.saved_views[i].order = i;
 	      }
 	    }
-	    return result;
-	  };
-	
-	  this.clear_selected = function () {
-	    this.protein.clear_selected();
-	    this.scene.current_view.selected = this.make_selected();
-	    this.scene.changed = true;
-	    this.scene.is_new_view_chosen = true;
-	  };
-	
-	  this.select_residue = function (i, v) {
-	    this.protein.residues[i].selected = v;
-	    this.scene.current_view.selected = this.make_selected();
-	    this.scene.is_new_view_chosen = true;
-	    this.scene.changed = true;
-	  };
-	
-	  this.toggle_neighbors = function () {
-	    var res_id = this.scene.current_view.res_id;
-	    var i_res = this.protein.get_i_res_from_res_id(res_id);
-	    if (this.last_neighbour_res_id === res_id) {
-	      var b = false;
-	      this.last_neighbour_res_id = null;
-	    } else {
-	      var b = true;
-	      this.last_neighbour_res_id = res_id;
-	    }
-	    this.protein.select_neighbors(i_res, b);
-	    this.scene.current_view.selected = this.make_selected();
-	    this.scene.changed = true;
-	    this.scene.is_new_view_chosen = true;
-	  };
-	
-	  this.save_current_view = function (new_id) {
-	    var j = this.scene.i_last_view + 1;
-	    var new_view = this.scene.current_view.clone();
-	    new_view.text = 'Click edit to change this text.';
-	    new_view.pdb_id = this.protein.pdb_id;
-	    var time = (0, _util.getCurrentDateStr)();
-	    if (user === '' || typeof user === 'undefined') {
-	      new_view.creator = '~ [public] @' + time;
-	    } else {
-	      new_view.creator = '~ ' + user + ' @' + time;
-	    }
-	    new_view.id = new_id;
-	    new_view.selected = this.make_selected();
-	    this.scene.insert_view(j, new_id, new_view);
-	    return j;
-	  };
-	
-	  this.delete_view = function (id) {
-	    this.scene.remove_saved_view(id);
-	  };
-	
-	  this.view_from_dict = function (flat_dict) {
-	    var view = new View();
-	
-	    view.id = flat_dict.view_id;
-	    view.view_id = flat_dict.view_id;
-	    view.pdb_id = flat_dict.pdb_id;
-	    view.lock = flat_dict.lock;
-	    view.text = flat_dict.text;
-	    view.creator = flat_dict.creator;
-	    view.order = flat_dict.order;
-	    view.res_id = flat_dict.res_id;
-	    view.i_atom = flat_dict.i_atom;
-	
-	    view.labels = flat_dict.labels;
-	    view.selected = flat_dict.selected;
-	    view.distances = flat_dict.distances;
-	
-	    view.show = flat_dict.show;
-	    if (!(view.show.all_atom || view.show.trace || view.show.ribbon)) {
-	      view.show.ribbon = true;
-	    }
-	
-	    view.camera.pos.x = flat_dict.camera.pos[0];
-	    view.camera.pos.y = flat_dict.camera.pos[1];
-	    view.camera.pos.z = flat_dict.camera.pos[2];
-	
-	    view.camera.up_v.x = flat_dict.camera.up[0];
-	    view.camera.up_v.y = flat_dict.camera.up[1];
-	    view.camera.up_v.z = flat_dict.camera.up[2];
-	
-	    view.camera.in_v.x = flat_dict.camera.in[0];
-	    view.camera.in_v.y = flat_dict.camera.in[1];
-	    view.camera.in_v.z = flat_dict.camera.in[2];
-	
-	    view.camera.z_front = flat_dict.camera.slab.z_front;
-	    view.camera.z_back = flat_dict.camera.slab.z_back;
-	    view.camera.zoom = flat_dict.camera.slab.zoom;
-	
-	    return view;
-	  };
-	
-	  this.sort_views_by_order = function () {
-	    var order_sort = function order_sort(a, b) {
-	      return a.order - b.order;
-	    };
-	    this.scene.saved_views.sort(order_sort);
-	    for (var i = 0; i < this.scene.saved_views.length; i += 1) {
-	      this.scene.saved_views[i].order = i;
-	    }
-	  };
-	
-	  this.load_views_from_flat_views = function (view_dicts) {
-	    for (var i = 0; i < view_dicts.length; i += 1) {
-	      var view = this.view_from_dict(view_dicts[i]);
-	      if (view.id === 'view:000000') {
-	        continue;
+	  }, {
+	    key: 'remove_saved_view',
+	    value: function remove_saved_view(id) {
+	      var i = this.get_i_saved_view_from_id(id);
+	      if (i < 0) {
+	        return;
 	      }
-	      this.scene.save_view(view);
+	      this.saved_views.splice(i, 1);
+	      delete this.saved_views_by_id[id];
+	      for (var j = 0; j < this.saved_views.length; j++) {
+	        this.saved_views[j].order = j;
+	      }
+	      if (this.i_last_view >= this.saved_views.length) {
+	        this.i_last_view = this.saved_views.length - 1;
+	      }
+	      this.changed = true;
 	    }
-	    this.sort_views_by_order();
-	    scene.is_new_view_chosen = true;
-	  };
+	  }, {
+	    key: 'save_view',
+	    value: function save_view(view) {
+	      this.saved_views_by_id[view.id] = view;
+	      this.saved_views.push(view);
+	    }
+	  }]);
 	
-	  this.set_backbone_option = function (option) {
-	    this.scene.current_view.show.all_atom = false;
-	    this.scene.current_view.show.trace = false;
-	    this.scene.current_view.show.ribbon = false;
-	    this.scene.current_view.show[option] = true;
-	    this.scene.changed = true;
-	  };
+	  return Scene;
+	}();
 	
-	  this.set_show_option = function (option, bool) {
-	    console.log('> Controller.set_show_option', option, bool);
-	    this.scene.current_view.show[option] = bool;
-	    this.scene.changed = true;
-	  };
+	/**
+	 * The Controlller object that carries out the
+	 * actions on the protein and the views in the
+	 * Scene, and also to interact with the server
+	 */
 	
-	  this.get_show_option = function (option) {
-	    return this.scene.current_view.show[option];
-	  };
 	
-	  this.toggle_show_option = function (option) {
-	    var val = this.get_show_option(option);
-	    this.set_show_option(option, !val);
-	  };
+	var Controller = function () {
+	  function Controller(scene) {
+	    _classCallCheck(this, Controller);
 	
-	  this.flag_changed = function () {
-	    this.scene.changed = true;
-	  };
+	    this.protein = scene.protein;
+	    this.scene = scene;
+	  }
 	
-	  this.set_current_view = function (view) {
-	    this.scene.current_view = view;
-	    this.scene.changed = true;
-	  };
-	};
+	  _createClass(Controller, [{
+	    key: 'delete_dist',
+	    value: function delete_dist(i) {
+	      this.scene.current_view.distances.splice(i, 1);
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: 'make_dist',
+	    value: function make_dist(iAtom1, iAtom2) {
+	      this.scene.current_view.distances.push({ 'i_atom1': iAtom1, 'i_atom2': iAtom2 });
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: 'make_label',
+	    value: function make_label(iAtom, text) {
+	      this.scene.current_view.labels.push({
+	        'i_atom': iAtom, 'text': text
+	      });
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: 'delete_label',
+	    value: function delete_label(iLabel) {
+	      this.scene.current_view.labels.splice(iLabel, 1);
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: 'set_target_view',
+	    value: function set_target_view(view) {
+	      this.scene.set_target_view(view);
+	    }
+	  }, {
+	    key: 'set_target_view_by_id',
+	    value: function set_target_view_by_id(viewId) {
+	      var view = this.scene.saved_views_by_id[viewId];
+	      this.scene.i_last_view = this.scene.saved_views_by_id[viewId].order;
+	      this.set_target_view(view);
+	    }
+	  }, {
+	    key: 'set_target_view_by_atom',
+	    value: function set_target_view_by_atom(iAtom) {
+	      var atom = this.protein.getAtom(iAtom);
+	      var view = this.scene.current_view.getViewTranslatedTo(atom.pos);
+	      view.res_id = atom.res_id;
+	      view.i_atom = iAtom;
+	      this.set_target_view(view);
+	    }
+	  }, {
+	    key: 'set_target_prev_residue',
+	    value: function set_target_prev_residue() {
+	      var curr_res_id = void 0;
+	      if (this.scene.n_update_step >= 0) {
+	        curr_res_id = this.scene.target_view.res_id;
+	      } else {
+	        curr_res_id = this.scene.current_view.res_id;
+	      }
+	      var i = this.protein.get_i_res_from_res_id(curr_res_id);
+	      if (i <= 0) {
+	        i = this.protein.getNResidue() - 1;
+	      } else {
+	        i -= 1;
+	      }
+	      var res = this.protein.getResidue(i);
+	      this.set_target_view_by_atom(res.iAtom);
+	    }
+	  }, {
+	    key: 'set_target_next_residue',
+	    value: function set_target_next_residue() {
+	      var curr_res_id = void 0;
+	      if (this.scene.n_update_step >= 0) {
+	        curr_res_id = this.scene.target_view.res_id;
+	      } else {
+	        curr_res_id = this.scene.current_view.res_id;
+	      }
+	      var i = this.protein.get_i_res_from_res_id(curr_res_id);
+	      if (i >= this.protein.getNResidue() - 1) {
+	        i = 0;
+	      } else {
+	        i += 1;
+	      }
+	      var res = this.protein.getResidue(i);
+	      this.set_target_view_by_atom(res.iAtom);
+	    }
+	  }, {
+	    key: 'set_target_prev_view',
+	    value: function set_target_prev_view() {
+	      var scene = this.scene;
+	      scene.i_last_view -= 1;
+	      if (scene.i_last_view < 0) {
+	        scene.i_last_view = scene.saved_views.length - 1;
+	      }
+	      var id = scene.saved_views[scene.i_last_view].id;
+	      this.set_target_view_by_id(id);
+	      return id;
+	    }
+	  }, {
+	    key: 'set_target_next_view',
+	    value: function set_target_next_view() {
+	      var scene = this.scene;
+	      scene.i_last_view += 1;
+	      if (scene.i_last_view >= scene.saved_views.length) {
+	        scene.i_last_view = 0;
+	      }
+	      var id = scene.saved_views[scene.i_last_view].id;
+	      this.set_target_view_by_id(id);
+	      return id;
+	    }
+	  }, {
+	    key: 'swapViews',
+	    value: function swapViews(i, j) {
+	      this.scene.saved_views[j].order = i;
+	      this.scene.saved_views[i].order = j;
+	      var dummy = this.scene.saved_views[j];
+	      this.scene.saved_views[j] = this.scene.saved_views[i];
+	      this.scene.saved_views[i] = dummy;
+	    }
+	  }, {
+	    key: 'get_view_dicts',
+	    value: function get_view_dicts() {
+	      var view_dicts = [];
+	      for (var i = 1; i < this.scene.saved_views.length; i += 1) {
+	        view_dicts.push(this.scene.saved_views[i].getDict());
+	      }
+	      return view_dicts;
+	    }
+	  }, {
+	    key: 'make_selected',
+	    value: function make_selected() {
+	      var result = [];
+	      for (var i = 0; i < this.protein.residues.length; i += 1) {
+	        if (this.protein.residues[i].selected) {
+	          result.push(i);
+	        }
+	      }
+	      return result;
+	    }
+	  }, {
+	    key: 'clear_selected',
+	    value: function clear_selected() {
+	      this.protein.clear_selected();
+	      this.scene.current_view.selected = this.make_selected();
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: 'select_residue',
+	    value: function select_residue(i, v) {
+	      this.protein.residues[i].selected = v;
+	      this.scene.current_view.selected = this.make_selected();
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: 'toggle_neighbors',
+	    value: function toggle_neighbors() {
+	      var res_id = this.scene.current_view.res_id;
+	      var i_res = this.protein.get_i_res_from_res_id(res_id);
+	      var b = void 0;
+	      if (this.last_neighbour_res_id === res_id) {
+	        b = false;
+	        this.last_neighbour_res_id = null;
+	      } else {
+	        b = true;
+	        this.last_neighbour_res_id = res_id;
+	      }
+	      this.protein.select_neighbors(i_res, b);
+	      this.scene.current_view.selected = this.make_selected();
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: 'save_current_view',
+	    value: function save_current_view(new_id) {
+	      var j = this.scene.i_last_view + 1;
+	      var new_view = this.scene.current_view.clone();
+	      new_view.text = 'Click edit to change this text.';
+	      new_view.pdb_id = this.protein.pdb_id;
+	      var time = (0, _util.getCurrentDateStr)();
+	      if (user === '' || typeof user === 'undefined') {
+	        new_view.creator = '~ [public] @' + time;
+	      } else {
+	        new_view.creator = '~ ' + user + ' @' + time;
+	      }
+	      new_view.id = new_id;
+	      new_view.selected = this.make_selected();
+	      this.scene.insert_view(j, new_id, new_view);
+	      return j;
+	    }
+	  }, {
+	    key: 'delete_view',
+	    value: function delete_view(id) {
+	      this.scene.remove_saved_view(id);
+	    }
+	  }, {
+	    key: 'sort_views_by_order',
+	    value: function sort_views_by_order() {
+	      function order_sort(a, b) {
+	        return a.order - b.order;
+	      }
+	      this.scene.saved_views.sort(order_sort);
+	      for (var i = 0; i < this.scene.saved_views.length; i += 1) {
+	        this.scene.saved_views[i].order = i;
+	      }
+	    }
+	  }, {
+	    key: 'load_views_from_flat_views',
+	    value: function load_views_from_flat_views(view_dicts) {
+	      for (var i = 0; i < view_dicts.length; i += 1) {
+	        var view = new View();
+	        view.setFromDict(view_dicts[i]);
+	        if (view.id === 'view:000000') {
+	          continue;
+	        }
+	        this.scene.save_view(view);
+	      }
+	      this.sort_views_by_order();
+	    }
+	  }, {
+	    key: 'set_backbone_option',
+	    value: function set_backbone_option(option) {
+	      this.scene.current_view.show.all_atom = false;
+	      this.scene.current_view.show.trace = false;
+	      this.scene.current_view.show.ribbon = false;
+	      this.scene.current_view.show[option] = true;
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: 'set_show_option',
+	    value: function set_show_option(option, bool) {
+	      console.log('> Controller.set_show_option', option, bool);
+	      this.scene.current_view.show[option] = bool;
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: 'get_show_option',
+	    value: function get_show_option(option) {
+	      return this.scene.current_view.show[option];
+	    }
+	  }, {
+	    key: 'toggle_show_option',
+	    value: function toggle_show_option(option) {
+	      var val = this.get_show_option(option);
+	      this.set_show_option(option, !val);
+	    }
+	  }, {
+	    key: 'flag_changed',
+	    value: function flag_changed() {
+	      this.scene.changed = true;
+	    }
+	  }, {
+	    key: 'set_current_view',
+	    value: function set_current_view(view) {
+	      this.scene.current_view = view;
+	      this.scene.changed = true;
+	    }
+	  }]);
+	
+	  return Controller;
+	}();
 	
 	exports.Protein = Protein;
-	exports.Camera = Camera;
-	exports.View = View;
 	exports.Controller = Controller;
 	exports.Scene = Scene;
 
@@ -29617,7 +29754,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * vector library. This was replaced with the fully-featured vector library
 	 * in THREE.js
 	 * 
-	 **/
+	 */
 	
 	function isNearZero(a) {
 	  return Math.abs(a) < SMALL;
@@ -71572,7 +71709,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Utility functions mainly to do with HTML elements
 	 * that can be deferred to functions
 	 *
-	 **/
+	 */
 	
 	function exists(x) {
 	  return !_lodash2.default.isUndefined(x) && x !== null;
@@ -71774,6 +71911,119 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 10 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	/**
+	 * Finds pairs of vertices that have been coarsely grouped together
+	 * using spatial hashes of boxes of div^3. All vertices in neighboring
+	 * boxes are considered close pairs.
+	 *
+	 * @param {Array<Vector3D>} vertices - list of positions
+	 * @returns {Array} - array of tuples of positions
+	 */
+	function getClosePairs(vertices) {
+	  var padding = 0.05;
+	  var div = 5.0;
+	  var inv_div = 1.0 / div;
+	  var maxima = [0.0, 0.0, 0.0];
+	  var minima = [0.0, 0.0, 0.0];
+	  var spans = [0.0, 0.0, 0.0];
+	  var sizes = [0, 0, 0];
+	
+	  for (var i_dim = 0; i_dim < 3; i_dim++) {
+	    for (var i = 0; i < vertices.length; i += 1) {
+	      if (minima[i_dim] > vertices[i][i_dim]) {
+	        minima[i_dim] = vertices[i][i_dim];
+	      }
+	      if (maxima[i_dim] < vertices[i][i_dim]) {
+	        maxima[i_dim] = vertices[i][i_dim];
+	      }
+	    }
+	    minima[i_dim] -= padding;
+	    maxima[i_dim] += padding;
+	    spans[i_dim] = maxima[i_dim] - minima[i_dim];
+	    sizes[i_dim] = Math.ceil(spans[i_dim] * inv_div);
+	  }
+	
+	  function vertex_to_space(v) {
+	    var result = [];
+	    for (var j = 0; j < 3; j++) {
+	      result.push(Math.round((v[j] - minima[j]) * inv_div));
+	    }
+	    return result;
+	  }
+	
+	  function space_to_hash(s) {
+	    return s[0] * sizes[1] * sizes[2] + s[1] * sizes[2] + s[2];
+	  }
+	
+	  var cells = {};
+	  var spaces = [];
+	  for (var i = 0; i < vertices.length; i++) {
+	    var vertex = vertices[i];
+	    var space = vertex_to_space(vertex);
+	    spaces.push(space);
+	    var space_hash = space_to_hash(space);
+	    if (!(space_hash in cells)) {
+	      cells[space_hash] = [];
+	    }
+	    cells[space_hash].push(i);
+	  }
+	
+	  function neighbourhood_in_dim(space, i_dim) {
+	    var start = Math.max(0, space[i_dim] - 1);
+	    var end = Math.min(sizes[i_dim], space[i_dim] + 2);
+	    var result = [];
+	    for (var i = start; i < end; i++) {
+	      result.push(i);
+	    }
+	    return result;
+	  }
+	
+	  function space_neighbourhood(space) {
+	    var result = [];
+	    var neighbourhood0 = neighbourhood_in_dim(space, 0);
+	    var neighbourhood1 = neighbourhood_in_dim(space, 1);
+	    var neighbourhood2 = neighbourhood_in_dim(space, 2);
+	    for (var s0 = 0; s0 < neighbourhood0.length; s0++) {
+	      for (var s1 = 0; s1 < neighbourhood1.length; s1++) {
+	        for (var s2 = 0; s2 < neighbourhood2.length; s2++) {
+	          result.push([neighbourhood0[s0], neighbourhood1[s1], neighbourhood2[s2]]);
+	        }
+	      }
+	    }
+	    return result;
+	  }
+	
+	  var pairs = [];
+	  for (var i = 0; i < vertices.length; i++) {
+	    var neighbourhood = space_neighbourhood(spaces[i]);
+	    for (var j_neigh = 0; j_neigh < neighbourhood.length; j_neigh++) {
+	      var hash = space_to_hash(neighbourhood[j_neigh]);
+	      if (hash in cells) {
+	        var cell = cells[hash];
+	        for (var j_cell = 0; j_cell < cell.length; j_cell++) {
+	          var j = cell[j_cell];
+	          if (i < j) {
+	            pairs.push([i, j]);
+	          }
+	        }
+	      }
+	    }
+	  }
+	  return pairs;
+	}
+	
+	exports.getClosePairs = getClosePairs;
+
+/***/ },
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -71801,9 +72051,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _v2 = _interopRequireDefault(_v);
 	
-	var _protein = __webpack_require__(6);
-	
-	var _glgeom = __webpack_require__(11);
+	var _glgeom = __webpack_require__(12);
 	
 	var glgeom = _interopRequireWildcard(_glgeom);
 	
@@ -71811,11 +72059,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var util = _interopRequireWildcard(_util);
 	
-	var _widgets = __webpack_require__(12);
+	var _widgets = __webpack_require__(13);
 	
 	var _widgets2 = _interopRequireDefault(_widgets);
 	
-	var _data = __webpack_require__(13);
+	var _data = __webpack_require__(14);
 	
 	var data = _interopRequireWildcard(_data);
 	
@@ -71850,68 +72098,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }
-	}
-	
-	/**
-	 * Converts the older view datastructure to a target data
-	 * structure that can be easily converted into a THREE.js
-	 * camera
-	 *
-	 * - camera
-	 *     - pos: scene center, camera focus
-	 *     - up: gives the direction of the y vector from pos
-	 *     - in: gives the positive z-axis direction
-	 *     - scene is from 0 to positive z; since canvasjolecule draws +z into screen
-	 *     - as opengl +z is out of screen, need to flip z direction
-	 *     - in opengl, the box is -1 to 1 that gets projected on screen + perspective
-	 *     - by adding a i distance to move the camera further into -z
-	 *     - z_front and z_back define cutoffs
-	 * - opengl:
-	 *     - x right -> left
-	 *     - y bottom -> top (inverse of classic 2D coordinate)
-	 *     - z far -> near
-	 *     - that is positive Z direction is out of the screen
-	 *     - box -1to +1
-	 **/
-	
-	function convertViewToTarget(view) {
-	  var cameraFocus = _v2.default.clone(view.camera.pos);
-	
-	  var cameraDirection = _v2.default.clone(view.camera.in_v).sub(cameraFocus).multiplyScalar(view.camera.zoom).negate();
-	
-	  var cameraPosition = cameraFocus.clone().add(cameraDirection);
-	
-	  var cameraUp = _v2.default.clone(view.camera.up_v).sub(cameraFocus).negate();
-	
-	  return {
-	    cameraFocus: cameraFocus,
-	    cameraPosition: cameraPosition,
-	    cameraUp: cameraUp,
-	    zFront: view.camera.z_front,
-	    zBack: view.camera.z_back,
-	    zoom: view.camera.zoom
-	  };
-	}
-	
-	function convertTargetToView(target) {
-	  var view = new _protein.View();
-	
-	  var cameraDirection = target.cameraPosition.clone().sub(target.cameraFocus).negate();
-	
-	  view.camera.zoom = cameraDirection.length();
-	  view.camera.z_front = target.zFront;
-	  view.camera.z_back = target.zBack;
-	
-	  view.camera.pos = _v2.default.clone(target.cameraFocus);
-	
-	  var up = target.cameraUp.clone().negate();
-	
-	  view.camera.up_v = _v2.default.clone(target.cameraFocus.clone().add(up));
-	
-	  cameraDirection.normalize();
-	  view.camera.in_v = _v2.default.clone(target.cameraFocus.clone().add(cameraDirection));
-	
-	  return view;
 	}
 	
 	function interpolateTargets(oldTarget, futureTarget, t) {
@@ -71949,28 +72135,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  result.zBack = glgeom.fraction(oldTarget.zBack, futureTarget.zBack, t);
 	
 	  return result;
-	}
-	
-	function makeDefaultView(view, protein) {
-	  view.res_id = protein.getResidue(0).id;
-	
-	  view.camera.z_front = -protein.max_length / 2;
-	  view.camera.z_back = protein.max_length / 2;
-	  view.camera.zoom = Math.abs(protein.max_length);
-	
-	  view.show.sidechain = false;
-	
-	  // mangling with original coordinate system to openGL
-	  view.camera.up_v = _v2.default.create(0, -1, 0);
-	
-	  var atom = protein.get_central_atom();
-	  view.res_id = atom.res_id;
-	  view.i_atom = atom.i;
-	  view.camera.transform(_v2.default.translation(atom.pos));
-	
-	  view.order = 0;
-	  view.text = protein.default_html;
-	  view.pdb_id = protein.pdb_id;
 	}
 	
 	function makeTracesFromProtein(protein) {
@@ -72070,10 +72234,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.div.append(this.webglDiv);
 	    this.div.css('background-color', '#CCC');
 	
-	    var vertexColors = _three2.default.VertexColors;
-	
 	    // atom radius used to display on the screen
-	    this.radius = 0.35;
+	    this.atomRadius = 0.35;
 	
 	    // parameters for viewport and camera
 	    // the target position for the camera
@@ -72083,16 +72245,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.zBack = 20;
 	    // determines how far away the camera is from the target
 	    this.zoom = 50.0;
-	    // a THREE.js camera tailored for the screen-size
-	    // and above parameters
-	    this.camera = new _three2.default.PerspectiveCamera(45, this.width() / this.height(), this.zFront + this.zoom, this.zBack + this.zoom);
-	    this.camera.position.set(0, 0, this.zoom);
+	
+	    // a THREE.js camera, will be set properly before draw
+	    this.camera = new _three2.default.PerspectiveCamera(45, this.width() / this.height());
 	
 	    this.displayScene = new _three2.default.Scene();
 	    this.displayScene.background = new _three2.default.Color(this.backgroundColor);
 	    this.displayScene.fog = new _three2.default.Fog(this.backgroundColor, 1, 100);
-	    this.displayScene.fog.near = this.zoom + 1;
-	    this.displayScene.fog.far = this.zoom + this.zBack;
 	
 	    // this.displayMeshes is a dictionary that holds THREE.Object3D
 	    // collections of meshes. This allows collections to be collectively
@@ -72101,6 +72260,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // will send geometries into the displayMeshes, using this.displayMaterial
 	    // as the default. This assumes vertexColors are used, allowing multiple
 	    // colors within the same geometry.
+	    var vertexColors = _three2.default.VertexColors;
+	
 	    this.displayMeshes = {};
 	    this.displayMaterial = new _three2.default.MeshLambertMaterial({ vertexColors: vertexColors });
 	
@@ -72122,7 +72283,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.divTag, this.scene);
 	    this.gridControlWidget = new _widgets2.default.GridControlWidget(this.divTag, this.scene, isGrid);
 	
-	    // this.lineElement = new widgets.LineElement(this.webglDivTag, '#FF7777')
+	    this.lineElement = new _widgets2.default.LineElement(this.webglDivTag, '#FF7777');
 	
 	    // input control parametsrs
 	    this.saveMouseX = null;
@@ -72247,12 +72408,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.sequenceWidget.reset();
 	
-	      var defaultView = this.scene.current_view.clone();
-	      makeDefaultView(defaultView, this.protein);
-	      this.scene.save_view(defaultView);
-	      this.controller.set_current_view(defaultView);
+	      this.scene.current_view.makeDefaultOfProtein(this.protein);
 	
-	      this.scene.is_new_view_chosen = true;
+	      this.scene.save_view(this.scene.current_view);
+	
 	      this.scene.changed = true;
 	    }
 	  }, {
@@ -72524,7 +72683,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'mergeAtomToGeom',
 	    value: function mergeAtomToGeom(geom, pickGeom, iAtom) {
 	      var atom = this.protein.getAtom(iAtom);
-	      var matrix = glgeom.getSphereMatrix(atom.pos, this.radius);
+	      var matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius);
 	      var unitGeom = this.unitSphereGeom;
 	      glgeom.mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix);
 	      glgeom.mergeUnitGeom(pickGeom, unitGeom, data.getIndexColor(iAtom), matrix);
@@ -72833,7 +72992,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	              var residueShow = showAllResidues || residue.selected;
 	              if (residueShow && !util.exists(residue.mesh)) {
 	                (function () {
-	                  console.log('> ProteinDisplay.buildSelectedResidues', residue.id, residue.selected);
 	
 	                  var displayGeom = new _three2.default.Geometry();
 	                  var pickingGeom = new _three2.default.Geometry();
@@ -72843,7 +73001,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                  _this3.protein.eachResidueAtom(iRes, function (atom) {
 	                    if (!util.inArray(atom.type, data.backboneAtoms)) {
 	                      atom.is_sidechain = true;
-	                      var matrix = glgeom.getSphereMatrix(atom.pos, _this3.radius);
+	                      var matrix = glgeom.getSphereMatrix(atom.pos, _this3.atomRadius);
 	                      glgeom.mergeUnitGeom(displayGeom, _this3.unitSphereGeom, _this3.getAtomColor(atom.i), matrix);
 	                      glgeom.mergeUnitGeom(pickingGeom, _this3.unitSphereGeom, data.getIndexColor(atom.i), matrix);
 	                    }
@@ -73051,7 +73209,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                  color: _this7.getAtomColor(atom.i)
 	                });
 	                var mesh = new _three2.default.Mesh(_this7.unitSphereGeom, material);
-	                mesh.scale.set(_this7.radius, _this7.radius, _this7.radius);
+	                mesh.scale.set(_this7.atomRadius, _this7.atomRadius, _this7.atomRadius);
 	                mesh.position.copy(atom.pos);
 	                mesh.i = atom.i;
 	                _this7.displayMeshes.grid.add(mesh);
@@ -73060,7 +73218,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                  color: data.getIndexColor(atom.i)
 	                });
 	                var pickingMesh = new _three2.default.Mesh(_this7.unitSphereGeom, indexMaterial);
-	                pickingMesh.scale.set(_this7.radius, _this7.radius, _this7.radius);
+	                pickingMesh.scale.set(_this7.atomRadius, _this7.atomRadius, _this7.atomRadius);
 	                pickingMesh.position.copy(atom.pos);
 	                pickingMesh.i = atom.i;
 	                _this7.pickingMeshes.grid.add(pickingMesh);
@@ -73217,27 +73375,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	
 	  }, {
-	    key: 'getTarget',
-	    value: function getTarget() {
-	      return {
-	        cameraFocus: this.cameraFocus.clone(),
-	        cameraPosition: this.camera.position.clone(),
-	        cameraUp: this.camera.up.clone(),
-	        zFront: this.zFront,
-	        zBack: this.zBack
-	      };
-	    }
-	  }, {
 	    key: 'setTargetFromAtom',
 	    value: function setTargetFromAtom(iAtom) {
 	      this.controller.set_target_view_by_atom(iAtom);
-	      this.scene.is_new_view_chosen = true;
 	      this.scene.n_update_step = this.scene.max_update_step;
+	    }
+	  }, {
+	    key: 'getTarget',
+	    value: function getTarget() {
+	      return this.scene.current_view.target;
 	    }
 	  }, {
 	    key: 'setCameraFromCurrentView',
 	    value: function setCameraFromCurrentView() {
-	      var target = convertViewToTarget(this.scene.current_view);
+	      var target = this.getTarget();
 	
 	      var cameraDirection = this.camera.position.clone().sub(this.cameraFocus).normalize();
 	
@@ -73304,15 +73455,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var cameraPosition = this.camera.position.clone().sub(this.cameraFocus).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(this.cameraFocus);
 	
-	      var view = convertTargetToView({
-	        cameraFocus: this.cameraFocus.clone(),
-	        cameraPosition: cameraPosition,
-	        cameraUp: this.camera.up.clone().applyQuaternion(rotation),
-	        zFront: this.zFront,
-	        zBack: this.zBack
-	      });
-	
-	      view.copy_metadata_from_view(this.scene.current_view);
+	      var view = this.scene.current_view.clone();
+	      view.target.cameraFocus = this.cameraFocus.clone();
+	      view.target.cameraPosition = cameraPosition;
+	      view.target.cameraUp = this.camera.up.clone().applyQuaternion(rotation);
+	      view.target.zoom = newZoom;
 	
 	      this.controller.set_current_view(view);
 	    }
@@ -73331,23 +73478,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'inZlab',
 	    value: function inZlab(pos) {
 	      var z = this.getZ(pos);
-	
-	      return z >= this.zFront && z <= this.zBack;
+	      var target = this.getTarget();
+	      return z >= target.zFront && z <= target.zBack;
 	    }
 	  }, {
 	    key: 'opacity',
 	    value: function opacity(pos) {
 	      var z = this.getZ(pos);
 	
-	      if (z < this.zFront) {
+	      var target = this.getTarget();
+	
+	      if (z < target.zFront) {
 	        return 1.0;
 	      }
 	
-	      if (z > this.zBack) {
+	      if (z > target.zBack) {
 	        return 0.0;
 	      }
 	
-	      return 1 - (z - this.zFront) / (this.zBack - this.zFront);
+	      return 1 - (z - target.zFront) / (target.zBack - target.zFront);
 	    }
 	  }, {
 	    key: 'posXY',
@@ -73508,11 +73657,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return;
 	      }
 	
-	      var futureTarget = convertViewToTarget(this.scene.target_view);
+	      var newTarget = interpolateTargets(this.scene.current_view.target, this.scene.target_view.target, 1.0 / nStep);
 	
-	      var newTarget = interpolateTargets(this.getTarget(), futureTarget, 1.0 / nStep);
-	      var view = convertTargetToView(newTarget);
-	      view.copy_metadata_from_view(this.scene.target_view);
+	      var view = this.scene.target_view.clone();
+	      view.setTarget(newTarget);
 	      this.controller.set_current_view(view);
 	
 	      this.updateHover();
@@ -73752,7 +73900,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.ProteinDisplay = ProteinDisplay;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -73854,7 +74002,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 * For a segment between two path points and a repetition of the cross-section,
 	 * two triangles are defined.
-	 **/
+	 */
 	
 	
 	var RibbonGeometry = function (_THREE$Geometry) {
@@ -73866,7 +74014,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
 	   * @param {boolean} front - draw front cross-section
 	   * @param {boolean} back - draw back cross-section
-	   **/
+	   */
 	  function RibbonGeometry(shape, path, round, front, back) {
 	    _classCallCheck(this, RibbonGeometry);
 	
@@ -74243,7 +74391,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * will be extended to detail beyond that is
 	     * half-way between the residue and the neighboring
 	     * residue in a different piece.
-	     **/
+	     */
 	
 	  }, {
 	    key: 'getSegmentGeometry',
@@ -74309,7 +74457,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * Creates a cylinder that is orientated along
 	 * the z-direction. Use lookAt to reorientate
-	 **/
+	 */
 	
 	
 	var UnitCylinderGeometry = function (_THREE$CylinderGeomet) {
@@ -74332,7 +74480,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * Takes a bunch of points and treats it as defining
 	 * a polygon, and raises it to a certain thickness.
-	 **/
+	 */
 	
 	
 	var RaisedShapeGeometry = function (_THREE$Geometry2) {
@@ -74538,7 +74686,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getCylinderMatrix = getCylinderMatrix;
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -74573,7 +74721,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _lodash2 = _interopRequireDefault(_lodash);
 	
-	var _data = __webpack_require__(13);
+	var _data = __webpack_require__(14);
 	
 	var data = _interopRequireWildcard(_data);
 	
@@ -74658,7 +74806,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *   - instantiates an absolute div that fits the $(selector)
 	 *   - attaches a canvas to this div
 	 *   - creates methods that redirects mouse commands to that canvas
-	 **/
+	 */
 	
 	var CanvasWrapper = function () {
 	  function CanvasWrapper(selector) {
@@ -74827,7 +74975,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * PopupText is a little blob of text with a down
 	 * arrow that can be displayed in a (x, y) position
 	 * within a parent div denoted by selector
-	 **/
+	 */
 	
 	var PopupText = function () {
 	  function PopupText(selector) {
@@ -75117,7 +75265,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *   - the first band is a sequence bar widget
 	 *   - the second band is a sequence text widget
 	 *   - these two are integrated so that they share state
-	 **/
+	 */
 	
 	var SequenceWidget = function (_CanvasWrapper) {
 	  _inherits(SequenceWidget, _CanvasWrapper);
@@ -75380,7 +75528,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	/**
 	 * ZSlabWidget
-	 **/
+	 */
 	
 	var ZSlabWidget = function (_CanvasWrapper2) {
 	  _inherits(ZSlabWidget, _CanvasWrapper2);
@@ -75450,11 +75598,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'draw',
 	    value: function draw() {
 	      var protein = this.scene.protein;
-	      var camera = this.scene.current_view.camera;
+	      var target = this.scene.current_view.target;
 	      this.maxZLength = 2.0 * protein.max_length;
 	
-	      var yBack = this.zToY(camera.z_back);
-	      var yFront = this.zToY(camera.z_front);
+	      var yBack = this.zToY(target.zBack);
+	      var yFront = this.zToY(target.zFront);
 	      var yMid = this.zToY(0);
 	
 	      this.fillRect(0, 0, this.width(), this.height(), this.backColor);
@@ -75503,12 +75651,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.getZ(event);
 	
-	      var camera = this.scene.current_view.camera;
+	      var target = this.scene.current_view.target;
 	
 	      if (this.back) {
-	        camera.z_back = Math.max(2, this.z);
+	        target.zBack = Math.max(2, this.z);
 	      } else if (this.front) {
-	        camera.z_front = Math.min(-2, this.z);
+	        target.zFront = Math.min(-2, this.z);
 	      }
 	
 	      this.scene.changed = true;
@@ -75520,7 +75668,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	/**
 	 * GridControlWidget
-	 **/
+	 */
 	
 	var GridControlWidget = function (_CanvasWrapper3) {
 	  _inherits(GridControlWidget, _CanvasWrapper3);
@@ -75832,7 +75980,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -76032,7 +76180,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.ElementColors = ElementColors;
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -76048,7 +76196,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _jquery2 = _interopRequireDefault(_jquery);
 	
-	var _jquery3 = __webpack_require__(15);
+	var _jquery3 = __webpack_require__(16);
 	
 	var _jquery4 = _interopRequireDefault(_jquery3);
 	
@@ -76066,7 +76214,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	/**
 	 * ViewPieceList keeps track of the views
-	 **/
+	 */
 	
 	var ViewPieceList = function () {
 	  function ViewPieceList(divTag, controller, proteinDisplay, data_server, isEditable) {
@@ -76302,7 +76450,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * FullPageJolecule - full page wrapper around an embedd EmbedJolecule
 	 * widget. Handles keypresses and urls and adds a better views annotation
 	 * list tool
-	 **/
+	 */
 	
 	var FullPageJolecule = function () {
 	  function FullPageJolecule(proteinDisplayTag, sequenceDisplayTag, viewsDisplayTag, params) {
@@ -76386,9 +76534,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function draw() {
 	      if (this.scene.changed) {
 	        this.viewsDisplay.updateViews();
-	        if (this.scene.is_new_view_chosen) {
-	          this.scene.is_new_view_chosen = false;
-	        }
 	        this.embedJolecule.draw();
 	        this.scene.changed = false;
 	      }
@@ -76483,7 +76628,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.FullPageJolecule = FullPageJolecule;
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -76697,119 +76842,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		return $scrollTo;
 	});
 
-
-/***/ },
-/* 16 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	/**
-	 * Finds pairs of vertices that have been coarsely grouped together
-	 * using spatial hashes of boxes of div^3. All vertices in neighboring
-	 * boxes are considered close pairs.
-	 *
-	 * @param {Array<Vector3D>} vertices - list of positions
-	 * @returns {Array} - array of tuples of positions
-	 */
-	function getClosePairs(vertices) {
-	  var padding = 0.05;
-	  var div = 5.0;
-	  var inv_div = 1.0 / div;
-	  var maxima = [0.0, 0.0, 0.0];
-	  var minima = [0.0, 0.0, 0.0];
-	  var spans = [0.0, 0.0, 0.0];
-	  var sizes = [0, 0, 0];
-	
-	  for (var i_dim = 0; i_dim < 3; i_dim++) {
-	    for (var i = 0; i < vertices.length; i += 1) {
-	      if (minima[i_dim] > vertices[i][i_dim]) {
-	        minima[i_dim] = vertices[i][i_dim];
-	      }
-	      if (maxima[i_dim] < vertices[i][i_dim]) {
-	        maxima[i_dim] = vertices[i][i_dim];
-	      }
-	    }
-	    minima[i_dim] -= padding;
-	    maxima[i_dim] += padding;
-	    spans[i_dim] = maxima[i_dim] - minima[i_dim];
-	    sizes[i_dim] = Math.ceil(spans[i_dim] * inv_div);
-	  }
-	
-	  function vertex_to_space(v) {
-	    var result = [];
-	    for (var j = 0; j < 3; j++) {
-	      result.push(Math.round((v[j] - minima[j]) * inv_div));
-	    }
-	    return result;
-	  }
-	
-	  function space_to_hash(s) {
-	    return s[0] * sizes[1] * sizes[2] + s[1] * sizes[2] + s[2];
-	  }
-	
-	  var cells = {};
-	  var spaces = [];
-	  for (var i = 0; i < vertices.length; i++) {
-	    var vertex = vertices[i];
-	    var space = vertex_to_space(vertex);
-	    spaces.push(space);
-	    var space_hash = space_to_hash(space);
-	    if (!(space_hash in cells)) {
-	      cells[space_hash] = [];
-	    }
-	    cells[space_hash].push(i);
-	  }
-	
-	  function neighbourhood_in_dim(space, i_dim) {
-	    var start = Math.max(0, space[i_dim] - 1);
-	    var end = Math.min(sizes[i_dim], space[i_dim] + 2);
-	    var result = [];
-	    for (var i = start; i < end; i++) {
-	      result.push(i);
-	    }
-	    return result;
-	  }
-	
-	  function space_neighbourhood(space) {
-	    var result = [];
-	    var neighbourhood0 = neighbourhood_in_dim(space, 0);
-	    var neighbourhood1 = neighbourhood_in_dim(space, 1);
-	    var neighbourhood2 = neighbourhood_in_dim(space, 2);
-	    for (var s0 = 0; s0 < neighbourhood0.length; s0++) {
-	      for (var s1 = 0; s1 < neighbourhood1.length; s1++) {
-	        for (var s2 = 0; s2 < neighbourhood2.length; s2++) {
-	          result.push([neighbourhood0[s0], neighbourhood1[s1], neighbourhood2[s2]]);
-	        }
-	      }
-	    }
-	    return result;
-	  }
-	
-	  var pairs = [];
-	  for (var i = 0; i < vertices.length; i++) {
-	    var neighbourhood = space_neighbourhood(spaces[i]);
-	    for (var j_neigh = 0; j_neigh < neighbourhood.length; j_neigh++) {
-	      var hash = space_to_hash(neighbourhood[j_neigh]);
-	      if (hash in cells) {
-	        var cell = cells[hash];
-	        for (var j_cell = 0; j_cell < cell.length; j_cell++) {
-	          var j = cell[j_cell];
-	          if (i < j) {
-	            pairs.push([i, j]);
-	          }
-	        }
-	      }
-	    }
-	  }
-	  return pairs;
-	}
-	
-	exports.getClosePairs = getClosePairs;
 
 /***/ }
 /******/ ])

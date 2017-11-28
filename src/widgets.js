@@ -85,7 +85,7 @@ class LineElement {
  *   - instantiates an absolute div that fits the $(selector)
  *   - attaches a canvas to this div
  *   - creates methods that redirects mouse commands to that canvas
- **/
+ */
 
 class CanvasWrapper {
   constructor (selector) {
@@ -228,7 +228,7 @@ class CanvasWrapper {
  * PopupText is a little blob of text with a down
  * arrow that can be displayed in a (x, y) position
  * within a parent div denoted by selector
- **/
+ */
 
 class PopupText {
   constructor (selector) {
@@ -488,7 +488,7 @@ class DistanceMeasuresWidget {
  *   - the first band is a sequence bar widget
  *   - the second band is a sequence text widget
  *   - these two are integrated so that they share state
- **/
+ */
 
 class SequenceWidget extends CanvasWrapper {
   constructor (selector, proteinDisplay) {
@@ -714,7 +714,7 @@ class SequenceWidget extends CanvasWrapper {
 
 /**
  * ZSlabWidget
- **/
+ */
 
 class ZSlabWidget extends CanvasWrapper {
   constructor (selector, scene) {
@@ -769,11 +769,11 @@ class ZSlabWidget extends CanvasWrapper {
 
   draw () {
     let protein = this.scene.protein
-    let camera = this.scene.current_view.camera
+    let target = this.scene.current_view.target
     this.maxZLength = 2.0 * protein.max_length
 
-    let yBack = this.zToY(camera.z_back)
-    let yFront = this.zToY(camera.z_front)
+    let yBack = this.zToY(target.zBack)
+    let yFront = this.zToY(target.zFront)
     let yMid = this.zToY(0)
 
     this.fillRect(
@@ -825,12 +825,12 @@ class ZSlabWidget extends CanvasWrapper {
 
     this.getZ(event)
 
-    let camera = this.scene.current_view.camera
+    let target = this.scene.current_view.target
 
     if (this.back) {
-      camera.z_back = Math.max(2, this.z)
+      target.zBack = Math.max(2, this.z)
     } else if (this.front) {
-      camera.z_front = Math.min(-2, this.z)
+      target.zFront = Math.min(-2, this.z)
     }
 
     this.scene.changed = true
@@ -839,7 +839,7 @@ class ZSlabWidget extends CanvasWrapper {
 
 /**
  * GridControlWidget
- **/
+ */
 
 class GridControlWidget extends CanvasWrapper {
   constructor (selector, scene, isGrid) {

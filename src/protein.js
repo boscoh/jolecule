@@ -806,7 +806,6 @@ var Protein = function () {
       for (var m in res_k.atoms) {
         var atom_m = res_k.atoms[m]
         if (v3.distance(atom_l.pos, atom_m.pos) < 4) {
-          console.log('> Protein.are_close_residues', atom_l.label, atom_m.label)
           return true
         }
       }
@@ -827,81 +826,141 @@ var Protein = function () {
 
 }
 
-///////////////////////////////////////////
-// Camera stores information about
-// the direction and zoom that a protein
-// should be viewed
-///////////////////////////////////////////
+/**
+ *
+ * View
+ * ----
+ * A view includes all pertinent viewing options
+ * needed to render the protein in the way
+ * for the user.
+ *
+ * JolyCamera stores information about
+ * the direction and zoom that a protein
+ * should be viewed
+ *
+ * Inside a view are two cameras as a camera is
+ * defined in terms of an existing frame of
+ * reference. The first camera refers to the
+ * current_view camera.
+ *
+ * The absolute camera is expressed with respect
+ * to the original frame of coordinate of the PDB.
+ *
+ * Converts JolyCamera to Target, the view structure for
+ * ProteinDisplay
+ *
+ * JolyCamera {
+ *    pos: scene center, camera focus
+ *    up: gives the direction of the y vector from pos
+ *    in: gives the positive z-axis direction
+ *    zFront: clipping plane in front of the camera focus
+ *    zBack: clipping plane behind the camera focus
+ * }
+ *
+ * target {
+ *    cameraFocus: position that camera is looking at
+ *    cameraPosition: position of camera - distance away gives zoom
+ *    cameraUp: vector direction denoting the up direction of camera
+ *    zFront: clipping plane in front of the camera focus
+ *    zBack: clipping plane behind the camera focus
+ * }
+ *
+ * Coordinates
+ * - JolyCamera
+ *     - scene is from 0 to positive z; since canvasjolecule draws +z into screen
+ *     - as opengl +z is out of screen, need to flip z direction
+ *     - in opengl, the box is -1 to 1 that gets projected on screen + perspective
+ *     - by adding a i distance to move the camera further into -z
+ *     - z_front and z_back define cutoffs
+ * - opengl:
+ *     - x right -> left
+ *     - y bottom -> top (inverse of classic 2D coordinate)
+ *     - z far -> near
+ *     - that is positive Z direction is out of the screen
+ *     - box -1to +1
+ */
 
-var Camera = function () {
-  this.pos = v3.create(0, 0, 0)
-  this.up_v = v3.create(0, 1, 0)
-  this.in_v = v3.create(0, 0, 1)
-  this.zoom = 0.0
-  this.z_front = 0.0
-  this.z_back = 0.0
 
-  this.clone = function () {
-    var c = new Camera()
-    c.pos = this.pos.clone()
-    c.up_v = this.up_v.clone()
-    c.in_v = this.in_v.clone()
-    c.zoom = this.zoom
-    c.z_front = this.z_front
-    c.z_back = this.z_back
-    return c
-  }
-
-  this.transform = function (matrix) {
-    this.pos.applyMatrix4(matrix)
-    this.up_v.applyMatrix4(matrix)
-    this.in_v.applyMatrix4(matrix)
-  }
+const defaultJolyCamera = {
+  pos: v3.create(0, 0, 0),
+  up_v: v3.create(0, 1, 0),
+  in_v: v3.create(0, 0, 1),
+  zoom: 1.0,
+  z_front: 0.0,
+  z_back: 0.0
 }
 
-////////////////////////////////////////////////////
-//
-// View
-// ----
-// A view includes all pertinent viewing options
-// needed to render the protein in the way
-// for the user.
-// 
-// Inside a view are two cameras as a camera is
-// defined in terms of an existing frame of 
-// reference. The first camera refers to the 
-// current_view camera.
-// 
-// The absolute camera is expressed with respect
-// to the original frame of coordinate of the PDB.
-//
-////////////////////////////////////////////////////
+const defaultTarget = {
+  cameraFocus: v3.create(0, 0, 0),
+  cameraPosition: v3.create(0, 0, -1),
+  cameraUp: v3.create(0, 1, 0),
+  zFront: 0,
+  zBack: 0,
+  zoom: 1
+}
 
-var View = function () {
-  this.id = 'view:000000'
-  this.res_id = ''
-  this.i_atom = -1
-  this.order = 1
-  this.camera = new Camera()
-  this.selected = []
-  this.labels = []
-  this.distances = []
-  this.text = 'Default view of PDB file'
-  this.creator = ''
-  this.url = getWindowUrl()
-  this.show = {
-    sidechain: true,
-    peptide: true,
-    hydrogen: false,
-    water: false,
-    ligands: true,
-    trace: false,
-    all_atom: false,
-    ribbon: true,
+class View {
+
+  constructor () {
+    this.id = 'view:000000'
+    this.res_id = ''
+    this.i_atom = -1
+    this.order = 1
+    this.target = _.cloneDeep(defaultTarget)
+    this.selected = []
+    this.labels = []
+    this.distances = []
+    this.text = 'Default view of PDB file'
+    this.creator = ''
+    this.url = getWindowUrl()
+    this.show = {
+      sidechain: true,
+      peptide: true,
+      hydrogen: false,
+      water: false,
+      ligands: true,
+      trace: false,
+      all_atom: false,
+      ribbon: true,
+    }
   }
 
-  this.clone = function () {
-    var v = new View()
+  setTarget (target) {
+    this.target = target
+  }
+
+  makeDefaultOfProtein (protein) {
+    this.res_id = protein.getResidue(0).id
+
+    let atom = protein.get_central_atom()
+    this.res_id = atom.res_id
+    this.i_atom = atom.i
+
+    this.show.sidechain = false
+
+    this.target.zFront = -protein.max_length / 2
+    this.target.zBack = protein.max_length / 2
+    this.target.zoom = Math.abs(protein.max_length)
+    this.target.cameraUp = v3.create(0, 1, 0)
+    this.target.cameraFocus.copy(atom.pos)
+    this.target.cameraPosition = v3
+      .create(0, 0, -this.target.zoom).add(atom.pos)
+
+    this.order = 0
+    this.text = protein.default_html
+    this.pdb_id = protein.pdb_id
+  }
+
+  getViewTranslatedTo (pos) {
+    let view = this.clone()
+    let disp = pos.clone().sub(view.target.cameraFocus)
+    view.target.cameraFocus.copy(pos)
+    view.target.cameraPosition.add(disp)
+    return view
+  }
+
+  clone () {
+    let v = new View()
     v.id = this.id
     v.res_id = this.res_id
     v.i_atom = this.i_atom
@@ -912,63 +971,181 @@ var View = function () {
     v.text = this.text
     v.time = this.time
     v.url = this.url
-    v.camera = this.camera.clone()
+    v.target = _.cloneDeep(this.target)
     v.show = _.cloneDeep(this.show)
     return v
   }
 
-  this.copy_metadata_from_view = function (in_view) {
-    this.res_id = in_view.res_id
-    this.show = _.cloneDeep(in_view.show)
-    this.labels = _.cloneDeep(in_view.labels)
-    this.distances = _.cloneDeep(in_view.distances)
-    this.text = in_view.text
-    this.time = in_view.time
-    this.url = in_view.url
-    this.i_atom = in_view.i_atom
-    this.selected = in_view.selected
+  getJolyCamera () {
+
+    let jolyCamera = _.cloneDeep(defaultJolyCamera)
+
+    let cameraDirection = this.target
+      .cameraPosition.clone().sub(this.target.cameraFocus).negate()
+    jolyCamera.zoom = cameraDirection.length()
+    jolyCamera.z_front = this.target.zFront
+    jolyCamera.z_back = this.target.zBack
+
+    jolyCamera.pos.copy(this.target.cameraFocus)
+
+    let up = this.target.cameraUp.clone().negate()
+
+    jolyCamera.up_v = v3.clone(
+      this.target.cameraFocus.clone().add(up))
+
+    cameraDirection.normalize()
+    jolyCamera.in_v = this.target.cameraFocus.clone().add(cameraDirection)
+
+    return jolyCamera
   }
+
+  getDict () {
+    let jolyCamera = this.getJolyCamera()
+    return {
+      version: 2,
+      view_id: this.id,
+      creator: this.creator,
+      pdb_id: this.pdb_id,
+      order: this.order,
+      show: this.show,
+      text: this.text,
+      res_id: this.res_id,
+      i_atom: this.i_atom,
+      labels: this.labels,
+      selected: this.selected,
+      distances: this.distances,
+      camera: {
+        slab: {
+          z_front: jolyCamera.z_front,
+          z_back: jolyCamera.z_back,
+          zoom: jolyCamera.zoom,
+        },
+        pos: [
+          jolyCamera.pos.x,
+          jolyCamera.pos.y,
+          jolyCamera.pos.z
+        ],
+        up: [
+          jolyCamera.up_v.x,
+          jolyCamera.up_v.y,
+          jolyCamera.up_v.z,
+        ],
+        in: [
+          jolyCamera.in_v.x,
+          jolyCamera.in_v.y,
+          jolyCamera.in_v.z,
+        ],
+      }
+    }
+  }
+
+  setTargetFromJolyCamera (jolyCamera) {
+    let cameraFocus = v3.clone(jolyCamera.pos)
+
+    let cameraDirection = v3
+      .clone(jolyCamera.in_v)
+      .sub(cameraFocus)
+      .multiplyScalar(jolyCamera.zoom)
+      .negate()
+
+    let cameraPosition = v3
+      .clone(cameraFocus).add(cameraDirection)
+
+    let cameraUp = v3
+      .clone(jolyCamera.up_v)
+      .sub(cameraFocus)
+      .negate()
+
+    this.target = {
+      cameraFocus: cameraFocus,
+      cameraPosition: cameraPosition,
+      cameraUp: cameraUp,
+      zFront: jolyCamera.z_front,
+      zBack: jolyCamera.z_back,
+      zoom: jolyCamera.zoom
+    }
+  }
+
+  setFromDict (flat_dict) {
+    this.id = flat_dict.view_id
+    this.view_id = flat_dict.view_id
+    this.pdb_id = flat_dict.pdb_id
+    this.lock = flat_dict.lock
+    this.text = flat_dict.text
+    this.creator = flat_dict.creator
+    this.order = flat_dict.order
+    this.res_id = flat_dict.res_id
+    this.i_atom = flat_dict.i_atom
+
+    this.labels = flat_dict.labels
+    this.selected = flat_dict.selected
+    this.distances = flat_dict.distances
+
+    this.show = flat_dict.show
+    if (!(this.show.all_atom || this.show.trace || this.show.ribbon)) {
+      this.show.ribbon = true
+    }
+
+    let jolyCamera = _.cloneDeep(defaultJolyCamera)
+
+    jolyCamera.pos.x = flat_dict.camera.pos[0]
+    jolyCamera.pos.y = flat_dict.camera.pos[1]
+    jolyCamera.pos.z = flat_dict.camera.pos[2]
+    jolyCamera.up_v.x = flat_dict.camera.up[0]
+    jolyCamera.up_v.y = flat_dict.camera.up[1]
+    jolyCamera.up_v.z = flat_dict.camera.up[2]
+    jolyCamera.in_v.x = flat_dict.camera.in[0]
+    jolyCamera.in_v.y = flat_dict.camera.in[1]
+    jolyCamera.in_v.z = flat_dict.camera.in[2]
+    jolyCamera.z_front = flat_dict.camera.slab.z_front
+    jolyCamera.z_back = flat_dict.camera.slab.z_back
+    jolyCamera.zoom = flat_dict.camera.slab.zoom
+
+    this.setTargetFromJolyCamera(jolyCamera)
+  }
+
 }
 
-/////////////////////////////////////////////////
-// The Scene object contains the protein data
-// and all necessary data to display the protein
-// in the correct view with labels and distance
-// measures.
-/////////////////////////////////////////////////
 
-var Scene = function (protein) {
-  this.max_update_step = 20
-  this.protein = protein
-  this.saved_views_by_id = {}
-  this.saved_views = []
-  this.current_view = new View()
-  this.target_view = null
-  this.n_update_step = -1
-  this.is_new_view_chosen = true
-  this.i_last_view = 0
+/**
+ * The Scene object contains the protein data
+ * and all necessary data to display the protein
+ * in the correct view with labels and distance
+ * measures.
+ */
+class Scene {
 
-  this.set_target_view = function (view) {
+  constructor (protein) {
+    this.max_update_step = 20
+    this.protein = protein
+    this.saved_views_by_id = {}
+    this.saved_views = []
+    this.current_view = new View()
+    this.target_view = null
+    this.n_update_step = -1
+    this.i_last_view = 0
+  }
+
+  set_target_view (view) {
     this.n_update_step = this.max_update_step
     this.target_view = view.clone()
   }
 
-  this.centered_atom = function () {
-    var i = this.current_view.i_atom
+  centered_atom () {
+    let i = this.current_view.i_atom
     return this.protein.getAtom(i)
   }
 
-  this.get_i_saved_view_from_id = function (id) {
-    var i = -1
-    for (var j = 0; j < this.saved_views.length; j += 1) {
+  get_i_saved_view_from_id (id) {
+    for (let j = 0; j < this.saved_views.length; j += 1) {
       if (this.saved_views[j].id === id) {
-        i = j
+        return j
       }
     }
-    return i
+    return -1
   }
 
-  this.insert_view = function (j, new_id, new_view) {
+  insert_view (j, new_id, new_view) {
     this.saved_views_by_id[new_id] = new_view
     if (j >= this.saved_views.length) {
       this.saved_views.push(new_view)
@@ -976,91 +1153,91 @@ var Scene = function (protein) {
       this.saved_views.splice(j, 0, new_view)
     }
     this.i_last_view = j
-    for (var i = 0; i < this.saved_views.length; i++) {
+    for (let i = 0; i < this.saved_views.length; i++) {
       this.saved_views[i].order = i
     }
   }
 
-  this.remove_saved_view = function (id) {
-    var i = this.get_i_saved_view_from_id(id)
+  remove_saved_view (id) {
+    let i = this.get_i_saved_view_from_id(id)
     if (i < 0) {
       return
     }
     this.saved_views.splice(i, 1)
     delete this.saved_views_by_id[id]
-    for (var i = 0; i < this.saved_views.length; i++) {
-      this.saved_views[i].order = i
+    for (let j = 0; j < this.saved_views.length; j++) {
+      this.saved_views[j].order = j
     }
     if (this.i_last_view >= this.saved_views.length) {
       this.i_last_view = this.saved_views.length - 1
     }
     this.changed = true
-    this.is_new_view_chosen = true
   }
 
-  this.save_view = function (view) {
-    var id = view.id
-    this.saved_views_by_id[id] = view
+  save_view (view) {
+    this.saved_views_by_id[view.id] = view
     this.saved_views.push(view)
   }
 
 }
 
-/////////////////////////////////////////////////
-// The Controlller object that carries out the 
-// actions on the protein and the views in the
-// Scene, and also to interact with the server
-/////////////////////////////////////////////////
 
-var Controller = function (scene) {
-  this.protein = scene.protein
-  this.scene = scene
 
-  this.delete_dist = function (i) {
+/**
+ * The Controlller object that carries out the
+ * actions on the protein and the views in the
+ * Scene, and also to interact with the server
+ */
+class Controller {
+
+  constructor (scene) {
+    this.protein = scene.protein
+    this.scene = scene
+  }
+
+  delete_dist (i) {
     this.scene.current_view.distances.splice(i, 1)
     this.scene.changed = true
   }
 
-  this.make_dist = function (iAtom1, iAtom2) {
+  make_dist (iAtom1, iAtom2) {
     this.scene.current_view.distances.push(
       {'i_atom1': iAtom1, 'i_atom2': iAtom2})
     this.scene.changed = true
   }
 
-  this.make_label = function (iAtom, text) {
+  make_label (iAtom, text) {
     this.scene.current_view.labels.push({
       'i_atom': iAtom, 'text': text,
     })
     this.scene.changed = true
   }
 
-  this.delete_label = function (iLabel) {
+  delete_label (iLabel) {
     this.scene.current_view.labels.splice(iLabel, 1)
     this.scene.changed = true
   }
 
-  this.set_target_view = function (view) {
+  set_target_view (view) {
     this.scene.set_target_view(view)
   }
 
-  this.set_target_view_by_id = function (viewId) {
-    var view = this.scene.saved_views_by_id[viewId]
+  set_target_view_by_id (viewId) {
+    let view = this.scene.saved_views_by_id[viewId]
     this.scene.i_last_view = this.scene.saved_views_by_id[viewId].order
     this.set_target_view(view)
   }
 
-  this.set_target_view_by_atom = function (iAtom) {
-    var view = this.scene.current_view.clone()
+  set_target_view_by_atom (iAtom) {
     let atom = this.protein.getAtom(iAtom)
+    let view = this.scene.current_view.getViewTranslatedTo(atom.pos)
     view.res_id = atom.res_id
     view.i_atom = iAtom
-    let translate = v3.translation(atom.pos.clone().sub(view.camera.pos))
-    view.camera.transform(translate)
     this.set_target_view(view)
   }
 
-  this.set_target_prev_residue = function () {
-    var curr_res_id
+  set_target_prev_residue () {
+    let curr_res_id
     if (this.scene.n_update_step >= 0) {
       curr_res_id = this.scene.target_view.res_id
     } else {
@@ -1076,14 +1253,14 @@ var Controller = function (scene) {
     this.set_target_view_by_atom(res.iAtom)
   }
 
-  this.set_target_next_residue = function () {
-    var curr_res_id
+  set_target_next_residue () {
+    let curr_res_id
     if (this.scene.n_update_step >= 0) {
       curr_res_id = this.scene.target_view.res_id
     } else {
       curr_res_id = this.scene.current_view.res_id
     }
-    var i = this.protein.get_i_res_from_res_id(curr_res_id)
+    let i = this.protein.get_i_res_from_res_id(curr_res_id)
     if (i >= this.protein.getNResidue() - 1) {
       i = 0
     } else {
@@ -1093,88 +1270,47 @@ var Controller = function (scene) {
     this.set_target_view_by_atom(res.iAtom)
   }
 
-  this.set_target_prev_view = function () {
-    var scene = this.scene
+  set_target_prev_view () {
+    let scene = this.scene
     scene.i_last_view -= 1
     if (scene.i_last_view < 0) {
       scene.i_last_view = scene.saved_views.length - 1
     }
-    var id = scene.saved_views[scene.i_last_view].id
+    let id = scene.saved_views[scene.i_last_view].id
     this.set_target_view_by_id(id)
     return id
   }
 
-  this.set_target_next_view = function () {
-    var scene = this.scene
+  set_target_next_view () {
+    let scene = this.scene
     scene.i_last_view += 1
     if (scene.i_last_view >= scene.saved_views.length) {
       scene.i_last_view = 0
     }
-    var id = scene.saved_views[scene.i_last_view].id
+    let id = scene.saved_views[scene.i_last_view].id
     this.set_target_view_by_id(id)
     return id
   }
 
-  this.swapViews = function (i, j) {
+  swapViews (i, j) {
     this.scene.saved_views[j].order = i
     this.scene.saved_views[i].order = j
-    var dummy = this.scene.saved_views[j]
+    let dummy = this.scene.saved_views[j]
     this.scene.saved_views[j] = this.scene.saved_views[i]
     this.scene.saved_views[i] = dummy
   }
 
-  this.get_view_dict = function (view) {
-    return {
-      version: 2,
-      view_id: view.id,
-      creator: view.creator,
-      pdb_id: view.pdb_id,
-      order: view.order,
-      show: view.show,
-      text: view.text,
-      res_id: view.res_id,
-      i_atom: view.i_atom,
-      labels: view.labels,
-      selected: view.selected,
-      distances: view.distances,
-      camera: {
-        slab: {
-          z_front: view.camera.z_front,
-          z_back: view.camera.z_back,
-          zoom: view.camera.zoom,
-        },
-        pos: [
-          view.camera.pos.x,
-          view.camera.pos.y,
-          view.camera.pos.z
-        ],
-        up: [
-          view.camera.up_v.x,
-          view.camera.up_v.y,
-          view.camera.up_v.z,
-        ],
-        in: [
-          view.camera.in_v.x,
-          view.camera.in_v.y,
-          view.camera.in_v.z,
-        ],
-      }
-    }
-  }
-
-  this.get_view_dicts = function () {
-    var view_dicts = []
-    for (var i = 1; i < this.scene.saved_views.length; i += 1) {
-      var view = this.scene.saved_views[i]
-      var view_dict = this.get_view_dict(view)
-      view_dicts.push(view_dict)
+  get_view_dicts () {
+    let view_dicts = []
+    for (let i = 1; i < this.scene.saved_views.length; i += 1) {
+      view_dicts.push(this.scene.saved_views[i].getDict())
     }
     return view_dicts
   }
 
-  this.make_selected = function () {
-    var result = []
-    for (var i = 0; i < this.protein.residues.length; i += 1) {
+  make_selected () {
+    let result = []
+    for (let i = 0; i < this.protein.residues.length; i += 1) {
       if (this.protein.residues[i].selected) {
         result.push(i)
       }
@@ -1182,42 +1318,40 @@ var Controller = function (scene) {
     return result
   }
 
-  this.clear_selected = function () {
+  clear_selected () {
     this.protein.clear_selected()
     this.scene.current_view.selected = this.make_selected()
     this.scene.changed = true
-    this.scene.is_new_view_chosen = true
   }
 
-  this.select_residue = function (i, v) {
+  select_residue (i, v) {
     this.protein.residues[i].selected = v
     this.scene.current_view.selected = this.make_selected()
-    this.scene.is_new_view_chosen = true
     this.scene.changed = true
   }
 
-  this.toggle_neighbors = function () {
-    var res_id = this.scene.current_view.res_id
-    var i_res = this.protein.get_i_res_from_res_id(res_id)
+  toggle_neighbors () {
+    let res_id = this.scene.current_view.res_id
+    let i_res = this.protein.get_i_res_from_res_id(res_id)
+    let b
     if (this.last_neighbour_res_id === res_id) {
-      var b = false
+      b = false
       this.last_neighbour_res_id = null
     } else {
-      var b = true
+      b = true
       this.last_neighbour_res_id = res_id
     }
     this.protein.select_neighbors(i_res, b)
     this.scene.current_view.selected = this.make_selected()
     this.scene.changed = true
-    this.scene.is_new_view_chosen = true
   }
 
-  this.save_current_view = function (new_id) {
-    var j = this.scene.i_last_view + 1
-    var new_view = this.scene.current_view.clone()
+  save_current_view (new_id) {
+    let j = this.scene.i_last_view + 1
+    let new_view = this.scene.current_view.clone()
     new_view.text = 'Click edit to change this text.'
     new_view.pdb_id = this.protein.pdb_id
-    var time = getCurrentDateStr()
+    let time = getCurrentDateStr()
     if (user === '' || typeof user === 'undefined') {
       new_view.creator = '~ [public] @' + time
     } else {
@@ -1229,74 +1363,33 @@ var Controller = function (scene) {
     return j
   }
 
-  this.delete_view = function (id) {
+  delete_view (id) {
     this.scene.remove_saved_view(id)
   }
 
-  this.view_from_dict = function (flat_dict) {
-    var view = new View()
-
-    view.id = flat_dict.view_id
-    view.view_id = flat_dict.view_id
-    view.pdb_id = flat_dict.pdb_id
-    view.lock = flat_dict.lock
-    view.text = flat_dict.text
-    view.creator = flat_dict.creator
-    view.order = flat_dict.order
-    view.res_id = flat_dict.res_id
-    view.i_atom = flat_dict.i_atom
-
-    view.labels = flat_dict.labels
-    view.selected = flat_dict.selected
-    view.distances = flat_dict.distances
-
-    view.show = flat_dict.show
-    if (!(view.show.all_atom || view.show.trace || view.show.ribbon)) {
-      view.show.ribbon = true
-    }
-
-    view.camera.pos.x = flat_dict.camera.pos[0]
-    view.camera.pos.y = flat_dict.camera.pos[1]
-    view.camera.pos.z = flat_dict.camera.pos[2]
-
-    view.camera.up_v.x = flat_dict.camera.up[0]
-    view.camera.up_v.y = flat_dict.camera.up[1]
-    view.camera.up_v.z = flat_dict.camera.up[2]
-
-    view.camera.in_v.x = flat_dict.camera.in[0]
-    view.camera.in_v.y = flat_dict.camera.in[1]
-    view.camera.in_v.z = flat_dict.camera.in[2]
-
-    view.camera.z_front = flat_dict.camera.slab.z_front
-    view.camera.z_back = flat_dict.camera.slab.z_back
-    view.camera.zoom = flat_dict.camera.slab.zoom
-
-    return view
-  }
-
-  this.sort_views_by_order = function () {
-    var order_sort = function (a, b) {
+  sort_views_by_order () {
+    function order_sort (a, b) {
       return a.order - b.order
     }
     this.scene.saved_views.sort(order_sort)
-    for (var i = 0; i < this.scene.saved_views.length; i += 1) {
+    for (let i = 0; i < this.scene.saved_views.length; i += 1) {
       this.scene.saved_views[i].order = i
     }
   }
 
-  this.load_views_from_flat_views = function (view_dicts) {
-    for (var i = 0; i < view_dicts.length; i += 1) {
-      var view = this.view_from_dict(view_dicts[i])
+  load_views_from_flat_views (view_dicts) {
+    for (let i = 0; i < view_dicts.length; i += 1) {
+      let view = new View()
+      view.setFromDict(view_dicts[i])
       if (view.id === 'view:000000') {
         continue
       }
       this.scene.save_view(view)
     }
     this.sort_views_by_order()
-    scene.is_new_view_chosen = true
   }
 
-  this.set_backbone_option = function (option) {
+  set_backbone_option (option) {
     this.scene.current_view.show.all_atom = false
     this.scene.current_view.show.trace = false
     this.scene.current_view.show.ribbon = false
@@ -1304,26 +1397,26 @@ var Controller = function (scene) {
     this.scene.changed = true
   }
 
-  this.set_show_option = function (option, bool) {
+  set_show_option (option, bool) {
     console.log('> Controller.set_show_option', option, bool)
     this.scene.current_view.show[option] = bool
     this.scene.changed = true
   }
 
-  this.get_show_option = function (option) {
+  get_show_option (option) {
     return this.scene.current_view.show[option]
   }
 
-  this.toggle_show_option = function (option) {
-    var val = this.get_show_option(option)
+  toggle_show_option (option) {
+    let val = this.get_show_option(option)
     this.set_show_option(option, !val)
   }
 
-  this.flag_changed = function () {
+  flag_changed () {
     this.scene.changed = true
   }
 
-  this.set_current_view = function (view) {
+  set_current_view (view) {
     this.scene.current_view = view
     this.scene.changed = true
   }
@@ -1331,8 +1424,6 @@ var Controller = function (scene) {
 
 export {
   Protein,
-  Camera,
-  View,
   Controller,
   Scene
 }
