@@ -18,13 +18,13 @@ function extendArray (array, extension) {
 
 function interpolateCameras (oldCamera, futureCamera, t) {
 
-  let oldCameraDirection = oldCamera.cameraPosition.clone()
-    .sub(oldCamera.cameraFocus)
+  let oldCameraDirection = oldCamera.position.clone()
+    .sub(oldCamera.focus)
   let oldZoom = oldCameraDirection.length()
   oldCameraDirection.normalize()
 
   let futureCameraDirection =
-    futureCamera.cameraPosition.clone().sub(futureCamera.cameraFocus)
+    futureCamera.position.clone().sub(futureCamera.focus)
 
   let futureZoom = futureCameraDirection.length()
   futureCameraDirection.normalize()
@@ -32,21 +32,21 @@ function interpolateCameras (oldCamera, futureCamera, t) {
   let cameraDirRotation = glgeom.getUnitVectorRotation(
     oldCameraDirection, futureCameraDirection)
 
-  let partialRotatedCameraUp = oldCamera.cameraUp.clone()
+  let partialRotatedCameraUp = oldCamera.up.clone()
     .applyQuaternion(cameraDirRotation)
 
   let fullCameraUpRotation = glgeom
-    .getUnitVectorRotation(partialRotatedCameraUp, futureCamera.cameraUp)
+    .getUnitVectorRotation(partialRotatedCameraUp, futureCamera.up)
     .multiply(cameraDirRotation)
   let cameraUpRotation = glgeom.getFractionRotation(
     fullCameraUpRotation, t)
 
   let result = {}
 
-  let focusDisp = futureCamera.cameraFocus.clone()
-    .sub(oldCamera.cameraFocus)
+  let focusDisp = futureCamera.focus.clone()
+    .sub(oldCamera.focus)
     .multiplyScalar(t)
-  result.cameraFocus = oldCamera.cameraFocus.clone().add(focusDisp)
+  result.focus = oldCamera.focus.clone().add(focusDisp)
 
   let zoom = glgeom.fraction(oldZoom, futureZoom, t)
 
@@ -54,10 +54,10 @@ function interpolateCameras (oldCamera, futureCamera, t) {
     .applyQuaternion(cameraUpRotation)
     .multiplyScalar(zoom)
 
-  result.cameraPosition = result.cameraFocus.clone()
+  result.position = result.focus.clone()
     .add(focusToPositionDisp)
 
-  result.cameraUp = oldCamera.cameraUp.clone()
+  result.up = oldCamera.up.clone()
     .applyQuaternion(cameraUpRotation)
 
   result.zFront = glgeom.fraction(oldCamera.zFront, futureCamera.zFront, t)
@@ -172,9 +172,9 @@ class ProteinDisplay {
 
     // parameters for viewport
     this.camera = {
-      cameraFocus: new THREE.Vector3(0, 0, 0),
-      cameraPosition: new THREE.Vector3(0, 0, -1),
-      cameraUp: new THREE.Vector3(0, 1, 0),
+      focus: new THREE.Vector3(0, 0, 0),
+      position: new THREE.Vector3(0, 0, -1),
+      up: new THREE.Vector3(0, 1, 0),
       // the front and back of viewable area relative to the origin
       zFront: -40,
       zBack: 20,
@@ -848,11 +848,11 @@ class ProteinDisplay {
     let viewCamera = this.scene.current_view.camera
 
     // rotate lights to scene orientation
-    let cameraDirection = this.camera.cameraPosition.clone()
-      .sub(this.camera.cameraFocus)
+    let cameraDirection = this.camera.position.clone()
+      .sub(this.camera.focus)
       .normalize()
-    let viewCameraDirection = viewCamera.cameraPosition.clone()
-      .sub(viewCamera.cameraFocus)
+    let viewCameraDirection = viewCamera.position.clone()
+      .sub(viewCamera.focus)
     viewCameraDirection.normalize()
     let rotation = glgeom.getUnitVectorRotation(
       cameraDirection, viewCameraDirection)
@@ -868,9 +868,9 @@ class ProteinDisplay {
       near = 1
     }
 
-    this.threeJsCamera.position.copy(this.camera.cameraPosition)
-    this.threeJsCamera.up.copy(this.camera.cameraUp)
-    this.threeJsCamera.lookAt(this.camera.cameraFocus)
+    this.threeJsCamera.position.copy(this.camera.position)
+    this.threeJsCamera.up.copy(this.camera.up)
+    this.threeJsCamera.lookAt(this.camera.focus)
     this.threeJsCamera.near = near
     this.threeJsCamera.far = far
     this.threeJsCamera.updateProjectionMatrix()
@@ -890,9 +890,9 @@ class ProteinDisplay {
   adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
     let camera = this.getViewCamera()
 
-    let y = camera.cameraUp
-    let z = camera.cameraPosition.clone()
-      .sub(camera.cameraFocus)
+    let y = camera.up
+    let z = camera.position.clone()
+      .sub(camera.focus)
       .normalize()
     let x = (v3.create())
       .crossVectors(y, z)
@@ -918,17 +918,17 @@ class ProteinDisplay {
       newZoom = 2
     }
 
-    let cameraPosition = camera.cameraPosition.clone()
-      .sub(camera.cameraFocus)
+    let position = camera.position.clone()
+      .sub(camera.focus)
       .applyQuaternion(rotation)
       .normalize()
       .multiplyScalar(newZoom)
-      .add(camera.cameraFocus)
+      .add(camera.focus)
 
     let view = this.scene.current_view.clone()
-    view.camera.cameraFocus = camera.cameraFocus.clone()
-    view.camera.cameraPosition = cameraPosition
-    view.camera.cameraUp = camera.cameraUp.clone().applyQuaternion(rotation)
+    view.camera.focus = camera.focus.clone()
+    view.camera.position = position
+    view.camera.up = camera.up.clone().applyQuaternion(rotation)
     view.camera.zoom = newZoom
 
     this.controller.set_current_view(view)
@@ -936,10 +936,10 @@ class ProteinDisplay {
 
   getZ (pos) {
     let camera = this.getViewCamera()
-    let origin = camera.cameraFocus.clone()
+    let origin = camera.focus.clone()
 
     let cameraDir = origin.clone()
-      .sub(camera.cameraPosition)
+      .sub(camera.position)
       .normalize()
 
     let posRelativeToOrigin = pos.clone()
@@ -990,8 +990,8 @@ class ProteinDisplay {
 
   updateCrossHairs () {
     let camera = this.getViewCamera()
-    this.crossHairs.position.copy(camera.cameraFocus)
-    this.crossHairs.lookAt(camera.cameraPosition)
+    this.crossHairs.position.copy(camera.focus)
+    this.crossHairs.lookAt(camera.position)
     this.crossHairs.updateMatrix()
   }
 
