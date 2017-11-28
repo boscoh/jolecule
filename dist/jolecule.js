@@ -804,7 +804,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.residueSelector.change(function () {
 	        var resId = _this9.residueSelector.find(':selected').val();
-	        _this9.proteinDisplay.setTargetFromAtom(_this9.scene.protein.res_by_id[resId].iAtom);
+	        _this9.proteinDisplay.setTargetViewFromAtom(_this9.scene.protein.res_by_id[resId].iAtom);
 	      });
 	
 	      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton)).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: flex-end;">').append(this.residueSelector));
@@ -28221,7 +28221,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.Scene = exports.Controller = exports.defaultTarget = exports.Protein = undefined;
+	exports.Scene = exports.Controller = exports.defaultCamera = exports.Protein = undefined;
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); ////////////////////////////////////////////////////
 	//
@@ -29129,7 +29129,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *    zBack: clipping plane behind the camera focus
 	 * }
 	 *
-	 * target {
+	 * camera {
 	 *    cameraFocus: position that camera is looking at
 	 *    cameraPosition: position of camera - distance away gives zoom
 	 *    cameraUp: vector direction denoting the up direction of camera
@@ -29161,7 +29161,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  z_back: 0.0
 	};
 	
-	var defaultTarget = {
+	var defaultCamera = {
 	  cameraFocus: _v2.default.create(0, 0, 0),
 	  cameraPosition: _v2.default.create(0, 0, -1),
 	  cameraUp: _v2.default.create(0, 1, 0),
@@ -29178,7 +29178,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.res_id = '';
 	    this.i_atom = -1;
 	    this.order = 1;
-	    this.target = _.cloneDeep(defaultTarget);
+	    this.camera = _.cloneDeep(defaultCamera);
 	    this.selected = [];
 	    this.labels = [];
 	    this.distances = [];
@@ -29198,9 +29198,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(View, [{
-	    key: 'setTarget',
-	    value: function setTarget(target) {
-	      this.target = target;
+	    key: 'setCamera',
+	    value: function setCamera(camera) {
+	      this.camera = camera;
 	    }
 	  }, {
 	    key: 'makeDefaultOfProtein',
@@ -29213,12 +29213,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.show.sidechain = false;
 	
-	      this.target.zFront = -protein.max_length / 2;
-	      this.target.zBack = protein.max_length / 2;
-	      this.target.zoom = Math.abs(protein.max_length);
-	      this.target.cameraUp = _v2.default.create(0, 1, 0);
-	      this.target.cameraFocus.copy(atom.pos);
-	      this.target.cameraPosition = _v2.default.create(0, 0, -this.target.zoom).add(atom.pos);
+	      this.camera.zFront = -protein.max_length / 2;
+	      this.camera.zBack = protein.max_length / 2;
+	      this.camera.zoom = Math.abs(protein.max_length);
+	      this.camera.cameraUp = _v2.default.create(0, 1, 0);
+	      this.camera.cameraFocus.copy(atom.pos);
+	      this.camera.cameraPosition = _v2.default.create(0, 0, -this.camera.zoom).add(atom.pos);
 	
 	      this.order = 0;
 	      this.text = protein.default_html;
@@ -29228,9 +29228,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'getViewTranslatedTo',
 	    value: function getViewTranslatedTo(pos) {
 	      var view = this.clone();
-	      var disp = pos.clone().sub(view.target.cameraFocus);
-	      view.target.cameraFocus.copy(pos);
-	      view.target.cameraPosition.add(disp);
+	      var disp = pos.clone().sub(view.camera.cameraFocus);
+	      view.camera.cameraFocus.copy(pos);
+	      view.camera.cameraPosition.add(disp);
 	      return view;
 	    }
 	  }, {
@@ -29247,7 +29247,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      v.text = this.text;
 	      v.time = this.time;
 	      v.url = this.url;
-	      v.target = _.cloneDeep(this.target);
+	      v.camera = _.cloneDeep(this.camera);
 	      v.show = _.cloneDeep(this.show);
 	      return v;
 	    }
@@ -29257,19 +29257,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var jolyCamera = _.cloneDeep(defaultJolyCamera);
 	
-	      var cameraDirection = this.target.cameraPosition.clone().sub(this.target.cameraFocus).negate();
+	      var cameraDirection = this.camera.cameraPosition.clone().sub(this.camera.cameraFocus).negate();
 	      jolyCamera.zoom = cameraDirection.length();
-	      jolyCamera.z_front = this.target.zFront;
-	      jolyCamera.z_back = this.target.zBack;
+	      jolyCamera.z_front = this.camera.zFront;
+	      jolyCamera.z_back = this.camera.zBack;
 	
-	      jolyCamera.pos.copy(this.target.cameraFocus);
+	      jolyCamera.pos.copy(this.camera.cameraFocus);
 	
-	      var up = this.target.cameraUp.clone().negate();
+	      var up = this.camera.cameraUp.clone().negate();
 	
-	      jolyCamera.up_v = _v2.default.clone(this.target.cameraFocus.clone().add(up));
+	      jolyCamera.up_v = _v2.default.clone(this.camera.cameraFocus.clone().add(up));
 	
 	      cameraDirection.normalize();
-	      jolyCamera.in_v = this.target.cameraFocus.clone().add(cameraDirection);
+	      jolyCamera.in_v = this.camera.cameraFocus.clone().add(cameraDirection);
 	
 	      return jolyCamera;
 	    }
@@ -29303,8 +29303,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	    }
 	  }, {
-	    key: 'setTargetFromJolyCamera',
-	    value: function setTargetFromJolyCamera(jolyCamera) {
+	    key: 'setCameraFromJolyCamera',
+	    value: function setCameraFromJolyCamera(jolyCamera) {
 	      var cameraFocus = _v2.default.clone(jolyCamera.pos);
 	
 	      var cameraDirection = _v2.default.clone(jolyCamera.in_v).sub(cameraFocus).multiplyScalar(jolyCamera.zoom).negate();
@@ -29313,7 +29313,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var cameraUp = _v2.default.clone(jolyCamera.up_v).sub(cameraFocus).negate();
 	
-	      this.target = {
+	      this.camera = {
 	        cameraFocus: cameraFocus,
 	        cameraPosition: cameraPosition,
 	        cameraUp: cameraUp,
@@ -29359,7 +29359,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      jolyCamera.z_back = flat_dict.camera.slab.z_back;
 	      jolyCamera.zoom = flat_dict.camera.slab.zoom;
 	
-	      this.setTargetFromJolyCamera(jolyCamera);
+	      this.setCameraFromJolyCamera(jolyCamera);
 	    }
 	  }]);
 	
@@ -29725,7 +29725,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 	
 	exports.Protein = Protein;
-	exports.defaultTarget = defaultTarget;
+	exports.defaultCamera = defaultCamera;
 	exports.Controller = Controller;
 	exports.Scene = Scene;
 
@@ -72101,28 +72101,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	}
 	
-	function interpolateTargets(oldTarget, futureTarget, t) {
+	function interpolateCameras(oldCamera, futureCamera, t) {
 	
-	  var oldCameraDirection = oldTarget.cameraPosition.clone().sub(oldTarget.cameraFocus);
+	  var oldCameraDirection = oldCamera.cameraPosition.clone().sub(oldCamera.cameraFocus);
 	  var oldZoom = oldCameraDirection.length();
 	  oldCameraDirection.normalize();
 	
-	  var futureCameraDirection = futureTarget.cameraPosition.clone().sub(futureTarget.cameraFocus);
+	  var futureCameraDirection = futureCamera.cameraPosition.clone().sub(futureCamera.cameraFocus);
 	
 	  var futureZoom = futureCameraDirection.length();
 	  futureCameraDirection.normalize();
 	
 	  var cameraDirRotation = glgeom.getUnitVectorRotation(oldCameraDirection, futureCameraDirection);
 	
-	  var partialRotatedCameraUp = oldTarget.cameraUp.clone().applyQuaternion(cameraDirRotation);
+	  var partialRotatedCameraUp = oldCamera.cameraUp.clone().applyQuaternion(cameraDirRotation);
 	
-	  var fullCameraUpRotation = glgeom.getUnitVectorRotation(partialRotatedCameraUp, futureTarget.cameraUp).multiply(cameraDirRotation);
+	  var fullCameraUpRotation = glgeom.getUnitVectorRotation(partialRotatedCameraUp, futureCamera.cameraUp).multiply(cameraDirRotation);
 	  var cameraUpRotation = glgeom.getFractionRotation(fullCameraUpRotation, t);
 	
 	  var result = {};
 	
-	  var focusDisp = futureTarget.cameraFocus.clone().sub(oldTarget.cameraFocus).multiplyScalar(t);
-	  result.cameraFocus = oldTarget.cameraFocus.clone().add(focusDisp);
+	  var focusDisp = futureCamera.cameraFocus.clone().sub(oldCamera.cameraFocus).multiplyScalar(t);
+	  result.cameraFocus = oldCamera.cameraFocus.clone().add(focusDisp);
 	
 	  var zoom = glgeom.fraction(oldZoom, futureZoom, t);
 	
@@ -72130,11 +72130,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  result.cameraPosition = result.cameraFocus.clone().add(focusToPositionDisp);
 	
-	  result.cameraUp = oldTarget.cameraUp.clone().applyQuaternion(cameraUpRotation);
+	  result.cameraUp = oldCamera.cameraUp.clone().applyQuaternion(cameraUpRotation);
 	
-	  result.zFront = glgeom.fraction(oldTarget.zFront, futureTarget.zFront, t);
+	  result.zFront = glgeom.fraction(oldCamera.zFront, futureCamera.zFront, t);
 	
-	  result.zBack = glgeom.fraction(oldTarget.zBack, futureTarget.zBack, t);
+	  result.zBack = glgeom.fraction(oldCamera.zBack, futureCamera.zBack, t);
 	
 	  result.zoom = zoom;
 	
@@ -72242,7 +72242,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.atomRadius = 0.35;
 	
 	    // parameters for viewport
-	    this.target = {
+	    this.camera = {
 	      cameraFocus: new _three2.default.Vector3(0, 0, 0),
 	      cameraPosition: new _three2.default.Vector3(0, 0, -1),
 	      cameraUp: new _three2.default.Vector3(0, 1, 0),
@@ -73382,42 +73382,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	
 	  }, {
-	    key: 'setTargetFromAtom',
-	    value: function setTargetFromAtom(iAtom) {
+	    key: 'setTargetViewFromAtom',
+	    value: function setTargetViewFromAtom(iAtom) {
 	      this.controller.set_target_view_by_atom(iAtom);
 	      this.scene.n_update_step = this.scene.max_update_step;
 	    }
 	  }, {
-	    key: 'getCurrViewTarget',
-	    value: function getCurrViewTarget() {
-	      return this.scene.current_view.target;
+	    key: 'getViewCamera',
+	    value: function getViewCamera() {
+	      return this.scene.current_view.camera;
 	    }
 	  }, {
-	    key: 'setCameraFromCurrentView',
-	    value: function setCameraFromCurrentView() {
+	    key: 'rotateCameraToCurrentView',
+	    value: function rotateCameraToCurrentView() {
 	      var view = this.scene.current_view;
-	      var viewTarget = this.scene.current_view.target;
+	      var viewCamera = this.scene.current_view.camera;
 	
-	      // rotate lights from current camera orientation to scene orientation
-	      var cameraDirection = this.target.cameraPosition.clone().sub(this.target.cameraFocus).normalize();
-	      var targetCameraDirection = viewTarget.cameraPosition.clone().sub(viewTarget.cameraFocus);
-	      targetCameraDirection.normalize();
-	      var rotation = glgeom.getUnitVectorRotation(cameraDirection, targetCameraDirection);
+	      // rotate lights to scene orientation
+	      var cameraDirection = this.camera.cameraPosition.clone().sub(this.camera.cameraFocus).normalize();
+	      var viewCameraDirection = viewCamera.cameraPosition.clone().sub(viewCamera.cameraFocus);
+	      viewCameraDirection.normalize();
+	      var rotation = glgeom.getUnitVectorRotation(cameraDirection, viewCameraDirection);
 	      for (var i = 0; i < this.lights.length; i += 1) {
 	        this.lights[i].position.applyQuaternion(rotation);
 	      }
 	
-	      this.target = viewTarget;
+	      this.camera = viewCamera;
 	
-	      var far = this.target.zoom + this.target.zBack;
-	      var near = this.target.zoom + this.target.zFront;
+	      var far = this.camera.zoom + this.camera.zBack;
+	      var near = this.camera.zoom + this.camera.zFront;
 	      if (near < 1) {
 	        near = 1;
 	      }
 	
-	      this.threeJsCamera.position.copy(this.target.cameraPosition);
-	      this.threeJsCamera.up.copy(this.target.cameraUp);
-	      this.threeJsCamera.lookAt(this.target.cameraFocus);
+	      this.threeJsCamera.position.copy(this.camera.cameraPosition);
+	      this.threeJsCamera.up.copy(this.camera.cameraUp);
+	      this.threeJsCamera.lookAt(this.camera.cameraFocus);
 	      this.threeJsCamera.near = near;
 	      this.threeJsCamera.far = far;
 	      this.threeJsCamera.updateProjectionMatrix();
@@ -73436,10 +73436,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'adjustCamera',
 	    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-	      var target = this.getCurrViewTarget();
+	      var camera = this.getViewCamera();
 	
-	      var y = target.cameraUp;
-	      var z = target.cameraPosition.clone().sub(target.cameraFocus).normalize();
+	      var y = camera.cameraUp;
+	      var z = camera.cameraPosition.clone().sub(camera.cameraFocus).normalize();
 	      var x = _v2.default.create().crossVectors(y, z).normalize();
 	
 	      var rot_z = new _three2.default.Quaternion().setFromAxisAngle(z, zRotationAngle);
@@ -73450,29 +73450,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var rotation = new _three2.default.Quaternion().multiply(rot_z).multiply(rot_y).multiply(rot_x);
 	
-	      var newZoom = zoomRatio * target.zoom;
+	      var newZoom = zoomRatio * camera.zoom;
 	
 	      if (newZoom < 2) {
 	        newZoom = 2;
 	      }
 	
-	      var cameraPosition = target.cameraPosition.clone().sub(target.cameraFocus).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(target.cameraFocus);
+	      var cameraPosition = camera.cameraPosition.clone().sub(camera.cameraFocus).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(camera.cameraFocus);
 	
 	      var view = this.scene.current_view.clone();
-	      view.target.cameraFocus = target.cameraFocus.clone();
-	      view.target.cameraPosition = cameraPosition;
-	      view.target.cameraUp = target.cameraUp.clone().applyQuaternion(rotation);
-	      view.target.zoom = newZoom;
+	      view.camera.cameraFocus = camera.cameraFocus.clone();
+	      view.camera.cameraPosition = cameraPosition;
+	      view.camera.cameraUp = camera.cameraUp.clone().applyQuaternion(rotation);
+	      view.camera.zoom = newZoom;
 	
 	      this.controller.set_current_view(view);
 	    }
 	  }, {
 	    key: 'getZ',
 	    value: function getZ(pos) {
-	      var target = this.getCurrViewTarget();
-	      var origin = target.cameraFocus.clone();
+	      var camera = this.getViewCamera();
+	      var origin = camera.cameraFocus.clone();
 	
-	      var cameraDir = origin.clone().sub(target.cameraPosition).normalize();
+	      var cameraDir = origin.clone().sub(camera.cameraPosition).normalize();
 	
 	      var posRelativeToOrigin = pos.clone().sub(origin);
 	
@@ -73482,25 +73482,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'inZlab',
 	    value: function inZlab(pos) {
 	      var z = this.getZ(pos);
-	      var target = this.getCurrViewTarget();
-	      return z >= target.zFront && z <= target.zBack;
+	      var camera = this.getViewCamera();
+	      return z >= camera.zFront && z <= camera.zBack;
 	    }
 	  }, {
 	    key: 'opacity',
 	    value: function opacity(pos) {
 	      var z = this.getZ(pos);
 	
-	      var target = this.getCurrViewTarget();
+	      var camera = this.getViewCamera();
 	
-	      if (z < target.zFront) {
+	      if (z < camera.zFront) {
 	        return 1.0;
 	      }
 	
-	      if (z > target.zBack) {
+	      if (z > camera.zBack) {
 	        return 0.0;
 	      }
 	
-	      return 1 - (z - target.zFront) / (target.zBack - target.zFront);
+	      return 1 - (z - camera.zFront) / (camera.zBack - camera.zFront);
 	    }
 	  }, {
 	    key: 'posXY',
@@ -73525,9 +73525,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'updateCrossHairs',
 	    value: function updateCrossHairs() {
-	      var target = this.getCurrViewTarget();
-	      this.crossHairs.position.copy(target.cameraFocus);
-	      this.crossHairs.lookAt(target.cameraPosition);
+	      var camera = this.getViewCamera();
+	      this.crossHairs.position.copy(camera.cameraFocus);
+	      this.crossHairs.lookAt(camera.cameraPosition);
 	      this.crossHairs.updateMatrix();
 	    }
 	  }, {
@@ -73623,7 +73623,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.resize();
 	
-	      this.setCameraFromCurrentView();
+	      this.rotateCameraToCurrentView();
 	
 	      this.selectVisibleMeshes();
 	
@@ -73662,10 +73662,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return;
 	      }
 	
-	      var newTarget = interpolateTargets(this.scene.current_view.target, this.scene.target_view.target, 1.0 / nStep);
+	      var newCamera = interpolateCameras(this.scene.current_view.camera, this.scene.target_view.camera, 1.0 / nStep);
 	
 	      var view = this.scene.target_view.clone();
-	      view.setTarget(newTarget);
+	      view.setCamera(newCamera);
 	      this.controller.set_current_view(view);
 	
 	      this.updateHover();
@@ -73751,7 +73751,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (this.iHoverAtom === this.scene.centered_atom().i) {
 	          this.atomLabelDialog();
 	        } else {
-	          this.setTargetFromAtom(this.iHoverAtom);
+	          this.setTargetViewFromAtom(this.iHoverAtom);
 	        }
 	        this.isDraggingCentralAtom = false;
 	      }
@@ -75520,10 +75520,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar);
 	        this.iStartChar = parseInt(this.iStartChar);
 	
-	        this.proteinDisplay.setTargetFromAtom(this.getCurrIAtom());
+	        this.proteinDisplay.setTargetViewFromAtom(this.getCurrIAtom());
 	      } else {
 	        this.iRes = this.xToIChar(this.pointerX);
-	        this.proteinDisplay.setTargetFromAtom(this.getCurrIAtom());
+	        this.proteinDisplay.setTargetViewFromAtom(this.getCurrIAtom());
 	      }
 	    }
 	  }]);
@@ -75603,7 +75603,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'draw',
 	    value: function draw() {
 	      var protein = this.scene.protein;
-	      var target = this.scene.current_view.target;
+	      var target = this.scene.current_view.camera;
 	      this.maxZLength = 2.0 * protein.max_length;
 	
 	      var yBack = this.zToY(target.zBack);
@@ -75656,7 +75656,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.getZ(event);
 	
-	      var target = this.scene.current_view.target;
+	      var target = this.scene.current_view.camera;
 	
 	      if (this.back) {
 	        target.zBack = Math.max(2, this.z);

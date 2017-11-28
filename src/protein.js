@@ -857,7 +857,7 @@ var Protein = function () {
  *    zBack: clipping plane behind the camera focus
  * }
  *
- * target {
+ * camera {
  *    cameraFocus: position that camera is looking at
  *    cameraPosition: position of camera - distance away gives zoom
  *    cameraUp: vector direction denoting the up direction of camera
@@ -890,7 +890,7 @@ const defaultJolyCamera = {
   z_back: 0.0
 }
 
-const defaultTarget = {
+const defaultCamera = {
   cameraFocus: v3.create(0, 0, 0),
   cameraPosition: v3.create(0, 0, -1),
   cameraUp: v3.create(0, 1, 0),
@@ -906,7 +906,7 @@ class View {
     this.res_id = ''
     this.i_atom = -1
     this.order = 1
-    this.target = _.cloneDeep(defaultTarget)
+    this.camera = _.cloneDeep(defaultCamera)
     this.selected = []
     this.labels = []
     this.distances = []
@@ -925,8 +925,8 @@ class View {
     }
   }
 
-  setTarget (target) {
-    this.target = target
+  setCamera (camera) {
+    this.camera = camera
   }
 
   makeDefaultOfProtein (protein) {
@@ -938,13 +938,13 @@ class View {
 
     this.show.sidechain = false
 
-    this.target.zFront = -protein.max_length / 2
-    this.target.zBack = protein.max_length / 2
-    this.target.zoom = Math.abs(protein.max_length)
-    this.target.cameraUp = v3.create(0, 1, 0)
-    this.target.cameraFocus.copy(atom.pos)
-    this.target.cameraPosition = v3
-      .create(0, 0, -this.target.zoom).add(atom.pos)
+    this.camera.zFront = -protein.max_length / 2
+    this.camera.zBack = protein.max_length / 2
+    this.camera.zoom = Math.abs(protein.max_length)
+    this.camera.cameraUp = v3.create(0, 1, 0)
+    this.camera.cameraFocus.copy(atom.pos)
+    this.camera.cameraPosition = v3
+      .create(0, 0, -this.camera.zoom).add(atom.pos)
 
     this.order = 0
     this.text = protein.default_html
@@ -953,9 +953,9 @@ class View {
 
   getViewTranslatedTo (pos) {
     let view = this.clone()
-    let disp = pos.clone().sub(view.target.cameraFocus)
-    view.target.cameraFocus.copy(pos)
-    view.target.cameraPosition.add(disp)
+    let disp = pos.clone().sub(view.camera.cameraFocus)
+    view.camera.cameraFocus.copy(pos)
+    view.camera.cameraPosition.add(disp)
     return view
   }
 
@@ -971,7 +971,7 @@ class View {
     v.text = this.text
     v.time = this.time
     v.url = this.url
-    v.target = _.cloneDeep(this.target)
+    v.camera = _.cloneDeep(this.camera)
     v.show = _.cloneDeep(this.show)
     return v
   }
@@ -980,21 +980,21 @@ class View {
 
     let jolyCamera = _.cloneDeep(defaultJolyCamera)
 
-    let cameraDirection = this.target
-      .cameraPosition.clone().sub(this.target.cameraFocus).negate()
+    let cameraDirection = this.camera
+      .cameraPosition.clone().sub(this.camera.cameraFocus).negate()
     jolyCamera.zoom = cameraDirection.length()
-    jolyCamera.z_front = this.target.zFront
-    jolyCamera.z_back = this.target.zBack
+    jolyCamera.z_front = this.camera.zFront
+    jolyCamera.z_back = this.camera.zBack
 
-    jolyCamera.pos.copy(this.target.cameraFocus)
+    jolyCamera.pos.copy(this.camera.cameraFocus)
 
-    let up = this.target.cameraUp.clone().negate()
+    let up = this.camera.cameraUp.clone().negate()
 
     jolyCamera.up_v = v3.clone(
-      this.target.cameraFocus.clone().add(up))
+      this.camera.cameraFocus.clone().add(up))
 
     cameraDirection.normalize()
-    jolyCamera.in_v = this.target.cameraFocus.clone().add(cameraDirection)
+    jolyCamera.in_v = this.camera.cameraFocus.clone().add(cameraDirection)
 
     return jolyCamera
   }
@@ -1039,7 +1039,7 @@ class View {
     }
   }
 
-  setTargetFromJolyCamera (jolyCamera) {
+  setCameraFromJolyCamera (jolyCamera) {
     let cameraFocus = v3.clone(jolyCamera.pos)
 
     let cameraDirection = v3
@@ -1056,7 +1056,7 @@ class View {
       .sub(cameraFocus)
       .negate()
 
-    this.target = {
+    this.camera = {
       cameraFocus: cameraFocus,
       cameraPosition: cameraPosition,
       cameraUp: cameraUp,
@@ -1101,7 +1101,7 @@ class View {
     jolyCamera.z_back = flat_dict.camera.slab.z_back
     jolyCamera.zoom = flat_dict.camera.slab.zoom
 
-    this.setTargetFromJolyCamera(jolyCamera)
+    this.setCameraFromJolyCamera(jolyCamera)
   }
 
 }
@@ -1424,7 +1424,7 @@ class Controller {
 
 export {
   Protein,
-  defaultTarget,
+  defaultCamera,
   Controller,
   Scene
 }

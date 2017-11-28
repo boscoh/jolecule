@@ -703,11 +703,11 @@ class SequenceWidget extends CanvasWrapper {
       this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar)
       this.iStartChar = parseInt(this.iStartChar)
 
-      this.proteinDisplay.setTargetFromAtom(this.getCurrIAtom())
+      this.proteinDisplay.setTargetViewFromAtom(this.getCurrIAtom())
 
     } else {
       this.iRes = this.xToIChar(this.pointerX)
-      this.proteinDisplay.setTargetFromAtom(this.getCurrIAtom())
+      this.proteinDisplay.setTargetViewFromAtom(this.getCurrIAtom())
     }
   }
 }
@@ -769,7 +769,7 @@ class ZSlabWidget extends CanvasWrapper {
 
   draw () {
     let protein = this.scene.protein
-    let target = this.scene.current_view.target
+    let target = this.scene.current_view.camera
     this.maxZLength = 2.0 * protein.max_length
 
     let yBack = this.zToY(target.zBack)
@@ -825,7 +825,7 @@ class ZSlabWidget extends CanvasWrapper {
 
     this.getZ(event)
 
-    let target = this.scene.current_view.target
+    let target = this.scene.current_view.camera
 
     if (this.back) {
       target.zBack = Math.max(2, this.z)
