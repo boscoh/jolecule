@@ -23,6 +23,8 @@ import v3 from './v3'
 
 import { getWindowUrl, inArray, getCurrentDateStr } from './util.js'
 
+import * as glgeom from './glgeom'
+
 import {getClosePairs} from './pairs.js'
 
 var user = 'public' // will be overriden by server
@@ -691,8 +693,10 @@ var Protein = function () {
       let prevRes = this.residues[i_res1 - 1]
       let res = this.residues[i_res1]
       if ((res.ss === prevRes.ss) && (res.ss === 'E')) {
-        if (res.normal.dot(prevRes.normal) < 0) {
-          res.normal.negate()
+        if (res.normal && prevRes.normal) {
+          if (res.normal.dot(prevRes.normal) < 0) {
+            res.normal.negate()
+          }
         }
       }
     }
@@ -890,15 +894,6 @@ const defaultJolyCamera = {
   z_back: 0.0
 }
 
-const defaultCamera = {
-  focus: v3.create(0, 0, 0),
-  position: v3.create(0, 0, -1),
-  up: v3.create(0, 1, 0),
-  zFront: 0,
-  zBack: 0,
-  zoom: 1
-}
-
 class View {
 
   constructor () {
@@ -906,7 +901,14 @@ class View {
     this.res_id = ''
     this.i_atom = -1
     this.order = 1
-    this.camera = _.cloneDeep(defaultCamera)
+    this.camera = {
+      focus: v3.create(0, 0, 0),
+      position: v3.create(0, 0, -1),
+      up: v3.create(0, 1, 0),
+      zFront: 0,
+      zBack: 0,
+      zoom: 1
+    }
     this.selected = []
     this.labels = []
     this.distances = []
@@ -1104,6 +1106,60 @@ class View {
     this.setCameraFromJolyCamera(jolyCamera)
   }
 
+}
+
+
+function interpolateCameras (oldCamera, futureCamera, t) {
+
+  let oldCameraDirection = oldCamera.position.clone()
+    .sub(oldCamera.focus)
+  let oldZoom = oldCameraDirection.length()
+  oldCameraDirection.normalize()
+
+  let futureCameraDirection =
+    futureCamera.position.clone().sub(futureCamera.focus)
+
+  let futureZoom = futureCameraDirection.length()
+  futureCameraDirection.normalize()
+
+  let cameraDirRotation = glgeom.getUnitVectorRotation(
+    oldCameraDirection, futureCameraDirection)
+
+  let partialRotatedCameraUp = oldCamera.up.clone()
+    .applyQuaternion(cameraDirRotation)
+
+  let fullCameraUpRotation = glgeom
+    .getUnitVectorRotation(partialRotatedCameraUp, futureCamera.up)
+    .multiply(cameraDirRotation)
+  let cameraUpRotation = glgeom.getFractionRotation(
+    fullCameraUpRotation, t)
+
+  let result = {}
+
+  let focusDisp = futureCamera.focus.clone()
+    .sub(oldCamera.focus)
+    .multiplyScalar(t)
+  result.focus = oldCamera.focus.clone().add(focusDisp)
+
+  let zoom = glgeom.fraction(oldZoom, futureZoom, t)
+
+  let focusToPositionDisp = oldCameraDirection.clone()
+    .applyQuaternion(cameraUpRotation)
+    .multiplyScalar(zoom)
+
+  result.position = result.focus.clone()
+    .add(focusToPositionDisp)
+
+  result.up = oldCamera.up.clone()
+    .applyQuaternion(cameraUpRotation)
+
+  result.zFront = glgeom.fraction(oldCamera.zFront, futureCamera.zFront, t)
+
+  result.zBack = glgeom.fraction(oldCamera.zBack, futureCamera.zBack, t)
+
+  result.zoom = zoom
+
+  return result
 }
 
 
@@ -1424,7 +1480,7 @@ class Controller {
 
 export {
   Protein,
-  defaultCamera,
   Controller,
+  interpolateCameras,
   Scene
 }

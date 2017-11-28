@@ -7,104 +7,10 @@ import * as glgeom from './glgeom'
 import * as util from './util'
 import widgets from './widgets'
 import * as data from './data'
+import {interpolateCameras} from './protein'
 
 
-function extendArray (array, extension) {
-  for (let elem of extension) {
-    array.push(elem)
-  }
-}
 
-
-function interpolateCameras (oldCamera, futureCamera, t) {
-
-  let oldCameraDirection = oldCamera.position.clone()
-    .sub(oldCamera.focus)
-  let oldZoom = oldCameraDirection.length()
-  oldCameraDirection.normalize()
-
-  let futureCameraDirection =
-    futureCamera.position.clone().sub(futureCamera.focus)
-
-  let futureZoom = futureCameraDirection.length()
-  futureCameraDirection.normalize()
-
-  let cameraDirRotation = glgeom.getUnitVectorRotation(
-    oldCameraDirection, futureCameraDirection)
-
-  let partialRotatedCameraUp = oldCamera.up.clone()
-    .applyQuaternion(cameraDirRotation)
-
-  let fullCameraUpRotation = glgeom
-    .getUnitVectorRotation(partialRotatedCameraUp, futureCamera.up)
-    .multiply(cameraDirRotation)
-  let cameraUpRotation = glgeom.getFractionRotation(
-    fullCameraUpRotation, t)
-
-  let result = {}
-
-  let focusDisp = futureCamera.focus.clone()
-    .sub(oldCamera.focus)
-    .multiplyScalar(t)
-  result.focus = oldCamera.focus.clone().add(focusDisp)
-
-  let zoom = glgeom.fraction(oldZoom, futureZoom, t)
-
-  let focusToPositionDisp = oldCameraDirection.clone()
-    .applyQuaternion(cameraUpRotation)
-    .multiplyScalar(zoom)
-
-  result.position = result.focus.clone()
-    .add(focusToPositionDisp)
-
-  result.up = oldCamera.up.clone()
-    .applyQuaternion(cameraUpRotation)
-
-  result.zFront = glgeom.fraction(oldCamera.zFront, futureCamera.zFront, t)
-
-  result.zBack = glgeom.fraction(oldCamera.zBack, futureCamera.zBack, t)
-
-  result.zoom = zoom
-
-  return result
-}
-
-function makeTracesFromProtein (protein) {
-  let currTrace
-  let traces = []
-
-  for (let iRes = 0; iRes < protein.getNResidue(); iRes += 1) {
-    let residue = protein.getResidue(iRes)
-
-    if (residue.is_protein_or_nuc) {
-
-      let isBreak = false
-      if (iRes === 0) {
-        isBreak = true
-      } else {
-        let peptideConnect = protein.isPeptideConnected(iRes - 1, iRes)
-        let nucleotideConnect = protein.isSugarPhosphateConnected(iRes - 1, iRes)
-        isBreak = !(peptideConnect) && !(nucleotideConnect)
-      }
-
-      if (isBreak) {
-        currTrace = new glgeom.Trace()
-        currTrace.referenceObjects = protein.residues
-        traces.push(currTrace)
-      }
-
-      currTrace.indices.push(iRes)
-      currTrace.points.push(protein.getResidueCentralAtom(iRes).pos)
-      let normal = null
-      if (residue.normal) {
-        normal = residue.normal
-      }
-      currTrace.normals.push(normal)
-    }
-  }
-
-  return traces
-}
 
 /**
  *
@@ -307,10 +213,47 @@ class ProteinDisplay {
 
   calculateTracesForRibbons () {
     this.traces.length = 0
-    extendArray(this.traces, makeTracesFromProtein(this.protein))
+
+    let currTrace
+
+    for (let iRes = 0; iRes < this.protein.getNResidue(); iRes += 1) {
+      let residue = this.protein.getResidue(iRes)
+
+      if (residue.is_protein_or_nuc) {
+
+        let isBreak = false
+        if (iRes === 0) {
+          isBreak = true
+        } else {
+          let peptideConnect = this.protein.isPeptideConnected(iRes - 1, iRes)
+          let nucleotideConnect = this.protein.isSugarPhosphateConnected(iRes - 1, iRes)
+          isBreak = !(peptideConnect) && !(nucleotideConnect)
+        }
+
+        if (isBreak) {
+          currTrace = new glgeom.Trace()
+          currTrace.referenceObjects = this.protein.residues
+          this.traces.push(currTrace)
+        }
+
+        currTrace.indices.push(iRes)
+        currTrace.points.push(this.protein.getResidueCentralAtom(iRes).pos)
+        let normal = null
+        if (residue.normal) {
+          normal = residue.normal
+        }
+        currTrace.normals.push(normal)
+      }
+    }
+
     for (let trace of this.traces) {
+      trace.calcTangents()
+      trace.calcNormals()
+      trace.calcBinormals()
+
       trace.expand()
     }
+
   }
 
   getAtomColor (iAtom) {
@@ -936,15 +879,11 @@ class ProteinDisplay {
 
   getZ (pos) {
     let camera = this.getViewCamera()
-    let origin = camera.focus.clone()
-
-    let cameraDir = origin.clone()
+    let cameraDir = camera.focus.clone()
       .sub(camera.position)
       .normalize()
-
     let posRelativeToOrigin = pos.clone()
-      .sub(origin)
-
+      .sub(camera.focus)
     return posRelativeToOrigin.dot(cameraDir)
   }
 
@@ -1037,7 +976,6 @@ class ProteinDisplay {
     }
 
     return null
-
   }
 
   updateHover () {

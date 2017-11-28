@@ -15,6 +15,13 @@ function exists(x) {
 }
 
 
+function extendArray (array, extension) {
+  for (let elem of extension) {
+    array.push(elem)
+  }
+}
+
+
 function getWindowUrl() {
   return "" + window.location;
 }
@@ -243,6 +250,7 @@ function textEntryDialog (parentDiv, label, callback) {
 
 export {
   exists,
+  extendArray,
   getWindowUrl,
   getDomPosition,
   linkButton,

@@ -407,19 +407,16 @@ class Trace extends PathAndFrenetFrames {
 
   /**
    * Calculates tangents as an average on neighbouring points
-   * so that we get a smooth path. If normal[i] is not null,
-   * it will use the normal, otherwise it will generate own
-   * normal from the path curvature
-   *
-   * @param {*} iStart
-   * @param {*} iEnd
+   * so that we get a smooth path.
    */
-  calcContinuousTangents (iStart, iEnd) {
+  calcTangents () {
+    let iStart = 0
+    let iEnd = this.points.length
     let iLast = iEnd - 1
 
+    // calculate tangents
     if ((iEnd - iStart) > 2) {
 
-      // calculate tangents
       // project out first tangent from main chain
       this.tangents[iStart] = this.points[iStart + 1].clone()
         .sub(this.points[iStart])
@@ -437,9 +434,33 @@ class Trace extends PathAndFrenetFrames {
         .sub(this.points[iLast - 1])
         .normalize()
 
-      // generate normals
-      for (let i = iStart + 1; i < iLast; i += 1) {
+    } else {
 
+      // for short 2 point traces
+      let tangent = this.points[iLast].clone()
+        .sub(this.points[iStart])
+        .normalize()
+
+      this.tangents[iStart] = tangent
+      this.tangents[iLast] = tangent
+
+    }
+  }
+
+  /**
+   * If normal[i] is not null,
+   * it will use the normal, otherwise it will generate own
+   * normal from the path curvature
+   */
+  calcNormals() {
+    let iStart = 0
+    let iEnd = this.points.length
+    let iLast = iEnd - 1
+
+    // generate normals
+    if ((iEnd - iStart) > 2) {
+
+      for (let i = iStart + 1; i < iLast; i += 1) {
         if (this.normals[i] !== null) {
           // normal already provided, normalize properly against tangent
           this.normals[i] = perpVector(this.tangents[i], this.normals[i])
@@ -464,18 +485,11 @@ class Trace extends PathAndFrenetFrames {
       this.normals[iLast] = this.normals[iLast - 1]
 
     } else {
-      // for short 2 point traces, tangents are a bit harder to do
-      let tangent = this.points[iLast].clone()
-        .sub(this.points[iStart])
-        .normalize()
-
-      this.tangents[iStart] = tangent
-      this.tangents[iLast] = tangent
 
       for (let i = iStart; i <= iLast; i += 1) {
         if (this.normals[i] !== null) {
           this.normals[i] = perpVector(this.tangents[i], this.normals[i])
-            .normalize()
+          this.normals[i].normalize()
         } else {
           let randomDir = this.points[i]
           this.normals[i] = v3.create()
@@ -483,9 +497,13 @@ class Trace extends PathAndFrenetFrames {
             .normalize()
         }
       }
-    }
 
-    // calculate binormals from tangents and normals
+    }
+  }
+
+  calcBinormals () {
+    let iStart = 0
+    let iEnd = this.points.length
     for (let i = iStart; i < iEnd; i += 1) {
       this.binormals[i] = v3.create()
         .crossVectors(this.tangents[i], this.normals[i])
@@ -493,7 +511,6 @@ class Trace extends PathAndFrenetFrames {
   }
 
   expand () {
-    this.calcContinuousTangents(0, this.points.length)
     this.detailedPath = expandPath(
       this, 2 * this.detail, 0, this.points.length)
   }
