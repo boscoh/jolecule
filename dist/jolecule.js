@@ -28221,7 +28221,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.Scene = exports.Controller = exports.Protein = undefined;
+	exports.Scene = exports.Controller = exports.defaultTarget = exports.Protein = undefined;
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); ////////////////////////////////////////////////////
 	//
@@ -29716,7 +29716,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'set_current_view',
 	    value: function set_current_view(view) {
-	      this.scene.current_view = view;
+	      this.scene.current_view = view.clone();
 	      this.scene.changed = true;
 	    }
 	  }]);
@@ -29725,6 +29725,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 	
 	exports.Protein = Protein;
+	exports.defaultTarget = defaultTarget;
 	exports.Controller = Controller;
 	exports.Scene = Scene;
 
@@ -72126,6 +72127,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var zoom = glgeom.fraction(oldZoom, futureZoom, t);
 	
 	  var focusToPositionDisp = oldCameraDirection.clone().applyQuaternion(cameraUpRotation).multiplyScalar(zoom);
+	
 	  result.cameraPosition = result.cameraFocus.clone().add(focusToPositionDisp);
 	
 	  result.cameraUp = oldTarget.cameraUp.clone().applyQuaternion(cameraUpRotation);
@@ -72133,6 +72135,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  result.zFront = glgeom.fraction(oldTarget.zFront, futureTarget.zFront, t);
 	
 	  result.zBack = glgeom.fraction(oldTarget.zBack, futureTarget.zBack, t);
+	
+	  result.zoom = zoom;
 	
 	  return result;
 	}
@@ -72237,17 +72241,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // atom radius used to display on the screen
 	    this.atomRadius = 0.35;
 	
-	    // parameters for viewport and camera
-	    // the target position for the camera
-	    this.cameraFocus = new _three2.default.Vector3(0, 0, 0);
-	    // the front and back of viewable area relative to the origin
-	    this.zFront = -40;
-	    this.zBack = 20;
-	    // determines how far away the camera is from the target
-	    this.zoom = 50.0;
+	    // parameters for viewport
+	    this.target = {
+	      cameraFocus: new _three2.default.Vector3(0, 0, 0),
+	      cameraPosition: new _three2.default.Vector3(0, 0, -1),
+	      cameraUp: new _three2.default.Vector3(0, 1, 0),
+	      // the front and back of viewable area relative to the origin
+	      zFront: -40,
+	      zBack: 20,
+	      // distance of focus from camera
+	      zoom: 1.0
+	    };
 	
 	    // a THREE.js camera, will be set properly before draw
-	    this.camera = new _three2.default.PerspectiveCamera(45, this.width() / this.height());
+	    this.threeJsCamera = new _three2.default.PerspectiveCamera(45, this.width() / this.height());
 	
 	    this.displayScene = new _three2.default.Scene();
 	    this.displayScene.background = new _three2.default.Color(this.backgroundColor);
@@ -73381,49 +73388,43 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.scene.n_update_step = this.scene.max_update_step;
 	    }
 	  }, {
-	    key: 'getTarget',
-	    value: function getTarget() {
+	    key: 'getCurrViewTarget',
+	    value: function getCurrViewTarget() {
 	      return this.scene.current_view.target;
 	    }
 	  }, {
 	    key: 'setCameraFromCurrentView',
 	    value: function setCameraFromCurrentView() {
-	      var target = this.getTarget();
+	      var view = this.scene.current_view;
+	      var viewTarget = this.scene.current_view.target;
 	
-	      var cameraDirection = this.camera.position.clone().sub(this.cameraFocus).normalize();
-	
-	      var targetCameraDirection = target.cameraPosition.clone().sub(target.cameraFocus);
-	      this.zoom = targetCameraDirection.length();
+	      // rotate lights from current camera orientation to scene orientation
+	      var cameraDirection = this.target.cameraPosition.clone().sub(this.target.cameraFocus).normalize();
+	      var targetCameraDirection = viewTarget.cameraPosition.clone().sub(viewTarget.cameraFocus);
 	      targetCameraDirection.normalize();
-	
 	      var rotation = glgeom.getUnitVectorRotation(cameraDirection, targetCameraDirection);
-	
 	      for (var i = 0; i < this.lights.length; i += 1) {
 	        this.lights[i].position.applyQuaternion(rotation);
 	      }
 	
-	      this.cameraFocus.copy(target.cameraFocus);
-	      this.camera.position.copy(target.cameraPosition);
-	      this.camera.up.copy(target.cameraUp);
+	      this.target = viewTarget;
 	
-	      this.zFront = target.zFront;
-	      this.zBack = target.zBack;
-	
-	      var far = this.zoom + this.zBack;
-	      var near = this.zoom + this.zFront;
+	      var far = this.target.zoom + this.target.zBack;
+	      var near = this.target.zoom + this.target.zFront;
 	      if (near < 1) {
 	        near = 1;
 	      }
 	
-	      this.camera.near = near;
-	      this.camera.far = far;
-	      this.camera.lookAt(this.cameraFocus);
-	      this.camera.updateProjectionMatrix();
+	      this.threeJsCamera.position.copy(this.target.cameraPosition);
+	      this.threeJsCamera.up.copy(this.target.cameraUp);
+	      this.threeJsCamera.lookAt(this.target.cameraFocus);
+	      this.threeJsCamera.near = near;
+	      this.threeJsCamera.far = far;
+	      this.threeJsCamera.updateProjectionMatrix();
 	
 	      this.displayScene.fog.near = near;
 	      this.displayScene.fog.far = far;
 	
-	      var view = this.scene.current_view;
 	      for (var _i3 = 0; _i3 < this.protein.getNResidue(); _i3 += 1) {
 	        this.protein.getResidue(_i3).selected = false;
 	      }
@@ -73435,8 +73436,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'adjustCamera',
 	    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-	      var y = this.camera.up;
-	      var z = this.camera.position.clone().sub(this.cameraFocus).normalize();
+	      var target = this.getCurrViewTarget();
+	
+	      var y = target.cameraUp;
+	      var z = target.cameraPosition.clone().sub(target.cameraFocus).normalize();
 	      var x = _v2.default.create().crossVectors(y, z).normalize();
 	
 	      var rot_z = new _three2.default.Quaternion().setFromAxisAngle(z, zRotationAngle);
@@ -73447,18 +73450,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var rotation = new _three2.default.Quaternion().multiply(rot_z).multiply(rot_y).multiply(rot_x);
 	
-	      var newZoom = zoomRatio * this.zoom;
+	      var newZoom = zoomRatio * target.zoom;
 	
 	      if (newZoom < 2) {
 	        newZoom = 2;
 	      }
 	
-	      var cameraPosition = this.camera.position.clone().sub(this.cameraFocus).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(this.cameraFocus);
+	      var cameraPosition = target.cameraPosition.clone().sub(target.cameraFocus).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(target.cameraFocus);
 	
 	      var view = this.scene.current_view.clone();
-	      view.target.cameraFocus = this.cameraFocus.clone();
+	      view.target.cameraFocus = target.cameraFocus.clone();
 	      view.target.cameraPosition = cameraPosition;
-	      view.target.cameraUp = this.camera.up.clone().applyQuaternion(rotation);
+	      view.target.cameraUp = target.cameraUp.clone().applyQuaternion(rotation);
 	      view.target.zoom = newZoom;
 	
 	      this.controller.set_current_view(view);
@@ -73466,9 +73469,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getZ',
 	    value: function getZ(pos) {
-	      var origin = this.cameraFocus.clone();
+	      var target = this.getCurrViewTarget();
+	      var origin = target.cameraFocus.clone();
 	
-	      var cameraDir = origin.clone().sub(this.camera.position).normalize();
+	      var cameraDir = origin.clone().sub(target.cameraPosition).normalize();
 	
 	      var posRelativeToOrigin = pos.clone().sub(origin);
 	
@@ -73478,7 +73482,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'inZlab',
 	    value: function inZlab(pos) {
 	      var z = this.getZ(pos);
-	      var target = this.getTarget();
+	      var target = this.getCurrViewTarget();
 	      return z >= target.zFront && z <= target.zBack;
 	    }
 	  }, {
@@ -73486,7 +73490,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function opacity(pos) {
 	      var z = this.getZ(pos);
 	
-	      var target = this.getTarget();
+	      var target = this.getCurrViewTarget();
 	
 	      if (z < target.zFront) {
 	        return 1.0;
@@ -73504,7 +73508,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var widthHalf = 0.5 * this.width();
 	      var heightHalf = 0.5 * this.height();
 	
-	      var vector = pos.clone().project(this.camera);
+	      var vector = pos.clone().project(this.threeJsCamera);
 	
 	      return {
 	        x: vector.x * widthHalf + widthHalf,
@@ -73521,8 +73525,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'updateCrossHairs',
 	    value: function updateCrossHairs() {
-	      this.crossHairs.position.copy(this.cameraFocus);
-	      this.crossHairs.lookAt(this.camera.position);
+	      var target = this.getCurrViewTarget();
+	      this.crossHairs.position.copy(target.cameraFocus);
+	      this.crossHairs.lookAt(target.cameraPosition);
 	      this.crossHairs.updateMatrix();
 	    }
 	  }, {
@@ -73554,7 +73559,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var pixelBuffer = new Uint8Array(4);
 	
 	      // render the picking scene off-screen
-	      this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
+	      this.renderer.render(this.pickingScene, this.threeJsCamera, this.pickingTexture);
 	
 	      // read the pixel under the mouse from the texture
 	      this.renderer.readRenderTargetPixels(this.pickingTexture, this.mouseX, this.pickingTexture.height - y, 1, 1, pixelBuffer);
@@ -73637,7 +73642,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      // renders visible meshes to the gpu
-	      this.renderer.render(this.displayScene, this.camera);
+	      this.renderer.render(this.displayScene, this.threeJsCamera);
 	
 	      // needs to be drawn after render
 	      this.labelWidget.draw();
@@ -73679,8 +73684,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return;
 	      }
 	
-	      this.camera.aspect = this.width() / this.height();
-	      this.camera.updateProjectionMatrix();
+	      this.threeJsCamera.aspect = this.width() / this.height();
+	      this.threeJsCamera.updateProjectionMatrix();
 	
 	      this.renderer.setSize(this.width(), this.height());
 	

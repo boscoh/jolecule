@@ -1417,13 +1417,14 @@ class Controller {
   }
 
   set_current_view (view) {
-    this.scene.current_view = view
+    this.scene.current_view = view.clone()
     this.scene.changed = true
   }
 }
 
 export {
   Protein,
+  defaultTarget,
   Controller,
   Scene
 }

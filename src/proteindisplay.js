@@ -53,6 +53,7 @@ function interpolateTargets (oldTarget, futureTarget, t) {
   let focusToPositionDisp = oldCameraDirection.clone()
     .applyQuaternion(cameraUpRotation)
     .multiplyScalar(zoom)
+
   result.cameraPosition = result.cameraFocus.clone()
     .add(focusToPositionDisp)
 
@@ -62,6 +63,8 @@ function interpolateTargets (oldTarget, futureTarget, t) {
   result.zFront = glgeom.fraction(oldTarget.zFront, futureTarget.zFront, t)
 
   result.zBack = glgeom.fraction(oldTarget.zBack, futureTarget.zBack, t)
+
+  result.zoom = zoom
 
   return result
 }
@@ -167,17 +170,20 @@ class ProteinDisplay {
     // atom radius used to display on the screen
     this.atomRadius = 0.35
 
-    // parameters for viewport and camera
-    // the target position for the camera
-    this.cameraFocus = new THREE.Vector3(0, 0, 0)
-    // the front and back of viewable area relative to the origin
-    this.zFront = -40
-    this.zBack = 20
-    // determines how far away the camera is from the target
-    this.zoom = 50.0
+    // parameters for viewport
+    this.target = {
+      cameraFocus: new THREE.Vector3(0, 0, 0),
+      cameraPosition: new THREE.Vector3(0, 0, -1),
+      cameraUp: new THREE.Vector3(0, 1, 0),
+      // the front and back of viewable area relative to the origin
+      zFront: -40,
+      zBack: 20,
+      // distance of focus from camera
+      zoom: 1.0
+    }
 
     // a THREE.js camera, will be set properly before draw
-    this.camera = new THREE.PerspectiveCamera(
+    this.threeJsCamera = new THREE.PerspectiveCamera(
       45, this.width() / this.height())
 
     this.displayScene = new THREE.Scene()
@@ -833,51 +839,45 @@ class ProteinDisplay {
     this.scene.n_update_step = this.scene.max_update_step
   }
 
-  getTarget () {
+  getCurrViewTarget () {
     return this.scene.current_view.target
   }
 
   setCameraFromCurrentView () {
-    let target = this.getTarget()
+    let view = this.scene.current_view
+    let viewTarget = this.scene.current_view.target
 
-    let cameraDirection = this.camera.position.clone()
-      .sub(this.cameraFocus)
+    // rotate lights from current camera orientation to scene orientation
+    let cameraDirection = this.target.cameraPosition.clone()
+      .sub(this.target.cameraFocus)
       .normalize()
-
-    let targetCameraDirection = target.cameraPosition.clone()
-      .sub(target.cameraFocus)
-    this.zoom = targetCameraDirection.length()
+    let targetCameraDirection = viewTarget.cameraPosition.clone()
+      .sub(viewTarget.cameraFocus)
     targetCameraDirection.normalize()
-
     let rotation = glgeom.getUnitVectorRotation(
       cameraDirection, targetCameraDirection)
-
     for (let i = 0; i < this.lights.length; i += 1) {
       this.lights[i].position.applyQuaternion(rotation)
     }
 
-    this.cameraFocus.copy(target.cameraFocus)
-    this.camera.position.copy(target.cameraPosition)
-    this.camera.up.copy(target.cameraUp)
+    this.target = viewTarget
 
-    this.zFront = target.zFront
-    this.zBack = target.zBack
-
-    let far = this.zoom + this.zBack
-    let near = this.zoom + this.zFront
+    let far = this.target.zoom + this.target.zBack
+    let near = this.target.zoom + this.target.zFront
     if (near < 1) {
       near = 1
     }
 
-    this.camera.near = near
-    this.camera.far = far
-    this.camera.lookAt(this.cameraFocus)
-    this.camera.updateProjectionMatrix()
+    this.threeJsCamera.position.copy(this.target.cameraPosition)
+    this.threeJsCamera.up.copy(this.target.cameraUp)
+    this.threeJsCamera.lookAt(this.target.cameraFocus)
+    this.threeJsCamera.near = near
+    this.threeJsCamera.far = far
+    this.threeJsCamera.updateProjectionMatrix()
 
     this.displayScene.fog.near = near
     this.displayScene.fog.far = far
 
-    let view = this.scene.current_view
     for (let i = 0; i < this.protein.getNResidue(); i += 1) {
       this.protein.getResidue(i).selected = false
     }
@@ -888,9 +888,11 @@ class ProteinDisplay {
   }
 
   adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-    let y = this.camera.up
-    let z = this.camera.position.clone()
-      .sub(this.cameraFocus)
+    let target = this.getCurrViewTarget()
+
+    let y = target.cameraUp
+    let z = target.cameraPosition.clone()
+      .sub(target.cameraFocus)
       .normalize()
     let x = (v3.create())
       .crossVectors(y, z)
@@ -910,33 +912,34 @@ class ProteinDisplay {
       .multiply(rot_y)
       .multiply(rot_x)
 
-    let newZoom = zoomRatio * this.zoom
+    let newZoom = zoomRatio * target.zoom
 
     if (newZoom < 2) {
       newZoom = 2
     }
 
-    let cameraPosition = this.camera.position.clone()
-      .sub(this.cameraFocus)
+    let cameraPosition = target.cameraPosition.clone()
+      .sub(target.cameraFocus)
       .applyQuaternion(rotation)
       .normalize()
       .multiplyScalar(newZoom)
-      .add(this.cameraFocus)
+      .add(target.cameraFocus)
 
     let view = this.scene.current_view.clone()
-    view.target.cameraFocus = this.cameraFocus.clone()
+    view.target.cameraFocus = target.cameraFocus.clone()
     view.target.cameraPosition = cameraPosition
-    view.target.cameraUp = this.camera.up.clone().applyQuaternion(rotation)
+    view.target.cameraUp = target.cameraUp.clone().applyQuaternion(rotation)
     view.target.zoom = newZoom
 
     this.controller.set_current_view(view)
   }
 
   getZ (pos) {
-    let origin = this.cameraFocus.clone()
+    let target = this.getCurrViewTarget()
+    let origin = target.cameraFocus.clone()
 
     let cameraDir = origin.clone()
-      .sub(this.camera.position)
+      .sub(target.cameraPosition)
       .normalize()
 
     let posRelativeToOrigin = pos.clone()
@@ -947,14 +950,14 @@ class ProteinDisplay {
 
   inZlab (pos) {
     let z = this.getZ(pos)
-    let target = this.getTarget()
+    let target = this.getCurrViewTarget()
     return ((z >= target.zFront) && (z <= target.zBack))
   }
 
   opacity (pos) {
     let z = this.getZ(pos)
 
-    let target = this.getTarget()
+    let target = this.getCurrViewTarget()
 
     if (z < target.zFront) {
       return 1.0
@@ -971,7 +974,7 @@ class ProteinDisplay {
     let widthHalf = 0.5 * this.width()
     let heightHalf = 0.5 * this.height()
 
-    let vector = pos.clone().project(this.camera)
+    let vector = pos.clone().project(this.threeJsCamera)
 
     return {
       x: (vector.x * widthHalf) + widthHalf,
@@ -986,8 +989,9 @@ class ProteinDisplay {
    */
 
   updateCrossHairs () {
-    this.crossHairs.position.copy(this.cameraFocus)
-    this.crossHairs.lookAt(this.camera.position)
+    let target = this.getCurrViewTarget()
+    this.crossHairs.position.copy(target.cameraFocus)
+    this.crossHairs.lookAt(target.cameraPosition)
     this.crossHairs.updateMatrix()
   }
 
@@ -1014,7 +1018,7 @@ class ProteinDisplay {
 
     // render the picking scene off-screen
     this.renderer.render(
-      this.pickingScene, this.camera, this.pickingTexture)
+      this.pickingScene, this.threeJsCamera, this.pickingTexture)
 
     // read the pixel under the mouse from the texture
     this.renderer.readRenderTargetPixels(
@@ -1100,7 +1104,7 @@ class ProteinDisplay {
     }
 
     // renders visible meshes to the gpu
-    this.renderer.render(this.displayScene, this.camera)
+    this.renderer.render(this.displayScene, this.threeJsCamera)
 
     // needs to be drawn after render
     this.labelWidget.draw()
@@ -1142,8 +1146,8 @@ class ProteinDisplay {
       return
     }
 
-    this.camera.aspect = this.width() / this.height()
-    this.camera.updateProjectionMatrix()
+    this.threeJsCamera.aspect = this.width() / this.height()
+    this.threeJsCamera.updateProjectionMatrix()
 
     this.renderer.setSize(this.width(), this.height())
 
