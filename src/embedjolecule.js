@@ -1,6 +1,6 @@
 import $ from 'jquery'
 import _ from 'lodash'
-import { Protein, Controller, Scene } from './protein'
+import { Soup, Controller, Scene } from './soup'
 import { Display } from './display'
 import {
   exists,
@@ -212,7 +212,7 @@ class EmbedJolecule {
     this.initViewId = this.params.viewId
     this.hAnnotationView = this.params.viewHeight
 
-    this.protein = new Protein()
+    this.protein = new Soup()
     this.scene = new Scene(this.protein)
     this.controller = new Controller(this.scene)
 
@@ -457,12 +457,11 @@ class EmbedJolecule {
       .remove()
 
     // rebuild selector
-    var residues = this.protein.residues
-    for (var i = 0; i < residues.length; i++) {
-      var value = residues[i].id
-      var text = residues[i].id + '-' + residues[i].type
+    for (let i = 0; i < this.protein.getNResidue(); i++) {
+      let residue = this.protein.getResidue(i)
+      let text = residue.id + '-' + residue.type
       this.residueSelector.append(
-        $('<option>').attr('value', value).text(text))
+        $('<option>').attr('value', residue.id).text(text))
     }
 
     this.residueSelector.val(this.scene.current_view.res_id)

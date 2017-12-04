@@ -7,7 +7,7 @@ import * as glgeom from './glgeom'
 import * as util from './util'
 import widgets from './widgets'
 import * as data from './data'
-import {interpolateCameras} from './protein'
+import {interpolateCameras} from './soup'
 
 
 /**
@@ -43,10 +43,12 @@ class Display {
     this.div = $(this.divTag)
     this.div.css('overflow', 'hidden')
 
+    // popup hover box over the mouse position
     this.hover = new widgets.PopupText(this.divTag, 'lightblue')
     this.hover.div.css('pointer-events', 'none')
     this.hover.arrow.css('pointer-events', 'none')
 
+    // div to display processing messages
     this.messageDiv = $('<div>')
       .attr('id', 'loading-message')
       .addClass('jolecule-loading-message')
@@ -100,21 +102,22 @@ class Display {
     // will send geometries into the displayMeshes, using this.displayMaterial
     // as the default. This assumes vertexColors are used, allowing multiple
     // colors within the same geometry.
-    let vertexColors = THREE.VertexColors
-
     this.displayMeshes = {}
-    this.displayMaterial = new THREE.MeshLambertMaterial({vertexColors})
+    this.displayMaterial = new THREE.MeshLambertMaterial(
+      {vertexColors: THREE.VertexColors})
 
     this.pickingScene = new THREE.Scene()
     this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height())
     this.pickingTexture.texture.minFilter = THREE.LinearFilter
 
     this.pickingMeshes = {}
-    this.pickingMaterial = new THREE.MeshBasicMaterial({vertexColors})
+    this.pickingMaterial = new THREE.MeshBasicMaterial(
+      {vertexColors: THREE.VertexColors})
 
-    // webGL objects that only need to build once in the life-cycle
+    // WebGL objects that only need to build once in the life-cycle
     this.lights = []
     this.buildLights()
+
     this.buildCrossHairs()
 
     this.distanceWidget = new widgets.DistanceMeasuresWidget(this)
@@ -214,7 +217,7 @@ class Display {
     for (let iRes = 0; iRes < this.protein.getNResidue(); iRes += 1) {
       let residue = this.protein.getResidue(iRes)
 
-      if (residue.is_protein_or_nuc) {
+      if (residue.isPolymer) {
 
         let isBreak = false
         if (iRes === 0) {
@@ -227,12 +230,18 @@ class Display {
 
         if (isBreak) {
           currTrace = new glgeom.Trace()
-          currTrace.referenceObjects = this.protein.residues
+          {
+            let trace = currTrace
+            trace.getReference = i => {
+              let iRes = trace.indices[i]
+              return this.protein.getResidue(iRes)
+            }
+          }
           this.traces.push(currTrace)
         }
 
         currTrace.indices.push(iRes)
-        currTrace.points.push(this.protein.getResidueCentralAtom(iRes).pos)
+        currTrace.points.push(this.protein.getCentralAtomOfResidue(iRes).pos)
         let normal = null
         if (residue.normal) {
           normal = residue.normal
@@ -262,17 +271,11 @@ class Display {
   }
 
   buildLights () {
-    let directionalLight = new THREE.DirectionalLight(0xFFFFFF)
-    directionalLight.position.copy(
-      v3.create(0.2, 0.2, 100).normalize())
-    directionalLight.dontDelete = true
-    this.lights.push(directionalLight)
-
-    let directionalLight2 = new THREE.DirectionalLight(0xFFFFFF)
-    directionalLight2.position.copy(
+    let directedLight = new THREE.DirectionalLight(0xFFFFFF)
+    directedLight.position.copy(
       v3.create(0.2, 0.2, -100).normalize())
-    directionalLight2.dontDelete = true
-    this.lights.push(directionalLight2)
+    directedLight.dontDelete = true
+    this.lights.push(directedLight)
 
     let ambientLight = new THREE.AmbientLight(0x202020)
     ambientLight.dontDelete = true
@@ -598,7 +601,7 @@ class Display {
     let pickingGeom = new THREE.Geometry()
     for (let iRes of _.range(this.protein.getNResidue())) {
       let residue = this.protein.getResidue(iRes)
-      if (residue.is_protein_or_nuc) {
+      if (residue.isPolymer) {
         let bondFilter = bond => {
           return _.includes(data.backboneAtoms, bond.atom1.type) &&
             _.includes(data.backboneAtoms, bond.atom2.type)
@@ -622,8 +625,8 @@ class Display {
     console.log('> Display.buildMeshOfLigands nResidue', this.protein.getNResidue())
     for (let iRes of _.range(this.protein.getNResidue())) {
       let residue = this.protein.getResidue(iRes)
-      console.log('> Display.buildMeshOfLigands', residue.is_ligands)
-      if (residue.is_ligands) {
+      console.log('> Display.buildMeshOfLigands', residue.isLigand)
+      if (residue.isLigand) {
         this.mergeBondsInResidue(displayGeom, iRes)
         this.protein.eachResidueAtom(iRes, atom => {
           this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
@@ -640,7 +643,7 @@ class Display {
     let pickingGeom = new THREE.Geometry()
     for (let iRes of _.range(this.protein.getNResidue())) {
       let residue = this.protein.getResidue(iRes)
-      if (residue.is_water) {
+      if (residue.isWater) {
         this.mergeBondsInResidue(displayGeom, iRes)
         this.protein.eachResidueAtom(iRes, atom => {
           this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
@@ -665,7 +668,7 @@ class Display {
     this.createOrClearMesh('grid')
     for (let iRes of _.range(this.protein.getNResidue())) {
       let residue = this.protein.getResidue(iRes)
-      if (residue.is_grid) {
+      if (residue.isGrid) {
         this.protein.eachResidueAtom(iRes, atom => {
           if (this.isVisibleGridAtom(atom.i)) {
             let material = new THREE.MeshLambertMaterial({
@@ -701,7 +704,7 @@ class Display {
 
     for (let iRes of _.range(this.protein.getNResidue())) {
       let residue = this.protein.getResidue(iRes)
-      if (residue.ss !== 'D' || !residue.is_protein_or_nuc) {
+      if (residue.ss !== 'D' || !residue.isPolymer) {
         continue
       }
 
@@ -819,14 +822,6 @@ class Display {
 
     this.displayScene.fog.near = near
     this.displayScene.fog.far = far
-
-    for (let i = 0; i < this.protein.getNResidue(); i += 1) {
-      this.protein.getResidue(i).selected = false
-    }
-    for (let i = 0; i < view.selected.length; i += 1) {
-      let i_res = view.selected[i]
-      this.protein.getResidue(i_res).selected = true
-    }
   }
 
   adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {

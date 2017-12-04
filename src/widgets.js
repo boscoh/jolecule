@@ -770,7 +770,7 @@ class ZSlabWidget extends CanvasWrapper {
   draw () {
     let protein = this.scene.protein
     let target = this.scene.current_view.camera
-    this.maxZLength = 2.0 * protein.max_length
+    this.maxZLength = 2.0 * protein.maxLength
 
     let yBack = this.zToY(target.zBack)
     let yFront = this.zToY(target.zFront)
@@ -872,7 +872,7 @@ class GridControlWidget extends CanvasWrapper {
     this.scene.grid_atoms = {}
 
     for (let residue of this.scene.protein.residues) {
-      if (residue.is_grid) {
+      if (residue.isGrid) {
         for (let atom of _.values(residue.atoms)) {
           if (!(atom.elem in this.scene.grid_atoms)) {
             this.scene.grid_atoms[atom.elem] = true

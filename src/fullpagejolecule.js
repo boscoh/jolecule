@@ -390,7 +390,7 @@ class FullPageJolecule {
       } else if (c === 'W') {
         this.controller.toggle_show_option('water')
       } else if (c === 'C') {
-        this.display.controller.clear_selected()
+        this.display.controller.clearSelectedResidues()
       } else if (c === 'E') {
         let i_view = this.display.scene.i_last_view
         if (i_view > 0) {
