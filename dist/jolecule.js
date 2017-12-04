@@ -73138,7 +73138,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _classCallCheck(this, Store);
 	
 	    this.length = 0; // actual size allocated
-	    this.count = 0; // slots used
+	    this.count = 0; // size to use, updated by this.growIfFull
 	
 	    this._fields = defaultFields;
 	
