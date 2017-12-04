@@ -133,8 +133,8 @@ function openPdbWindow(pdb) {
     event.sender.send('save-view-dicts', "success");
   });
 
-  ipcMain.on('delete-protein-view', (event, viewId) => {
-    console.log('> delete-protein-view');  // prints "ping"
+  ipcMain.on('delete-soup-view', (event, viewId) => {
+    console.log('> delete-soup-view');  // prints "ping"
     if (fs.existsSync(viewsJson)) {
       let text = fs.readFileSync(viewsJson, 'utf8');
       ;
@@ -143,11 +143,11 @@ function openPdbWindow(pdb) {
       _.unset(views, viewId);
       console.log('> after', JSON.stringify(views, null, 2));
       fs.writeFileSync(viewsJson, JSON.stringify(views, null, 2));
-      event.sender.send('delete-protein-view', "success");
+      event.sender.send('delete-soup-view', "success");
       return;
     }
     fs.writeFileSync(viewsJson, JSON.stringify(arg, null, 2));
-    event.sender.send('delete-protein-view', "success");
+    event.sender.send('delete-soup-view', "success");
   });
 
 }

@@ -347,7 +347,7 @@ class AtomLabelsWidget {
     }
 
     for (let i = 0; i < labels.length; i += 1) {
-      let atom = this.scene.protein.getAtom(labels[i].i_atom)
+      let atom = this.scene.soup.getAtom(labels[i].i_atom)
 
       this.popups[i].html(labels[i].text)
 
@@ -440,8 +440,8 @@ class DistanceMeasuresWidget {
       let distance = distances[i]
       let distanceMeasure = this.distanceMeasures[i]
 
-      let p1 = this.scene.protein.getAtom(distance.i_atom1).pos
-      let p2 = this.scene.protein.getAtom(distance.i_atom2).pos
+      let p1 = this.scene.soup.getAtom(distance.i_atom1).pos
+      let p2 = this.scene.soup.getAtom(distance.i_atom2).pos
 
       let text = p1.distanceTo(p2).toFixed(1)
       distanceMeasure.div.text(text)
@@ -768,7 +768,7 @@ class ZSlabWidget extends CanvasWrapper {
   }
 
   draw () {
-    let protein = this.scene.protein
+    let protein = this.scene.soup
     let target = this.scene.current_view.camera
     this.maxZLength = 2.0 * protein.maxLength
 
@@ -871,7 +871,7 @@ class GridControlWidget extends CanvasWrapper {
   findLimitsAndElements () {
     this.scene.grid_atoms = {}
 
-    for (let residue of this.scene.protein.residues) {
+    for (let residue of this.scene.soup.residues) {
       if (residue.isGrid) {
         for (let atom of _.values(residue.atoms)) {
           if (!(atom.elem in this.scene.grid_atoms)) {

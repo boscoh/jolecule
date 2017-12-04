@@ -11,19 +11,19 @@ import {interpolateCameras} from './soup'
 
 
 /**
- * Display is the main window for drawing the protein
+ * Display is the main window for drawing the soup
  * in a WebGL HTML5 canvas, includes various widgets that
  * are described in widgets.js.
  *
- * Display takes a protein, and builds three.js from
+ * Display takes a soup, and builds three.js from
  * it. Display also handles mouse input and
- * uses controller to make changes to the underlying protein
+ * uses controller to make changes to the underlying soup
  * and their associated views
  */
 class Display {
 
   /**
-   * @param scene - Scene object that holds a protein and views
+   * @param scene - Scene object that holds a soup and views
    * @param divTag - a selector tag for a DOM element
    * @param controller - the controller for the scene
    * @param isGrid - flat to show autodock 3D grid control panel
@@ -33,10 +33,10 @@ class Display {
 
     this.divTag = divTag
     this.scene = scene
-    this.protein = scene.protein
+    this.soup = scene.soup
     this.controller = controller
 
-    // stores the trace of the protein & DNA backbones, used
+    // stores the trace of the soup & DNA backbones, used
     // to generate the ribbons and tubes
     this.traces = []
 
@@ -187,13 +187,13 @@ class Display {
   }
 
   buildAfterInitialLoad () {
-    this.scene.current_view.makeDefaultOfProtein(this.protein)
+    this.scene.current_view.makeDefaultOfSoup(this.soup)
     this.scene.save_view(this.scene.current_view)
     this.scene.changed = true
 
-    for (let i of _.range(this.protein.getNResidue())) {
-      let res = this.protein.getResidue(i)
-      res.color = data.getSsColor(res.ss)
+    for (let i of _.range(this.soup.getResidueCount())) {
+      let ss = this.soup.getResidue(i).ss
+      this.soup.setResidueColor(i, data.getSsColor(ss))
     }
 
     this.buildScene()
@@ -214,8 +214,8 @@ class Display {
 
     let currTrace
 
-    for (let iRes = 0; iRes < this.protein.getNResidue(); iRes += 1) {
-      let residue = this.protein.getResidue(iRes)
+    for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+      let residue = this.soup.getResidue(iRes)
 
       if (residue.isPolymer) {
 
@@ -223,8 +223,8 @@ class Display {
         if (iRes === 0) {
           isBreak = true
         } else {
-          let peptideConnect = this.protein.isPeptideConnected(iRes - 1, iRes)
-          let nucleotideConnect = this.protein.isSugarPhosphateConnected(iRes - 1, iRes)
+          let peptideConnect = this.soup.isPeptideConnected(iRes - 1, iRes)
+          let nucleotideConnect = this.soup.isSugarPhosphateConnected(iRes - 1, iRes)
           isBreak = !(peptideConnect) && !(nucleotideConnect)
         }
 
@@ -234,14 +234,14 @@ class Display {
             let trace = currTrace
             trace.getReference = i => {
               let iRes = trace.indices[i]
-              return this.protein.getResidue(iRes)
+              return this.soup.getResidue(iRes)
             }
           }
           this.traces.push(currTrace)
         }
 
         currTrace.indices.push(iRes)
-        currTrace.points.push(this.protein.getCentralAtomOfResidue(iRes).pos)
+        currTrace.points.push(this.soup.getResidue(iRes).getCentralAtom().pos)
         let normal = null
         if (residue.normal) {
           normal = residue.normal
@@ -260,9 +260,9 @@ class Display {
   }
 
   getAtomColor (iAtom) {
-    let atom = this.protein.getAtom(iAtom)
+    let atom = this.soup.getAtom(iAtom)
     if (atom.elem === 'C' || atom.elem === 'H') {
-      let res = this.protein.res_by_id[atom.res_id]
+      let res = this.soup.resById[atom.res_id]
       return res.color
     } else if (atom.elem in data.ElementColors) {
       return data.ElementColors[atom.elem]
@@ -406,7 +406,7 @@ class Display {
       for (let mesh of [this.displayMeshes.sidechains, this.pickingMeshes.sidechains]) {
         mesh.traverse(child => {
           if (util.exists(child.i)) {
-            let residue = this.protein.getResidue(child.i)
+            let residue = this.soup.getResidue(child.i)
             child.visible = show.sidechain || residue.selected
           }
         })
@@ -419,7 +419,7 @@ class Display {
   }
 
   mergeAtomToGeom (geom, pickGeom, iAtom) {
-    let atom = this.protein.getAtom(iAtom)
+    let atom = this.soup.getAtom(iAtom)
     let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
     let unitGeom = this.unitSphereGeom
     glgeom.mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix)
@@ -427,7 +427,7 @@ class Display {
   }
 
   mergeBondsInResidue (geom, iRes, bondFilterFn) {
-    let residue = this.protein.getResidue(iRes)
+    let residue = this.soup.getResidue(iRes)
     let unitGeom = new glgeom.UnitCylinderGeometry()
     let color = residue.color
     let p1, p2
@@ -574,7 +574,7 @@ class Display {
 
           this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
 
-          this.protein.eachResidueAtom(iRes, atom => {
+          this.soup.eachResidueAtom(iRes, atom => {
             if (!util.inArray(atom.type, data.backboneAtoms)) {
               atom.is_sidechain = true
               let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
@@ -599,15 +599,15 @@ class Display {
     this.createOrClearMesh('backbone')
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
-    for (let iRes of _.range(this.protein.getNResidue())) {
-      let residue = this.protein.getResidue(iRes)
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      let residue = this.soup.getResidue(iRes)
       if (residue.isPolymer) {
         let bondFilter = bond => {
           return _.includes(data.backboneAtoms, bond.atom1.type) &&
             _.includes(data.backboneAtoms, bond.atom2.type)
         }
         this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
-        this.protein.eachResidueAtom(iRes, atom => {
+        this.soup.eachResidueAtom(iRes, atom => {
           if (util.inArray(atom.type, data.backboneAtoms)) {
             this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
           }
@@ -622,13 +622,13 @@ class Display {
     this.createOrClearMesh('ligands')
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
-    console.log('> Display.buildMeshOfLigands nResidue', this.protein.getNResidue())
-    for (let iRes of _.range(this.protein.getNResidue())) {
-      let residue = this.protein.getResidue(iRes)
+    console.log('> Display.buildMeshOfLigands nResidue', this.soup.getResidueCount())
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      let residue = this.soup.getResidue(iRes)
       console.log('> Display.buildMeshOfLigands', residue.isLigand)
       if (residue.isLigand) {
         this.mergeBondsInResidue(displayGeom, iRes)
-        this.protein.eachResidueAtom(iRes, atom => {
+        this.soup.eachResidueAtom(iRes, atom => {
           this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
         })
       }
@@ -641,11 +641,11 @@ class Display {
     this.createOrClearMesh('water')
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
-    for (let iRes of _.range(this.protein.getNResidue())) {
-      let residue = this.protein.getResidue(iRes)
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      let residue = this.soup.getResidue(iRes)
       if (residue.isWater) {
         this.mergeBondsInResidue(displayGeom, iRes)
-        this.protein.eachResidueAtom(iRes, atom => {
+        this.soup.eachResidueAtom(iRes, atom => {
           this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
         })
       }
@@ -655,7 +655,7 @@ class Display {
   }
 
   isVisibleGridAtom (iAtom) {
-    let atom = this.protein.getAtom(iAtom)
+    let atom = this.soup.getAtom(iAtom)
     let isAtomInRange = atom.bfactor > this.scene.grid
     let isAtomElemSelected = this.scene.grid_atoms[atom.elem]
     return isAtomElemSelected && isAtomInRange
@@ -666,10 +666,10 @@ class Display {
       return
     }
     this.createOrClearMesh('grid')
-    for (let iRes of _.range(this.protein.getNResidue())) {
-      let residue = this.protein.getResidue(iRes)
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      let residue = this.soup.getResidue(iRes)
       if (residue.isGrid) {
-        this.protein.eachResidueAtom(iRes, atom => {
+        this.soup.eachResidueAtom(iRes, atom => {
           if (this.isVisibleGridAtom(atom.i)) {
             let material = new THREE.MeshLambertMaterial({
               color: this.getAtomColor(atom.i)
@@ -702,8 +702,8 @@ class Display {
 
     let cylinderGeom = new glgeom.UnitCylinderGeometry()
 
-    for (let iRes of _.range(this.protein.getNResidue())) {
-      let residue = this.protein.getResidue(iRes)
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      let residue = this.soup.getResidue(iRes)
       if (residue.ss !== 'D' || !residue.isPolymer) {
         continue
       }
@@ -728,7 +728,7 @@ class Display {
       }
 
       let getVerticesFromAtomDict = (iRes, atomTypes) => {
-        return _.map(atomTypes, a => this.protein.getResidueAtom(iRes, a).pos)
+        return _.map(atomTypes, a => this.soup.getResidueAtom(iRes, a).pos)
       }
 
       let vertices = getVerticesFromAtomDict(iRes, atomTypes)
@@ -931,7 +931,7 @@ class Display {
   atomLabelDialog () {
     let i_atom = this.scene.current_view.i_atom
     if (i_atom >= 0) {
-      let atom = this.protein.getAtom(i_atom)
+      let atom = this.soup.getAtom(i_atom)
       let label = 'Label atom : ' + atom.label
       let success = text => { this.controller.make_label(i_atom, text) }
       util.textEntryDialog(this.div, label, success)
@@ -965,7 +965,7 @@ class Display {
       | ( pixelBuffer[1] << 8 )
       | ( pixelBuffer[2] )
 
-    if (i < this.protein.getNAtom()) {
+    if (i < this.soup.getAtomCount()) {
       return i
     }
 
@@ -980,7 +980,7 @@ class Display {
     }
 
     if (this.iHoverAtom) {
-      let atom = this.protein.getAtom(this.iHoverAtom)
+      let atom = this.soup.getAtom(this.iHoverAtom)
       let text = atom.label
       if (atom === this.scene.centered_atom()) {
         text = '<div style="text-align: center">'
@@ -1183,7 +1183,7 @@ class Display {
     this.updateHover()
 
     if (this.isDraggingCentralAtom) {
-      let v = this.posXY(this.protein.getAtom(this.iDownAtom).pos)
+      let v = this.posXY(this.soup.getAtom(this.iDownAtom).pos)
 
       this.lineElement.move(this.mouseX, this.mouseY, v.x, v.y)
     } else {

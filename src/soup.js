@@ -67,21 +67,68 @@ function getCentralAtomFromDict (atomDict) {
   return getClosestAtom(getCenter(atoms), atoms)
 }
 
-const protein_res_types = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS',
+const proteinResTypes  = [
+  'ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS',
   'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN',
   'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR']
-const dna_res_types = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C']
-const rna_res_types = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U']
+
+const dnaResTypes = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C']
+
+const rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U']
+
+
+class ResidueProxy {
+
+  constructor (soup, iRes) {
+    this.soup = soup
+    if (Number.isInteger(iRes)) {
+      this.load(iRes)
+    }
+  }
+
+  load (iRes) {
+    this.iRes = iRes
+    this.residue = this.soup.residues[iRes]
+    this.residue.iAtom = this.soup.residueStore.iCentralAtom[iRes]
+    this.residue.getCentralAtom = () => this.getCentralAtom()
+    return this.residue
+  }
+
+  getCentralAtom () {
+    return this.soup.getAtom(this.residue.iAtom)
+  }
+
+  getAtom (atomType) {
+    let result = null
+    this.eachAtom(atom => {
+      if (result !== null) {
+        if (atom.type === atomType) {
+          result = atom
+        }
+      }
+    })
+    return result
+  }
+
+  eachAtom (callback) {
+    for (let atom of _.values(this.residue.atoms)) {
+      callback(atom)
+    }
+  }
+
+
+}
+
 
 /**
  * Soup
  * -------
  * The main data object that holds information
- * about the protein. This object is responsible
+ * about the soup. This object is responsible
  * for reading the data from the PDB and turning
  * it into a suitable javascript object.
  *
- * The protein will be embedded in a Scene
+ * The soup will be embedded in a Scene
  * object that will handle all the different
  * viewing options.
  *
@@ -96,21 +143,20 @@ class Soup {
   constructor () {
     this.atoms = []
     this.residues = []
-    this.res_by_id = {}
+    this.resById = {}
     this.bonds = []
-    this.parsing_error = ''
+    this.parsingError = ''
     this.default_html = ''
-
     this.residueStore = new Store([
-      ['chainIndex', 1, 'uint32'],
       ['atomOffset', 1, 'uint32'],
       ['atomCount', 1, 'uint16'],
+      ['iCentralAtom', 1, 'uint32'],
       ['residueTypeId', 1, 'uint16'],
       ['resno', 1, 'int32'],
       ['sstruc', 1, 'uint8'],
-      ['inscode', 1, 'uint8']
+      ['inscode', 1, 'uint8'],
     ])
-
+    this.residueProxy = new ResidueProxy(this)
   }
 
   load (protein_data) {
@@ -119,7 +165,7 @@ class Soup {
 
     console.log(`> Protein.load parsing ${this.pdb_id}`)
 
-    let title  = parsetTitleFromPdbText(protein_data['pdb_text'])
+    let title = parsetTitleFromPdbText(protein_data['pdb_text'])
     this.default_html = this.pdb_id + ': ' + title
 
     let atomLines = extractAtomLines(protein_data['pdb_text'])
@@ -141,13 +187,13 @@ class Soup {
 
     this.findSecondaryStructure()
 
-    console.log(`> Protein.load ${this.getNResidue()} residues`)
+    console.log(`> Protein.load ${this.getResidueCount()} residues`)
   }
 
   makeAtomsFromPdbLines (lines, pdb_id) {
     let atoms = []
     if (lines.length === 0) {
-      this.parsing_error = 'No atom lines'
+      this.parsingError = 'No atom lines'
       return
     }
     for (let i = 0; i < lines.length; i += 1) {
@@ -155,19 +201,26 @@ class Soup {
       try {
         if (line.substr(0, 4) === 'ATOM' ||
           line.substr(0, 6) === 'HETATM') {
+
           let x = parseFloat(line.substr(30, 7))
           let y = parseFloat(line.substr(38, 7))
           let z = parseFloat(line.substr(46, 7))
+
           let chain = _.trim(line[21])
+
           let res_num = _.trim(line.substr(22, 5))
           let res_type = _.trim(line.substr(17, 3))
+
           let atom_type = _.trim(line.substr(12, 4))
           let label = res_num + ' - ' + res_type + ' - ' + atom_type
+
           let bfactor = parseFloat(line.substr(60, 6))
+
           let elem = delete_numbers(_.trim(line.substr(76, 2)))
           if (elem === '') {
             elem = delete_numbers(_.trim(atom_type)).substr(0, 1)
           }
+
           let alt = _.trim(line.substr(16, 1))
 
           if (chain) {
@@ -190,7 +243,7 @@ class Soup {
           })
         }
       } catch (e) {
-        this.parsing_error = 'line ' + i
+        this.parsingError = 'line ' + i
         console.log(`> Error: "${line}"`)
         return
       }
@@ -216,35 +269,32 @@ class Soup {
   }
 
   makeResidue (atom, res_id) {
-    let iRes = this.getNResidue()
+    let iRes = this.getResidueCount()
     let resType = _.trim(atom.res_type)
-    let isProtein = inArray(resType, protein_res_types)
-    let isNucleotide = inArray(resType, dna_res_types) || inArray(resType, rna_res_types)
+    let isProtein = inArray(resType, proteinResTypes)
+    let isNucleotide = inArray(resType, dnaResTypes) || inArray(resType, rnaResTypes)
     let isWater = resType === 'HOH'
     let isGrid = resType === 'XXX'
     let isPolymer = isProtein || isNucleotide
 
     let newRes = {
       i: iRes,
-      chain: atom.chain,
-      num: atom.res_num,
       type: resType,
       id: res_id,
       selected: false,
       atoms: {},
       iAtom: null,
-      ss: '',
       isPolymer: isPolymer,
       isWater: isWater,
       isGrid: isGrid,
       isLigand: !isWater && !isPolymer && !isGrid,
+      ss: '',
       normal: null,
-      normals: [],
-      hb_partners: [],
+      normals: []
     }
 
     this.residues.push(newRes)
-    this.res_by_id[res_id] = newRes
+    this.resById[res_id] = newRes
 
     this.residueStore.count += 1
     this.residueStore.growIfFull()
@@ -258,18 +308,22 @@ class Soup {
     let res
     for (let a of atoms) {
       let new_res_id = this.getResIdFromAtom(a)
+
       if (new_res_id !== res_id) {
         this.makeResidue(a, new_res_id)
         res_id = new_res_id
       }
-      res = this.res_by_id[res_id]
+
+      res = this.resById[res_id]
       if (a.type in res.atoms) {
         a.isAlt = true
       } else {
         res.atoms[a.type] = a
-        this.residueStore.atomCount[res.i] += 1
         a.isAlt = false
       }
+
+      this.residueStore.atomCount[res.i] += 1
+
       a.res_id = res.id
       a.isWater = res.isWater
       a.isPolymer = res.isPolymer
@@ -277,33 +331,34 @@ class Soup {
       a.isGrid = res.isGrid
     }
 
-    let nResidue = this.getNResidue()
+    let nResidue = this.getResidueCount()
     for (let iRes = 0; iRes < nResidue; iRes += 1) {
       let res = this.getResidue(iRes)
 
       // test residue atom indices
       let indices = _.map(_.values(res.atoms), a => a.i)
-      let iAtom = this.residueStore.atomOffset[iRes]
+      let iAtomOffset = this.residueStore.atomOffset[iRes]
       let nAtom = this.residueStore.atomCount[iRes]
-      let indices2 = _.range(iAtom, iAtom + nAtom)
+      let indices2 = _.range(iAtomOffset, iAtomOffset + nAtom)
 
+      let iAtom
       // set the central atom for each residue
       if (this.hasProteinBackbone(iRes)) {
-        res.iAtom = this.getAtomFromResidue(iRes, 'CA').i
+        iAtom = this.getAtomFromResidue(iRes, 'CA').i
       } else if (this.hasSugarBackbone(iRes)) {
-        res.iAtom = this.getAtomFromResidue(iRes, 'C3\'').i
+        iAtom = this.getAtomFromResidue(iRes, 'C3\'').i
       } else {
-        res.iAtom = getCentralAtomFromDict(res.atoms).i
+        iAtom = getCentralAtomFromDict(res.atoms).i
       }
 
       // check non-standard residue types
       if (!res.isPolymer) {
         if (iRes > 0) {
           if (this.isPeptideConnected(iRes - 1, iRes)) {
-            res.iAtom = this.getAtomFromResidue(iRes, 'CA').i
+            iAtom = this.getAtomFromResidue(iRes, 'CA').i
             res.isPolymer = true
           } else if (this.isSugarPhosphateConnected(iRes - 1, iRes)) {
-            res.iAtom = this.getAtomFromResidue(iRes, 'C3\'').i
+            iAtom = this.getAtomFromResidue(iRes, 'C3\'').i
             res.isPolymer = true
             res.ss = 'R'
             res.normal = this.getNormalOfNucleotide(iRes)
@@ -312,17 +367,23 @@ class Soup {
 
         if (iRes < nResidue - 1) {
           if (this.isPeptideConnected(iRes, iRes + 1)) {
-            res.iAtom = this.getAtomFromResidue(iRes, 'CA').i
+            iAtom = this.getAtomFromResidue(iRes, 'CA').i
             res.isPolymer = true
           } else if (this.isSugarPhosphateConnected(iRes, iRes + 1)) {
-            res.iAtom = this.getAtomFromResidue(iRes, 'C3\'').i
+            iAtom = this.getAtomFromResidue(iRes, 'C3\'').i
             res.isPolymer = true
             res.ss = 'R'
             res.normal = this.getNormalOfNucleotide(res)
           }
         }
       }
+
+      this.residueStore.iCentralAtom[iRes] = iAtom
     }
+  }
+
+  setResidueColor (iRes, color) {
+    this.residues[iRes].color = color
   }
 
   getAtomFromResidue (iRes, atomType) {
@@ -335,7 +396,7 @@ class Soup {
     return result
   }
 
-  checkAtomTypesInResidue(iRes, atomTypes) {
+  checkAtomTypesInResidue (iRes, atomTypes) {
     let atoms = this.getResidue(iRes).atoms
     for (let atomType of atomTypes) {
       if (!(atomType in atoms)) {
@@ -355,8 +416,8 @@ class Soup {
    */
   isSugarPhosphateConnected (iRes0, iRes1) {
     if (this.hasSugarBackbone(iRes0) &&
-        this.hasSugarBackbone(iRes1) &&
-        this.checkAtomTypesInResidue(iRes1, ['P'])) {
+      this.hasSugarBackbone(iRes1) &&
+      this.checkAtomTypesInResidue(iRes1, ['P'])) {
       let o3 = this.getAtomFromResidue(iRes0, 'O3\'')
       let p = this.getAtomFromResidue(iRes1, 'P')
       if (v3.distance(o3.pos, p.pos) < 2.5) {
@@ -407,28 +468,28 @@ class Soup {
       if (i === 2) return v.z
     }
 
-    for (let j = 0; j < 3; j++) {
-      for (let i = 0; i < atoms.length; i += 1) {
-        if (minima[j] > comp(atoms[i].pos, j)) {
-          minima[j] = comp(atoms[i].pos, j)
+    for (let iDim = 0; iDim < 3; iDim++) {
+      for (let iAtom = 0; iAtom < atoms.length; iAtom += 1) {
+        if (minima[iDim] > comp(atoms[iAtom].pos, iDim)) {
+          minima[iDim] = comp(atoms[iAtom].pos, iDim)
         }
-        if (maxima[j] < comp(atoms[i].pos, j)) {
-          maxima[j] = comp(atoms[i].pos, j)
+        if (maxima[iDim] < comp(atoms[iAtom].pos, iDim)) {
+          maxima[iDim] = comp(atoms[iAtom].pos, iDim)
         }
       }
-      spans[j] = maxima[j] - minima[j]
+      spans[iDim] = maxima[iDim] - minima[iDim]
     }
     this.maxLength = Math.max(spans[0], spans[1], spans[2])
   }
 
   calcBonds () {
 
+    this.bonds = []
+
     const small_cutoff = 1.2
     const medium_cutoff = 1.9
     const large_cutoff = 2.4
     const CHONPS = ['C', 'H', 'O', 'N', 'P', 'S']
-
-    this.bonds = []
 
     let vertices = _.map(this.atoms, a => [a.pos.x, a.pos.y, a.pos.z])
 
@@ -446,29 +507,31 @@ class Soup {
         continue
       }
 
-      let dist = v3.distance(atom1.pos, atom2.pos)
-
-      let cutoff
       if ((atom1.alt !== '') && (atom2.alt !== '')) {
         if (atom1.alt !== atom2.alt) {
           continue
         }
       }
+
+      let cutoff
       if ((atom1.elem === 'H') || (atom2.elem === 'H')) {
         cutoff = small_cutoff
-      } else if (inArray(atom1.elem, CHONPS) && inArray(atom2.elem, CHONPS)) {
+      } else if (
+        inArray(atom1.elem, CHONPS) &&
+        inArray(atom2.elem, CHONPS)) {
         cutoff = medium_cutoff
       } else {
         cutoff = large_cutoff
       }
-      if (dist <= cutoff) {
+
+      if (v3.distance(atom1.pos, atom2.pos) <= cutoff) {
         this.bonds.push({atom1, atom2})
       }
     }
   }
 
   assignBondsToResidues () {
-    for (let iRes = 0; iRes < this.getNResidue(); iRes += 1) {
+    for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
       this.getResidue(iRes).bonds = []
     }
 
@@ -480,8 +543,8 @@ class Soup {
         continue
       }
 
-      let res1 = this.res_by_id[atom1.res_id]
-      let res2 = this.res_by_id[atom2.res_id]
+      let res1 = this.resById[atom1.res_id]
+      let res2 = this.resById[atom2.res_id]
 
       res1.bonds.push(bond)
 
@@ -497,7 +560,7 @@ class Soup {
   findBackboneHbonds () {
     let vertices = []
     let atoms = []
-    for (let iRes = 0; iRes < this.getNResidue(); iRes += 1) {
+    for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
       let residue = this.getResidue(iRes)
       residue.hb_partners = []
       residue.i = iRes
@@ -526,8 +589,8 @@ class Soup {
       }
       let dist = v3.distance(a0.pos, a1.pos)
       if (dist <= cutoff) {
-        let res0 = this.res_by_id[a0.res_id]
-        let res1 = this.res_by_id[a1.res_id]
+        let res0 = this.resById[a0.res_id]
+        let res1 = this.resById[a1.res_id]
         if (!inArray(res1.i, res0.hb_partners)) {
           if ((a0.elem === 'O') && (a1.elem === 'N')) {
             res0.hb_partners.push(res1.i)
@@ -543,18 +606,18 @@ class Soup {
   }
 
   isBackboneHbond (i_res1, i_res0) {
-    if ((i_res0 < 0) || (i_res0 >= this.getNResidue())) {
+    if ((i_res0 < 0) || (i_res0 >= this.getResidueCount())) {
       return false
     }
-    if ((i_res1 < 0) || (i_res1 >= this.getNResidue())) {
+    if ((i_res1 < 0) || (i_res1 >= this.getResidueCount())) {
       return false
     }
     return inArray(i_res0, this.getResidue(i_res1).hb_partners)
   }
 
   vecBetweenResidues (i_res0, i_res1) {
-    let atom0 = this.getCentralAtomOfResidue(i_res0)
-    let atom1 = this.getCentralAtomOfResidue(i_res1)
+    let atom0 = this.getResidue(i_res0).getCentralAtom()
+    let atom1 = this.getResidue(i_res1).getCentralAtom()
     return v3.diff(atom0.pos, atom1.pos)
   }
 
@@ -569,7 +632,7 @@ class Soup {
    * R - non-standard nucleotide
    */
   findSecondaryStructure () {
-    let nRes = this.getNResidue()
+    let nRes = this.getResidueCount()
 
     for (let iRes = 0; iRes < nRes; iRes += 1) {
       let residue = this.getResidue(iRes)
@@ -670,7 +733,7 @@ class Soup {
     }
 
     // average normals to make a nice average
-    for (let i_res1 = 0; i_res1 < this.getNResidue(); i_res1 += 1) {
+    for (let i_res1 = 0; i_res1 < this.getResidueCount(); i_res1 += 1) {
       let res = this.getResidue(i_res1)
       if (res.normals.length === 0) {
         res.normal = null
@@ -685,7 +748,7 @@ class Soup {
 
     // flip every second beta-strand normal so they are
     // consistently pointing in the same direction
-    for (let i_res1 = 1; i_res1 < this.getNResidue(); i_res1 += 1) {
+    for (let i_res1 = 1; i_res1 < this.getResidueCount(); i_res1 += 1) {
       let prevRes = this.getResidue(i_res1 - 1)
       let res = this.getResidue(i_res1)
       if ((res.ss === prevRes.ss) && (res.ss === 'E')) {
@@ -703,20 +766,16 @@ class Soup {
     return this.atoms[iAtom]
   }
 
-  getNAtom () {
+  getAtomCount () {
     return this.atoms.length
   }
 
   getResidue (iRes) {
-    return this.residues[iRes]
+    return this.residueProxy.load(iRes)
   }
 
   getResidueAtom (iRes, atomType) {
     return this.getResidue(iRes).atoms[atomType]
-  }
-
-  getCentralAtomOfResidue (iRes) {
-    return this.getAtom(this.getResidue(iRes).iAtom)
   }
 
   eachResidueAtom (iRes, callback) {
@@ -725,7 +784,7 @@ class Soup {
     }
   }
 
-  getNResidue () {
+  getResidueCount () {
     return this.residues.length
   }
 
@@ -743,7 +802,7 @@ class Soup {
   }
 
   getIResFromResId (res_id) {
-    for (let i = 0; i < this.getNResidue(); i += 1) {
+    for (let i = 0; i < this.getResidueCount(); i += 1) {
       if (this.getResidue(i).id === res_id) {
         return i
       }
@@ -752,7 +811,7 @@ class Soup {
   }
 
   clearSelectedResidues () {
-    for (let i = 0; i < this.getNResidue(); i += 1) {
+    for (let i = 0; i < this.getResidueCount(); i += 1) {
       this.getResidue(i).selected = false
     }
   }
@@ -779,7 +838,7 @@ class Soup {
 
   selectNeighbourResidues (iRes, selected) {
     this.getResidue(iRes).selected = selected
-    for (let jRes = 0; jRes < this.getNResidue(); jRes += 1) {
+    for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
       if (this.areCloseResidues(jRes, iRes)) {
         this.getResidue(jRes).selected = selected
       }
@@ -793,11 +852,11 @@ class Soup {
  * View
  * ----
  * A view includes all pertinent viewing options
- * needed to render the protein in the way
+ * needed to render the soup in the way
  * for the user.
  *
  * JolyCamera stores information about
- * the direction and zoom that a protein
+ * the direction and zoom that a soup
  * should be viewed
  *
  * Inside a view are two cameras as a camera is
@@ -878,26 +937,26 @@ class View {
     this.camera = camera
   }
 
-  makeDefaultOfProtein (protein) {
-    this.res_id = protein.getResidue(0).id
+  makeDefaultOfSoup (soup) {
+    this.res_id = soup.getResidue(0).id
 
-    let atom = protein.getCentralAtom()
+    let atom = soup.getCentralAtom()
     this.res_id = atom.res_id
     this.i_atom = atom.i
 
     this.show.sidechain = false
 
-    this.camera.zFront = -protein.maxLength / 2
-    this.camera.zBack = protein.maxLength / 2
-    this.camera.zoom = Math.abs(protein.maxLength)
+    this.camera.zFront = -soup.maxLength / 2
+    this.camera.zBack = soup.maxLength / 2
+    this.camera.zoom = Math.abs(soup.maxLength)
     this.camera.up = v3.create(0, 1, 0)
     this.camera.focus.copy(atom.pos)
     this.camera.position = v3
       .create(0, 0, -this.camera.zoom).add(atom.pos)
 
     this.order = 0
-    this.text = protein.default_html
-    this.pdb_id = protein.pdb_id
+    this.text = soup.default_html
+    this.pdb_id = soup.pdb_id
   }
 
   getViewTranslatedTo (pos) {
@@ -1080,16 +1139,16 @@ function interpolateCameras (oldCamera, futureCamera, t) {
 }
 
 /**
- * The Scene contains a protein and a list of
- * views of the protein, including the current
+ * The Scene contains a soup and a list of
+ * views of the soup, including the current
  * view, and a target view for animation
  */
 class Scene {
 
-  constructor (protein) {
+  constructor (soup) {
 
-    // the protein data for the scene
-    this.protein = protein
+    // the soup data for the scene
+    this.soup = soup
 
     // stores the current camera, display
     // options, distances, labels, selected
@@ -1117,7 +1176,7 @@ class Scene {
 
   centered_atom () {
     let i = this.current_view.i_atom
-    return this.protein.getAtom(i)
+    return this.soup.getAtom(i)
   }
 
   get_i_saved_view_from_id (id) {
@@ -1173,7 +1232,7 @@ class Scene {
 class Controller {
 
   constructor (scene) {
-    this.protein = scene.protein
+    this.soup = scene.soup
     this.scene = scene
   }
 
@@ -1211,7 +1270,7 @@ class Controller {
   }
 
   set_target_view_by_atom (iAtom) {
-    let atom = this.protein.getAtom(iAtom)
+    let atom = this.soup.getAtom(iAtom)
     let view = this.scene.current_view.getViewTranslatedTo(atom.pos)
     view.res_id = atom.res_id
     view.i_atom = iAtom
@@ -1225,13 +1284,13 @@ class Controller {
     } else {
       curr_res_id = this.scene.current_view.res_id
     }
-    let i = this.protein.getIResFromResId(curr_res_id)
+    let i = this.soup.getIResFromResId(curr_res_id)
     if (i <= 0) {
-      i = this.protein.getNResidue() - 1
+      i = this.soup.getResidueCount() - 1
     } else {
       i -= 1
     }
-    let iAtom = this.protein.getResidue(i).iAtom
+    let iAtom = this.soup.getResidue(i).iAtom
     this.set_target_view_by_atom(iAtom)
   }
 
@@ -1242,13 +1301,13 @@ class Controller {
     } else {
       curr_res_id = this.scene.current_view.res_id
     }
-    let i = this.protein.getIResFromResId(curr_res_id)
-    if (i >= this.protein.getNResidue() - 1) {
+    let i = this.soup.getIResFromResId(curr_res_id)
+    if (i >= this.soup.getResidueCount() - 1) {
       i = 0
     } else {
       i += 1
     }
-    let iAtom = this.protein.getResidue(i).iAtom
+    let iAtom = this.soup.getResidue(i).iAtom
     this.set_target_view_by_atom(iAtom)
   }
 
@@ -1292,8 +1351,8 @@ class Controller {
 
   make_selected () {
     let result = []
-    for (let i = 0; i < this.protein.getNResidue(); i += 1) {
-      if (this.protein.getResidue(i).selected) {
+    for (let i = 0; i < this.soup.getResidueCount(); i += 1) {
+      if (this.soup.getResidue(i).selected) {
         result.push(i)
       }
     }
@@ -1301,20 +1360,20 @@ class Controller {
   }
 
   clear_selected () {
-    this.protein.clearSelectedResidues()
+    this.soup.clearSelectedResidues()
     this.scene.current_view.selected = this.make_selected()
     this.scene.changed = true
   }
 
   select_residue (i, v) {
-    this.protein.getResidue(i).selected = v
+    this.soup.getResidue(i).selected = v
     this.scene.current_view.selected = this.make_selected()
     this.scene.changed = true
   }
 
   toggle_neighbors () {
     let res_id = this.scene.current_view.res_id
-    let i_res = this.protein.getIResFromResId(res_id)
+    let i_res = this.soup.getIResFromResId(res_id)
     let b
     if (this.last_neighbour_res_id === res_id) {
       b = false
@@ -1323,7 +1382,7 @@ class Controller {
       b = true
       this.last_neighbour_res_id = res_id
     }
-    this.protein.selectNeighbourResidues(i_res, b)
+    this.soup.selectNeighbourResidues(i_res, b)
     this.scene.current_view.selected = this.make_selected()
     this.scene.changed = true
   }
@@ -1332,7 +1391,7 @@ class Controller {
     let j = this.scene.i_last_view + 1
     let new_view = this.scene.current_view.clone()
     new_view.text = 'Click edit to change this text.'
-    new_view.pdb_id = this.protein.pdb_id
+    new_view.pdb_id = this.soup.pdb_id
     let time = getCurrentDateStr()
     if (user === '' || typeof user === 'undefined') {
       new_view.creator = '~ [public] @' + time
@@ -1400,13 +1459,13 @@ class Controller {
   }
 
   set_current_view (view) {
-    for (let i = 0; i < this.protein.getNResidue(); i += 1) {
-      this.protein.getResidue(i).selected = false
+    for (let i = 0; i < this.soup.getResidueCount(); i += 1) {
+      this.soup.getResidue(i).selected = false
     }
     this.scene.current_view = view.clone()
     for (let i = 0; i < view.selected.length; i += 1) {
       let i_res = view.selected[i]
-      this.protein.getResidue(i_res).selected = true
+      this.soup.getResidue(i_res).selected = true
     }
     this.scene.changed = true
   }

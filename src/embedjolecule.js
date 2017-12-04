@@ -212,8 +212,8 @@ class EmbedJolecule {
     this.initViewId = this.params.viewId
     this.hAnnotationView = this.params.viewHeight
 
-    this.protein = new Soup()
-    this.scene = new Scene(this.protein)
+    this.soup = new Soup()
+    this.scene = new Scene(this.soup)
     this.controller = new Controller(this.scene)
 
     this.residueSelector = null
@@ -221,7 +221,7 @@ class EmbedJolecule {
     this.createProteinDiv()
     this.display = new Display(
       this.scene,
-      '#jolecule-protein-display',
+      '#jolecule-soup-display',
       this.controller,
       params.isGrid,
       params.backgroundColor)
@@ -241,17 +241,17 @@ class EmbedJolecule {
 
   loadProteinData (isProcessingFlag, dataServer, proteinData, callback) {
     if (proteinData.pdb_text.length == 0) {
-      this.display.setProcessingMesssage('Error: no protein data')
+      this.display.setProcessingMesssage('Error: no soup data')
       isProcessingFlag.flag = false
       return
     }
 
-    this.protein.load(proteinData)
+    this.soup.load(proteinData)
 
     this.populateResidueSelector()
 
-    if (this.protein.parsing_error) {
-      this.display.setProcessingMesssage('Error parsing protein: ' + this.protein.parsing_error)
+    if (this.soup.parsing_error) {
+      this.display.setProcessingMesssage('Error parsing soup: ' + this.soup.parsing_error)
       isProcessingFlag.flag = false
       return
     }
@@ -442,7 +442,7 @@ class EmbedJolecule {
       this.hAnnotationView
     this.proteinDiv =
       $('<div>')
-        .attr('id', 'jolecule-protein-display')
+        .attr('id', 'jolecule-soup-display')
         .addClass('jolecule-embed-body')
         .css('overflow', 'hidden')
         .css('width', this.div.outerWidth())
@@ -457,8 +457,8 @@ class EmbedJolecule {
       .remove()
 
     // rebuild selector
-    for (let i = 0; i < this.protein.getNResidue(); i++) {
-      let residue = this.protein.getResidue(i)
+    for (let i = 0; i < this.soup.getResidueCount(); i++) {
+      let residue = this.soup.getResidue(i)
       let text = residue.id + '-' + residue.type
       this.residueSelector.append(
         $('<option>').attr('value', residue.id).text(text))
@@ -541,7 +541,7 @@ class EmbedJolecule {
     this.residueSelector.change(() => {
       var resId = this.residueSelector.find(':selected').val()
       this.display.setTargetViewFromAtom(
-        this.scene.protein.res_by_id[resId].iAtom)
+        this.scene.soup.resById[resId].iAtom)
     })
 
     this.viewBarDiv =
