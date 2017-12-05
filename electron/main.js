@@ -30,24 +30,24 @@ var dataServer = {
     });
   },
   get_views: function(loadViewDicts) {
-    console.log('> get_views');
+    console.log('get_views');
     ipcRenderer.send('get-view-dicts');
     ipcRenderer.on('get-view-dicts', (event, viewDicts) => {
       loadViewDicts(viewDicts);
     })
   },
   save_views: function(views, success) {
-    console.log('> save_views');
+    console.log('save_views');
     ipcRenderer.send('save-view-dicts', views);
     ipcRenderer.on('save-view-dicts', (event) => {
-      console.log('> successfully saved');
+      console.log('successfully saved');
     })
   },
   delete_protein_view: function(viewId, success) {
-    console.log('> delete_protein_view');
+    console.log('delete_protein_view');
     ipcRenderer.send('delete-protein-view', viewId);
     ipcRenderer.on('delete-protein-view', (event) => {
-      console.log('> successfully deleted');
+      console.log('successfully deleted');
     })
   },
 };
@@ -118,7 +118,7 @@ function openPdbWindow(pdb) {
   viewsJson = base + '.views.json';
   console.log(viewsJson);
   ipcMain.on('get-view-dicts', (event, arg) => {
-    console.log('> get-view-dicts');
+    console.log('get-view-dicts');
     let views = {};
     if (fs.existsSync(viewsJson)) {
       let text = fs.readFileSync(viewsJson, 'utf8');
@@ -128,20 +128,20 @@ function openPdbWindow(pdb) {
   });
 
   ipcMain.on('save-view-dicts', (event, views) => {
-    console.log('> save-view-dicts');  // prints "ping"
+    console.log('save-view-dicts');  // prints "ping"
     fs.writeFileSync(viewsJson, JSON.stringify(views, null, 2));
     event.sender.send('save-view-dicts', "success");
   });
 
   ipcMain.on('delete-soup-view', (event, viewId) => {
-    console.log('> delete-soup-view');  // prints "ping"
+    console.log('delete-soup-view');  // prints "ping"
     if (fs.existsSync(viewsJson)) {
       let text = fs.readFileSync(viewsJson, 'utf8');
       ;
       views = JSON.parse(text);
-      console.log('> before', JSON.stringify(views, null, 2));
+      console.log('before', JSON.stringify(views, null, 2));
       _.unset(views, viewId);
-      console.log('> after', JSON.stringify(views, null, 2));
+      console.log('after', JSON.stringify(views, null, 2));
       fs.writeFileSync(viewsJson, JSON.stringify(views, null, 2));
       event.sender.send('delete-soup-view', "success");
       return;
@@ -175,7 +175,7 @@ function init() {
         {
           label: 'About Jolecule',
           click: () => {
-            console.log('> About Clicked');
+            console.log('About Clicked');
           }
         }, 
         {

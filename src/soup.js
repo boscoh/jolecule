@@ -62,11 +62,6 @@ function getCenter (atoms) {
   return result
 }
 
-function getCentralAtomFromDict (atomDict) {
-  let atoms = _.values(atomDict)
-  return getClosestAtom(getCenter(atoms), atoms)
-}
-
 const proteinResTypes  = [
   'ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS',
   'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN',
@@ -76,6 +71,19 @@ const dnaResTypes = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C']
 
 const rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U']
 
+const residueStoreFields = [
+  ['atomOffset', 1, 'uint32'],
+  ['atomCount', 1, 'uint16'],
+  ['iCentralAtom', 1, 'uint32'],
+  ['residueTypeId', 1, 'uint16'],
+  ['resno', 1, 'int32'],
+  ['sstruc', 1, 'uint8'],
+  ['inscode', 1, 'uint8'],
+]
+
+function intToChar (i) {
+  return i ? String.fromCharCode(i) : ''
+}
 
 class ResidueProxy {
 
@@ -87,36 +95,74 @@ class ResidueProxy {
   }
 
   load (iRes) {
-    this.iRes = iRes
-    this.residue = this.soup.residues[iRes]
-    this.residue.iAtom = this.soup.residueStore.iCentralAtom[iRes]
+    /**
+     * {
+        type: resType,
+        id: res_id,
+        selected: false,
+        isPolymer: isPolymer,
+        isWater: isWater,
+        isGrid: isGrid,
+        isLigand: !isWater && !isPolymer && !isGrid,
+        normal: null,
+        normals: [],
+        bonds: [],
+        hb_partners: [],
+        color: null,
+      }
+     */
+    this.i = iRes
+    this.residue = this.soup.residues[this.i]
+    this.residue.i = this.i
     this.residue.getCentralAtom = () => this.getCentralAtom()
+    this.residue.iAtom = this.soup.residueStore.iCentralAtom[this.i]
+    this.residue.getAtom = (atomType) => this.getAtom(atomType)
+    this.residue.checkAtomTypes = (atomTypes) => this.checkAtomTypes(atomTypes)
+    this.residue.eachAtom = (cb) => this.eachAtom(cb)
+    this.residue.getAtoms = () => this.getAtoms()
+    this.residue.ss = intToChar(this.soup.residueStore.sstruc[this.i])
     return this.residue
+  }
+
+  getAtoms () {
+    let iStart = this.soup.residueStore.atomOffset[this.i]
+    let n = this.soup.residueStore.atomCount[this.i]
+    let iEnd = iStart + n
+    let atoms = []
+    for (let i = iStart; i < iEnd; i+=1) {
+      atoms.push(this.soup.atoms[i])
+    }
+    return atoms
   }
 
   getCentralAtom () {
     return this.soup.getAtom(this.residue.iAtom)
   }
 
-  getAtom (atomType) {
-    let result = null
-    this.eachAtom(atom => {
-      if (result !== null) {
-        if (atom.type === atomType) {
-          result = atom
-        }
-      }
-    })
-    return result
-  }
-
   eachAtom (callback) {
-    for (let atom of _.values(this.residue.atoms)) {
-      callback(atom)
+    for (let a of this.getAtoms()) {
+      callback(a)
     }
   }
 
+  getAtom (atomType) {
+    for (let a of this.getAtoms()) {
+      if (a.type === atomType) {
+        return a
+      }
+    }
+    return null
+  }
 
+  checkAtomTypes (atomTypes) {
+    for (let atomType of atomTypes) {
+      let a = this.getAtom(atomType)
+      if (a !== null) {
+        return true
+      }
+    }
+    return false
+  }
 }
 
 
@@ -143,27 +189,20 @@ class Soup {
   constructor () {
     this.atoms = []
     this.residues = []
-    this.resById = {}
+    this.iResByResId = {}
     this.bonds = []
     this.parsingError = ''
     this.default_html = ''
-    this.residueStore = new Store([
-      ['atomOffset', 1, 'uint32'],
-      ['atomCount', 1, 'uint16'],
-      ['iCentralAtom', 1, 'uint32'],
-      ['residueTypeId', 1, 'uint16'],
-      ['resno', 1, 'int32'],
-      ['sstruc', 1, 'uint8'],
-      ['inscode', 1, 'uint8'],
-    ])
+    this.residueStore = new Store(residueStoreFields)
     this.residueProxy = new ResidueProxy(this)
+    this.residueTypes = []
   }
 
   load (protein_data) {
 
     this.pdb_id = protein_data['pdb_id']
 
-    console.log(`> Protein.load parsing ${this.pdb_id}`)
+    console.log(`Protein.load parsing ${this.pdb_id}`)
 
     let title = parsetTitleFromPdbText(protein_data['pdb_text'])
     this.default_html = this.pdb_id + ': ' + title
@@ -177,17 +216,17 @@ class Soup {
 
     this.addResiduesFromNewAtoms(newAtoms)
 
-    console.log(`> Protein.load ${newAtoms.length} atoms`)
+    console.log(`Protein.load ${newAtoms.length} atoms`)
 
     this.calcBonds()
     this.assignBondsToResidues()
-    console.log(`> Protein.load ${this.bonds.length} bonds`)
+    console.log(`Protein.load ${this.bonds.length} bonds`)
 
     this.calcMaxLength()
 
     this.findSecondaryStructure()
 
-    console.log(`> Protein.load ${this.getResidueCount()} residues`)
+    console.log(`Protein.load ${this.getResidueCount()} residues`)
   }
 
   makeAtomsFromPdbLines (lines, pdb_id) {
@@ -244,7 +283,7 @@ class Soup {
         }
       } catch (e) {
         this.parsingError = 'line ' + i
-        console.log(`> Error: "${line}"`)
+        console.log(`Error: "${line}"`)
         return
       }
     }
@@ -268,8 +307,10 @@ class Soup {
     return s
   }
 
-  makeResidue (atom, res_id) {
+  makeResidue (atom, resId) {
     let iRes = this.getResidueCount()
+    this.iResByResId[resId] = iRes
+
     let resType = _.trim(atom.res_type)
     let isProtein = inArray(resType, proteinResTypes)
     let isNucleotide = inArray(resType, dnaResTypes) || inArray(resType, rnaResTypes)
@@ -278,23 +319,20 @@ class Soup {
     let isPolymer = isProtein || isNucleotide
 
     let newRes = {
-      i: iRes,
       type: resType,
-      id: res_id,
       selected: false,
-      atoms: {},
-      iAtom: null,
       isPolymer: isPolymer,
       isWater: isWater,
       isGrid: isGrid,
       isLigand: !isWater && !isPolymer && !isGrid,
-      ss: '',
       normal: null,
-      normals: []
+      normals: [],
+      bonds: [],
+      hb_partners: [],
+      color: null,
     }
 
     this.residues.push(newRes)
-    this.resById[res_id] = newRes
 
     this.residueStore.count += 1
     this.residueStore.growIfFull()
@@ -305,7 +343,6 @@ class Soup {
   addResiduesFromNewAtoms (atoms) {
     let res_id = ''
 
-    let res
     for (let a of atoms) {
       let new_res_id = this.getResIdFromAtom(a)
 
@@ -314,21 +351,11 @@ class Soup {
         res_id = new_res_id
       }
 
-      res = this.resById[res_id]
-      if (a.type in res.atoms) {
-        a.isAlt = true
-      } else {
-        res.atoms[a.type] = a
-        a.isAlt = false
-      }
+      let iRes = this.iResByResId[res_id]
+      this.residueStore.atomCount[iRes] += 1
+      a.iRes = iRes
 
-      this.residueStore.atomCount[res.i] += 1
-
-      a.res_id = res.id
-      a.isWater = res.isWater
-      a.isPolymer = res.isPolymer
-      a.isLigand = res.isLigand
-      a.isGrid = res.isGrid
+      // TODO: handle a.isAlt
     }
 
     let nResidue = this.getResidueCount()
@@ -340,40 +367,31 @@ class Soup {
       let iAtomOffset = this.residueStore.atomOffset[iRes]
       let nAtom = this.residueStore.atomCount[iRes]
       let indices2 = _.range(iAtomOffset, iAtomOffset + nAtom)
+      if (indices.length !== indices2.length) {
+        console.log('Soup.addResiduesFromNewAtoms res atom error', iRes, res)
+      }
 
+      // set central atom of residue
       let iAtom
-      // set the central atom for each residue
       if (this.hasProteinBackbone(iRes)) {
-        iAtom = this.getAtomFromResidue(iRes, 'CA').i
+        iAtom = this.getResidue(iRes).getAtom('CA').i
       } else if (this.hasSugarBackbone(iRes)) {
-        iAtom = this.getAtomFromResidue(iRes, 'C3\'').i
+        iAtom = this.getResidue(iRes).getAtom('C3\'').i
       } else {
-        iAtom = getCentralAtomFromDict(res.atoms).i
+        iAtom = getCenter(res.getAtoms())
       }
 
       // check non-standard residue types
       if (!res.isPolymer) {
         if (iRes > 0) {
           if (this.isPeptideConnected(iRes - 1, iRes)) {
-            iAtom = this.getAtomFromResidue(iRes, 'CA').i
-            res.isPolymer = true
+            iAtom = this.getResidue(iRes).getAtom('CA').i
+            this.residues[iRes].isPolymer = true
           } else if (this.isSugarPhosphateConnected(iRes - 1, iRes)) {
-            iAtom = this.getAtomFromResidue(iRes, 'C3\'').i
-            res.isPolymer = true
-            res.ss = 'R'
-            res.normal = this.getNormalOfNucleotide(iRes)
-          }
-        }
-
-        if (iRes < nResidue - 1) {
-          if (this.isPeptideConnected(iRes, iRes + 1)) {
-            iAtom = this.getAtomFromResidue(iRes, 'CA').i
-            res.isPolymer = true
-          } else if (this.isSugarPhosphateConnected(iRes, iRes + 1)) {
-            iAtom = this.getAtomFromResidue(iRes, 'C3\'').i
-            res.isPolymer = true
-            res.ss = 'R'
-            res.normal = this.getNormalOfNucleotide(res)
+            iAtom = this.getResidue(iRes).getAtom('C3\'').i
+            this.residues[iRes].isPolymer = true
+            this.setResidueSs(iRes, 'R')
+            this.residues[iRes].normal = this.getNormalOfNucleotide(iRes)
           }
         }
       }
@@ -382,33 +400,17 @@ class Soup {
     }
   }
 
+  setResidueSs (iRes, ss) {
+    this.residueStore.sstruc[iRes] = ss.charCodeAt(0)
+  }
+
   setResidueColor (iRes, color) {
     this.residues[iRes].color = color
   }
 
-  getAtomFromResidue (iRes, atomType) {
-    let result = null
-    this.eachResidueAtom(iRes, atom => {
-      if (atom.type === atomType) {
-        result = atom
-      }
-    })
-    return result
-  }
-
-  checkAtomTypesInResidue (iRes, atomTypes) {
-    let atoms = this.getResidue(iRes).atoms
-    for (let atomType of atomTypes) {
-      if (!(atomType in atoms)) {
-        return false
-      }
-    }
-    return true
-  }
-
   hasSugarBackbone (iRes) {
-    return this.checkAtomTypesInResidue(
-      iRes, ['C3\'', 'O3\'', 'C5\'', 'O4\'', 'C1\''])
+    return this.getResidue(iRes).checkAtomTypes([
+      'C3\'', 'O3\'', 'C5\'', 'O4\'', 'C1\''])
   }
 
   /**
@@ -417,9 +419,9 @@ class Soup {
   isSugarPhosphateConnected (iRes0, iRes1) {
     if (this.hasSugarBackbone(iRes0) &&
       this.hasSugarBackbone(iRes1) &&
-      this.checkAtomTypesInResidue(iRes1, ['P'])) {
-      let o3 = this.getAtomFromResidue(iRes0, 'O3\'')
-      let p = this.getAtomFromResidue(iRes1, 'P')
+      this.getResidue(iRes1).checkAtomTypes(['P'])) {
+      let o3 = this.getResidue(iRes0).getAtom('O3\'')
+      let p = this.getResidue(iRes1).getAtom('P')
       if (v3.distance(o3.pos, p.pos) < 2.5) {
         return true
       }
@@ -428,16 +430,16 @@ class Soup {
   }
 
   getNormalOfNucleotide (iRes) {
-    let c3 = this.getAtomFromResidue(iRes, 'C3\'')
-    let c5 = this.getAtomFromResidue(iRes, 'C5\'')
-    let c1 = this.getAtomFromResidue(iRes, 'C1\'')
+    let c3 = this.getResidue(iRes).getAtom('C3\'')
+    let c5 = this.getResidue(iRes).getAtom('C5\'')
+    let c1 = this.getResidue(iRes).getAtom('C1\'')
     let forward = v3.diff(c3.pos, c5.pos)
     let up = v3.diff(c1.pos, c3.pos)
     return v3.crossProduct(forward, up)
   }
 
   hasProteinBackbone (iRes) {
-    return this.checkAtomTypesInResidue(iRes, ['CA', 'N', 'C'])
+    return this.getResidue(iRes).checkAtomTypes(['CA', 'N', 'C'])
   }
 
   /**
@@ -446,8 +448,8 @@ class Soup {
    */
   isPeptideConnected (iRes0, iRes1) {
     if (this.hasProteinBackbone(iRes0) && this.hasProteinBackbone(iRes1)) {
-      let c = this.getAtomFromResidue(iRes0, 'C')
-      let n = this.getAtomFromResidue(iRes1, 'N')
+      let c = this.getResidue(iRes0).getAtom('C')
+      let n = this.getResidue(iRes1).getAtom('N')
       if (v3.distance(c.pos, n.pos) < 2) {
         return true
       }
@@ -455,6 +457,9 @@ class Soup {
     return false
   }
 
+  /**
+   * TODO: replace with bounding box?
+   */
   calcMaxLength () {
     let atoms = this.atoms
 
@@ -531,10 +536,6 @@ class Soup {
   }
 
   assignBondsToResidues () {
-    for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-      this.getResidue(iRes).bonds = []
-    }
-
     for (let bond of this.bonds) {
       let atom1 = bond.atom1
       let atom2 = bond.atom2
@@ -543,13 +544,13 @@ class Soup {
         continue
       }
 
-      let res1 = this.resById[atom1.res_id]
-      let res2 = this.resById[atom2.res_id]
+      let iRes1 = atom1.iRes
+      let iRes2 = atom2.iRes
 
-      res1.bonds.push(bond)
+      this.residues[iRes1].bonds.push(bond)
 
-      if (res1 !== res2) {
-        res2.bonds.push(bond)
+      if (iRes1 !== iRes2) {
+        this.residues[iRes2].bonds.push(bond)
       }
     }
   }
@@ -562,20 +563,18 @@ class Soup {
     let atoms = []
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
       let residue = this.getResidue(iRes)
-      residue.hb_partners = []
-      residue.i = iRes
       if (!residue.isPolymer) {
         continue
       }
-      if ('O' in residue.atoms) {
-        let a = residue.atoms['O']
+      let a = residue.getAtom('O')
+      if (a !== null) {
         vertices.push([a.pos.x, a.pos.y, a.pos.z])
         atoms.push(a)
       }
-      if ('N' in residue.atoms) {
-        let a = residue.atoms['N']
-        vertices.push([a.pos.x, a.pos.y, a.pos.z])
-        atoms.push(a)
+      let n = residue.getAtom('N')
+      if (n !== null) {
+        vertices.push([n.pos.x, n.pos.y, n.pos.z])
+        atoms.push(n)
       }
     }
 
@@ -584,21 +583,21 @@ class Soup {
     for (let pair of closePairs) {
       let a0 = atoms[pair[0]]
       let a1 = atoms[pair[1]]
-      if (a0.res_id === a1.res_id) {
+      if (a0.iRes === a1.iRes) {
         continue
       }
       let dist = v3.distance(a0.pos, a1.pos)
       if (dist <= cutoff) {
-        let res0 = this.resById[a0.res_id]
-        let res1 = this.resById[a1.res_id]
-        if (!inArray(res1.i, res0.hb_partners)) {
+        let iRes0 = a0.iRes
+        let iRes1 = a1.iRes
+        if (!inArray(iRes1, this.residues[iRes0].hb_partners)) {
           if ((a0.elem === 'O') && (a1.elem === 'N')) {
-            res0.hb_partners.push(res1.i)
+            this.residues[iRes0].hb_partners.push(iRes1)
           }
         }
-        if (!inArray(res0.i, res1.hb_partners)) {
+        if (!inArray(iRes0, this.residues[iRes1].hb_partners)) {
           if ((a1.elem === 'O') && (a0.elem === 'N')) {
-            res1.hb_partners.push(res0.i)
+            this.residues[iRes1].hb_partners.push(iRes0)
           }
         }
       }
@@ -636,19 +635,18 @@ class Soup {
 
     for (let iRes = 0; iRes < nRes; iRes += 1) {
       let residue = this.getResidue(iRes)
-      residue.ss = '-'
+      this.setResidueSs(iRes, '-')
       if (residue.isWater) {
-        residue.ss = 'W'
+        this.setResidueSs(iRes, 'W')
       }
       if (residue.isPolymer) {
         if (this.hasSugarBackbone(iRes)) {
-          residue.ss = 'D'
+          this.setResidueSs(iRes, 'D')
         }
         if (this.hasProteinBackbone(iRes)) {
-          residue.ss = 'C'
+          this.setResidueSs(iRes, 'C')
         }
       }
-      residue.normals = []
     }
 
     this.findBackboneHbonds()
@@ -657,13 +655,14 @@ class Soup {
 
       let residue = this.getResidue(iRes1)
 
-      let atoms = residue.atoms
-
       if (residue.ss === 'D') {
-        let forward = v3.diff(atoms['C3\''].pos, atoms['C5\''].pos)
-        let up = v3.diff(atoms['C1\''].pos, atoms['C3\''].pos)
+        let c3 = residue.getAtom('C3\'')
+        let c5 = residue.getAtom('C5\'')
+        let c1 = residue.getAtom('C1\'')
+        let forward = v3.diff(c3.pos, c5.pos)
+        let up = v3.diff(c1.pos, c3.pos)
         let normal = v3.crossProduct(forward, up)
-        residue.normals.push(normal)
+        this.residues[iRes1].normals.push(normal)
       }
 
       // alpha-helix
@@ -671,9 +670,9 @@ class Soup {
         let normal1 = this.vecBetweenResidues(iRes1, iRes1 + 4)
         let normal2 = this.vecBetweenResidues(iRes1 + 1, iRes1 + 5)
         for (let iRes2 = iRes1 + 1; iRes2 < iRes1 + 5; iRes2 += 1) {
-          this.getResidue(iRes2).ss = 'H'
-          this.getResidue(iRes2).normals.push(normal1)
-          this.getResidue(iRes2).normals.push(normal2)
+          this.setResidueSs(iRes2, 'H')
+          this.residues[iRes2].normals.push(normal1)
+          this.residues[iRes2].normals.push(normal2)
         }
       }
 
@@ -682,9 +681,9 @@ class Soup {
         let normal1 = this.vecBetweenResidues(iRes1, iRes1 + 3)
         let normal2 = this.vecBetweenResidues(iRes1 + 1, iRes1 + 4)
         for (let iRes2 = iRes1 + 1; iRes2 < iRes1 + 4; iRes2 += 1) {
-          this.getResidue(iRes2).ss = 'H'
-          this.getResidue(iRes2).normals.push(normal1)
-          this.getResidue(iRes2).normals.push(normal2)
+          this.setResidueSs(iRes2, 'H')
+          this.residues[iRes2].normals.push(normal1)
+          this.residues[iRes2].normals.push(normal2)
         }
       }
 
@@ -711,8 +710,8 @@ class Soup {
           this.isBackboneHbond(iRes2, iRes1)) {
           betaResidueIndices = betaResidueIndices.concat([iRes1, iRes2])
           let normal = this.vecBetweenResidues(iRes1, iRes2)
-          this.getResidue(iRes1).normals.push(normal)
-          this.getResidue(iRes2).normals.push(v3.scaled(normal, -1))
+          this.residues[iRes1].normals.push(normal)
+          this.residues[iRes2].normals.push(v3.scaled(normal, -1))
         }
 
         // anti-parallel non-hbonded beta sheet pairs
@@ -720,41 +719,37 @@ class Soup {
           this.isBackboneHbond(iRes2 - 1, iRes1 + 1)) {
           betaResidueIndices = betaResidueIndices.concat([iRes1, iRes2])
           let normal = this.vecBetweenResidues(iRes1, iRes2)
-          this.getResidue(iRes1).normals.push(v3.scaled(normal, -1))
-          this.getResidue(iRes2).normals.push(normal)
+          this.residues[iRes1].normals.push(v3.scaled(normal, -1))
+          this.residues[iRes2].normals.push(normal)
         }
 
         for (let iRes of betaResidueIndices) {
-          this.getResidue(iRes).ss = 'E'
+          this.setResidueSs(iRes, 'E')
         }
-
       }
-
     }
 
     // average normals to make a nice average
-    for (let i_res1 = 0; i_res1 < this.getResidueCount(); i_res1 += 1) {
-      let res = this.getResidue(i_res1)
-      if (res.normals.length === 0) {
-        res.normal = null
-      } else {
-        let normal = v3.create(0, 0, 0)
-        for (let i = 0; i < res.normals.length; i += 1) {
-          normal = v3.sum(normal, res.normals[i])
+    for (let iRes = 0; iRes < nRes; iRes += 1) {
+      let res = this.getResidue(iRes)
+      if (res.normals.length > 0) {
+        let normalSum = v3.create(0, 0, 0)
+        for (let normal of res.normals) {
+          normalSum = v3.sum(normalSum, normal)
         }
-        res.normal = v3.normalized(normal)
+        this.residues[iRes].normal = v3.normalized(normalSum)
       }
     }
 
     // flip every second beta-strand normal so they are
     // consistently pointing in the same direction
-    for (let i_res1 = 1; i_res1 < this.getResidueCount(); i_res1 += 1) {
-      let prevRes = this.getResidue(i_res1 - 1)
-      let res = this.getResidue(i_res1)
+    for (let iRes = 1; iRes < nRes; iRes += 1) {
+      let prevRes = this.getResidue(iRes - 1)
+      let res = this.getResidue(iRes)
       if ((res.ss === prevRes.ss) && (res.ss === 'E')) {
         if (res.normal && prevRes.normal) {
           if (res.normal.dot(prevRes.normal) < 0) {
-            res.normal.negate()
+            this.residues[iRes].normal.negate()
           }
         }
       }
@@ -775,13 +770,7 @@ class Soup {
   }
 
   getResidueAtom (iRes, atomType) {
-    return this.getResidue(iRes).atoms[atomType]
-  }
-
-  eachResidueAtom (iRes, callback) {
-    for (let atom of _.values(this.getResidue(iRes).atoms)) {
-      callback(atom)
-    }
+    return this.getResidue(iRes).getAtom(atomType)
   }
 
   getResidueCount () {
@@ -801,13 +790,8 @@ class Soup {
     return v3.create(x_center / n, y_center / n, z_center / n)
   }
 
-  getIResFromResId (res_id) {
-    for (let i = 0; i < this.getResidueCount(); i += 1) {
-      if (this.getResidue(i).id === res_id) {
-        return i
-      }
-    }
-    return i
+  getIResFromResId (resId) {
+    return this.iResByResId(resId)
   }
 
   clearSelectedResidues () {
@@ -818,17 +802,20 @@ class Soup {
 
   areCloseResidues (j, k) {
     let res_j = this.getResidue(j)
-    let res_k = this.getResidue(k)
+    let atoms_j = res_j.getAtoms()
     let atom_j = this.getAtom(res_j.iAtom)
+
+    let res_k = this.getResidue(k)
+    let atoms_k = res_k.getAtoms()
     let atom_k = this.getAtom(res_k.iAtom)
+
     if (v3.distance(atom_j.pos, atom_k.pos) > 17) {
       return false
     }
-    for (let l in res_j.atoms) {
-      let atom_l = res_j.atoms[l]
-      for (let m in res_k.atoms) {
-        let atom_m = res_k.atoms[m]
-        if (v3.distance(atom_l.pos, atom_m.pos) < 4) {
+
+    for (let atom_j of atoms_j) {
+      for (let atom_k of atoms_k) {
+        if (v3.distance(atom_j.pos, atom_k.pos) < 4) {
           return true
         }
       }
@@ -938,11 +925,9 @@ class View {
   }
 
   makeDefaultOfSoup (soup) {
-    this.res_id = soup.getResidue(0).id
-
     let atom = soup.getCentralAtom()
-    this.res_id = atom.res_id
     this.i_atom = atom.i
+    this.res_id = soup.getResIdFromAtom(atom)
 
     this.show.sidechain = false
 
@@ -1272,7 +1257,7 @@ class Controller {
   set_target_view_by_atom (iAtom) {
     let atom = this.soup.getAtom(iAtom)
     let view = this.scene.current_view.getViewTranslatedTo(atom.pos)
-    view.res_id = atom.res_id
+    view.res_id = this.soup.getResidue(atom.iRes).id
     view.i_atom = iAtom
     this.set_target_view(view)
   }
@@ -1440,7 +1425,7 @@ class Controller {
   }
 
   set_show_option (option, bool) {
-    console.log('> Controller.set_show_option', option, bool)
+    console.log('Controller.set_show_option', option, bool)
     this.scene.current_view.show[option] = bool
     this.scene.changed = true
   }

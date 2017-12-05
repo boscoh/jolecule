@@ -168,7 +168,7 @@ class Display {
   }
 
   setProcessingMesssage (message) {
-    console.log('> Display.setProcessingMessage:', message)
+    console.log('Display.setProcessingMessage:', message)
     this.messageDiv.html(message).show()
     util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 100, 90)
   };
@@ -262,8 +262,8 @@ class Display {
   getAtomColor (iAtom) {
     let atom = this.soup.getAtom(iAtom)
     if (atom.elem === 'C' || atom.elem === 'H') {
-      let res = this.soup.resById[atom.res_id]
-      return res.color
+      let iRes = atom.iRes
+      return this.soup.getResidue(iRes).color
     } else if (atom.elem in data.ElementColors) {
       return data.ElementColors[atom.elem]
     }
@@ -363,7 +363,7 @@ class Display {
       if (!(meshName in this.displayMeshes)) {
         let buildMeshOfFunctionName = 'buildMeshOf' + _.capitalize(meshName)
 
-        console.log('> Display.' + buildMeshOfFunctionName)
+        console.log('Display.' + buildMeshOfFunctionName)
         this[buildMeshOfFunctionName]()
 
         this.updateMeshesInScene = true
@@ -437,11 +437,11 @@ class Display {
       }
       p1 = bond.atom1.pos
       p2 = bond.atom2.pos
-      if (bond.atom1.res_id !== bond.atom2.res_id) {
+      if (bond.atom1.iRes !== bond.atom2.iRes) {
         let midpoint = p2.clone().add(p1).multiplyScalar(0.5)
-        if (bond.atom1.res_id === residue.id) {
+        if (bond.atom1.iRes === residue.i) {
           p2 = midpoint
-        } else if (bond.atom2.res_id === residue.id) {
+        } else if (bond.atom2.iRes === residue.i) {
           p1 = midpoint
         }
       }
@@ -574,7 +574,7 @@ class Display {
 
           this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
 
-          this.soup.eachResidueAtom(iRes, atom => {
+          for (let atom of residue.getAtoms()) {
             if (!util.inArray(atom.type, data.backboneAtoms)) {
               atom.is_sidechain = true
               let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
@@ -583,7 +583,7 @@ class Display {
               glgeom.mergeUnitGeom(
                 pickingGeom, this.unitSphereGeom, data.getIndexColor(atom.i), matrix)
             }
-          })
+          }
 
           this.addGeomToDisplayMesh('sidechains', displayGeom, iRes)
           this.addGeomToPickingMesh('sidechains', pickingGeom, iRes)
@@ -607,11 +607,11 @@ class Display {
             _.includes(data.backboneAtoms, bond.atom2.type)
         }
         this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
-        this.soup.eachResidueAtom(iRes, atom => {
+        for (let atom of residue.getAtoms()) {
           if (util.inArray(atom.type, data.backboneAtoms)) {
             this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
           }
-        })
+        }
       }
     }
     this.addGeomToDisplayMesh('backbone', displayGeom)
@@ -622,15 +622,13 @@ class Display {
     this.createOrClearMesh('ligands')
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
-    console.log('> Display.buildMeshOfLigands nResidue', this.soup.getResidueCount())
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidue(iRes)
-      console.log('> Display.buildMeshOfLigands', residue.isLigand)
       if (residue.isLigand) {
         this.mergeBondsInResidue(displayGeom, iRes)
-        this.soup.eachResidueAtom(iRes, atom => {
+        for (let atom of residue.getAtoms()) {
           this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
-        })
+        }
       }
     }
     this.addGeomToDisplayMesh('ligands', displayGeom)
@@ -643,11 +641,11 @@ class Display {
     let pickingGeom = new THREE.Geometry()
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidue(iRes)
-      if (residue.isWater) {
+      if (residue.type == "HOH") {
         this.mergeBondsInResidue(displayGeom, iRes)
-        this.soup.eachResidueAtom(iRes, atom => {
+        for (let atom of residue.getAtoms()) {
           this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
-        })
+        }
       }
     }
     this.addGeomToDisplayMesh('water', displayGeom)
@@ -669,7 +667,7 @@ class Display {
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidue(iRes)
       if (residue.isGrid) {
-        this.soup.eachResidueAtom(iRes, atom => {
+        for (let atom of residue.getAtoms()) {
           if (this.isVisibleGridAtom(atom.i)) {
             let material = new THREE.MeshLambertMaterial({
               color: this.getAtomColor(atom.i)
@@ -689,7 +687,7 @@ class Display {
             pickingMesh.i = atom.i
             this.pickingMeshes.grid.add(pickingMesh)
           }
-        })
+        }
       }
     }
   }

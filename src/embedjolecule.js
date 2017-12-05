@@ -51,7 +51,7 @@ class ViewPiece {
   }
 
   saveChange () {
-    console.log('> ViewPiece.saveChange')
+    console.log('ViewPiece.saveChange')
     var changedTet = this.editTextArea.val()
     this.editDiv.hide()
     this.showDiv.show()
@@ -169,7 +169,7 @@ class ViewPiece {
                 linkButton(
                   '', 'delete', 'jolecule-small-button',
                   () => {
-                    console.log('> ViewPiece.deleteButton')
+                    console.log('ViewPiece.deleteButton')
                     this.params.delete_view()
                   })))
       }
@@ -250,8 +250,8 @@ class EmbedJolecule {
 
     this.populateResidueSelector()
 
-    if (this.soup.parsing_error) {
-      this.display.setProcessingMesssage('Error parsing soup: ' + this.soup.parsing_error)
+    if (this.soup.parsingError) {
+      this.display.setProcessingMesssage('Error parsing soup: ' + this.soup.parsingError)
       isProcessingFlag.flag = false
       return
     }
@@ -540,8 +540,9 @@ class EmbedJolecule {
 
     this.residueSelector.change(() => {
       var resId = this.residueSelector.find(':selected').val()
+      let iRes = this.scene.soup.iResByResId[resId]
       this.display.setTargetViewFromAtom(
-        this.scene.soup.resById[resId].iAtom)
+        this.scene.soup.getResidue(iRes).iAtom)
     })
 
     this.viewBarDiv =
