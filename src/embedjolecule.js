@@ -459,9 +459,9 @@ class EmbedJolecule {
     // rebuild selector
     for (let i = 0; i < this.soup.getResidueCount(); i++) {
       let residue = this.soup.getResidue(i)
-      let text = residue.id + '-' + residue.type
+      let text = residue.resId + '-' + residue.type
       this.residueSelector.append(
-        $('<option>').attr('value', residue.id).text(text))
+        $('<option>').attr('value', residue.resId).text(text))
     }
 
     this.residueSelector.val(this.scene.current_view.res_id)

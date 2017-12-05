@@ -726,7 +726,8 @@ class Display {
       }
 
       let getVerticesFromAtomDict = (iRes, atomTypes) => {
-        return _.map(atomTypes, a => this.soup.getResidueAtom(iRes, a).pos)
+        let res = this.soup.getResidue(iRes)
+        return _.map(atomTypes, a => res.getAtom(a).pos)
       }
 
       let vertices = getVerticesFromAtomDict(iRes, atomTypes)
