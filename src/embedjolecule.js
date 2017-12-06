@@ -459,7 +459,7 @@ class EmbedJolecule {
     // rebuild selector
     for (let i = 0; i < this.soup.getResidueCount(); i++) {
       let residue = this.soup.getResidue(i)
-      let text = residue.resId + '-' + residue.type
+      let text = residue.getResId() + '-' + residue.resType
       this.residueSelector.append(
         $('<option>').attr('value', residue.resId).text(text))
     }

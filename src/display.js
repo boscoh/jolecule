@@ -216,6 +216,7 @@ class Display {
 
     for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
       let residue = this.soup.getResidue(iRes)
+      let atom = residue.getCentralAtom()
 
       if (residue.isPolymer) {
 
@@ -241,7 +242,7 @@ class Display {
         }
 
         currTrace.indices.push(iRes)
-        currTrace.points.push(this.soup.getResidue(iRes).getCentralAtom().pos)
+        currTrace.points.push(atom.pos)
         let normal = null
         if (residue.normal) {
           normal = residue.normal
@@ -431,7 +432,7 @@ class Display {
     let unitGeom = new glgeom.UnitCylinderGeometry()
     let color = residue.color
     let p1, p2
-    for (let bond of residue.bonds) {
+    for (let bond of this.soup.residueBonds[iRes]) {
       if (bondFilterFn && !bondFilterFn(bond)) {
         continue
       }
@@ -624,7 +625,7 @@ class Display {
     let pickingGeom = new THREE.Geometry()
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidue(iRes)
-      if (residue.isLigand) {
+      if (residue.ss === "-") {
         this.mergeBondsInResidue(displayGeom, iRes)
         for (let atom of residue.getAtoms()) {
           this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
@@ -641,7 +642,7 @@ class Display {
     let pickingGeom = new THREE.Geometry()
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidue(iRes)
-      if (residue.type == "HOH") {
+      if (residue.resType == "HOH") {
         this.mergeBondsInResidue(displayGeom, iRes)
         for (let atom of residue.getAtoms()) {
           this.mergeAtomToGeom(displayGeom, pickingGeom, atom.i)
@@ -666,7 +667,7 @@ class Display {
     this.createOrClearMesh('grid')
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidue(iRes)
-      if (residue.isGrid) {
+      if (residue.ss === "G") {
         let atom = residue.getCentralAtom()
         if (this.isVisibleGridAtom(atom.i)) {
           let material = new THREE.MeshLambertMaterial({
@@ -708,16 +709,16 @@ class Display {
       let basepairGeom = new THREE.Geometry()
 
       let atomTypes, bondTypes
-      if (residue.type === 'DA' || residue.type === 'A') {
+      if (residue.resType === 'DA' || residue.resType === 'A') {
         atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
         bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
-      } else if (residue.type === 'DG' || residue.type === 'G') {
+      } else if (residue.resType === 'DG' || residue.resType === 'G') {
         atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
         bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
-      } else if (residue.type === 'DT' || residue.type === 'U') {
+      } else if (residue.resType === 'DT' || residue.resType === 'U') {
         atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
         bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
-      } else if (residue.type === 'DC' || residue.type === 'C') {
+      } else if (residue.resType === 'DC' || residue.resType === 'C') {
         atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
         bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
       } else {

@@ -576,11 +576,11 @@ class SequenceWidget extends CanvasWrapper {
         let entry = {
           iRes,
           ss: residue.ss,
-          resId: residue.resId,
+          resId: residue.getResId(),
           iAtom: residue.iAtom
         }
 
-        let resType = residue.type
+        let resType = residue.resType
         if (resType in data.resToAa) {
           entry.c = data.resToAa[resType]
         } else {
