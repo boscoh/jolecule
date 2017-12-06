@@ -66,7 +66,7 @@ function intToChar (i) {
   return i ? String.fromCharCode(i) : ''
 }
 
-const proteinResTypes  = [
+const proteinResTypes = [
   'ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS',
   'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN',
   'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR']
@@ -76,7 +76,6 @@ const dnaResTypes = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C']
 const rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U']
 
 function getResIdFromAtom (atom) {
-  // console.log("Soup.getResIdFromAtom", atom.pdb_id);
   let s = ''
   if (atom.pdb_id) {
     s += atom.pdb_id + ':'
@@ -142,7 +141,7 @@ class ResidueProxy {
     let n = this.soup.residueStore.atomCount[this.i]
     let iEnd = iStart + n
     let atoms = []
-    for (let i = iStart; i < iEnd; i+=1) {
+    for (let i = iStart; i < iEnd; i += 1) {
       atoms.push(this.soup.atoms[i])
     }
     return atoms
@@ -178,7 +177,6 @@ class ResidueProxy {
   }
 }
 
-
 /**
  * Soup
  * -------
@@ -209,6 +207,13 @@ class Soup {
     this.residueStore = new Store(residueStoreFields)
     this.residueProxy = new ResidueProxy(this)
     this.residueTypes = []
+    this.grid = {
+      bCutoff: 0.8,
+      bMax: 2,
+      bMin: 0.4,
+      changed: true,
+      isElem: {}
+    }
   }
 
   load (protein_data) {
@@ -284,7 +289,6 @@ class Soup {
             'pos': v3.create(x, y, z),
             'res_type': res_type,
             'alt': alt,
-            'isAlt': false,
             'chain': chain,
             'res_num': res_num,
             'elem': elem,
@@ -355,8 +359,6 @@ class Soup {
       let iRes = this.iResByResId[res_id]
       this.residueStore.atomCount[iRes] += 1
       a.iRes = iRes
-
-      // TODO: handle a.isAlt
     }
 
     let nResidue = this.getResidueCount()
@@ -374,7 +376,7 @@ class Soup {
       } else if (this.hasSugarBackbone(iRes)) {
         iAtom = this.getResidue(iRes).getAtom('C3\'').i
       } else {
-        let atom = getClosestAtom(getCenter(res.getAtoms()), this.atoms)
+        let atom = getClosestAtom(getCenter(atoms), atoms)
         iAtom = atom.i
       }
 
@@ -394,6 +396,7 @@ class Soup {
       }
 
       this.residueStore.iCentralAtom[iRes] = iAtom
+      let centralAtom = res.getCentralAtom()
     }
   }
 
@@ -487,9 +490,6 @@ class Soup {
     for (let bond of this.bonds) {
       let atom1 = bond.atom1
       let atom2 = bond.atom2
-      if (atom1.isAlt || atom2.isAlt) {
-        continue
-      }
       this.residues[atom1.iRes].bonds.push(bond)
       if (atom1.iRes !== atom2.iRes) {
         this.residues[atom2.iRes].bonds.push(bond)
@@ -662,7 +662,7 @@ class Soup {
 
       // alpha-helix
       if (this.isBackboneHbond(iRes1, iRes1 + 4) &&
-          this.isBackboneHbond(iRes1 + 1, iRes1 + 5)) {
+        this.isBackboneHbond(iRes1 + 1, iRes1 + 5)) {
         let normal1 = this.vecBetweenResidues(iRes1, iRes1 + 4)
         let normal2 = this.vecBetweenResidues(iRes1 + 1, iRes1 + 5)
         for (let iRes2 = iRes1 + 1; iRes2 < iRes1 + 5; iRes2 += 1) {
@@ -674,7 +674,7 @@ class Soup {
 
       // 3-10 helix
       if (this.isBackboneHbond(iRes1, iRes1 + 3) &&
-          this.isBackboneHbond(iRes1 + 1, iRes1 + 4)) {
+        this.isBackboneHbond(iRes1 + 1, iRes1 + 4)) {
         let normal1 = this.vecBetweenResidues(iRes1, iRes1 + 3)
         let normal2 = this.vecBetweenResidues(iRes1 + 1, iRes1 + 4)
         for (let iRes2 = iRes1 + 1; iRes2 < iRes1 + 4; iRes2 += 1) {
@@ -819,6 +819,39 @@ class Soup {
         this.getResidue(jRes).selected = selected
       }
     }
+  }
+
+  /**
+   * Searches autodock grid atoms for B-factor limits
+   */
+  findGridLimits () {
+    for (let residue of this.residues) {
+      if (residue.isGrid) {
+        let atom = residue.getCentralAtom()
+        if (!(atom.elem in this.grid.isElem)) {
+          this.grid.isElem[atom.elem] = true
+        }
+        if (this.grid.bMin === null) {
+          this.grid.bMin = atom.bfactor
+          this.grid.bMax = atom.bfactor
+        } else {
+          if (atom.bfactor > this.grid.bMax) {
+            this.grid.bMax = atom.bfactor
+          }
+          if (atom.bfactor < this.grid.bMin) {
+            this.grid.bMin = atom.bfactor
+          }
+        }
+      }
+    }
+
+    if (this.grid.bMin === null) {
+      this.grid.bMin = 0
+    }
+    if (this.grid.bMax === null) {
+      this.grid.bMin = 0
+    }
+    this.grid.bCutoff = this.grid.bMin
   }
 
 }
@@ -1356,7 +1389,6 @@ class Controller {
       b = true
       this.last_neighbour_res_id = res_id
     }
-    console.log('Controller.toggle_neighbors', res_id, i_res, b)
     this.soup.selectNeighbourResidues(i_res, b)
     this.scene.current_view.selected = this.make_selected()
     this.scene.changed = true

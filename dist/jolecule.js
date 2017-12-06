@@ -28403,7 +28403,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
 	
 	function getResIdFromAtom(atom) {
-	  // console.log("Soup.getResIdFromAtom", atom.pdb_id);
 	  var s = '';
 	  if (atom.pdb_id) {
 	    s += atom.pdb_id + ':';
@@ -28618,6 +28617,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.residueStore = new _store2.default(residueStoreFields);
 	    this.residueProxy = new ResidueProxy(this);
 	    this.residueTypes = [];
+	    this.grid = {
+	      bCutoff: 0.8,
+	      bMax: 2,
+	      bMin: 0.4,
+	      changed: true,
+	      isElem: {}
+	    };
 	  }
 	
 	  _createClass(Soup, [{
@@ -28695,7 +28701,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	              'pos': _v2.default.create(x, y, z),
 	              'res_type': res_type,
 	              'alt': alt,
-	              'isAlt': false,
 	              'chain': chain,
 	              'res_num': res_num,
 	              'elem': elem,
@@ -28776,8 +28781,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var _iRes = this.iResByResId[res_id];
 	          this.residueStore.atomCount[_iRes] += 1;
 	          a.iRes = _iRes;
-	
-	          // TODO: handle a.isAlt
 	        }
 	      } catch (err) {
 	        _didIteratorError8 = true;
@@ -28811,7 +28814,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else if (this.hasSugarBackbone(iRes)) {
 	          iAtom = this.getResidue(iRes).getAtom('C3\'').i;
 	        } else {
-	          var atom = getClosestAtom(getCenter(res.getAtoms()), this.atoms);
+	          var atom = getClosestAtom(getCenter(_atoms), _atoms);
 	          iAtom = atom.i;
 	        }
 	
@@ -28831,6 +28834,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        this.residueStore.iCentralAtom[iRes] = iAtom;
+	        var centralAtom = res.getCentralAtom();
 	      }
 	    }
 	  }, {
@@ -28959,9 +28963,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          var atom1 = bond.atom1;
 	          var atom2 = bond.atom2;
-	          if (atom1.isAlt || atom2.isAlt) {
-	            continue;
-	          }
 	          this.residues[atom1.iRes].bonds.push(bond);
 	          if (atom1.iRes !== atom2.iRes) {
 	            this.residues[atom2.iRes].bonds.push(bond);
@@ -29426,6 +29427,63 @@ return /******/ (function(modules) { // webpackBootstrap
 	          this.getResidue(jRes).selected = selected;
 	        }
 	      }
+	    }
+	
+	    /**
+	     * Searches autodock grid atoms for B-factor limits
+	     */
+	
+	  }, {
+	    key: 'findGridLimits',
+	    value: function findGridLimits() {
+	      var _iteratorNormalCompletion16 = true;
+	      var _didIteratorError16 = false;
+	      var _iteratorError16 = undefined;
+	
+	      try {
+	        for (var _iterator16 = this.residues[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+	          var residue = _step16.value;
+	
+	          if (residue.isGrid) {
+	            var atom = residue.getCentralAtom();
+	            if (!(atom.elem in this.grid.isElem)) {
+	              this.grid.isElem[atom.elem] = true;
+	            }
+	            if (this.grid.bMin === null) {
+	              this.grid.bMin = atom.bfactor;
+	              this.grid.bMax = atom.bfactor;
+	            } else {
+	              if (atom.bfactor > this.grid.bMax) {
+	                this.grid.bMax = atom.bfactor;
+	              }
+	              if (atom.bfactor < this.grid.bMin) {
+	                this.grid.bMin = atom.bfactor;
+	              }
+	            }
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError16 = true;
+	        _iteratorError16 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion16 && _iterator16.return) {
+	            _iterator16.return();
+	          }
+	        } finally {
+	          if (_didIteratorError16) {
+	            throw _iteratorError16;
+	          }
+	        }
+	      }
+	
+	      if (this.grid.bMin === null) {
+	        this.grid.bMin = 0;
+	      }
+	      if (this.grid.bMax === null) {
+	        this.grid.bMin = 0;
+	      }
+	      this.grid.bCutoff = this.grid.bMin;
 	    }
 	  }]);
 	
@@ -29987,7 +30045,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        b = true;
 	        this.last_neighbour_res_id = res_id;
 	      }
-	      console.log('Controller.toggle_neighbors', res_id, i_res, b);
 	      this.soup.selectNeighbourResidues(i_res, b);
 	      this.scene.current_view.selected = this.make_selected();
 	      this.scene.changed = true;
@@ -73968,7 +74025,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function buildScene() {
 	
 	      // pre-calculations needed before building meshes
-	      this.gridControlWidget.findLimitsAndElements();
+	      this.soup.findGridLimits();
 	      this.calculateTracesForRibbons();
 	
 	      this.buildMeshOfRibbons();
@@ -74724,8 +74781,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'isVisibleGridAtom',
 	    value: function isVisibleGridAtom(iAtom) {
 	      var atom = this.soup.getAtom(iAtom);
-	      var isAtomInRange = atom.bfactor > this.scene.grid;
-	      var isAtomElemSelected = this.scene.grid_atoms[atom.elem];
+	      var isAtomInRange = atom.bfactor > this.scene.soup.grid.bCutoff;
+	      var isAtomElemSelected = this.scene.soup.grid.isElem[atom.elem];
 	      return isAtomElemSelected && isAtomInRange;
 	    }
 	  }, {
@@ -74734,6 +74791,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!this.gridControlWidget.isGrid) {
 	        return;
 	      }
+	      console.log('Display.buildMeshOfGrid');
 	      this.createOrClearMesh('grid');
 	      var _iteratorNormalCompletion21 = true;
 	      var _didIteratorError21 = false;
@@ -74745,47 +74803,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          var residue = this.soup.getResidue(iRes);
 	          if (residue.isGrid) {
-	            var _iteratorNormalCompletion22 = true;
-	            var _didIteratorError22 = false;
-	            var _iteratorError22 = undefined;
+	            var atom = residue.getCentralAtom();
+	            if (this.isVisibleGridAtom(atom.i)) {
+	              var material = new _three2.default.MeshLambertMaterial({
+	                color: this.getAtomColor(atom.i)
+	              });
+	              var mesh = new _three2.default.Mesh(this.unitSphereGeom, material);
+	              mesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius);
+	              mesh.position.copy(atom.pos);
+	              mesh.i = atom.i;
+	              this.displayMeshes.grid.add(mesh);
 	
-	            try {
-	              for (var _iterator22 = residue.getAtoms()[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-	                var atom = _step22.value;
-	
-	                if (this.isVisibleGridAtom(atom.i)) {
-	                  var material = new _three2.default.MeshLambertMaterial({
-	                    color: this.getAtomColor(atom.i)
-	                  });
-	                  var mesh = new _three2.default.Mesh(this.unitSphereGeom, material);
-	                  mesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius);
-	                  mesh.position.copy(atom.pos);
-	                  mesh.i = atom.i;
-	                  this.displayMeshes.grid.add(mesh);
-	
-	                  var indexMaterial = new _three2.default.MeshBasicMaterial({
-	                    color: data.getIndexColor(atom.i)
-	                  });
-	                  var pickingMesh = new _three2.default.Mesh(this.unitSphereGeom, indexMaterial);
-	                  pickingMesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius);
-	                  pickingMesh.position.copy(atom.pos);
-	                  pickingMesh.i = atom.i;
-	                  this.pickingMeshes.grid.add(pickingMesh);
-	                }
-	              }
-	            } catch (err) {
-	              _didIteratorError22 = true;
-	              _iteratorError22 = err;
-	            } finally {
-	              try {
-	                if (!_iteratorNormalCompletion22 && _iterator22.return) {
-	                  _iterator22.return();
-	                }
-	              } finally {
-	                if (_didIteratorError22) {
-	                  throw _iteratorError22;
-	                }
-	              }
+	              var indexMaterial = new _three2.default.MeshBasicMaterial({
+	                color: data.getIndexColor(atom.i)
+	              });
+	              var pickingMesh = new _three2.default.Mesh(this.unitSphereGeom, indexMaterial);
+	              pickingMesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius);
+	              pickingMesh.position.copy(atom.pos);
+	              pickingMesh.i = atom.i;
+	              this.pickingMeshes.grid.add(pickingMesh);
 	            }
 	          }
 	        }
@@ -74816,13 +74852,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var cylinderGeom = new glgeom.UnitCylinderGeometry();
 	
-	      var _iteratorNormalCompletion23 = true;
-	      var _didIteratorError23 = false;
-	      var _iteratorError23 = undefined;
+	      var _iteratorNormalCompletion22 = true;
+	      var _didIteratorError22 = false;
+	      var _iteratorError22 = undefined;
 	
 	      try {
-	        for (var _iterator23 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-	          var iRes = _step23.value;
+	        for (var _iterator22 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+	          var iRes = _step22.value;
 	
 	          var residue = this.soup.getResidue(iRes);
 	          if (residue.ss !== 'D' || !residue.isPolymer) {
@@ -74860,13 +74896,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var faceGeom = new glgeom.RaisedShapeGeometry(vertices, 0.2);
 	          basepairGeom.merge(faceGeom);
 	
-	          var _iteratorNormalCompletion24 = true;
-	          var _didIteratorError24 = false;
-	          var _iteratorError24 = undefined;
+	          var _iteratorNormalCompletion23 = true;
+	          var _didIteratorError23 = false;
+	          var _iteratorError23 = undefined;
 	
 	          try {
-	            for (var _iterator24 = bondTypes[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-	              var bond = _step24.value;
+	            for (var _iterator23 = bondTypes[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+	              var bond = _step23.value;
 	
 	              var _vertices = getVerticesFromAtomDict(iRes, [bond[0], bond[1]]);
 	              basepairGeom.merge(cylinderGeom, glgeom.getCylinderMatrix(_vertices[0], _vertices[1], 0.2));
@@ -74876,16 +74912,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	            // sets no uv but cylinder does, and the merged geometry causes
 	            // warnings in THREE.js v0.79
 	          } catch (err) {
-	            _didIteratorError24 = true;
-	            _iteratorError24 = err;
+	            _didIteratorError23 = true;
+	            _iteratorError23 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion24 && _iterator24.return) {
-	                _iterator24.return();
+	              if (!_iteratorNormalCompletion23 && _iterator23.return) {
+	                _iterator23.return();
 	              }
 	            } finally {
-	              if (_didIteratorError24) {
-	                throw _iteratorError24;
+	              if (_didIteratorError23) {
+	                throw _iteratorError23;
 	              }
 	            }
 	          }
@@ -74899,16 +74935,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	          pickingGeom.merge(basepairGeom);
 	        }
 	      } catch (err) {
-	        _didIteratorError23 = true;
-	        _iteratorError23 = err;
+	        _didIteratorError22 = true;
+	        _iteratorError22 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion23 && _iterator23.return) {
-	            _iterator23.return();
+	          if (!_iteratorNormalCompletion22 && _iterator22.return) {
+	            _iterator22.return();
 	          }
 	        } finally {
-	          if (_didIteratorError23) {
-	            throw _iteratorError23;
+	          if (_didIteratorError22) {
+	            throw _iteratorError22;
 	          }
 	        }
 	      }
@@ -76443,12 +76479,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    _this6.isGrid = isGrid;
 	    _this6.scene = scene;
-	    _this6.maxB = 2;
-	    _this6.minB = 0.4;
-	    _this6.diffB = _this6.maxB - _this6.minB;
-	    _this6.scene.grid = 0.8;
-	    _this6.scene.gridChanged = true;
-	    _this6.scene.grid_atoms = {};
 	    _this6.buttonHeight = 40;
 	    _this6.sliderHeight = _this6.buttonHeight * 6 - 50;
 	    _this6.div.attr('id', 'grid-control');
@@ -76463,64 +76493,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return _this6;
 	  }
 	
-	  /**
-	   * Searches autodock grid atoms for B-factor limits
-	   */
-	
-	
 	  _createClass(GridControlWidget, [{
-	    key: 'findLimitsAndElements',
-	    value: function findLimitsAndElements() {
-	      this.scene.grid_atoms = {};
+	    key: 'reset',
+	    value: function reset() {
+	      if (!this.isGrid) {
+	        return;
+	      }
 	
+	      this.buttonsDiv.empty();
+	
+	      var y = 10;
 	      var _iteratorNormalCompletion3 = true;
 	      var _didIteratorError3 = false;
 	      var _iteratorError3 = undefined;
 	
 	      try {
-	        for (var _iterator3 = this.scene.soup.residues[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	          var residue = _step3.value;
+	        for (var _iterator3 = _lodash2.default.keys(this.scene.soup.grid.isElem)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	          var elem = _step3.value;
 	
-	          if (residue.isGrid) {
-	            var _iteratorNormalCompletion4 = true;
-	            var _didIteratorError4 = false;
-	            var _iteratorError4 = undefined;
-	
-	            try {
-	              for (var _iterator4 = _lodash2.default.values(residue.atoms)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	                var atom = _step4.value;
-	
-	                if (!(atom.elem in this.scene.grid_atoms)) {
-	                  this.scene.grid_atoms[atom.elem] = true;
-	                }
-	
-	                if (this.minB === null) {
-	                  this.minB = atom.bfactor;
-	                  this.maxB = atom.bfactor;
-	                } else {
-	                  if (atom.bfactor > this.maxB) {
-	                    this.maxB = atom.bfactor;
-	                  }
-	                  if (atom.bfactor < this.minB) {
-	                    this.minB = atom.bfactor;
-	                  }
-	                }
-	              }
-	            } catch (err) {
-	              _didIteratorError4 = true;
-	              _iteratorError4 = err;
-	            } finally {
-	              try {
-	                if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	                  _iterator4.return();
-	                }
-	              } finally {
-	                if (_didIteratorError4) {
-	                  throw _iteratorError4;
-	                }
-	              }
-	            }
-	          }
+	          this.buttonsDiv.append(this.makeElemButton(elem, y));
+	          y += this.buttonHeight;
 	        }
 	      } catch (err) {
 	        _didIteratorError3 = true;
@@ -76537,52 +76529,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 	
-	      if (this.minB === null) {
-	        this.minB = 0;
-	      }
-	      if (this.maxB === null) {
-	        this.minB = 0;
-	      }
-	      this.diffB = this.maxB - this.minB;
-	      this.scene.grid = this.minB;
-	    }
-	  }, {
-	    key: 'reset',
-	    value: function reset() {
-	      if (!this.isGrid) {
-	        return;
-	      }
-	
-	      this.buttonsDiv.empty();
-	
-	      var y = 10;
-	      var _iteratorNormalCompletion5 = true;
-	      var _didIteratorError5 = false;
-	      var _iteratorError5 = undefined;
-	
-	      try {
-	        for (var _iterator5 = _lodash2.default.keys(this.scene.grid_atoms)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	          var elem = _step5.value;
-	
-	          this.buttonsDiv.append(this.makeElemButton(elem, y));
-	          y += this.buttonHeight;
-	        }
-	      } catch (err) {
-	        _didIteratorError5 = true;
-	        _iteratorError5 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion5 && _iterator5.return) {
-	            _iterator5.return();
-	          }
-	        } finally {
-	          if (_didIteratorError5) {
-	            throw _iteratorError5;
-	          }
-	        }
-	      }
-	
-	      if (_lodash2.default.keys(this.scene.grid_atoms).length === 0) {
+	      if (_lodash2.default.keys(this.scene.soup.grid.isElem).length === 0) {
 	        this.div.hide();
 	      } else {
 	        this.div.show();
@@ -76596,9 +76543,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var color = data.ElementColors[elem];
 	      var colorHexStr = color.getHexString();
 	      var text_button = util.toggleButton('toggle_text', elem, 'jolecule-button', function () {
-	        return _this7.scene.grid_atoms[elem];
+	        return _this7.scene.soup.grid.isElem[elem];
 	      }, function (b) {
-	        _this7.scene.grid_atoms[elem] = b;
+	        _this7.scene.soup.grid.isElem[elem] = b;
 	        _this7.scene.changed = true;
 	      }, colorHexStr);
 	      text_button.css('position', 'absolute');
@@ -76648,19 +76595,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'yToZ',
 	    value: function yToZ(y) {
 	      var fraction = (y - 20) / this.sliderHeight;
-	      var z = fraction * this.diffB + this.minB;
-	      if (z < this.minB) {
-	        z = this.minB;
+	      var grid = this.scene.soup.grid;
+	      var diff = grid.bMax - grid.bMin;
+	      var z = fraction * diff + grid.bMin;
+	      if (z < this.scene.soup.grid.bMin) {
+	        z = this.scene.soup.grid.bMin;
 	      }
-	      if (z > this.maxB) {
-	        z = this.maxB;
+	      if (z > this.scene.soup.grid.bMax) {
+	        z = this.scene.soup.grid.bMax;
 	      }
 	      return z;
 	    }
 	  }, {
 	    key: 'zToY',
 	    value: function zToY(z) {
-	      return (z - this.minB) / this.diffB * this.sliderHeight + 20;
+	      var grid = this.scene.soup.grid;
+	      var diff = grid.bMax - grid.bMin;
+	      return (z - grid.bMin) / diff * this.sliderHeight + 20;
 	    }
 	  }, {
 	    key: 'draw',
@@ -76674,16 +76625,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var xm = 20;
 	
 	      var dark = 'rgb(100, 100, 100)';
-	      var yTop = this.zToY(this.minB);
-	      var yBottom = this.zToY(this.maxB);
+	      var yTop = this.zToY(this.scene.soup.grid.bMin);
+	      var yBottom = this.zToY(this.scene.soup.grid.bMax);
 	      this.line(xm, yTop, xm, yBottom, 1, dark);
 	      this.line(5, yTop, 35, yTop, 1, dark);
 	
 	      var font = '12px sans-serif';
 	      var textColor = '#666';
-	      var y = this.zToY(this.scene.grid);
+	      var y = this.zToY(this.scene.soup.grid.bCutoff);
 	      this.fillRect(5, y, 30, 5, textColor);
-	      this.text(-this.scene.grid.toFixed(2), xm, y + 15, font, textColor, 'center');
+	      this.text(-this.scene.soup.grid.bCutoff.toFixed(2), xm, y + 15, font, textColor, 'center');
 	    }
 	  }, {
 	    key: 'getZ',
@@ -76714,8 +76665,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.getZ(event);
 	
-	      this.scene.grid = this.z;
-	      this.scene.gridChanged = true;
+	      this.scene.soup.grid.bCutoff = this.z;
+	      this.scene.soup.grid.changed = true;
 	      this.draw();
 	
 	      this.scene.changed = true;

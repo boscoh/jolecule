@@ -301,7 +301,7 @@ class Display {
   buildScene () {
 
     // pre-calculations needed before building meshes
-    this.gridControlWidget.findLimitsAndElements()
+    this.soup.findGridLimits()
     this.calculateTracesForRibbons()
 
     this.buildMeshOfRibbons()
@@ -654,8 +654,8 @@ class Display {
 
   isVisibleGridAtom (iAtom) {
     let atom = this.soup.getAtom(iAtom)
-    let isAtomInRange = atom.bfactor > this.scene.grid
-    let isAtomElemSelected = this.scene.grid_atoms[atom.elem]
+    let isAtomInRange = atom.bfactor > this.scene.soup.grid.bCutoff
+    let isAtomElemSelected = this.scene.soup.grid.isElem[atom.elem]
     return isAtomElemSelected && isAtomInRange
   }
 
@@ -663,30 +663,30 @@ class Display {
     if (!this.gridControlWidget.isGrid) {
       return
     }
+    console.log('Display.buildMeshOfGrid')
     this.createOrClearMesh('grid')
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidue(iRes)
       if (residue.isGrid) {
-        for (let atom of residue.getAtoms()) {
-          if (this.isVisibleGridAtom(atom.i)) {
-            let material = new THREE.MeshLambertMaterial({
-              color: this.getAtomColor(atom.i)
-            })
-            let mesh = new THREE.Mesh(this.unitSphereGeom, material)
-            mesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius)
-            mesh.position.copy(atom.pos)
-            mesh.i = atom.i
-            this.displayMeshes.grid.add(mesh)
+        let atom = residue.getCentralAtom()
+        if (this.isVisibleGridAtom(atom.i)) {
+          let material = new THREE.MeshLambertMaterial({
+            color: this.getAtomColor(atom.i)
+          })
+          let mesh = new THREE.Mesh(this.unitSphereGeom, material)
+          mesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius)
+          mesh.position.copy(atom.pos)
+          mesh.i = atom.i
+          this.displayMeshes.grid.add(mesh)
 
-            let indexMaterial = new THREE.MeshBasicMaterial({
-              color: data.getIndexColor(atom.i)
-            })
-            let pickingMesh = new THREE.Mesh(this.unitSphereGeom, indexMaterial)
-            pickingMesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius)
-            pickingMesh.position.copy(atom.pos)
-            pickingMesh.i = atom.i
-            this.pickingMeshes.grid.add(pickingMesh)
-          }
+          let indexMaterial = new THREE.MeshBasicMaterial({
+            color: data.getIndexColor(atom.i)
+          })
+          let pickingMesh = new THREE.Mesh(this.unitSphereGeom, indexMaterial)
+          pickingMesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius)
+          pickingMesh.position.copy(atom.pos)
+          pickingMesh.i = atom.i
+          this.pickingMeshes.grid.add(pickingMesh)
         }
       }
     }

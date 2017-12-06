@@ -846,12 +846,6 @@ class GridControlWidget extends CanvasWrapper {
     super(selector)
     this.isGrid = isGrid
     this.scene = scene
-    this.maxB = 2
-    this.minB = 0.4
-    this.diffB = this.maxB - this.minB
-    this.scene.grid = 0.8
-    this.scene.gridChanged = true
-    this.scene.grid_atoms = {}
     this.buttonHeight = 40
     this.sliderHeight = this.buttonHeight * 6 - 50
     this.div.attr('id', 'grid-control')
@@ -865,44 +859,6 @@ class GridControlWidget extends CanvasWrapper {
     this.reset()
   }
 
-  /**
-   * Searches autodock grid atoms for B-factor limits
-   */
-  findLimitsAndElements () {
-    this.scene.grid_atoms = {}
-
-    for (let residue of this.scene.soup.residues) {
-      if (residue.isGrid) {
-        for (let atom of _.values(residue.atoms)) {
-          if (!(atom.elem in this.scene.grid_atoms)) {
-            this.scene.grid_atoms[atom.elem] = true
-          }
-
-          if (this.minB === null) {
-            this.minB = atom.bfactor
-            this.maxB = atom.bfactor
-          } else {
-            if (atom.bfactor > this.maxB) {
-              this.maxB = atom.bfactor
-            }
-            if (atom.bfactor < this.minB) {
-              this.minB = atom.bfactor
-            }
-          }
-        }
-      }
-    }
-
-    if (this.minB === null) {
-      this.minB = 0
-    }
-    if (this.maxB === null) {
-      this.minB = 0
-    }
-    this.diffB = this.maxB - this.minB
-    this.scene.grid = this.minB
-  }
-
   reset () {
     if (!this.isGrid) {
       return
@@ -911,12 +867,12 @@ class GridControlWidget extends CanvasWrapper {
     this.buttonsDiv.empty()
 
     let y = 10
-    for (let elem of _.keys(this.scene.grid_atoms)) {
+    for (let elem of _.keys(this.scene.soup.grid.isElem)) {
       this.buttonsDiv.append(this.makeElemButton(elem, y))
       y += this.buttonHeight
     }
 
-    if (_.keys(this.scene.grid_atoms).length === 0) {
+    if (_.keys(this.scene.soup.grid.isElem).length === 0) {
       this.div.hide()
     } else {
       this.div.show()
@@ -931,9 +887,9 @@ class GridControlWidget extends CanvasWrapper {
       'toggle_text',
       elem,
       'jolecule-button',
-      () => this.scene.grid_atoms[elem],
+      () => this.scene.soup.grid.isElem[elem],
       (b) => {
-        this.scene.grid_atoms[elem] = b
+        this.scene.soup.grid.isElem[elem] = b
         this.scene.changed = true
       },
       colorHexStr)
@@ -978,18 +934,22 @@ class GridControlWidget extends CanvasWrapper {
 
   yToZ (y) {
     let fraction = (y - 20) / this.sliderHeight
-    let z = fraction * this.diffB + this.minB
-    if (z < this.minB) {
-      z = this.minB
+    let grid = this.scene.soup.grid
+    let diff = grid.bMax - grid.bMin
+    let z = fraction * diff + grid.bMin
+    if (z < this.scene.soup.grid.bMin) {
+      z = this.scene.soup.grid.bMin
     }
-    if (z > this.maxB) {
-      z = this.maxB
+    if (z > this.scene.soup.grid.bMax) {
+      z = this.scene.soup.grid.bMax
     }
     return z
   }
 
   zToY (z) {
-    return (z - this.minB) / this.diffB * this.sliderHeight + 20
+    let grid = this.scene.soup.grid
+    let diff = grid.bMax - grid.bMin
+    return (z - grid.bMin) / diff * this.sliderHeight + 20
   }
 
   draw () {
@@ -1002,16 +962,16 @@ class GridControlWidget extends CanvasWrapper {
     let xm = 20
 
     let dark = 'rgb(100, 100, 100)'
-    let yTop = this.zToY(this.minB)
-    let yBottom = this.zToY(this.maxB)
+    let yTop = this.zToY(this.scene.soup.grid.bMin)
+    let yBottom = this.zToY(this.scene.soup.grid.bMax)
     this.line(xm, yTop, xm, yBottom, 1, dark)
     this.line(5, yTop, 35, yTop, 1, dark)
 
     let font = '12px sans-serif'
     let textColor = '#666'
-    let y = this.zToY(this.scene.grid)
+    let y = this.zToY(this.scene.soup.grid.bCutoff)
     this.fillRect(5, y, 30, 5, textColor)
-    this.text(-this.scene.grid.toFixed(2), xm, y + 15, font, textColor, 'center')
+    this.text(-this.scene.soup.grid.bCutoff.toFixed(2), xm, y + 15, font, textColor, 'center')
   }
 
   getZ (event) {
@@ -1039,8 +999,8 @@ class GridControlWidget extends CanvasWrapper {
 
     this.getZ(event)
 
-    this.scene.grid = this.z
-    this.scene.gridChanged = true
+    this.scene.soup.grid.bCutoff = this.z
+    this.scene.soup.grid.changed = true
     this.draw()
 
     this.scene.changed = true
