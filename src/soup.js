@@ -220,8 +220,6 @@ class Soup {
 
     this.pdb_id = protein_data['pdb_id']
 
-    console.log(`Protein.load parsing ${this.pdb_id}`)
-
     let title = parsetTitleFromPdbText(protein_data['pdb_text'])
     this.default_html = this.pdb_id + ': ' + title
 
@@ -234,17 +232,18 @@ class Soup {
 
     this.addResiduesFromNewAtoms(newAtoms)
 
-    console.log(`Protein.load ${newAtoms.length} atoms`)
-
     this.calcBonds()
     this.assignBondsToResidues()
-    console.log(`Protein.load ${this.bonds.length} bonds`)
 
     this.calcMaxLength()
 
     this.findSecondaryStructure()
 
-    console.log(`Protein.load ${this.getResidueCount()} residues`)
+    console.log(
+      `Soup.load added ${this.pdb_id}: ` +
+      `${this.getAtomCount()} atoms, ` +
+      `${this.bonds.length} bonds, ` +
+      `${this.getResidueCount()} residues`)
   }
 
   makeAtomsFromPdbLines (lines, pdb_id) {

@@ -654,9 +654,8 @@ class Display {
 
   isVisibleGridAtom (iAtom) {
     let atom = this.soup.getAtom(iAtom)
-    let isAtomInRange = atom.bfactor > this.scene.soup.grid.bCutoff
-    let isAtomElemSelected = this.scene.soup.grid.isElem[atom.elem]
-    return isAtomElemSelected && isAtomInRange
+    let grid = this.scene.soup.grid
+    return (atom.bfactor > grid.bCutoff) && grid.isElem[atom.elem]
   }
 
   buildMeshOfGrid () {

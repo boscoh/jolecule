@@ -28632,8 +28632,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.pdb_id = protein_data['pdb_id'];
 	
-	      console.log('Protein.load parsing ' + this.pdb_id);
-	
 	      var title = parsetTitleFromPdbText(protein_data['pdb_text']);
 	      this.default_html = this.pdb_id + ': ' + title;
 	
@@ -28646,17 +28644,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.addResiduesFromNewAtoms(newAtoms);
 	
-	      console.log('Protein.load ' + newAtoms.length + ' atoms');
-	
 	      this.calcBonds();
 	      this.assignBondsToResidues();
-	      console.log('Protein.load ' + this.bonds.length + ' bonds');
 	
 	      this.calcMaxLength();
 	
 	      this.findSecondaryStructure();
 	
-	      console.log('Protein.load ' + this.getResidueCount() + ' residues');
+	      console.log('Soup.load added ' + this.pdb_id + ': ' + (this.getAtomCount() + ' atoms, ') + (this.bonds.length + ' bonds, ') + (this.getResidueCount() + ' residues'));
 	    }
 	  }, {
 	    key: 'makeAtomsFromPdbLines',
@@ -74781,9 +74776,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'isVisibleGridAtom',
 	    value: function isVisibleGridAtom(iAtom) {
 	      var atom = this.soup.getAtom(iAtom);
-	      var isAtomInRange = atom.bfactor > this.scene.soup.grid.bCutoff;
-	      var isAtomElemSelected = this.scene.soup.grid.isElem[atom.elem];
-	      return isAtomElemSelected && isAtomInRange;
+	      var grid = this.scene.soup.grid;
+	      return atom.bfactor > grid.bCutoff && grid.isElem[atom.elem];
 	    }
 	  }, {
 	    key: 'buildMeshOfGrid',
