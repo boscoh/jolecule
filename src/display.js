@@ -215,21 +215,18 @@ class Display {
     let currTrace
 
     for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
-      let residue = this.soup.getResidue(iRes)
-      let atom = residue.getCentralAtom()
+      if (this.soup.getResidue(iRes).isPolymer) {
 
-      if (residue.isPolymer) {
-
-        let isBreak = false
+        let isNewPolymer = false
         if (iRes === 0) {
-          isBreak = true
+          isNewPolymer = true
         } else {
           let peptideConnect = this.soup.isPeptideConnected(iRes - 1, iRes)
           let nucleotideConnect = this.soup.isSugarPhosphateConnected(iRes - 1, iRes)
-          isBreak = !(peptideConnect) && !(nucleotideConnect)
+          isNewPolymer = !(peptideConnect) && !(nucleotideConnect)
         }
 
-        if (isBreak) {
+        if (isNewPolymer) {
           currTrace = new glgeom.Trace()
           {
             let trace = currTrace
@@ -242,12 +239,12 @@ class Display {
         }
 
         currTrace.indices.push(iRes)
+
+        let atom = this.soup.getResidue(iRes).getCentralAtom()
         currTrace.points.push(atom.pos)
-        let normal = null
-        if (residue.normal) {
-          normal = residue.normal
-        }
-        currTrace.normals.push(normal)
+
+        let normal = this.soup.getResidue(iRes).normal
+        currTrace.residueNormals.push(normal)
       }
     }
 
@@ -407,8 +404,8 @@ class Display {
       for (let mesh of [this.displayMeshes.sidechains, this.pickingMeshes.sidechains]) {
         mesh.traverse(child => {
           if (util.exists(child.i)) {
-            let residue = this.soup.getResidue(child.i)
-            child.visible = show.sidechain || residue.selected
+            let selected = this.soup.getResidue(child.i).selected
+            child.visible = show.sidechain || selected
           }
         })
       }
@@ -482,6 +479,7 @@ class Display {
         let res = trace.getReference(i)
         let face = data.getSsFace(res.ss)
         let color = res.color
+        let iAtom = res.iAtom
         let isRound = res.ss === 'C'
         let isFront = ((i === 0) ||
           (res.ss !== trace.getReference(i - 1).ss))
@@ -490,7 +488,7 @@ class Display {
         let resGeom = trace.getSegmentGeometry(
           i, face, isRound, isFront, isBack, color)
         displayGeom.merge(resGeom)
-        glgeom.setGeometryVerticesColor(resGeom, data.getIndexColor(res.iAtom))
+        glgeom.setGeometryVerticesColor(resGeom, data.getIndexColor(iAtom))
         pickingGeom.merge(resGeom)
       }
     }
@@ -539,6 +537,7 @@ class Display {
       for (let i of _.range(n)) {
         let res = trace.getReference(i)
         let color = res.color
+        let iAtom = res.iAtom
         let isRound = true
         let isFront = (i === 0)
         let isBack = (i === n - 1)
@@ -546,7 +545,7 @@ class Display {
           i, data.fatCoilFace, isRound, isFront, isBack, color)
         geom.merge(resGeom)
         glgeom.setGeometryVerticesColor(
-          resGeom, new THREE.Color().setHex(res.iAtom))
+          resGeom, new THREE.Color().setHex(iAtom))
       }
     }
     this.addGeomToDisplayMesh('tube', geom)
@@ -558,6 +557,8 @@ class Display {
       this.createOrClearMesh('sidechains')
     }
 
+    console.log('Display.buildSelectedResidues start')
+
     function bondFilter (bond) {
       return !_.includes(data.backboneAtoms, bond.atom1.type) ||
         !_.includes(data.backboneAtoms, bond.atom2.type)
@@ -566,9 +567,9 @@ class Display {
     for (let trace of this.traces) {
       for (let i of _.range(trace.indices.length)) {
         let iRes = trace.indices[i]
-        let residue = trace.getReference(i)
+        let residue = this.soup.getResidue(iRes)
         let residueShow = showAllResidues || residue.selected
-        if (residueShow && !util.exists(residue.mesh)) {
+        if (residueShow && !residue.isMesh) {
 
           let displayGeom = new THREE.Geometry()
           let pickingGeom = new THREE.Geometry()
@@ -590,7 +591,7 @@ class Display {
           this.addGeomToPickingMesh('sidechains', pickingGeom, iRes)
 
           this.updateMeshesInScene = true
-          residue.mesh = true
+          residue.isMesh = true
         }
       }
     }

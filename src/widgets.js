@@ -576,7 +576,7 @@ class SequenceWidget extends CanvasWrapper {
         let entry = {
           iRes,
           ss: residue.ss,
-          resId: residue.getResId(),
+          resId: residue.resId,
           iAtom: residue.iAtom
         }
 
