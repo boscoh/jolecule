@@ -440,8 +440,8 @@ class DistanceMeasuresWidget {
       let distance = distances[i]
       let distanceMeasure = this.distanceMeasures[i]
 
-      let p1 = this.scene.soup.getAtom(distance.i_atom1).pos
-      let p2 = this.scene.soup.getAtom(distance.i_atom2).pos
+      let p1 = this.scene.soup.getAtom(distance.i_atom1).pos.clone()
+      let p2 = this.scene.soup.getAtom(distance.i_atom2).pos.clone()
 
       let text = p1.distanceTo(p2).toFixed(1)
       distanceMeasure.div.text(text)

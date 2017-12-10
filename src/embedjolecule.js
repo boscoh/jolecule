@@ -540,7 +540,7 @@ class EmbedJolecule {
 
     this.residueSelector.change(() => {
       var resId = this.residueSelector.find(':selected').val()
-      let iRes = this.scene.soup.iResByResId[resId]
+      let iRes = this.scene.soup.getIResByResId(resId)
       this.display.setTargetViewFromAtom(
         this.scene.soup.getResidue(iRes).iAtom)
     })
