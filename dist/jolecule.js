@@ -65,7 +65,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _embedjolecule = __webpack_require__(2);
 	
-	var _fullpagejolecule = __webpack_require__(16);
+	var _fullpagejolecule = __webpack_require__(17);
 	
 	var _lodash = __webpack_require__(4);
 	
@@ -285,7 +285,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _soup = __webpack_require__(6);
 	
-	var _display = __webpack_require__(13);
+	var _display = __webpack_require__(14);
 	
 	var _util = __webpack_require__(9);
 	
@@ -719,7 +719,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      // rebuild selector
 	      for (var i = 0; i < this.soup.getResidueCount(); i++) {
-	        var residue = this.soup.getResidue(i);
+	        var residue = this.soup.getResidueProxy(i);
 	        var text = residue.resId + '-' + residue.resType;
 	        this.residueSelector.append((0, _jquery2.default)('<option>').attr('value', residue.resId).text(text));
 	      }
@@ -804,7 +804,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.residueSelector.change(function () {
 	        var resId = _this9.residueSelector.find(':selected').val();
 	        var iRes = _this9.scene.soup.getIResByResId(resId);
-	        _this9.display.setTargetViewFromAtom(_this9.scene.soup.getResidue(iRes).iAtom);
+	        _this9.display.setTargetViewFromAtom(_this9.scene.soup.getResidueProxy(iRes).iAtom);
 	      });
 	
 	      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">').append(loopButton).append(textButton).append(prevButton).append(this.statusText).append(nextButton).append(saveButton)).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: flex-end;">').append(this.residueSelector));
@@ -28241,6 +28241,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _store2 = _interopRequireDefault(_store);
 	
+	var _bitarray = __webpack_require__(13);
+	
+	var _bitarray2 = _interopRequireDefault(_bitarray);
+	
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -28250,7 +28254,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var user = 'public'; // will be overriden by server
 	
 	
-	function delete_numbers(text) {
+	function deleteNumbers(text) {
 	  return text.replace(/\d+/, '');
 	}
 	
@@ -28381,11 +28385,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'pos',
 	    get: function get() {
-	      // this._pos.x = this.soup.atomStore.x[this.iAtom]
-	      // this._pos.y = this.soup.atomStore.y[this.iAtom]
-	      // this._pos.z = this.soup.atomStore.z[this.iAtom]
-	      // return this._pos
-	      return _v2.default.create(this.soup.atomStore.x[this.iAtom], this.soup.atomStore.y[this.iAtom], this.soup.atomStore.z[this.iAtom]);
+	      this._pos.x = this.soup.atomStore.x[this.iAtom];
+	      this._pos.y = this.soup.atomStore.y[this.iAtom];
+	      this._pos.z = this.soup.atomStore.z[this.iAtom];
+	      return this._pos;
 	    }
 	  }, {
 	    key: 'resId',
@@ -28417,12 +28420,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'resType',
 	    get: function get() {
-	      return this.soup.getResidue(this.iRes).resType;
+	      return this.soup.getResidueProxy(this.iRes).resType;
 	    }
 	  }, {
 	    key: 'label',
 	    get: function get() {
-	      var res = this.soup.getResidue(this.iRes);
+	      var res = this.soup.getResidueProxy(this.iRes);
 	      return res.resId + ' - ' + this.atomType;
 	    }
 	  }]);
@@ -28430,7 +28433,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return AtomProxy;
 	}();
 	
-	var residueStoreFields = [['atomOffset', 1, 'uint32'], ['atomCount', 1, 'uint16'], ['iCentralAtom', 1, 'uint32'], ['iResType', 1, 'uint16'], ['resno', 1, 'int32'], ['sstruc', 1, 'uint8'], ['inscode', 1, 'uint8'], ['selected', 1, 'uint8'], ['iColor', 1, 'uint8'], ['isPolymer', 1, 'uint8'], ['isMesh', 1, 'uint8']];
+	var residueStoreFields = [['atomOffset', 1, 'uint32'], ['atomCount', 1, 'uint16'], ['iCentralAtom', 1, 'uint32'], ['iResType', 1, 'uint16'], ['resno', 1, 'int32'], ['sstruc', 1, 'uint8'], ['inscode', 1, 'uint8'], ['iColor', 1, 'uint8'], ['isPolymer', 1, 'uint8'], ['isMesh', 1, 'uint8']];
 	
 	var ResidueProxy = function () {
 	  function ResidueProxy(soup, iRes) {
@@ -28445,25 +28448,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _createClass(ResidueProxy, [{
 	    key: 'load',
 	    value: function load(iRes) {
-	      this.i = iRes;
+	      this.iRes = iRes;
 	      return this;
 	    }
 	  }, {
 	    key: 'getAtomIndices',
 	    value: function getAtomIndices() {
-	      var iStart = this.soup.residueStore.atomOffset[this.i];
-	      var n = this.soup.residueStore.atomCount[this.i];
+	      var iStart = this.soup.residueStore.atomOffset[this.iRes];
+	      var n = this.soup.residueStore.atomCount[this.iRes];
 	      var iEnd = iStart + n;
 	      return _.range(iStart, iEnd);
 	    }
 	  }, {
-	    key: 'getCentralAtom',
-	    value: function getCentralAtom() {
-	      return this.soup.getAtom(this.iAtom);
+	    key: 'getCentralAtomProxy',
+	    value: function getCentralAtomProxy() {
+	      return this.soup.getAtomProxy(this.iAtom);
 	    }
 	  }, {
-	    key: 'getAtom',
-	    value: function getAtom(atomType) {
+	    key: 'getAtomProxy',
+	    value: function getAtomProxy(atomType) {
 	      var _iteratorNormalCompletion3 = true;
 	      var _didIteratorError3 = false;
 	      var _iteratorError3 = undefined;
@@ -28472,7 +28475,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var _iterator3 = this.getAtomIndices()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
 	          var iAtom = _step3.value;
 	
-	          var atom = this.soup.getAtom(iAtom);
+	          var atom = this.soup.getAtomProxy(iAtom);
 	          if (atom.atomType === atomType) {
 	            return atom;
 	          }
@@ -28505,7 +28508,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var _iterator4 = atomTypes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
 	          var atomType = _step4.value;
 	
-	          var a = this.getAtom(atomType);
+	          var a = this.getAtomProxy(atomType);
 	          if (a !== null) {
 	            return true;
 	          }
@@ -28530,66 +28533,73 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'iAtom',
 	    get: function get() {
-	      return this.soup.residueStore.iCentralAtom[this.i];
+	      return this.soup.residueStore.iCentralAtom[this.iRes];
+	    },
+	    set: function set(iAtom) {
+	      this.soup.residueStore.iCentralAtom[this.iRes] = iAtom;
 	    }
 	  }, {
 	    key: 'resId',
 	    get: function get() {
-	      return this.soup.resIds[this.i];
+	      return this.soup.resIds[this.iRes];
 	    }
 	  }, {
 	    key: 'isPolymer',
 	    get: function get() {
-	      return intToBool(this.soup.residueStore.isPolymer[this.i]);
+	      return intToBool(this.soup.residueStore.isPolymer[this.iRes]);
 	    },
 	    set: function set(v) {
-	      this.soup.residueStore.isPolymer[this.i] = boolToInt(v);
+	      this.soup.residueStore.isPolymer[this.iRes] = boolToInt(v);
 	    }
 	  }, {
 	    key: 'color',
 	    get: function get() {
-	      var iColor = this.soup.residueStore.iColor[this.i];
+	      var iColor = this.soup.residueStore.iColor[this.iRes];
 	      return this.soup.colorTable[iColor];
 	    },
 	    set: function set(color) {
 	      var iColor = getValueTableIndex(this.soup.colorTable, color);
-	      this.soup.residueStore.iColor[this.i] = iColor;
+	      this.soup.residueStore.iColor[this.iRes] = iColor;
 	    }
 	  }, {
 	    key: 'selected',
 	    get: function get() {
-	      return intToBool(this.soup.residueStore.selected[this.i]);
+	      return this.soup.residueSelect.get(this.iRes);
 	    },
 	    set: function set(v) {
-	      this.soup.residueStore.selected[this.i] = boolToInt(v);
+	      if (v) {
+	        this.soup.residueSelect.set(this.iRes);
+	      } else {
+	        this.soup.residueSelect.clear(this.iRes);
+	      }
 	    }
 	  }, {
 	    key: 'isMesh',
 	    get: function get() {
-	      return intToBool(this.soup.residueStore.isMesh[this.i]);
+	      return intToBool(this.soup.residueStore.isMesh[this.iRes]);
 	    },
 	    set: function set(v) {
-	      this.soup.residueStore.isMesh[this.i] = boolToInt(v);
+	      this.soup.residueStore.isMesh[this.iRes] = boolToInt(v);
 	    }
 	  }, {
 	    key: 'resType',
 	    get: function get() {
-	      var iResType = this.soup.residueStore.iResType[this.i];
+	      var iResType = this.soup.residueStore.iResType[this.iRes];
 	      return this.soup.resTypeTable[iResType];
 	    }
 	  }, {
 	    key: 'normal',
 	    get: function get() {
-	      var hasNormal = this.i in this.soup.residueNormal;
-	      return hasNormal ? this.soup.residueNormal[this.i].clone() : null;
+	      var hasNormal = this.iRes in this.soup.residueNormal;
+	      return hasNormal ? this.soup.residueNormal[this.iRes].clone() : null;
 	    }
 	  }, {
 	    key: 'ss',
 	    get: function get() {
-	      return intToChar(this.soup.residueStore.sstruc[this.i]);
+	      return intToChar(this.soup.residueStore.sstruc[this.iRes]);
 	    },
 	    set: function set(c) {
-	      this.soup.residueStore.sstruc[this.i] = charToInt(c);
+	      this.soup.residueStore.sstruc[this.iRes] = charToInt(c);
 	    }
 	  }]);
 	
@@ -28657,26 +28667,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.default_html = '';
 	
 	    this.atomStore = new _store2.default(atomStoreFields);
+	    this.residueStore = new _store2.default(residueStoreFields);
+	    this.bondStore = new _store2.default(bondStoreFields);
+	
+	    this.resIds = [];
+	
 	    this.atomProxy = new AtomProxy(this);
 	    this.otherAtomProxy = new AtomProxy(this);
+	    this.residueProxy = new ResidueProxy(this);
+	    this.otherResidueProxy = new ResidueProxy(this);
+	    this.bondProxy = new BondProxy(this);
+	
+	    this.atomSelect = new _bitarray2.default(0);
+	    this.residueSelect = new _bitarray2.default(0);
+	    this.bondSelect = new _bitarray2.default(0);
 	
 	    this.elemTable = [];
 	    this.atomTypeTable = [];
-	
-	    this.residueStore = new _store2.default(residueStoreFields);
-	    this.residueProxy = new ResidueProxy(this);
-	    this.otherResidueProxy = new ResidueProxy(this);
-	    this.resIds = [];
 	    this.resTypeTable = [];
-	    this.residueNormal = {};
+	    this.colorTable = [];
 	
+	    this.residueNormal = {};
 	    this.residueConhPartners = {};
 	    this.residueNormals = {};
-	
-	    this.bondStore = new _store2.default(bondStoreFields);
-	    this.bondProxy = new BondProxy(this);
-	
-	    this.colorTable = [];
 	
 	    this.grid = {
 	      bCutoff: 0.8,
@@ -28708,60 +28721,67 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.findSecondaryStructure();
 	
-	      console.log('Soup.load added ' + this.pdb_id + ': ' + (this.getAtomCount() + ' atoms, ') + (this.bondStore.count + ' bonds, ') + (this.getResidueCount() + ' residues'));
+	      console.log('Soup.load added ' + this.pdb_id + ': ' + (this.getAtomCount() + ' atoms, ') + (this.getBondCount() + ' bonds, ') + (this.getResidueCount() + ' residues'));
 	    }
 	  }, {
 	    key: 'makeAtomsFromPdbLines',
-	    value: function makeAtomsFromPdbLines(lines, pdb_id) {
+	    value: function makeAtomsFromPdbLines(lines, pdbId) {
 	      if (lines.length === 0) {
 	        this.parsingError = 'No atom lines';
 	        return;
 	      }
 	
-	      this.currIRes = this.getResidueCount() - 1;
-	      this.currResId = '';
-	      if (this.currIRes >= 0) {
-	        this.currResId = this.resIds[this.currIRes];
+	      var currResId = '';
+	      var n = this.getResidueCount();
+	      if (n > 0) {
+	        currResId = this.resIds[n - 1];
 	      }
 	
 	      for (var iLine = 0; iLine < lines.length; iLine += 1) {
 	        var line = lines[iLine];
-	        // try {
 	        if (line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM') {
-	
-	          var x = parseFloat(line.substr(30, 7));
-	          var y = parseFloat(line.substr(38, 7));
-	          var z = parseFloat(line.substr(46, 7));
-	
-	          var chain = _.trim(line[21]);
-	
-	          var res_num = _.trim(line.substr(22, 5));
-	          var resType = _.trim(line.substr(17, 3));
-	
-	          var atom_type = _.trim(line.substr(12, 4));
-	
-	          var bfactor = parseFloat(line.substr(60, 6));
-	
-	          var elem = delete_numbers(_.trim(line.substr(76, 2)));
-	          if (elem === '') {
-	            elem = delete_numbers(_.trim(atom_type)).substr(0, 1);
+	          var x = void 0,
+	              y = void 0,
+	              z = void 0,
+	              chain = void 0,
+	              resNum = void 0,
+	              resType = void 0,
+	              atomType = void 0,
+	              bfactor = void 0,
+	              elem = void 0,
+	              alt = void 0;
+	          try {
+	            x = parseFloat(line.substr(30, 7));
+	            y = parseFloat(line.substr(38, 7));
+	            z = parseFloat(line.substr(46, 7));
+	            chain = _.trim(line[21]);
+	            resNum = _.trim(line.substr(22, 5));
+	            resType = _.trim(line.substr(17, 3));
+	            atomType = _.trim(line.substr(12, 4));
+	            bfactor = parseFloat(line.substr(60, 6));
+	            elem = deleteNumbers(_.trim(line.substr(76, 2)));
+	            alt = _.trim(line.substr(16, 1));
+	          } catch (e) {
+	            this.parsingError = 'line ' + iLine;
+	            console.log('Error: "' + line + '"');
+	            continue;
 	          }
 	
-	          var alt = _.trim(line.substr(16, 1));
-	
-	          var label = res_num + ' - ' + resType + ' - ' + atom_type;
+	          if (elem === '') {
+	            elem = deleteNumbers(_.trim(atomType)).substr(0, 1);
+	          }
+	          var label = resNum + ' - ' + resType + ' - ' + atomType;
 	          if (chain) {
 	            label = chain + ':' + label;
 	          }
-	
-	          var res_id = '';
-	          if (pdb_id) {
-	            res_id += pdb_id + ':';
+	          var resId = '';
+	          if (pdbId) {
+	            resId += pdbId + ':';
 	          }
 	          if (chain) {
-	            res_id += chain + ':';
+	            resId += chain + ':';
 	          }
-	          res_id += res_num;
+	          resId += resNum;
 	
 	          var iAtom = this.atomStore.count;
 	          this.atomStore.count += 1;
@@ -28776,35 +28796,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          this.atomStore.bondCount[iAtom] = 0;
 	
-	          var iAtomType = getValueTableIndex(this.atomTypeTable, atom_type);
+	          var iAtomType = getValueTableIndex(this.atomTypeTable, atomType);
 	          this.atomStore.iAtomType[iAtom] = iAtomType;
 	
 	          var iElem = getValueTableIndex(this.elemTable, elem);
 	          this.atomStore.iElem[iAtom] = iElem;
 	
-	          if (res_id !== this.currResId) {
-	            this.addResidue(iAtom, res_id, resType);
-	            this.currIRes = this.getResidueCount() - 1;
-	            this.currResId = res_id;
+	          if (resId !== currResId) {
+	            this.addResidue(iAtom, resId, resType);
+	            currResId = resId;
 	          }
 	
-	          this.residueStore.atomCount[this.currIRes] += 1;
-	          this.atomStore.iRes[iAtom] = this.currIRes;
+	          var iRes = this.getResidueCount() - 1;
+	          this.residueStore.atomCount[iRes] += 1;
+	          this.atomStore.iRes[iAtom] = iRes;
 	        }
-	        // } catch (e) {
-	        //   this.parsingError = 'line ' + iLine
-	        //   console.log(`Error: "${line}"`)
-	        //   return
-	        // }
 	      }
-	    }
-	  }, {
-	    key: 'getCentralAtom',
-	    value: function getCentralAtom() {
-	      var atomIndices = _.range(this.getAtomCount());
-	      var center = this.getCenter(atomIndices);
-	      var iAtom = this.getIAtomClosest(center, atomIndices);
-	      return this.getAtom(iAtom);
+	
+	      this.atomSelect = new _bitarray2.default(this.getAtomCount());
+	      this.residueSelect = new _bitarray2.default(this.getResidueCount());
 	    }
 	  }, {
 	    key: 'addResidue',
@@ -28824,6 +28834,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.residueStore.isMesh[iRes] = boolToInt(false);
 	    }
 	  }, {
+	    key: 'getCentralAtomProxy',
+	    value: function getCentralAtomProxy() {
+	      var atomIndices = _.range(this.getAtomCount());
+	      var center = this.getCenter(atomIndices);
+	      var iAtom = this.getIAtomClosest(center, atomIndices);
+	      return this.getAtomProxy(iAtom);
+	    }
+	  }, {
 	    key: 'getIResByResId',
 	    value: function getIResByResId(resId) {
 	      return this.resIds.indexOf(resId);
@@ -28831,17 +28849,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'assignResidueSsAndCentralAtoms',
 	    value: function assignResidueSsAndCentralAtoms() {
-	      var _this = this;
-	
 	      for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-	        var res = this.getResidue(iRes);
+	        var res = this.getResidueProxy(iRes);
 	        var iAtom = void 0;
 	        if (this.hasProteinBackbone(iRes)) {
-	          iAtom = res.getAtom('CA').iAtom;
+	          iAtom = res.getAtomProxy('CA').iAtom;
 	          res.ss = 'C';
 	          res.isPolymer = true;
 	        } else if (this.hasSugarBackbone(iRes)) {
-	          iAtom = res.getAtom('C3\'').iAtom;
+	          iAtom = res.getAtomProxy('C3\'').iAtom;
 	          res.ss = 'D';
 	          res.isPolymer = true;
 	        } else {
@@ -28858,13 +28874,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var center = this.getCenter(res.getAtomIndices());
 	          iAtom = this.getIAtomClosest(center, res.getAtomIndices());
 	        }
-	        this.residueStore.iCentralAtom[iRes] = iAtom;
-	
-	        var atomNames = _.map(res.getAtomIndices(), function (i) {
-	          return _this.getAtom(i).label;
-	        });
-	        var atom = this.getAtom(iAtom);
-	        // console.log(res.resId, res.ss, res.iAtom, atomNames, atom.label)
+	        res.iAtom = iAtom;
 	      }
 	    }
 	  }, {
@@ -28883,7 +28893,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (iAtomClosest === null) {
 	            iAtomClosest = iAtom;
 	          } else {
-	            var d = _v2.default.distance(pos, this.getAtom(iAtom).pos.clone());
+	            var d = _v2.default.distance(pos, this.getAtomProxy(iAtom).pos);
 	            if (d < min_d) {
 	              iAtomClosest = iAtom;
 	              min_d = d;
@@ -28919,7 +28929,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var _iterator6 = atomIndices[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
 	          var iAtom = _step6.value;
 	
-	          result = _v2.default.sum(result, this.getAtom(iAtom).pos.clone());
+	          result = _v2.default.sum(result, this.getAtomProxy(iAtom).pos);
 	        }
 	      } catch (err) {
 	        _didIteratorError6 = true;
@@ -28959,7 +28969,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      for (var iDim = 0; iDim < 3; iDim++) {
 	        for (var iAtom = 0; iAtom < this.getAtomCount(); iAtom += 1) {
-	          var pos = this.getAtom(iAtom).pos;
+	          var pos = this.getAtomProxy(iAtom).pos;
 	          if (minima[iDim] > comp(pos, iDim)) {
 	            minima[iDim] = comp(pos, iDim);
 	          }
@@ -28985,7 +28995,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var vertices = [];
 	      var nAtom = this.getAtomCount();
 	      for (var iAtom = 0; iAtom < nAtom; iAtom += 1) {
-	        var a = this.getAtom(iAtom);
+	        var a = this.getAtomProxy(iAtom);
 	        vertices.push([a.pos.x, a.pos.y, a.pos.z]);
 	      }
 	
@@ -29005,14 +29015,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            continue;
 	          }
 	
-	          var atom1 = this.getAtom(iAtom1);
-	          var atom2 = this.getOtherAtom(iAtom2);
+	          var atom1 = this.getAtomProxy(iAtom1);
+	          var atom2 = this.getOtherAtomProxy(iAtom2);
 	
 	          // HACK: to avoid the water grid bond calculation
 	          // step that kills the rendering
-	          // if ((atom1.resType === 'HOH') || (atom2.resType === 'HOH')) {
-	          //   continue
-	          // }
 	          if (atom1.resType === 'XXX' || atom2.resType === 'XXX') {
 	            continue;
 	          }
@@ -29033,13 +29040,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	
 	          if (_v2.default.distance(atom1.pos, atom2.pos) <= cutoff) {
-	            var iBond = this.bondStore.count;
-	            this.bondStore.count += 2;
-	            this.bondStore.growIfFull();
+	            var iBond = this.getBondCount();
+	            this.bondStore.increment();
 	            this.bondStore.iAtom1[iBond] = atom1.iAtom;
 	            this.bondStore.iAtom2[iBond] = atom2.iAtom;
-	            this.bondStore.iAtom1[iBond + 1] = atom2.iAtom;
-	            this.bondStore.iAtom2[iBond + 1] = atom1.iAtom;
+	
+	            iBond = this.getBondCount();
+	            this.bondStore.increment();
+	            this.bondStore.iAtom1[iBond] = atom2.iAtom;
+	            this.bondStore.iAtom2[iBond] = atom1.iAtom;
 	          }
 	        }
 	      } catch (err) {
@@ -29056,39 +29065,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	        }
 	      }
+	
+	      this.bondSelect = new _bitarray2.default(this.getBondCount());
 	    }
 	  }, {
 	    key: 'assignBondsToResidues',
 	    value: function assignBondsToResidues() {
-	      this.bondStore.sort(function (a, b) {
-	        return a.iAtom1 - b.iAtom1;
-	      });
+	      var _this = this;
+	
+	      var compare = function compare(iBond1, iBond2) {
+	        var iAtom1OfBond2 = _this.bondStore.iAtom1[iBond2];
+	        var iAtom1OfBond1 = _this.bondStore.iAtom1[iBond1];
+	        return iAtom1OfBond1 - iAtom1OfBond2;
+	      };
+	
+	      this.bondStore.sort(compare);
+	
+	      for (var iAtom = 0; iAtom < this.getAtomCount(); iAtom += 1) {
+	        this.atomStore.bondCount[iAtom] = 0;
+	      }
+	
 	      var iAtom1 = null;
-	      for (var iBond = 0; iBond < this.bondStore.count; iBond += 1) {
+	      for (var iBond = 0; iBond < this.getBondCount(); iBond += 1) {
 	        var bond = this.bondProxy.load(iBond);
 	        if (iAtom1 !== bond.iAtom1) {
 	          iAtom1 = bond.iAtom1;
 	          this.atomStore.bondOffset[iAtom1] = iBond;
-	          this.atomStore.bondCount[iAtom1] = 1;
 	        }
 	        this.atomStore.bondCount[iAtom1] += 1;
 	      }
-	      // for (let iAtom = 0; iAtom < this.getAtomCount(); iAtom += 1) {
-	      //   let atom = this.getAtom(iAtom)
-	      //   let iBondStart = this.atomStore.bondOffset[iAtom]
-	      //   let n = this.atomStore.bondCount[iAtom]
-	      //   if (n === 0) {
-	      //     continue
-	      //   }
-	      //   let bond = this.bonds[iBondStart]
-	      //   console.assert(iAtom === bond.iAtom1,
-	      //     `Bond ${iBondStart} ${bond.iAtom1} ${atom.label} error`)
-	      // }
 	    }
 	  }, {
 	    key: 'hasSugarBackbone',
 	    value: function hasSugarBackbone(iRes) {
-	      return this.getResidue(iRes).checkAtomTypes(['C3\'', 'O3\'', 'C5\'', 'O4\'', 'C1\'']);
+	      return this.getResidueProxy(iRes).checkAtomTypes(['C3\'', 'O3\'', 'C5\'', 'O4\'', 'C1\'']);
 	    }
 	
 	    /**
@@ -29098,9 +29108,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'isSugarPhosphateConnected',
 	    value: function isSugarPhosphateConnected(iRes0, iRes1) {
-	      if (this.hasSugarBackbone(iRes0) && this.hasSugarBackbone(iRes1) && this.getResidue(iRes1).checkAtomTypes(['P'])) {
-	        var o3 = this.getResidue(iRes0).getAtom('O3\'').pos.clone();
-	        var p = this.getResidue(iRes1).getAtom('P').pos.clone();
+	      if (this.hasSugarBackbone(iRes0) && this.hasSugarBackbone(iRes1) && this.getResidueProxy(iRes1).checkAtomTypes(['P'])) {
+	        var o3 = this.getResidueProxy(iRes0).getAtomProxy('O3\'').pos.clone();
+	        var p = this.getResidueProxy(iRes1).getAtomProxy('P').pos.clone();
 	        if (_v2.default.distance(o3, p) < 2.5) {
 	          return true;
 	        }
@@ -29110,9 +29120,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getNucleotideNormal',
 	    value: function getNucleotideNormal(iRes) {
-	      var c3 = this.getResidue(iRes).getAtom('C3\'').pos.clone();
-	      var c5 = this.getResidue(iRes).getAtom('C5\'').pos.clone();
-	      var c1 = this.getResidue(iRes).getAtom('C1\'').pos.clone();
+	      var c3 = this.getResidueProxy(iRes).getAtomProxy('C3\'').pos.clone();
+	      var c5 = this.getResidueProxy(iRes).getAtomProxy('C5\'').pos.clone();
+	      var c1 = this.getResidueProxy(iRes).getAtomProxy('C1\'').pos.clone();
 	      var forward = _v2.default.diff(c3, c5);
 	      var up = _v2.default.diff(c1, c3);
 	      return _v2.default.crossProduct(forward, up);
@@ -29120,7 +29130,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'hasProteinBackbone',
 	    value: function hasProteinBackbone(iRes) {
-	      return this.getResidue(iRes).checkAtomTypes(['CA', 'N', 'C']);
+	      return this.getResidueProxy(iRes).checkAtomTypes(['CA', 'N', 'C']);
 	    }
 	
 	    /**
@@ -29132,8 +29142,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'isPeptideConnected',
 	    value: function isPeptideConnected(iRes0, iRes1) {
 	      if (this.hasProteinBackbone(iRes0) && this.hasProteinBackbone(iRes1)) {
-	        var c = this.getResidue(iRes0).getAtom('C').pos.clone();
-	        var n = this.getResidue(iRes1).getAtom('N').pos.clone();
+	        var c = this.getResidueProxy(iRes0).getAtomProxy('C').pos.clone();
+	        var n = this.getResidueProxy(iRes1).getAtomProxy('N').pos.clone();
 	        if (_v2.default.distance(c, n) < 2) {
 	          return true;
 	        }
@@ -29162,13 +29172,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var vertices = [];
 	      var atomIndices = [];
 	      for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-	        var residue = this.getResidue(iRes);
+	        var residue = this.getResidueProxy(iRes);
 	        if (residue.isPolymer) {
 	          var _arr = ['O', 'N'];
 	
 	          for (var _i = 0; _i < _arr.length; _i++) {
 	            var aTypeName = _arr[_i];
-	            var a = residue.getAtom(aTypeName);
+	            var a = residue.getAtomProxy(aTypeName);
 	            if (a !== null) {
 	              vertices.push([a.pos.x, a.pos.y, a.pos.z]);
 	              atomIndices.push(a.iAtom);
@@ -29186,8 +29196,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var _iterator8 = (0, _pairs.getClosePairs)(vertices)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
 	          var pair = _step8.value;
 	
-	          var a0 = this.getAtom(atomIndices[pair[0]]);
-	          var a1 = new AtomProxy(this).load(atomIndices[pair[1]]);
+	          var a0 = this.getAtomProxy(atomIndices[pair[0]]);
+	          var a1 = this.getOtherAtomProxy(atomIndices[pair[1]]);
 	          if (a0.elem === 'O' && a1.elem === 'N') {
 	            var _ref = [a1, a0];
 	            a0 = _ref[0];
@@ -29235,8 +29245,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'vecBetweenResidues',
 	    value: function vecBetweenResidues(iRes0, iRes1) {
-	      var pos0 = this.getResidue(iRes0).getCentralAtom().pos;
-	      var pos1 = this.getResidue(iRes1).getCentralAtom().pos;
+	      var pos0 = this.getResidueProxy(iRes0).getCentralAtomProxy().pos.clone();
+	      var pos1 = this.getResidueProxy(iRes1).getCentralAtomProxy().pos.clone();
 	      return _v2.default.diff(pos0, pos1);
 	    }
 	
@@ -29260,7 +29270,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      for (var iRes1 = 0; iRes1 < nRes; iRes1 += 1) {
 	
-	        if (_.includes('DR', this.getResidue(iRes1).ss)) {
+	        if (_.includes('DR', this.getResidueProxy(iRes1).ss)) {
 	          pushToListInDict(this.residueNormals, iRes1, this.getNucleotideNormal(iRes1));
 	        }
 	
@@ -29269,7 +29279,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var normal1 = this.vecBetweenResidues(iRes1, iRes1 + 4);
 	          var normal2 = this.vecBetweenResidues(iRes1 + 1, iRes1 + 5);
 	          for (var iRes2 = iRes1 + 1; iRes2 < iRes1 + 5; iRes2 += 1) {
-	            this.getResidue(iRes2).ss = 'H';
+	            this.getResidueProxy(iRes2).ss = 'H';
 	            pushToListInDict(this.residueNormals, iRes2, normal1);
 	            pushToListInDict(this.residueNormals, iRes2, normal2);
 	          }
@@ -29280,7 +29290,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var _normal = this.vecBetweenResidues(iRes1, iRes1 + 3);
 	          var _normal2 = this.vecBetweenResidues(iRes1 + 1, iRes1 + 4);
 	          for (var _iRes = iRes1 + 1; _iRes < iRes1 + 4; _iRes += 1) {
-	            this.getResidue(_iRes).ss = 'H';
+	            this.getResidueProxy(_iRes).ss = 'H';
 	            pushToListInDict(this.residueNormals, _iRes, _normal);
 	            pushToListInDict(this.residueNormals, _iRes, _normal2);
 	          }
@@ -29326,7 +29336,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            for (var _iterator9 = betaResidueIndices[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
 	              var iRes = _step9.value;
 	
-	              this.getResidue(iRes).ss = 'E';
+	              this.getResidueProxy(iRes).ss = 'E';
 	            }
 	          } catch (err) {
 	            _didIteratorError9 = true;
@@ -29381,10 +29391,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // flip every second beta-strand normal so they are
 	      // consistently pointing in the same direction
 	      for (var _iRes4 = 1; _iRes4 < nRes; _iRes4 += 1) {
-	        var res = this.getResidue(_iRes4 - 1);
+	        var res = this.getResidueProxy(_iRes4 - 1);
 	        var prevNormal = res.normal;
 	        if (res.ss === 'E' && prevNormal) {
-	          res = this.getResidue(_iRes4);
+	          res = this.getResidueProxy(_iRes4);
 	          if (res.ss === 'E' && res.normal) {
 	            if (res.normal.dot(prevNormal) < 0) {
 	              this.residueNormal[_iRes4].negate();
@@ -29394,13 +29404,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: 'getAtom',
-	    value: function getAtom(iAtom) {
+	    key: 'getAtomProxy',
+	    value: function getAtomProxy(iAtom) {
 	      return this.atomProxy.load(iAtom);
 	    }
 	  }, {
-	    key: 'getOtherAtom',
-	    value: function getOtherAtom(iAtom) {
+	    key: 'getOtherAtomProxy',
+	    value: function getOtherAtomProxy(iAtom) {
 	      return this.otherAtomProxy.load(iAtom);
 	    }
 	  }, {
@@ -29409,9 +29419,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.atomStore.count;
 	    }
 	  }, {
-	    key: 'getResidue',
-	    value: function getResidue(iRes) {
+	    key: 'getResidueProxy',
+	    value: function getResidueProxy(iRes) {
 	      return this.residueProxy.load(iRes);
+	    }
+	  }, {
+	    key: 'getBondCount',
+	    value: function getBondCount() {
+	      return this.bondStore.count;
 	    }
 	  }, {
 	    key: 'getResidueCount',
@@ -29421,19 +29436,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'clearSelectedResidues',
 	    value: function clearSelectedResidues() {
-	      for (var i = 0; i < this.getResidueCount(); i += 1) {
-	        this.getResidue(i).selected = false;
-	      }
+	      this.residueSelect.clearBits();
 	    }
 	  }, {
 	    key: 'areCloseResidues',
 	    value: function areCloseResidues(iRes0, iRes1) {
-	      var res0 = this.getResidue(iRes0);
-	      var pos0 = this.getAtom(res0.iAtom).pos.clone();
+	      var res0 = this.getResidueProxy(iRes0);
+	      var pos0 = this.getAtomProxy(res0.iAtom).pos.clone();
 	      var atomIndices0 = res0.getAtomIndices();
 	
-	      var res1 = this.getResidue(iRes1);
-	      var pos1 = this.getAtom(res1.iAtom).pos.clone();
+	      var res1 = this.getResidueProxy(iRes1);
+	      var pos1 = this.getAtomProxy(res1.iAtom).pos.clone();
 	      var atomIndices1 = res1.getAtomIndices();
 	
 	      if (_v2.default.distance(pos0, pos1) > 17) {
@@ -29455,8 +29468,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            for (var _iterator12 = atomIndices1[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
 	              var iAtom1 = _step12.value;
 	
-	              var _pos = this.getAtom(iAtom0).pos.clone();
-	              var _pos2 = this.getAtom(iAtom1).pos.clone();
+	              var _pos = this.getAtomProxy(iAtom0).pos.clone();
+	              var _pos2 = this.getAtomProxy(iAtom1).pos.clone();
 	              if (_v2.default.distance(_pos, _pos2) < 4) {
 	                return true;
 	              }
@@ -29494,14 +29507,50 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return false;
 	    }
 	  }, {
-	    key: 'selectNeighbourResidues',
-	    value: function selectNeighbourResidues(iRes, selected) {
-	      this.getResidue(iRes).selected = selected;
-	      for (var jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
-	        if (this.areCloseResidues(jRes, iRes)) {
-	          this.getResidue(jRes).selected = selected;
+	    key: 'clearSelectedResidues',
+	    value: function clearSelectedResidues() {
+	      for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
+	        this.getResidueProxy(iRes).selected = false;
+	      }
+	    }
+	  }, {
+	    key: 'selectResidues',
+	    value: function selectResidues(residueIndices, select) {
+	      var _iteratorNormalCompletion13 = true;
+	      var _didIteratorError13 = false;
+	      var _iteratorError13 = undefined;
+	
+	      try {
+	        for (var _iterator13 = residueIndices[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+	          var iRes = _step13.value;
+	
+	          this.getResidueProxy(iRes).selected = select;
+	        }
+	      } catch (err) {
+	        _didIteratorError13 = true;
+	        _iteratorError13 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion13 && _iterator13.return) {
+	            _iterator13.return();
+	          }
+	        } finally {
+	          if (_didIteratorError13) {
+	            throw _iteratorError13;
+	          }
 	        }
 	      }
+	    }
+	  }, {
+	    key: 'selectNeighbourResidues',
+	    value: function selectNeighbourResidues(iRes, selected) {
+	      var indices = [iRes];
+	      for (var jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
+	        if (this.areCloseResidues(jRes, iRes)) {
+	          indices.push(jRes);
+	        }
+	      }
+	      this.selectResidues(indices, selected);
 	    }
 	
 	    /**
@@ -29512,9 +29561,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'findGridLimits',
 	    value: function findGridLimits() {
 	      for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-	        var residue = this.getResidue(iRes);
+	        var residue = this.getResidueProxy(iRes);
 	        if (residue.ss === 'G') {
-	          var atom = residue.getCentralAtom();
+	          var atom = residue.getCentralAtomProxy();
 	          if (!(atom.elem in this.grid.isElem)) {
 	            this.grid.isElem[atom.elem] = true;
 	          }
@@ -29642,7 +29691,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'makeDefaultOfSoup',
 	    value: function makeDefaultOfSoup(soup) {
-	      var atom = soup.getCentralAtom();
+	      var atom = soup.getCentralAtomProxy();
 	      this.i_atom = atom.iAtom;
 	      this.res_id = soup.resIds[atom.iRes];
 	
@@ -29868,7 +29917,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'centered_atom',
 	    value: function centered_atom() {
 	      var i = this.current_view.i_atom;
-	      return this.soup.getAtom(i);
+	      return this.soup.getAtomProxy(i);
 	    }
 	  }, {
 	    key: 'get_i_saved_view_from_id',
@@ -29978,9 +30027,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'set_target_view_by_atom',
 	    value: function set_target_view_by_atom(iAtom) {
-	      var atom = this.soup.getAtom(iAtom);
+	      var atom = this.soup.getAtomProxy(iAtom);
 	      var view = this.scene.current_view.getViewTranslatedTo(atom.pos);
-	      view.res_id = this.soup.getResidue(atom.iRes).id;
+	      view.res_id = this.soup.getResidueProxy(atom.iRes).id;
 	      view.i_atom = iAtom;
 	      this.set_target_view(view);
 	    }
@@ -29999,7 +30048,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else {
 	        i -= 1;
 	      }
-	      var iAtom = this.soup.getResidue(i).iAtom;
+	      var iAtom = this.soup.getResidueProxy(i).iAtom;
 	      this.set_target_view_by_atom(iAtom);
 	    }
 	  }, {
@@ -30017,7 +30066,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else {
 	        i += 1;
 	      }
-	      var iAtom = this.soup.getResidue(i).iAtom;
+	      var iAtom = this.soup.getResidueProxy(i).iAtom;
 	      this.set_target_view_by_atom(iAtom);
 	    }
 	  }, {
@@ -30067,7 +30116,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function make_selected() {
 	      var result = [];
 	      for (var i = 0; i < this.soup.getResidueCount(); i += 1) {
-	        if (this.soup.getResidue(i).selected) {
+	        if (this.soup.getResidueProxy(i).selected) {
 	          result.push(i);
 	        }
 	      }
@@ -30083,7 +30132,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'select_residue',
 	    value: function select_residue(i, v) {
-	      this.soup.getResidue(i).selected = v;
+	      this.soup.getResidueProxy(i).selected = v;
 	      this.scene.current_view.selected = this.make_selected();
 	      this.scene.changed = true;
 	    }
@@ -30187,16 +30236,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'set_current_view',
 	    value: function set_current_view(view) {
-	      for (var i = 0; i < this.soup.getResidueCount(); i += 1) {
-	        this.soup.getResidue(i).selected = false;
-	      }
 	      this.scene.current_view = view.clone();
-	      var atom = this.soup.getAtom(view.i_atom);
+	      var atom = this.soup.getAtomProxy(view.i_atom);
 	      this.scene.current_view.res_id = this.soup.resIds[atom.iRes];
-	      for (var _i2 = 0; _i2 < view.selected.length; _i2 += 1) {
-	        var i_res = view.selected[_i2];
-	        this.soup.getResidue(i_res).selected = true;
-	      }
+	      this.scene.soup.clearSelectedResidues();
+	      this.scene.soup.selectResidues(view.selected, true);
 	      this.scene.changed = true;
 	    }
 	  }]);
@@ -73405,7 +73449,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  /**
 	   * Initialize the store
 	   * @param  {Integer} size - size to initialize
-	   * @return {undefined}
 	   */
 	
 	
@@ -73447,7 +73490,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @param  {Integer} size - element size
 	     * @param  {String} type - data type, one of int8, int16, int32,
 	     *                         uint8, uint16, uint32, float32
-	     * @return {undefined}
 	     */
 	
 	  }, {
@@ -73462,7 +73504,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @param  {Integer} size - element size
 	     * @param  {String} type - data type, one of int8, int16, int32,
 	     *                         uint8, uint16, uint32, float32
-	     * @return {undefined}
 	     */
 	
 	  }, {
@@ -73475,7 +73516,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     * Resize the store to the new size
 	     * @param  {Integer} size - new size
-	     * @return {undefined}
 	     */
 	
 	  }, {
@@ -73504,8 +73544,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	
 	    /**
-	     * Resize the store to 1.5 times its current size if full
-	     * @return {undefined}
+	     * Resize the store to 1.5 times its current size if full, or to 256 if empty
 	     */
 	
 	  }, {
@@ -73518,12 +73557,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	
 	    /**
+	     * Increase the store by 1, and resize if necessary
+	     */
+	
+	  }, {
+	    key: 'increment',
+	    value: function increment() {
+	      this.count += 1;
+	      this.growIfFull();
+	    }
+	
+	    /**
 	     * Copy data from one store to another
 	     * @param  {Store} other - store to copy from
 	     * @param  {Integer} thisOffset - offset to start copying to
 	     * @param  {Integer} otherOffset - offset to start copying from
 	     * @param  {Integer} length - number of entries to copy
-	     * @return {undefined}
 	     */
 	
 	  }, {
@@ -73550,7 +73599,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @param  {Integer} thisOffset - offset to start copying to
 	     * @param  {Integer} otherOffset - offset to start copying from
 	     * @param  {Integer} length - number of entries to copy
-	     * @return {undefined}
 	     */
 	
 	  }, {
@@ -73574,14 +73622,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     * Sort entries in the store given the compare function
 	     * @param  {[type]} compareFunction - function to sort by
-	     * @return {undefined}
 	     */
 	
 	  }, {
 	    key: 'sort',
 	    value: function sort(compareFunction) {
-	      // Log.time('Store.sort')
-	
 	      var thisStore = this;
 	      var tmpStore = new this.constructor(this._fields, 1);
 	
@@ -73621,13 +73666,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      quicksort(0, this.count - 1);
-	
-	      // Log.timeEnd('Store.sort')
 	    }
 	
 	    /**
 	     * Empty the store
-	     * @return {undefined}
 	     */
 	
 	  }, {
@@ -73638,7 +73680,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    /**
 	     * Dispose of the store entries and fields
-	     * @return {undefined}
 	     */
 	
 	  }, {
@@ -73661,6 +73702,610 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 13 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	/**
+	 * @file Bit array
+	 * @author Alexander Rose <alexander.rose@weirdbyte.de>
+	 * @author Paul Pillot <paulpillot@gmail.com>
+	 * @private
+	 */
+	
+	/**
+	 * Compute the Hamming weight of a 32-bit unsigned integer
+	 * @param  {Integer} v - a 32-bit unsigned integer
+	 * @return {Integer} the Hamming weight
+	 */
+	function hammingWeight(v) {
+	  // works with signed or unsigned shifts
+	  v -= v >>> 1 & 0x55555555;
+	  v = (v & 0x33333333) + (v >>> 2 & 0x33333333);
+	  return (v + (v >>> 4) & 0xF0F0F0F) * 0x1010101 >>> 24;
+	}
+	
+	/**
+	 * Bit array
+	 *
+	 * Based heavily on https://github.com/lemire/FastBitSet.js
+	 * which is licensed under the Apache License, Version 2.0.
+	 */
+	
+	var BitArray = function () {
+	  /**
+	   * @param  {Integer} length - array length
+	   * @param  {Boolean} [setAll] - initialize with true
+	   */
+	  function BitArray(length, setAll) {
+	    _classCallCheck(this, BitArray);
+	
+	    this.length = length;
+	    this._words = new Uint32Array(length + 32 >>> 5);
+	    if (setAll === true) {
+	      this.setAll();
+	    }
+	  }
+	
+	  /**
+	   * Get value at index
+	   * @param  {Integer} index - the index
+	   * @return {Boolean} value
+	   */
+	
+	
+	  _createClass(BitArray, [{
+	    key: 'get',
+	    value: function get(index) {
+	      return (this._words[index >>> 5] & 1 << index) !== 0;
+	    }
+	
+	    /**
+	     * Set value at index to true
+	     * @param  {Integer} index - the index
+	     * @return {undefined}
+	     */
+	
+	  }, {
+	    key: 'set',
+	    value: function set(index) {
+	      this._words[index >>> 5] |= 1 << index;
+	    }
+	
+	    /**
+	     * Set value at index to false
+	     * @param  {Integer} index - the index
+	     * @return {undefined}
+	     */
+	
+	  }, {
+	    key: 'clear',
+	    value: function clear(index) {
+	      this._words[index >>> 5] &= ~(1 << index);
+	    }
+	
+	    /**
+	     * Flip value at index
+	     * @param  {Integer} index - the index
+	     * @return {undefined}
+	     */
+	
+	  }, {
+	    key: 'flip',
+	    value: function flip(index) {
+	      this._words[index >>> 5] ^= 1 << index;
+	    }
+	  }, {
+	    key: '_assignRange',
+	    value: function _assignRange(start, end, value) {
+	      var words = this._words;
+	      var wordValue = value === true ? 0xFFFFFFFF : 0;
+	      var wordStart = start >>> 5;
+	      var wordEnd = end >>> 5;
+	      // set complete words when applicable
+	      for (var k = wordStart; k < wordEnd; ++k) {
+	        words[k] = wordValue;
+	      }
+	      // set parts of the range not spanning complete words
+	      var startWord = wordStart << 5;
+	      var endWord = wordEnd << 5;
+	      if (value === true) {
+	        if (end - start < 32) {
+	          for (var i = start, n = end + 1; i < n; ++i) {
+	            words[i >>> 5] |= 1 << i;
+	          }
+	        } else {
+	          for (var _i = start, _n = startWord; _i < _n; ++_i) {
+	            words[_i >>> 5] |= 1 << _i;
+	          }
+	          for (var _i2 = endWord, _n2 = end + 1; _i2 < _n2; ++_i2) {
+	            words[_i2 >>> 5] |= 1 << _i2;
+	          }
+	        }
+	      } else {
+	        if (end - start < 32) {
+	          for (var _i3 = start, _n3 = end + 1; _i3 < _n3; ++_i3) {
+	            words[_i3 >>> 5] &= ~(1 << _i3);
+	          }
+	        } else {
+	          for (var _i4 = start, _n4 = startWord; _i4 < _n4; ++_i4) {
+	            words[_i4 >>> 5] &= ~(1 << _i4);
+	          }
+	          for (var _i5 = endWord, _n5 = end + 1; _i5 < _n5; ++_i5) {
+	            words[_i5 >>> 5] &= ~(1 << _i5);
+	          }
+	        }
+	      }
+	      return this;
+	    }
+	
+	    /**
+	     * Set bits of the given range
+	     * @param {Integer} start - start index
+	     * @param {Integer} end - end index
+	     * @return {BitArray} this object
+	     */
+	
+	  }, {
+	    key: 'setRange',
+	    value: function setRange(start, end) {
+	      return this._assignRange(start, end, true);
+	    }
+	
+	    /**
+	     * Clear bits of the given range
+	     * @param {Integer} start - start index
+	     * @param {Integer} end - end index
+	     * @return {BitArray} this object
+	     */
+	
+	  }, {
+	    key: 'clearRange',
+	    value: function clearRange(start, end) {
+	      return this._assignRange(start, end, false);
+	    }
+	
+	    /**
+	     * Set bits at all given indices
+	     * @param {...Integer} arguments - indices
+	     * @return {Boolean} this object
+	     */
+	
+	  }, {
+	    key: 'setBits',
+	    value: function setBits() {
+	      var words = this._words;
+	      var n = arguments.length;
+	      for (var i = 0; i < n; ++i) {
+	        var index = arguments[i];
+	        words[index >>> 5] |= 1 << index;
+	      }
+	      return this;
+	    }
+	
+	    /**
+	     * Clear bits at all given indices
+	     * @param {...Integer} arguments - indices
+	     * @return {Boolean} this object
+	     */
+	
+	  }, {
+	    key: 'clearBits',
+	    value: function clearBits() {
+	      var words = this._words;
+	      var n = arguments.length;
+	      for (var i = 0; i < n; ++i) {
+	        var index = arguments[i];
+	        words[index >>> 5] &= ~(1 << index);
+	      }
+	      return this;
+	    }
+	
+	    /**
+	     * Set all bits of the array
+	     * @return {BitArray} this object
+	     */
+	
+	  }, {
+	    key: 'setAll',
+	    value: function setAll() {
+	      return this._assignRange(0, this.length - 1, true);
+	    }
+	
+	    /**
+	     * Clear all bits of the array
+	     * @return {BitArray} this object
+	     */
+	
+	  }, {
+	    key: 'clearAll',
+	    value: function clearAll() {
+	      return this._assignRange(0, this.length - 1, false);
+	    }
+	
+	    /**
+	     * Flip all the values in the array
+	     * @return {BitArray} this object
+	     */
+	
+	  }, {
+	    key: 'flipAll',
+	    value: function flipAll() {
+	      var count = this._words.length;
+	      var words = this._words;
+	      var bs = 32 - this.length % 32;
+	      for (var k = 0; k < count - 1; ++k) {
+	        words[k] = ~words[k];
+	      }
+	      words[count - 1] = ~(words[count - 1] << bs) >>> bs;
+	      return this;
+	    }
+	  }, {
+	    key: '_isRangeValue',
+	    value: function _isRangeValue(start, end, value) {
+	      var words = this._words;
+	      var wordValue = value === true ? 0xFFFFFFFF : 0;
+	      var wordStart = start >>> 5;
+	      var wordEnd = end >>> 5;
+	      // set complete words when applicable
+	      for (var k = wordStart; k < wordEnd; ++k) {
+	        if (words[k] !== wordValue) return false;
+	      }
+	      // set parts of the range not spanning complete words
+	      if (end - start < 32) {
+	        for (var i = start, n = end + 1; i < n; ++i) {
+	          if (!!(words[i >>> 5] & 1 << i) !== value) return false;
+	        }
+	      } else {
+	        var startWord = wordStart << 5;
+	        var endWord = wordEnd << 5;
+	        for (var _i6 = start, _n6 = startWord << 5; _i6 < _n6; ++_i6) {
+	          if (!!(words[_i6 >>> 5] & 1 << _i6) !== value) return false;
+	        }
+	        for (var _i7 = endWord, _n7 = end + 1; _i7 < _n7; ++_i7) {
+	          if (!!(words[_i7 >>> 5] & 1 << _i7) !== value) return false;
+	        }
+	      }
+	      return true;
+	    }
+	
+	    /**
+	     * Test if bits in given range are set
+	     * @param {Integer} start - start index
+	     * @param {Integer} end - end index
+	     * @return {BitArray} this object
+	     */
+	
+	  }, {
+	    key: 'isRangeSet',
+	    value: function isRangeSet(start, end) {
+	      return this._isRangeValue(start, end, true);
+	    }
+	
+	    /**
+	     * Test if bits in given range are clear
+	     * @param {Integer} start - start index
+	     * @param {Integer} end - end index
+	     * @return {BitArray} this object
+	     */
+	
+	  }, {
+	    key: 'isRangeClear',
+	    value: function isRangeClear(start, end) {
+	      return this._isRangeValue(start, end, false);
+	    }
+	
+	    /**
+	     * Test if all bits in the array are set
+	     * @return {Boolean} test result
+	     */
+	
+	  }, {
+	    key: 'isAllSet',
+	    value: function isAllSet() {
+	      return this._isRangeValue(0, this.length - 1, true);
+	    }
+	
+	    /**
+	     * Test if all bits in the array are clear
+	     * @return {Boolean} test result
+	     */
+	
+	  }, {
+	    key: 'isAllClear',
+	    value: function isAllClear() {
+	      return this._isRangeValue(0, this.length - 1, false);
+	    }
+	
+	    /**
+	     * Test if bits at all given indices are set
+	     * @param {...Integer} arguments - indices
+	     * @return {Boolean} test result
+	     */
+	
+	  }, {
+	    key: 'isSet',
+	    value: function isSet() {
+	      var words = this._words;
+	      var n = arguments.length;
+	      for (var i = 0; i < n; ++i) {
+	        var index = arguments[i];
+	        if ((words[index >>> 5] & 1 << index) === 0) return false;
+	      }
+	      return true;
+	    }
+	
+	    /**
+	     * Test if bits at all given indices are clear
+	     * @param {...Integer} arguments - indices
+	     * @return {Boolean} test result
+	     */
+	
+	  }, {
+	    key: 'isClear',
+	    value: function isClear() {
+	      var words = this._words;
+	      var n = arguments.length;
+	      for (var i = 0; i < n; ++i) {
+	        var index = arguments[i];
+	        if ((words[index >>> 5] & 1 << index) !== 0) return false;
+	      }
+	      return true;
+	    }
+	
+	    /**
+	     * Test if two BitArrays are identical in all their values
+	     * @param {BitArray} otherBitarray - the other BitArray
+	     * @return {Boolean} test result
+	     */
+	
+	  }, {
+	    key: 'isEqualTo',
+	    value: function isEqualTo(otherBitarray) {
+	      var words1 = this._words;
+	      var words2 = otherBitarray._words;
+	      var count = Math.min(words1.length, words2.length);
+	      for (var k = 0; k < count; ++k) {
+	        if (words1[k] !== words2[k]) {
+	          return false;
+	        }
+	      }
+	      return true;
+	    }
+	
+	    /**
+	     * How many set bits?
+	     * @return {Integer} number of set bits
+	     */
+	
+	  }, {
+	    key: 'getSize',
+	    value: function getSize() {
+	      var count = this._words.length;
+	      var words = this._words;
+	      var size = 0;
+	      for (var i = 0; i < count; ++i) {
+	        size += hammingWeight(words[i]);
+	      }
+	      return size;
+	    }
+	
+	    /**
+	     * Calculate difference betwen this and another bit array.
+	     * Store result in this object.
+	     * @param  {BitArray} otherBitarray - the other bit array
+	     * @return {BitArray} this object
+	     */
+	
+	  }, {
+	    key: 'difference',
+	    value: function difference(otherBitarray) {
+	      var words1 = this._words;
+	      var words2 = otherBitarray._words;
+	      var count = Math.min(words1.length, words2.length);
+	      for (var k = 0; k < count; ++k) {
+	        words1[k] = words1[k] & ~words2[k];
+	      }
+	      for (var _k = words1.length; _k < count; ++_k) {
+	        words1[_k] = 0;
+	      }
+	      return this;
+	    }
+	
+	    /**
+	     * Calculate union betwen this and another bit array.
+	     * Store result in this object.
+	     * @param  {BitArray} otherBitarray - the other bit array
+	     * @return {BitArray} this object
+	     */
+	
+	  }, {
+	    key: 'union',
+	    value: function union(otherBitarray) {
+	      var words1 = this._words;
+	      var words2 = otherBitarray._words;
+	      var count = Math.min(words1.length, words2.length);
+	      for (var k = 0; k < count; ++k) {
+	        words1[k] |= words2[k];
+	      }
+	      for (var _k2 = words1.length; _k2 < count; ++_k2) {
+	        words1[_k2] = 0;
+	      }
+	      return this;
+	    }
+	
+	    /**
+	     * Calculate intersection betwen this and another bit array.
+	     * Store result in this object.
+	     * @param  {BitArray} otherBitarray - the other bit array
+	     * @return {BitArray} this object
+	     */
+	
+	  }, {
+	    key: 'intersection',
+	    value: function intersection(otherBitarray) {
+	      var words1 = this._words;
+	      var words2 = otherBitarray._words;
+	      var count = Math.min(words1.length, words2.length);
+	      for (var k = 0; k < count; ++k) {
+	        words1[k] &= words2[k];
+	      }
+	      for (var _k3 = words1.length; _k3 < count; ++_k3) {
+	        words1[_k3] = 0;
+	      }
+	      return this;
+	    }
+	
+	    /**
+	     * Test if there is any intersection betwen this and another bit array.
+	     * @param  {BitArray} otherBitarray - the other bit array
+	     * @return {Boolean} test result
+	     */
+	
+	  }, {
+	    key: 'intersects',
+	    value: function intersects(otherBitarray) {
+	      var words1 = this._words;
+	      var words2 = otherBitarray._words;
+	      var count = Math.min(words1.length, words2.length);
+	      for (var k = 0; k < count; ++k) {
+	        if ((words1[k] & words2[k]) !== 0) {
+	          return true;
+	        }
+	      }
+	      return false;
+	    }
+	
+	    /**
+	     * Calculate the number of bits in common betwen this and another bit array.
+	     * @param  {BitArray} otherBitarray - the other bit array
+	     * @return {Integer} size
+	     */
+	
+	  }, {
+	    key: 'getIntersectionSize',
+	    value: function getIntersectionSize(otherBitarray) {
+	      var words1 = this._words;
+	      var words2 = otherBitarray._words;
+	      var count = Math.min(words1.length, words2.length);
+	      var size = 0;
+	      for (var k = 0; k < count; ++k) {
+	        size += hammingWeight(words1[k] & words2[k]);
+	      }
+	      return size;
+	    }
+	
+	    /**
+	     * Calculate intersection betwen this and another bit array.
+	     * Store result in a new bit array.
+	     * @param  {BitArray} otherBitarray - the other bit array
+	     * @return {BitArray} the new bit array
+	     */
+	
+	  }, {
+	    key: 'makeIntersection',
+	    value: function makeIntersection(otherBitarray) {
+	      var words1 = this._words;
+	      var words2 = otherBitarray._words;
+	      var count = Math.min(words1.length, words2.length);
+	      var wordsA = new Uint32Array(count);
+	      var intersection = Object.create(BitArray.prototype);
+	      intersection._words = wordsA;
+	      intersection.length = Math.min(this.length, otherBitarray.length);
+	      for (var k = 0; k < count; ++k) {
+	        wordsA[k] = words1[k] & words2[k];
+	      }
+	      return intersection;
+	    }
+	
+	    /**
+	     * Iterate over all set bits in the array
+	     * @param  {function( index: Integer, i: Integer )} callback - the callback
+	     * @return {undefined}
+	     */
+	
+	  }, {
+	    key: 'forEach',
+	    value: function forEach(callback) {
+	      var count = this._words.length;
+	      var words = this._words;
+	      var i = 0;
+	      for (var k = 0; k < count; ++k) {
+	        var w = words[k];
+	        while (w !== 0) {
+	          var t = w & -w;
+	          var index = (k << 5) + hammingWeight(t - 1);
+	          callback(index, i);
+	          w ^= t;
+	          ++i;
+	        }
+	      }
+	    }
+	
+	    /**
+	     * Get an array with the set bits
+	     * @return {Array} bit indices
+	     */
+	
+	  }, {
+	    key: 'toArray',
+	    value: function toArray() {
+	      var words = this._words;
+	      var answer = new Array(this.getSize());
+	      var count = this._words.length;
+	      var pos = 0;
+	      for (var k = 0; k < count; ++k) {
+	        var w = words[k];
+	        while (w !== 0) {
+	          var t = w & -w;
+	          answer[pos++] = (k << 5) + hammingWeight(t - 1);
+	          w ^= t;
+	        }
+	      }
+	      return answer;
+	    }
+	  }, {
+	    key: 'toString',
+	    value: function toString() {
+	      return '{' + this.toArray().join(',') + '}';
+	    }
+	  }, {
+	    key: 'toSeleString',
+	    value: function toSeleString() {
+	      var sele = this.toArray().join(',');
+	      return sele ? '@' + sele : 'NONE';
+	    }
+	
+	    /**
+	     * Clone this object
+	     * @return {BitArray} the cloned object
+	     */
+	
+	  }, {
+	    key: 'clone',
+	    value: function clone() {
+	      var clone = Object.create(BitArray.prototype);
+	      clone.length = this.length;
+	      clone._words = new Uint32Array(this._words);
+	      return clone;
+	    }
+	  }]);
+	
+	  return BitArray;
+	}();
+	
+	exports.default = BitArray;
+
+/***/ },
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -73696,11 +74341,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var util = _interopRequireWildcard(_util);
 	
-	var _widgets = __webpack_require__(14);
+	var _widgets = __webpack_require__(15);
 	
 	var _widgets2 = _interopRequireDefault(_widgets);
 	
-	var _data = __webpack_require__(15);
+	var _data = __webpack_require__(16);
 	
 	var data = _interopRequireWildcard(_data);
 	
@@ -73929,8 +74574,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var _iterator = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 	          var i = _step.value;
 	
-	          var ss = this.soup.getResidue(i).ss;
-	          this.soup.getResidue(i).color = data.getSsColor(ss);
+	          var ss = this.soup.getResidueProxy(i).ss;
+	          this.soup.getResidueProxy(i).color = data.getSsColor(ss);
 	        }
 	      } catch (err) {
 	        _didIteratorError = true;
@@ -73969,13 +74614,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var lastTrace = void 0;
 	
 	      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
-	        if (this.soup.getResidue(iRes).isPolymer) {
-	          var res = this.soup.getResidue(iRes);
+	        if (this.soup.getResidueProxy(iRes).isPolymer) {
+	          var res = this.soup.getResidueProxy(iRes);
 	          if (iRes === 0 || !this.soup.isPolymerConnected(iRes - 1, iRes)) {
 	            (function () {
 	              var newTrace = new glgeom.Trace();
 	              newTrace.getReference = function (i) {
-	                return _this2.soup.getResidue(newTrace.indices[i]);
+	                return _this2.soup.getResidueProxy(newTrace.indices[i]);
 	              };
 	              _this2.traces.push(newTrace);
 	              lastTrace = newTrace;
@@ -73983,10 +74628,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	          lastTrace.indices.push(iRes);
 	
-	          var atom = this.soup.getResidue(iRes).getCentralAtom();
+	          var atom = this.soup.getResidueProxy(iRes).getCentralAtomProxy();
 	          lastTrace.points.push(atom.pos.clone());
 	
-	          var normal = this.soup.getResidue(iRes).normal;
+	          var normal = this.soup.getResidueProxy(iRes).normal;
 	          lastTrace.residueNormals.push(normal);
 	        }
 	      }
@@ -74022,10 +74667,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getAtomColor',
 	    value: function getAtomColor(iAtom) {
-	      var atom = this.soup.getAtom(iAtom);
+	      var atom = this.soup.getAtomProxy(iAtom);
 	      if (atom.elem === 'C' || atom.elem === 'H') {
 	        var iRes = atom.iRes;
-	        return this.soup.getResidue(iRes).color;
+	        return this.soup.getResidueProxy(iRes).color;
 	      } else if (atom.elem in data.ElementColors) {
 	        return data.ElementColors[atom.elem];
 	      }
@@ -74230,7 +74875,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var _mesh2 = _arr2[_i2];
 	          _mesh2.traverse(function (child) {
 	            if (util.exists(child.i)) {
-	              var selected = _this3.soup.getResidue(child.i).selected;
+	              var selected = _this3.soup.getResidueProxy(child.i).selected;
 	              child.visible = show.sidechain || selected;
 	            }
 	          });
@@ -74244,7 +74889,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'mergeAtomToGeom',
 	    value: function mergeAtomToGeom(geom, pickGeom, iAtom) {
-	      var atom = this.soup.getAtom(iAtom);
+	      var atom = this.soup.getAtomProxy(iAtom);
 	      var matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius);
 	      var unitGeom = this.unitSphereGeom;
 	      glgeom.mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix);
@@ -74253,7 +74898,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'mergeBondsInResidue',
 	    value: function mergeBondsInResidue(geom, iRes, bondFilterFn) {
-	      var residue = this.soup.getResidue(iRes);
+	      var residue = this.soup.getResidueProxy(iRes);
 	      var unitGeom = new glgeom.UnitCylinderGeometry();
 	      var color = residue.color;
 	      var p1 = void 0,
@@ -74276,7 +74921,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            // let bond = this.soup.bonds[iBond]
 	            var bond = this.soup.bondProxy.load(iBond);
 	            if (_lodash2.default.isUndefined(bond)) {
-	              var atom = this.soup.getAtom(iAtom);
+	              var atom = this.soup.getAtomProxy(iAtom);
 	              console.log('Bond[' + iBond + '] undefined for ' + atom.label + '.', iBondStart + ' ' + n);
 	              continue;
 	            }
@@ -74286,15 +74931,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (bondFilterFn && !bondFilterFn(bond)) {
 	              continue;
 	            }
-	            var atom1 = this.soup.getAtom(bond.iAtom1);
-	            var atom2 = this.soup.getOtherAtom(bond.iAtom2);
+	            var atom1 = this.soup.getAtomProxy(bond.iAtom1);
+	            var atom2 = this.soup.getOtherAtomProxy(bond.iAtom2);
 	            p1 = atom1.pos.clone();
 	            p2 = atom2.pos.clone();
 	            if (atom1.iRes !== atom2.iRes) {
 	              var midpoint = p2.clone().add(p1).multiplyScalar(0.5);
-	              if (atom1.iRes === residue.i) {
+	              if (atom1.iRes === residue.iRes) {
 	                p2 = midpoint;
-	              } else if (atom2.iRes === residue.i) {
+	              } else if (atom2.iRes === residue.iRes) {
 	                p1 = midpoint;
 	              }
 	            }
@@ -74557,8 +75202,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      var bondFilter = function bondFilter(bond) {
-	        var atomType1 = _this4.soup.getAtom(bond.iAtom1).atomType;
-	        var atomType2 = _this4.soup.getAtom(bond.iAtom2).atomType;
+	        var atomType1 = _this4.soup.getAtomProxy(bond.iAtom1).atomType;
+	        var atomType2 = _this4.soup.getAtomProxy(bond.iAtom2).atomType;
 	        return !_lodash2.default.includes(data.backboneAtomTypes, atomType1) || !_lodash2.default.includes(data.backboneAtomTypes, atomType2);
 	      };
 	
@@ -74578,7 +75223,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              var i = _step13.value;
 	
 	              var iRes = trace.indices[i];
-	              var residue = this.soup.getResidue(iRes);
+	              var residue = this.soup.getResidueProxy(iRes);
 	              var residueShow = showAllResidues || residue.selected;
 	              if (residueShow && !residue.isMesh) {
 	
@@ -74595,7 +75240,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                  for (var _iterator14 = residue.getAtomIndices()[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
 	                    var iAtom = _step14.value;
 	
-	                    var atom = this.soup.getAtom(iAtom);
+	                    var atom = this.soup.getAtomProxy(iAtom);
 	                    if (!util.inArray(atom.atomType, data.backboneAtomTypes)) {
 	                      var matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius);
 	                      glgeom.mergeUnitGeom(displayGeom, this.unitSphereGeom, this.getAtomColor(atom.iAtom), matrix);
@@ -74670,11 +75315,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var _iterator15 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
 	          var iRes = _step15.value;
 	
-	          var residue = this.soup.getResidue(iRes);
+	          var residue = this.soup.getResidueProxy(iRes);
 	          if (residue.isPolymer) {
 	            var bondFilter = function bondFilter(bond) {
-	              var atomType1 = _this5.soup.getAtom(bond.iAtom1).atomType;
-	              var atomType2 = _this5.soup.getAtom(bond.iAtom2).atomType;
+	              var atomType1 = _this5.soup.getAtomProxy(bond.iAtom1).atomType;
+	              var atomType2 = _this5.soup.getAtomProxy(bond.iAtom2).atomType;
 	              return _lodash2.default.includes(data.backboneAtomTypes, atomType1) && _lodash2.default.includes(data.backboneAtomTypes, atomType2);
 	            };
 	            this.mergeBondsInResidue(displayGeom, iRes, bondFilter);
@@ -74686,7 +75331,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              for (var _iterator16 = residue.getAtomIndices()[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
 	                var iAtom = _step16.value;
 	
-	                var atom = this.soup.getAtom(iAtom);
+	                var atom = this.soup.getAtomProxy(iAtom);
 	                if (util.inArray(atom.atomType, data.backboneAtomTypes)) {
 	                  this.mergeAtomToGeom(displayGeom, pickingGeom, iAtom);
 	                }
@@ -74739,7 +75384,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var _iterator17 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
 	          var iRes = _step17.value;
 	
-	          var residue = this.soup.getResidue(iRes);
+	          var residue = this.soup.getResidueProxy(iRes);
 	          if (residue.ss === "-") {
 	            this.mergeBondsInResidue(displayGeom, iRes);
 	            var _iteratorNormalCompletion18 = true;
@@ -74800,7 +75445,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var _iterator19 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
 	          var iRes = _step19.value;
 	
-	          var residue = this.soup.getResidue(iRes);
+	          var residue = this.soup.getResidueProxy(iRes);
 	          if (residue.resType == "HOH") {
 	            this.mergeBondsInResidue(displayGeom, iRes);
 	            var _iteratorNormalCompletion20 = true;
@@ -74850,7 +75495,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'isVisibleGridAtom',
 	    value: function isVisibleGridAtom(iAtom) {
-	      var atom = this.soup.getAtom(iAtom);
+	      var atom = this.soup.getAtomProxy(iAtom);
 	      var grid = this.scene.soup.grid;
 	      return atom.bfactor > grid.bCutoff && grid.isElem[atom.elem];
 	    }
@@ -74869,9 +75514,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var _iterator21 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
 	          var iRes = _step21.value;
 	
-	          var residue = this.soup.getResidue(iRes);
+	          var residue = this.soup.getResidueProxy(iRes);
 	          if (residue.ss === "G") {
-	            var atom = residue.getCentralAtom();
+	            var atom = residue.getCentralAtomProxy();
 	            if (this.isVisibleGridAtom(atom.iAtom)) {
 	              var material = new _three2.default.MeshLambertMaterial({
 	                color: this.getAtomColor(atom.iAtom)
@@ -74928,7 +75573,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var _iterator22 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
 	          var iRes = _step22.value;
 	
-	          var residue = this.soup.getResidue(iRes);
+	          var residue = this.soup.getResidueProxy(iRes);
 	          if (residue.ss !== 'D' || !residue.isPolymer) {
 	            continue;
 	          }
@@ -74954,9 +75599,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	
 	          var getVerticesFromAtomDict = function getVerticesFromAtomDict(iRes, atomTypes) {
-	            var res = _this6.soup.getResidue(iRes);
+	            var res = _this6.soup.getResidueProxy(iRes);
 	            return _lodash2.default.map(atomTypes, function (a) {
-	              return res.getAtom(a).pos.clone();
+	              return res.getAtomProxy(a).pos.clone();
 	            });
 	          };
 	
@@ -75185,7 +75830,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var i_atom = this.scene.current_view.i_atom;
 	      if (i_atom >= 0) {
-	        var atom = this.soup.getAtom(i_atom);
+	        var atom = this.soup.getAtomProxy(i_atom);
 	        var label = 'Label atom : ' + atom.label;
 	        var success = function success(text) {
 	          _this7.controller.make_label(i_atom, text);
@@ -75231,7 +75876,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      if (this.iHoverAtom) {
-	        var atom = this.soup.getAtom(this.iHoverAtom);
+	        var atom = this.soup.getAtomProxy(this.iHoverAtom);
 	        var text = atom.label;
 	        var iAtom = atom.iAtom;
 	        var pos = atom.pos.clone();
@@ -75446,7 +76091,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.updateHover();
 	
 	      if (this.isDraggingCentralAtom) {
-	        var v = this.posXY(this.soup.getAtom(this.iDownAtom).pos);
+	        var v = this.posXY(this.soup.getAtomProxy(this.iDownAtom).pos);
 	
 	        this.lineElement.move(this.mouseX, this.mouseY, v.x, v.y);
 	      } else {
@@ -75555,7 +76200,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Display = Display;
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -75590,7 +76235,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _lodash2 = _interopRequireDefault(_lodash);
 	
-	var _data = __webpack_require__(15);
+	var _data = __webpack_require__(16);
 	
 	var data = _interopRequireWildcard(_data);
 	
@@ -75980,7 +76625,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      for (var _i2 = 0; _i2 < labels.length; _i2 += 1) {
-	        var atom = this.scene.soup.getAtom(labels[_i2].i_atom);
+	        var atom = this.scene.soup.getAtomProxy(labels[_i2].i_atom);
 	
 	        this.popups[_i2].html(labels[_i2].text);
 	
@@ -76086,8 +76731,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var distance = distances[_i4];
 	        var distanceMeasure = this.distanceMeasures[_i4];
 	
-	        var p1 = this.scene.soup.getAtom(distance.i_atom1).pos.clone();
-	        var p2 = this.scene.soup.getAtom(distance.i_atom2).pos.clone();
+	        var p1 = this.scene.soup.getAtomProxy(distance.i_atom1).pos.clone();
+	        var p2 = this.scene.soup.getAtomProxy(distance.i_atom2).pos.clone();
 	
 	        var text = p1.distanceTo(p2).toFixed(1);
 	        distanceMeasure.div.text(text);
@@ -76764,7 +77409,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -76964,7 +77609,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.ElementColors = ElementColors;
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -76980,7 +77625,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _jquery2 = _interopRequireDefault(_jquery);
 	
-	var _jquery3 = __webpack_require__(17);
+	var _jquery3 = __webpack_require__(18);
 	
 	var _jquery4 = _interopRequireDefault(_jquery3);
 	
@@ -77412,7 +78057,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.FullPageJolecule = FullPageJolecule;
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!

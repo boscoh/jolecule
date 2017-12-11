@@ -347,7 +347,7 @@ class AtomLabelsWidget {
     }
 
     for (let i = 0; i < labels.length; i += 1) {
-      let atom = this.scene.soup.getAtom(labels[i].i_atom)
+      let atom = this.scene.soup.getAtomProxy(labels[i].i_atom)
 
       this.popups[i].html(labels[i].text)
 
@@ -440,8 +440,8 @@ class DistanceMeasuresWidget {
       let distance = distances[i]
       let distanceMeasure = this.distanceMeasures[i]
 
-      let p1 = this.scene.soup.getAtom(distance.i_atom1).pos.clone()
-      let p2 = this.scene.soup.getAtom(distance.i_atom2).pos.clone()
+      let p1 = this.scene.soup.getAtomProxy(distance.i_atom1).pos.clone()
+      let p2 = this.scene.soup.getAtomProxy(distance.i_atom2).pos.clone()
 
       let text = p1.distanceTo(p2).toFixed(1)
       distanceMeasure.div.text(text)

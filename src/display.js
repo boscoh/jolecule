@@ -192,8 +192,8 @@ class Display {
     this.scene.changed = true
 
     for (let i of _.range(this.soup.getResidueCount())) {
-      let ss = this.soup.getResidue(i).ss
-      this.soup.getResidue(i).color = data.getSsColor(ss)
+      let ss = this.soup.getResidueProxy(i).ss
+      this.soup.getResidueProxy(i).color = data.getSsColor(ss)
     }
 
     this.buildScene()
@@ -215,22 +215,22 @@ class Display {
     let lastTrace
 
     for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
-      if (this.soup.getResidue(iRes).isPolymer) {
-        let res = this.soup.getResidue(iRes)
+      if (this.soup.getResidueProxy(iRes).isPolymer) {
+        let res = this.soup.getResidueProxy(iRes)
         if ((iRes === 0) || !this.soup.isPolymerConnected(iRes - 1, iRes)) {
           let newTrace = new glgeom.Trace()
           newTrace.getReference = i => {
-            return this.soup.getResidue(newTrace.indices[i])
+            return this.soup.getResidueProxy(newTrace.indices[i])
           }
           this.traces.push(newTrace)
           lastTrace = newTrace
         }
         lastTrace.indices.push(iRes)
 
-        let atom = this.soup.getResidue(iRes).getCentralAtom()
+        let atom = this.soup.getResidueProxy(iRes).getCentralAtomProxy()
         lastTrace.points.push(atom.pos.clone())
 
-        let normal = this.soup.getResidue(iRes).normal
+        let normal = this.soup.getResidueProxy(iRes).normal
         lastTrace.residueNormals.push(normal)
       }
     }
@@ -245,10 +245,10 @@ class Display {
   }
 
   getAtomColor (iAtom) {
-    let atom = this.soup.getAtom(iAtom)
+    let atom = this.soup.getAtomProxy(iAtom)
     if (atom.elem === 'C' || atom.elem === 'H') {
       let iRes = atom.iRes
-      return this.soup.getResidue(iRes).color
+      return this.soup.getResidueProxy(iRes).color
     } else if (atom.elem in data.ElementColors) {
       return data.ElementColors[atom.elem]
     }
@@ -391,7 +391,7 @@ class Display {
       for (let mesh of [this.displayMeshes.sidechains, this.pickingMeshes.sidechains]) {
         mesh.traverse(child => {
           if (util.exists(child.i)) {
-            let selected = this.soup.getResidue(child.i).selected
+            let selected = this.soup.getResidueProxy(child.i).selected
             child.visible = show.sidechain || selected
           }
         })
@@ -404,7 +404,7 @@ class Display {
   }
 
   mergeAtomToGeom (geom, pickGeom, iAtom) {
-    let atom = this.soup.getAtom(iAtom)
+    let atom = this.soup.getAtomProxy(iAtom)
     let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
     let unitGeom = this.unitSphereGeom
     glgeom.mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix)
@@ -412,7 +412,7 @@ class Display {
   }
 
   mergeBondsInResidue (geom, iRes, bondFilterFn) {
-    let residue = this.soup.getResidue(iRes)
+    let residue = this.soup.getResidueProxy(iRes)
     let unitGeom = new glgeom.UnitCylinderGeometry()
     let color = residue.color
     let p1, p2
@@ -427,7 +427,7 @@ class Display {
         // let bond = this.soup.bonds[iBond]
         let bond = this.soup.bondProxy.load(iBond)
         if (_.isUndefined(bond)) {
-          let atom = this.soup.getAtom(iAtom)
+          let atom = this.soup.getAtomProxy(iAtom)
           console.log(`Bond[${iBond}] undefined for ${atom.label}.`,
             `${iBondStart} ${n}`)
           continue
@@ -438,15 +438,15 @@ class Display {
         if (bondFilterFn && !bondFilterFn(bond)) {
           continue
         }
-        let atom1 = this.soup.getAtom(bond.iAtom1)
-        let atom2 = this.soup.getOtherAtom(bond.iAtom2)
+        let atom1 = this.soup.getAtomProxy(bond.iAtom1)
+        let atom2 = this.soup.getOtherAtomProxy(bond.iAtom2)
         p1 = atom1.pos.clone()
         p2 = atom2.pos.clone()
         if (atom1.iRes !== atom2.iRes) {
           let midpoint = p2.clone().add(p1).multiplyScalar(0.5)
-          if (atom1.iRes === residue.i) {
+          if (atom1.iRes === residue.iRes) {
             p2 = midpoint
-          } else if (atom2.iRes === residue.i) {
+          } else if (atom2.iRes === residue.iRes) {
             p1 = midpoint
           }
         }
@@ -566,8 +566,8 @@ class Display {
     }
 
     let bondFilter = (bond) => {
-      let atomType1 = this.soup.getAtom(bond.iAtom1).atomType
-      let atomType2 = this.soup.getAtom(bond.iAtom2).atomType
+      let atomType1 = this.soup.getAtomProxy(bond.iAtom1).atomType
+      let atomType2 = this.soup.getAtomProxy(bond.iAtom2).atomType
       return !_.includes(data.backboneAtomTypes, atomType1) ||
              !_.includes(data.backboneAtomTypes, atomType2)
     }
@@ -575,7 +575,7 @@ class Display {
     for (let trace of this.traces) {
       for (let i of _.range(trace.indices.length)) {
         let iRes = trace.indices[i]
-        let residue = this.soup.getResidue(iRes)
+        let residue = this.soup.getResidueProxy(iRes)
         let residueShow = showAllResidues || residue.selected
         if (residueShow && !residue.isMesh) {
 
@@ -585,7 +585,7 @@ class Display {
           this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
 
           for (let iAtom of residue.getAtomIndices()) {
-            let atom = this.soup.getAtom(iAtom)
+            let atom = this.soup.getAtomProxy(iAtom)
             if (!util.inArray(atom.atomType, data.backboneAtomTypes)) {
               let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
               glgeom.mergeUnitGeom(
@@ -610,17 +610,17 @@ class Display {
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
     for (let iRes of _.range(this.soup.getResidueCount())) {
-      let residue = this.soup.getResidue(iRes)
+      let residue = this.soup.getResidueProxy(iRes)
       if (residue.isPolymer) {
         let bondFilter = bond => {
-          let atomType1 = this.soup.getAtom(bond.iAtom1).atomType
-          let atomType2 = this.soup.getAtom(bond.iAtom2).atomType
+          let atomType1 = this.soup.getAtomProxy(bond.iAtom1).atomType
+          let atomType2 = this.soup.getAtomProxy(bond.iAtom2).atomType
           return _.includes(data.backboneAtomTypes, atomType1) &&
             _.includes(data.backboneAtomTypes, atomType2)
         }
         this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
         for (let iAtom of residue.getAtomIndices()) {
-          let atom = this.soup.getAtom(iAtom)
+          let atom = this.soup.getAtomProxy(iAtom)
           if (util.inArray(atom.atomType, data.backboneAtomTypes)) {
             this.mergeAtomToGeom(displayGeom, pickingGeom, iAtom)
           }
@@ -636,7 +636,7 @@ class Display {
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
     for (let iRes of _.range(this.soup.getResidueCount())) {
-      let residue = this.soup.getResidue(iRes)
+      let residue = this.soup.getResidueProxy(iRes)
       if (residue.ss === "-") {
         this.mergeBondsInResidue(displayGeom, iRes)
         for (let iAtom of residue.getAtomIndices()) {
@@ -653,7 +653,7 @@ class Display {
     let displayGeom = new THREE.Geometry()
     let pickingGeom = new THREE.Geometry()
     for (let iRes of _.range(this.soup.getResidueCount())) {
-      let residue = this.soup.getResidue(iRes)
+      let residue = this.soup.getResidueProxy(iRes)
       if (residue.resType == "HOH") {
         this.mergeBondsInResidue(displayGeom, iRes)
         for (let iAtom of residue.getAtomIndices()) {
@@ -666,7 +666,7 @@ class Display {
   }
 
   isVisibleGridAtom (iAtom) {
-    let atom = this.soup.getAtom(iAtom)
+    let atom = this.soup.getAtomProxy(iAtom)
     let grid = this.scene.soup.grid
     return (atom.bfactor > grid.bCutoff) && grid.isElem[atom.elem]
   }
@@ -677,9 +677,9 @@ class Display {
     }
     this.createOrClearMesh('grid')
     for (let iRes of _.range(this.soup.getResidueCount())) {
-      let residue = this.soup.getResidue(iRes)
+      let residue = this.soup.getResidueProxy(iRes)
       if (residue.ss === "G") {
-        let atom = residue.getCentralAtom()
+        let atom = residue.getCentralAtomProxy()
         if (this.isVisibleGridAtom(atom.iAtom)) {
           let material = new THREE.MeshLambertMaterial({
             color: this.getAtomColor(atom.iAtom)
@@ -712,7 +712,7 @@ class Display {
     let cylinderGeom = new glgeom.UnitCylinderGeometry()
 
     for (let iRes of _.range(this.soup.getResidueCount())) {
-      let residue = this.soup.getResidue(iRes)
+      let residue = this.soup.getResidueProxy(iRes)
       if (residue.ss !== 'D' || !residue.isPolymer) {
         continue
       }
@@ -737,8 +737,8 @@ class Display {
       }
 
       let getVerticesFromAtomDict = (iRes, atomTypes) => {
-        let res = this.soup.getResidue(iRes)
-        return _.map(atomTypes, a => res.getAtom(a).pos.clone())
+        let res = this.soup.getResidueProxy(iRes)
+        return _.map(atomTypes, a => res.getAtomProxy(a).pos.clone())
       }
 
       let vertices = getVerticesFromAtomDict(iRes, atomTypes)
@@ -941,7 +941,7 @@ class Display {
   atomLabelDialog () {
     let i_atom = this.scene.current_view.i_atom
     if (i_atom >= 0) {
-      let atom = this.soup.getAtom(i_atom)
+      let atom = this.soup.getAtomProxy(i_atom)
       let label = 'Label atom : ' + atom.label
       let success = text => { this.controller.make_label(i_atom, text) }
       util.textEntryDialog(this.div, label, success)
@@ -990,7 +990,7 @@ class Display {
     }
 
     if (this.iHoverAtom) {
-      let atom = this.soup.getAtom(this.iHoverAtom)
+      let atom = this.soup.getAtomProxy(this.iHoverAtom)
       let text = atom.label
       let iAtom = atom.iAtom
       let pos = atom.pos.clone()
@@ -1195,7 +1195,7 @@ class Display {
     this.updateHover()
 
     if (this.isDraggingCentralAtom) {
-      let v = this.posXY(this.soup.getAtom(this.iDownAtom).pos)
+      let v = this.posXY(this.soup.getAtomProxy(this.iDownAtom).pos)
 
       this.lineElement.move(this.mouseX, this.mouseY, v.x, v.y)
     } else {

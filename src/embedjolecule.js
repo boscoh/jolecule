@@ -458,7 +458,7 @@ class EmbedJolecule {
 
     // rebuild selector
     for (let i = 0; i < this.soup.getResidueCount(); i++) {
-      let residue = this.soup.getResidue(i)
+      let residue = this.soup.getResidueProxy(i)
       let text = residue.resId + '-' + residue.resType
       this.residueSelector.append(
         $('<option>').attr('value', residue.resId).text(text))
@@ -542,7 +542,7 @@ class EmbedJolecule {
       var resId = this.residueSelector.find(':selected').val()
       let iRes = this.scene.soup.getIResByResId(resId)
       this.display.setTargetViewFromAtom(
-        this.scene.soup.getResidue(iRes).iAtom)
+        this.scene.soup.getResidueProxy(iRes).iAtom)
     })
 
     this.viewBarDiv =
