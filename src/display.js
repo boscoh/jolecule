@@ -416,26 +416,42 @@ class Display {
     let unitGeom = new glgeom.UnitCylinderGeometry()
     let color = residue.color
     let p1, p2
-    if (!(iRes in this.soup.residueBonds)) {
-      return
-    }
-    for (let bond of this.soup.residueBonds[iRes]) {
-      if (bondFilterFn && !bondFilterFn(bond)) {
+    for (let iAtom of residue.getAtomIndices()) {
+      let iBondStart = this.soup.atomStore.bondOffset[iAtom]
+      let n = this.soup.atomStore.bondCount[iAtom]
+      let iBondEnd = iBondStart + n
+      if (n === 0) {
         continue
       }
-      let atom1 = this.soup.getAtom(bond.iAtom1)
-      let atom2 = this.soup.getOtherAtom(bond.iAtom2)
-      p1 = atom1.pos.clone()
-      p2 = atom2.pos.clone()
-      if (atom1.iRes !== atom2.iRes) {
-        let midpoint = p2.clone().add(p1).multiplyScalar(0.5)
-        if (atom1.iRes === residue.i) {
-          p2 = midpoint
-        } else if (atom2.iRes === residue.i) {
-          p1 = midpoint
+      for (let iBond = iBondStart; iBond < iBondEnd; iBond += 1) {
+        // let bond = this.soup.bonds[iBond]
+        let bond = this.soup.bondProxy.load(iBond)
+        if (_.isUndefined(bond)) {
+          let atom = this.soup.getAtom(iAtom)
+          console.log(`Bond[${iBond}] undefined for ${atom.label}.`,
+            `${iBondStart} ${n}`)
+          continue
         }
+        if (bond.iAtom1 > bond.iAtom2) {
+          continue
+        }
+        if (bondFilterFn && !bondFilterFn(bond)) {
+          continue
+        }
+        let atom1 = this.soup.getAtom(bond.iAtom1)
+        let atom2 = this.soup.getOtherAtom(bond.iAtom2)
+        p1 = atom1.pos.clone()
+        p2 = atom2.pos.clone()
+        if (atom1.iRes !== atom2.iRes) {
+          let midpoint = p2.clone().add(p1).multiplyScalar(0.5)
+          if (atom1.iRes === residue.i) {
+            p2 = midpoint
+          } else if (atom2.iRes === residue.i) {
+            p1 = midpoint
+          }
+        }
+        glgeom.mergeUnitGeom(geom, unitGeom, color, glgeom.getCylinderMatrix(p1, p2, 0.2))
       }
-      glgeom.mergeUnitGeom(geom, unitGeom, color, glgeom.getCylinderMatrix(p1, p2, 0.2))
     }
   }
 
@@ -552,8 +568,8 @@ class Display {
     let bondFilter = (bond) => {
       let atomType1 = this.soup.getAtom(bond.iAtom1).atomType
       let atomType2 = this.soup.getAtom(bond.iAtom2).atomType
-      return !_.includes(data.backboneAtoms, atomType1) ||
-             !_.includes(data.backboneAtoms, atomType2)
+      return !_.includes(data.backboneAtomTypes, atomType1) ||
+             !_.includes(data.backboneAtomTypes, atomType2)
     }
 
     for (let trace of this.traces) {
@@ -570,8 +586,7 @@ class Display {
 
           for (let iAtom of residue.getAtomIndices()) {
             let atom = this.soup.getAtom(iAtom)
-            if (!util.inArray(atom.atomType, data.backboneAtoms)) {
-              atom.is_sidechain = true
+            if (!util.inArray(atom.atomType, data.backboneAtomTypes)) {
               let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
               glgeom.mergeUnitGeom(
                 displayGeom, this.unitSphereGeom, this.getAtomColor(atom.iAtom), matrix)
@@ -600,13 +615,13 @@ class Display {
         let bondFilter = bond => {
           let atomType1 = this.soup.getAtom(bond.iAtom1).atomType
           let atomType2 = this.soup.getAtom(bond.iAtom2).atomType
-          return _.includes(data.backboneAtoms, atomType1) &&
-            _.includes(data.backboneAtoms, atomType2)
+          return _.includes(data.backboneAtomTypes, atomType1) &&
+            _.includes(data.backboneAtomTypes, atomType2)
         }
         this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
         for (let iAtom of residue.getAtomIndices()) {
           let atom = this.soup.getAtom(iAtom)
-          if (util.inArray(atom.atomType, data.backboneAtoms)) {
+          if (util.inArray(atom.atomType, data.backboneAtomTypes)) {
             this.mergeAtomToGeom(displayGeom, pickingGeom, iAtom)
           }
         }

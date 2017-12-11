@@ -7,6 +7,7 @@ import Store from './store.js'
 
 let user = 'public' // will be overriden by server
 
+
 function delete_numbers (text) {
   return text.replace(/\d+/, '')
 }
@@ -87,6 +88,8 @@ const atomStoreFields = [
   ['iElem', 1, 'uint16'],
   ['iRes', 1, 'uint32'],
   ['iChain', 1, 'int32'],
+  ['bondOffset', 1, 'uint32'],
+  ['bondCount', 1, 'uint16'],
 ]
 
 
@@ -145,7 +148,7 @@ class AtomProxy {
 
   get label () {
     let res = this.soup.getResidue(this.iRes)
-    return res.resType + ' - ' + this.atomType
+    return res.resId + ' - ' + this.atomType
   }
 }
 
@@ -267,6 +270,36 @@ class ResidueProxy {
   }
 }
 
+
+const bondStoreFields = [
+  ['iAtom1', 1, 'int32'],
+  ['iAtom2', 1, 'int32'],
+]
+
+class BondProxy {
+
+  constructor (soup, iBond) {
+    this.soup = soup
+    if (Number.isInteger(iBond)) {
+      this.load(iBond)
+    }
+  }
+
+  load (iBond) {
+    this.iBond = iBond
+    return this
+  }
+
+  get iAtom1 () {
+    return this.soup.bondStore.iAtom1[this.iBond]
+  }
+
+  get iAtom2 () {
+    return this.soup.bondStore.iAtom2[this.iBond]
+  }
+}
+
+
 /**
  * Soup
  * -------
@@ -288,8 +321,6 @@ class ResidueProxy {
 class Soup {
 
   constructor () {
-    this.iResByResId = {}
-    this.bonds = []
     this.parsingError = ''
     this.default_html = ''
 
@@ -305,11 +336,13 @@ class Soup {
     this.otherResidueProxy = new ResidueProxy(this)
     this.resIds = []
     this.resTypeTable = []
-    this.residueBonds = []
     this.residueNormal = {}
 
     this.residueConhPartners = {}
     this.residueNormals = {}
+
+    this.bondStore = new Store(bondStoreFields)
+    this.bondProxy = new BondProxy(this)
 
     this.colorTable = []
 
@@ -344,7 +377,7 @@ class Soup {
     console.log(
       `Soup.load added ${this.pdb_id}: ` +
       `${this.getAtomCount()} atoms, ` +
-      `${this.bonds.length} bonds, ` +
+      `${this.bondStore.count} bonds, ` +
       `${this.getResidueCount()} residues`)
   }
 
@@ -411,6 +444,8 @@ class Soup {
           this.atomStore.bfactor[iAtom] = bfactor
           this.atomStore.alt[iAtom] = charToInt(alt)
 
+          this.atomStore.bondCount[iAtom] = 0
+
           let iAtomType = getValueTableIndex(this.atomTypeTable, atom_type)
           this.atomStore.iAtomType[iAtom] = iAtomType
 
@@ -448,7 +483,6 @@ class Soup {
     this.residueStore.growIfFull()
 
     this.resIds.push(resId)
-    this.iResByResId[resId] = iRes
 
     let iResType = getValueTableIndex(this.resTypeTable, resType)
     this.residueStore.iResType[iRes] = iResType
@@ -554,7 +588,7 @@ class Soup {
 
   calcBonds () {
 
-    this.bonds = []
+    this.bondStore.count = 0
 
     const small_cutoff = 1.2
     const medium_cutoff = 1.9
@@ -570,8 +604,15 @@ class Soup {
 
     for (let pair of getClosePairs(vertices)) {
 
-      let atom1 = this.getAtom(pair[0])
-      let atom2 = this.getOtherAtom(pair[1])
+      let iAtom1 = pair[0]
+      let iAtom2 = pair[1]
+
+      if (iAtom1 === iAtom2) {
+        continue
+      }
+
+      let atom1 = this.getAtom(iAtom1)
+      let atom2 = this.getOtherAtom(iAtom2)
 
       // HACK: to avoid the water grid bond calculation
       // step that kills the rendering
@@ -588,9 +629,6 @@ class Soup {
         }
       }
 
-      if (atom1.iAtom === atom2.iAtom) {
-        console.log('Error atoms match', atom1.label, atom2.label)
-      }
       let cutoff
       if ((atom1.elem === 'H') || (atom2.elem === 'H')) {
         cutoff = small_cutoff
@@ -603,21 +641,40 @@ class Soup {
       }
 
       if (v3.distance(atom1.pos, atom2.pos) <= cutoff) {
-        this.bonds.push(
-          {iAtom1: atom1.iAtom, iAtom2: atom2.iAtom})
+        let iBond = this.bondStore.count
+        this.bondStore.count += 2
+        this.bondStore.growIfFull()
+        this.bondStore.iAtom1[iBond] = atom1.iAtom
+        this.bondStore.iAtom2[iBond] = atom2.iAtom
+        this.bondStore.iAtom1[iBond + 1] = atom2.iAtom
+        this.bondStore.iAtom2[iBond + 1] = atom1.iAtom
       }
     }
   }
 
   assignBondsToResidues () {
-    for (let bond of this.bonds) {
-      let atom1 = this.getAtom(bond.iAtom1)
-      let atom2 = this.getOtherAtom(bond.iAtom2)
-      pushToListInDict(this.residueBonds, atom1.iRes, bond)
-      if (atom1.iRes !== atom2.iRes) {
-        pushToListInDict(this.residueBonds, atom2.iRes, bond)
+    this.bondStore.sort((a, b) => { return a.iAtom1 - b.iAtom1 })
+    let iAtom1 = null
+    for (let iBond = 0; iBond < this.bondStore.count; iBond +=1) {
+      let bond = this.bondProxy.load(iBond)
+      if (iAtom1 !== bond.iAtom1) {
+        iAtom1 = bond.iAtom1
+        this.atomStore.bondOffset[iAtom1] = iBond
+        this.atomStore.bondCount[iAtom1] = 1
       }
+      this.atomStore.bondCount[iAtom1] += 1
     }
+    // for (let iAtom = 0; iAtom < this.getAtomCount(); iAtom += 1) {
+    //   let atom = this.getAtom(iAtom)
+    //   let iBondStart = this.atomStore.bondOffset[iAtom]
+    //   let n = this.atomStore.bondCount[iAtom]
+    //   if (n === 0) {
+    //     continue
+    //   }
+    //   let bond = this.bonds[iBondStart]
+    //   console.assert(iAtom === bond.iAtom1,
+    //     `Bond ${iBondStart} ${bond.iAtom1} ${atom.label} error`)
+    // }
   }
 
   hasSugarBackbone (iRes) {
@@ -859,10 +916,6 @@ class Soup {
 
   getOtherAtom (iAtom) {
     return this.otherAtomProxy.load(iAtom)
-  }
-
-  getNewAtom (iAtom) {
-    return new AtomProxy(this, iAtom).load(iAtom)
   }
 
   getAtomCount () {

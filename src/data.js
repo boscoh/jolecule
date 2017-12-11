@@ -120,7 +120,7 @@ const resToAa = {
 
 // Backbone atom names
 
-const backboneAtoms = [
+const backboneAtomTypes = [
   'N', 'C', 'O', 'H', 'HA', 'CA', 'OXT',
   'C3\'', 'P', 'OP1', 'O5\'', 'OP2',
   'C5\'', 'O5\'', 'O3\'', 'C4\'', 'O4\'', 'C1\'', 'C2\'', 'O2\'',
@@ -161,7 +161,7 @@ export {
   getSsColor,
   resToAa,
   getDarkSsColor,
-  backboneAtoms,
+  backboneAtomTypes,
   getSsFace,
   fatCoilFace,
   green,

@@ -186,7 +186,7 @@ class Store {
     // Log.time('Store.sort')
 
     const thisStore = this
-    const tmpStore = new this.constructor(1)
+    const tmpStore = new this.constructor(this._fields, 1)
 
     function swap (index1, index2) {
       if (index1 === index2) return
