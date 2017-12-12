@@ -10,7 +10,7 @@
  * 
  */
 
-import THREE from "three";
+import * as THREE from "three";
 
 
 const SMALL = 1E-6;

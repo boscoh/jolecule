@@ -1,7 +1,8 @@
 /**
- * @file Store
+ * @file Store - an array-based space-efficient typed datastore, to be used
+ * as a Flyweight, with an associated Proxy
+ *
  * adapted from NGL @author Alexander Rose <alexander.rose@weirdbyte.de>
- * @private
  */
 
 
@@ -27,22 +28,23 @@ function getTypedArray (arrayType, arraySize) {
 }
 
 /**
- * Store base class of a fly-weight where the fields are stored in
- * terms of space-efficient typed-arrays.
- *
- * @interface function _defaultFields
- *
+ * Store - an array-based space-efficient typed datastore, to be used
+ * as a Flyweight, with an associated Proxy
  */
 class Store {
   /**
-   * @param {Integer} [size] - initial size
+   * @param fields - list of typed fields in the store
+   * @param {Integer} size - initial size of the datastore
    */
-  constructor (defaultFields, size) {
+  constructor (fields, size) {
 
-    this.length = 0 // actual size allocated
-    this.count = 0 // size to use, updated by this.growIfFull
+    // actual size allocated
+    this.length = 0
 
-    this._fields = defaultFields
+    // size to use, updated by this.growIfFull
+    this.count = 0
+
+    this._fields = fields
 
     if (Number.isInteger(size)) {
       this._init(size)
@@ -53,7 +55,7 @@ class Store {
 
   /**
    * Initialize the store
-   * @param  {Integer} size - size to initialize
+   * @param {Integer} size - size to initialize
    */
   _init (size) {
     this.length = size
@@ -180,7 +182,8 @@ class Store {
 
   /**
    * Sort entries in the store given the compare function
-   * @param  {[type]} compareFunction - function to sort by
+   * @param  {Function} compareFunction - function to sort by (i, j) -> Integer
+   *            the return value is - if item[i] is smaller than item[j]
    */
   sort (compareFunction) {
     const thisStore = this
@@ -225,7 +228,7 @@ class Store {
   }
 
   /**
-   * Empty the store
+   * Empty the store, but keep the allocated memory
    */
   clear () {
     this.count = 0

@@ -2222,9 +2222,9 @@ tar@~2.2.1:
     fstream "^1.0.2"
     inherits "2"
 
-three@0.79.0:
-  version "0.79.0"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.79.0.tgz#3af96fda47f68b7ab093c298dfa335fa45da0cf4"
+three@^0.88.0:
+  version "0.88.0"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.88.0.tgz#4256c2fc38e4fb23a0d23eba2b6cce4df8e466d5"
 
 throttleit@0.0.2:
   version "0.0.2"

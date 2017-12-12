@@ -68,16 +68,6 @@ function parsetTitleFromPdbText (text) {
   return result
 }
 
-const proteinResTypes = [
-  'ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS',
-  'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN',
-  'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR']
-
-const dnaResTypes = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C']
-
-const rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U']
-
-
 const atomStoreFields = [
   ['x', 1, 'float32'],
   ['y', 1, 'float32'],
@@ -199,6 +189,7 @@ class ResidueProxy {
     let iColor = this.soup.residueStore.iColor[this.iRes]
     return this.soup.colorTable[iColor]
   }
+
   set color(color) {
     let iColor = getValueTableIndex(this.soup.colorTable, color)
     this.soup.residueStore.iColor[this.iRes] = iColor
@@ -311,11 +302,11 @@ class BondProxy {
  * for reading the data from the PDB and turning
  * it into a suitable javascript object.
  *
- * The soup will be embedded in a Scene
+ * The soup will be embedded in a SoupView
  * object that will handle all the different
  * viewing options.
  *
- * Allowable actions on the Scene of the Soup
+ * Allowable actions on the SoupView of the Soup
  * will be made via the Controller object. This
  * includes AJAX operations with the server
  * jolecule.appspot.com, and uses jQuery for the
@@ -351,7 +342,6 @@ class Soup {
     this.residueNormal = {}
     this.residueConhPartners = {}
     this.residueNormals = {}
-
 
     this.grid = {
       bCutoff: 0.8,
@@ -652,13 +642,9 @@ class Soup {
   }
 
   assignBondsToResidues () {
-    let compare = (iBond1, iBond2) => {
-      let iAtom1OfBond2 = this.bondStore.iAtom1[iBond2]
-      let iAtom1OfBond1 = this.bondStore.iAtom1[iBond1]
-      return iAtom1OfBond1 - iAtom1OfBond2
-    }
 
-    this.bondStore.sort(compare)
+    let iAtom1Array = this.bondStore.iAtom1
+    this.bondStore.sort((i, j) => iAtom1Array[i] - iAtom1Array[j])
 
     for (let iAtom = 0; iAtom < this.getAtomCount(); iAtom += 1) {
       this.atomStore.bondCount[iAtom] = 0
@@ -673,7 +659,10 @@ class Soup {
       }
       this.atomStore.bondCount[iAtom1] += 1
     }
+  }
 
+  hasProteinBackbone (iRes) {
+    return this.getResidueProxy(iRes).checkAtomTypes(['CA', 'N', 'C'])
   }
 
   hasSugarBackbone (iRes) {
@@ -697,19 +686,6 @@ class Soup {
     return false
   }
 
-  getNucleotideNormal (iRes) {
-    let c3 = this.getResidueProxy(iRes).getAtomProxy('C3\'').pos.clone()
-    let c5 = this.getResidueProxy(iRes).getAtomProxy('C5\'').pos.clone()
-    let c1 = this.getResidueProxy(iRes).getAtomProxy('C1\'').pos.clone()
-    let forward = v3.diff(c3, c5)
-    let up = v3.diff(c1, c3)
-    return v3.crossProduct(forward, up)
-  }
-
-  hasProteinBackbone (iRes) {
-    return this.getResidueProxy(iRes).checkAtomTypes(['CA', 'N', 'C'])
-  }
-
   /**
    * Detect peptide bond
    * @returns {boolean}
@@ -730,6 +706,15 @@ class Soup {
     let peptideConnect = this.isPeptideConnected(iRes0, iRes1)
     let nucleotideConnect = this.isSugarPhosphateConnected(iRes0, iRes1)
     return peptideConnect || nucleotideConnect
+  }
+
+  getNucleotideNormal (iRes) {
+    let c3 = this.getResidueProxy(iRes).getAtomProxy('C3\'').pos.clone()
+    let c5 = this.getResidueProxy(iRes).getAtomProxy('C5\'').pos.clone()
+    let c1 = this.getResidueProxy(iRes).getAtomProxy('C1\'').pos.clone()
+    let forward = v3.diff(c3, c5)
+    let up = v3.diff(c1, c3)
+    return v3.crossProduct(forward, up)
   }
 
   /**
@@ -1044,7 +1029,7 @@ class Soup {
  * Display
  *
  * JolyCamera {
- *    pos: scene center, camera focus
+ *    pos: soupView center, camera focus
  *    up: gives the direction of the y vector from pos
  *    in: gives the positive z-axis direction
  *    zFront: clipping plane in front of the camera focus
@@ -1061,7 +1046,7 @@ class Soup {
  *
  * Coordinates
  * - JolyCamera
- *     - scene is from 0 to positive z; since canvasjolecule draws +z into screen
+ *     - soupView is from 0 to positive z; since canvasjolecule draws +z into screen
  *     - as opengl +z is out of screen, need to flip z direction
  *     - in opengl, the box is -1 to 1 that gets projected on screen + perspective
  *     - by adding a i distance to move the camera further into -z
@@ -1098,7 +1083,7 @@ class View {
       sidechain: true,
       peptide: true,
       hydrogen: false,
-      water: false,
+      water: true,
       ligands: true,
       trace: false,
       all_atom: false,
@@ -1310,15 +1295,15 @@ function interpolateCameras (oldCamera, futureCamera, t) {
 }
 
 /**
- * The Scene contains a soup and a list of
+ * The SoupView contains a soup and a list of
  * views of the soup, including the current
  * view, and a target view for animation
  */
-class Scene {
+class SoupView {
 
   constructor (soup) {
 
-    // the soup data for the scene
+    // the soup data for the soupView
     this.soup = soup
 
     // stores the current camera, display
@@ -1396,53 +1381,52 @@ class Scene {
 }
 
 /**
- * The Controller for Scene and Soup.
- *
- * All mutations to Scene and Soup must go through here.
+ * The Controller for SoupView. All mutations
+ * to a Soup and its Views go through here.
  */
 class Controller {
 
   constructor (scene) {
     this.soup = scene.soup
-    this.scene = scene
+    this.soupView = scene
   }
 
   delete_dist (i) {
-    this.scene.current_view.distances.splice(i, 1)
-    this.scene.changed = true
+    this.soupView.current_view.distances.splice(i, 1)
+    this.soupView.changed = true
   }
 
   make_dist (iAtom1, iAtom2) {
-    this.scene.current_view.distances.push(
+    this.soupView.current_view.distances.push(
       {'i_atom1': iAtom1, 'i_atom2': iAtom2})
-    this.scene.changed = true
+    this.soupView.changed = true
   }
 
   make_label (iAtom, text) {
-    this.scene.current_view.labels.push({
+    this.soupView.current_view.labels.push({
       'i_atom': iAtom, 'text': text,
     })
-    this.scene.changed = true
+    this.soupView.changed = true
   }
 
   delete_label (iLabel) {
-    this.scene.current_view.labels.splice(iLabel, 1)
-    this.scene.changed = true
+    this.soupView.current_view.labels.splice(iLabel, 1)
+    this.soupView.changed = true
   }
 
   set_target_view (view) {
-    this.scene.set_target_view(view)
+    this.soupView.set_target_view(view)
   }
 
   set_target_view_by_id (viewId) {
-    let view = this.scene.saved_views_by_id[viewId]
-    this.scene.i_last_view = this.scene.saved_views_by_id[viewId].order
+    let view = this.soupView.saved_views_by_id[viewId]
+    this.soupView.i_last_view = this.soupView.saved_views_by_id[viewId].order
     this.set_target_view(view)
   }
 
   set_target_view_by_atom (iAtom) {
     let atom = this.soup.getAtomProxy(iAtom)
-    let view = this.scene.current_view.getViewTranslatedTo(atom.pos)
+    let view = this.soupView.current_view.getViewTranslatedTo(atom.pos)
     view.res_id = this.soup.getResidueProxy(atom.iRes).id
     view.i_atom = iAtom
     this.set_target_view(view)
@@ -1450,10 +1434,10 @@ class Controller {
 
   set_target_prev_residue () {
     let curr_res_id
-    if (this.scene.n_update_step >= 0) {
-      curr_res_id = this.scene.target_view.res_id
+    if (this.soupView.n_update_step >= 0) {
+      curr_res_id = this.soupView.target_view.res_id
     } else {
-      curr_res_id = this.scene.current_view.res_id
+      curr_res_id = this.soupView.current_view.res_id
     }
     let i = this.soup.getIResByResId(curr_res_id)
     if (i <= 0) {
@@ -1467,10 +1451,10 @@ class Controller {
 
   set_target_next_residue () {
     let curr_res_id
-    if (this.scene.n_update_step >= 0) {
-      curr_res_id = this.scene.target_view.res_id
+    if (this.soupView.n_update_step >= 0) {
+      curr_res_id = this.soupView.target_view.res_id
     } else {
-      curr_res_id = this.scene.current_view.res_id
+      curr_res_id = this.soupView.current_view.res_id
     }
     let i = this.soup.getIResByResId(curr_res_id)
     if (i >= this.soup.getResidueCount() - 1) {
@@ -1483,7 +1467,7 @@ class Controller {
   }
 
   set_target_prev_view () {
-    let scene = this.scene
+    let scene = this.soupView
     scene.i_last_view -= 1
     if (scene.i_last_view < 0) {
       scene.i_last_view = scene.saved_views.length - 1
@@ -1494,7 +1478,7 @@ class Controller {
   }
 
   set_target_next_view () {
-    let scene = this.scene
+    let scene = this.soupView
     scene.i_last_view += 1
     if (scene.i_last_view >= scene.saved_views.length) {
       scene.i_last_view = 0
@@ -1505,17 +1489,17 @@ class Controller {
   }
 
   swapViews (i, j) {
-    this.scene.saved_views[j].order = i
-    this.scene.saved_views[i].order = j
-    let dummy = this.scene.saved_views[j]
-    this.scene.saved_views[j] = this.scene.saved_views[i]
-    this.scene.saved_views[i] = dummy
+    this.soupView.saved_views[j].order = i
+    this.soupView.saved_views[i].order = j
+    let dummy = this.soupView.saved_views[j]
+    this.soupView.saved_views[j] = this.soupView.saved_views[i]
+    this.soupView.saved_views[i] = dummy
   }
 
   get_view_dicts () {
     let view_dicts = []
-    for (let i = 1; i < this.scene.saved_views.length; i += 1) {
-      view_dicts.push(this.scene.saved_views[i].getDict())
+    for (let i = 1; i < this.soupView.saved_views.length; i += 1) {
+      view_dicts.push(this.soupView.saved_views[i].getDict())
     }
     return view_dicts
   }
@@ -1532,18 +1516,18 @@ class Controller {
 
   clear_selected () {
     this.soup.clearSelectedResidues()
-    this.scene.current_view.selected = this.make_selected()
-    this.scene.changed = true
+    this.soupView.current_view.selected = this.make_selected()
+    this.soupView.changed = true
   }
 
   select_residue (i, v) {
     this.soup.getResidueProxy(i).selected = v
-    this.scene.current_view.selected = this.make_selected()
-    this.scene.changed = true
+    this.soupView.current_view.selected = this.make_selected()
+    this.soupView.changed = true
   }
 
   toggle_neighbors () {
-    let res_id = this.scene.current_view.res_id
+    let res_id = this.soupView.current_view.res_id
     let i_res = this.soup.getIResByResId(res_id)
     let b
     if (this.last_neighbour_res_id === res_id) {
@@ -1554,13 +1538,13 @@ class Controller {
       this.last_neighbour_res_id = res_id
     }
     this.soup.selectNeighbourResidues(i_res, b)
-    this.scene.current_view.selected = this.make_selected()
-    this.scene.changed = true
+    this.soupView.current_view.selected = this.make_selected()
+    this.soupView.changed = true
   }
 
   save_current_view (new_id) {
-    let j = this.scene.i_last_view + 1
-    let new_view = this.scene.current_view.clone()
+    let j = this.soupView.i_last_view + 1
+    let new_view = this.soupView.current_view.clone()
     new_view.text = 'Click edit to change this text.'
     new_view.pdb_id = this.soup.pdb_id
     let time = getCurrentDateStr()
@@ -1571,12 +1555,12 @@ class Controller {
     }
     new_view.id = new_id
     new_view.selected = this.make_selected()
-    this.scene.insert_view(j, new_id, new_view)
+    this.soupView.insert_view(j, new_id, new_view)
     return j
   }
 
   delete_view (id) {
-    this.scene.remove_saved_view(id)
+    this.soupView.remove_saved_view(id)
   }
 
   sort_views_by_order () {
@@ -1584,9 +1568,9 @@ class Controller {
       return a.order - b.order
     }
 
-    this.scene.saved_views.sort(order_sort)
-    for (let i = 0; i < this.scene.saved_views.length; i += 1) {
-      this.scene.saved_views[i].order = i
+    this.soupView.saved_views.sort(order_sort)
+    for (let i = 0; i < this.soupView.saved_views.length; i += 1) {
+      this.soupView.saved_views[i].order = i
     }
   }
 
@@ -1597,27 +1581,27 @@ class Controller {
       if (view.id === 'view:000000') {
         continue
       }
-      this.scene.save_view(view)
+      this.soupView.save_view(view)
     }
     this.sort_views_by_order()
   }
 
   set_backbone_option (option) {
-    this.scene.current_view.show.all_atom = false
-    this.scene.current_view.show.trace = false
-    this.scene.current_view.show.ribbon = false
-    this.scene.current_view.show[option] = true
-    this.scene.changed = true
+    this.soupView.current_view.show.all_atom = false
+    this.soupView.current_view.show.trace = false
+    this.soupView.current_view.show.ribbon = false
+    this.soupView.current_view.show[option] = true
+    this.soupView.changed = true
   }
 
   set_show_option (option, bool) {
     console.log('Controller.set_show_option', option, bool)
-    this.scene.current_view.show[option] = bool
-    this.scene.changed = true
+    this.soupView.current_view.show[option] = bool
+    this.soupView.changed = true
   }
 
   get_show_option (option) {
-    return this.scene.current_view.show[option]
+    return this.soupView.current_view.show[option]
   }
 
   toggle_show_option (option) {
@@ -1626,16 +1610,16 @@ class Controller {
   }
 
   flag_changed () {
-    this.scene.changed = true
+    this.soupView.changed = true
   }
 
   set_current_view (view) {
-    this.scene.current_view = view.clone()
+    this.soupView.current_view = view.clone()
     let atom = this.soup.getAtomProxy(view.i_atom)
-    this.scene.current_view.res_id = this.soup.resIds[atom.iRes]
-    this.scene.soup.clearSelectedResidues()
-    this.scene.soup.selectResidues(view.selected, true)
-    this.scene.changed = true
+    this.soupView.current_view.res_id = this.soup.resIds[atom.iRes]
+    this.soupView.soup.clearSelectedResidues()
+    this.soupView.soup.selectResidues(view.selected, true)
+    this.soupView.changed = true
   }
 
 }
@@ -1644,5 +1628,5 @@ export {
   Soup,
   Controller,
   interpolateCameras,
-  Scene
+  SoupView
 }

@@ -7,9 +7,23 @@
  *
  */
 
-import THREE from 'three'
+import * as THREE from 'three'
 import v3 from './v3'
 import _ from 'lodash'
+
+console.log(THREE)
+
+
+function CatmullRom( t, p0, p1, p2, p3 ) {
+
+  var v0 = ( p2 - p0 ) * 0.5;
+  var v1 = ( p3 - p1 ) * 0.5;
+  var t2 = t * t;
+  var t3 = t * t2;
+  return ( 2 * p1 - 2 * p2 + v0 + v1 ) * t3 + ( - 3 * p1 + 3 * p2 - 2 * v0 - v1 ) * t2 + v0 * t + p1;
+
+}
+
 
 /**
  * Interpolation function for a Catmul-Rom spline
@@ -25,9 +39,9 @@ import _ from 'lodash'
  */
 function catmulRomSpline (t, p1, p2, p3, p4) {
   return v3.create(
-    THREE.CurveUtils.interpolate(p1.x, p2.x, p3.x, p4.x, t),
-    THREE.CurveUtils.interpolate(p1.y, p2.y, p3.y, p4.y, t),
-    THREE.CurveUtils.interpolate(p1.z, p2.z, p3.z, p4.z, t)
+    CatmullRom(t, p1.x, p2.x, p3.x, p4.x),
+    CatmullRom(t, p1.y, p2.y, p3.y, p4.y),
+    CatmullRom(t, p1.z, p2.z, p3.z, p4.z)
   )
 }
 
@@ -42,7 +56,7 @@ class PathAndFrenetFrames {
 
   constructor () {
     this.points = []
-    this.residueNormals = []
+    this.normals = []
     this.tangents = []
     this.binormals = []
   }
@@ -50,7 +64,7 @@ class PathAndFrenetFrames {
   slice (i, j) {
     let subPath = new PathAndFrenetFrames()
     subPath.points = this.points.slice(i, j)
-    subPath.residueNormals = this.residueNormals.slice(i, j)
+    subPath.normals = this.normals.slice(i, j)
     subPath.tangents = this.tangents.slice(i, j)
     subPath.binormals = this.binormals.slice(i, j)
     return subPath
@@ -62,11 +76,11 @@ class PathAndFrenetFrames {
  * orientation along the normal for the cross-section.
  *
  * Accepts a cross-section shape, which is a collection of 2D points around
- * the origin, and a path, which contains points, residueNormals and binormals
+ * the origin, and a path, which contains points, normals and binormals
  * and builds a oriented extrusion out of it.
  *
- * If round is set, then the vertex residueNormals are set to orient along the
- * normal/binormal axis from the origin, otherwise, face residueNormals are defined
+ * If round is set, then the vertex normals are set to orient along the
+ * normal/binormal axis from the origin, otherwise, face normals are defined
  * perpedicular to the face.
  *
  * For a segment between two path points and a repetition of the cross-section,
@@ -76,8 +90,8 @@ class RibbonGeometry extends THREE.Geometry {
 
   /**
    * @param {THREE.Shape} shape - collection of 2D points for cross section
-   * @param {PathAndFrenetFrames} path - collection of points, residueNormals, and binormals
-   * @param {boolean} round - residueNormals are draw from centre, otherwise perp to edge
+   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
+   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
    * @param {boolean} front - draw front cross-section
    * @param {boolean} back - draw back cross-section
    */
@@ -115,7 +129,7 @@ class RibbonGeometry extends THREE.Geometry {
         }
         let v0 = shapePoints[i]
         let v1 = shapePoints[j]
-        let x = -( v1.y - v0.y )
+        let x = -(v1.y - v0.y)
         let y = v1.x - v0.x
         shapeEdgeNormals.push(new THREE.Vector2(x, y))
       }
@@ -125,7 +139,7 @@ class RibbonGeometry extends THREE.Geometry {
     for (let iPoint = 0; iPoint < path.points.length; iPoint += 1) {
 
       let point = path.points[iPoint]
-      let normal = path.residueNormals[iPoint]
+      let normal = path.normals[iPoint]
       let binormal = path.binormals[iPoint]
 
       for (let iShapePoint = 0; iShapePoint < nVertex; iShapePoint += 1) {
@@ -147,7 +161,7 @@ class RibbonGeometry extends THREE.Geometry {
       }
 
       if (round) {
-        // Smoothed residueNormals to give a rounded look
+        // Smoothed normals to give a rounded look
         for (let j = 0; j < nVertex; j += 1) {
           let i
           if (j === 0) {
@@ -160,25 +174,25 @@ class RibbonGeometry extends THREE.Geometry {
 
           let x, y
 
-          x = path.residueNormals[iPoint - 1].clone()
+          x = path.normals[iPoint - 1].clone()
             .multiplyScalar(shapePoints[j].x)
           y = path.binormals[iPoint - 1].clone()
             .multiplyScalar(shapePoints[j].y)
           let normal01 = x.add(y)
 
-          x = path.residueNormals[iPoint].clone()
+          x = path.normals[iPoint].clone()
             .multiplyScalar(shapePoints[j].x)
           y = path.binormals[iPoint].clone()
             .multiplyScalar(shapePoints[j].y)
           let normal11 = x.add(y)
 
-          x = path.residueNormals[iPoint - 1].clone()
+          x = path.normals[iPoint - 1].clone()
             .multiplyScalar(shapePoints[i].x)
           y = path.binormals[iPoint - 1].clone()
             .multiplyScalar(shapePoints[i].y)
           let normal00 = x.add(y)
 
-          x = path.residueNormals[iPoint].clone()
+          x = path.normals[iPoint].clone()
             .multiplyScalar(shapePoints[i].x)
           y = path.binormals[iPoint].clone()
             .multiplyScalar(shapePoints[i].y)
@@ -194,7 +208,7 @@ class RibbonGeometry extends THREE.Geometry {
         }
 
       } else {
-        // Continuous residueNormals but keep faces distinct
+        // Continuous normals but keep faces distinct
         // along ribbon
         for (let j = 0; j < nVertex; j += 1) {
           let i
@@ -208,13 +222,13 @@ class RibbonGeometry extends THREE.Geometry {
 
           let x, y
 
-          x = path.residueNormals[iPoint - 1].clone()
+          x = path.normals[iPoint - 1].clone()
             .multiplyScalar(shapeEdgeNormals[j].x)
           y = path.binormals[iPoint - 1].clone()
             .multiplyScalar(shapeEdgeNormals[j].y)
           let normal0 = x.add(y)
 
-          x = path.residueNormals[iPoint].clone()
+          x = path.normals[iPoint].clone()
             .multiplyScalar(shapeEdgeNormals[j].x)
           y = path.binormals[iPoint].clone()
             .multiplyScalar(shapeEdgeNormals[j].y)
@@ -323,7 +337,7 @@ function expandPath (oldPath, n, iOldPoint, jOldPoint) {
     }
   }
 
-  newPath.residueNormals.push(oldPath.residueNormals[iOldPoint])
+  newPath.normals.push(oldPath.normals[iOldPoint])
   for (let i = iOldPoint; i < jOldPoint - 1; i += 1) {
 
     for (let j = 1; j < n + 1; j += 1) {
@@ -333,23 +347,23 @@ function expandPath (oldPath, n, iOldPoint, jOldPoint) {
       let prevOldNormal, nextOldNormal
 
       if (i > 0) {
-        prevOldNormal = oldPath.residueNormals[i - 1]
+        prevOldNormal = oldPath.normals[i - 1]
       } else {
-        prevOldNormal = oldPath.residueNormals[i]
+        prevOldNormal = oldPath.normals[i]
       }
 
-      if (i < oldPath.residueNormals.length - 2) {
-        nextOldNormal = oldPath.residueNormals[i + 2]
+      if (i < oldPath.normals.length - 2) {
+        nextOldNormal = oldPath.normals[i + 2]
       } else {
-        nextOldNormal = oldPath.residueNormals[i + 1]
+        nextOldNormal = oldPath.normals[i + 1]
       }
 
-      newPath.residueNormals.push(
+      newPath.normals.push(
         catmulRomSpline(
           t,
           prevOldNormal,
-          oldPath.residueNormals[i],
-          oldPath.residueNormals[i + 1],
+          oldPath.normals[i],
+          oldPath.normals[i + 1],
           nextOldNormal
         )
           .normalize()
@@ -376,7 +390,7 @@ function expandPath (oldPath, n, iOldPoint, jOldPoint) {
     newPath.binormals.push(
       v3.create()
         .crossVectors(
-          newPath.tangents[i], newPath.residueNormals[i])
+          newPath.tangents[i], newPath.normals[i])
     )
   }
 
@@ -385,11 +399,11 @@ function expandPath (oldPath, n, iOldPoint, jOldPoint) {
 
 /**
  * Trace is an object designed to be built up progressively
- * by adding to this.indices, this.points and this.residueNormals.
+ * by adding to this.indices, this.points and this.normals.
  *
  * Once built, it can be expanded into a more detailed
  * trace, which is used to generate geometric pieces of
- * an extrusion where the residueNormals and tangents are
+ * an extrusion where the normals and tangents are
  * controlled.
  */
 class Trace extends PathAndFrenetFrames {
@@ -450,45 +464,45 @@ class Trace extends PathAndFrenetFrames {
    * it will use the normal, otherwise it will generate own
    * normal from the path curvature
    */
-  calcNormals() {
+  calcNormals () {
     let iStart = 0
     let iEnd = this.points.length
     let iLast = iEnd - 1
     if ((iEnd - iStart) > 2) {
 
       for (let i = iStart + 1; i < iLast; i += 1) {
-        if (this.residueNormals[i] !== null) {
+        if (this.normals[i] !== null) {
           // normal already provided, normalize properly against tangent
-          this.residueNormals[i] = perpVector(this.tangents[i], this.residueNormals[i])
-          this.residueNormals[i].normalize()
+          this.normals[i] = perpVector(this.tangents[i], this.normals[i])
+          this.normals[i].normalize()
         } else {
           // generate a normal from curvature
           let diff = this.points[i].clone().sub(this.points[i - 1])
-          this.residueNormals[i] = v3.create()
+          this.normals[i] = v3.create()
             .crossVectors(diff, this.tangents[i]).normalize()
 
           // smooth out auto-generated normal if flipped 180deg from prev
-          let prevNormal = this.residueNormals[i - 1]
+          let prevNormal = this.normals[i - 1]
           if (prevNormal !== null) {
-            if (this.residueNormals[i].dot(prevNormal) < 0) {
-              this.residueNormals[i].negate()
+            if (this.normals[i].dot(prevNormal) < 0) {
+              this.normals[i].negate()
             }
           }
         }
       }
 
-      this.residueNormals[iStart] = this.residueNormals[iStart + 1]
-      this.residueNormals[iLast] = this.residueNormals[iLast - 1]
+      this.normals[iStart] = this.normals[iStart + 1]
+      this.normals[iLast] = this.normals[iLast - 1]
 
     } else {
 
       for (let i = iStart; i <= iLast; i += 1) {
-        if (this.residueNormals[i] !== null) {
-          this.residueNormals[i] = perpVector(this.tangents[i], this.residueNormals[i])
-          this.residueNormals[i].normalize()
+        if (this.normals[i] !== null) {
+          this.normals[i] = perpVector(this.tangents[i], this.normals[i])
+          this.normals[i].normalize()
         } else {
           let randomDir = this.points[i]
-          this.residueNormals[i] = v3.create()
+          this.normals[i] = v3.create()
             .crossVectors(randomDir, tangent)
             .normalize()
         }
@@ -502,7 +516,7 @@ class Trace extends PathAndFrenetFrames {
     let iEnd = this.points.length
     for (let i = iStart; i < iEnd; i += 1) {
       this.binormals[i] = v3.create()
-        .crossVectors(this.tangents[i], this.residueNormals[i])
+        .crossVectors(this.tangents[i], this.normals[i])
     }
   }
 

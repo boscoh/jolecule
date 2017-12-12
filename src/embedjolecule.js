@@ -1,6 +1,6 @@
 import $ from 'jquery'
 import _ from 'lodash'
-import { Soup, Controller, Scene } from './soup'
+import { Soup, Controller, SoupView } from './soup'
 import { Display } from './display'
 import {
   exists,
@@ -213,14 +213,14 @@ class EmbedJolecule {
     this.hAnnotationView = this.params.viewHeight
 
     this.soup = new Soup()
-    this.scene = new Scene(this.soup)
-    this.controller = new Controller(this.scene)
+    this.soupView = new SoupView(this.soup)
+    this.controller = new Controller(this.soupView)
 
     this.residueSelector = null
 
     this.createProteinDiv()
     this.display = new Display(
-      this.scene,
+      this.soupView,
       '#jolecule-soup-display',
       this.controller,
       params.isGrid,
@@ -301,15 +301,15 @@ class EmbedJolecule {
 
     this.controller.load_views_from_flat_views(viewDicts)
 
-    let viewId = this.scene.current_view.id
+    let viewId = this.soupView.current_view.id
     if (this.initViewId) {
-      if (this.initViewId in this.scene.saved_views_by_id) {
+      if (this.initViewId in this.soupView.saved_views_by_id) {
         viewId = this.initViewId
       }
     }
     this.updateView()
 
-    if (this.params.viewId in this.scene.saved_views_by_id) {
+    if (this.params.viewId in this.soupView.saved_views_by_id) {
       this.controller.set_target_view_by_id(this.params.viewId)
       this.updateView()
     }
@@ -318,7 +318,7 @@ class EmbedJolecule {
   saveViewsToDataServer (success) {
     this.dataServer.save_views(
       this.controller.get_view_dicts(), success)
-    this.scene.changed = true
+    this.soupView.changed = true
   }
 
   saveCurrView () {
@@ -330,12 +330,12 @@ class EmbedJolecule {
   }
 
   getCurrView () {
-    var i = this.scene.i_last_view
-    if (i in this.scene.saved_views) {
-      var id = this.scene.saved_views[i].id
-      return this.scene.saved_views_by_id[id]
+    var i = this.soupView.i_last_view
+    if (i in this.soupView.saved_views) {
+      var id = this.soupView.saved_views[i].id
+      return this.soupView.saved_views_by_id[id]
     } else {
-      return this.scene.saved_views[0]
+      return this.soupView.saved_views[0]
     }
   }
 
@@ -345,16 +345,16 @@ class EmbedJolecule {
     this.viewDiv.css('background-color', 'lightgray')
     this.saveViewsToDataServer(
       () => { this.viewDiv.css('background-color', '') })
-    this.scene.changed = true
+    this.soupView.changed = true
   }
 
   deleteCurrView () {
-    var i = this.scene.i_last_view
+    var i = this.soupView.i_last_view
     if (i == 0) {
       // skip default view:000000
       return
     }
-    var id = this.scene.saved_views[i].id
+    var id = this.soupView.saved_views[i].id
     this.controller.delete_view(id)
     this.viewDiv.css('background-color', 'lightgray')
     this.dataServer.delete_protein_view(
@@ -376,12 +376,12 @@ class EmbedJolecule {
     if (exists(this.display)) {
       this.display.animate()
       if (this.isLoop) {
-        if (this.scene.n_update_step <= 0) {
+        if (this.soupView.n_update_step <= 0) {
           // loop started
-          this.scene.n_update_step -= 1
-          if (this.scene.n_update_step < -100) {
+          this.soupView.n_update_step -= 1
+          if (this.soupView.n_update_step < -100) {
             this.controller.set_target_next_view()
-            this.scene.changed = true
+            this.soupView.changed = true
           }
         }
       }
@@ -390,21 +390,21 @@ class EmbedJolecule {
 
   draw () {
     if (exists(this.display)) {
-      if (this.scene.changed) {
+      if (this.soupView.changed) {
         this.updateView()
         this.display.draw()
         this.populateResidueSelector()
-        this.scene.changed = false
+        this.soupView.changed = false
       }
     }
   }
 
   cycleBackbone () {
-    if (this.scene.current_view.show.all_atom) {
+    if (this.soupView.current_view.show.all_atom) {
       this.controller.set_backbone_option('ribbon')
-    } else if (this.scene.current_view.show.ribbon) {
+    } else if (this.soupView.current_view.show.ribbon) {
       this.controller.set_backbone_option('trace')
-    } else if (this.scene.current_view.show.trace) {
+    } else if (this.soupView.current_view.show.trace) {
       this.controller.set_backbone_option('all_atom')
     }
   }
@@ -418,7 +418,7 @@ class EmbedJolecule {
       this.viewDiv.css('visibility', 'hidden')
     }
     this.resize()
-    this.controller.scene.changed = true
+    this.controller.soupView.changed = true
   }
 
   toggleTextState () {
@@ -464,7 +464,7 @@ class EmbedJolecule {
         $('<option>').attr('value', residue.resId).text(text))
     }
 
-    this.residueSelector.val(this.scene.current_view.res_id)
+    this.residueSelector.val(this.soupView.current_view.res_id)
   }
 
   createStatusDiv () {
@@ -540,9 +540,9 @@ class EmbedJolecule {
 
     this.residueSelector.change(() => {
       var resId = this.residueSelector.find(':selected').val()
-      let iRes = this.scene.soup.getIResByResId(resId)
+      let iRes = this.soupView.soup.getIResByResId(resId)
       this.display.setTargetViewFromAtom(
-        this.scene.soup.getResidueProxy(iRes).iAtom)
+        this.soupView.soup.getResidueProxy(iRes).iAtom)
     })
 
     this.viewBarDiv =
@@ -589,7 +589,7 @@ class EmbedJolecule {
     if (view == null) {
       return
     }
-    var nView = this.scene.saved_views.length
+    var nView = this.soupView.saved_views.length
     var iView = view.order + 1
     this.statusText.text(' ' + iView + '/' + nView + ' ')
     var viewPiece = new ViewPiece({
@@ -632,7 +632,7 @@ class EmbedJolecule {
         this.display.renderer.domElement.style.height = newHeight
         this.display.resize()
       }
-      this.scene.changed = true
+      this.soupView.changed = true
     }
     this.proteinDiv.css('height', newHeight)
   }

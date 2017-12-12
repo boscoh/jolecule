@@ -313,7 +313,7 @@ class AtomLabelsWidget {
 
   constructor(proteinDisplay) {
     this.popups = []
-    this.scene = proteinDisplay.scene
+    this.soupView = proteinDisplay.soupView
     this.controller = proteinDisplay.controller
     this.display = proteinDisplay
     this.webglDivTag = proteinDisplay.webglDivTag
@@ -332,7 +332,7 @@ class AtomLabelsWidget {
   }
 
   draw() {
-    let labels = this.scene.current_view.labels
+    let labels = this.soupView.current_view.labels
 
     if (labels.length > this.popups.length) {
       for (let i = this.popups.length; i < labels.length; i += 1) {
@@ -347,7 +347,7 @@ class AtomLabelsWidget {
     }
 
     for (let i = 0; i < labels.length; i += 1) {
-      let atom = this.scene.soup.getAtomProxy(labels[i].i_atom)
+      let atom = this.soupView.soup.getAtomProxy(labels[i].i_atom)
 
       this.popups[i].html(labels[i].text)
 
@@ -376,7 +376,7 @@ class DistanceMeasuresWidget {
   constructor(proteinDisplay) {
     this.distanceMeasures = []
     this.threeJsScene = proteinDisplay.displayScene
-    this.scene = proteinDisplay.scene
+    this.soupView = proteinDisplay.soupView
     this.controller = proteinDisplay.controller
     this.webglDivTag = proteinDisplay.webglDivTag
     this.display = proteinDisplay
@@ -420,7 +420,7 @@ class DistanceMeasuresWidget {
   }
 
   draw() {
-    let distances = this.scene.current_view.distances
+    let distances = this.soupView.current_view.distances
 
     if (distances.length > this.distanceMeasures.length) {
       for (let i = this.distanceMeasures.length; i < distances.length; i += 1) {
@@ -440,8 +440,8 @@ class DistanceMeasuresWidget {
       let distance = distances[i]
       let distanceMeasure = this.distanceMeasures[i]
 
-      let p1 = this.scene.soup.getAtomProxy(distance.i_atom1).pos.clone()
-      let p2 = this.scene.soup.getAtomProxy(distance.i_atom2).pos.clone()
+      let p1 = this.soupView.soup.getAtomProxy(distance.i_atom1).pos.clone()
+      let p2 = this.soupView.soup.getAtomProxy(distance.i_atom2).pos.clone()
 
       let text = p1.distanceTo(p2).toFixed(1)
       distanceMeasure.div.text(text)
@@ -495,7 +495,7 @@ class SequenceWidget extends CanvasWrapper {
     super(selector)
 
     this.display = proteinDisplay
-    this.scene = proteinDisplay.scene
+    this.soupView = proteinDisplay.soupView
     this.traces = proteinDisplay.traces
 
     this.iRes = 0
@@ -598,7 +598,7 @@ class SequenceWidget extends CanvasWrapper {
   }
 
   draw () {
-    if (!util.exists(this.scene)) {
+    if (!util.exists(this.soupView)) {
       return
     }
 
@@ -672,7 +672,7 @@ class SequenceWidget extends CanvasWrapper {
         '8pt Monospace', 'black', 'center')
     }
 
-    let currResId = this.scene.current_view.res_id
+    let currResId = this.soupView.current_view.res_id
     for (let iRes = this.iStartChar; iRes < this.iEndChar; iRes++) {
       if (this.residues[iRes].resId === currResId) {
         this.strokeRect(
@@ -719,7 +719,7 @@ class SequenceWidget extends CanvasWrapper {
 class ZSlabWidget extends CanvasWrapper {
   constructor (selector, scene) {
     super(selector)
-    this.scene = scene
+    this.soupView = scene
     this.maxZLength = 0.0
     this.yOffset = 60
     this.div.attr('id', 'zslab')
@@ -768,8 +768,8 @@ class ZSlabWidget extends CanvasWrapper {
   }
 
   draw () {
-    let protein = this.scene.soup
-    let target = this.scene.current_view.camera
+    let protein = this.soupView.soup
+    let target = this.soupView.current_view.camera
     this.maxZLength = 2.0 * protein.maxLength
 
     let yBack = this.zToY(target.zBack)
@@ -825,7 +825,7 @@ class ZSlabWidget extends CanvasWrapper {
 
     this.getZ(event)
 
-    let target = this.scene.current_view.camera
+    let target = this.soupView.current_view.camera
 
     if (this.back) {
       target.zBack = Math.max(2, this.z)
@@ -833,7 +833,7 @@ class ZSlabWidget extends CanvasWrapper {
       target.zFront = Math.min(-2, this.z)
     }
 
-    this.scene.changed = true
+    this.soupView.changed = true
   }
 }
 
@@ -845,7 +845,7 @@ class GridControlWidget extends CanvasWrapper {
   constructor (selector, scene, isGrid) {
     super(selector)
     this.isGrid = isGrid
-    this.scene = scene
+    this.soupView = scene
     this.buttonHeight = 40
     this.sliderHeight = this.buttonHeight * 6 - 50
     this.div.attr('id', 'grid-control')
@@ -867,12 +867,12 @@ class GridControlWidget extends CanvasWrapper {
     this.buttonsDiv.empty()
 
     let y = 10
-    for (let elem of _.keys(this.scene.soup.grid.isElem)) {
+    for (let elem of _.keys(this.soupView.soup.grid.isElem)) {
       this.buttonsDiv.append(this.makeElemButton(elem, y))
       y += this.buttonHeight
     }
 
-    if (_.keys(this.scene.soup.grid.isElem).length === 0) {
+    if (_.keys(this.soupView.soup.grid.isElem).length === 0) {
       this.div.hide()
     } else {
       this.div.show()
@@ -887,10 +887,10 @@ class GridControlWidget extends CanvasWrapper {
       'toggle_text',
       elem,
       'jolecule-button',
-      () => this.scene.soup.grid.isElem[elem],
+      () => this.soupView.soup.grid.isElem[elem],
       (b) => {
-        this.scene.soup.grid.isElem[elem] = b
-        this.scene.changed = true
+        this.soupView.soup.grid.isElem[elem] = b
+        this.soupView.changed = true
       },
       colorHexStr)
     text_button.css('position', 'absolute')
@@ -934,20 +934,20 @@ class GridControlWidget extends CanvasWrapper {
 
   yToZ (y) {
     let fraction = (y - 20) / this.sliderHeight
-    let grid = this.scene.soup.grid
+    let grid = this.soupView.soup.grid
     let diff = grid.bMax - grid.bMin
     let z = fraction * diff + grid.bMin
-    if (z < this.scene.soup.grid.bMin) {
-      z = this.scene.soup.grid.bMin
+    if (z < this.soupView.soup.grid.bMin) {
+      z = this.soupView.soup.grid.bMin
     }
-    if (z > this.scene.soup.grid.bMax) {
-      z = this.scene.soup.grid.bMax
+    if (z > this.soupView.soup.grid.bMax) {
+      z = this.soupView.soup.grid.bMax
     }
     return z
   }
 
   zToY (z) {
-    let grid = this.scene.soup.grid
+    let grid = this.soupView.soup.grid
     let diff = grid.bMax - grid.bMin
     return (z - grid.bMin) / diff * this.sliderHeight + 20
   }
@@ -962,16 +962,16 @@ class GridControlWidget extends CanvasWrapper {
     let xm = 20
 
     let dark = 'rgb(100, 100, 100)'
-    let yTop = this.zToY(this.scene.soup.grid.bMin)
-    let yBottom = this.zToY(this.scene.soup.grid.bMax)
+    let yTop = this.zToY(this.soupView.soup.grid.bMin)
+    let yBottom = this.zToY(this.soupView.soup.grid.bMax)
     this.line(xm, yTop, xm, yBottom, 1, dark)
     this.line(5, yTop, 35, yTop, 1, dark)
 
     let font = '12px sans-serif'
     let textColor = '#666'
-    let y = this.zToY(this.scene.soup.grid.bCutoff)
+    let y = this.zToY(this.soupView.soup.grid.bCutoff)
     this.fillRect(5, y, 30, 5, textColor)
-    this.text(-this.scene.soup.grid.bCutoff.toFixed(2), xm, y + 15, font, textColor, 'center')
+    this.text(-this.soupView.soup.grid.bCutoff.toFixed(2), xm, y + 15, font, textColor, 'center')
   }
 
   getZ (event) {
@@ -999,11 +999,11 @@ class GridControlWidget extends CanvasWrapper {
 
     this.getZ(event)
 
-    this.scene.soup.grid.bCutoff = this.z
-    this.scene.soup.grid.changed = true
+    this.soupView.soup.grid.bCutoff = this.z
+    this.soupView.soup.grid.changed = true
     this.draw()
 
-    this.scene.changed = true
+    this.soupView.changed = true
   }
 
   mouseup (event) {
