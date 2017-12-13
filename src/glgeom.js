@@ -13,17 +13,18 @@ import _ from 'lodash'
 
 console.log(THREE)
 
+function CatmullRom (t, p0, p1, p2, p3) {
 
-function CatmullRom( t, p0, p1, p2, p3 ) {
-
-  var v0 = ( p2 - p0 ) * 0.5;
-  var v1 = ( p3 - p1 ) * 0.5;
-  var t2 = t * t;
-  var t3 = t * t2;
-  return ( 2 * p1 - 2 * p2 + v0 + v1 ) * t3 + ( - 3 * p1 + 3 * p2 - 2 * v0 - v1 ) * t2 + v0 * t + p1;
+  let v0 = (p2 - p0) * 0.5
+  let v1 = (p3 - p1) * 0.5
+  let t2 = t * t
+  let t3 = t * t2
+  return (2 * p1 - 2 * p2 + v0 + v1) * t3 +
+    (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t2 +
+    v0 * t +
+    p1
 
 }
-
 
 /**
  * Interpolation function for a Catmul-Rom spline
@@ -803,6 +804,90 @@ function getCylinderMatrix (from, to, radius) {
   return obj.matrix
 }
 
+function applyMatrix4toVector3array (matrix, vec3Array, iStart, iEnd) {
+  let elems = matrix.elements
+  for (let i = iStart; i < iEnd; i += 3) {
+    let x = vec3Array[i]
+    let y = vec3Array[i + 1]
+    let z = vec3Array[i + 2]
+    vec3Array[i] = elems[0] * x + elems[4] * y + elems[8] * z + elems[12]
+    vec3Array[i + 1] = elems[1] * x + elems[5] * y + elems[9] * z + elems[13]
+    vec3Array[i + 2] = elems[2] * x + elems[6] * y + elems[10] * z + elems[14]
+  }
+}
+
+function applyRotationOfMatrix4toVector3array (matrix, vec3Array, iStart, iEnd) {
+  let elems = matrix.elements
+  for (let i = iStart; i < iEnd; i += 3) {
+    let x = vec3Array[i]
+    let y = vec3Array[i + 1]
+    let z = vec3Array[i + 2]
+    vec3Array[i] = elems[0] * x + elems[4] * y + elems[8] * z
+    vec3Array[i + 1] = elems[1] * x + elems[5] * y + elems[9] * z
+    vec3Array[i + 2] = elems[2] * x + elems[6] * y + elems[10] * z
+  }
+}
+
+function expandFloatArray (refArray, nCopy) {
+  let nElem = refArray.length
+  let targetArray = new Float32Array(nElem * nCopy)
+  for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
+    let iStart = iCopy * nElem
+    for (let i = 0; i < nElem; i += 1) {
+      targetArray[iStart + i] = refArray[i]
+    }
+  }
+  return targetArray
+}
+
+function applyColorToVector3array (color, vec3Array, iStart, iEnd) {
+  for (let i = iStart; i < iEnd; i += 3) {
+    vec3Array[i] = color.r
+    vec3Array[i + 1] = color.g
+    vec3Array[i + 2] = color.b
+  }
+}
+
+function expandIndices (refArray, nCopy, nIndexInCopy) {
+  let nElem = refArray.length
+  let targetArray = new Uint16Array(nElem * nCopy)
+  for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
+    let iStart = iCopy * nElem
+    let indexOffset = iCopy * nIndexInCopy
+    for (let i = 0; i < nElem; i += 1) {
+      targetArray[iStart + i] = refArray[i] + indexOffset
+    }
+  }
+  return targetArray
+}
+
+function copyBufferGeometry (copyBufferGeometry, nCopy) {
+
+  let bufferGeometry = new THREE.BufferGeometry()
+
+  let positions = expandFloatArray(copyBufferGeometry.attributes.position.array, nCopy)
+  bufferGeometry.addAttribute(
+    'position', new THREE.Float32BufferAttribute(positions, 3))
+
+  let normals = expandFloatArray(copyBufferGeometry.attributes.normal.array, nCopy)
+  bufferGeometry.addAttribute(
+    'normal', new THREE.Float32BufferAttribute(normals, 3))
+
+  let uvs = expandFloatArray(copyBufferGeometry.attributes.uv.array, nCopy)
+  bufferGeometry.addAttribute(
+    'uv', new THREE.Float32BufferAttribute(uvs, 2))
+
+  let nVertexInCopy = copyBufferGeometry.attributes.position.count
+  let indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy)
+  bufferGeometry.setIndex(new THREE.Uint16BufferAttribute(indices, 1))
+
+  let colors = new Float32Array(nVertexInCopy * 3 * nCopy)
+  bufferGeometry.addAttribute(
+    'color', new THREE.Float32BufferAttribute(colors, 3))
+
+  return bufferGeometry
+}
+
 export {
   BlockArrowGeometry,
   UnitCylinderGeometry,
@@ -817,6 +902,10 @@ export {
   Trace,
   mergeUnitGeom,
   getSphereMatrix,
-  getCylinderMatrix
+  getCylinderMatrix,
+  copyBufferGeometry,
+  applyMatrix4toVector3array,
+  applyRotationOfMatrix4toVector3array,
+  applyColorToVector3array
 }
 

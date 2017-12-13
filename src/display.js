@@ -649,8 +649,12 @@ class Display {
 
   buildMeshOfWater () {
     this.createOrClearMesh('water')
-    let displayGeom = new THREE.Geometry()
+
     let pickingGeom = new THREE.Geometry()
+
+    let atomPositions = []
+    let atomColors = []
+
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidueProxy(iRes)
       if (residue.resType == 'HOH') {
@@ -659,13 +663,38 @@ class Display {
           let atom = this.soup.getAtomProxy(iAtom)
           let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
           let unitGeom = this.unitSphereGeom
-          glgeom.mergeUnitGeom(displayGeom, unitGeom, this.getAtomColor(iAtom), matrix)
+          let color = this.getAtomColor(iAtom)
+          atomColors.push(color)
+          atomPositions.push(atom.pos.clone())
           glgeom.mergeUnitGeom(pickingGeom, unitGeom, data.getIndexColor(iAtom), matrix)
         }
       }
     }
-    this.addGeomToDisplayMesh('water', displayGeom)
     this.addGeomToPickingMesh('water', pickingGeom)
+
+    if (atomPositions.length) {
+      let nCopy = atomPositions.length
+      let refGeometry = new THREE.SphereBufferGeometry(1, 8, 8)
+
+      let bufferGeometry = glgeom.copyBufferGeometry(refGeometry, nCopy)
+      let nElemRef = refGeometry.attributes.position.array.length
+      let positions = bufferGeometry.attributes.position.array
+      let normals = bufferGeometry.attributes.normal.array
+      let colors = bufferGeometry.attributes.color.array
+      for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
+        let matrix = glgeom.getSphereMatrix(atomPositions[iCopy], this.atomRadius)
+        let color = atomColors[iCopy]
+        let iElemStart = iCopy * nElemRef
+        let iElemEnd = iElemStart + nElemRef
+        glgeom.applyMatrix4toVector3array(matrix, positions, iElemStart, iElemEnd)
+        glgeom.applyRotationOfMatrix4toVector3array(matrix, normals, iElemStart, iElemEnd)
+        glgeom.applyColorToVector3array(color, colors, iElemStart, iElemEnd)
+      }
+
+      let material = this.displayMaterial
+      let mesh = new THREE.Mesh(bufferGeometry, material)
+      this.displayMeshes.water.add(mesh)
+    }
   }
 
   isVisibleGridAtom (iAtom) {
@@ -679,21 +708,14 @@ class Display {
       return
     }
     this.createOrClearMesh('grid')
-    // let sphereGeometry = THREE.SphereBufferGeometry(5, 32, 32)
+    let sphereGeometry = new THREE.SphereBufferGeometry(1, 8, 8)
+    let atomIndices = []
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidueProxy(iRes)
       if (residue.ss === 'G') {
         let atom = residue.getCentralAtomProxy()
         if (this.isVisibleGridAtom(atom.iAtom)) {
-          let material = new THREE.MeshLambertMaterial({
-            color: this.getAtomColor(atom.iAtom)
-          })
-          let mesh = new THREE.Mesh(this.unitSphereGeom, material)
-          mesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius)
-          mesh.position.copy(atom.pos)
-          mesh.i = atom.iAtom
-          this.displayMeshes.grid.add(mesh)
-
+          atomIndices.push(atom.iAtom)
           let indexMaterial = new THREE.MeshBasicMaterial({
             color: data.getIndexColor(atom.iAtom)
           })
@@ -704,6 +726,17 @@ class Display {
           this.pickingMeshes.grid.add(pickingMesh)
         }
       }
+    }
+    for (let iAtom of atomIndices) {
+      let atom = this.soup.getAtomProxy(iAtom)
+      let material = new THREE.MeshLambertMaterial({
+        color: this.getAtomColor(iAtom)
+      })
+      let mesh = new THREE.Mesh(sphereGeometry, material)
+      mesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius)
+      mesh.position.copy(atom.pos)
+      mesh.i = atom.iAtom
+      this.displayMeshes.grid.add(mesh)
     }
   }
 

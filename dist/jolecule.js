@@ -75762,7 +75762,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.getCylinderMatrix = exports.getSphereMatrix = exports.mergeUnitGeom = exports.Trace = exports.clearObject3D = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.setVisible = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = undefined;
+	exports.applyColorToVector3array = exports.applyRotationOfMatrix4toVector3array = exports.applyMatrix4toVector3array = exports.copyBufferGeometry = exports.getCylinderMatrix = exports.getSphereMatrix = exports.mergeUnitGeom = exports.Trace = exports.clearObject3D = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.setVisible = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = undefined;
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Custom geometry and mesh generators based on the
@@ -76552,6 +76552,86 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return obj.matrix;
 	}
 	
+	function applyMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
+	  var elems = matrix.elements;
+	  for (var i = iStart; i < iEnd; i += 3) {
+	    var x = vec3Array[i];
+	    var y = vec3Array[i + 1];
+	    var z = vec3Array[i + 2];
+	    vec3Array[i] = elems[0] * x + elems[4] * y + elems[8] * z + elems[12];
+	    vec3Array[i + 1] = elems[1] * x + elems[5] * y + elems[9] * z + elems[13];
+	    vec3Array[i + 2] = elems[2] * x + elems[6] * y + elems[10] * z + elems[14];
+	  }
+	}
+	
+	function applyRotationOfMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
+	  var elems = matrix.elements;
+	  for (var i = iStart; i < iEnd; i += 3) {
+	    var x = vec3Array[i];
+	    var y = vec3Array[i + 1];
+	    var z = vec3Array[i + 2];
+	    vec3Array[i] = elems[0] * x + elems[4] * y + elems[8] * z;
+	    vec3Array[i + 1] = elems[1] * x + elems[5] * y + elems[9] * z;
+	    vec3Array[i + 2] = elems[2] * x + elems[6] * y + elems[10] * z;
+	  }
+	}
+	
+	function expandFloatArray(refArray, nCopy) {
+	  var nElem = refArray.length;
+	  var targetArray = new Float32Array(nElem * nCopy);
+	  for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
+	    var iStart = iCopy * nElem;
+	    for (var i = 0; i < nElem; i += 1) {
+	      targetArray[iStart + i] = refArray[i];
+	    }
+	  }
+	  return targetArray;
+	}
+	
+	function applyColorToVector3array(color, vec3Array, iStart, iEnd) {
+	  for (var i = iStart; i < iEnd; i += 3) {
+	    vec3Array[i] = color.r;
+	    vec3Array[i + 1] = color.g;
+	    vec3Array[i + 2] = color.b;
+	  }
+	}
+	
+	function expandIndices(refArray, nCopy, nIndexInCopy) {
+	  var nElem = refArray.length;
+	  var targetArray = new Uint16Array(nElem * nCopy);
+	  for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
+	    var iStart = iCopy * nElem;
+	    var indexOffset = iCopy * nIndexInCopy;
+	    for (var i = 0; i < nElem; i += 1) {
+	      targetArray[iStart + i] = refArray[i] + indexOffset;
+	    }
+	  }
+	  return targetArray;
+	}
+	
+	function copyBufferGeometry(copyBufferGeometry, nCopy) {
+	
+	  var bufferGeometry = new THREE.BufferGeometry();
+	
+	  var positions = expandFloatArray(copyBufferGeometry.attributes.position.array, nCopy);
+	  bufferGeometry.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+	
+	  var normals = expandFloatArray(copyBufferGeometry.attributes.normal.array, nCopy);
+	  bufferGeometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+	
+	  var uvs = expandFloatArray(copyBufferGeometry.attributes.uv.array, nCopy);
+	  bufferGeometry.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+	
+	  var nVertexInCopy = copyBufferGeometry.attributes.position.count;
+	  var indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy);
+	  bufferGeometry.setIndex(new THREE.Uint16BufferAttribute(indices, 1));
+	
+	  var colors = new Float32Array(nVertexInCopy * 3 * nCopy);
+	  bufferGeometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+	
+	  return bufferGeometry;
+	}
+	
 	exports.BlockArrowGeometry = BlockArrowGeometry;
 	exports.UnitCylinderGeometry = UnitCylinderGeometry;
 	exports.setVisible = setVisible;
@@ -76566,6 +76646,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.mergeUnitGeom = mergeUnitGeom;
 	exports.getSphereMatrix = getSphereMatrix;
 	exports.getCylinderMatrix = getCylinderMatrix;
+	exports.copyBufferGeometry = copyBufferGeometry;
+	exports.applyMatrix4toVector3array = applyMatrix4toVector3array;
+	exports.applyRotationOfMatrix4toVector3array = applyRotationOfMatrix4toVector3array;
+	exports.applyColorToVector3array = applyColorToVector3array;
 
 /***/ },
 /* 11 */
@@ -78742,8 +78826,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'buildMeshOfWater',
 	    value: function buildMeshOfWater() {
 	      this.createOrClearMesh('water');
-	      var displayGeom = new THREE.Geometry();
+	
 	      var pickingGeom = new THREE.Geometry();
+	
+	      var atomPositions = [];
+	      var atomColors = [];
+	
 	      var _iteratorNormalCompletion19 = true;
 	      var _didIteratorError19 = false;
 	      var _iteratorError19 = undefined;
@@ -78764,10 +78852,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var iAtom = _step20.value;
 	
 	                var atom = this.soup.getAtomProxy(iAtom);
-	                var matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius);
+	                var _matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius);
 	                var unitGeom = this.unitSphereGeom;
-	                glgeom.mergeUnitGeom(displayGeom, unitGeom, this.getAtomColor(iAtom), matrix);
-	                glgeom.mergeUnitGeom(pickingGeom, unitGeom, data.getIndexColor(iAtom), matrix);
+	                var _color = this.getAtomColor(iAtom);
+	                atomColors.push(_color);
+	                atomPositions.push(atom.pos.clone());
+	                glgeom.mergeUnitGeom(pickingGeom, unitGeom, data.getIndexColor(iAtom), _matrix);
 	              }
 	            } catch (err) {
 	              _didIteratorError20 = true;
@@ -78800,8 +78890,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 	
-	      this.addGeomToDisplayMesh('water', displayGeom);
 	      this.addGeomToPickingMesh('water', pickingGeom);
+	
+	      if (atomPositions.length) {
+	        var nCopy = atomPositions.length;
+	        var refGeometry = new THREE.SphereBufferGeometry(1, 8, 8);
+	
+	        var bufferGeometry = glgeom.copyBufferGeometry(refGeometry, nCopy);
+	        var nElemRef = refGeometry.attributes.position.array.length;
+	        var positions = bufferGeometry.attributes.position.array;
+	        var normals = bufferGeometry.attributes.normal.array;
+	        var colors = bufferGeometry.attributes.color.array;
+	        for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
+	          var matrix = glgeom.getSphereMatrix(atomPositions[iCopy], this.atomRadius);
+	          var color = atomColors[iCopy];
+	          var iElemStart = iCopy * nElemRef;
+	          var iElemEnd = iElemStart + nElemRef;
+	          glgeom.applyMatrix4toVector3array(matrix, positions, iElemStart, iElemEnd);
+	          glgeom.applyRotationOfMatrix4toVector3array(matrix, normals, iElemStart, iElemEnd);
+	          glgeom.applyColorToVector3array(color, colors, iElemStart, iElemEnd);
+	        }
+	
+	        var material = this.displayMaterial;
+	        var mesh = new THREE.Mesh(bufferGeometry, material);
+	        this.displayMeshes.water.add(mesh);
+	      }
 	    }
 	  }, {
 	    key: 'isVisibleGridAtom',
@@ -78817,7 +78930,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return;
 	      }
 	      this.createOrClearMesh('grid');
-	      // let sphereGeometry = THREE.SphereBufferGeometry(5, 32, 32)
+	      var sphereGeometry = new THREE.SphereBufferGeometry(1, 8, 8);
+	      var atomIndices = [];
 	      var _iteratorNormalCompletion21 = true;
 	      var _didIteratorError21 = false;
 	      var _iteratorError21 = undefined;
@@ -78830,15 +78944,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (residue.ss === 'G') {
 	            var atom = residue.getCentralAtomProxy();
 	            if (this.isVisibleGridAtom(atom.iAtom)) {
-	              var material = new THREE.MeshLambertMaterial({
-	                color: this.getAtomColor(atom.iAtom)
-	              });
-	              var mesh = new THREE.Mesh(this.unitSphereGeom, material);
-	              mesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius);
-	              mesh.position.copy(atom.pos);
-	              mesh.i = atom.iAtom;
-	              this.displayMeshes.grid.add(mesh);
-	
+	              atomIndices.push(atom.iAtom);
 	              var indexMaterial = new THREE.MeshBasicMaterial({
 	                color: data.getIndexColor(atom.iAtom)
 	              });
@@ -78864,6 +78970,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	        }
 	      }
+	
+	      var _iteratorNormalCompletion22 = true;
+	      var _didIteratorError22 = false;
+	      var _iteratorError22 = undefined;
+	
+	      try {
+	        for (var _iterator22 = atomIndices[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+	          var iAtom = _step22.value;
+	
+	          var _atom = this.soup.getAtomProxy(iAtom);
+	          var material = new THREE.MeshLambertMaterial({
+	            color: this.getAtomColor(iAtom)
+	          });
+	          var mesh = new THREE.Mesh(sphereGeometry, material);
+	          mesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius);
+	          mesh.position.copy(_atom.pos);
+	          mesh.i = _atom.iAtom;
+	          this.displayMeshes.grid.add(mesh);
+	        }
+	      } catch (err) {
+	        _didIteratorError22 = true;
+	        _iteratorError22 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion22 && _iterator22.return) {
+	            _iterator22.return();
+	          }
+	        } finally {
+	          if (_didIteratorError22) {
+	            throw _iteratorError22;
+	          }
+	        }
+	      }
 	    }
 	  }, {
 	    key: 'buildMeshOfNucleotides',
@@ -78877,13 +79016,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var cylinderGeom = new glgeom.UnitCylinderGeometry();
 	
-	      var _iteratorNormalCompletion22 = true;
-	      var _didIteratorError22 = false;
-	      var _iteratorError22 = undefined;
+	      var _iteratorNormalCompletion23 = true;
+	      var _didIteratorError23 = false;
+	      var _iteratorError23 = undefined;
 	
 	      try {
-	        for (var _iterator22 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-	          var iRes = _step22.value;
+	        for (var _iterator23 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+	          var iRes = _step23.value;
 	
 	          var residue = this.soup.getResidueProxy(iRes);
 	          if (residue.ss !== 'D' || !residue.isPolymer) {
@@ -78921,13 +79060,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var faceGeom = new glgeom.RaisedShapeGeometry(vertices, 0.2);
 	          basepairGeom.merge(faceGeom);
 	
-	          var _iteratorNormalCompletion23 = true;
-	          var _didIteratorError23 = false;
-	          var _iteratorError23 = undefined;
+	          var _iteratorNormalCompletion24 = true;
+	          var _didIteratorError24 = false;
+	          var _iteratorError24 = undefined;
 	
 	          try {
-	            for (var _iterator23 = bondTypes[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-	              var bond = _step23.value;
+	            for (var _iterator24 = bondTypes[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
+	              var bond = _step24.value;
 	
 	              var _vertices = getVerticesFromAtomDict(iRes, [bond[0], bond[1]]);
 	              basepairGeom.merge(cylinderGeom, glgeom.getCylinderMatrix(_vertices[0], _vertices[1], 0.2));
@@ -78937,16 +79076,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	            // sets no uv but cylinder does, and the merged geometry causes
 	            // warnings in THREE.js v0.79
 	          } catch (err) {
-	            _didIteratorError23 = true;
-	            _iteratorError23 = err;
+	            _didIteratorError24 = true;
+	            _iteratorError24 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion23 && _iterator23.return) {
-	                _iterator23.return();
+	              if (!_iteratorNormalCompletion24 && _iterator24.return) {
+	                _iterator24.return();
 	              }
 	            } finally {
-	              if (_didIteratorError23) {
-	                throw _iteratorError23;
+	              if (_didIteratorError24) {
+	                throw _iteratorError24;
 	              }
 	            }
 	          }
@@ -78960,16 +79099,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	          pickingGeom.merge(basepairGeom);
 	        }
 	      } catch (err) {
-	        _didIteratorError22 = true;
-	        _iteratorError22 = err;
+	        _didIteratorError23 = true;
+	        _iteratorError23 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion22 && _iterator22.return) {
-	            _iterator22.return();
+	          if (!_iteratorNormalCompletion23 && _iterator23.return) {
+	            _iterator23.return();
 	          }
 	        } finally {
-	          if (_didIteratorError22) {
-	            throw _iteratorError22;
+	          if (_didIteratorError23) {
+	            throw _iteratorError23;
 	          }
 	        }
 	      }
