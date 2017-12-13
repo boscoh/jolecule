@@ -604,30 +604,123 @@ class Display {
     }
   }
 
+  buildAtomMeshes(atomIndices, meshName) {
+    if (atomIndices.length === 0) {
+      return
+    }
+    let nCopy = atomIndices.length
+    let sphereBufferGeometry = new THREE.SphereBufferGeometry(1, 8, 8)
+    let displayGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy)
+    let pickingGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy)
+
+    let atomProxy = this.soup.getAtomProxy()
+    for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
+      let iAtom = atomIndices[iCopy]
+      atomProxy.load(iAtom)
+      let matrix = glgeom.getSphereMatrix(atomProxy.pos, this.atomRadius)
+      displayGeom.applyMatrixToCopy(matrix, iCopy)
+      pickingGeom.applyMatrixToCopy(matrix, iCopy)
+      displayGeom.applyColorToCopy(this.getAtomColor(iAtom), iCopy)
+      pickingGeom.applyColorToCopy(data.getIndexColor(iAtom), iCopy)
+    }
+
+    let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
+    this.displayMeshes[meshName].add(displayMesh)
+
+    let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
+    this.pickingMeshes[meshName].add(pickingMesh)
+  }
+
+  buildBondMeshes (bondIndices, meshName) {
+    if (bondIndices.length === 0) {
+      return
+    }
+    let nCopy = bondIndices.length
+
+    let cylinderBufferGeometry = new THREE.CylinderBufferGeometry(1, 1, 1, 4, 1, false)
+    cylinderBufferGeometry.applyMatrix(
+          new THREE.Matrix4()
+            .makeRotationFromEuler(
+              new THREE.Euler(Math.PI / 2, Math.PI, 0)))
+    let displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nCopy)
+
+    let atomProxy1 = this.soup.getAtomProxy()
+    let atomProxy2 = this.soup.getOtherAtomProxy()
+    let bondProxy = this.soup.bondProxy
+    let residueProxy = this.soup.getResidueProxy()
+    for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
+      let iBond = bondIndices[iCopy]
+      bondProxy.load(iBond)
+      atomProxy1.load(bondProxy.iAtom1)
+      atomProxy2.load(bondProxy.iAtom2)
+      let p1 = atomProxy1.pos.clone()
+      let p2 = atomProxy2.pos.clone()
+      residueProxy.load(atomProxy1.iRes)
+      let color = residueProxy.color
+      if (atomProxy1.iRes !== atomProxy2.iRes) {
+        let midpoint = p2.clone().add(p1).multiplyScalar(0.5)
+        if (atomProxy1.iRes === residueProxy.iRes) {
+          p2 = midpoint
+        } else if (atomProxy2.iRes === residueProxy.iRes) {
+          p1 = midpoint
+        }
+      }
+      let matrix = glgeom.getCylinderMatrix(p1, p2, 0.2)
+      displayGeom.applyMatrixToCopy(matrix, iCopy)
+      displayGeom.applyColorToCopy(color, iCopy)
+    }
+
+    let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
+    this.displayMeshes[meshName].add(displayMesh)
+  }
+
   buildMeshOfBackbone () {
     this.createOrClearMesh('backbone')
-    let displayGeom = new THREE.Geometry()
-    let pickingGeom = new THREE.Geometry()
+
+    let atomIndices = []
+    let atom = this.soup.getAtomProxy()
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidueProxy(iRes)
       if (residue.isPolymer) {
-        let bondFilter = bond => {
-          let atomType1 = this.soup.getAtomProxy(bond.iAtom1).atomType
-          let atomType2 = this.soup.getAtomProxy(bond.iAtom2).atomType
-          return _.includes(data.backboneAtomTypes, atomType1) &&
-            _.includes(data.backboneAtomTypes, atomType2)
-        }
-        this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
         for (let iAtom of residue.getAtomIndices()) {
-          let atom = this.soup.getAtomProxy(iAtom)
+          atom.load(iAtom)
           if (util.inArray(atom.atomType, data.backboneAtomTypes)) {
-            this.mergeAtomToGeom(displayGeom, pickingGeom, iAtom)
+            atomIndices.push(iAtom)
           }
         }
       }
     }
-    this.addGeomToDisplayMesh('backbone', displayGeom)
-    this.addGeomToPickingMesh('backbone', pickingGeom)
+    this.buildAtomMeshes(atomIndices, 'backbone')
+
+    let bondIndices = []
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      let residue = this.soup.getResidueProxy(iRes)
+      if (residue.isPolymer) {
+        for (let iAtom of residue.getAtomIndices()) {
+          let bondFilter = bond => {
+            let atomType1 = this.soup.getAtomProxy(bond.iAtom1).atomType
+            let atomType2 = this.soup.getAtomProxy(bond.iAtom2).atomType
+            return _.includes(data.backboneAtomTypes, atomType1) &&
+              _.includes(data.backboneAtomTypes, atomType2)
+          }
+          let iBondStart = this.soup.atomStore.bondOffset[iAtom]
+          let n = this.soup.atomStore.bondCount[iAtom]
+          let iBondEnd = iBondStart + n
+          for (let iBond = iBondStart; iBond < iBondEnd; iBond += 1) {
+            let bond = this.soup.bondProxy.load(iBond)
+            if (bond.iAtom1 > bond.iAtom2) {
+              continue
+            }
+            if (bondFilter && !bondFilter(bond)) {
+              continue
+            }
+            bondIndices.push(iBond)
+          }
+        }
+      }
+    }
+    console.log(bondIndices)
+    this.buildBondMeshes(bondIndices, 'backbone')
   }
 
   buildMeshOfLigands () {
@@ -649,52 +742,14 @@ class Display {
 
   buildMeshOfWater () {
     this.createOrClearMesh('water')
-
-    let pickingGeom = new THREE.Geometry()
-
-    let atomPositions = []
-    let atomColors = []
-
+    let atomIndices = []
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidueProxy(iRes)
-      if (residue.resType == 'HOH') {
-        // this.mergeBondsInResidue(displayGeom, iRes)
-        for (let iAtom of residue.getAtomIndices()) {
-          let atom = this.soup.getAtomProxy(iAtom)
-          let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
-          let unitGeom = this.unitSphereGeom
-          let color = this.getAtomColor(iAtom)
-          atomColors.push(color)
-          atomPositions.push(atom.pos.clone())
-          glgeom.mergeUnitGeom(pickingGeom, unitGeom, data.getIndexColor(iAtom), matrix)
-        }
+      if (residue.resType === 'HOH') {
+        atomIndices.push(residue.iAtom)
       }
     }
-    this.addGeomToPickingMesh('water', pickingGeom)
-
-    if (atomPositions.length) {
-      let nCopy = atomPositions.length
-      let refGeometry = new THREE.SphereBufferGeometry(1, 8, 8)
-
-      let bufferGeometry = glgeom.copyBufferGeometry(refGeometry, nCopy)
-      let nElemRef = refGeometry.attributes.position.array.length
-      let positions = bufferGeometry.attributes.position.array
-      let normals = bufferGeometry.attributes.normal.array
-      let colors = bufferGeometry.attributes.color.array
-      for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
-        let matrix = glgeom.getSphereMatrix(atomPositions[iCopy], this.atomRadius)
-        let color = atomColors[iCopy]
-        let iElemStart = iCopy * nElemRef
-        let iElemEnd = iElemStart + nElemRef
-        glgeom.applyMatrix4toVector3array(matrix, positions, iElemStart, iElemEnd)
-        glgeom.applyRotationOfMatrix4toVector3array(matrix, normals, iElemStart, iElemEnd)
-        glgeom.applyColorToVector3array(color, colors, iElemStart, iElemEnd)
-      }
-
-      let material = this.displayMaterial
-      let mesh = new THREE.Mesh(bufferGeometry, material)
-      this.displayMeshes.water.add(mesh)
-    }
+    this.buildAtomMeshes(atomIndices, 'water')
   }
 
   isVisibleGridAtom (iAtom) {
@@ -708,6 +763,7 @@ class Display {
       return
     }
     this.createOrClearMesh('grid')
+
     let sphereGeometry = new THREE.SphereBufferGeometry(1, 8, 8)
     let atomIndices = []
     for (let iRes of _.range(this.soup.getResidueCount())) {

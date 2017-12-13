@@ -861,31 +861,64 @@ function expandIndices (refArray, nCopy, nIndexInCopy) {
   return targetArray
 }
 
-function copyBufferGeometry (copyBufferGeometry, nCopy) {
+/**
+ * Creates a unit-based block arrow pointing in the -Z direction.
+ * It can be reorientated using a lookAt() call
+ */
+class CopyBufferGeometry extends THREE.BufferGeometry {
 
-  let bufferGeometry = new THREE.BufferGeometry()
+  constructor (copyBufferGeometry, nCopy) {
 
-  let positions = expandFloatArray(copyBufferGeometry.attributes.position.array, nCopy)
-  bufferGeometry.addAttribute(
-    'position', new THREE.Float32BufferAttribute(positions, 3))
+    super()
 
-  let normals = expandFloatArray(copyBufferGeometry.attributes.normal.array, nCopy)
-  bufferGeometry.addAttribute(
-    'normal', new THREE.Float32BufferAttribute(normals, 3))
+    this.type = 'CopyBufferGeometry'
+    this.parameters = {
+      nCopy: nCopy
+    }
 
-  let uvs = expandFloatArray(copyBufferGeometry.attributes.uv.array, nCopy)
-  bufferGeometry.addAttribute(
-    'uv', new THREE.Float32BufferAttribute(uvs, 2))
+    this.refBufferGeometry = copyBufferGeometry
 
-  let nVertexInCopy = copyBufferGeometry.attributes.position.count
-  let indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy)
-  bufferGeometry.setIndex(new THREE.Uint16BufferAttribute(indices, 1))
+    let positions = expandFloatArray(copyBufferGeometry.attributes.position.array, nCopy)
+    this.addAttribute(
+      'position', new THREE.Float32BufferAttribute(positions, 3))
 
-  let colors = new Float32Array(nVertexInCopy * 3 * nCopy)
-  bufferGeometry.addAttribute(
-    'color', new THREE.Float32BufferAttribute(colors, 3))
+    let normals = expandFloatArray(copyBufferGeometry.attributes.normal.array, nCopy)
+    this.addAttribute(
+      'normal', new THREE.Float32BufferAttribute(normals, 3))
 
-  return bufferGeometry
+    let uvs = expandFloatArray(copyBufferGeometry.attributes.uv.array, nCopy)
+    this.addAttribute(
+      'uv', new THREE.Float32BufferAttribute(uvs, 2))
+
+    let nVertexInCopy = copyBufferGeometry.attributes.position.count
+
+    if ('index' in copyBufferGeometry) {
+      let indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy)
+      this.setIndex(new THREE.Uint16BufferAttribute(indices, 1))
+    }
+
+    let colors = new Float32Array(nVertexInCopy * 3 * nCopy)
+    this.addAttribute(
+      'color', new THREE.Float32BufferAttribute(colors, 3))
+  }
+
+  applyMatrixToCopy (matrix, iCopy) {
+    let nElemRef = this.refBufferGeometry.attributes.position.array.length
+    let positions = this.attributes.position.array
+    let normals = this.attributes.normal.array
+    let iElemStart = iCopy * nElemRef
+    let iElemEnd = iElemStart + nElemRef
+    applyMatrix4toVector3array(matrix, positions, iElemStart, iElemEnd)
+    applyRotationOfMatrix4toVector3array(matrix, normals, iElemStart, iElemEnd)
+  }
+
+  applyColorToCopy (color, iCopy) {
+    let nElemRef = this.refBufferGeometry.attributes.position.array.length
+    let colors = this.attributes.color.array
+    let iElemStart = iCopy * nElemRef
+    let iElemEnd = iElemStart + nElemRef
+    applyColorToVector3array(color, colors, iElemStart, iElemEnd)
+  }
 }
 
 export {
@@ -903,7 +936,7 @@ export {
   mergeUnitGeom,
   getSphereMatrix,
   getCylinderMatrix,
-  copyBufferGeometry,
+  CopyBufferGeometry,
   applyMatrix4toVector3array,
   applyRotationOfMatrix4toVector3array,
   applyColorToVector3array
