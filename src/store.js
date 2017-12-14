@@ -160,8 +160,8 @@ class Store {
 
   /**
    * Copy data within this store
-   * @param  {Integer} thisOffset - offset to start copying to
-   * @param  {Integer} otherOffset - offset to start copying from
+   * @param  {Integer} offsetTarget - offset to start copying to
+   * @param  {Integer} offsetSource - offset to start copying from
    * @param  {Integer} length - number of entries to copy
    */
   copyWithin (offsetTarget, offsetSource, length) {

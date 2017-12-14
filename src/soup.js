@@ -377,6 +377,9 @@ class Soup {
     let atomLines = extractAtomLines(protein_data['pdb_text'])
     this.makeAtomsFromPdbLines(atomLines, this.pdb_id)
 
+    this.atomSelect = new BitArray(this.getAtomCount())
+    this.residueSelect = new BitArray(this.getResidueCount())
+
     this.assignResidueSsAndCentralAtoms()
 
     console.log(
@@ -401,13 +404,6 @@ class Soup {
       this.parsingError = 'No atom lines'
       return
     }
-
-    let currResId = ''
-    let n = this.getResidueCount()
-    if (n > 0) {
-      currResId = this.resIds[n - 1]
-    }
-
     for (let iLine = 0; iLine < lines.length; iLine += 1) {
       let line = lines[iLine]
       if (line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM') {
@@ -444,39 +440,39 @@ class Soup {
           resId += chain + ':'
         }
         resId += resNum
-
-        let iAtom = this.atomStore.count
-        this.atomStore.increment()
-
-        this.atomStore.x[iAtom] = x
-        this.atomStore.y[iAtom] = y
-        this.atomStore.z[iAtom] = z
-
-        this.atomStore.bfactor[iAtom] = bfactor
-        this.atomStore.alt[iAtom] = charToInt(alt)
-
-        this.atomStore.bondCount[iAtom] = 0
-
-        let iAtomType = getValueTableIndex(this.atomTypeTable, atomType)
-        this.atomStore.iAtomType[iAtom] = iAtomType
-
-        let iElem = getValueTableIndex(this.elemTable, elem)
-        this.atomStore.iElem[iAtom] = iElem
-
-        if (resId !== currResId) {
-          this.addResidue(iAtom, resId, resType)
-          currResId = resId
-        }
-
-        let iRes = this.getResidueCount() - 1
-        this.residueStore.atomCount[iRes] += 1
-        this.atomStore.iRes[iAtom] = iRes
-
+        this.addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resId)
       }
     }
+  }
 
-    this.atomSelect = new BitArray(this.getAtomCount())
-    this.residueSelect = new BitArray(this.getResidueCount())
+  addAtom (x, y, z, bfactor, alt, atomType, elem, resType, resId) {
+    let iAtom = this.atomStore.count
+    this.atomStore.increment()
+
+    this.atomStore.x[iAtom] = x
+    this.atomStore.y[iAtom] = y
+    this.atomStore.z[iAtom] = z
+
+    this.atomStore.bfactor[iAtom] = bfactor
+    this.atomStore.alt[iAtom] = charToInt(alt)
+
+    this.atomStore.bondCount[iAtom] = 0
+
+    let iAtomType = getValueTableIndex(this.atomTypeTable, atomType)
+    this.atomStore.iAtomType[iAtom] = iAtomType
+
+    let iElem = getValueTableIndex(this.elemTable, elem)
+    this.atomStore.iElem[iAtom] = iElem
+
+    let nRes = this.getResidueCount()
+    let currResId = (nRes === 0) ? '' : this.resIds[nRes - 1]
+    if (resId !== currResId) {
+      this.addResidue(iAtom, resId, resType)
+    }
+
+    let iRes = this.getResidueCount() - 1
+    this.residueStore.atomCount[iRes] += 1
+    this.atomStore.iRes[iAtom] = iRes
   }
 
   addResidue (iFirstAtomInRes, resId, resType) {

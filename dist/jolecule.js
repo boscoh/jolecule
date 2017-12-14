@@ -28723,6 +28723,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var atomLines = extractAtomLines(protein_data['pdb_text']);
 	      this.makeAtomsFromPdbLines(atomLines, this.pdb_id);
 	
+	      this.atomSelect = new _bitarray2.default(this.getAtomCount());
+	      this.residueSelect = new _bitarray2.default(this.getResidueCount());
+	
 	      this.assignResidueSsAndCentralAtoms();
 	
 	      console.log('Soup.load processed ' + this.getAtomCount() + ' atoms, ' + (this.getResidueCount() + ' residues'));
@@ -28745,13 +28748,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.parsingError = 'No atom lines';
 	        return;
 	      }
-	
-	      var currResId = '';
-	      var n = this.getResidueCount();
-	      if (n > 0) {
-	        currResId = this.resIds[n - 1];
-	      }
-	
 	      for (var iLine = 0; iLine < lines.length; iLine += 1) {
 	        var line = lines[iLine];
 	        if (line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM') {
@@ -28797,38 +28793,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	            resId += chain + ':';
 	          }
 	          resId += resNum;
-	
-	          var iAtom = this.atomStore.count;
-	          this.atomStore.increment();
-	
-	          this.atomStore.x[iAtom] = x;
-	          this.atomStore.y[iAtom] = y;
-	          this.atomStore.z[iAtom] = z;
-	
-	          this.atomStore.bfactor[iAtom] = bfactor;
-	          this.atomStore.alt[iAtom] = charToInt(alt);
-	
-	          this.atomStore.bondCount[iAtom] = 0;
-	
-	          var iAtomType = getValueTableIndex(this.atomTypeTable, atomType);
-	          this.atomStore.iAtomType[iAtom] = iAtomType;
-	
-	          var iElem = getValueTableIndex(this.elemTable, elem);
-	          this.atomStore.iElem[iAtom] = iElem;
-	
-	          if (resId !== currResId) {
-	            this.addResidue(iAtom, resId, resType);
-	            currResId = resId;
-	          }
-	
-	          var iRes = this.getResidueCount() - 1;
-	          this.residueStore.atomCount[iRes] += 1;
-	          this.atomStore.iRes[iAtom] = iRes;
+	          this.addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resId);
 	        }
 	      }
+	    }
+	  }, {
+	    key: 'addAtom',
+	    value: function addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resId) {
+	      var iAtom = this.atomStore.count;
+	      this.atomStore.increment();
 	
-	      this.atomSelect = new _bitarray2.default(this.getAtomCount());
-	      this.residueSelect = new _bitarray2.default(this.getResidueCount());
+	      this.atomStore.x[iAtom] = x;
+	      this.atomStore.y[iAtom] = y;
+	      this.atomStore.z[iAtom] = z;
+	
+	      this.atomStore.bfactor[iAtom] = bfactor;
+	      this.atomStore.alt[iAtom] = charToInt(alt);
+	
+	      this.atomStore.bondCount[iAtom] = 0;
+	
+	      var iAtomType = getValueTableIndex(this.atomTypeTable, atomType);
+	      this.atomStore.iAtomType[iAtom] = iAtomType;
+	
+	      var iElem = getValueTableIndex(this.elemTable, elem);
+	      this.atomStore.iElem[iAtom] = iElem;
+	
+	      var nRes = this.getResidueCount();
+	      var currResId = nRes === 0 ? '' : this.resIds[nRes - 1];
+	      if (resId !== currResId) {
+	        this.addResidue(iAtom, resId, resType);
+	      }
+	
+	      var iRes = this.getResidueCount() - 1;
+	      this.residueStore.atomCount[iRes] += 1;
+	      this.atomStore.iRes[iAtom] = iRes;
 	    }
 	  }, {
 	    key: 'addResidue',
@@ -76632,8 +76630,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	/**
-	 * Creates a unit-based block arrow pointing in the -Z direction.
-	 * It can be reorientated using a lookAt() call
 	 */
 	
 	var CopyBufferGeometry = function (_THREE$BufferGeometry) {
@@ -77051,8 +77047,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    /**
 	     * Copy data within this store
-	     * @param  {Integer} thisOffset - offset to start copying to
-	     * @param  {Integer} otherOffset - offset to start copying from
+	     * @param  {Integer} offsetTarget - offset to start copying to
+	     * @param  {Integer} offsetSource - offset to start copying from
 	     * @param  {Integer} length - number of entries to copy
 	     */
 	

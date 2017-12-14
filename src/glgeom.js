@@ -861,8 +861,6 @@ function expandIndices (refArray, nCopy, nIndexInCopy) {
 }
 
 /**
- * Creates a unit-based block arrow pointing in the -Z direction.
- * It can be reorientated using a lookAt() call
  */
 class CopyBufferGeometry extends THREE.BufferGeometry {
 
