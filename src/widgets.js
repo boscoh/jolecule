@@ -12,7 +12,7 @@
 
 
 import $ from 'jquery'
-import THREE from 'three'
+import * as THREE from 'three'
 import _ from 'lodash'
 
 import * as data from './data'
@@ -480,7 +480,6 @@ class DistanceMeasuresWidget {
   }
 }
 
-
 /**
  * SequenceWidget
  *   - creates a dual band across the top of the selected div
@@ -890,6 +889,7 @@ class GridControlWidget extends CanvasWrapper {
       () => this.soupView.soup.grid.isElem[elem],
       (b) => {
         this.soupView.soup.grid.isElem[elem] = b
+        this.soupView.soup.grid.changed = true
         this.soupView.changed = true
       },
       colorHexStr)

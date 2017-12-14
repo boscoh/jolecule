@@ -198,7 +198,7 @@ if (remain.length < 1) {
 
   let html = path.join(targetDir, 'index.html');
   let title = "jolecule";
-  let isFullPage = false;
+  let isFullPage = true;
   let htmlText;
   if (isFullPage) {
     let user_nickname = 'anonymous';

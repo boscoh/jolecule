@@ -721,10 +721,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      for (var i = 0; i < this.soup.getResidueCount(); i++) {
 	        var residue = this.soup.getResidueProxy(i);
 	        var text = residue.resId + '-' + residue.resType;
-	        this.residueSelector.append((0, _jquery2.default)('<option>').attr('value', residue.resId).text(text));
+	        this.residueSelector.append((0, _jquery2.default)('<option>').attr('value', i).text(text));
 	      }
 	
-	      this.residueSelector.val(this.soupView.current_view.res_id);
+	      var iAtom = this.soupView.current_view.i_atom;
+	      var iRes = this.soup.getAtomProxy(iAtom).iRes;
+	      this.residueSelector.val(iRes);
 	    }
 	  }, {
 	    key: 'createStatusDiv',
@@ -802,8 +804,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	
 	      this.residueSelector.change(function () {
-	        var resId = _this9.residueSelector.find(':selected').val();
-	        var iRes = _this9.soupView.soup.getIResByResId(resId);
+	        var iRes = parseInt(_this9.residueSelector.find(':selected').val());
 	        _this9.display.setTargetViewFromAtom(_this9.soupView.soup.getResidueProxy(iRes).iAtom);
 	      });
 	
@@ -28377,6 +28378,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this;
 	    }
 	  }, {
+	    key: 'getBondIndices',
+	    value: function getBondIndices() {
+	      var iStart = this.soup.atomStore.bondOffset[this.iAtom];
+	      var n = this.soup.atomStore.bondCount[this.iAtom];
+	      var iEnd = iStart + n;
+	      return _.range(iStart, iEnd);
+	    }
+	  }, {
 	    key: 'pos',
 	    get: function get() {
 	      this._pos.x = this.soup.atomStore.x[this.iAtom];
@@ -28414,7 +28423,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'resType',
 	    get: function get() {
-	      return this.soup.getResidueProxy(this.iRes).resType;
+	      var iResType = this.soup.residueStore[this.iRes];
+	      return this.soup.resTypeTable[iResType];
+	    }
+	  }, {
+	    key: 'getResidue',
+	    get: function get() {
+	      return this.soup.getResidueProxy(this.iRes);
 	    }
 	  }, {
 	    key: 'label',
@@ -28703,19 +28718,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var title = parsetTitleFromPdbText(protein_data['pdb_text']);
 	      this.default_html = this.pdb_id + ': ' + title;
 	
+	      console.log('Soup.load parse ' + this.pdb_id + '...');
+	
 	      var atomLines = extractAtomLines(protein_data['pdb_text']);
 	      this.makeAtomsFromPdbLines(atomLines, this.pdb_id);
 	
 	      this.assignResidueSsAndCentralAtoms();
 	
+	      console.log('Soup.load processed ' + this.getAtomCount() + ' atoms, ' + (this.getResidueCount() + ' residues'));
+	
+	      console.log('Soup.load finding bonds...');
 	      this.calcBonds();
-	      this.assignBondsToResidues();
+	
+	      console.log('Soup.load calculated ' + this.getBondCount() + ' bonds');
+	      this.assignBondsToAtoms();
 	
 	      this.calcMaxLength();
 	
 	      this.findSecondaryStructure();
-	
-	      console.log('Soup.load added ' + this.pdb_id + ': ' + (this.getAtomCount() + ' atoms, ') + (this.getBondCount() + ' bonds, ') + (this.getResidueCount() + ' residues'));
+	      console.log('Soup.load calculated secondary-structure');
 	    }
 	  }, {
 	    key: 'makeAtomsFromPdbLines',
@@ -28778,8 +28799,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          resId += resNum;
 	
 	          var iAtom = this.atomStore.count;
-	          this.atomStore.count += 1;
-	          this.atomStore.growIfFull();
+	          this.atomStore.increment();
 	
 	          this.atomStore.x[iAtom] = x;
 	          this.atomStore.y[iAtom] = y;
@@ -28814,8 +28834,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'addResidue',
 	    value: function addResidue(iFirstAtomInRes, resId, resType) {
 	      var iRes = this.getResidueCount();
-	      this.residueStore.count += 1;
-	      this.residueStore.growIfFull();
+	      this.residueStore.increment();
 	
 	      this.resIds.push(resId);
 	
@@ -28834,11 +28853,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var center = this.getCenter(atomIndices);
 	      var iAtom = this.getIAtomClosest(center, atomIndices);
 	      return this.getAtomProxy(iAtom);
-	    }
-	  }, {
-	    key: 'getIResByResId',
-	    value: function getIResByResId(resId) {
-	      return this.resIds.indexOf(resId);
 	    }
 	  }, {
 	    key: 'assignResidueSsAndCentralAtoms',
@@ -28988,8 +29002,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var vertices = [];
 	      var nAtom = this.getAtomCount();
+	      var a = this.getAtomProxy();
 	      for (var iAtom = 0; iAtom < nAtom; iAtom += 1) {
-	        var a = this.getAtomProxy(iAtom);
+	        a.load(iAtom);
 	        vertices.push([a.pos.x, a.pos.y, a.pos.z]);
 	      }
 	
@@ -29063,8 +29078,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.bondSelect = new _bitarray2.default(this.getBondCount());
 	    }
 	  }, {
-	    key: 'assignBondsToResidues',
-	    value: function assignBondsToResidues() {
+	    key: 'assignBondsToAtoms',
+	    value: function assignBondsToAtoms() {
 	
 	      var iAtom1Array = this.bondStore.iAtom1;
 	      this.bondStore.sort(function (i, j) {
@@ -29665,7 +29680,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      sidechain: true,
 	      peptide: true,
 	      hydrogen: false,
-	      water: true,
+	      water: false,
 	      ligands: true,
 	      trace: false,
 	      all_atom: false,
@@ -29895,6 +29910,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.n_update_step = -1;
 	    // this is to set the time between transitions of views
 	    this.max_update_step = 20;
+	
+	    this.updateSelection = false;
 	  }
 	
 	  _createClass(SoupView, [{
@@ -30031,13 +30048,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else {
 	        curr_res_id = this.soupView.current_view.res_id;
 	      }
-	      var i = this.soup.getIResByResId(curr_res_id);
-	      if (i <= 0) {
-	        i = this.soup.getResidueCount() - 1;
+	      var iAtom = this.soupView.current_view.i_atom;
+	      var iRes = this.soup.getAtomProxy(iAtom).iRes;
+	      if (iRes <= 0) {
+	        iRes = this.soup.getResidueCount() - 1;
 	      } else {
-	        i -= 1;
+	        iRes -= 1;
 	      }
-	      var iAtom = this.soup.getResidueProxy(i).iAtom;
+	      iAtom = this.soup.getResidueProxy(iRes).iAtom;
 	      this.set_target_view_by_atom(iAtom);
 	    }
 	  }, {
@@ -30049,13 +30067,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else {
 	        curr_res_id = this.soupView.current_view.res_id;
 	      }
-	      var i = this.soup.getIResByResId(curr_res_id);
-	      if (i >= this.soup.getResidueCount() - 1) {
-	        i = 0;
+	      var iAtom = this.soupView.current_view.i_atom;
+	      var iRes = this.soup.getAtomProxy(iAtom).iRes;
+	      if (iRes >= this.soup.getResidueCount() - 1) {
+	        iRes = 0;
 	      } else {
-	        i += 1;
+	        iRes += 1;
 	      }
-	      var iAtom = this.soup.getResidueProxy(i).iAtom;
+	      iAtom = this.soup.getResidueProxy(iRes).iAtom;
 	      this.set_target_view_by_atom(iAtom);
 	    }
 	  }, {
@@ -30129,7 +30148,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'toggle_neighbors',
 	    value: function toggle_neighbors() {
 	      var res_id = this.soupView.current_view.res_id;
-	      var i_res = this.soup.getIResByResId(res_id);
+	      var iAtom = this.soupView.current_view.i_atom;
+	      var i_res = this.soup.getAtomProxy(iAtom).iRes;
 	      var b = void 0;
 	      if (this.last_neighbour_res_id === res_id) {
 	        b = false;
@@ -30141,6 +30161,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.soup.selectNeighbourResidues(i_res, b);
 	      this.soupView.current_view.selected = this.make_selected();
 	      this.soupView.changed = true;
+	      this.soupView.updateSelection = true;
 	    }
 	  }, {
 	    key: 'save_current_view',
@@ -30204,6 +30225,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function set_show_option(option, bool) {
 	      console.log('Controller.set_show_option', option, bool);
 	      this.soupView.current_view.show[option] = bool;
+	      if (option === 'sidechain') {
+	        this.soupView.updateSelection = true;
+	      }
 	      this.soupView.changed = true;
 	    }
 	  }, {
@@ -75795,8 +75819,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	console.log(THREE);
-	
 	function CatmullRom(t, p0, p1, p2, p3) {
 	
 	  var v0 = (p2 - p0) * 0.5;
@@ -76196,10 +76218,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else {
 	
 	        // for short 2 point traces
-	        var _tangent = this.points[iLast].clone().sub(this.points[iStart]).normalize();
+	        var tangent = this.points[iLast].clone().sub(this.points[iStart]).normalize();
 	
-	        this.tangents[iStart] = _tangent;
-	        this.tangents[iLast] = _tangent;
+	        this.tangents[iStart] = tangent;
+	        this.tangents[iLast] = tangent;
 	      }
 	    }
 	
@@ -76247,7 +76269,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.normals[_i8].normalize();
 	          } else {
 	            var randomDir = this.points[_i8];
-	            this.normals[_i8] = _v2.default.create().crossVectors(randomDir, tangent).normalize();
+	            this.normals[_i8] = _v2.default.create().crossVectors(randomDir, this.tangents[_i8]).normalize();
 	          }
 	        }
 	      }
@@ -76598,7 +76620,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function expandIndices(refArray, nCopy, nIndexInCopy) {
 	  var nElem = refArray.length;
-	  var targetArray = new Uint16Array(nElem * nCopy);
+	  var targetArray = new Uint32Array(nElem * nCopy);
 	  for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
 	    var iStart = iCopy * nElem;
 	    var indexOffset = iCopy * nIndexInCopy;
@@ -76642,7 +76664,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    if ('index' in copyBufferGeometry) {
 	      var indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy);
-	      _this6.setIndex(new THREE.Uint16BufferAttribute(indices, 1));
+	      _this6.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
 	    }
 	
 	    var colors = new Float32Array(nVertexInCopy * 3 * nCopy);
@@ -78049,7 +78071,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
 	        if (this.soup.getResidueProxy(iRes).isPolymer) {
-	          var res = this.soup.getResidueProxy(iRes);
 	          if (iRes === 0 || !this.soup.isPolymerConnected(iRes - 1, iRes)) {
 	            (function () {
 	              var newTrace = new glgeom.Trace();
@@ -78152,7 +78173,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.buildMeshOfLigands();
 	      this.buildMeshOfNucleotides();
 	      this.buildMeshOfArrows();
-	      this.buildMeshOfWater();
+	
 	      this.rebuildSceneWithMeshes();
 	    }
 	
@@ -78274,7 +78295,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'selectVisibleMeshes',
 	    value: function selectVisibleMeshes() {
-	      var _this3 = this;
 	
 	      this.updateMeshesInScene = false;
 	
@@ -78286,113 +78306,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.setMeshVisible('backbone', show.all_atom);
 	      this.setMeshVisible('ligands', show.ligands);
 	
-	      if (util.exists(this.displayMeshes.grid)) {
-	        var _arr = [this.displayMeshes.grid, this.pickingMeshes.grid];
-	
-	        for (var _i = 0; _i < _arr.length; _i++) {
-	          var mesh = _arr[_i];
-	          mesh.traverse(function (child) {
-	            if (util.exists(child.i)) {
-	              child.visible = _this3.isVisibleGridAtom(child.i);
-	            }
-	          });
-	        }
+	      if (this.soupView.soup.grid.changed) {
+	        this.buildMeshOfGrid();
+	        this.soupView.soup.grid.changed = false;
+	        this.updateMeshesInScene = true;
 	      }
 	
-	      // since residues are built on demand at every cycle
-	      this.buildSelectedResidues(show.sidechain);
-	
-	      if (util.exists(this.displayMeshes.sidechains)) {
-	        var _arr2 = [this.displayMeshes.sidechains, this.pickingMeshes.sidechains];
-	
-	        for (var _i2 = 0; _i2 < _arr2.length; _i2++) {
-	          var _mesh2 = _arr2[_i2];
-	          _mesh2.traverse(function (child) {
-	            if (util.exists(child.i)) {
-	              var selected = _this3.soup.getResidueProxy(child.i).selected;
-	              child.visible = show.sidechain || selected;
-	            }
-	          });
-	        }
+	      if (this.soupView.updateSelection) {
+	        this.buildSelectedResidues(show.sidechain);
+	        this.updateMeshesInScene = true;
+	        this.soupView.updateSelection = false;
 	      }
 	
 	      if (this.updateMeshesInScene) {
 	        this.rebuildSceneWithMeshes();
-	      }
-	    }
-	  }, {
-	    key: 'mergeAtomToGeom',
-	    value: function mergeAtomToGeom(geom, pickGeom, iAtom) {
-	      var atom = this.soup.getAtomProxy(iAtom);
-	      var matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius);
-	      var unitGeom = this.unitSphereGeom;
-	      glgeom.mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix);
-	      glgeom.mergeUnitGeom(pickGeom, unitGeom, data.getIndexColor(iAtom), matrix);
-	    }
-	  }, {
-	    key: 'mergeBondsInResidue',
-	    value: function mergeBondsInResidue(geom, iRes, bondFilterFn) {
-	      var residue = this.soup.getResidueProxy(iRes);
-	      var unitGeom = new glgeom.UnitCylinderGeometry();
-	      var color = residue.color;
-	      var p1 = void 0,
-	          p2 = void 0;
-	      var _iteratorNormalCompletion5 = true;
-	      var _didIteratorError5 = false;
-	      var _iteratorError5 = undefined;
-	
-	      try {
-	        for (var _iterator5 = residue.getAtomIndices()[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	          var iAtom = _step5.value;
-	
-	          var iBondStart = this.soup.atomStore.bondOffset[iAtom];
-	          var n = this.soup.atomStore.bondCount[iAtom];
-	          var iBondEnd = iBondStart + n;
-	          if (n === 0) {
-	            continue;
-	          }
-	          for (var iBond = iBondStart; iBond < iBondEnd; iBond += 1) {
-	            // let bond = this.soup.bonds[iBond]
-	            var bond = this.soup.bondProxy.load(iBond);
-	            if (_lodash2.default.isUndefined(bond)) {
-	              var atom = this.soup.getAtomProxy(iAtom);
-	              console.log('Bond[' + iBond + '] undefined for ' + atom.label + '.', iBondStart + ' ' + n);
-	              continue;
-	            }
-	            if (bond.iAtom1 > bond.iAtom2) {
-	              continue;
-	            }
-	            if (bondFilterFn && !bondFilterFn(bond)) {
-	              continue;
-	            }
-	            var atom1 = this.soup.getAtomProxy(bond.iAtom1);
-	            var atom2 = this.soup.getOtherAtomProxy(bond.iAtom2);
-	            p1 = atom1.pos.clone();
-	            p2 = atom2.pos.clone();
-	            if (atom1.iRes !== atom2.iRes) {
-	              var midpoint = p2.clone().add(p1).multiplyScalar(0.5);
-	              if (atom1.iRes === residue.iRes) {
-	                p2 = midpoint;
-	              } else if (atom2.iRes === residue.iRes) {
-	                p1 = midpoint;
-	              }
-	            }
-	            glgeom.mergeUnitGeom(geom, unitGeom, color, glgeom.getCylinderMatrix(p1, p2, 0.2));
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError5 = true;
-	        _iteratorError5 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion5 && _iterator5.return) {
-	            _iterator5.return();
-	          }
-	        } finally {
-	          if (_didIteratorError5) {
-	            throw _iteratorError5;
-	          }
-	        }
 	      }
 	    }
 	  }, {
@@ -78425,22 +78352,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.createOrClearMesh('ribbons');
 	      var displayGeom = new THREE.Geometry();
 	      var pickingGeom = new THREE.Geometry();
-	      var _iteratorNormalCompletion6 = true;
-	      var _didIteratorError6 = false;
-	      var _iteratorError6 = undefined;
+	      var _iteratorNormalCompletion5 = true;
+	      var _didIteratorError5 = false;
+	      var _iteratorError5 = undefined;
 	
 	      try {
-	        for (var _iterator6 = this.traces[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-	          var trace = _step6.value;
+	        for (var _iterator5 = this.traces[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+	          var trace = _step5.value;
 	
 	          var n = trace.points.length;
-	          var _iteratorNormalCompletion7 = true;
-	          var _didIteratorError7 = false;
-	          var _iteratorError7 = undefined;
+	          var _iteratorNormalCompletion6 = true;
+	          var _didIteratorError6 = false;
+	          var _iteratorError6 = undefined;
 	
 	          try {
-	            for (var _iterator7 = _lodash2.default.range(n)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-	              var i = _step7.value;
+	            for (var _iterator6 = _lodash2.default.range(n)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+	              var i = _step6.value;
 	
 	              var res = trace.getReference(i);
 	              var face = data.getSsFace(res.ss);
@@ -78455,31 +78382,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	              pickingGeom.merge(resGeom);
 	            }
 	          } catch (err) {
-	            _didIteratorError7 = true;
-	            _iteratorError7 = err;
+	            _didIteratorError6 = true;
+	            _iteratorError6 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion7 && _iterator7.return) {
-	                _iterator7.return();
+	              if (!_iteratorNormalCompletion6 && _iterator6.return) {
+	                _iterator6.return();
 	              }
 	            } finally {
-	              if (_didIteratorError7) {
-	                throw _iteratorError7;
+	              if (_didIteratorError6) {
+	                throw _iteratorError6;
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError6 = true;
-	        _iteratorError6 = err;
+	        _didIteratorError5 = true;
+	        _iteratorError5 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion6 && _iterator6.return) {
-	            _iterator6.return();
+	          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+	            _iterator5.return();
 	          }
 	        } finally {
-	          if (_didIteratorError6) {
-	            throw _iteratorError6;
+	          if (_didIteratorError5) {
+	            throw _iteratorError5;
 	          }
 	        }
 	      }
@@ -78498,20 +78425,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var obj = new THREE.Object3D();
 	
-	      var _iteratorNormalCompletion8 = true;
-	      var _didIteratorError8 = false;
-	      var _iteratorError8 = undefined;
+	      var _iteratorNormalCompletion7 = true;
+	      var _didIteratorError7 = false;
+	      var _iteratorError7 = undefined;
 	
 	      try {
-	        for (var _iterator8 = this.traces[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-	          var trace = _step8.value;
-	          var _iteratorNormalCompletion9 = true;
-	          var _didIteratorError9 = false;
-	          var _iteratorError9 = undefined;
+	        for (var _iterator7 = this.traces[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+	          var trace = _step7.value;
+	          var _iteratorNormalCompletion8 = true;
+	          var _didIteratorError8 = false;
+	          var _iteratorError8 = undefined;
 	
 	          try {
-	            for (var _iterator9 = _lodash2.default.range(trace.points.length)[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-	              var i = _step9.value;
+	            for (var _iterator8 = _lodash2.default.range(trace.points.length)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+	              var i = _step8.value;
 	
 	              var point = trace.points[i];
 	              var tangent = trace.tangents[i];
@@ -78531,31 +78458,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	              geom.merge(blockArrowGeometry, obj.matrix);
 	            }
 	          } catch (err) {
-	            _didIteratorError9 = true;
-	            _iteratorError9 = err;
+	            _didIteratorError8 = true;
+	            _iteratorError8 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion9 && _iterator9.return) {
-	                _iterator9.return();
+	              if (!_iteratorNormalCompletion8 && _iterator8.return) {
+	                _iterator8.return();
 	              }
 	            } finally {
-	              if (_didIteratorError9) {
-	                throw _iteratorError9;
+	              if (_didIteratorError8) {
+	                throw _iteratorError8;
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError8 = true;
-	        _iteratorError8 = err;
+	        _didIteratorError7 = true;
+	        _iteratorError7 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-	            _iterator8.return();
+	          if (!_iteratorNormalCompletion7 && _iterator7.return) {
+	            _iterator7.return();
 	          }
 	        } finally {
-	          if (_didIteratorError8) {
-	            throw _iteratorError8;
+	          if (_didIteratorError7) {
+	            throw _iteratorError7;
 	          }
 	        }
 	      }
@@ -78567,22 +78494,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function buildMeshOfTube() {
 	      this.createOrClearMesh('tube');
 	      var geom = new THREE.Geometry();
-	      var _iteratorNormalCompletion10 = true;
-	      var _didIteratorError10 = false;
-	      var _iteratorError10 = undefined;
+	      var _iteratorNormalCompletion9 = true;
+	      var _didIteratorError9 = false;
+	      var _iteratorError9 = undefined;
 	
 	      try {
-	        for (var _iterator10 = this.traces[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-	          var trace = _step10.value;
+	        for (var _iterator9 = this.traces[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+	          var trace = _step9.value;
 	
 	          var n = trace.points.length;
-	          var _iteratorNormalCompletion11 = true;
-	          var _didIteratorError11 = false;
-	          var _iteratorError11 = undefined;
+	          var _iteratorNormalCompletion10 = true;
+	          var _didIteratorError10 = false;
+	          var _iteratorError10 = undefined;
 	
 	          try {
-	            for (var _iterator11 = _lodash2.default.range(n)[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-	              var i = _step11.value;
+	            for (var _iterator10 = _lodash2.default.range(n)[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+	              var i = _step10.value;
 	
 	              var res = trace.getReference(i);
 	              var color = res.color;
@@ -78595,143 +78522,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	              glgeom.setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom));
 	            }
 	          } catch (err) {
-	            _didIteratorError11 = true;
-	            _iteratorError11 = err;
+	            _didIteratorError10 = true;
+	            _iteratorError10 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion11 && _iterator11.return) {
-	                _iterator11.return();
+	              if (!_iteratorNormalCompletion10 && _iterator10.return) {
+	                _iterator10.return();
 	              }
 	            } finally {
-	              if (_didIteratorError11) {
-	                throw _iteratorError11;
+	              if (_didIteratorError10) {
+	                throw _iteratorError10;
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError10 = true;
-	        _iteratorError10 = err;
+	        _didIteratorError9 = true;
+	        _iteratorError9 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion10 && _iterator10.return) {
-	            _iterator10.return();
+	          if (!_iteratorNormalCompletion9 && _iterator9.return) {
+	            _iterator9.return();
 	          }
 	        } finally {
-	          if (_didIteratorError10) {
-	            throw _iteratorError10;
+	          if (_didIteratorError9) {
+	            throw _iteratorError9;
 	          }
 	        }
 	      }
 	
 	      this.addGeomToDisplayMesh('tube', geom);
-	    }
-	  }, {
-	    key: 'buildSelectedResidues',
-	    value: function buildSelectedResidues(showAllResidues) {
-	      var _this4 = this;
-	
-	      if (!('sidechains' in this.displayMeshes)) {
-	        this.createOrClearMesh('sidechains');
-	      }
-	
-	      var bondFilter = function bondFilter(bond) {
-	        var atomType1 = _this4.soup.getAtomProxy(bond.iAtom1).atomType;
-	        var atomType2 = _this4.soup.getAtomProxy(bond.iAtom2).atomType;
-	        return !_lodash2.default.includes(data.backboneAtomTypes, atomType1) || !_lodash2.default.includes(data.backboneAtomTypes, atomType2);
-	      };
-	
-	      var _iteratorNormalCompletion12 = true;
-	      var _didIteratorError12 = false;
-	      var _iteratorError12 = undefined;
-	
-	      try {
-	        for (var _iterator12 = this.traces[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-	          var trace = _step12.value;
-	          var _iteratorNormalCompletion13 = true;
-	          var _didIteratorError13 = false;
-	          var _iteratorError13 = undefined;
-	
-	          try {
-	            for (var _iterator13 = _lodash2.default.range(trace.indices.length)[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-	              var i = _step13.value;
-	
-	              var iRes = trace.indices[i];
-	              var residue = this.soup.getResidueProxy(iRes);
-	              var residueShow = showAllResidues || residue.selected;
-	              if (residueShow && !residue.isMesh) {
-	
-	                var displayGeom = new THREE.Geometry();
-	                var pickingGeom = new THREE.Geometry();
-	
-	                this.mergeBondsInResidue(displayGeom, iRes, bondFilter);
-	
-	                var _iteratorNormalCompletion14 = true;
-	                var _didIteratorError14 = false;
-	                var _iteratorError14 = undefined;
-	
-	                try {
-	                  for (var _iterator14 = residue.getAtomIndices()[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-	                    var iAtom = _step14.value;
-	
-	                    var atom = this.soup.getAtomProxy(iAtom);
-	                    if (!util.inArray(atom.atomType, data.backboneAtomTypes)) {
-	                      var matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius);
-	                      glgeom.mergeUnitGeom(displayGeom, this.unitSphereGeom, this.getAtomColor(atom.iAtom), matrix);
-	                      glgeom.mergeUnitGeom(pickingGeom, this.unitSphereGeom, data.getIndexColor(atom.iAtom), matrix);
-	                    }
-	                  }
-	                } catch (err) {
-	                  _didIteratorError14 = true;
-	                  _iteratorError14 = err;
-	                } finally {
-	                  try {
-	                    if (!_iteratorNormalCompletion14 && _iterator14.return) {
-	                      _iterator14.return();
-	                    }
-	                  } finally {
-	                    if (_didIteratorError14) {
-	                      throw _iteratorError14;
-	                    }
-	                  }
-	                }
-	
-	                this.addGeomToDisplayMesh('sidechains', displayGeom, iRes);
-	                this.addGeomToPickingMesh('sidechains', pickingGeom, iRes);
-	
-	                this.updateMeshesInScene = true;
-	                residue.isMesh = true;
-	              }
-	            }
-	          } catch (err) {
-	            _didIteratorError13 = true;
-	            _iteratorError13 = err;
-	          } finally {
-	            try {
-	              if (!_iteratorNormalCompletion13 && _iterator13.return) {
-	                _iterator13.return();
-	              }
-	            } finally {
-	              if (_didIteratorError13) {
-	                throw _iteratorError13;
-	              }
-	            }
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError12 = true;
-	        _iteratorError12 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion12 && _iterator12.return) {
-	            _iterator12.return();
-	          }
-	        } finally {
-	          if (_didIteratorError12) {
-	            throw _iteratorError12;
-	          }
-	        }
-	      }
 	    }
 	  }, {
 	    key: 'buildAtomMeshes',
@@ -78771,6 +78591,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var cylinderBufferGeometry = new THREE.CylinderBufferGeometry(1, 1, 1, 4, 1, false);
 	      cylinderBufferGeometry.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
+	
 	      var displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nCopy);
 	
 	      var atomProxy1 = this.soup.getAtomProxy();
@@ -78779,13 +78600,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var residueProxy = this.soup.getResidueProxy();
 	      for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
 	        var iBond = bondIndices[iCopy];
+	
 	        bondProxy.load(iBond);
 	        atomProxy1.load(bondProxy.iAtom1);
 	        atomProxy2.load(bondProxy.iAtom2);
+	        residueProxy.load(atomProxy1.iRes);
+	
 	        var p1 = atomProxy1.pos.clone();
 	        var p2 = atomProxy2.pos.clone();
-	        residueProxy.load(atomProxy1.iRes);
-	        var color = residueProxy.color;
+	
 	        if (atomProxy1.iRes !== atomProxy2.iRes) {
 	          var midpoint = p2.clone().add(p1).multiplyScalar(0.5);
 	          if (atomProxy1.iRes === residueProxy.iRes) {
@@ -78794,216 +78617,334 @@ return /******/ (function(modules) { // webpackBootstrap
 	            p1 = midpoint;
 	          }
 	        }
+	
 	        var matrix = glgeom.getCylinderMatrix(p1, p2, 0.2);
+	
 	        displayGeom.applyMatrixToCopy(matrix, iCopy);
-	        displayGeom.applyColorToCopy(color, iCopy);
+	        displayGeom.applyColorToCopy(residueProxy.color, iCopy);
 	      }
 	
 	      var displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial);
 	      this.displayMeshes[meshName].add(displayMesh);
 	    }
 	  }, {
-	    key: 'buildMeshOfBackbone',
-	    value: function buildMeshOfBackbone() {
-	      var _this5 = this;
-	
-	      this.createOrClearMesh('backbone');
+	    key: 'buildSelectedResidues',
+	    value: function buildSelectedResidues(showAllResidues) {
+	      this.createOrClearMesh('sidechains');
 	
 	      var atomIndices = [];
+	      var bondIndices = [];
+	
 	      var atom = this.soup.getAtomProxy();
-	      var _iteratorNormalCompletion15 = true;
-	      var _didIteratorError15 = false;
-	      var _iteratorError15 = undefined;
+	      var _iteratorNormalCompletion11 = true;
+	      var _didIteratorError11 = false;
+	      var _iteratorError11 = undefined;
 	
 	      try {
-	        for (var _iterator15 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-	          var iRes = _step15.value;
+	        for (var _iterator11 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+	          var iRes = _step11.value;
 	
 	          var residue = this.soup.getResidueProxy(iRes);
-	          if (residue.isPolymer) {
-	            var _iteratorNormalCompletion17 = true;
-	            var _didIteratorError17 = false;
-	            var _iteratorError17 = undefined;
+	          if (!residue.isPolymer) {
+	            continue;
+	          }
+	          var residueShow = showAllResidues || residue.selected;
+	          if (!residueShow) {
+	            continue;
+	          }
+	          var _iteratorNormalCompletion12 = true;
+	          var _didIteratorError12 = false;
+	          var _iteratorError12 = undefined;
 	
-	            try {
-	              for (var _iterator17 = residue.getAtomIndices()[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
-	                var iAtom = _step17.value;
+	          try {
+	            for (var _iterator12 = residue.getAtomIndices()[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+	              var iAtom = _step12.value;
 	
-	                atom.load(iAtom);
-	                if (util.inArray(atom.atomType, data.backboneAtomTypes)) {
-	                  atomIndices.push(iAtom);
+	              atom.load(iAtom);
+	              if (!util.inArray(atom.atomType, data.backboneAtomTypes)) {
+	                atomIndices.push(iAtom);
+	                var _iteratorNormalCompletion13 = true;
+	                var _didIteratorError13 = false;
+	                var _iteratorError13 = undefined;
+	
+	                try {
+	                  for (var _iterator13 = atom.getBondIndices()[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+	                    var iBond = _step13.value;
+	
+	                    bondIndices.push(iBond);
+	                  }
+	                } catch (err) {
+	                  _didIteratorError13 = true;
+	                  _iteratorError13 = err;
+	                } finally {
+	                  try {
+	                    if (!_iteratorNormalCompletion13 && _iterator13.return) {
+	                      _iterator13.return();
+	                    }
+	                  } finally {
+	                    if (_didIteratorError13) {
+	                      throw _iteratorError13;
+	                    }
+	                  }
 	                }
 	              }
-	            } catch (err) {
-	              _didIteratorError17 = true;
-	              _iteratorError17 = err;
+	            }
+	          } catch (err) {
+	            _didIteratorError12 = true;
+	            _iteratorError12 = err;
+	          } finally {
+	            try {
+	              if (!_iteratorNormalCompletion12 && _iterator12.return) {
+	                _iterator12.return();
+	              }
 	            } finally {
-	              try {
-	                if (!_iteratorNormalCompletion17 && _iterator17.return) {
-	                  _iterator17.return();
-	                }
-	              } finally {
-	                if (_didIteratorError17) {
-	                  throw _iteratorError17;
-	                }
+	              if (_didIteratorError12) {
+	                throw _iteratorError12;
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError15 = true;
-	        _iteratorError15 = err;
+	        _didIteratorError11 = true;
+	        _iteratorError11 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion15 && _iterator15.return) {
-	            _iterator15.return();
+	          if (!_iteratorNormalCompletion11 && _iterator11.return) {
+	            _iterator11.return();
 	          }
 	        } finally {
-	          if (_didIteratorError15) {
-	            throw _iteratorError15;
+	          if (_didIteratorError11) {
+	            throw _iteratorError11;
+	          }
+	        }
+	      }
+	
+	      this.buildAtomMeshes(atomIndices, 'sidechains');
+	      this.buildBondMeshes(bondIndices, 'sidechains');
+	    }
+	  }, {
+	    key: 'buildMeshOfBackbone',
+	    value: function buildMeshOfBackbone() {
+	      this.createOrClearMesh('backbone');
+	
+	      var atomIndices = [];
+	      var bondIndices = [];
+	
+	      var atom = this.soup.getAtomProxy();
+	      var _iteratorNormalCompletion14 = true;
+	      var _didIteratorError14 = false;
+	      var _iteratorError14 = undefined;
+	
+	      try {
+	        for (var _iterator14 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+	          var iRes = _step14.value;
+	
+	          var residue = this.soup.getResidueProxy(iRes);
+	          if (!residue.isPolymer) {
+	            continue;
+	          }
+	          var _iteratorNormalCompletion15 = true;
+	          var _didIteratorError15 = false;
+	          var _iteratorError15 = undefined;
+	
+	          try {
+	            for (var _iterator15 = residue.getAtomIndices()[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+	              var iAtom = _step15.value;
+	
+	              atom.load(iAtom);
+	              if (util.inArray(atom.atomType, data.backboneAtomTypes)) {
+	                atomIndices.push(iAtom);
+	                var _iteratorNormalCompletion16 = true;
+	                var _didIteratorError16 = false;
+	                var _iteratorError16 = undefined;
+	
+	                try {
+	                  for (var _iterator16 = atom.getBondIndices()[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+	                    var iBond = _step16.value;
+	
+	                    bondIndices.push(iBond);
+	                  }
+	                } catch (err) {
+	                  _didIteratorError16 = true;
+	                  _iteratorError16 = err;
+	                } finally {
+	                  try {
+	                    if (!_iteratorNormalCompletion16 && _iterator16.return) {
+	                      _iterator16.return();
+	                    }
+	                  } finally {
+	                    if (_didIteratorError16) {
+	                      throw _iteratorError16;
+	                    }
+	                  }
+	                }
+	              }
+	            }
+	          } catch (err) {
+	            _didIteratorError15 = true;
+	            _iteratorError15 = err;
+	          } finally {
+	            try {
+	              if (!_iteratorNormalCompletion15 && _iterator15.return) {
+	                _iterator15.return();
+	              }
+	            } finally {
+	              if (_didIteratorError15) {
+	                throw _iteratorError15;
+	              }
+	            }
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError14 = true;
+	        _iteratorError14 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion14 && _iterator14.return) {
+	            _iterator14.return();
+	          }
+	        } finally {
+	          if (_didIteratorError14) {
+	            throw _iteratorError14;
 	          }
 	        }
 	      }
 	
 	      this.buildAtomMeshes(atomIndices, 'backbone');
-	
-	      var bondIndices = [];
-	      var _iteratorNormalCompletion16 = true;
-	      var _didIteratorError16 = false;
-	      var _iteratorError16 = undefined;
-	
-	      try {
-	        for (var _iterator16 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-	          var _iRes = _step16.value;
-	
-	          var _residue = this.soup.getResidueProxy(_iRes);
-	          if (_residue.isPolymer) {
-	            var _iteratorNormalCompletion18 = true;
-	            var _didIteratorError18 = false;
-	            var _iteratorError18 = undefined;
-	
-	            try {
-	              for (var _iterator18 = _residue.getAtomIndices()[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-	                var _iAtom = _step18.value;
-	
-	                var bondFilter = function bondFilter(bond) {
-	                  var atomType1 = _this5.soup.getAtomProxy(bond.iAtom1).atomType;
-	                  var atomType2 = _this5.soup.getAtomProxy(bond.iAtom2).atomType;
-	                  return _lodash2.default.includes(data.backboneAtomTypes, atomType1) && _lodash2.default.includes(data.backboneAtomTypes, atomType2);
-	                };
-	                var iBondStart = this.soup.atomStore.bondOffset[_iAtom];
-	                var n = this.soup.atomStore.bondCount[_iAtom];
-	                var iBondEnd = iBondStart + n;
-	                for (var iBond = iBondStart; iBond < iBondEnd; iBond += 1) {
-	                  var bond = this.soup.bondProxy.load(iBond);
-	                  if (bond.iAtom1 > bond.iAtom2) {
-	                    continue;
-	                  }
-	                  if (bondFilter && !bondFilter(bond)) {
-	                    continue;
-	                  }
-	                  bondIndices.push(iBond);
-	                }
-	              }
-	            } catch (err) {
-	              _didIteratorError18 = true;
-	              _iteratorError18 = err;
-	            } finally {
-	              try {
-	                if (!_iteratorNormalCompletion18 && _iterator18.return) {
-	                  _iterator18.return();
-	                }
-	              } finally {
-	                if (_didIteratorError18) {
-	                  throw _iteratorError18;
-	                }
-	              }
-	            }
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError16 = true;
-	        _iteratorError16 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion16 && _iterator16.return) {
-	            _iterator16.return();
-	          }
-	        } finally {
-	          if (_didIteratorError16) {
-	            throw _iteratorError16;
-	          }
-	        }
-	      }
-	
-	      console.log(bondIndices);
 	      this.buildBondMeshes(bondIndices, 'backbone');
 	    }
 	  }, {
 	    key: 'buildMeshOfLigands',
 	    value: function buildMeshOfLigands() {
 	      this.createOrClearMesh('ligands');
-	      var displayGeom = new THREE.Geometry();
-	      var pickingGeom = new THREE.Geometry();
-	      var _iteratorNormalCompletion19 = true;
-	      var _didIteratorError19 = false;
-	      var _iteratorError19 = undefined;
+	      var atomIndices = [];
+	      var bondIndices = [];
+	      var atom = this.soup.getAtomProxy();
+	      var _iteratorNormalCompletion17 = true;
+	      var _didIteratorError17 = false;
+	      var _iteratorError17 = undefined;
 	
 	      try {
-	        for (var _iterator19 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-	          var iRes = _step19.value;
+	        for (var _iterator17 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+	          var iRes = _step17.value;
 	
 	          var residue = this.soup.getResidueProxy(iRes);
-	          if (residue.ss === '-') {
-	            this.mergeBondsInResidue(displayGeom, iRes);
-	            var _iteratorNormalCompletion20 = true;
-	            var _didIteratorError20 = false;
-	            var _iteratorError20 = undefined;
+	          if (residue.ss !== '-') {
+	            continue;
+	          }
+	          var _iteratorNormalCompletion18 = true;
+	          var _didIteratorError18 = false;
+	          var _iteratorError18 = undefined;
 	
-	            try {
-	              for (var _iterator20 = residue.getAtomIndices()[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-	                var iAtom = _step20.value;
+	          try {
+	            for (var _iterator18 = residue.getAtomIndices()[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+	              var iAtom = _step18.value;
 	
-	                this.mergeAtomToGeom(displayGeom, pickingGeom, iAtom);
-	              }
-	            } catch (err) {
-	              _didIteratorError20 = true;
-	              _iteratorError20 = err;
-	            } finally {
+	              atom.load(iAtom);
+	              atomIndices.push(iAtom);
+	              var _iteratorNormalCompletion19 = true;
+	              var _didIteratorError19 = false;
+	              var _iteratorError19 = undefined;
+	
 	              try {
-	                if (!_iteratorNormalCompletion20 && _iterator20.return) {
-	                  _iterator20.return();
+	                for (var _iterator19 = atom.getBondIndices()[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+	                  var iBond = _step19.value;
+	
+	                  bondIndices.push(iBond);
 	                }
+	              } catch (err) {
+	                _didIteratorError19 = true;
+	                _iteratorError19 = err;
 	              } finally {
-	                if (_didIteratorError20) {
-	                  throw _iteratorError20;
+	                try {
+	                  if (!_iteratorNormalCompletion19 && _iterator19.return) {
+	                    _iterator19.return();
+	                  }
+	                } finally {
+	                  if (_didIteratorError19) {
+	                    throw _iteratorError19;
+	                  }
 	                }
+	              }
+	            }
+	          } catch (err) {
+	            _didIteratorError18 = true;
+	            _iteratorError18 = err;
+	          } finally {
+	            try {
+	              if (!_iteratorNormalCompletion18 && _iterator18.return) {
+	                _iterator18.return();
+	              }
+	            } finally {
+	              if (_didIteratorError18) {
+	                throw _iteratorError18;
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError19 = true;
-	        _iteratorError19 = err;
+	        _didIteratorError17 = true;
+	        _iteratorError17 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion19 && _iterator19.return) {
-	            _iterator19.return();
+	          if (!_iteratorNormalCompletion17 && _iterator17.return) {
+	            _iterator17.return();
 	          }
 	        } finally {
-	          if (_didIteratorError19) {
-	            throw _iteratorError19;
+	          if (_didIteratorError17) {
+	            throw _iteratorError17;
 	          }
 	        }
 	      }
 	
-	      this.addGeomToDisplayMesh('ligands', displayGeom);
-	      this.addGeomToPickingMesh('ligands', pickingGeom);
+	      this.buildAtomMeshes(atomIndices, 'ligands');
+	      this.buildBondMeshes(bondIndices, 'ligands');
 	    }
 	  }, {
 	    key: 'buildMeshOfWater',
 	    value: function buildMeshOfWater() {
 	      this.createOrClearMesh('water');
+	      var atomIndices = [];
+	      var _iteratorNormalCompletion20 = true;
+	      var _didIteratorError20 = false;
+	      var _iteratorError20 = undefined;
+	
+	      try {
+	        for (var _iterator20 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+	          var iRes = _step20.value;
+	
+	          var residue = this.soup.getResidueProxy(iRes);
+	          if (residue.resType === 'HOH') {
+	            atomIndices.push(residue.iAtom);
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError20 = true;
+	        _iteratorError20 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion20 && _iterator20.return) {
+	            _iterator20.return();
+	          }
+	        } finally {
+	          if (_didIteratorError20) {
+	            throw _iteratorError20;
+	          }
+	        }
+	      }
+	
+	      this.buildAtomMeshes(atomIndices, 'water');
+	    }
+	  }, {
+	    key: 'buildMeshOfGrid',
+	    value: function buildMeshOfGrid() {
+	      if (!this.gridControlWidget.isGrid) {
+	        return;
+	      }
+	      this.createOrClearMesh('grid');
+	
+	      var grid = this.soupView.soup.grid;
+	
 	      var atomIndices = [];
 	      var _iteratorNormalCompletion21 = true;
 	      var _didIteratorError21 = false;
@@ -79014,8 +78955,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var iRes = _step21.value;
 	
 	          var residue = this.soup.getResidueProxy(iRes);
-	          if (residue.resType === 'HOH') {
-	            atomIndices.push(residue.iAtom);
+	          if (residue.ss === 'G') {
+	            var atom = residue.getCentralAtomProxy();
+	            if (atom.bfactor > grid.bCutoff && grid.isElem[atom.elem]) {
+	              atomIndices.push(atom.iAtom);
+	            }
 	          }
 	        }
 	      } catch (err) {
@@ -79033,101 +78977,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 	
-	      this.buildAtomMeshes(atomIndices, 'water');
-	    }
-	  }, {
-	    key: 'isVisibleGridAtom',
-	    value: function isVisibleGridAtom(iAtom) {
-	      var atom = this.soup.getAtomProxy(iAtom);
-	      var grid = this.soupView.soup.grid;
-	      return atom.bfactor > grid.bCutoff && grid.isElem[atom.elem];
-	    }
-	  }, {
-	    key: 'buildMeshOfGrid',
-	    value: function buildMeshOfGrid() {
-	      if (!this.gridControlWidget.isGrid) {
-	        return;
-	      }
-	      this.createOrClearMesh('grid');
-	
-	      var sphereGeometry = new THREE.SphereBufferGeometry(1, 8, 8);
-	      var atomIndices = [];
-	      var _iteratorNormalCompletion22 = true;
-	      var _didIteratorError22 = false;
-	      var _iteratorError22 = undefined;
-	
-	      try {
-	        for (var _iterator22 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-	          var iRes = _step22.value;
-	
-	          var residue = this.soup.getResidueProxy(iRes);
-	          if (residue.ss === 'G') {
-	            var atom = residue.getCentralAtomProxy();
-	            if (this.isVisibleGridAtom(atom.iAtom)) {
-	              atomIndices.push(atom.iAtom);
-	              var indexMaterial = new THREE.MeshBasicMaterial({
-	                color: data.getIndexColor(atom.iAtom)
-	              });
-	              var pickingMesh = new THREE.Mesh(this.unitSphereGeom, indexMaterial);
-	              pickingMesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius);
-	              pickingMesh.position.copy(atom.pos);
-	              pickingMesh.i = atom.iAtom;
-	              this.pickingMeshes.grid.add(pickingMesh);
-	            }
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError22 = true;
-	        _iteratorError22 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion22 && _iterator22.return) {
-	            _iterator22.return();
-	          }
-	        } finally {
-	          if (_didIteratorError22) {
-	            throw _iteratorError22;
-	          }
-	        }
-	      }
-	
-	      var _iteratorNormalCompletion23 = true;
-	      var _didIteratorError23 = false;
-	      var _iteratorError23 = undefined;
-	
-	      try {
-	        for (var _iterator23 = atomIndices[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-	          var iAtom = _step23.value;
-	
-	          var _atom = this.soup.getAtomProxy(iAtom);
-	          var material = new THREE.MeshLambertMaterial({
-	            color: this.getAtomColor(iAtom)
-	          });
-	          var mesh = new THREE.Mesh(sphereGeometry, material);
-	          mesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius);
-	          mesh.position.copy(_atom.pos);
-	          mesh.i = _atom.iAtom;
-	          this.displayMeshes.grid.add(mesh);
-	        }
-	      } catch (err) {
-	        _didIteratorError23 = true;
-	        _iteratorError23 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion23 && _iterator23.return) {
-	            _iterator23.return();
-	          }
-	        } finally {
-	          if (_didIteratorError23) {
-	            throw _iteratorError23;
-	          }
-	        }
-	      }
+	      this.buildAtomMeshes(atomIndices, 'grid');
 	    }
 	  }, {
 	    key: 'buildMeshOfNucleotides',
 	    value: function buildMeshOfNucleotides() {
-	      var _this6 = this;
+	      var _this3 = this;
 	
 	      this.createOrClearMesh('basepairs');
 	
@@ -79136,13 +78991,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var cylinderGeom = new glgeom.UnitCylinderGeometry();
 	
-	      var _iteratorNormalCompletion24 = true;
-	      var _didIteratorError24 = false;
-	      var _iteratorError24 = undefined;
+	      var _iteratorNormalCompletion22 = true;
+	      var _didIteratorError22 = false;
+	      var _iteratorError22 = undefined;
 	
 	      try {
-	        for (var _iterator24 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-	          var iRes = _step24.value;
+	        for (var _iterator22 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+	          var iRes = _step22.value;
 	
 	          var residue = this.soup.getResidueProxy(iRes);
 	          if (residue.ss !== 'D' || !residue.isPolymer) {
@@ -79170,7 +79025,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	
 	          var getVerticesFromAtomDict = function getVerticesFromAtomDict(iRes, atomTypes) {
-	            var res = _this6.soup.getResidueProxy(iRes);
+	            var res = _this3.soup.getResidueProxy(iRes);
 	            return _lodash2.default.map(atomTypes, function (a) {
 	              return res.getAtomProxy(a).pos.clone();
 	            });
@@ -79180,13 +79035,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var faceGeom = new glgeom.RaisedShapeGeometry(vertices, 0.2);
 	          basepairGeom.merge(faceGeom);
 	
-	          var _iteratorNormalCompletion25 = true;
-	          var _didIteratorError25 = false;
-	          var _iteratorError25 = undefined;
+	          var _iteratorNormalCompletion23 = true;
+	          var _didIteratorError23 = false;
+	          var _iteratorError23 = undefined;
 	
 	          try {
-	            for (var _iterator25 = bondTypes[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
-	              var bond = _step25.value;
+	            for (var _iterator23 = bondTypes[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+	              var bond = _step23.value;
 	
 	              var _vertices = getVerticesFromAtomDict(iRes, [bond[0], bond[1]]);
 	              basepairGeom.merge(cylinderGeom, glgeom.getCylinderMatrix(_vertices[0], _vertices[1], 0.2));
@@ -79196,16 +79051,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	            // sets no uv but cylinder does, and the merged geometry causes
 	            // warnings in THREE.js v0.79
 	          } catch (err) {
-	            _didIteratorError25 = true;
-	            _iteratorError25 = err;
+	            _didIteratorError23 = true;
+	            _iteratorError23 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion25 && _iterator25.return) {
-	                _iterator25.return();
+	              if (!_iteratorNormalCompletion23 && _iterator23.return) {
+	                _iterator23.return();
 	              }
 	            } finally {
-	              if (_didIteratorError25) {
-	                throw _iteratorError25;
+	              if (_didIteratorError23) {
+	                throw _iteratorError23;
 	              }
 	            }
 	          }
@@ -79219,16 +79074,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	          pickingGeom.merge(basepairGeom);
 	        }
 	      } catch (err) {
-	        _didIteratorError24 = true;
-	        _iteratorError24 = err;
+	        _didIteratorError22 = true;
+	        _iteratorError22 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion24 && _iterator24.return) {
-	            _iterator24.return();
+	          if (!_iteratorNormalCompletion22 && _iterator22.return) {
+	            _iterator22.return();
 	          }
 	        } finally {
-	          if (_didIteratorError24) {
-	            throw _iteratorError24;
+	          if (_didIteratorError22) {
+	            throw _iteratorError22;
 	          }
 	        }
 	      }
@@ -79271,7 +79126,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'rotateCameraToCurrentView',
 	    value: function rotateCameraToCurrentView() {
-	      var view = this.soupView.current_view;
 	      var viewCamera = this.soupView.current_view.camera;
 	
 	      // rotate lights to soupView orientation
@@ -79397,14 +79251,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'atomLabelDialog',
 	    value: function atomLabelDialog() {
-	      var _this7 = this;
+	      var _this4 = this;
 	
 	      var i_atom = this.soupView.current_view.i_atom;
 	      if (i_atom >= 0) {
 	        var atom = this.soup.getAtomProxy(i_atom);
 	        var label = 'Label atom : ' + atom.label;
 	        var success = function success(text) {
-	          _this7.controller.make_label(i_atom, text);
+	          _this4.controller.make_label(i_atom, text);
 	        };
 	        util.textEntryDialog(this.div, label, success);
 	      }
@@ -79800,7 +79654,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _three = __webpack_require__(8);
 	
-	var _three2 = _interopRequireDefault(_three);
+	var THREE = _interopRequireWildcard(_three);
 	
 	var _lodash = __webpack_require__(4);
 	
@@ -80265,16 +80119,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	      this.parentDiv.append(div);
 	
-	      var geometry = new _three2.default.Geometry();
-	      geometry.vertices.push(new _three2.default.Vector3(0, 0, 0));
-	      geometry.vertices.push(new _three2.default.Vector3(1, 1, 1));
-	      var material = new _three2.default.LineDashedMaterial({
+	      var geometry = new THREE.Geometry();
+	      geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+	      geometry.vertices.push(new THREE.Vector3(1, 1, 1));
+	      var material = new THREE.LineDashedMaterial({
 	        color: 0xFF7777,
 	        dashSize: 3,
 	        gapSize: 4,
 	        linewidth: 2
 	      });
-	      var line = new _three2.default.Line(geometry, material);
+	      var line = new THREE.Line(geometry, material);
 	      this.threeJsScene.add(line);
 	
 	      return { line: line, div: div };
@@ -80832,6 +80686,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return _this7.soupView.soup.grid.isElem[elem];
 	      }, function (b) {
 	        _this7.soupView.soup.grid.isElem[elem] = b;
+	        _this7.soupView.soup.grid.changed = true;
 	        _this7.soupView.changed = true;
 	      }, colorHexStr);
 	      text_button.css('position', 'absolute');

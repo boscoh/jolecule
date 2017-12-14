@@ -128,13 +128,26 @@ class AtomProxy {
   }
 
   get resType () {
-    return this.soup.getResidueProxy(this.iRes).resType
+    let iResType = this.soup.residueStore[this.iRes]
+    return this.soup.resTypeTable[iResType]
+  }
+
+  get getResidue () {
+    return this.soup.getResidueProxy(this.iRes)
   }
 
   get label () {
     let res = this.soup.getResidueProxy(this.iRes)
     return res.resId + ' - ' + this.atomType
   }
+
+  getBondIndices () {
+    let iStart = this.soup.atomStore.bondOffset[this.iAtom]
+    let n = this.soup.atomStore.bondCount[this.iAtom]
+    let iEnd = iStart + n
+    return _.range(iStart, iEnd)
+  }
+
 }
 
 
@@ -359,23 +372,28 @@ class Soup {
     let title = parsetTitleFromPdbText(protein_data['pdb_text'])
     this.default_html = this.pdb_id + ': ' + title
 
+    console.log(`Soup.load parse ${this.pdb_id}...`)
+
     let atomLines = extractAtomLines(protein_data['pdb_text'])
     this.makeAtomsFromPdbLines(atomLines, this.pdb_id)
 
     this.assignResidueSsAndCentralAtoms()
 
+    console.log(
+      `Soup.load processed ${this.getAtomCount()} atoms, ` +
+      `${this.getResidueCount()} residues`)
+
+    console.log('Soup.load finding bonds...')
     this.calcBonds()
-    this.assignBondsToResidues()
+
+    console.log(`Soup.load calculated ${this.getBondCount()} bonds`)
+    this.assignBondsToAtoms()
 
     this.calcMaxLength()
 
     this.findSecondaryStructure()
+    console.log(`Soup.load calculated secondary-structure`)
 
-    console.log(
-      `Soup.load added ${this.pdb_id}: ` +
-      `${this.getAtomCount()} atoms, ` +
-      `${this.getBondCount()} bonds, ` +
-      `${this.getResidueCount()} residues`)
   }
 
   makeAtomsFromPdbLines (lines, pdbId) {
@@ -428,8 +446,7 @@ class Soup {
         resId += resNum
 
         let iAtom = this.atomStore.count
-        this.atomStore.count += 1
-        this.atomStore.growIfFull()
+        this.atomStore.increment()
 
         this.atomStore.x[iAtom] = x
         this.atomStore.y[iAtom] = y
@@ -464,8 +481,7 @@ class Soup {
 
   addResidue (iFirstAtomInRes, resId, resType) {
     let iRes = this.getResidueCount()
-    this.residueStore.count += 1
-    this.residueStore.growIfFull()
+    this.residueStore.increment()
 
     this.resIds.push(resId)
 
@@ -483,10 +499,6 @@ class Soup {
     let center = this.getCenter(atomIndices)
     let iAtom = this.getIAtomClosest(center, atomIndices)
     return this.getAtomProxy(iAtom)
-  }
-
-  getIResByResId (resId) {
-    return this.resIds.indexOf(resId)
   }
 
   assignResidueSsAndCentralAtoms () {
@@ -585,8 +597,9 @@ class Soup {
 
     let vertices = []
     let nAtom = this.getAtomCount()
+    let a = this.getAtomProxy()
     for (let iAtom = 0; iAtom < nAtom; iAtom += 1) {
-      let a = this.getAtomProxy(iAtom)
+      a.load(iAtom)
       vertices.push([a.pos.x, a.pos.y, a.pos.z])
     }
 
@@ -641,7 +654,7 @@ class Soup {
 
   }
 
-  assignBondsToResidues () {
+  assignBondsToAtoms () {
 
     let iAtom1Array = this.bondStore.iAtom1
     this.bondStore.sort((i, j) => iAtom1Array[i] - iAtom1Array[j])
@@ -1083,7 +1096,7 @@ class View {
       sidechain: true,
       peptide: true,
       hydrogen: false,
-      water: true,
+      water: false,
       ligands: true,
       trace: false,
       all_atom: false,
@@ -1323,6 +1336,8 @@ class SoupView {
     this.n_update_step = -1
     // this is to set the time between transitions of views
     this.max_update_step = 20
+
+    this.updateSelection = false
   }
 
   set_target_view (view) {
@@ -1439,13 +1454,14 @@ class Controller {
     } else {
       curr_res_id = this.soupView.current_view.res_id
     }
-    let i = this.soup.getIResByResId(curr_res_id)
-    if (i <= 0) {
-      i = this.soup.getResidueCount() - 1
+    let iAtom = this.soupView.current_view.i_atom
+    let iRes = this.soup.getAtomProxy(iAtom).iRes
+    if (iRes <= 0) {
+      iRes = this.soup.getResidueCount() - 1
     } else {
-      i -= 1
+      iRes -= 1
     }
-    let iAtom = this.soup.getResidueProxy(i).iAtom
+    iAtom = this.soup.getResidueProxy(iRes).iAtom
     this.set_target_view_by_atom(iAtom)
   }
 
@@ -1456,13 +1472,14 @@ class Controller {
     } else {
       curr_res_id = this.soupView.current_view.res_id
     }
-    let i = this.soup.getIResByResId(curr_res_id)
-    if (i >= this.soup.getResidueCount() - 1) {
-      i = 0
+    let iAtom = this.soupView.current_view.i_atom
+    let iRes = this.soup.getAtomProxy(iAtom).iRes
+    if (iRes >= this.soup.getResidueCount() - 1) {
+      iRes = 0
     } else {
-      i += 1
+      iRes += 1
     }
-    let iAtom = this.soup.getResidueProxy(i).iAtom
+    iAtom = this.soup.getResidueProxy(iRes).iAtom
     this.set_target_view_by_atom(iAtom)
   }
 
@@ -1528,7 +1545,8 @@ class Controller {
 
   toggle_neighbors () {
     let res_id = this.soupView.current_view.res_id
-    let i_res = this.soup.getIResByResId(res_id)
+    let iAtom = this.soupView.current_view.i_atom
+    let i_res = this.soup.getAtomProxy(iAtom).iRes
     let b
     if (this.last_neighbour_res_id === res_id) {
       b = false
@@ -1540,6 +1558,7 @@ class Controller {
     this.soup.selectNeighbourResidues(i_res, b)
     this.soupView.current_view.selected = this.make_selected()
     this.soupView.changed = true
+    this.soupView.updateSelection = true
   }
 
   save_current_view (new_id) {
@@ -1597,6 +1616,9 @@ class Controller {
   set_show_option (option, bool) {
     console.log('Controller.set_show_option', option, bool)
     this.soupView.current_view.show[option] = bool
+    if (option === 'sidechain') {
+      this.soupView.updateSelection = true
+    }
     this.soupView.changed = true
   }
 

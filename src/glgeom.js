@@ -11,7 +11,6 @@ import * as THREE from 'three'
 import v3 from './v3'
 import _ from 'lodash'
 
-console.log(THREE)
 
 function CatmullRom (t, p0, p1, p2, p3) {
 
@@ -504,7 +503,7 @@ class Trace extends PathAndFrenetFrames {
         } else {
           let randomDir = this.points[i]
           this.normals[i] = v3.create()
-            .crossVectors(randomDir, tangent)
+            .crossVectors(randomDir, this.tangents[i])
             .normalize()
         }
       }
@@ -850,7 +849,7 @@ function applyColorToVector3array (color, vec3Array, iStart, iEnd) {
 
 function expandIndices (refArray, nCopy, nIndexInCopy) {
   let nElem = refArray.length
-  let targetArray = new Uint16Array(nElem * nCopy)
+  let targetArray = new Uint32Array(nElem * nCopy)
   for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
     let iStart = iCopy * nElem
     let indexOffset = iCopy * nIndexInCopy
@@ -894,7 +893,7 @@ class CopyBufferGeometry extends THREE.BufferGeometry {
 
     if ('index' in copyBufferGeometry) {
       let indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy)
-      this.setIndex(new THREE.Uint16BufferAttribute(indices, 1))
+      this.setIndex(new THREE.Uint32BufferAttribute(indices, 1))
     }
 
     let colors = new Float32Array(nVertexInCopy * 3 * nCopy)

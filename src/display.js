@@ -215,7 +215,6 @@ class Display {
 
     for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
       if (this.soup.getResidueProxy(iRes).isPolymer) {
-        let res = this.soup.getResidueProxy(iRes)
         if ((iRes === 0) || !this.soup.isPolymerConnected(iRes - 1, iRes)) {
           let newTrace = new glgeom.Trace()
           newTrace.getReference = i => {
@@ -293,7 +292,7 @@ class Display {
     this.buildMeshOfLigands()
     this.buildMeshOfNucleotides()
     this.buildMeshOfArrows()
-    this.buildMeshOfWater()
+
     this.rebuildSceneWithMeshes()
   }
 
@@ -373,84 +372,20 @@ class Display {
     this.setMeshVisible('backbone', show.all_atom)
     this.setMeshVisible('ligands', show.ligands)
 
-    if (util.exists(this.displayMeshes.grid)) {
-      for (let mesh of [this.displayMeshes.grid, this.pickingMeshes.grid]) {
-        mesh.traverse(child => {
-          if (util.exists(child.i)) {
-            child.visible = this.isVisibleGridAtom(child.i)
-          }
-        })
-      }
+    if (this.soupView.soup.grid.changed) {
+      this.buildMeshOfGrid()
+      this.soupView.soup.grid.changed = false
+      this.updateMeshesInScene = true
     }
 
-    // since residues are built on demand at every cycle
-    this.buildSelectedResidues(show.sidechain)
-
-    if (util.exists(this.displayMeshes.sidechains)) {
-      for (let mesh of [this.displayMeshes.sidechains, this.pickingMeshes.sidechains]) {
-        mesh.traverse(child => {
-          if (util.exists(child.i)) {
-            let selected = this.soup.getResidueProxy(child.i).selected
-            child.visible = show.sidechain || selected
-          }
-        })
-      }
+    if (this.soupView.updateSelection) {
+      this.buildSelectedResidues(show.sidechain)
+      this.updateMeshesInScene = true
+      this.soupView.updateSelection = false
     }
 
     if (this.updateMeshesInScene) {
       this.rebuildSceneWithMeshes()
-    }
-  }
-
-  mergeAtomToGeom (geom, pickGeom, iAtom) {
-    let atom = this.soup.getAtomProxy(iAtom)
-    let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
-    let unitGeom = this.unitSphereGeom
-    glgeom.mergeUnitGeom(geom, unitGeom, this.getAtomColor(iAtom), matrix)
-    glgeom.mergeUnitGeom(pickGeom, unitGeom, data.getIndexColor(iAtom), matrix)
-  }
-
-  mergeBondsInResidue (geom, iRes, bondFilterFn) {
-    let residue = this.soup.getResidueProxy(iRes)
-    let unitGeom = new glgeom.UnitCylinderGeometry()
-    let color = residue.color
-    let p1, p2
-    for (let iAtom of residue.getAtomIndices()) {
-      let iBondStart = this.soup.atomStore.bondOffset[iAtom]
-      let n = this.soup.atomStore.bondCount[iAtom]
-      let iBondEnd = iBondStart + n
-      if (n === 0) {
-        continue
-      }
-      for (let iBond = iBondStart; iBond < iBondEnd; iBond += 1) {
-        // let bond = this.soup.bonds[iBond]
-        let bond = this.soup.bondProxy.load(iBond)
-        if (_.isUndefined(bond)) {
-          let atom = this.soup.getAtomProxy(iAtom)
-          console.log(`Bond[${iBond}] undefined for ${atom.label}.`,
-            `${iBondStart} ${n}`)
-          continue
-        }
-        if (bond.iAtom1 > bond.iAtom2) {
-          continue
-        }
-        if (bondFilterFn && !bondFilterFn(bond)) {
-          continue
-        }
-        let atom1 = this.soup.getAtomProxy(bond.iAtom1)
-        let atom2 = this.soup.getOtherAtomProxy(bond.iAtom2)
-        p1 = atom1.pos.clone()
-        p2 = atom2.pos.clone()
-        if (atom1.iRes !== atom2.iRes) {
-          let midpoint = p2.clone().add(p1).multiplyScalar(0.5)
-          if (atom1.iRes === residue.iRes) {
-            p2 = midpoint
-          } else if (atom2.iRes === residue.iRes) {
-            p1 = midpoint
-          }
-        }
-        glgeom.mergeUnitGeom(geom, unitGeom, color, glgeom.getCylinderMatrix(p1, p2, 0.2))
-      }
     }
   }
 
@@ -558,52 +493,6 @@ class Display {
     this.addGeomToDisplayMesh('tube', geom)
   }
 
-  buildSelectedResidues (showAllResidues) {
-
-    if (!('sidechains' in this.displayMeshes)) {
-      this.createOrClearMesh('sidechains')
-    }
-
-    let bondFilter = (bond) => {
-      let atomType1 = this.soup.getAtomProxy(bond.iAtom1).atomType
-      let atomType2 = this.soup.getAtomProxy(bond.iAtom2).atomType
-      return !_.includes(data.backboneAtomTypes, atomType1) ||
-        !_.includes(data.backboneAtomTypes, atomType2)
-    }
-
-    for (let trace of this.traces) {
-      for (let i of _.range(trace.indices.length)) {
-        let iRes = trace.indices[i]
-        let residue = this.soup.getResidueProxy(iRes)
-        let residueShow = showAllResidues || residue.selected
-        if (residueShow && !residue.isMesh) {
-
-          let displayGeom = new THREE.Geometry()
-          let pickingGeom = new THREE.Geometry()
-
-          this.mergeBondsInResidue(displayGeom, iRes, bondFilter)
-
-          for (let iAtom of residue.getAtomIndices()) {
-            let atom = this.soup.getAtomProxy(iAtom)
-            if (!util.inArray(atom.atomType, data.backboneAtomTypes)) {
-              let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
-              glgeom.mergeUnitGeom(
-                displayGeom, this.unitSphereGeom, this.getAtomColor(atom.iAtom), matrix)
-              glgeom.mergeUnitGeom(
-                pickingGeom, this.unitSphereGeom, data.getIndexColor(atom.iAtom), matrix)
-            }
-          }
-
-          this.addGeomToDisplayMesh('sidechains', displayGeom, iRes)
-          this.addGeomToPickingMesh('sidechains', pickingGeom, iRes)
-
-          this.updateMeshesInScene = true
-          residue.isMesh = true
-        }
-      }
-    }
-  }
-
   buildAtomMeshes(atomIndices, meshName) {
     if (atomIndices.length === 0) {
       return
@@ -642,6 +531,7 @@ class Display {
           new THREE.Matrix4()
             .makeRotationFromEuler(
               new THREE.Euler(Math.PI / 2, Math.PI, 0)))
+
     let displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nCopy)
 
     let atomProxy1 = this.soup.getAtomProxy()
@@ -650,13 +540,15 @@ class Display {
     let residueProxy = this.soup.getResidueProxy()
     for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
       let iBond = bondIndices[iCopy]
+
       bondProxy.load(iBond)
       atomProxy1.load(bondProxy.iAtom1)
       atomProxy2.load(bondProxy.iAtom2)
+      residueProxy.load(atomProxy1.iRes)
+
       let p1 = atomProxy1.pos.clone()
       let p2 = atomProxy2.pos.clone()
-      residueProxy.load(atomProxy1.iRes)
-      let color = residueProxy.color
+
       if (atomProxy1.iRes !== atomProxy2.iRes) {
         let midpoint = p2.clone().add(p1).multiplyScalar(0.5)
         if (atomProxy1.iRes === residueProxy.iRes) {
@@ -665,79 +557,93 @@ class Display {
           p1 = midpoint
         }
       }
+
       let matrix = glgeom.getCylinderMatrix(p1, p2, 0.2)
+
       displayGeom.applyMatrixToCopy(matrix, iCopy)
-      displayGeom.applyColorToCopy(color, iCopy)
+      displayGeom.applyColorToCopy(residueProxy.color, iCopy)
     }
 
     let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
     this.displayMeshes[meshName].add(displayMesh)
   }
 
-  buildMeshOfBackbone () {
-    this.createOrClearMesh('backbone')
+  buildSelectedResidues (showAllResidues) {
+    this.createOrClearMesh('sidechains')
 
     let atomIndices = []
+    let bondIndices = []
+
     let atom = this.soup.getAtomProxy()
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidueProxy(iRes)
-      if (residue.isPolymer) {
-        for (let iAtom of residue.getAtomIndices()) {
-          atom.load(iAtom)
-          if (util.inArray(atom.atomType, data.backboneAtomTypes)) {
-            atomIndices.push(iAtom)
-          }
-        }
+      if (!residue.isPolymer) {
+        continue
       }
-    }
-    this.buildAtomMeshes(atomIndices, 'backbone')
-
-    let bondIndices = []
-    for (let iRes of _.range(this.soup.getResidueCount())) {
-      let residue = this.soup.getResidueProxy(iRes)
-      if (residue.isPolymer) {
-        for (let iAtom of residue.getAtomIndices()) {
-          let bondFilter = bond => {
-            let atomType1 = this.soup.getAtomProxy(bond.iAtom1).atomType
-            let atomType2 = this.soup.getAtomProxy(bond.iAtom2).atomType
-            return _.includes(data.backboneAtomTypes, atomType1) &&
-              _.includes(data.backboneAtomTypes, atomType2)
-          }
-          let iBondStart = this.soup.atomStore.bondOffset[iAtom]
-          let n = this.soup.atomStore.bondCount[iAtom]
-          let iBondEnd = iBondStart + n
-          for (let iBond = iBondStart; iBond < iBondEnd; iBond += 1) {
-            let bond = this.soup.bondProxy.load(iBond)
-            if (bond.iAtom1 > bond.iAtom2) {
-              continue
-            }
-            if (bondFilter && !bondFilter(bond)) {
-              continue
-            }
+      let residueShow = showAllResidues || residue.selected
+      if (!residueShow) {
+        continue
+      }
+      for (let iAtom of residue.getAtomIndices()) {
+        atom.load(iAtom)
+        if (!util.inArray(atom.atomType, data.backboneAtomTypes)) {
+          atomIndices.push(iAtom)
+          for (let iBond of atom.getBondIndices()) {
             bondIndices.push(iBond)
           }
         }
       }
     }
-    console.log(bondIndices)
+    this.buildAtomMeshes(atomIndices, 'sidechains')
+    this.buildBondMeshes(bondIndices, 'sidechains')
+  }
+
+  buildMeshOfBackbone () {
+    this.createOrClearMesh('backbone')
+
+    let atomIndices = []
+    let bondIndices = []
+
+    let atom = this.soup.getAtomProxy()
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      let residue = this.soup.getResidueProxy(iRes)
+      if (!residue.isPolymer) {
+        continue
+      }
+      for (let iAtom of residue.getAtomIndices()) {
+        atom.load(iAtom)
+        if (util.inArray(atom.atomType, data.backboneAtomTypes)) {
+          atomIndices.push(iAtom)
+          for (let iBond of atom.getBondIndices()) {
+            bondIndices.push(iBond)
+          }
+        }
+      }
+    }
+    this.buildAtomMeshes(atomIndices, 'backbone')
     this.buildBondMeshes(bondIndices, 'backbone')
   }
 
   buildMeshOfLigands () {
     this.createOrClearMesh('ligands')
-    let displayGeom = new THREE.Geometry()
-    let pickingGeom = new THREE.Geometry()
+    let atomIndices = []
+    let bondIndices = []
+    let atom = this.soup.getAtomProxy()
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidueProxy(iRes)
-      if (residue.ss === '-') {
-        this.mergeBondsInResidue(displayGeom, iRes)
-        for (let iAtom of residue.getAtomIndices()) {
-          this.mergeAtomToGeom(displayGeom, pickingGeom, iAtom)
+      if (residue.ss !== '-') {
+        continue
+      }
+      for (let iAtom of residue.getAtomIndices()) {
+        atom.load(iAtom)
+        atomIndices.push(iAtom)
+        for (let iBond of atom.getBondIndices()) {
+          bondIndices.push(iBond)
         }
       }
     }
-    this.addGeomToDisplayMesh('ligands', displayGeom)
-    this.addGeomToPickingMesh('ligands', pickingGeom)
+    this.buildAtomMeshes(atomIndices, 'ligands')
+    this.buildBondMeshes(bondIndices, 'ligands')
   }
 
   buildMeshOfWater () {
@@ -752,48 +658,25 @@ class Display {
     this.buildAtomMeshes(atomIndices, 'water')
   }
 
-  isVisibleGridAtom (iAtom) {
-    let atom = this.soup.getAtomProxy(iAtom)
-    let grid = this.soupView.soup.grid
-    return (atom.bfactor > grid.bCutoff) && grid.isElem[atom.elem]
-  }
-
   buildMeshOfGrid () {
     if (!this.gridControlWidget.isGrid) {
       return
     }
     this.createOrClearMesh('grid')
 
-    let sphereGeometry = new THREE.SphereBufferGeometry(1, 8, 8)
+    let grid = this.soupView.soup.grid
+
     let atomIndices = []
     for (let iRes of _.range(this.soup.getResidueCount())) {
       let residue = this.soup.getResidueProxy(iRes)
       if (residue.ss === 'G') {
         let atom = residue.getCentralAtomProxy()
-        if (this.isVisibleGridAtom(atom.iAtom)) {
+        if ((atom.bfactor > grid.bCutoff) && grid.isElem[atom.elem]) {
           atomIndices.push(atom.iAtom)
-          let indexMaterial = new THREE.MeshBasicMaterial({
-            color: data.getIndexColor(atom.iAtom)
-          })
-          let pickingMesh = new THREE.Mesh(this.unitSphereGeom, indexMaterial)
-          pickingMesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius)
-          pickingMesh.position.copy(atom.pos)
-          pickingMesh.i = atom.iAtom
-          this.pickingMeshes.grid.add(pickingMesh)
         }
       }
     }
-    for (let iAtom of atomIndices) {
-      let atom = this.soup.getAtomProxy(iAtom)
-      let material = new THREE.MeshLambertMaterial({
-        color: this.getAtomColor(iAtom)
-      })
-      let mesh = new THREE.Mesh(sphereGeometry, material)
-      mesh.scale.set(this.atomRadius, this.atomRadius, this.atomRadius)
-      mesh.position.copy(atom.pos)
-      mesh.i = atom.iAtom
-      this.displayMeshes.grid.add(mesh)
-    }
+    this.buildAtomMeshes(atomIndices, 'grid')
   }
 
   buildMeshOfNucleotides () {
@@ -892,7 +775,6 @@ class Display {
   }
 
   rotateCameraToCurrentView () {
-    let view = this.soupView.current_view
     let viewCamera = this.soupView.current_view.camera
 
     // rotate lights to soupView orientation

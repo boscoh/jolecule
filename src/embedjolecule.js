@@ -461,10 +461,12 @@ class EmbedJolecule {
       let residue = this.soup.getResidueProxy(i)
       let text = residue.resId + '-' + residue.resType
       this.residueSelector.append(
-        $('<option>').attr('value', residue.resId).text(text))
+        $('<option>').attr('value', i).text(text))
     }
 
-    this.residueSelector.val(this.soupView.current_view.res_id)
+    let iAtom = this.soupView.current_view.i_atom
+    let iRes = this.soup.getAtomProxy(iAtom).iRes
+    this.residueSelector.val(iRes)
   }
 
   createStatusDiv () {
@@ -539,8 +541,7 @@ class EmbedJolecule {
       })
 
     this.residueSelector.change(() => {
-      var resId = this.residueSelector.find(':selected').val()
-      let iRes = this.soupView.soup.getIResByResId(resId)
+      var iRes = parseInt(this.residueSelector.find(':selected').val())
       this.display.setTargetViewFromAtom(
         this.soupView.soup.getResidueProxy(iRes).iAtom)
     })
