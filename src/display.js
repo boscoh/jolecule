@@ -203,6 +203,7 @@ class Display {
 
     this.sequenceWidget.reset()
     this.resize()
+    this.soupView.updateSequence = true
   }
 
   buildAfterAdditionalLoad () {
@@ -211,6 +212,7 @@ class Display {
     this.sequenceWidget.reset()
     this.gridControlWidget.reset()
     this.resize()
+    this.soupView.updateSequence = true
   }
 
   calculateTracesForRibbons () {
@@ -979,8 +981,6 @@ class Display {
       return
     }
 
-    this.resize()
-
     this.rotateCameraToCurrentView()
 
     this.updateMeshesInScene = false
@@ -1014,13 +1014,13 @@ class Display {
     // needs to be drawn before render
     this.distanceWidget.draw()
     this.zSlabWidget.draw()
-    this.gridControlWidget.draw()
 
-    // if (this.soupView.updateSequence) {
-    //   this.sequenceWidget.draw()
-    //   this.soupView.updateSequence = false
-    // }
-    //
+    if (this.soupView.updateSequence) {
+      this.sequenceWidget.draw()
+      this.gridControlWidget.draw()
+      this.soupView.updateSequence = false
+    }
+
     // leave this to the very last moment
     // to avoid the dreaded black canvas
     if (!util.exists(this.renderer)) {
@@ -1066,6 +1066,7 @@ class Display {
    */
 
   resize () {
+    console.log('Display.resize')
     if (!util.exists(this.renderer)) {
       return
     }

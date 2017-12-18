@@ -537,7 +537,6 @@ class SequenceWidget extends CanvasWrapper {
   resize () {
     super.resize()
     this.div.css('width', this.parentDiv.width())
-    this.draw()
   }
 
   xToI (x) {
@@ -600,6 +599,8 @@ class SequenceWidget extends CanvasWrapper {
     if (!util.exists(this.soupView)) {
       return
     }
+
+    console.log('SequenceWidget.draw')
 
     if (this.residues.length == 0) {
       return
@@ -703,10 +704,11 @@ class SequenceWidget extends CanvasWrapper {
       this.iStartChar = parseInt(this.iStartChar)
 
       this.display.setTargetViewFromAtom(this.getCurrIAtom())
-
+      this.draw()
     } else {
       this.iRes = this.xToIChar(this.pointerX)
       this.display.setTargetViewFromAtom(this.getCurrIAtom())
+      this.draw()
     }
   }
 }
@@ -833,6 +835,7 @@ class ZSlabWidget extends CanvasWrapper {
     }
 
     this.soupView.changed = true
+    this.draw()
   }
 }
 
@@ -877,6 +880,7 @@ class GridControlWidget extends CanvasWrapper {
       this.div.show()
     }
 
+    this.draw()
   }
 
   makeElemButton (elem, y) {

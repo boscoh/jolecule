@@ -78076,6 +78076,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.sequenceWidget.reset();
 	      this.resize();
+	      this.soupView.updateSequence = true;
 	    }
 	  }, {
 	    key: 'buildAfterAdditionalLoad',
@@ -78085,6 +78086,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.sequenceWidget.reset();
 	      this.gridControlWidget.reset();
 	      this.resize();
+	      this.soupView.updateSequence = true;
 	    }
 	  }, {
 	    key: 'calculateTracesForRibbons',
@@ -79338,8 +79340,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return;
 	      }
 	
-	      this.resize();
-	
 	      this.rotateCameraToCurrentView();
 	
 	      this.updateMeshesInScene = false;
@@ -79373,13 +79373,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // needs to be drawn before render
 	      this.distanceWidget.draw();
 	      this.zSlabWidget.draw();
-	      this.gridControlWidget.draw();
 	
-	      // if (this.soupView.updateSequence) {
-	      //   this.sequenceWidget.draw()
-	      //   this.soupView.updateSequence = false
-	      // }
-	      //
+	      if (this.soupView.updateSequence) {
+	        this.sequenceWidget.draw();
+	        this.gridControlWidget.draw();
+	        this.soupView.updateSequence = false;
+	      }
+	
 	      // leave this to the very last moment
 	      // to avoid the dreaded black canvas
 	      if (!util.exists(this.renderer)) {
@@ -79425,6 +79425,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'resize',
 	    value: function resize() {
+	      console.log('Display.resize');
 	      if (!util.exists(this.renderer)) {
 	        return;
 	      }
@@ -80302,7 +80303,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function resize() {
 	      _get(SequenceWidget.prototype.__proto__ || Object.getPrototypeOf(SequenceWidget.prototype), 'resize', this).call(this);
 	      this.div.css('width', this.parentDiv.width());
-	      this.draw();
 	    }
 	  }, {
 	    key: 'xToI',
@@ -80410,6 +80410,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return;
 	      }
 	
+	      console.log('SequenceWidget.draw');
+	
 	      if (this.residues.length == 0) {
 	        return;
 	      }
@@ -80494,9 +80496,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.iStartChar = parseInt(this.iStartChar);
 	
 	        this.display.setTargetViewFromAtom(this.getCurrIAtom());
+	        this.draw();
 	      } else {
 	        this.iRes = this.xToIChar(this.pointerX);
 	        this.display.setTargetViewFromAtom(this.getCurrIAtom());
+	        this.draw();
 	      }
 	    }
 	  }]);
@@ -80638,6 +80642,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      this.soupView.changed = true;
+	      this.draw();
 	    }
 	  }]);
 	
@@ -80713,6 +80718,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else {
 	        this.div.show();
 	      }
+	
+	      this.draw();
 	    }
 	  }, {
 	    key: 'makeElemButton',
