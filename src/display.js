@@ -42,18 +42,6 @@ class Display {
     this.div = $(this.divTag)
     this.div.css('overflow', 'hidden')
 
-    // popup hover box over the mouse position
-    this.hover = new widgets.PopupText(this.divTag, 'lightblue')
-    this.hover.div.css('pointer-events', 'none')
-    this.hover.arrow.css('pointer-events', 'none')
-
-    // div to display processing messages
-    this.messageDiv = $('<div>')
-      .attr('id', 'loading-message')
-      .addClass('jolecule-loading-message')
-
-    this.setProcessingMesssage('Loading data for proteins')
-
     this.nDataServer = 0
 
     this.unitSphereGeom = new THREE.SphereGeometry(1, 8, 8)
@@ -65,7 +53,9 @@ class Display {
     this.webglDiv = $('<div>')
       .attr('id', this.webglDivId)
       .css('overflow', 'hidden')
+      .css('z-index', '0')
       .css('background-color', '#CCC')
+      .css('position', 'absolute')
     this.webglDiv.contextmenu(() => false)
 
     this.div.append(this.webglDiv)
@@ -126,7 +116,21 @@ class Display {
     this.gridControlWidget = new widgets.GridControlWidget(
       this.divTag, this.soupView, isGrid)
 
-    this.lineElement = new widgets.LineElement(this.webglDivTag, '#FF7777')
+    // popup hover box over the mouse position
+    this.hover = new widgets.PopupText(this.divTag, 'lightblue')
+    this.hover.div.css('pointer-events', 'none')
+    this.hover.arrow.css('pointer-events', 'none')
+
+    // div to display processing messages
+    this.messageDiv = $('<div>')
+      .attr('id', 'loading-message')
+      .addClass('jolecule-loading-message')
+
+    this.setProcessingMesssage('Loading data for proteins')
+
+    this.webglDiv.css('top', this.sequenceWidget.height())
+
+    this.lineElement = new widgets.LineElement(this.divTag, '#FF7777')
 
     // input control parametsrs
     this.saveMouseX = null
@@ -198,7 +202,7 @@ class Display {
     this.buildScene()
 
     this.sequenceWidget.reset()
-
+    this.resize()
   }
 
   buildAfterAdditionalLoad () {
@@ -206,6 +210,7 @@ class Display {
     this.soupView.changed = true
     this.sequenceWidget.reset()
     this.gridControlWidget.reset()
+    this.resize()
   }
 
   calculateTracesForRibbons () {
@@ -895,8 +900,8 @@ class Display {
     let vector = pos.clone().project(this.threeJsCamera)
 
     return {
-      x: (vector.x * widthHalf) + widthHalf,
-      y: -(vector.y * heightHalf) + heightHalf
+      x: (vector.x * widthHalf) + widthHalf + this.x(),
+      y: -(vector.y * heightHalf) + heightHalf + this.y()
     }
   }
 
@@ -958,11 +963,12 @@ class Display {
   }
 
   updateHover () {
-    if (this.getIAtomHover() !== null) {
-      this.iHoverAtom = this.getIAtomHover()
-    } else {
-      this.iHoverAtom = null
+    if (this.soupView.n_update_step > 1) {
+      this.hover.hide()
+      return
     }
+
+    this.iHoverAtom = this.getIAtomHover()
 
     if (this.iHoverAtom) {
       let atom = this.soup.getAtomProxy(this.iHoverAtom)
@@ -1079,12 +1085,24 @@ class Display {
     this.controller.flag_changed()
   }
 
+  x () {
+    return 0
+  }
+
+  y () {
+    let y = 0
+    if (!_.isUndefined(this.sequenceWidget)) {
+      y += this.sequenceWidget.height()
+    }
+    return y
+  }
+
   width () {
     return this.div.width()
   }
 
   height () {
-    return this.div.height()
+    return this.div.height() - this.y()
   }
 
   getMouse (event) {
@@ -1097,8 +1115,8 @@ class Display {
     }
 
     let result = util.getDomPosition(this.div[0])
-    this.mouseX = this.eventX - result[0]
-    this.mouseY = this.eventY - result[1]
+    this.mouseX = this.eventX - result[0] - this.x()
+    this.mouseY = this.eventY - result[1] - this.y()
 
     let x = this.mouseX - this.width() / 2
     let y = this.mouseY - this.height() / 2
@@ -1172,7 +1190,7 @@ class Display {
     if (this.isDraggingCentralAtom) {
       let v = this.posXY(this.soup.getAtomProxy(this.iDownAtom).pos)
 
-      this.lineElement.move(this.mouseX, this.mouseY, v.x, v.y)
+      this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y)
     } else {
       let shiftDown = (event.shiftKey === 1)
 

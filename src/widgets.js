@@ -316,7 +316,6 @@ class AtomLabelsWidget {
     this.soupView = proteinDisplay.soupView
     this.controller = proteinDisplay.controller
     this.display = proteinDisplay
-    this.webglDivTag = proteinDisplay.webglDivTag
   }
 
   removePopup (i) {
@@ -326,7 +325,7 @@ class AtomLabelsWidget {
   }
 
   createPopup (i) {
-    let popup = new PopupText(this.webglDivTag)
+    let popup = new PopupText(this.display.divTag)
     popup.div.click(() => { this.removePopup(i) })
     return popup
   }
@@ -373,14 +372,13 @@ class AtomLabelsWidget {
  */
 class DistanceMeasuresWidget {
 
-  constructor(proteinDisplay) {
+  constructor(display) {
     this.distanceMeasures = []
-    this.threeJsScene = proteinDisplay.displayScene
-    this.soupView = proteinDisplay.soupView
-    this.controller = proteinDisplay.controller
-    this.webglDivTag = proteinDisplay.webglDivTag
-    this.display = proteinDisplay
-    this.parentDiv = $(this.webglDivTag)
+    this.threeJsScene = display.displayScene
+    this.soupView = display.soupView
+    this.controller = display.controller
+    this.display = display
+    this.parentDiv = $(this.display.divTag)
   }
 
   removeDistance (i) {

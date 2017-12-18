@@ -411,7 +411,7 @@ class Trace extends PathAndFrenetFrames {
   constructor () {
     super()
     this.indices = []
-    this.detail = 4
+    this.detail = 2
   }
 
   getReference (i) {

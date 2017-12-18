@@ -206,6 +206,7 @@ class EmbedJolecule {
 
     this.divTag = this.params.divTag
     this.div = $(this.params.divTag)
+
     // disable right mouse click
     this.div[0].oncontextmenu = _.noop
 

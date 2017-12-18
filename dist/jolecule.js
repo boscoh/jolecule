@@ -457,6 +457,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.divTag = this.params.divTag;
 	    this.div = (0, _jquery2.default)(this.params.divTag);
+	
 	    // disable right mouse click
 	    this.div[0].oncontextmenu = _lodash2.default.noop;
 	
@@ -28289,9 +28290,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return c.charCodeAt(0);
 	}
 	
-	function extractAtomLines(data) {
-	  var lines = data.split(/\r?\n/);
-	  var result = [];
+	function parsetTitleFromPdbText(text) {
+	  var result = '';
+	  var lines = text.split(/\r?\n/);
 	  var _iteratorNormalCompletion = true;
 	  var _didIteratorError = false;
 	  var _iteratorError = undefined;
@@ -28300,11 +28301,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    for (var _iterator = lines[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 	      var line = _step.value;
 	
-	      if (line.slice(0, 4) === 'ATOM' || line.slice(0, 6) === 'HETATM') {
-	        result.push(line);
-	      }
-	      if (line.slice(0, 3) === 'END') {
-	        break;
+	      if (line.substring(0, 5) === 'TITLE') {
+	        result += line.substring(10);
 	      }
 	    }
 	  } catch (err) {
@@ -28318,39 +28316,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } finally {
 	      if (_didIteratorError) {
 	        throw _iteratorError;
-	      }
-	    }
-	  }
-	
-	  return result;
-	}
-	
-	function parsetTitleFromPdbText(text) {
-	  var result = '';
-	  var lines = text.split(/\r?\n/);
-	  var _iteratorNormalCompletion2 = true;
-	  var _didIteratorError2 = false;
-	  var _iteratorError2 = undefined;
-	
-	  try {
-	    for (var _iterator2 = lines[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	      var line = _step2.value;
-	
-	      if (line.substring(0, 5) === 'TITLE') {
-	        result += line.substring(10);
-	      }
-	    }
-	  } catch (err) {
-	    _didIteratorError2 = true;
-	    _iteratorError2 = err;
-	  } finally {
-	    try {
-	      if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	        _iterator2.return();
-	      }
-	    } finally {
-	      if (_didIteratorError2) {
-	        throw _iteratorError2;
 	      }
 	    }
 	  }
@@ -28442,7 +28407,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return AtomProxy;
 	}();
 	
-	var residueStoreFields = [['atomOffset', 1, 'uint32'], ['atomCount', 1, 'uint16'], ['iCentralAtom', 1, 'uint32'], ['iResType', 1, 'uint16'], ['resno', 1, 'int32'], ['sstruc', 1, 'uint8'], ['inscode', 1, 'uint8'], ['iColor', 1, 'uint8'], ['isPolymer', 1, 'uint8'], ['isMesh', 1, 'uint8']];
+	var residueStoreFields = [['atomOffset', 1, 'uint32'], ['atomCount', 1, 'uint16'], ['iCentralAtom', 1, 'uint32'], ['iResType', 1, 'uint16'], ['iChain', 1, 'uint8'], ['resno', 1, 'int32'], ['sstruc', 1, 'uint8'], ['inscode', 1, 'uint8'], ['iColor', 1, 'uint8'], ['isPolymer', 1, 'uint8'], ['isMesh', 1, 'uint8']];
 	
 	var ResidueProxy = function () {
 	  function ResidueProxy(soup, iRes) {
@@ -28476,17 +28441,50 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getAtomProxy',
 	    value: function getAtomProxy(atomType) {
+	      var _iteratorNormalCompletion2 = true;
+	      var _didIteratorError2 = false;
+	      var _iteratorError2 = undefined;
+	
+	      try {
+	        for (var _iterator2 = this.getAtomIndices()[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	          var iAtom = _step2.value;
+	
+	          var atom = this.soup.getAtomProxy(iAtom);
+	          if (atom.atomType === atomType) {
+	            return atom;
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError2 = true;
+	        _iteratorError2 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	            _iterator2.return();
+	          }
+	        } finally {
+	          if (_didIteratorError2) {
+	            throw _iteratorError2;
+	          }
+	        }
+	      }
+	
+	      return null;
+	    }
+	  }, {
+	    key: 'checkAtomTypes',
+	    value: function checkAtomTypes(atomTypes) {
 	      var _iteratorNormalCompletion3 = true;
 	      var _didIteratorError3 = false;
 	      var _iteratorError3 = undefined;
 	
 	      try {
-	        for (var _iterator3 = this.getAtomIndices()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	          var iAtom = _step3.value;
+	        for (var _iterator3 = atomTypes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	          var atomType = _step3.value;
 	
-	          var atom = this.soup.getAtomProxy(iAtom);
-	          if (atom.atomType === atomType) {
-	            return atom;
+	          var a = this.getAtomProxy(atomType);
+	          if (a === null) {
+	            return false;
 	          }
 	        }
 	      } catch (err) {
@@ -28504,40 +28502,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 	
-	      return null;
-	    }
-	  }, {
-	    key: 'checkAtomTypes',
-	    value: function checkAtomTypes(atomTypes) {
-	      var _iteratorNormalCompletion4 = true;
-	      var _didIteratorError4 = false;
-	      var _iteratorError4 = undefined;
-	
-	      try {
-	        for (var _iterator4 = atomTypes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	          var atomType = _step4.value;
-	
-	          var a = this.getAtomProxy(atomType);
-	          if (a !== null) {
-	            return true;
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError4 = true;
-	        _iteratorError4 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	            _iterator4.return();
-	          }
-	        } finally {
-	          if (_didIteratorError4) {
-	            throw _iteratorError4;
-	          }
-	        }
-	      }
-	
-	      return false;
+	      return true;
 	    }
 	  }, {
 	    key: 'iAtom',
@@ -28720,8 +28685,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      console.log('Soup.load parse ' + this.pdb_id + '...');
 	
-	      var atomLines = extractAtomLines(protein_data['pdb_text']);
-	      this.makeAtomsFromPdbLines(atomLines, this.pdb_id);
+	      this.makeAtomsFromPdbLines(protein_data['pdb_text'], this.pdb_id);
 	
 	      this.atomSelect = new _bitarray2.default(this.getAtomCount());
 	      this.residueSelect = new _bitarray2.default(this.getResidueCount());
@@ -28734,7 +28698,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.calcBonds();
 	
 	      console.log('Soup.load calculated ' + this.getBondCount() + ' bonds');
+	
 	      this.assignBondsToAtoms();
+	
+	      console.log('Soup.load assigned bonds to atoms');
 	
 	      this.calcMaxLength();
 	
@@ -28743,11 +28710,46 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'makeAtomsFromPdbLines',
-	    value: function makeAtomsFromPdbLines(lines, pdbId) {
+	    value: function makeAtomsFromPdbLines(pdbText, pdbId) {
+	
+	      var pdbLines = pdbText.split(/\r?\n/);
+	
+	      var lines = [];
+	      var _iteratorNormalCompletion4 = true;
+	      var _didIteratorError4 = false;
+	      var _iteratorError4 = undefined;
+	
+	      try {
+	        for (var _iterator4 = pdbLines[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	          var _line = _step4.value;
+	
+	          if (_line.slice(0, 4) === 'ATOM' || _line.slice(0, 6) === 'HETATM') {
+	            lines.push(_line);
+	          }
+	          if (_line.slice(0, 3) === 'END') {
+	            break;
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError4 = true;
+	        _iteratorError4 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion4 && _iterator4.return) {
+	            _iterator4.return();
+	          }
+	        } finally {
+	          if (_didIteratorError4) {
+	            throw _iteratorError4;
+	          }
+	        }
+	      }
+	
 	      if (lines.length === 0) {
 	        this.parsingError = 'No atom lines';
 	        return;
 	      }
+	
 	      for (var iLine = 0; iLine < lines.length; iLine += 1) {
 	        var line = lines[iLine];
 	        if (line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM') {
@@ -28755,23 +28757,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	              y = void 0,
 	              z = void 0,
 	              chain = void 0,
-	              resNum = void 0,
+	              resNumIns = void 0,
 	              resType = void 0,
 	              atomType = void 0,
 	              bfactor = void 0,
 	              elem = void 0,
 	              alt = void 0;
 	          try {
+	            atomType = _.trim(line.substr(12, 4));
+	            alt = _.trim(line.substr(16, 1));
+	            resType = _.trim(line.substr(17, 3));
+	            chain = _.trim(line[21]);
+	            resNumIns = _.trim(line.substr(22, 5));
 	            x = parseFloat(line.substr(30, 7));
 	            y = parseFloat(line.substr(38, 7));
 	            z = parseFloat(line.substr(46, 7));
-	            chain = _.trim(line[21]);
-	            resNum = _.trim(line.substr(22, 5));
-	            resType = _.trim(line.substr(17, 3));
-	            atomType = _.trim(line.substr(12, 4));
 	            bfactor = parseFloat(line.substr(60, 6));
 	            elem = deleteNumbers(_.trim(line.substr(76, 2)));
-	            alt = _.trim(line.substr(16, 1));
 	          } catch (e) {
 	            this.parsingError = 'line ' + iLine;
 	            console.log('Error: "' + line + '"');
@@ -28781,10 +28783,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (elem === '') {
 	            elem = deleteNumbers(_.trim(atomType)).substr(0, 1);
 	          }
-	          var label = resNum + ' - ' + resType + ' - ' + atomType;
-	          if (chain) {
-	            label = chain + ':' + label;
-	          }
+	
 	          var resId = '';
 	          if (pdbId) {
 	            resId += pdbId + ':';
@@ -28792,7 +28791,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (chain) {
 	            resId += chain + ':';
 	          }
-	          resId += resNum;
+	          resId += resNumIns;
+	
 	          this.addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resId);
 	        }
 	      }
@@ -28800,7 +28800,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'addAtom',
 	    value: function addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resId) {
+	
 	      var iAtom = this.atomStore.count;
+	
 	      this.atomStore.increment();
 	
 	      this.atomStore.x[iAtom] = x;
@@ -28812,20 +28814,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.atomStore.bondCount[iAtom] = 0;
 	
-	      var iAtomType = getValueTableIndex(this.atomTypeTable, atomType);
-	      this.atomStore.iAtomType[iAtom] = iAtomType;
+	      this.atomStore.iAtomType[iAtom] = getValueTableIndex(this.atomTypeTable, atomType);
 	
-	      var iElem = getValueTableIndex(this.elemTable, elem);
-	      this.atomStore.iElem[iAtom] = iElem;
+	      this.atomStore.iElem[iAtom] = getValueTableIndex(this.elemTable, elem);
 	
 	      var nRes = this.getResidueCount();
-	      var currResId = nRes === 0 ? '' : this.resIds[nRes - 1];
-	      if (resId !== currResId) {
+	      var lastResId = nRes === 0 ? '' : this.resIds[nRes - 1];
+	      if (resId !== lastResId) {
 	        this.addResidue(iAtom, resId, resType);
 	      }
 	
 	      var iRes = this.getResidueCount() - 1;
+	
 	      this.residueStore.atomCount[iRes] += 1;
+	
 	      this.atomStore.iRes[iAtom] = iRes;
 	    }
 	  }, {
@@ -28836,8 +28838,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.resIds.push(resId);
 	
-	      var iResType = getValueTableIndex(this.resTypeTable, resType);
-	      this.residueStore.iResType[iRes] = iResType;
+	      this.residueStore.iResType[iRes] = getValueTableIndex(this.resTypeTable, resType);
 	
 	      this.residueStore.atomOffset[iRes] = iFirstAtomInRes;
 	      this.residueStore.atomCount[iRes] = 0;
@@ -29006,12 +29007,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        vertices.push([a.pos.x, a.pos.y, a.pos.z]);
 	      }
 	
+	      var spaceHash = new _pairs.SpaceHash(vertices);
 	      var _iteratorNormalCompletion7 = true;
 	      var _didIteratorError7 = false;
 	      var _iteratorError7 = undefined;
 	
 	      try {
-	        for (var _iterator7 = (0, _pairs.getClosePairs)(vertices)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+	        for (var _iterator7 = spaceHash.getClosePairs()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
 	          var pair = _step7.value;
 	
 	
@@ -29191,12 +29193,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      var cutoff = 3.5;
+	      var spaceHash = new _pairs.SpaceHash(vertices);
 	      var _iteratorNormalCompletion8 = true;
 	      var _didIteratorError8 = false;
 	      var _iteratorError8 = undefined;
 	
 	      try {
-	        for (var _iterator8 = (0, _pairs.getClosePairs)(vertices)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+	        for (var _iterator8 = spaceHash.getClosePairs()[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
 	          var pair = _step8.value;
 	
 	          var a0 = this.getAtomProxy(atomIndices[pair[0]]);
@@ -76179,7 +76182,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var _this2 = _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this));
 	
 	    _this2.indices = [];
-	    _this2.detail = 4;
+	    _this2.detail = 2;
 	    return _this2;
 	  }
 	
@@ -76716,114 +76719,135 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 11 */
 /***/ function(module, exports) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	/**
 	 * Finds pairs of vertices that have been coarsely grouped together
 	 * using spatial hashes of boxes of div^3. All vertices in neighboring
 	 * boxes are considered close pairs.
 	 *
+	 * Vertex - [x, y, z] in real coordinates
+	 *
+	 * Space - [i, j, k] integer indices in grid space
+	 *
+	 * Spacehash - hash integer hash of a space
+	 *
+	 * SpaceHashes are spaces converted to a single integer
+	 *
 	 * @param {Array<THREE.Vector3>} vertices - list of positions
 	 * @returns {Array} - array of pairs of positions
 	 */
-	function getClosePairs(vertices) {
-	  var padding = 0.05;
-	  var div = 5.0;
-	  var inv_div = 1.0 / div;
-	  var maxima = [0.0, 0.0, 0.0];
-	  var minima = [0.0, 0.0, 0.0];
-	  var spans = [0.0, 0.0, 0.0];
-	  var sizes = [0, 0, 0];
+	var SpaceHash = function () {
+	  function SpaceHash(vertices) {
+	    _classCallCheck(this, SpaceHash);
 	
-	  for (var i_dim = 0; i_dim < 3; i_dim++) {
-	    for (var i = 0; i < vertices.length; i += 1) {
-	      if (minima[i_dim] > vertices[i][i_dim]) {
-	        minima[i_dim] = vertices[i][i_dim];
-	      }
-	      if (maxima[i_dim] < vertices[i][i_dim]) {
-	        maxima[i_dim] = vertices[i][i_dim];
-	      }
-	    }
-	    minima[i_dim] -= padding;
-	    maxima[i_dim] += padding;
-	    spans[i_dim] = maxima[i_dim] - minima[i_dim];
-	    sizes[i_dim] = Math.ceil(spans[i_dim] * inv_div);
-	  }
+	    console.log('SpaceHash assigning vertices to cells');
 	
-	  function vertex_to_space(v) {
-	    var result = [];
-	    for (var j = 0; j < 3; j++) {
-	      result.push(Math.round((v[j] - minima[j]) * inv_div));
-	    }
-	    return result;
-	  }
+	    this.vertices = vertices;
+	    this.padding = 0.05;
+	    this.div = 5.0;
+	    this.invDiv = 1.0 / this.div;
+	    this.maxima = [0.0, 0.0, 0.0];
+	    this.minima = [0.0, 0.0, 0.0];
+	    this.spans = [0.0, 0.0, 0.0];
+	    this.sizes = [0, 0, 0];
 	
-	  function space_to_hash(s) {
-	    return s[0] * sizes[1] * sizes[2] + s[1] * sizes[2] + s[2];
-	  }
-	
-	  var cells = {};
-	  var spaces = [];
-	  for (var _i = 0; _i < vertices.length; _i++) {
-	    var vertex = vertices[_i];
-	    var space = vertex_to_space(vertex);
-	    spaces.push(space);
-	    var space_hash = space_to_hash(space);
-	    if (!(space_hash in cells)) {
-	      cells[space_hash] = [];
-	    }
-	    cells[space_hash].push(_i);
-	  }
-	
-	  function neighbourhood_in_dim(space, i_dim) {
-	    var start = Math.max(0, space[i_dim] - 1);
-	    var end = Math.min(sizes[i_dim], space[i_dim] + 2);
-	    var result = [];
-	    for (var _i2 = start; _i2 < end; _i2++) {
-	      result.push(_i2);
-	    }
-	    return result;
-	  }
-	
-	  function space_neighbourhood(space) {
-	    var result = [];
-	    var neighbourhood0 = neighbourhood_in_dim(space, 0);
-	    var neighbourhood1 = neighbourhood_in_dim(space, 1);
-	    var neighbourhood2 = neighbourhood_in_dim(space, 2);
-	    for (var s0 = 0; s0 < neighbourhood0.length; s0++) {
-	      for (var s1 = 0; s1 < neighbourhood1.length; s1++) {
-	        for (var s2 = 0; s2 < neighbourhood2.length; s2++) {
-	          result.push([neighbourhood0[s0], neighbourhood1[s1], neighbourhood2[s2]]);
+	    for (var iDim = 0; iDim < 3; iDim++) {
+	      for (var iVertex = 0; iVertex < this.vertices.length; iVertex += 1) {
+	        if (this.minima[iDim] > this.vertices[iVertex][iDim]) {
+	          this.minima[iDim] = this.vertices[iVertex][iDim];
+	        }
+	        if (this.maxima[iDim] < this.vertices[iVertex][iDim]) {
+	          this.maxima[iDim] = this.vertices[iVertex][iDim];
 	        }
 	      }
+	      this.minima[iDim] -= this.padding;
+	      this.maxima[iDim] += this.padding;
+	      this.spans[iDim] = this.maxima[iDim] - this.minima[iDim];
+	      this.sizes[iDim] = Math.ceil(this.spans[iDim] * this.invDiv);
 	    }
-	    return result;
+	
+	    this.cells = {};
+	    this.spaces = [];
+	    for (var _iVertex = 0; _iVertex < this.vertices.length; _iVertex++) {
+	      var vertex = this.vertices[_iVertex];
+	      var space = this.getSpaceFromVertex(vertex);
+	      this.spaces.push(space);
+	      var hash = this.getHashFromSpace(space);
+	      if (!(hash in this.cells)) {
+	        this.cells[hash] = [];
+	      }
+	      this.cells[hash].push(_iVertex);
+	    }
 	  }
 	
-	  var pairs = [];
-	  for (var _i3 = 0; _i3 < vertices.length; _i3++) {
-	    var neighbourhood = space_neighbourhood(spaces[_i3]);
-	    for (var j_neigh = 0; j_neigh < neighbourhood.length; j_neigh++) {
-	      var hash = space_to_hash(neighbourhood[j_neigh]);
-	      if (hash in cells) {
-	        var cell = cells[hash];
-	        for (var j_cell = 0; j_cell < cell.length; j_cell++) {
-	          var j = cell[j_cell];
-	          if (_i3 < j) {
-	            pairs.push([_i3, j]);
+	  _createClass(SpaceHash, [{
+	    key: 'getSpaceFromVertex',
+	    value: function getSpaceFromVertex(vertex) {
+	      var result = [];
+	      for (var iDim = 0; iDim < 3; iDim++) {
+	        result.push(Math.round((vertex[iDim] - this.minima[iDim]) * this.invDiv));
+	      }
+	      return result;
+	    }
+	  }, {
+	    key: 'getHashFromSpace',
+	    value: function getHashFromSpace(s) {
+	      return s[0] * this.sizes[1] * this.sizes[2] + s[1] * this.sizes[2] + s[2];
+	    }
+	  }, {
+	    key: 'pushCellOfSpace',
+	    value: function pushCellOfSpace(pairs, vertex, iVertex) {
+	      var spaceCenter = this.getSpaceFromVertex(vertex);
+	
+	      var space0start = Math.max(0, spaceCenter[0] - 1);
+	      var space0end = Math.min(this.sizes[0], spaceCenter[0] + 2);
+	      var space1start = Math.max(0, spaceCenter[1] - 1);
+	      var space1end = Math.min(this.sizes[1], spaceCenter[1] + 2);
+	      var space2start = Math.max(0, spaceCenter[2] - 1);
+	      var space2end = Math.min(this.sizes[2], spaceCenter[2] + 2);
+	
+	      for (var space0 = space0start; space0 < space0end; space0++) {
+	        for (var space1 = space1start; space1 < space1end; space1++) {
+	          for (var space2 = space2start; space2 < space2end; space2++) {
+	            var hash = this.getHashFromSpace([space0, space1, space2]);
+	            if (hash in this.cells) {
+	              var cell = this.cells[hash];
+	              for (var jVertexInCell = 0; jVertexInCell < cell.length; jVertexInCell++) {
+	                var jVertex = cell[jVertexInCell];
+	                if (iVertex < jVertex) {
+	                  pairs.push([iVertex, jVertex]);
+	                }
+	              }
+	            }
 	          }
 	        }
 	      }
 	    }
-	  }
-	  return pairs;
-	}
+	  }, {
+	    key: 'getClosePairs',
+	    value: function getClosePairs() {
+	      console.log('SpatialHash.getClosePairs');
+	      var pairs = [];
+	      for (var iVertex = 0; iVertex < this.vertices.length; iVertex++) {
+	        this.pushCellOfSpace(pairs, this.vertices[iVertex], iVertex);
+	      }
+	      return pairs;
+	    }
+	  }]);
 	
-	exports.getClosePairs = getClosePairs;
+	  return SpaceHash;
+	}();
+	
+	exports.SpaceHash = SpaceHash;
 
 /***/ },
 /* 12 */
@@ -77843,16 +77867,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.div = (0, _jquery2.default)(this.divTag);
 	    this.div.css('overflow', 'hidden');
 	
-	    // popup hover box over the mouse position
-	    this.hover = new _widgets2.default.PopupText(this.divTag, 'lightblue');
-	    this.hover.div.css('pointer-events', 'none');
-	    this.hover.arrow.css('pointer-events', 'none');
-	
-	    // div to display processing messages
-	    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
-	
-	    this.setProcessingMesssage('Loading data for proteins');
-	
 	    this.nDataServer = 0;
 	
 	    this.unitSphereGeom = new THREE.SphereGeometry(1, 8, 8);
@@ -77861,7 +77875,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.webglDivId = this.div.attr('id') + '-canvas-wrapper';
 	    this.webglDivTag = '#' + this.webglDivId;
-	    this.webglDiv = (0, _jquery2.default)('<div>').attr('id', this.webglDivId).css('overflow', 'hidden').css('background-color', '#CCC');
+	    this.webglDiv = (0, _jquery2.default)('<div>').attr('id', this.webglDivId).css('overflow', 'hidden').css('z-index', '0').css('background-color', '#CCC').css('position', 'absolute');
 	    this.webglDiv.contextmenu(function () {
 	      return false;
 	    });
@@ -77920,7 +77934,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.divTag, this.soupView);
 	    this.gridControlWidget = new _widgets2.default.GridControlWidget(this.divTag, this.soupView, isGrid);
 	
-	    this.lineElement = new _widgets2.default.LineElement(this.webglDivTag, '#FF7777');
+	    // popup hover box over the mouse position
+	    this.hover = new _widgets2.default.PopupText(this.divTag, 'lightblue');
+	    this.hover.div.css('pointer-events', 'none');
+	    this.hover.arrow.css('pointer-events', 'none');
+	
+	    // div to display processing messages
+	    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
+	
+	    this.setProcessingMesssage('Loading data for proteins');
+	
+	    this.webglDiv.css('top', this.sequenceWidget.height());
+	
+	    this.lineElement = new _widgets2.default.LineElement(this.divTag, '#FF7777');
 	
 	    // input control parametsrs
 	    this.saveMouseX = null;
@@ -78047,6 +78073,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.buildScene();
 	
 	      this.sequenceWidget.reset();
+	      this.resize();
 	    }
 	  }, {
 	    key: 'buildAfterAdditionalLoad',
@@ -78055,6 +78082,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.soupView.changed = true;
 	      this.sequenceWidget.reset();
 	      this.gridControlWidget.reset();
+	      this.resize();
 	    }
 	  }, {
 	    key: 'calculateTracesForRibbons',
@@ -79225,8 +79253,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var vector = pos.clone().project(this.threeJsCamera);
 	
 	      return {
-	        x: vector.x * widthHalf + widthHalf,
-	        y: -(vector.y * heightHalf) + heightHalf
+	        x: vector.x * widthHalf + widthHalf + this.x(),
+	        y: -(vector.y * heightHalf) + heightHalf + this.y()
 	      };
 	    }
 	
@@ -79290,11 +79318,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'updateHover',
 	    value: function updateHover() {
-	      if (this.getIAtomHover() !== null) {
-	        this.iHoverAtom = this.getIAtomHover();
-	      } else {
-	        this.iHoverAtom = null;
+	      if (this.soupView.n_update_step > 1) {
+	        this.hover.hide();
+	        return;
 	      }
+	
+	      this.iHoverAtom = this.getIAtomHover();
 	
 	      if (this.iHoverAtom) {
 	        var atom = this.soup.getAtomProxy(this.iHoverAtom);
@@ -79414,6 +79443,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.controller.flag_changed();
 	    }
 	  }, {
+	    key: 'x',
+	    value: function x() {
+	      return 0;
+	    }
+	  }, {
+	    key: 'y',
+	    value: function y() {
+	      var y = 0;
+	      if (!_lodash2.default.isUndefined(this.sequenceWidget)) {
+	        y += this.sequenceWidget.height();
+	      }
+	      return y;
+	    }
+	  }, {
 	    key: 'width',
 	    value: function width() {
 	      return this.div.width();
@@ -79421,7 +79464,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'height',
 	    value: function height() {
-	      return this.div.height();
+	      return this.div.height() - this.y();
 	    }
 	  }, {
 	    key: 'getMouse',
@@ -79435,8 +79478,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      var result = util.getDomPosition(this.div[0]);
-	      this.mouseX = this.eventX - result[0];
-	      this.mouseY = this.eventY - result[1];
+	      this.mouseX = this.eventX - result[0] - this.x();
+	      this.mouseY = this.eventY - result[1] - this.y();
 	
 	      var x = this.mouseX - this.width() / 2;
 	      var y = this.mouseY - this.height() / 2;
@@ -79514,7 +79557,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (this.isDraggingCentralAtom) {
 	        var v = this.posXY(this.soup.getAtomProxy(this.iDownAtom).pos);
 	
-	        this.lineElement.move(this.mouseX, this.mouseY, v.x, v.y);
+	        this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y);
 	      } else {
 	        var shiftDown = event.shiftKey === 1;
 	
@@ -80007,7 +80050,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.soupView = proteinDisplay.soupView;
 	    this.controller = proteinDisplay.controller;
 	    this.display = proteinDisplay;
-	    this.webglDivTag = proteinDisplay.webglDivTag;
 	  }
 	
 	  _createClass(AtomLabelsWidget, [{
@@ -80022,7 +80064,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function createPopup(i) {
 	      var _this2 = this;
 	
-	      var popup = new PopupText(this.webglDivTag);
+	      var popup = new PopupText(this.display.divTag);
 	      popup.div.click(function () {
 	        _this2.removePopup(i);
 	      });
@@ -80076,16 +80118,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	var DistanceMeasuresWidget = function () {
-	  function DistanceMeasuresWidget(proteinDisplay) {
+	  function DistanceMeasuresWidget(display) {
 	    _classCallCheck(this, DistanceMeasuresWidget);
 	
 	    this.distanceMeasures = [];
-	    this.threeJsScene = proteinDisplay.displayScene;
-	    this.soupView = proteinDisplay.soupView;
-	    this.controller = proteinDisplay.controller;
-	    this.webglDivTag = proteinDisplay.webglDivTag;
-	    this.display = proteinDisplay;
-	    this.parentDiv = (0, _jquery2.default)(this.webglDivTag);
+	    this.threeJsScene = display.displayScene;
+	    this.soupView = display.soupView;
+	    this.controller = display.controller;
+	    this.display = display;
+	    this.parentDiv = (0, _jquery2.default)(this.display.divTag);
 	  }
 	
 	  _createClass(DistanceMeasuresWidget, [{

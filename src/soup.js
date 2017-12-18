@@ -1,7 +1,7 @@
 import v3 from './v3'
 import { getWindowUrl, inArray, getCurrentDateStr } from './util.js'
 import * as glgeom from './glgeom'
-import { getClosePairs } from './pairs.js'
+import { SpaceHash } from './pairs.js'
 import Store from './store.js'
 import BitArray from './bitarray.js'
 
@@ -40,21 +40,6 @@ function intToChar (i) {
 
 function charToInt(c) {
   return c.charCodeAt(0)
-}
-
-function extractAtomLines (data) {
-  const lines = data.split(/\r?\n/)
-  let result = []
-  for (let line of lines) {
-    if ((line.slice(0, 4) === 'ATOM') ||
-      (line.slice(0, 6) === 'HETATM')) {
-      result.push(line)
-    }
-    if (line.slice(0, 3) === 'END') {
-      break
-    }
-  }
-  return result
 }
 
 function parsetTitleFromPdbText (text) {
@@ -150,18 +135,18 @@ class AtomProxy {
 
 }
 
-
 const residueStoreFields = [
   ['atomOffset', 1, 'uint32'],
   ['atomCount', 1, 'uint16'],
   ['iCentralAtom', 1, 'uint32'],
   ['iResType', 1, 'uint16'],
+  ['iChain', 1, 'uint8'],
   ['resno', 1, 'int32'],
   ['sstruc', 1, 'uint8'],
   ['inscode', 1, 'uint8'],
   ['iColor', 1, 'uint8'],
   ['isPolymer', 1, 'uint8'],
-  ['isMesh', 1, 'uint8']
+  ['isMesh', 1, 'uint8'],
 ]
 
 class ResidueProxy {
@@ -268,11 +253,11 @@ class ResidueProxy {
   checkAtomTypes (atomTypes) {
     for (let atomType of atomTypes) {
       let a = this.getAtomProxy(atomType)
-      if (a !== null) {
-        return true
+      if (a === null) {
+        return false
       }
     }
-    return false
+    return true
   }
 }
 
@@ -374,8 +359,7 @@ class Soup {
 
     console.log(`Soup.load parse ${this.pdb_id}...`)
 
-    let atomLines = extractAtomLines(protein_data['pdb_text'])
-    this.makeAtomsFromPdbLines(atomLines, this.pdb_id)
+    this.makeAtomsFromPdbLines(protein_data['pdb_text'], this.pdb_id)
 
     this.atomSelect = new BitArray(this.getAtomCount())
     this.residueSelect = new BitArray(this.getResidueCount())
@@ -390,7 +374,10 @@ class Soup {
     this.calcBonds()
 
     console.log(`Soup.load calculated ${this.getBondCount()} bonds`)
+
     this.assignBondsToAtoms()
+
+    console.log(`Soup.load assigned bonds to atoms`)
 
     this.calcMaxLength()
 
@@ -399,26 +386,41 @@ class Soup {
 
   }
 
-  makeAtomsFromPdbLines (lines, pdbId) {
+  makeAtomsFromPdbLines (pdbText, pdbId) {
+
+    const pdbLines = pdbText.split(/\r?\n/)
+
+    let lines = []
+    for (let line of pdbLines) {
+      if ((line.slice(0, 4) === 'ATOM') ||
+        (line.slice(0, 6) === 'HETATM')) {
+        lines.push(line)
+      }
+      if (line.slice(0, 3) === 'END') {
+        break
+      }
+    }
+
     if (lines.length === 0) {
       this.parsingError = 'No atom lines'
       return
     }
+
     for (let iLine = 0; iLine < lines.length; iLine += 1) {
       let line = lines[iLine]
       if (line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM') {
-        let x, y, z, chain, resNum, resType, atomType, bfactor, elem, alt
+        let x, y, z, chain, resNumIns, resType, atomType, bfactor, elem, alt
         try {
+          atomType = _.trim(line.substr(12, 4))
+          alt = _.trim(line.substr(16, 1))
+          resType = _.trim(line.substr(17, 3))
+          chain = _.trim(line[21])
+          resNumIns = _.trim(line.substr(22, 5))
           x = parseFloat(line.substr(30, 7))
           y = parseFloat(line.substr(38, 7))
           z = parseFloat(line.substr(46, 7))
-          chain = _.trim(line[21])
-          resNum = _.trim(line.substr(22, 5))
-          resType = _.trim(line.substr(17, 3))
-          atomType = _.trim(line.substr(12, 4))
           bfactor = parseFloat(line.substr(60, 6))
           elem = deleteNumbers(_.trim(line.substr(76, 2)))
-          alt = _.trim(line.substr(16, 1))
         } catch (e) {
           this.parsingError = 'line ' + iLine
           console.log(`Error: "${line}"`)
@@ -428,10 +430,7 @@ class Soup {
         if (elem === '') {
           elem = deleteNumbers(_.trim(atomType)).substr(0, 1)
         }
-        let label = resNum + ' - ' + resType + ' - ' + atomType
-        if (chain) {
-          label = chain + ':' + label
-        }
+
         let resId = ''
         if (pdbId) {
           resId += pdbId + ':'
@@ -439,14 +438,17 @@ class Soup {
         if (chain) {
           resId += chain + ':'
         }
-        resId += resNum
+        resId += resNumIns
+
         this.addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resId)
       }
     }
   }
 
   addAtom (x, y, z, bfactor, alt, atomType, elem, resType, resId) {
+
     let iAtom = this.atomStore.count
+
     this.atomStore.increment()
 
     this.atomStore.x[iAtom] = x
@@ -458,20 +460,22 @@ class Soup {
 
     this.atomStore.bondCount[iAtom] = 0
 
-    let iAtomType = getValueTableIndex(this.atomTypeTable, atomType)
-    this.atomStore.iAtomType[iAtom] = iAtomType
+    this.atomStore.iAtomType[iAtom] = getValueTableIndex(
+      this.atomTypeTable, atomType)
 
-    let iElem = getValueTableIndex(this.elemTable, elem)
-    this.atomStore.iElem[iAtom] = iElem
+    this.atomStore.iElem[iAtom] = getValueTableIndex(
+      this.elemTable, elem)
 
     let nRes = this.getResidueCount()
-    let currResId = (nRes === 0) ? '' : this.resIds[nRes - 1]
-    if (resId !== currResId) {
+    let lastResId = (nRes === 0) ? '' : this.resIds[nRes - 1]
+    if (resId !== lastResId) {
       this.addResidue(iAtom, resId, resType)
     }
 
     let iRes = this.getResidueCount() - 1
+
     this.residueStore.atomCount[iRes] += 1
+
     this.atomStore.iRes[iAtom] = iRes
   }
 
@@ -481,8 +485,8 @@ class Soup {
 
     this.resIds.push(resId)
 
-    let iResType = getValueTableIndex(this.resTypeTable, resType)
-    this.residueStore.iResType[iRes] = iResType
+    this.residueStore.iResType[iRes] = getValueTableIndex(
+      this.resTypeTable, resType)
 
     this.residueStore.atomOffset[iRes] = iFirstAtomInRes
     this.residueStore.atomCount[iRes] = 0
@@ -599,7 +603,8 @@ class Soup {
       vertices.push([a.pos.x, a.pos.y, a.pos.z])
     }
 
-    for (let pair of getClosePairs(vertices)) {
+    let spaceHash = new SpaceHash(vertices)
+    for (let pair of spaceHash.getClosePairs()) {
 
       let iAtom1 = pair[0]
       let iAtom2 = pair[1]
@@ -750,7 +755,8 @@ class Soup {
     }
 
     let cutoff = 3.5
-    for (let pair of getClosePairs(vertices)) {
+    let spaceHash = new SpaceHash(vertices)
+    for (let pair of spaceHash.getClosePairs()) {
       let a0 = this.getAtomProxy(atomIndices[pair[0]])
       let a1 = this.getOtherAtomProxy(atomIndices[pair[1]])
       if ((a0.elem === 'O') && (a1.elem === 'N')) {
