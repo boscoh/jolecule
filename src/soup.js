@@ -1340,11 +1340,13 @@ class SoupView {
     this.max_update_step = 20
 
     this.updateSelection = false
+    this.updateSequence = true
   }
 
   set_target_view (view) {
     this.n_update_step = this.max_update_step
     this.target_view = view.clone()
+    this.updateSequence = true
   }
 
   centered_atom () {

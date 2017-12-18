@@ -537,6 +537,7 @@ class SequenceWidget extends CanvasWrapper {
   resize () {
     super.resize()
     this.div.css('width', this.parentDiv.width())
+    this.draw()
   }
 
   xToI (x) {
@@ -592,6 +593,7 @@ class SequenceWidget extends CanvasWrapper {
 
     this.iRes = this.nChar / 2
     this.iStartChar = 0
+    this.draw()
   }
 
   draw () {

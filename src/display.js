@@ -365,35 +365,6 @@ class Display {
     }
   }
 
-  selectVisibleMeshes () {
-
-    this.updateMeshesInScene = false
-
-    let show = this.soupView.current_view.show
-    this.setMeshVisible('tube', show.trace)
-    this.setMeshVisible('water', show.water)
-    this.setMeshVisible('ribbons', show.ribbon)
-    this.setMeshVisible('arrows', !show.all_atom)
-    this.setMeshVisible('backbone', show.all_atom)
-    this.setMeshVisible('ligands', show.ligands)
-
-    if (this.soupView.soup.grid.changed) {
-      this.buildMeshOfGrid()
-      this.soupView.soup.grid.changed = false
-      this.updateMeshesInScene = true
-    }
-
-    if (this.soupView.updateSelection) {
-      this.buildSelectedResidues(show.sidechain)
-      this.updateMeshesInScene = true
-      this.soupView.updateSelection = false
-    }
-
-    if (this.updateMeshesInScene) {
-      this.rebuildSceneWithMeshes()
-    }
-  }
-
   addGeomToDisplayMesh (meshName, geom, i) {
     if (geom.vertices.length === 0) {
       return
@@ -1012,7 +983,31 @@ class Display {
 
     this.rotateCameraToCurrentView()
 
-    this.selectVisibleMeshes()
+    this.updateMeshesInScene = false
+
+    let show = this.soupView.current_view.show
+    this.setMeshVisible('tube', show.trace)
+    this.setMeshVisible('water', show.water)
+    this.setMeshVisible('ribbons', show.ribbon)
+    this.setMeshVisible('arrows', !show.all_atom)
+    this.setMeshVisible('backbone', show.all_atom)
+    this.setMeshVisible('ligands', show.ligands)
+
+    if (this.soupView.soup.grid.changed) {
+      this.buildMeshOfGrid()
+      this.soupView.soup.grid.changed = false
+      this.updateMeshesInScene = true
+    }
+
+    if (this.soupView.updateSelection) {
+      this.buildSelectedResidues(show.sidechain)
+      this.updateMeshesInScene = true
+      this.soupView.updateSelection = false
+    }
+
+    if (this.updateMeshesInScene) {
+      this.rebuildSceneWithMeshes()
+    }
 
     this.updateCrossHairs()
 
@@ -1020,8 +1015,12 @@ class Display {
     this.distanceWidget.draw()
     this.zSlabWidget.draw()
     this.gridControlWidget.draw()
-    this.sequenceWidget.draw()
 
+    // if (this.soupView.updateSequence) {
+    //   this.sequenceWidget.draw()
+    //   this.soupView.updateSequence = false
+    // }
+    //
     // leave this to the very last moment
     // to avoid the dreaded black canvas
     if (!util.exists(this.renderer)) {

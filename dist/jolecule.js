@@ -29913,6 +29913,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.max_update_step = 20;
 	
 	    this.updateSelection = false;
+	    this.updateSequence = true;
 	  }
 	
 	  _createClass(SoupView, [{
@@ -29920,6 +29921,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function set_target_view(view) {
 	      this.n_update_step = this.max_update_step;
 	      this.target_view = view.clone();
+	      this.updateSequence = true;
 	    }
 	  }, {
 	    key: 'centered_atom',
@@ -78317,36 +78319,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: 'selectVisibleMeshes',
-	    value: function selectVisibleMeshes() {
-	
-	      this.updateMeshesInScene = false;
-	
-	      var show = this.soupView.current_view.show;
-	      this.setMeshVisible('tube', show.trace);
-	      this.setMeshVisible('water', show.water);
-	      this.setMeshVisible('ribbons', show.ribbon);
-	      this.setMeshVisible('arrows', !show.all_atom);
-	      this.setMeshVisible('backbone', show.all_atom);
-	      this.setMeshVisible('ligands', show.ligands);
-	
-	      if (this.soupView.soup.grid.changed) {
-	        this.buildMeshOfGrid();
-	        this.soupView.soup.grid.changed = false;
-	        this.updateMeshesInScene = true;
-	      }
-	
-	      if (this.soupView.updateSelection) {
-	        this.buildSelectedResidues(show.sidechain);
-	        this.updateMeshesInScene = true;
-	        this.soupView.updateSelection = false;
-	      }
-	
-	      if (this.updateMeshesInScene) {
-	        this.rebuildSceneWithMeshes();
-	      }
-	    }
-	  }, {
 	    key: 'addGeomToDisplayMesh',
 	    value: function addGeomToDisplayMesh(meshName, geom, i) {
 	      if (geom.vertices.length === 0) {
@@ -79370,7 +79342,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.rotateCameraToCurrentView();
 	
-	      this.selectVisibleMeshes();
+	      this.updateMeshesInScene = false;
+	
+	      var show = this.soupView.current_view.show;
+	      this.setMeshVisible('tube', show.trace);
+	      this.setMeshVisible('water', show.water);
+	      this.setMeshVisible('ribbons', show.ribbon);
+	      this.setMeshVisible('arrows', !show.all_atom);
+	      this.setMeshVisible('backbone', show.all_atom);
+	      this.setMeshVisible('ligands', show.ligands);
+	
+	      if (this.soupView.soup.grid.changed) {
+	        this.buildMeshOfGrid();
+	        this.soupView.soup.grid.changed = false;
+	        this.updateMeshesInScene = true;
+	      }
+	
+	      if (this.soupView.updateSelection) {
+	        this.buildSelectedResidues(show.sidechain);
+	        this.updateMeshesInScene = true;
+	        this.soupView.updateSelection = false;
+	      }
+	
+	      if (this.updateMeshesInScene) {
+	        this.rebuildSceneWithMeshes();
+	      }
 	
 	      this.updateCrossHairs();
 	
@@ -79378,8 +79374,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.distanceWidget.draw();
 	      this.zSlabWidget.draw();
 	      this.gridControlWidget.draw();
-	      this.sequenceWidget.draw();
 	
+	      // if (this.soupView.updateSequence) {
+	      //   this.sequenceWidget.draw()
+	      //   this.soupView.updateSequence = false
+	      // }
+	      //
 	      // leave this to the very last moment
 	      // to avoid the dreaded black canvas
 	      if (!util.exists(this.renderer)) {
@@ -80302,6 +80302,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function resize() {
 	      _get(SequenceWidget.prototype.__proto__ || Object.getPrototypeOf(SequenceWidget.prototype), 'resize', this).call(this);
 	      this.div.css('width', this.parentDiv.width());
+	      this.draw();
 	    }
 	  }, {
 	    key: 'xToI',
@@ -80400,6 +80401,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.iRes = this.nChar / 2;
 	      this.iStartChar = 0;
+	      this.draw();
 	    }
 	  }, {
 	    key: 'draw',
