@@ -177,7 +177,6 @@ class Display {
   };
 
   cleanupProcessingMessage () {
-    this.resize()
     this.messageDiv.hide()
   };
 
@@ -201,18 +200,10 @@ class Display {
 
     this.buildScene()
 
-    this.sequenceWidget.reset()
-    this.resize()
-    this.soupView.updateSequence = true
   }
 
   buildAfterAdditionalLoad () {
     this.buildScene()
-    this.soupView.changed = true
-    this.sequenceWidget.reset()
-    this.gridControlWidget.reset()
-    this.resize()
-    this.soupView.updateSequence = true
   }
 
   calculateTracesForRibbons () {
@@ -301,6 +292,14 @@ class Display {
     this.buildMeshOfArrows()
 
     this.rebuildSceneWithMeshes()
+
+    this.sequenceWidget.reset()
+    this.gridControlWidget.reset()
+
+    this.soupView.updateView = true
+
+    this.resize()
+
   }
 
   /**
@@ -451,7 +450,8 @@ class Display {
 
   buildMeshOfTube () {
     this.createOrClearMesh('tube')
-    let geom = new THREE.Geometry()
+    let displayGeom = new THREE.Geometry()
+    let pickingGeom = new THREE.Geometry()
     for (let trace of this.traces) {
       let n = trace.points.length
       for (let i of _.range(n)) {
@@ -463,12 +463,15 @@ class Display {
         let isBack = (i === n - 1)
         let resGeom = trace.getSegmentGeometry(
           i, data.fatCoilFace, isRound, isFront, isBack, color)
-        geom.merge(resGeom)
+        displayGeom.merge(resGeom)
         glgeom.setGeometryVerticesColor(
           resGeom, new THREE.Color().setHex(iAtom))
+        glgeom.setGeometryVerticesColor(resGeom, data.getIndexColor(iAtom))
+        pickingGeom.merge(resGeom)
       }
     }
-    this.addGeomToDisplayMesh('tube', geom)
+    this.addGeomToPickingMesh('tube', pickingGeom)
+    this.addGeomToDisplayMesh('tube', displayGeom)
   }
 
   buildAtomMeshes(atomIndices, meshName) {
@@ -1013,13 +1016,6 @@ class Display {
 
     // needs to be drawn before render
     this.distanceWidget.draw()
-    this.zSlabWidget.draw()
-
-    if (this.soupView.updateSequence) {
-      this.sequenceWidget.draw()
-      this.gridControlWidget.draw()
-      this.soupView.updateSequence = false
-    }
 
     // leave this to the very last moment
     // to avoid the dreaded black canvas
@@ -1029,6 +1025,14 @@ class Display {
 
     // renders visible meshes to the gpu
     this.renderer.render(this.displayScene, this.threeJsCamera)
+
+    if (this.soupView.updateView) {
+      console.log('Display.draw updateView')
+      this.zSlabWidget.draw()
+      this.sequenceWidget.draw()
+      this.gridControlWidget.draw()
+      this.soupView.updateView = false
+    }
 
     // needs to be drawn after render
     this.labelWidget.draw()
@@ -1067,22 +1071,25 @@ class Display {
 
   resize () {
     console.log('Display.resize')
-    if (!util.exists(this.renderer)) {
-      return
-    }
-
-    this.threeJsCamera.aspect = this.width() / this.height()
-    this.threeJsCamera.updateProjectionMatrix()
-
-    this.renderer.setSize(this.width(), this.height())
-
-    this.pickingTexture.setSize(this.width(), this.height())
 
     this.zSlabWidget.resize()
     this.gridControlWidget.resize()
     this.sequenceWidget.resize()
 
+    this.threeJsCamera.aspect = this.width() / this.height()
+    this.threeJsCamera.updateProjectionMatrix()
+
+    this.pickingTexture.setSize(this.width(), this.height())
+
+    this.soupView.updateView = true
     this.controller.flag_changed()
+
+    if (util.exists(this.renderer)) {
+      this.renderer.setSize(this.width(), this.height())
+    }
+
+    this.draw()
+
   }
 
   x () {
@@ -1098,7 +1105,11 @@ class Display {
   }
 
   width () {
-    return this.div.width()
+    let width = this.div.width() - this.x()
+    if (!_.isUndefined(this.zSlabWidget)) {
+      width -= this.zSlabWidget.width()
+    }
+    return width
   }
 
   height () {

@@ -371,7 +371,7 @@ class Soup {
       `${this.getResidueCount()} residues`)
 
     console.log('Soup.load finding bonds...')
-    this.calcBonds()
+    this.calcBondsStrategic()
 
     console.log(`Soup.load calculated ${this.getBondCount()} bonds`)
 
@@ -586,7 +586,75 @@ class Soup {
     this.maxLength = Math.max(spans[0], spans[1], spans[2])
   }
 
-  calcBonds () {
+  calcBondsStrategic () {
+    this.bondStore.count = 0
+
+    const small_cutoff = 1.2
+    const medium_cutoff = 1.9
+    const large_cutoff = 2.4
+    const CHONPS = ['C', 'H', 'O', 'N', 'P', 'S']
+
+    function isBonded(atom1, atom2) {
+      // don't include bonds between different alt positions
+      if ((atom1.alt !== '') && (atom2.alt !== '')) {
+        if (atom1.alt !== atom2.alt) {
+          return false
+        }
+      }
+
+      let cutoff
+      if ((atom1.elem === 'H') || (atom2.elem === 'H')) {
+        cutoff = small_cutoff
+      } else if (
+        inArray(atom1.elem, CHONPS) &&
+        inArray(atom2.elem, CHONPS)) {
+        cutoff = medium_cutoff
+      } else {
+        cutoff = large_cutoff
+      }
+
+      return v3.distance(atom1.pos, atom2.pos) <= cutoff
+    }
+
+    let residueProxy1 = this.getResidueProxy()
+    let residueProxy2 = new ResidueProxy(this)
+    let nRes = this.getResidueCount()
+
+    let atomProxy1 = this.getAtomProxy()
+    let atomProxy2 = this.getOtherAtomProxy()
+    let nAtom = this.getAtomCount()
+
+    for (let iRes1 = 0; iRes1 < nRes; iRes1++) {
+      residueProxy1.iRes = iRes1
+
+      // cycle through all atoms within a residue
+      for (let iAtom1 of residueProxy1.getAtomIndices()) {
+        for (let iAtom2 of residueProxy1.getAtomIndices()) {
+          atomProxy1.iAtom = iAtom1
+          atomProxy2.iAtom = iAtom2
+          if (isBonded(atomProxy1, atomProxy2)) {
+            let iBond = this.getBondCount()
+            this.bondStore.increment()
+            this.bondStore.iAtom1[iBond] = atomProxy1.iAtom
+            this.bondStore.iAtom2[iBond] = atomProxy2.iAtom
+
+            iBond = this.getBondCount()
+            this.bondStore.increment()
+            this.bondStore.iAtom1[iBond] = atomProxy2.iAtom
+            this.bondStore.iAtom2[iBond] = atomProxy1.iAtom
+          }
+        }
+      }
+
+      for (let iRes2 = 0; iRes2 < nRes; iRes2++) {
+
+      }
+    }
+
+    this.bondSelect = new BitArray(this.getBondCount())
+  }
+
+  calcBondsBruteForce () {
 
     this.bondStore.count = 0
 
@@ -1340,13 +1408,13 @@ class SoupView {
     this.max_update_step = 20
 
     this.updateSelection = false
-    this.updateSequence = true
+    this.updateView = true
   }
 
   set_target_view (view) {
     this.n_update_step = this.max_update_step
     this.target_view = view.clone()
-    this.updateSequence = true
+    this.updateView = true
   }
 
   centered_atom () {

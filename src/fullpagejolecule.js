@@ -314,6 +314,7 @@ class FullPageJolecule {
           this.viewsDisplay.setTargetByViewId('view:000000')
         }
         this.viewsDisplay.updateViews()
+        console.log('FullPageJolecule.addDataServer finished adding views')
       }
 
       this.resize()

@@ -871,6 +871,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.soupView.changed = true;
 	      }
 	      this.proteinDiv.css('height', newHeight);
+	      this.display.resize();
 	    }
 	  }]);
 	
@@ -28695,7 +28696,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      console.log('Soup.load processed ' + this.getAtomCount() + ' atoms, ' + (this.getResidueCount() + ' residues'));
 	
 	      console.log('Soup.load finding bonds...');
-	      this.calcBonds();
+	      this.calcBondsStrategic();
 	
 	      console.log('Soup.load calculated ' + this.getBondCount() + ' bonds');
 	
@@ -28989,8 +28990,114 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.maxLength = Math.max(spans[0], spans[1], spans[2]);
 	    }
 	  }, {
-	    key: 'calcBonds',
-	    value: function calcBonds() {
+	    key: 'calcBondsStrategic',
+	    value: function calcBondsStrategic() {
+	      this.bondStore.count = 0;
+	
+	      var small_cutoff = 1.2;
+	      var medium_cutoff = 1.9;
+	      var large_cutoff = 2.4;
+	      var CHONPS = ['C', 'H', 'O', 'N', 'P', 'S'];
+	
+	      function isBonded(atom1, atom2) {
+	        // don't include bonds between different alt positions
+	        if (atom1.alt !== '' && atom2.alt !== '') {
+	          if (atom1.alt !== atom2.alt) {
+	            return false;
+	          }
+	        }
+	
+	        var cutoff = void 0;
+	        if (atom1.elem === 'H' || atom2.elem === 'H') {
+	          cutoff = small_cutoff;
+	        } else if ((0, _util.inArray)(atom1.elem, CHONPS) && (0, _util.inArray)(atom2.elem, CHONPS)) {
+	          cutoff = medium_cutoff;
+	        } else {
+	          cutoff = large_cutoff;
+	        }
+	
+	        return _v2.default.distance(atom1.pos, atom2.pos) <= cutoff;
+	      }
+	
+	      var residueProxy1 = this.getResidueProxy();
+	      var residueProxy2 = new ResidueProxy(this);
+	      var nRes = this.getResidueCount();
+	
+	      var atomProxy1 = this.getAtomProxy();
+	      var atomProxy2 = this.getOtherAtomProxy();
+	      var nAtom = this.getAtomCount();
+	
+	      for (var iRes1 = 0; iRes1 < nRes; iRes1++) {
+	        residueProxy1.iRes = iRes1;
+	
+	        // cycle through all atoms within a residue
+	        var _iteratorNormalCompletion7 = true;
+	        var _didIteratorError7 = false;
+	        var _iteratorError7 = undefined;
+	
+	        try {
+	          for (var _iterator7 = residueProxy1.getAtomIndices()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+	            var iAtom1 = _step7.value;
+	            var _iteratorNormalCompletion8 = true;
+	            var _didIteratorError8 = false;
+	            var _iteratorError8 = undefined;
+	
+	            try {
+	              for (var _iterator8 = residueProxy1.getAtomIndices()[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+	                var iAtom2 = _step8.value;
+	
+	                atomProxy1.iAtom = iAtom1;
+	                atomProxy2.iAtom = iAtom2;
+	                if (isBonded(atomProxy1, atomProxy2)) {
+	                  var iBond = this.getBondCount();
+	                  this.bondStore.increment();
+	                  this.bondStore.iAtom1[iBond] = atomProxy1.iAtom;
+	                  this.bondStore.iAtom2[iBond] = atomProxy2.iAtom;
+	
+	                  iBond = this.getBondCount();
+	                  this.bondStore.increment();
+	                  this.bondStore.iAtom1[iBond] = atomProxy2.iAtom;
+	                  this.bondStore.iAtom2[iBond] = atomProxy1.iAtom;
+	                }
+	              }
+	            } catch (err) {
+	              _didIteratorError8 = true;
+	              _iteratorError8 = err;
+	            } finally {
+	              try {
+	                if (!_iteratorNormalCompletion8 && _iterator8.return) {
+	                  _iterator8.return();
+	                }
+	              } finally {
+	                if (_didIteratorError8) {
+	                  throw _iteratorError8;
+	                }
+	              }
+	            }
+	          }
+	        } catch (err) {
+	          _didIteratorError7 = true;
+	          _iteratorError7 = err;
+	        } finally {
+	          try {
+	            if (!_iteratorNormalCompletion7 && _iterator7.return) {
+	              _iterator7.return();
+	            }
+	          } finally {
+	            if (_didIteratorError7) {
+	              throw _iteratorError7;
+	            }
+	          }
+	        }
+	
+	        for (var iRes2 = 0; iRes2 < nRes; iRes2++) {}
+	      }
+	
+	      this.bondSelect = new _bitarray2.default(this.getBondCount());
+	    }
+	  }, {
+	    key: 'calcBondsBruteForce',
+	    value: function calcBondsBruteForce() {
 	
 	      this.bondStore.count = 0;
 	
@@ -29008,13 +29115,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      var spaceHash = new _pairs.SpaceHash(vertices);
-	      var _iteratorNormalCompletion7 = true;
-	      var _didIteratorError7 = false;
-	      var _iteratorError7 = undefined;
+	      var _iteratorNormalCompletion9 = true;
+	      var _didIteratorError9 = false;
+	      var _iteratorError9 = undefined;
 	
 	      try {
-	        for (var _iterator7 = spaceHash.getClosePairs()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-	          var pair = _step7.value;
+	        for (var _iterator9 = spaceHash.getClosePairs()[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+	          var pair = _step9.value;
 	
 	
 	          var iAtom1 = pair[0];
@@ -29061,16 +29168,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError7 = true;
-	        _iteratorError7 = err;
+	        _didIteratorError9 = true;
+	        _iteratorError9 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion7 && _iterator7.return) {
-	            _iterator7.return();
+	          if (!_iteratorNormalCompletion9 && _iterator9.return) {
+	            _iterator9.return();
 	          }
 	        } finally {
-	          if (_didIteratorError7) {
-	            throw _iteratorError7;
+	          if (_didIteratorError9) {
+	            throw _iteratorError9;
 	          }
 	        }
 	      }
@@ -29194,13 +29301,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var cutoff = 3.5;
 	      var spaceHash = new _pairs.SpaceHash(vertices);
-	      var _iteratorNormalCompletion8 = true;
-	      var _didIteratorError8 = false;
-	      var _iteratorError8 = undefined;
+	      var _iteratorNormalCompletion10 = true;
+	      var _didIteratorError10 = false;
+	      var _iteratorError10 = undefined;
 	
 	      try {
-	        for (var _iterator8 = spaceHash.getClosePairs()[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-	          var pair = _step8.value;
+	        for (var _iterator10 = spaceHash.getClosePairs()[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+	          var pair = _step10.value;
 	
 	          var a0 = this.getAtomProxy(atomIndices[pair[0]]);
 	          var a1 = this.getOtherAtomProxy(atomIndices[pair[1]]);
@@ -29222,16 +29329,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError8 = true;
-	        _iteratorError8 = err;
+	        _didIteratorError10 = true;
+	        _iteratorError10 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-	            _iterator8.return();
+	          if (!_iteratorNormalCompletion10 && _iterator10.return) {
+	            _iterator10.return();
 	          }
 	        } finally {
-	          if (_didIteratorError8) {
-	            throw _iteratorError8;
+	          if (_didIteratorError10) {
+	            throw _iteratorError10;
 	          }
 	        }
 	      }
@@ -29334,27 +29441,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	            pushToListInDict(this.residueNormals, _iRes2, _normal3);
 	          }
 	
-	          var _iteratorNormalCompletion9 = true;
-	          var _didIteratorError9 = false;
-	          var _iteratorError9 = undefined;
+	          var _iteratorNormalCompletion11 = true;
+	          var _didIteratorError11 = false;
+	          var _iteratorError11 = undefined;
 	
 	          try {
-	            for (var _iterator9 = betaResidueIndices[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-	              var iRes = _step9.value;
+	            for (var _iterator11 = betaResidueIndices[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+	              var iRes = _step11.value;
 	
 	              this.getResidueProxy(iRes).ss = 'E';
 	            }
 	          } catch (err) {
-	            _didIteratorError9 = true;
-	            _iteratorError9 = err;
+	            _didIteratorError11 = true;
+	            _iteratorError11 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion9 && _iterator9.return) {
-	                _iterator9.return();
+	              if (!_iteratorNormalCompletion11 && _iterator11.return) {
+	                _iterator11.return();
 	              }
 	            } finally {
-	              if (_didIteratorError9) {
-	                throw _iteratorError9;
+	              if (_didIteratorError11) {
+	                throw _iteratorError11;
 	              }
 	            }
 	          }
@@ -29365,27 +29472,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	      for (var _iRes3 = 0; _iRes3 < nRes; _iRes3 += 1) {
 	        if (_iRes3 in this.residueNormals && this.residueNormals[_iRes3].length > 0) {
 	          var normalSum = _v2.default.create(0, 0, 0);
-	          var _iteratorNormalCompletion10 = true;
-	          var _didIteratorError10 = false;
-	          var _iteratorError10 = undefined;
+	          var _iteratorNormalCompletion12 = true;
+	          var _didIteratorError12 = false;
+	          var _iteratorError12 = undefined;
 	
 	          try {
-	            for (var _iterator10 = this.residueNormals[_iRes3][Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-	              var _normal4 = _step10.value;
+	            for (var _iterator12 = this.residueNormals[_iRes3][Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+	              var _normal4 = _step12.value;
 	
 	              normalSum = _v2.default.sum(normalSum, _normal4);
 	            }
 	          } catch (err) {
-	            _didIteratorError10 = true;
-	            _iteratorError10 = err;
+	            _didIteratorError12 = true;
+	            _iteratorError12 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion10 && _iterator10.return) {
-	                _iterator10.return();
+	              if (!_iteratorNormalCompletion12 && _iterator12.return) {
+	                _iterator12.return();
 	              }
 	            } finally {
-	              if (_didIteratorError10) {
-	                throw _iteratorError10;
+	              if (_didIteratorError12) {
+	                throw _iteratorError12;
 	              }
 	            }
 	          }
@@ -29459,20 +29566,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return false;
 	      }
 	
-	      var _iteratorNormalCompletion11 = true;
-	      var _didIteratorError11 = false;
-	      var _iteratorError11 = undefined;
+	      var _iteratorNormalCompletion13 = true;
+	      var _didIteratorError13 = false;
+	      var _iteratorError13 = undefined;
 	
 	      try {
-	        for (var _iterator11 = atomIndices0[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-	          var iAtom0 = _step11.value;
-	          var _iteratorNormalCompletion12 = true;
-	          var _didIteratorError12 = false;
-	          var _iteratorError12 = undefined;
+	        for (var _iterator13 = atomIndices0[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+	          var iAtom0 = _step13.value;
+	          var _iteratorNormalCompletion14 = true;
+	          var _didIteratorError14 = false;
+	          var _iteratorError14 = undefined;
 	
 	          try {
-	            for (var _iterator12 = atomIndices1[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-	              var iAtom1 = _step12.value;
+	            for (var _iterator14 = atomIndices1[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+	              var iAtom1 = _step14.value;
 	
 	              var _pos = this.getAtomProxy(iAtom0).pos.clone();
 	              var _pos2 = this.getAtomProxy(iAtom1).pos.clone();
@@ -29481,31 +29588,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	              }
 	            }
 	          } catch (err) {
-	            _didIteratorError12 = true;
-	            _iteratorError12 = err;
+	            _didIteratorError14 = true;
+	            _iteratorError14 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion12 && _iterator12.return) {
-	                _iterator12.return();
+	              if (!_iteratorNormalCompletion14 && _iterator14.return) {
+	                _iterator14.return();
 	              }
 	            } finally {
-	              if (_didIteratorError12) {
-	                throw _iteratorError12;
+	              if (_didIteratorError14) {
+	                throw _iteratorError14;
 	              }
 	            }
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError11 = true;
-	        _iteratorError11 = err;
+	        _didIteratorError13 = true;
+	        _iteratorError13 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion11 && _iterator11.return) {
-	            _iterator11.return();
+	          if (!_iteratorNormalCompletion13 && _iterator13.return) {
+	            _iterator13.return();
 	          }
 	        } finally {
-	          if (_didIteratorError11) {
-	            throw _iteratorError11;
+	          if (_didIteratorError13) {
+	            throw _iteratorError13;
 	          }
 	        }
 	      }
@@ -29522,27 +29629,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'selectResidues',
 	    value: function selectResidues(residueIndices, select) {
-	      var _iteratorNormalCompletion13 = true;
-	      var _didIteratorError13 = false;
-	      var _iteratorError13 = undefined;
+	      var _iteratorNormalCompletion15 = true;
+	      var _didIteratorError15 = false;
+	      var _iteratorError15 = undefined;
 	
 	      try {
-	        for (var _iterator13 = residueIndices[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-	          var iRes = _step13.value;
+	        for (var _iterator15 = residueIndices[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+	          var iRes = _step15.value;
 	
 	          this.getResidueProxy(iRes).selected = select;
 	        }
 	      } catch (err) {
-	        _didIteratorError13 = true;
-	        _iteratorError13 = err;
+	        _didIteratorError15 = true;
+	        _iteratorError15 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion13 && _iterator13.return) {
-	            _iterator13.return();
+	          if (!_iteratorNormalCompletion15 && _iterator15.return) {
+	            _iterator15.return();
 	          }
 	        } finally {
-	          if (_didIteratorError13) {
-	            throw _iteratorError13;
+	          if (_didIteratorError15) {
+	            throw _iteratorError15;
 	          }
 	        }
 	      }
@@ -29913,7 +30020,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.max_update_step = 20;
 	
 	    this.updateSelection = false;
-	    this.updateSequence = true;
+	    this.updateView = true;
 	  }
 	
 	  _createClass(SoupView, [{
@@ -29921,7 +30028,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function set_target_view(view) {
 	      this.n_update_step = this.max_update_step;
 	      this.target_view = view.clone();
-	      this.updateSequence = true;
+	      this.updateView = true;
 	    }
 	  }, {
 	    key: 'centered_atom',
@@ -78025,7 +78132,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'cleanupProcessingMessage',
 	    value: function cleanupProcessingMessage() {
-	      this.resize();
 	      this.messageDiv.hide();
 	    }
 	  }, {
@@ -78073,20 +78179,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      this.buildScene();
-	
-	      this.sequenceWidget.reset();
-	      this.resize();
-	      this.soupView.updateSequence = true;
 	    }
 	  }, {
 	    key: 'buildAfterAdditionalLoad',
 	    value: function buildAfterAdditionalLoad() {
 	      this.buildScene();
-	      this.soupView.changed = true;
-	      this.sequenceWidget.reset();
-	      this.gridControlWidget.reset();
-	      this.resize();
-	      this.soupView.updateSequence = true;
 	    }
 	  }, {
 	    key: 'calculateTracesForRibbons',
@@ -78203,6 +78300,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.buildMeshOfArrows();
 	
 	      this.rebuildSceneWithMeshes();
+	
+	      this.sequenceWidget.reset();
+	      this.gridControlWidget.reset();
+	
+	      this.soupView.updateView = true;
+	
+	      this.resize();
 	    }
 	
 	    /**
@@ -78491,7 +78595,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'buildMeshOfTube',
 	    value: function buildMeshOfTube() {
 	      this.createOrClearMesh('tube');
-	      var geom = new THREE.Geometry();
+	      var displayGeom = new THREE.Geometry();
+	      var pickingGeom = new THREE.Geometry();
 	      var _iteratorNormalCompletion9 = true;
 	      var _didIteratorError9 = false;
 	      var _iteratorError9 = undefined;
@@ -78516,8 +78621,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	              var isFront = i === 0;
 	              var isBack = i === n - 1;
 	              var resGeom = trace.getSegmentGeometry(i, data.fatCoilFace, isRound, isFront, isBack, color);
-	              geom.merge(resGeom);
+	              displayGeom.merge(resGeom);
 	              glgeom.setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom));
+	              glgeom.setGeometryVerticesColor(resGeom, data.getIndexColor(iAtom));
+	              pickingGeom.merge(resGeom);
 	            }
 	          } catch (err) {
 	            _didIteratorError10 = true;
@@ -78549,7 +78656,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 	
-	      this.addGeomToDisplayMesh('tube', geom);
+	      this.addGeomToPickingMesh('tube', pickingGeom);
+	      this.addGeomToDisplayMesh('tube', displayGeom);
 	    }
 	  }, {
 	    key: 'buildAtomMeshes',
@@ -79372,13 +79480,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      // needs to be drawn before render
 	      this.distanceWidget.draw();
-	      this.zSlabWidget.draw();
-	
-	      if (this.soupView.updateSequence) {
-	        this.sequenceWidget.draw();
-	        this.gridControlWidget.draw();
-	        this.soupView.updateSequence = false;
-	      }
 	
 	      // leave this to the very last moment
 	      // to avoid the dreaded black canvas
@@ -79388,6 +79489,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      // renders visible meshes to the gpu
 	      this.renderer.render(this.displayScene, this.threeJsCamera);
+	
+	      if (this.soupView.updateView) {
+	        console.log('Display.draw updateView');
+	        this.zSlabWidget.draw();
+	        this.sequenceWidget.draw();
+	        this.gridControlWidget.draw();
+	        this.soupView.updateView = false;
+	      }
 	
 	      // needs to be drawn after render
 	      this.labelWidget.draw();
@@ -79426,22 +79535,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'resize',
 	    value: function resize() {
 	      console.log('Display.resize');
-	      if (!util.exists(this.renderer)) {
-	        return;
-	      }
-	
-	      this.threeJsCamera.aspect = this.width() / this.height();
-	      this.threeJsCamera.updateProjectionMatrix();
-	
-	      this.renderer.setSize(this.width(), this.height());
-	
-	      this.pickingTexture.setSize(this.width(), this.height());
 	
 	      this.zSlabWidget.resize();
 	      this.gridControlWidget.resize();
 	      this.sequenceWidget.resize();
 	
+	      this.threeJsCamera.aspect = this.width() / this.height();
+	      this.threeJsCamera.updateProjectionMatrix();
+	
+	      this.pickingTexture.setSize(this.width(), this.height());
+	
+	      this.soupView.updateView = true;
 	      this.controller.flag_changed();
+	
+	      if (util.exists(this.renderer)) {
+	        this.renderer.setSize(this.width(), this.height());
+	      }
+	
+	      this.draw();
 	    }
 	  }, {
 	    key: 'x',
@@ -79460,7 +79571,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'width',
 	    value: function width() {
-	      return this.div.width();
+	      var width = this.div.width() - this.x();
+	      if (!_lodash2.default.isUndefined(this.zSlabWidget)) {
+	        width -= this.zSlabWidget.width();
+	      }
+	      return width;
 	    }
 	  }, {
 	    key: 'height',
@@ -80401,7 +80516,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this.iRes = this.nChar / 2;
 	      this.iStartChar = 0;
-	      this.draw();
 	    }
 	  }, {
 	    key: 'draw',
@@ -80525,9 +80639,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this5.yOffset = 60;
 	    _this5.div.attr('id', 'zslab');
 	
-	    _this5.backColor = 'rgba(150, 150, 150, 0.75)';
-	    _this5.zBackColor = 'rgba(100, 70, 70, 0.75)';
-	    _this5.zFrontColor = 'rgba(150, 90, 90, 0.75)';
+	    _this5.backColor = 'rgb(150, 150, 150)';
+	    _this5.zBackColor = 'rgb(100, 70, 70)';
+	    _this5.zFrontColor = 'rgb(150, 90, 90)';
 	    return _this5;
 	  }
 	
@@ -80673,7 +80787,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this6.backgroundColor = '#AAA';
 	    _this6.buttonsDiv = (0, _jquery2.default)('<div id="grid-control-buttons">');
 	    _this6.div.append(_this6.buttonsDiv);
-	    _this6.reset();
 	    return _this6;
 	  }
 	
@@ -80718,8 +80831,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else {
 	        this.div.show();
 	      }
-	
-	      this.draw();
 	    }
 	  }, {
 	    key: 'makeElemButton',
@@ -81423,6 +81534,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _this7.viewsDisplay.setTargetByViewId('view:000000');
 	          }
 	          _this7.viewsDisplay.updateViews();
+	          console.log('FullPageJolecule.addDataServer finished adding views');
 	        }
 	
 	        _this7.resize();

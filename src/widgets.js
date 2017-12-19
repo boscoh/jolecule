@@ -592,7 +592,6 @@ class SequenceWidget extends CanvasWrapper {
 
     this.iRes = this.nChar / 2
     this.iStartChar = 0
-    this.draw()
   }
 
   draw () {
@@ -725,9 +724,9 @@ class ZSlabWidget extends CanvasWrapper {
     this.yOffset = 60
     this.div.attr('id', 'zslab')
 
-    this.backColor = 'rgba(150, 150, 150, 0.75)'
-    this.zBackColor = 'rgba(100, 70, 70, 0.75)'
-    this.zFrontColor = 'rgba(150, 90, 90, 0.75)'
+    this.backColor = 'rgb(150, 150, 150)'
+    this.zBackColor = 'rgb(100, 70, 70)'
+    this.zFrontColor = 'rgb(150, 90, 90)'
   }
 
   resize () {
@@ -858,7 +857,6 @@ class GridControlWidget extends CanvasWrapper {
     this.backgroundColor = '#AAA'
     this.buttonsDiv = $('<div id="grid-control-buttons">')
     this.div.append(this.buttonsDiv)
-    this.reset()
   }
 
   reset () {
@@ -880,7 +878,6 @@ class GridControlWidget extends CanvasWrapper {
       this.div.show()
     }
 
-    this.draw()
   }
 
   makeElemButton (elem, y) {

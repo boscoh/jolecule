@@ -637,6 +637,7 @@ class EmbedJolecule {
       this.soupView.changed = true
     }
     this.proteinDiv.css('height', newHeight)
+    this.display.resize()
   }
 
 }
