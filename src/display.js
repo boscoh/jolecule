@@ -193,11 +193,6 @@ class Display {
     this.soupView.save_view(this.soupView.current_view)
     this.soupView.changed = true
 
-    for (let i of _.range(this.soup.getResidueCount())) {
-      let ss = this.soup.getResidueProxy(i).ss
-      this.soup.getResidueProxy(i).color = data.getSsColor(ss)
-    }
-
     this.buildScene()
 
   }
@@ -211,22 +206,27 @@ class Display {
 
     let lastTrace
 
+    let residue = this.soup.getResidueProxy()
+    let atom = this.soup.getAtomProxy()
+
     for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
-      if (this.soup.getResidueProxy(iRes).isPolymer) {
+      residue.iRes = iRes
+      if (residue.isPolymer) {
         if ((iRes === 0) || !this.soup.isPolymerConnected(iRes - 1, iRes)) {
           let newTrace = new glgeom.Trace()
           newTrace.getReference = i => {
-            return this.soup.getResidueProxy(newTrace.indices[i])
+            residue.iRes = newTrace.indices[i]
+            return residue
           }
           this.traces.push(newTrace)
           lastTrace = newTrace
         }
         lastTrace.indices.push(iRes)
 
-        let atom = this.soup.getResidueProxy(iRes).getCentralAtomProxy()
+        atom.iAtom = residue.iAtom
         lastTrace.points.push(atom.pos.clone())
 
-        let normal = this.soup.getResidueProxy(iRes).normal
+        let normal = residue.normal
         lastTrace.normals.push(normal)
       }
     }
@@ -238,17 +238,6 @@ class Display {
       trace.expand()
     }
 
-  }
-
-  getAtomColor (iAtom) {
-    let atom = this.soup.getAtomProxy(iAtom)
-    if (atom.elem === 'C' || atom.elem === 'H') {
-      let iRes = atom.iRes
-      return this.soup.getResidueProxy(iRes).color
-    } else if (atom.elem in data.ElementColors) {
-      return data.ElementColors[atom.elem]
-    }
-    return data.darkGrey
   }
 
   buildLights () {
@@ -282,6 +271,11 @@ class Display {
   buildScene () {
 
     // pre-calculations needed before building meshes
+    let residue = this.soup.getResidueProxy()
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      residue.iRes = iRes
+      residue.color = data.getSsColor(residue.ss)
+    }
     this.soup.findGridLimits()
     this.calculateTracesForRibbons()
 
@@ -483,14 +477,14 @@ class Display {
     let displayGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy)
     let pickingGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy)
 
-    let atomProxy = this.soup.getAtomProxy()
+    let atom = this.soup.getAtomProxy()
     for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
       let iAtom = atomIndices[iCopy]
-      atomProxy.load(iAtom)
-      let matrix = glgeom.getSphereMatrix(atomProxy.pos, this.atomRadius)
+      atom.iAtom = iAtom
+      let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
       displayGeom.applyMatrixToCopy(matrix, iCopy)
       pickingGeom.applyMatrixToCopy(matrix, iCopy)
-      displayGeom.applyColorToCopy(this.getAtomColor(iAtom), iCopy)
+      displayGeom.applyColorToCopy(atom.color, iCopy)
       pickingGeom.applyColorToCopy(data.getIndexColor(iAtom), iCopy)
     }
 
@@ -515,26 +509,27 @@ class Display {
 
     let displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nCopy)
 
-    let atomProxy1 = this.soup.getAtomProxy()
-    let atomProxy2 = this.soup.getOtherAtomProxy()
-    let bondProxy = this.soup.bondProxy
-    let residueProxy = this.soup.getResidueProxy()
+    let atom1 = this.soup.getAtomProxy()
+    let atom2 = this.soup.getAtomProxy()
+    let bond = this.soup.getBondProxy()
+    let residue = this.soup.getResidueProxy()
+
     for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
       let iBond = bondIndices[iCopy]
 
-      bondProxy.load(iBond)
-      atomProxy1.load(bondProxy.iAtom1)
-      atomProxy2.load(bondProxy.iAtom2)
-      residueProxy.load(atomProxy1.iRes)
+      bond.iBond = iBond
+      atom1.iAtom = bond.iAtom1
+      atom2.iAtom = bond.iAtom2
+      residue.iRes = atom1.iRes
 
-      let p1 = atomProxy1.pos.clone()
-      let p2 = atomProxy2.pos.clone()
+      let p1 = atom1.pos.clone()
+      let p2 = atom2.pos.clone()
 
-      if (atomProxy1.iRes !== atomProxy2.iRes) {
+      if (atom1.iRes !== atom2.iRes) {
         let midpoint = p2.clone().add(p1).multiplyScalar(0.5)
-        if (atomProxy1.iRes === residueProxy.iRes) {
+        if (atom1.iRes === residue.iRes) {
           p2 = midpoint
-        } else if (atomProxy2.iRes === residueProxy.iRes) {
+        } else if (atom2.iRes === residue.iRes) {
           p1 = midpoint
         }
       }
@@ -542,7 +537,7 @@ class Display {
       let matrix = glgeom.getCylinderMatrix(p1, p2, 0.2)
 
       displayGeom.applyMatrixToCopy(matrix, iCopy)
-      displayGeom.applyColorToCopy(residueProxy.color, iCopy)
+      displayGeom.applyColorToCopy(residue.color, iCopy)
     }
 
     let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
@@ -556,8 +551,10 @@ class Display {
     let bondIndices = []
 
     let atom = this.soup.getAtomProxy()
+    let residue = this.soup.getResidueProxy()
+
     for (let iRes of _.range(this.soup.getResidueCount())) {
-      let residue = this.soup.getResidueProxy(iRes)
+      residue.iRes = iRes
       if (!residue.isPolymer) {
         continue
       }
@@ -566,7 +563,7 @@ class Display {
         continue
       }
       for (let iAtom of residue.getAtomIndices()) {
-        atom.load(iAtom)
+        atom.iAtom = iAtom
         if (!util.inArray(atom.atomType, data.backboneAtomTypes)) {
           atomIndices.push(iAtom)
           for (let iBond of atom.getBondIndices()) {
@@ -586,13 +583,15 @@ class Display {
     let bondIndices = []
 
     let atom = this.soup.getAtomProxy()
+    let residue = this.soup.getResidueProxy(iRes)
+
     for (let iRes of _.range(this.soup.getResidueCount())) {
-      let residue = this.soup.getResidueProxy(iRes)
+      residue.iRes = iRes
       if (!residue.isPolymer) {
         continue
       }
       for (let iAtom of residue.getAtomIndices()) {
-        atom.load(iAtom)
+        atom.iAtom = iAtom
         if (util.inArray(atom.atomType, data.backboneAtomTypes)) {
           atomIndices.push(iAtom)
           for (let iBond of atom.getBondIndices()) {
@@ -609,14 +608,17 @@ class Display {
     this.createOrClearMesh('ligands')
     let atomIndices = []
     let bondIndices = []
+
     let atom = this.soup.getAtomProxy()
+    let residue = this.soup.getResidueProxy()
+
     for (let iRes of _.range(this.soup.getResidueCount())) {
-      let residue = this.soup.getResidueProxy(iRes)
+      residue.iRes = iRes
       if (residue.ss !== '-') {
         continue
       }
       for (let iAtom of residue.getAtomIndices()) {
-        atom.load(iAtom)
+        atom.iAtom = iAtom
         atomIndices.push(iAtom)
         for (let iBond of atom.getBondIndices()) {
           bondIndices.push(iBond)
@@ -630,8 +632,9 @@ class Display {
   buildMeshOfWater () {
     this.createOrClearMesh('water')
     let atomIndices = []
+    let residue = this.soup.getResidueProxy()
     for (let iRes of _.range(this.soup.getResidueCount())) {
-      let residue = this.soup.getResidueProxy(iRes)
+      residue.iRes = iRes
       if (residue.resType === 'HOH') {
         atomIndices.push(residue.iAtom)
       }
@@ -648,10 +651,12 @@ class Display {
     let grid = this.soupView.soup.grid
 
     let atomIndices = []
+    let residue = this.soup.getResidueProxy()
+    let atom = this.soup.getAtomProxy()
     for (let iRes of _.range(this.soup.getResidueCount())) {
-      let residue = this.soup.getResidueProxy(iRes)
+      residue.iRes = iRes
       if (residue.ss === 'G') {
-        let atom = residue.getCentralAtomProxy()
+        atom.iAtom = residue.iAtom
         if ((atom.bfactor > grid.bCutoff) && grid.isElem[atom.elem]) {
           atomIndices.push(atom.iAtom)
         }
@@ -668,8 +673,11 @@ class Display {
 
     let cylinderGeom = new glgeom.UnitCylinderGeometry()
 
+    let residue = this.soup.getResidueProxy()
+    let atom = this.soup.getAtomProxy()
+
     for (let iRes of _.range(this.soup.getResidueCount())) {
-      let residue = this.soup.getResidueProxy(iRes)
+      residue.iRes = iRes
       if (residue.ss !== 'D' || !residue.isPolymer) {
         continue
       }
@@ -694,8 +702,8 @@ class Display {
       }
 
       let getVerticesFromAtomDict = (iRes, atomTypes) => {
-        let res = this.soup.getResidueProxy(iRes)
-        return _.map(atomTypes, a => res.getAtomProxy(a).pos.clone())
+        residue.iRes = iRes
+        return _.map(atomTypes, a => residue.getAtom(a).pos.clone())
       }
 
       let vertices = getVerticesFromAtomDict(iRes, atomTypes)

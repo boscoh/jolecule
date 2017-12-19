@@ -353,12 +353,10 @@ class FullPageJolecule {
 
   gotoPrevResidue () {
     this.controller.set_target_prev_residue()
-    window.location.hash = this.soupView.target_view.res_id
   }
 
   gotoNextResidue () {
     this.controller.set_target_next_residue()
-    window.location.hash = this.soupView.target_view.res_id
   }
 
   onkeydown (event) {

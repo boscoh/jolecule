@@ -345,8 +345,9 @@ class AtomLabelsWidget {
       }
     }
 
+    let atom = this.soupView.soup.getAtomProxy()
     for (let i = 0; i < labels.length; i += 1) {
-      let atom = this.soupView.soup.getAtomProxy(labels[i].i_atom)
+      atom.iAtom = labels[i].i_atom
 
       this.popups[i].html(labels[i].text)
 
@@ -434,12 +435,15 @@ class DistanceMeasuresWidget {
 
     let parentDivPos = this.parentDiv.position()
 
+    let a0 = this.soupView.soup.getAtomProxy()
+    let a1 = this.soupView.soup.getAtomProxy()
+
     for (let i = 0; i < distances.length; i += 1) {
       let distance = distances[i]
       let distanceMeasure = this.distanceMeasures[i]
 
-      let p1 = this.soupView.soup.getAtomProxy(distance.i_atom1).pos.clone()
-      let p2 = this.soupView.soup.getAtomProxy(distance.i_atom2).pos.clone()
+      let p1 = a0.load(distance.i_atom1).pos
+      let p2 = a1.load(distance.i_atom2).pos
 
       let text = p1.distanceTo(p2).toFixed(1)
       distanceMeasure.div.text(text)
@@ -671,9 +675,9 @@ class SequenceWidget extends CanvasWrapper {
         '8pt Monospace', 'black', 'center')
     }
 
-    let currResId = this.soupView.current_view.res_id
+    let atom = this.soupView.soup.getAtomProxy(this.soupView.current_view.i_atom)
     for (let iRes = this.iStartChar; iRes < this.iEndChar; iRes++) {
-      if (this.residues[iRes].resId === currResId) {
+      if (iRes === atom.iRes) {
         this.strokeRect(
           this.iCharToX(iRes),
           this.offsetY + this.heightBar + this.spacingY * 2,
