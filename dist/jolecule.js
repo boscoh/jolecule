@@ -28994,9 +28994,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function calcBondsStrategic() {
 	      this.bondStore.count = 0;
 	
-	      var small_cutoff = 1.2;
-	      var medium_cutoff = 1.9;
-	      var large_cutoff = 2.4;
+	      var small_cutoff_sq = 1.2 * 1.2;
+	      var medium_cutoff_sq = 1.9 * 1.9;
+	      var large_cutoff_sq = 2.4 * 2.4;
 	      var CHONPS = ['C', 'H', 'O', 'N', 'P', 'S'];
 	
 	      function isBonded(atom1, atom2) {
@@ -29007,16 +29007,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	        }
 	
-	        var cutoff = void 0;
+	        var cutoff_sq = void 0;
 	        if (atom1.elem === 'H' || atom2.elem === 'H') {
-	          cutoff = small_cutoff;
+	          cutoff_sq = small_cutoff_sq;
 	        } else if ((0, _util.inArray)(atom1.elem, CHONPS) && (0, _util.inArray)(atom2.elem, CHONPS)) {
-	          cutoff = medium_cutoff;
+	          cutoff_sq = medium_cutoff_sq;
 	        } else {
-	          cutoff = large_cutoff;
+	          cutoff_sq = large_cutoff_sq;
 	        }
 	
-	        return _v2.default.distance(atom1.pos, atom2.pos) <= cutoff;
+	        var diff_x = atom1.pos.x - atom2.pos.x;
+	        var diff_y = atom1.pos.y - atom2.pos.y;
+	        var diff_z = atom1.pos.z - atom2.pos.z;
+	        return diff_x * diff_x + diff_y * diff_y + diff_z * diff_z <= cutoff_sq;
 	      }
 	
 	      var residueProxy1 = this.getResidueProxy();

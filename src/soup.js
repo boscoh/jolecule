@@ -589,9 +589,9 @@ class Soup {
   calcBondsStrategic () {
     this.bondStore.count = 0
 
-    const small_cutoff = 1.2
-    const medium_cutoff = 1.9
-    const large_cutoff = 2.4
+    const small_cutoff_sq = 1.2 * 1.2
+    const medium_cutoff_sq = 1.9 * 1.9
+    const large_cutoff_sq = 2.4 * 2.4
     const CHONPS = ['C', 'H', 'O', 'N', 'P', 'S']
 
     function isBonded(atom1, atom2) {
@@ -602,18 +602,21 @@ class Soup {
         }
       }
 
-      let cutoff
+      let cutoff_sq
       if ((atom1.elem === 'H') || (atom2.elem === 'H')) {
-        cutoff = small_cutoff
+        cutoff_sq = small_cutoff_sq
       } else if (
         inArray(atom1.elem, CHONPS) &&
         inArray(atom2.elem, CHONPS)) {
-        cutoff = medium_cutoff
+        cutoff_sq = medium_cutoff_sq
       } else {
-        cutoff = large_cutoff
+        cutoff_sq = large_cutoff_sq
       }
 
-      return v3.distance(atom1.pos, atom2.pos) <= cutoff
+      let diff_x = atom1.pos.x - atom2.pos.x
+      let diff_y = atom1.pos.y - atom2.pos.y
+      let diff_z = atom1.pos.z - atom2.pos.z
+      return diff_x * diff_x + diff_y * diff_y + diff_z * diff_z <= cutoff_sq
     }
 
     let residueProxy1 = this.getResidueProxy()
