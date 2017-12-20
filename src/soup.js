@@ -392,7 +392,7 @@ class Soup {
 
     console.log(`Soup.load parse ${this.pdbId}...`)
 
-    this.makeAtomsFromPdbLines(pdbData.pdb_text, this.pdbId)
+    this.parsePdbData(pdbData.pdb_text, this.pdbId)
 
     this.assignResidueSsAndCentralAtoms()
 
@@ -412,12 +412,17 @@ class Soup {
 
   }
 
-  makeAtomsFromPdbLines (pdbText, pdbId) {
+  parsePdbData (pdbText, pdbId) {
 
-    let title = parsetTitleFromPdbText(pdbText)
-    this.title = this.pdbId + ': ' + title
+    if (!this.pdbId) {
+      this.pdbId = pdbId
+      console.log('Set pdbId', this.pdbId)
+    }
 
-    this.pdbId = pdbId
+    if (!this.title) {
+      let title = parsetTitleFromPdbText(pdbText)
+      this.title = this.pdbId + ': ' + title
+    }
 
     const pdbLines = pdbText.split(/\r?\n/)
 

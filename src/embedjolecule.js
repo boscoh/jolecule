@@ -251,7 +251,9 @@ class EmbedJolecule {
   }
 
   async asyncLoadSoup (dataServer) {
+
     return new Promise(success => {
+
       dataServer.get_protein_data(async (proteinData) => {
 
         if (proteinData.pdb_text.length == 0) {
@@ -264,22 +266,19 @@ class EmbedJolecule {
         this.display.setProcessingMesssage('Parsing \'' + proteinData.pdb_id + '\'')
         await delay(0)
 
-        this.soup.makeAtomsFromPdbLines(proteinData.pdb_text, this.pdbId)
-
-        this.soup.atomSelect = new BitArray(this.soup.getAtomCount())
-        this.soup.residueSelect = new BitArray(this.soup.getResidueCount())
+        this.soup.parsePdbData(proteinData.pdb_text, proteinData.pdb_id)
 
         this.soup.assignResidueSsAndCentralAtoms()
 
         this.display.setProcessingMesssage(
-          `Processed ${this.soup.getAtomCount()} atoms, ` +
-          `${this.soup.getResidueCount()} residues. Finding bonds...`)
+          `Loaded ${this.soup.getAtomCount()} atoms, ${this.soup.getResidueCount()} residues.` +
+          ` Calculating bonds...`)
         await delay(0)
 
         this.soup.calcBondsStrategic()
 
         this.display.setProcessingMesssage(
-          `Calculated ${this.soup.getBondCount()} bonds. Finding secondary structure...`)
+          `Calculated ${this.soup.getBondCount()} bonds. Calculating secondary structure...`)
         await delay(0)
 
         this.soup.calcMaxLength()
@@ -297,7 +296,9 @@ class EmbedJolecule {
         this.display.buildScene()
         success()
       })
+
     })
+
   }
 
   async asyncAddDataServer (dataServer) {
@@ -318,7 +319,6 @@ class EmbedJolecule {
   }
 
   loadViewsFromDataServer (viewDicts) {
-
     this.controller.loadViewsFromViewDicts(viewDicts)
 
     let viewId = this.soupView.currentView.id

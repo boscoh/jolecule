@@ -73355,6 +73355,7 @@ var EmbedJolecule = function () {
       var _this5 = this;
 
       return new Promise(function (success) {
+
         dataServer.get_protein_data(async function (proteinData) {
 
           if (proteinData.pdb_text.length == 0) {
@@ -73367,19 +73368,16 @@ var EmbedJolecule = function () {
           _this5.display.setProcessingMesssage('Parsing \'' + proteinData.pdb_id + '\'');
           await delay(0);
 
-          _this5.soup.makeAtomsFromPdbLines(proteinData.pdb_text, _this5.pdbId);
-
-          _this5.soup.atomSelect = new _bitarray2.default(_this5.soup.getAtomCount());
-          _this5.soup.residueSelect = new _bitarray2.default(_this5.soup.getResidueCount());
+          _this5.soup.parsePdbData(proteinData.pdb_text, proteinData.pdb_id);
 
           _this5.soup.assignResidueSsAndCentralAtoms();
 
-          _this5.display.setProcessingMesssage('Processed ' + _this5.soup.getAtomCount() + ' atoms, ' + (_this5.soup.getResidueCount() + ' residues. Finding bonds...'));
+          _this5.display.setProcessingMesssage('Loaded ' + _this5.soup.getAtomCount() + ' atoms, ' + _this5.soup.getResidueCount() + ' residues.' + ' Calculating bonds...');
           await delay(0);
 
           _this5.soup.calcBondsStrategic();
 
-          _this5.display.setProcessingMesssage('Calculated ' + _this5.soup.getBondCount() + ' bonds. Finding secondary structure...');
+          _this5.display.setProcessingMesssage('Calculated ' + _this5.soup.getBondCount() + ' bonds. Calculating secondary structure...');
           await delay(0);
 
           _this5.soup.calcMaxLength();
@@ -73420,7 +73418,6 @@ var EmbedJolecule = function () {
   }, {
     key: 'loadViewsFromDataServer',
     value: function loadViewsFromDataServer(viewDicts) {
-
       this.controller.loadViewsFromViewDicts(viewDicts);
 
       var viewId = this.soupView.currentView.id;
@@ -74262,7 +74259,7 @@ var Soup = function () {
 
       console.log('Soup.load parse ' + this.pdbId + '...');
 
-      this.makeAtomsFromPdbLines(pdbData.pdb_text, this.pdbId);
+      this.parsePdbData(pdbData.pdb_text, this.pdbId);
 
       this.assignResidueSsAndCentralAtoms();
 
@@ -74279,13 +74276,18 @@ var Soup = function () {
       console.log('Soup.load calculated secondary-structure');
     }
   }, {
-    key: 'makeAtomsFromPdbLines',
-    value: function makeAtomsFromPdbLines(pdbText, pdbId) {
+    key: 'parsePdbData',
+    value: function parsePdbData(pdbText, pdbId) {
 
-      var title = parsetTitleFromPdbText(pdbText);
-      this.title = this.pdbId + ': ' + title;
+      if (!this.pdbId) {
+        this.pdbId = pdbId;
+        console.log('Set pdbId', this.pdbId);
+      }
 
-      this.pdbId = pdbId;
+      if (!this.title) {
+        var title = parsetTitleFromPdbText(pdbText);
+        this.title = this.pdbId + ': ' + title;
+      }
 
       var pdbLines = pdbText.split(/\r?\n/);
 
