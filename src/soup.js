@@ -8,7 +8,6 @@ import * as data from './data'
 
 let user = 'public' // will be overriden by server
 
-
 function deleteNumbers (text) {
   return text.replace(/\d+/, '')
 }
@@ -39,7 +38,7 @@ function intToChar (i) {
   return i ? String.fromCharCode(i) : ''
 }
 
-function charToInt(c) {
+function charToInt (c) {
   return c.charCodeAt(0)
 }
 
@@ -67,7 +66,6 @@ const atomStoreFields = [
   ['bondOffset', 1, 'uint32'],
   ['bondCount', 1, 'uint16'],
 ]
-
 
 class AtomProxy {
 
@@ -173,7 +171,7 @@ class ResidueProxy {
     return this.soup.residueStore.iCentralAtom[this.iRes]
   }
 
-  set iAtom(iAtom) {
+  set iAtom (iAtom) {
     this.soup.residueStore.iCentralAtom[this.iRes] = iAtom
   }
 
@@ -210,7 +208,7 @@ class ResidueProxy {
     return this.soup.colorTable[iColor]
   }
 
-  set color(color) {
+  set color (color) {
     let iColor = getValueTableIndex(this.soup.colorTable, color)
     this.soup.residueStore.iColor[this.iRes] = iColor
   }
@@ -218,6 +216,7 @@ class ResidueProxy {
   get selected () {
     return this.soup.residueSelect.get(this.iRes)
   }
+
   set selected (v) {
     if (v) {
       this.soup.residueSelect.set(this.iRes)
@@ -270,14 +269,59 @@ class ResidueProxy {
     }
     return true
   }
-}
 
+  isConnectedToPrev () {
+
+    if (this.iRes === 0) {
+      return false
+    }
+
+    let thisRes = this
+    let prevRes = new ResidueProxy(this.soup, this.iRes - 1)
+
+    const nucleicAtomTypes = ['C3\'', 'O3\'', 'C5\'', 'O4\'', 'C1\'']
+
+    let isSugarPhosphateConnected = false
+    if (prevRes.checkAtomTypes(nucleicAtomTypes) &&
+        thisRes.checkAtomTypes(nucleicAtomTypes) &&
+        thisRes.checkAtomTypes(['P'])) {
+      let o3 = prevRes.getAtom('O3\'').pos.clone()
+      let p = thisRes.getAtom('P').pos.clone()
+      if (v3.distance(o3, p) < 2.5) {
+        isSugarPhosphateConnected = true
+      }
+    }
+
+    let isPeptideConnected = false
+    const proteinAtomTypes = ['CA', 'N', 'C']
+    if (prevRes.checkAtomTypes(proteinAtomTypes) &&
+        thisRes.checkAtomTypes(proteinAtomTypes)) {
+      let c = prevRes.getAtom('C').pos.clone()
+      let n = thisRes.getAtom('N').pos.clone()
+      if (v3.distance(c, n) < 2) {
+        isPeptideConnected = true
+      }
+    }
+
+    return isPeptideConnected || isSugarPhosphateConnected
+  }
+
+  getNucleotideNormal () {
+    let c3 = this.getAtom('C3\'').pos.clone()
+    let c5 = this.getAtom('C5\'').pos.clone()
+    let c1 = this.getAtom('C1\'').pos.clone()
+    let forward = v3.diff(c3, c5)
+    let up = v3.diff(c1, c3)
+    return v3.crossProduct(forward, up)
+  }
+
+
+}
 
 const bondStoreFields = [
   ['iAtom1', 1, 'int32'],
   ['iAtom2', 1, 'int32'],
 ]
-
 
 class BondProxy {
 
@@ -302,40 +346,29 @@ class BondProxy {
   }
 }
 
-
 /**
- * Soup
- * -------
- * The main data object that holds information
- * about the soup. This object is responsible
- * for reading the data from the PDB and turning
- * it into a suitable javascript object.
- *
- * The soup will be embedded in a SoupView
- * object that will handle all the different
- * viewing options.
- *
- * Allowable actions on the SoupView of the Soup
- * will be made via the Controller object. This
- * includes AJAX operations with the server
- * jolecule.appspot.com, and uses jQuery for the
- * i/o operations with the server.
+ * Soup: main data object that holds information
+ * about protein structure. The soup will be
+ * embedded in a SoupView that will handle
+ * all the different viewing options.
+ * Allowable mutations on the Soup
+ * will be made via the Controller.
  */
 class Soup {
 
   constructor () {
     this.parsingError = ''
-    this.default_html = ''
+    this.title = ''
 
+    this.chains = []
     this.atomStore = new Store(atomStoreFields)
     this.residueStore = new Store(residueStoreFields)
     this.bondStore = new Store(bondStoreFields)
-    this.chains = []
-
     this.resIds = []
+    this.residueNormal = {}
 
-    this.atomProxy = new AtomProxy(this)
     this.residueProxy = new ResidueProxy(this)
+    this.atomProxy = new AtomProxy(this)
 
     this.atomSelect = new BitArray(0)
     this.residueSelect = new BitArray(0)
@@ -346,11 +379,6 @@ class Soup {
     this.resTypeTable = []
     this.colorTable = []
 
-
-    this.residueNormal = {}
-    this.residueConhPartners = {}
-    this.residueNormals = {}
-
     this.grid = {
       bCutoff: 0.8,
       bMax: 2,
@@ -360,19 +388,11 @@ class Soup {
     }
   }
 
-  load (protein_data) {
+  load (pdbData) {
 
-    this.pdb_id = protein_data['pdb_id']
+    console.log(`Soup.load parse ${this.pdbId}...`)
 
-    let title = parsetTitleFromPdbText(protein_data['pdb_text'])
-    this.default_html = this.pdb_id + ': ' + title
-
-    console.log(`Soup.load parse ${this.pdb_id}...`)
-
-    this.makeAtomsFromPdbLines(protein_data['pdb_text'], this.pdb_id)
-
-    this.atomSelect = new BitArray(this.getAtomCount())
-    this.residueSelect = new BitArray(this.getResidueCount())
+    this.makeAtomsFromPdbLines(pdbData.pdb_text, this.pdbId)
 
     this.assignResidueSsAndCentralAtoms()
 
@@ -385,10 +405,6 @@ class Soup {
 
     console.log(`Soup.load calculated ${this.getBondCount()} bonds`)
 
-    this.assignBondsToAtoms()
-
-    console.log(`Soup.load assigned bonds to atoms`)
-
     this.calcMaxLength()
 
     this.findSecondaryStructure()
@@ -397,6 +413,9 @@ class Soup {
   }
 
   makeAtomsFromPdbLines (pdbText, pdbId) {
+
+    let title = parsetTitleFromPdbText(pdbText)
+    this.title = this.pdbId + ': ' + title
 
     this.pdbId = pdbId
 
@@ -418,10 +437,12 @@ class Soup {
       return
     }
 
+    let x, y, z, chain, resNumIns, resType
+    let atomType, bfactor, elem, alt, resNum, insCode
+
     for (let iLine = 0; iLine < lines.length; iLine += 1) {
       let line = lines[iLine]
       if (line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM') {
-        let x, y, z, chain, resNumIns, resType, atomType, bfactor, elem, alt, resNum, insCode
         try {
           atomType = _.trim(line.substr(12, 4))
           alt = _.trim(line.substr(16, 1))
@@ -444,7 +465,9 @@ class Soup {
           elem = deleteNumbers(_.trim(atomType)).substr(0, 1)
         }
 
-        this.addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain)
+        this.addAtom(
+          x, y, z, bfactor, alt, atomType, elem,
+          resType, resNum, insCode, chain)
       }
     }
   }
@@ -531,11 +554,12 @@ class Soup {
 
       res.iRes = iRes
 
-      if (this.hasProteinBackbone(iRes)) {
+      if (_.includes(data.proteinResTypes, res.resType)) {
         res.iAtom = res.getAtom('CA').iAtom
         res.ss = 'C'
         res.isPolymer = true
-      } else if (this.hasSugarBackbone(iRes)) {
+      } else if (_.includes(data.dnaResTypes, res.resType) ||
+        _.includes(data.rnaResTypes, res.resType)) {
         res.iAtom = res.getAtom('C3\'').iAtom
         res.ss = 'D'
         res.isPolymer = true
@@ -554,6 +578,8 @@ class Soup {
         res.iAtom = this.getIAtomClosest(center, res.getAtomIndices())
       }
     }
+    this.atomSelect = new BitArray(this.getAtomCount())
+    this.residueSelect = new BitArray(this.getResidueCount())
   }
 
   getIAtomClosest (pos, atomIndices) {
@@ -623,7 +649,7 @@ class Soup {
     const large_cutoff_sq = 2.4 * 2.4
     const CHONPS = ['C', 'H', 'O', 'N', 'P', 'S']
 
-    function isBonded(atom1, atom2) {
+    function isBonded (atom1, atom2) {
       // don't include bonds between different alt positions
       if ((atom1.alt !== '') && (atom2.alt !== '')) {
         if (atom1.alt !== atom2.alt) {
@@ -678,93 +704,17 @@ class Soup {
       }
     }
 
-    this.bondSelect = new BitArray(this.getBondCount())
-  }
-
-  calcBondsBruteForce () {
-
-    this.bondStore.count = 0
-
-    const small_cutoff = 1.2
-    const medium_cutoff = 1.9
-    const large_cutoff = 2.4
-    const CHONPS = ['C', 'H', 'O', 'N', 'P', 'S']
-
-    let atom1 = this.getAtomProxy()
-    let atom2 = this.getAtomProxy()
-    let nAtom = this.getAtomCount()
-
-    let vertices = []
-    for (let iAtom = 0; iAtom < nAtom; iAtom += 1) {
-      atom1.iAtom = iAtom
-      vertices.push([atom1.pos.x, atom1.pos.y, atom1.pos.z])
-    }
-
-    let spaceHash = new SpaceHash(vertices)
-    for (let pair of spaceHash.getClosePairs()) {
-
-      let iAtom1 = pair[0]
-      let iAtom2 = pair[1]
-
-      if (iAtom1 === iAtom2) {
-        continue
-      }
-
-      atom1.iAtom = iAtom1
-      atom2.iAtom = iAtom2
-
-      // HACK: to avoid the water grid bond calculation
-      // step that kills the rendering
-      if ((atom1.resType === 'XXX') || (atom2.resType === 'XXX')) {
-        continue
-      }
-
-      if ((atom1.alt !== '') && (atom2.alt !== '')) {
-        if (atom1.alt !== atom2.alt) {
-          continue
-        }
-      }
-
-      let cutoff
-      if ((atom1.elem === 'H') || (atom2.elem === 'H')) {
-        cutoff = small_cutoff
-      } else if (
-        inArray(atom1.elem, CHONPS) &&
-        inArray(atom2.elem, CHONPS)) {
-        cutoff = medium_cutoff
-      } else {
-        cutoff = large_cutoff
-      }
-
-      if (v3.distance(atom1.pos, atom2.pos) <= cutoff) {
-        let iBond = this.getBondCount()
-        this.bondStore.increment()
-        this.bondStore.iAtom1[iBond] = atom1.iAtom
-        this.bondStore.iAtom2[iBond] = atom2.iAtom
-
-        iBond = this.getBondCount()
-        this.bondStore.increment()
-        this.bondStore.iAtom1[iBond] = atom2.iAtom
-        this.bondStore.iAtom2[iBond] = atom1.iAtom
-      }
-    }
-    this.bondSelect = new BitArray(this.getBondCount())
-
-  }
-
-  assignBondsToAtoms () {
-
+    // sort bonds by iAtom1
     let iAtom1Array = this.bondStore.iAtom1
     this.bondStore.sort((i, j) => iAtom1Array[i] - iAtom1Array[j])
 
+    // asign bonds to atoms
     for (let iAtom = 0; iAtom < this.getAtomCount(); iAtom += 1) {
       this.atomStore.bondCount[iAtom] = 0
     }
-
     let bond = this.getBondProxy()
-
     let iAtom1 = null
-    for (let iBond = 0; iBond < this.getBondCount(); iBond +=1) {
+    for (let iBond = 0; iBond < this.getBondCount(); iBond += 1) {
       bond.iBond = iBond
       if (iAtom1 !== bond.iAtom1) {
         iAtom1 = bond.iAtom1
@@ -772,78 +722,22 @@ class Soup {
       }
       this.atomStore.bondCount[iAtom1] += 1
     }
-  }
 
-  hasProteinBackbone (iRes) {
-    return this.getCurrentResidueProxy(iRes).checkAtomTypes(['CA', 'N', 'C'])
-  }
-
-  hasSugarBackbone (iRes) {
-    return this.getCurrentResidueProxy(iRes).checkAtomTypes([
-      'C3\'', 'O3\'', 'C5\'', 'O4\'', 'C1\''])
+    this.bondSelect = new BitArray(this.getBondCount())
   }
 
   /**
-   * Detect phosphate sugar bond
-   */
-  isSugarPhosphateConnected (iRes0, iRes1) {
-    if (this.hasSugarBackbone(iRes0) &&
-        this.hasSugarBackbone(iRes1) &&
-        this.getCurrentResidueProxy(iRes1).checkAtomTypes(['P'])) {
-      let o3 = this.getCurrentResidueProxy(iRes0).getAtom('O3\'').pos.clone()
-      let p = this.getCurrentResidueProxy(iRes1).getAtom('P').pos.clone()
-      if (v3.distance(o3, p) < 2.5) {
-        return true
-      }
-    }
-    return false
-  }
-
-  /**
-   * Detect peptide bond
-   * @returns {boolean}
-   */
-  isPeptideConnected (iRes0, iRes1) {
-    if (this.hasProteinBackbone(iRes0) &&
-        this.hasProteinBackbone(iRes1)) {
-      let c = this.getCurrentResidueProxy(iRes0).getAtom('C').pos.clone()
-      let n = this.getCurrentResidueProxy(iRes1).getAtom('N').pos.clone()
-      if (v3.distance(c, n) < 2) {
-        return true
-      }
-    }
-    return false
-  }
-
-  isPolymerConnected (iRes0, iRes1) {
-    let peptideConnect = this.isPeptideConnected(iRes0, iRes1)
-    let nucleotideConnect = this.isSugarPhosphateConnected(iRes0, iRes1)
-    return peptideConnect || nucleotideConnect
-  }
-
-  getNucleotideNormal (iRes) {
-    let c3 = this.getCurrentResidueProxy(iRes).getAtom('C3\'').pos.clone()
-    let c5 = this.getCurrentResidueProxy(iRes).getAtom('C5\'').pos.clone()
-    let c1 = this.getCurrentResidueProxy(iRes).getAtom('C1\'').pos.clone()
-    let forward = v3.diff(c3, c5)
-    let up = v3.diff(c1, c3)
-    return v3.crossProduct(forward, up)
-  }
-
-  /**
-   * Methods to calculate secondary-structure using Kabsch-Sanders
-   */
-
-  /**
-   * Find backbone hydrogen bonds
+   * Identify backbone hydrogen bonds using a distance
+   * criteria between O and N atoms.
    */
   findBackboneHbonds () {
-    let vertices = []
-    let atomIndices  = []
-
     let residue = this.getResidueProxy()
+    let atom0 = this.getAtomProxy()
+    let atom1 = this.getAtomProxy()
 
     // Collect backbone O and N atoms
+    let vertices = []
+    let atomIndices = []
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
       residue.iRes = iRes
       if (residue.isPolymer) {
@@ -857,33 +751,35 @@ class Soup {
       }
     }
 
-    let a0 = this.getAtomProxy()
-    let a1 = this.getAtomProxy()
-
+    let result = []
     let cutoff = 3.5
     let spaceHash = new SpaceHash(vertices)
     for (let pair of spaceHash.getClosePairs()) {
-      a0.iAtom = atomIndices[pair[0]]
-      a1.iAtom = atomIndices[pair[1]]
-      if ((a0.elem === 'O') && (a1.elem === 'N')) {
-        [a0, a1] = [a1, a0]
+      atom0.iAtom = atomIndices[pair[0]]
+      atom1.iAtom = atomIndices[pair[1]]
+      if ((atom0.elem === 'O') && (atom1.elem === 'N')) {
+        [atom0, atom1] = [atom1, atom0]
       }
-      if (!((a0.elem === 'N') && (a1.elem === 'O'))) {
+      if (!((atom0.elem === 'N') && (atom1.elem === 'O'))) {
         continue
       }
-      let iRes0 = a0.iRes
-      let iRes1 = a1.iRes
+      let iRes0 = atom0.iRes
+      let iRes1 = atom1.iRes
       if (iRes0 === iRes1) {
         continue
       }
-      if (v3.distance(a0.pos, a1.pos) <= cutoff) {
-        pushToListInDict(this.residueConhPartners, iRes0, iRes1)
+      if (v3.distance(atom0.pos, atom1.pos) <= cutoff) {
+        pushToListInDict(result, iRes0, iRes1)
       }
     }
+
+    return result
   }
 
   /**
-   * Find Secondary Structure:
+   * Methods to calculate secondary-structure using Kabsch-Sanders
+   *
+   * Secondary Structure:
    * - H - alpha-helix/3-10-helix
    * - E - beta-sheet
    * - C - coil
@@ -893,112 +789,107 @@ class Soup {
    * - R - non-standard nucleotide
    */
   findSecondaryStructure () {
-    this.findBackboneHbonds()
+    let conhPartners = this.findBackboneHbonds()
+    let residueNormals = {}
 
     let nRes = this.getResidueCount()
-
     let residue0 = this.getResidueProxy()
     let residue1 = this.getResidueProxy()
 
     let atom0 = this.getAtomProxy()
     let atom1 = this.getAtomProxy()
 
-    let display = this
-
-    function isCONHBonded (iRes0, iRes1) {
-      if ((iRes1 < 0) || (iRes1 >= nRes)) {
+    function isCONH (iRes0, iRes1) {
+      if ((iRes1 < 0) || (iRes1 >= nRes) || (iRes0 < 0) || (iRes0 >= nRes)) {
         return false
       }
-      if ((iRes0 < 0) || (iRes0 >= nRes)) {
-        return false
-      }
-      return _.includes(display.residueConhPartners[iRes1], iRes0)
+      return _.includes(conhPartners[iRes1], iRes0)
     }
 
     function vecBetweenResidues (iRes0, iRes1) {
-      let pos0 = atom0.load(residue0.load(iRes0).iAtom).pos.clone()
-      let pos1 = atom1.load(residue1.load(iRes1).iAtom).pos.clone()
-      return v3.diff(pos0, pos1)
+      atom0.iAtom = residue0.load(iRes0).iAtom
+      atom1.iAtom = residue1.load(iRes1).iAtom
+      return v3.diff(atom0.pos, atom1.pos)
     }
 
-    for (let iRes1 = 0; iRes1 < nRes; iRes1 += 1) {
+    for (let iRes0 = 0; iRes0 < nRes; iRes0 += 1) {
 
-      if (_.includes('DR', this.getCurrentResidueProxy(iRes1).ss)) {
+      residue0.iRes = iRes0
+      if (_.includes('DR', residue0.ss)) {
         pushToListInDict(
-          this.residueNormals, iRes1, this.getNucleotideNormal(iRes1))
-      }
+          residueNormals, iRes0, residue0.getNucleotideNormal())}
 
       // alpha-helix
-      if (isCONHBonded(iRes1, iRes1 + 4) &&
-        isCONHBonded(iRes1 + 1, iRes1 + 5)) {
-        let normal1 = vecBetweenResidues(iRes1, iRes1 + 4)
-        let normal2 = vecBetweenResidues(iRes1 + 1, iRes1 + 5)
-        for (let iRes2 = iRes1 + 1; iRes2 < iRes1 + 5; iRes2 += 1) {
-          this.getCurrentResidueProxy(iRes2).ss = 'H'
-          pushToListInDict(this.residueNormals, iRes2, normal1)
-          pushToListInDict(this.residueNormals, iRes2, normal2)
+      if (isCONH(iRes0, iRes0 + 4) &&
+        isCONH(iRes0 + 1, iRes0 + 5)) {
+        let normal0 = vecBetweenResidues(iRes0, iRes0 + 4)
+        let normal1 = vecBetweenResidues(iRes0 + 1, iRes0 + 5)
+        for (let iRes1 = iRes0 + 1; iRes1 < iRes0 + 5; iRes1 += 1) {
+          residue0.load(iRes1).ss = 'H'
+          pushToListInDict(residueNormals, iRes1, normal0)
+          pushToListInDict(residueNormals, iRes1, normal1)
         }
       }
 
       // 3-10 helix
-      if (isCONHBonded(iRes1, iRes1 + 3) &&
-        isCONHBonded(iRes1 + 1, iRes1 + 4)) {
-        let normal1 = vecBetweenResidues(iRes1, iRes1 + 3)
-        let normal2 = vecBetweenResidues(iRes1 + 1, iRes1 + 4)
-        for (let iRes2 = iRes1 + 1; iRes2 < iRes1 + 4; iRes2 += 1) {
-          this.getCurrentResidueProxy(iRes2).ss = 'H'
-          pushToListInDict(this.residueNormals, iRes2, normal1)
-          pushToListInDict(this.residueNormals, iRes2, normal2)
+      if (isCONH(iRes0, iRes0 + 3) &&
+        isCONH(iRes0 + 1, iRes0 + 4)) {
+        let normal1 = vecBetweenResidues(iRes0, iRes0 + 3)
+        let normal2 = vecBetweenResidues(iRes0 + 1, iRes0 + 4)
+        for (let iRes1 = iRes0 + 1; iRes1 < iRes0 + 4; iRes1 += 1) {
+          residue0.load(iRes1).ss = 'H'
+          pushToListInDict(residueNormals, iRes1, normal1)
+          pushToListInDict(residueNormals, iRes1, normal2)
         }
       }
 
-      for (let iRes2 = iRes1 + 1; iRes2 < nRes; iRes2 += 1) {
+      for (let iRes1 = iRes0 + 1; iRes1 < nRes; iRes1 += 1) {
 
-        if ((Math.abs(iRes1 - iRes2) <= 5)) {
+        if ((Math.abs(iRes0 - iRes1) <= 5)) {
           continue
         }
 
-        let betaResidueIndices = []
+        let betaResidues = []
 
         // parallel beta sheet pairs
-        if (isCONHBonded(iRes1, iRes2 + 1) &&
-          isCONHBonded(iRes2 - 1, iRes1)) {
-          betaResidueIndices = betaResidueIndices.concat([iRes1, iRes2])
+        if (isCONH(iRes0, iRes1 + 1) &&
+          isCONH(iRes1 - 1, iRes0)) {
+          betaResidues = betaResidues.concat([iRes0, iRes1])
         }
-        if (isCONHBonded(iRes1 - 1, iRes2) &&
-          isCONHBonded(iRes2, iRes1 + 1)) {
-          betaResidueIndices = betaResidueIndices.concat([iRes1, iRes2])
+        if (isCONH(iRes0 - 1, iRes1) &&
+          isCONH(iRes1, iRes0 + 1)) {
+          betaResidues = betaResidues.concat([iRes0, iRes1])
         }
 
         // anti-parallel hbonded beta sheet pairs
-        if (isCONHBonded(iRes1, iRes2) &&
-          isCONHBonded(iRes2, iRes1)) {
-          betaResidueIndices = betaResidueIndices.concat([iRes1, iRes2])
-          let normal = vecBetweenResidues(iRes1, iRes2)
-          pushToListInDict(this.residueNormals, iRes1, normal)
-          pushToListInDict(this.residueNormals, iRes2, v3.scaled(normal, -1))
+        if (isCONH(iRes0, iRes1) &&
+          isCONH(iRes1, iRes0)) {
+          betaResidues = betaResidues.concat([iRes0, iRes1])
+          let normal = vecBetweenResidues(iRes0, iRes1)
+          pushToListInDict(residueNormals, iRes0, normal)
+          pushToListInDict(residueNormals, iRes1, v3.scaled(normal, -1))
         }
 
         // anti-parallel non-hbonded beta sheet pairs
-        if (isCONHBonded(iRes1 - 1, iRes2 + 1) &&
-          isCONHBonded(iRes2 - 1, iRes1 + 1)) {
-          betaResidueIndices = betaResidueIndices.concat([iRes1, iRes2])
-          let normal = vecBetweenResidues(iRes1, iRes2)
-          pushToListInDict(this.residueNormals, iRes1, v3.scaled(normal, -1))
-          pushToListInDict(this.residueNormals, iRes2, normal)
+        if (isCONH(iRes0 - 1, iRes1 + 1) &&
+          isCONH(iRes1 - 1, iRes0 + 1)) {
+          betaResidues = betaResidues.concat([iRes0, iRes1])
+          let normal = vecBetweenResidues(iRes0, iRes1)
+          pushToListInDict(residueNormals, iRes0, v3.scaled(normal, -1))
+          pushToListInDict(residueNormals, iRes1, normal)
         }
 
-        for (let iRes of betaResidueIndices) {
-          this.getCurrentResidueProxy(iRes).ss = 'E'
+        for (let iRes3 of betaResidues) {
+          residue0.load(iRes3).ss = 'E'
         }
       }
     }
 
     // average residueNormals to make a nice average
     for (let iRes = 0; iRes < nRes; iRes += 1) {
-      if ((iRes in this.residueNormals) && (this.residueNormals[iRes].length > 0)) {
+      if ((iRes in residueNormals) && (residueNormals[iRes].length > 0)) {
         let normalSum = v3.create(0, 0, 0)
-        for (let normal of this.residueNormals[iRes]) {
+        for (let normal of residueNormals[iRes]) {
           normalSum = v3.sum(normalSum, normal)
         }
         this.residueNormal[iRes] = v3.normalized(normalSum)
@@ -1009,8 +900,8 @@ class Soup {
     // consistently pointing in the same direction
     for (let iRes = 1; iRes < nRes; iRes += 1) {
       residue0.iRes = iRes - 1
+      residue1.iRes = iRes
       if ((residue0.ss === 'E') && residue0.normal) {
-        residue1.iRes = iRes
         if ((residue1.ss === 'E') && residue1.normal) {
           if (residue1.normal.dot(residue0.normal) < 0) {
             this.residueNormal[iRes].negate()
@@ -1023,10 +914,6 @@ class Soup {
 
   getAtomProxy (iAtom) {
     return new AtomProxy(this, iAtom)
-  }
-
-  getCurrentAtomProxy (iAtom) {
-    return this.atomProxy.load(iAtom)
   }
 
   getAtomCount () {
@@ -1051,10 +938,6 @@ class Soup {
 
   getResidueCount () {
     return this.residueStore.count
-  }
-
-  clearSelectedResidues () {
-    this.residueSelect.clearBits()
   }
 
   areCloseResidues (iRes0, iRes1) {
@@ -1084,10 +967,7 @@ class Soup {
   }
 
   clearSelectedResidues () {
-    let residue = this.getResidueProxy()
-    for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-      residue.load(iRes).selected = false
-    }
+    this.residueSelect.clearBits()
   }
 
   selectResidues (residueIndices, select) {
@@ -1160,7 +1040,7 @@ class Soup {
  * Inside a view are two cameras as a camera is
  * defined in terms of an existing frame of
  * reference. The first camera refers to the
- * current_view camera.
+ * currentView camera.
  *
  * The absolute camera is expressed with respect
  * to the original frame of coordinate of the PDB.
@@ -1202,7 +1082,7 @@ class View {
 
   constructor () {
     this.id = 'view:000000'
-    this.i_atom = -1
+    this.iAtom = -1
     this.order = 1
     this.camera = {
       focus: v3.create(0, 0, 0),
@@ -1225,7 +1105,7 @@ class View {
       water: false,
       ligands: true,
       trace: false,
-      all_atom: false,
+      backboneAtom: false,
       ribbon: true
     }
   }
@@ -1236,7 +1116,7 @@ class View {
 
   makeDefaultOfSoup (soup) {
     let atom = soup.getCentralAtomProxy()
-    this.i_atom = atom.iAtom
+    this.iAtom = atom.iAtom
 
     this.show.sidechain = false
 
@@ -1249,8 +1129,8 @@ class View {
       .create(0, 0, -this.camera.zoom).add(atom.pos)
 
     this.order = 0
-    this.text = soup.default_html
-    this.pdb_id = soup.pdb_id
+    this.text = soup.title
+    this.pdb_id = soup.pdbId
   }
 
   getViewTranslatedTo (pos) {
@@ -1264,7 +1144,7 @@ class View {
   clone () {
     let v = new View()
     v.id = this.id
-    v.i_atom = this.i_atom
+    v.iAtom = this.iAtom
     v.selected = this.selected
     v.labels = _.cloneDeep(this.labels)
     v.distances = _.cloneDeep(this.distances)
@@ -1287,6 +1167,10 @@ class View {
     let in_v = pos.clone().add(cameraDir)
     let up_v = pos.clone().sub(this.camera.up)
 
+    let show = _.clone(this.show)
+    show.all_atom = show.backboneAtom
+    delete show.backboneAtom
+
     return {
       version: 2,
       view_id: this.id,
@@ -1295,7 +1179,7 @@ class View {
       order: this.order,
       show: this.show,
       text: this.text,
-      i_atom: this.i_atom,
+      i_atom: this.iAtom,
       labels: this.labels,
       selected: this.selected,
       distances: this.distances,
@@ -1312,33 +1196,6 @@ class View {
     }
   }
 
-  setCameraFromJolyCamera (jolyCamera) {
-    let focus = v3.clone(jolyCamera.pos)
-
-    let cameraDirection = v3
-      .clone(jolyCamera.in_v)
-      .sub(focus)
-      .multiplyScalar(jolyCamera.zoom)
-      .negate()
-
-    let position = v3
-      .clone(focus).add(cameraDirection)
-
-    let up = v3
-      .clone(jolyCamera.up_v)
-      .sub(focus)
-      .negate()
-
-    this.camera = {
-      focus: focus,
-      position: position,
-      up: up,
-      zFront: jolyCamera.z_front,
-      zBack: jolyCamera.z_back,
-      zoom: jolyCamera.zoom
-    }
-  }
-
   setFromDict (flat_dict) {
     this.id = flat_dict.view_id
     this.view_id = flat_dict.view_id
@@ -1348,39 +1205,61 @@ class View {
     this.creator = flat_dict.creator
     this.order = flat_dict.order
     this.res_id = flat_dict.res_id
-    this.i_atom = flat_dict.i_atom
+    this.iAtom = flat_dict.i_atom
 
     this.labels = flat_dict.labels
     this.selected = flat_dict.selected
     this.distances = flat_dict.distances
 
     this.show = flat_dict.show
-    if (!(this.show.all_atom || this.show.trace || this.show.ribbon)) {
+    this.show.backboneAtom = flat_dict.show.all_atom
+    delete this.show.all_atom
+
+    if (!(this.show.backboneAtom || this.show.trace || this.show.ribbon)) {
       this.show.ribbon = true
     }
 
-    let jolyCamera = {
-      pos: v3.create(0, 0, 0),
-      up_v: v3.create(0, 1, 0),
-      in_v: v3.create(0, 0, 1),
-      zoom: 1.0,
-      z_front: 0.0,
-      z_back: 0.0
-    }
-    jolyCamera.pos.x = flat_dict.camera.pos[0]
-    jolyCamera.pos.y = flat_dict.camera.pos[1]
-    jolyCamera.pos.z = flat_dict.camera.pos[2]
-    jolyCamera.up_v.x = flat_dict.camera.up[0]
-    jolyCamera.up_v.y = flat_dict.camera.up[1]
-    jolyCamera.up_v.z = flat_dict.camera.up[2]
-    jolyCamera.in_v.x = flat_dict.camera.in[0]
-    jolyCamera.in_v.y = flat_dict.camera.in[1]
-    jolyCamera.in_v.z = flat_dict.camera.in[2]
-    jolyCamera.z_front = flat_dict.camera.slab.z_front
-    jolyCamera.z_back = flat_dict.camera.slab.z_back
-    jolyCamera.zoom = flat_dict.camera.slab.zoom
+    let pos = v3.create(
+      flat_dict.camera.pos[0],
+      flat_dict.camera.pos[1],
+      flat_dict.camera.pos[2])
 
-    this.setCameraFromJolyCamera(jolyCamera)
+    let up_v = v3.create(
+      flat_dict.camera.up[0],
+      flat_dict.camera.up[1],
+      flat_dict.camera.up[2])
+
+    let in_v = v3.create(
+      flat_dict.camera.in[0],
+      flat_dict.camera.in[1],
+      flat_dict.camera.in[2])
+
+    let zoom = flat_dict.camera.slab.zoom
+
+    let focus = v3.clone(pos)
+
+    let cameraDirection = v3
+      .clone(in_v)
+      .sub(focus)
+      .multiplyScalar(zoom)
+      .negate()
+
+    let position = v3
+      .clone(focus).add(cameraDirection)
+
+    let up = v3
+      .clone(up_v)
+      .sub(focus)
+      .negate()
+
+    this.camera = {
+      focus: focus,
+      position: position,
+      up: up,
+      zFront: flat_dict.camera.slab.z_front,
+      zBack: flat_dict.camera.slab.z_back,
+      zoom: zoom
+    }
   }
 
 }
@@ -1447,77 +1326,79 @@ class SoupView {
     // stores the current camera, display
     // options, distances, labels, selected
     // residues
-    this.current_view = new View()
+    this.currentView = new View()
 
     // stores other views that can be reloaded
-    this.saved_views_by_id = {}
-    this.saved_views = []
-    this.i_last_view = 0
+    this.savedViewsByViewId = {}
+    this.savedViews = []
+    this.iLastViewSelected = 0
 
     // stores a target view for animation
-    this.target_view = null
+    this.targetView = null
+
     // timing counter that is continually decremented
     // until it becomes negative
-    this.n_update_step = -1
+    this.nUpdateStep = -1
+
     // this is to set the time between transitions of views
-    this.max_update_step = 20
+    this.maxUpdateStep = 20
 
-    this.updateSelection = false
+    this.updateResidueSelection = false
     this.updateView = true
   }
 
-  set_target_view (view) {
-    this.n_update_step = this.max_update_step
-    this.target_view = view.clone()
+  setTargetView (view) {
+    this.nUpdateStep = this.maxUpdateStep
+    this.targetView = view.clone()
     this.updateView = true
   }
 
-  centered_atom () {
-    let i = this.current_view.i_atom
-    return this.soup.getAtomProxy(i)
+  getCenteredAtom () {
+    let iAtom = this.currentView.iAtom
+    return this.soup.getAtomProxy(iAtom)
   }
 
-  get_i_saved_view_from_id (id) {
-    for (let j = 0; j < this.saved_views.length; j += 1) {
-      if (this.saved_views[j].id === id) {
-        return j
+  getIViewFromViewId (viewId) {
+    for (let iView = 0; iView < this.savedViews.length; iView += 1) {
+      if (this.savedViews[iView].id === viewId) {
+        return iView
       }
     }
     return -1
   }
 
-  insert_view (j, new_id, new_view) {
-    this.saved_views_by_id[new_id] = new_view
-    if (j >= this.saved_views.length) {
-      this.saved_views.push(new_view)
+  insertView (iView, newViewId, newView) {
+    this.savedViewsByViewId[newViewId] = newView
+    if (iView >= this.savedViews.length) {
+      this.savedViews.push(newView)
     } else {
-      this.saved_views.splice(j, 0, new_view)
+      this.savedViews.splice(iView, 0, newView)
     }
-    this.i_last_view = j
-    for (let i = 0; i < this.saved_views.length; i++) {
-      this.saved_views[i].order = i
+    this.iLastViewSelected = iView
+    for (let i = 0; i < this.savedViews.length; i++) {
+      this.savedViews[i].order = i
     }
   }
 
-  remove_saved_view (id) {
-    let i = this.get_i_saved_view_from_id(id)
-    if (i < 0) {
+  removeView (viewId) {
+    let iView = this.getIViewFromViewId(viewId)
+    if (iView < 0) {
       return
     }
-    this.saved_views.splice(i, 1)
-    delete this.saved_views_by_id[id]
-    for (let j = 0; j < this.saved_views.length; j++) {
-      this.saved_views[j].order = j
+    this.savedViews.splice(iView, 1)
+    delete this.savedViewsByViewId[viewId]
+    for (let j = 0; j < this.savedViews.length; j++) {
+      this.savedViews[j].order = j
     }
-    if (this.i_last_view >= this.saved_views.length) {
-      this.i_last_view = this.saved_views.length - 1
+    if (this.iLastViewSelected >= this.savedViews.length) {
+      this.iLastViewSelected = this.savedViews.length - 1
     }
     this.changed = true
   }
 
-  save_view (view) {
-    this.saved_views_by_id[view.id] = view
-    this.saved_views.push(view)
+  saveView (view) {
+    this.savedViewsByViewId[view.id] = view
+    this.savedViews.push(view)
   }
 
 }
@@ -1533,48 +1414,47 @@ class Controller {
     this.soupView = scene
   }
 
-  delete_dist (i) {
-    this.soupView.current_view.distances.splice(i, 1)
+  deleteDistance (iDistance) {
+    this.soupView.currentView.distances.splice(iDistance, 1)
     this.soupView.changed = true
   }
 
-  make_dist (iAtom1, iAtom2) {
-    this.soupView.current_view.distances.push(
+  makeDistance (iAtom1, iAtom2) {
+    this.soupView.currentView.distances.push(
       {'i_atom1': iAtom1, 'i_atom2': iAtom2})
     this.soupView.changed = true
   }
 
-  make_label (iAtom, text) {
-    this.soupView.current_view.labels.push({
-      'i_atom': iAtom, 'text': text,
-    })
+  makeAtomLabel (iAtom, text) {
+    this.soupView.currentView.labels.push(
+      {'i_atom': iAtom, 'text': text})
     this.soupView.changed = true
   }
 
-  delete_label (iLabel) {
-    this.soupView.current_view.labels.splice(iLabel, 1)
+  deleteAtomLabel (iLabel) {
+    this.soupView.currentView.labels.splice(iLabel, 1)
     this.soupView.changed = true
   }
 
-  set_target_view (view) {
-    this.soupView.set_target_view(view)
+  setTargetView (view) {
+    this.soupView.setTargetView(view)
   }
 
-  set_target_view_by_id (viewId) {
-    let view = this.soupView.saved_views_by_id[viewId]
-    this.soupView.i_last_view = this.soupView.saved_views_by_id[viewId].order
-    this.set_target_view(view)
+  setTargetViewByViewId (viewId) {
+    let view = this.soupView.savedViewsByViewId[viewId]
+    this.soupView.iLastViewSelected = this.soupView.savedViewsByViewId[viewId].order
+    this.setTargetView(view)
   }
 
-  set_target_view_by_atom (iAtom) {
+  setTargetViewByAtom (iAtom) {
     let atom = this.soup.getAtomProxy(iAtom)
-    let view = this.soupView.current_view.getViewTranslatedTo(atom.pos)
-    view.i_atom = iAtom
-    this.set_target_view(view)
+    let view = this.soupView.currentView.getViewTranslatedTo(atom.pos)
+    view.iAtom = iAtom
+    this.setTargetView(view)
   }
 
-  set_target_prev_residue () {
-    let iAtom = this.soupView.current_view.i_atom
+  setTargetToPrevResidue () {
+    let iAtom = this.soupView.currentView.iAtom
     let iRes = this.soup.getAtomProxy(iAtom).iRes
     if (iRes <= 0) {
       iRes = this.soup.getResidueCount() - 1
@@ -1582,11 +1462,11 @@ class Controller {
       iRes -= 1
     }
     iAtom = this.soup.getResidueProxy(iRes).iAtom
-    this.set_target_view_by_atom(iAtom)
+    this.setTargetViewByAtom(iAtom)
   }
 
-  set_target_next_residue () {
-    let iAtom = this.soupView.current_view.i_atom
+  setTargetToNextResidue () {
+    let iAtom = this.soupView.currentView.iAtom
     let iRes = this.soup.getAtomProxy(iAtom).iRes
     if (iRes >= this.soup.getResidueCount() - 1) {
       iRes = 0
@@ -1594,48 +1474,48 @@ class Controller {
       iRes += 1
     }
     iAtom = this.soup.getResidueProxy(iRes).iAtom
-    this.set_target_view_by_atom(iAtom)
+    this.setTargetViewByAtom(iAtom)
   }
 
-  set_target_prev_view () {
+  setTargetToPrevView () {
     let scene = this.soupView
-    scene.i_last_view -= 1
-    if (scene.i_last_view < 0) {
-      scene.i_last_view = scene.saved_views.length - 1
+    scene.iLastViewSelected -= 1
+    if (scene.iLastViewSelected < 0) {
+      scene.iLastViewSelected = scene.savedViews.length - 1
     }
-    let id = scene.saved_views[scene.i_last_view].id
-    this.set_target_view_by_id(id)
+    let id = scene.savedViews[scene.iLastViewSelected].id
+    this.setTargetViewByViewId(id)
     return id
   }
 
-  set_target_next_view () {
+  setTargetToNextView () {
     let scene = this.soupView
-    scene.i_last_view += 1
-    if (scene.i_last_view >= scene.saved_views.length) {
-      scene.i_last_view = 0
+    scene.iLastViewSelected += 1
+    if (scene.iLastViewSelected >= scene.savedViews.length) {
+      scene.iLastViewSelected = 0
     }
-    let id = scene.saved_views[scene.i_last_view].id
-    this.set_target_view_by_id(id)
+    let id = scene.savedViews[scene.iLastViewSelected].id
+    this.setTargetViewByViewId(id)
     return id
   }
 
   swapViews (i, j) {
-    this.soupView.saved_views[j].order = i
-    this.soupView.saved_views[i].order = j
-    let dummy = this.soupView.saved_views[j]
-    this.soupView.saved_views[j] = this.soupView.saved_views[i]
-    this.soupView.saved_views[i] = dummy
+    this.soupView.savedViews[j].order = i
+    this.soupView.savedViews[i].order = j
+    let dummy = this.soupView.savedViews[j]
+    this.soupView.savedViews[j] = this.soupView.savedViews[i]
+    this.soupView.savedViews[i] = dummy
   }
 
-  get_view_dicts () {
+  getViewDicts () {
     let view_dicts = []
-    for (let i = 1; i < this.soupView.saved_views.length; i += 1) {
-      view_dicts.push(this.soupView.saved_views[i].getDict())
+    for (let i = 1; i < this.soupView.savedViews.length; i += 1) {
+      view_dicts.push(this.soupView.savedViews[i].getDict())
     }
     return view_dicts
   }
 
-  make_selected () {
+  makeSelectedResidueList () {
     let result = []
     let residue = this.soup.getResidueProxy()
     for (let i = 0; i < this.soup.getResidueCount(); i += 1) {
@@ -1646,20 +1526,20 @@ class Controller {
     return result
   }
 
-  clear_selected () {
+  clearSelectedResidues () {
     this.soup.clearSelectedResidues()
-    this.soupView.current_view.selected = this.make_selected()
+    this.soupView.currentView.selected = this.makeSelectedResidueList()
     this.soupView.changed = true
   }
 
-  select_residue (i, v) {
-    this.soup.getResidueProxy(i).selected = v
-    this.soupView.current_view.selected = this.make_selected()
+  selectResidue (iRes, select) {
+    this.soup.getResidueProxy(iRes).selected = select
+    this.soupView.currentView.selected = this.makeSelectedResidueList()
     this.soupView.changed = true
   }
 
-  toggle_neighbors () {
-    let iAtom = this.soupView.current_view.i_atom
+  toggleResidueNeighbors () {
+    let iAtom = this.soupView.currentView.iAtom
     let iRes = this.soup.getAtomProxy(iAtom).iRes
     let b
     if (this.lastNeighborIRes === iRes) {
@@ -1670,14 +1550,14 @@ class Controller {
       this.lastNeighborIRes = iRes
     }
     this.soup.selectNeighbourResidues(iRes, b)
-    this.soupView.current_view.selected = this.make_selected()
+    this.soupView.currentView.selected = this.makeSelectedResidueList()
     this.soupView.changed = true
-    this.soupView.updateSelection = true
+    this.soupView.updateResidueSelection = true
   }
 
-  save_current_view (new_id) {
-    let j = this.soupView.i_last_view + 1
-    let new_view = this.soupView.current_view.clone()
+  saveCurrentView (newViewId) {
+    let iNewView = this.soupView.iLastViewSelected + 1
+    let new_view = this.soupView.currentView.clone()
     new_view.text = 'Click edit to change this text.'
     new_view.pdb_id = this.soup.pdb_id
     let time = getCurrentDateStr()
@@ -1686,72 +1566,72 @@ class Controller {
     } else {
       new_view.creator = '~ ' + user + ' @' + time
     }
-    new_view.id = new_id
-    new_view.selected = this.make_selected()
-    this.soupView.insert_view(j, new_id, new_view)
-    return j
+    new_view.id = newViewId
+    new_view.selected = this.makeSelectedResidueList()
+    this.soupView.insertView(iNewView, newViewId, new_view)
+    return iNewView
   }
 
-  delete_view (id) {
-    this.soupView.remove_saved_view(id)
+  deleteView (viewId) {
+    this.soupView.removeView(viewId)
   }
 
-  sort_views_by_order () {
+  sortViewsByOrder () {
     function order_sort (a, b) {
       return a.order - b.order
     }
 
-    this.soupView.saved_views.sort(order_sort)
-    for (let i = 0; i < this.soupView.saved_views.length; i += 1) {
-      this.soupView.saved_views[i].order = i
+    this.soupView.savedViews.sort(order_sort)
+    for (let i = 0; i < this.soupView.savedViews.length; i += 1) {
+      this.soupView.savedViews[i].order = i
     }
   }
 
-  load_views_from_flat_views (view_dicts) {
-    for (let i = 0; i < view_dicts.length; i += 1) {
+  loadViewsFromViewDicts (viewDicts) {
+    for (let i = 0; i < viewDicts.length; i += 1) {
       let view = new View()
-      view.setFromDict(view_dicts[i])
+      view.setFromDict(viewDicts[i])
       if (view.id === 'view:000000') {
         continue
       }
-      this.soupView.save_view(view)
+      this.soupView.saveView(view)
     }
-    this.sort_views_by_order()
+    this.sortViewsByOrder()
   }
 
-  set_backbone_option (option) {
-    this.soupView.current_view.show.all_atom = false
-    this.soupView.current_view.show.trace = false
-    this.soupView.current_view.show.ribbon = false
-    this.soupView.current_view.show[option] = true
+  setBackboneOption (option) {
+    this.soupView.currentView.show.backboneAtom = false
+    this.soupView.currentView.show.trace = false
+    this.soupView.currentView.show.ribbon = false
+    this.soupView.currentView.show[option] = true
     this.soupView.changed = true
   }
 
-  set_show_option (option, bool) {
-    console.log('Controller.set_show_option', option, bool)
-    this.soupView.current_view.show[option] = bool
+  setShowOption (option, bool) {
+    console.log('Controller.setShowOption', option, bool)
+    this.soupView.currentView.show[option] = bool
     if (option === 'sidechain') {
-      this.soupView.updateSelection = true
+      this.soupView.updateResidueSelection = true
     }
     this.soupView.changed = true
   }
 
-  get_show_option (option) {
-    return this.soupView.current_view.show[option]
+  getShowOption (option) {
+    return this.soupView.currentView.show[option]
   }
 
-  toggle_show_option (option) {
-    let val = this.get_show_option(option)
-    this.set_show_option(option, !val)
+  toggleShowOption (option) {
+    let val = this.getShowOption(option)
+    this.setShowOption(option, !val)
   }
 
-  flag_changed () {
+  setChangeFlag () {
     this.soupView.changed = true
   }
 
-  set_current_view (view) {
-    this.soupView.current_view = view.clone()
-    let atom = this.soup.getAtomProxy(view.i_atom)
+  setCurrentView (view) {
+    this.soupView.currentView = view.clone()
+    let atom = this.soup.getAtomProxy(view.iAtom)
     this.soupView.soup.clearSelectedResidues()
     this.soupView.soup.selectResidues(view.selected, true)
     this.soupView.changed = true

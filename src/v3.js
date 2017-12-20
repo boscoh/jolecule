@@ -163,8 +163,6 @@ function degToRad (deg) {
 }
 
 
-
-
 export default {
   SMALL,
   isNearZero,

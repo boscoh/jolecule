@@ -8,24 +8,25 @@ import {
   toggleButton,
   randomId,
 } from './util.js'
+import BitArray from './bitarray'
 
-function runWithProcessQueue (isProcessingFlag, fn) {
-  function guardFn () {
-    if (isProcessingFlag.flag) {
-      setTimeout(guardFn, 50)
-    } else {
-      isProcessingFlag.flag = true
-      fn(isProcessingFlag)
-    }
-  }
-  guardFn()
+
+function delay (timeMs) {
+  return new Promise(resolve => { setTimeout(resolve, timeMs) })
 }
+
 
 class ViewPiece {
   /**
-   * params{ goto, saveChage(txt), pick, view, deleteView, isEditable, swapUp
-   * 
-   }
+   * @param {Object} params {
+   *    goto,
+   *    saveChage(txt),
+   *    pick,
+   *    view,
+   *    deleteView,
+   *    isEditable,
+   *    swapUp
+   * }
    */
   constructor (params) {
     this.params = params
@@ -160,7 +161,7 @@ class ViewPiece {
               '', 'down', 'jolecule-small-button',
               () => { this.params.swapDown() }))
 
-      if (exists(this.params.delete_view)) {
+      if (exists(this.params.deleteView)) {
         this.showDiv
           .append(
             $('<div>')
@@ -170,7 +171,7 @@ class ViewPiece {
                   '', 'delete', 'jolecule-small-button',
                   () => {
                     console.log('ViewPiece.deleteButton')
-                    this.params.delete_view()
+                    this.params.deleteView()
                   })))
       }
     }
@@ -181,7 +182,7 @@ class ViewPiece {
 }
 
 /**
- *
+
  * EmbedJolecule - the widget that shows proteins and
  * annotations
  *
@@ -240,103 +241,121 @@ class EmbedJolecule {
     this.isProcessing = {flag: false}
   };
 
-  loadProteinData (isProcessingFlag, dataServer, proteinData, callback) {
-    if (proteinData.pdb_text.length == 0) {
-      this.display.setProcessingMesssage('Error: no soup data')
-      isProcessingFlag.flag = false
-      return
-    }
-
-    this.soup.load(proteinData)
-
-    this.populateResidueSelector()
-
-    if (this.soup.parsingError) {
-      this.display.setProcessingMesssage('Error parsing soup: ' + this.soup.parsingError)
-      isProcessingFlag.flag = false
-      return
-    }
-
-    this.display.nDataServer += 1
-    if (this.display.nDataServer == 1) {
-      this.display.buildAfterInitialLoad()
-
-      // need to keep track of a single dataServer
-      // to save views, will take the first one
-      this.dataServer = dataServer
-      this.dataServer.get_views((view_dicts) => {
+  async asyncLoadViews (dataServer) {
+    return new Promise(success => {
+      dataServer.get_views(view_dicts => {
         this.loadViewsFromDataServer(view_dicts)
-        isProcessingFlag.flag = false
-        this.display.cleanupProcessingMessage()
-        if (callback) {
-          callback()
-        }
+        success()
       })
-    } else {
-      this.display.buildAfterAdditionalLoad()
-      this.display.cleanupProcessingMessage()
-      isProcessingFlag.flag = false
-      if (callback) {
-        callback()
-      }
-    }
+    })
   }
 
-  addDataServer (dataServer, callback) {
-    runWithProcessQueue(
-      this.isProcessing,
-      (isProcessingFlag) => {
-        dataServer.get_protein_data(
-          (proteinData) => {
-            this.display.displayMessageBeforeCompute(
-              'Parsing \'' + proteinData.pdb_id + '\'',
-              () => {
-                this.loadProteinData(
-                  isProcessingFlag, dataServer, proteinData, callback)
-              })
-          })
+  async asyncLoadSoup (dataServer) {
+    return new Promise(success => {
+      dataServer.get_protein_data(async (proteinData) => {
+
+        if (proteinData.pdb_text.length == 0) {
+          this.display.setProcessingMesssage('Error: no soup data')
+          this.isProcessing.flag = false
+          success()
+          return
+        }
+
+        this.display.setProcessingMesssage('Parsing \'' + proteinData.pdb_id + '\'')
+        await delay(0)
+
+        this.soup.makeAtomsFromPdbLines(proteinData.pdb_text, this.pdbId)
+
+        this.soup.atomSelect = new BitArray(this.soup.getAtomCount())
+        this.soup.residueSelect = new BitArray(this.soup.getResidueCount())
+
+        this.soup.assignResidueSsAndCentralAtoms()
+
+        this.display.setProcessingMesssage(
+          `Processed ${this.soup.getAtomCount()} atoms, ` +
+          `${this.soup.getResidueCount()} residues. Finding bonds...`)
+        await delay(0)
+
+        this.soup.calcBondsStrategic()
+
+        this.display.setProcessingMesssage(
+          `Calculated ${this.soup.getBondCount()} bonds. Finding secondary structure...`)
+        await delay(0)
+
+        this.soup.calcMaxLength()
+
+        this.soup.findSecondaryStructure()
+
+        this.populateResidueSelector()
+
+        if (this.soup.parsingError) {
+          this.display.setProcessingMesssage('Error parsing soup: ' + this.soup.parsingError)
+          this.isProcessing.flag = false
+          success()
+          return
+        }
+        this.display.buildScene()
+        success()
       })
+    })
+  }
+
+  async asyncAddDataServer (dataServer) {
+    while (this.isProcessing.flag) {
+      await delay(100)
+    }
+    this.isProcessing.flag = true
+    await this.asyncLoadSoup(dataServer)
+    this.display.cleanupProcessingMessage()
+    this.display.nDataServer += 1
+    if (this.display.nDataServer === 1) {
+      this.display.setProcessingMesssage('Loading views...')
+      await delay(0)
+      await this.asyncLoadViews(dataServer)
+      this.display.cleanupProcessingMessage()
+    }
+    this.isProcessing.flag = false
   }
 
   loadViewsFromDataServer (viewDicts) {
 
-    this.controller.load_views_from_flat_views(viewDicts)
+    this.controller.loadViewsFromViewDicts(viewDicts)
 
-    let viewId = this.soupView.current_view.id
+    let viewId = this.soupView.currentView.id
     if (this.initViewId) {
-      if (this.initViewId in this.soupView.saved_views_by_id) {
+      if (this.initViewId in this.soupView.savedViewsByViewId) {
         viewId = this.initViewId
       }
     }
     this.updateView()
 
-    if (this.params.viewId in this.soupView.saved_views_by_id) {
-      this.controller.set_target_view_by_id(this.params.viewId)
+    if (this.params.viewId in this.soupView.savedViewsByViewId) {
+      this.controller.setTargetViewByViewId(this.params.viewId)
       this.updateView()
     }
   }
 
   saveViewsToDataServer (success) {
     this.dataServer.save_views(
-      this.controller.get_view_dicts(), success)
+      this.controller.getViewDicts(), success)
     this.soupView.changed = true
   }
 
   saveCurrView () {
     var newId = randomId()
-    this.controller.save_current_view(newId)
+    this.controller.saveCurrentView(newId)
     this.updateView()
     this.viewDiv.css('background-color', 'lightgray')
     this.saveViewsToDataServer(() => { this.viewDiv.css('background-color', '') })
   }
 
   getCurrView () {
-    var i = this.soupView.i_last_view
-    if (i in this.soupView.saved_views) {
-      var id = this.soupView.saved_views[i].id
-      return this.soupView.saved_views_by_id[id]
+    var i = this.soupView.iLastViewSelected
+    if (i in this.soupView.savedViews) {
+      var id = this.soupView.savedViews[i].id
+      return this.soupView.savedViewsByViewId[id]
     } else {
-      return this.soupView.saved_views[0]
+      return this.soupView.savedViews[0]
     }
   }
 
@@ -350,13 +369,13 @@ class EmbedJolecule {
   }
 
   deleteCurrView () {
-    var i = this.soupView.i_last_view
+    var i = this.soupView.iLastViewSelected
     if (i == 0) {
       // skip default view:000000
       return
     }
-    var id = this.soupView.saved_views[i].id
-    this.controller.delete_view(id)
+    var id = this.soupView.savedViews[i].id
+    this.controller.deleteView(id)
     this.viewDiv.css('background-color', 'lightgray')
     this.dataServer.delete_protein_view(
       id,
@@ -377,11 +396,11 @@ class EmbedJolecule {
     if (exists(this.display)) {
       this.display.animate()
       if (this.isLoop) {
-        if (this.soupView.n_update_step <= 0) {
+        if (this.soupView.nUpdateStep <= 0) {
           // loop started
-          this.soupView.n_update_step -= 1
-          if (this.soupView.n_update_step < -100) {
-            this.controller.set_target_next_view()
+          this.soupView.nUpdateStep -= 1
+          if (this.soupView.nUpdateStep < -100) {
+            this.controller.setTargetToNextView()
             this.soupView.changed = true
           }
         }
@@ -401,12 +420,12 @@ class EmbedJolecule {
   }
 
   cycleBackbone () {
-    if (this.soupView.current_view.show.all_atom) {
-      this.controller.set_backbone_option('ribbon')
-    } else if (this.soupView.current_view.show.ribbon) {
-      this.controller.set_backbone_option('trace')
-    } else if (this.soupView.current_view.show.trace) {
-      this.controller.set_backbone_option('all_atom')
+    if (this.soupView.currentView.show.backboneAtom) {
+      this.controller.setBackboneOption('ribbon')
+    } else if (this.soupView.currentView.show.ribbon) {
+      this.controller.setBackboneOption('trace')
+    } else if (this.soupView.currentView.show.trace) {
+      this.controller.setBackboneOption('backboneAtom')
     }
   }
 
@@ -428,12 +447,12 @@ class EmbedJolecule {
   }
 
   gotoPrevView () {
-    this.controller.set_target_prev_view()
+    this.controller.setTargetToPrevView()
     this.updateView()
   }
 
   gotoNextView () {
-    this.controller.set_target_next_view()
+    this.controller.setTargetToNextView()
     this.updateView()
   }
 
@@ -466,7 +485,7 @@ class EmbedJolecule {
         $('<option>').attr('value', i).text(text))
     }
 
-    let iAtom = this.soupView.current_view.i_atom
+    let iAtom = this.soupView.currentView.iAtom
     let iRes = this.soup.getAtomProxy(iAtom).iRes
     this.residueSelector.val(iRes)
   }
@@ -494,26 +513,25 @@ class EmbedJolecule {
     var saveButton = ''
     if (this.params.isEditable) {
       saveButton = linkButton(
-        'save_view', '+', 'jolecule-button', () => { this.saveCurrView() })
+        'saveView', '+', 'jolecule-button', () => { this.saveCurrView() })
     }
-
 
     this.ligButton = toggleButton(
       '', 'lig', 'jolecule-button',
-      () => this.controller.get_show_option('ligands'),
-      (b) => { this.controller.set_show_option('ligands', b) }
+      () => this.controller.getShowOption('ligands'),
+      (b) => { this.controller.setShowOption('ligands', b) }
     )
 
     this.watButton = toggleButton(
       '', 'water', 'jolecule-button',
-      () => this.controller.get_show_option('water'),
-      (b) => { this.controller.set_show_option('water', b) }
+      () => this.controller.getShowOption('water'),
+      (b) => { this.controller.setShowOption('water', b) }
     )
 
     this.hydButton = toggleButton(
       '', 'h', 'jolecule-button',
-      () => this.controller.get_show_option('hydrogen'),
-      (b) => { this.controller.set_show_option('hydrogen', b) }
+      () => this.controller.getShowOption('hydrogen'),
+      (b) => { this.controller.setShowOption('hydrogen', b) }
     )
     this.hydButton = ''
 
@@ -522,18 +540,18 @@ class EmbedJolecule {
       () => { this.cycleBackbone() })
 
     var allSidechainButton = linkButton('', 'all', 'jolecule-button',
-      () => { this.controller.set_show_option('sidechain', true) })
+      () => { this.controller.setShowOption('sidechain', true) })
 
     var clearSidechainButton = linkButton(
       '', 'x', 'jolecule-button',
       () => {
-        this.controller.set_show_option('sidechain', false)
-        this.controller.clear_selected()
+        this.controller.setShowOption('sidechain', false)
+        this.controller.clearSelectedResidues()
       })
 
     var nearSidechainButton = linkButton(
       '', 'near', 'jolecule-button',
-      () => { this.controller.toggle_neighbors() })
+      () => { this.controller.toggleResidueNeighbors() })
 
     this.residueSelector = $('<select>')
       .addClass('jolecule-residue-selector')
@@ -592,7 +610,7 @@ class EmbedJolecule {
     if (view == null) {
       return
     }
-    var nView = this.soupView.saved_views.length
+    var nView = this.soupView.savedViews.length
     var iView = view.order + 1
     this.statusText.text(' ' + iView + '/' + nView + ' ')
     var viewPiece = new ViewPiece({
@@ -633,7 +651,6 @@ class EmbedJolecule {
     if (exists(this.display)) {
       if (exists(this.display.renderer)) {
         this.display.renderer.domElement.style.height = newHeight
-        this.display.resize()
       }
       this.soupView.changed = true
     }

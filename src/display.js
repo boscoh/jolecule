@@ -9,6 +9,7 @@ import widgets from './widgets'
 import * as data from './data'
 import { interpolateCameras } from './soup'
 
+
 /**
  * Display is the main window for drawing the soup
  * in a WebGL HTML5 canvas, includes various widgets that
@@ -31,25 +32,27 @@ class Display {
   constructor (soupView, divTag, controller, isGrid, backgroundColor) {
 
     this.divTag = divTag
-    this.soupView = soupView
-    this.soup = soupView.soup
-    this.controller = controller
-
-    // stores the trace of the soup & DNA backbones, used
-    // to generate the ribbons and tubes
-    this.traces = []
-
     this.div = $(this.divTag)
     this.div.css('overflow', 'hidden')
 
-    this.nDataServer = 0
-
-    this.unitSphereGeom = new THREE.SphereGeometry(1, 8, 8)
-
     this.backgroundColor = backgroundColor
+    this.div.css('background-color', this.backgroundColor)
 
+    // input control parameters
+    this.saveMouseX = null
+    this.saveMouseY = null
+    this.saveMouseR = null
+    this.saveMouseT = null
+    this.mouseX = null
+    this.mouseY = null
+    this.mouseR = null
+    this.mouseT = null
+    this.mousePressed = false
+
+    // WebGL related properties
+
+    // div to instantiate WebGL renderer
     this.webglDivId = this.div.attr('id') + '-canvas-wrapper'
-    this.webglDivTag = '#' + this.webglDivId
     this.webglDiv = $('<div>')
       .attr('id', this.webglDivId)
       .css('overflow', 'hidden')
@@ -57,12 +60,7 @@ class Display {
       .css('background-color', '#CCC')
       .css('position', 'absolute')
     this.webglDiv.contextmenu(() => false)
-
     this.div.append(this.webglDiv)
-    this.div.css('background-color', '#CCC')
-
-    // atom radius used to display on the screen
-    this.atomRadius = 0.35
 
     // parameters for viewport
     this.camera = {
@@ -103,45 +101,47 @@ class Display {
     this.pickingMaterial = new THREE.MeshBasicMaterial(
       {vertexColors: THREE.VertexColors})
 
-    // WebGL objects that only need to build once in the life-cycle
     this.lights = []
     this.buildLights()
 
-    this.buildCrossHairs()
+    // Hooks to protein data
+    this.soupView = soupView
+    this.soup = soupView.soup
+    this.controller = controller
+    this.nDataServer = 0
+    // stores trace of protein/nucleotide backbones for ribbons
+    this.traces = []
+    // screen atom radius
+    this.atomRadius = 0.35
 
-    this.distanceWidget = new widgets.DistanceMeasuresWidget(this)
-    this.labelWidget = new widgets.AtomLabelsWidget(this)
+    // Widgets that decorate the display
     this.sequenceWidget = new widgets.SequenceWidget(this.divTag, this)
     this.zSlabWidget = new widgets.ZSlabWidget(this.divTag, this.soupView)
     this.gridControlWidget = new widgets.GridControlWidget(
       this.divTag, this.soupView, isGrid)
 
+    // Cross-hairs to identify centered atom
+    this.buildCrossHairs()
+
+    // display distance measures between atoms
+    this.distanceWidget = new widgets.DistanceMeasuresWidget(this)
+
+    // display atom labels
+    this.labelWidget = new widgets.AtomLabelsWidget(this)
+
+    // draw onscreen line for mouse dragging between atoms
+    this.lineElement = new widgets.LineElement(this.divTag, '#FF7777')
+
     // popup hover box over the mouse position
     this.hover = new widgets.PopupText(this.divTag, 'lightblue')
-    this.hover.div.css('pointer-events', 'none')
-    this.hover.arrow.css('pointer-events', 'none')
 
     // div to display processing messages
     this.messageDiv = $('<div>')
       .attr('id', 'loading-message')
       .addClass('jolecule-loading-message')
 
-    this.setProcessingMesssage('Loading data for proteins')
+    this.setProcessingMesssage('Loading data...')
 
-    this.webglDiv.css('top', this.sequenceWidget.height())
-
-    this.lineElement = new widgets.LineElement(this.divTag, '#FF7777')
-
-    // input control parametsrs
-    this.saveMouseX = null
-    this.saveMouseY = null
-    this.saveMouseR = null
-    this.saveMouseT = null
-    this.mouseX = null
-    this.mouseY = null
-    this.mouseR = null
-    this.mouseT = null
-    this.mousePressed = false
   }
 
   initWebglRenderer () {
@@ -152,10 +152,7 @@ class Display {
     let dom = this.renderer.domElement
     this.webglDiv[0].appendChild(dom)
 
-    const bind = (w, fn) => {
-      dom.addEventListener(w, fn)
-    }
-
+    const bind = (w, fn) => { dom.addEventListener(w, fn) }
     bind('mousedown', e => this.mousedown(e))
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
@@ -180,27 +177,6 @@ class Display {
     this.messageDiv.hide()
   };
 
-  /**
-   * Pause before a computeFn to allow the DOM to show a message
-   */
-  displayMessageBeforeCompute (message, computeFn) {
-    this.setProcessingMesssage(message)
-    setTimeout(computeFn, 0)
-  }
-
-  buildAfterInitialLoad () {
-    this.soupView.current_view.makeDefaultOfSoup(this.soup)
-    this.soupView.save_view(this.soupView.current_view)
-    this.soupView.changed = true
-
-    this.buildScene()
-
-  }
-
-  buildAfterAdditionalLoad () {
-    this.buildScene()
-  }
-
   calculateTracesForRibbons () {
     this.traces.length = 0
 
@@ -212,7 +188,7 @@ class Display {
     for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
       residue.iRes = iRes
       if (residue.isPolymer) {
-        if ((iRes === 0) || !this.soup.isPolymerConnected(iRes - 1, iRes)) {
+        if ((iRes === 0) || !residue.isConnectedToPrev()) {
           let newTrace = new glgeom.Trace()
           newTrace.getReference = i => {
             residue.iRes = newTrace.indices[i]
@@ -269,6 +245,11 @@ class Display {
    */
 
   buildScene () {
+    if (this.soupView.savedViews.length == 0) {
+      this.soupView.currentView.makeDefaultOfSoup(this.soup)
+      this.soupView.saveView(this.soupView.currentView)
+      this.soupView.changed = true
+    }
 
     // pre-calculations needed before building meshes
     let residue = this.soup.getResidueProxy()
@@ -283,7 +264,7 @@ class Display {
     this.buildMeshOfGrid()
     this.buildMeshOfLigands()
     this.buildMeshOfNucleotides()
-    this.buildMeshOfArrows()
+    // this.buildMeshOfArrows()
 
     this.rebuildSceneWithMeshes()
 
@@ -291,9 +272,6 @@ class Display {
     this.gridControlWidget.reset()
 
     this.soupView.updateView = true
-
-    this.resize()
-
   }
 
   /**
@@ -583,7 +561,7 @@ class Display {
     let bondIndices = []
 
     let atom = this.soup.getAtomProxy()
-    let residue = this.soup.getResidueProxy(iRes)
+    let residue = this.soup.getResidueProxy()
 
     for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
@@ -756,15 +734,15 @@ class Display {
    */
 
   setTargetViewFromAtom (iAtom) {
-    this.controller.set_target_view_by_atom(iAtom)
+    this.controller.setTargetViewByAtom(iAtom)
   }
 
   getCurrentViewCamera () {
-    return this.soupView.current_view.camera
+    return this.soupView.currentView.camera
   }
 
   rotateCameraToCurrentView () {
-    let viewCamera = this.soupView.current_view.camera
+    let viewCamera = this.soupView.currentView.camera
 
     // rotate lights to soupView orientation
     let cameraDirection = this.camera.position.clone()
@@ -836,13 +814,13 @@ class Display {
       .multiplyScalar(newZoom)
       .add(camera.focus)
 
-    let view = this.soupView.current_view.clone()
+    let view = this.soupView.currentView.clone()
     view.camera.focus = camera.focus.clone()
     view.camera.position = position
     view.camera.up = camera.up.clone().applyQuaternion(rotation)
     view.camera.zoom = newZoom
 
-    this.controller.set_current_view(view)
+    this.controller.setCurrentView(view)
   }
 
   getZ (pos) {
@@ -903,11 +881,11 @@ class Display {
   }
 
   atomLabelDialog () {
-    let i_atom = this.soupView.current_view.i_atom
-    if (i_atom >= 0) {
-      let atom = this.soup.getAtomProxy(i_atom)
+    let iAtom = this.soupView.currentView.iAtom
+    if (iAtom >= 0) {
+      let atom = this.soup.getAtomProxy(iAtom)
       let label = 'Label atom : ' + atom.label
-      let success = text => { this.controller.make_label(i_atom, text) }
+      let success = text => { this.controller.makeAtomLabel(iAtom, text) }
       util.textEntryDialog(this.div, label, success)
     }
   }
@@ -947,7 +925,7 @@ class Display {
   }
 
   updateHover () {
-    if (this.soupView.n_update_step > 1) {
+    if (this.soupView.nUpdateStep > 1) {
       this.hover.hide()
       return
     }
@@ -959,7 +937,7 @@ class Display {
       let text = atom.label
       let iAtom = atom.iAtom
       let pos = atom.pos.clone()
-      if (iAtom === this.soupView.centered_atom().iAtom) {
+      if (iAtom === this.soupView.getCenteredAtom().iAtom) {
         text = '<div style="text-align: center">'
         text += atom.label
         text += '<br>[drag distances]<br>'
@@ -985,23 +963,18 @@ class Display {
   }
 
   draw () {
-    if (_.isUndefined(this.displayMeshes)) {
-      return
-    }
     if (!this.isChanged()) {
       return
     }
 
-    this.rotateCameraToCurrentView()
-
     this.updateMeshesInScene = false
 
-    let show = this.soupView.current_view.show
+    let show = this.soupView.currentView.show
     this.setMeshVisible('tube', show.trace)
     this.setMeshVisible('water', show.water)
     this.setMeshVisible('ribbons', show.ribbon)
-    this.setMeshVisible('arrows', !show.all_atom)
-    this.setMeshVisible('backbone', show.all_atom)
+    // this.setMeshVisible('arrows', !show.backboneAtom)
+    this.setMeshVisible('backbone', show.backboneAtom)
     this.setMeshVisible('ligands', show.ligands)
 
     if (this.soupView.soup.grid.changed) {
@@ -1010,10 +983,10 @@ class Display {
       this.updateMeshesInScene = true
     }
 
-    if (this.soupView.updateSelection) {
+    if (this.soupView.updateResidueSelection) {
       this.buildSelectedResidues(show.sidechain)
+      this.soupView.updateResidueSelection = false
       this.updateMeshesInScene = true
-      this.soupView.updateSelection = false
     }
 
     if (this.updateMeshesInScene) {
@@ -1021,6 +994,8 @@ class Display {
     }
 
     this.updateCrossHairs()
+
+    this.rotateCameraToCurrentView()
 
     // needs to be drawn before render
     this.distanceWidget.draw()
@@ -1032,10 +1007,10 @@ class Display {
     }
 
     // renders visible meshes to the gpu
-    this.renderer.render(this.displayScene, this.threeJsCamera)
+    this.renderer.render(
+      this.displayScene, this.threeJsCamera)
 
     if (this.soupView.updateView) {
-      console.log('Display.draw updateView')
       this.zSlabWidget.draw()
       this.sequenceWidget.draw()
       this.gridControlWidget.draw()
@@ -1049,24 +1024,24 @@ class Display {
   }
 
   animate () {
-    if (this.soupView.target_view === null) {
+    if (this.soupView.targetView === null) {
       return
     }
 
-    this.soupView.n_update_step -= 1
-    let nStep = this.soupView.n_update_step
+    this.soupView.nUpdateStep -= 1
+    let nStep = this.soupView.nUpdateStep
     if (nStep <= 0) {
       return
     }
 
     let newCamera = interpolateCameras(
-      this.soupView.current_view.camera,
-      this.soupView.target_view.camera,
+      this.soupView.currentView.camera,
+      this.soupView.targetView.camera,
       1.0 / nStep)
 
-    let view = this.soupView.target_view.clone()
+    let view = this.soupView.targetView.clone()
     view.setCamera(newCamera)
-    this.controller.set_current_view(view)
+    this.controller.setCurrentView(view)
 
     this.updateHover()
   }
@@ -1084,19 +1059,20 @@ class Display {
     this.gridControlWidget.resize()
     this.sequenceWidget.resize()
 
+    this.webglDiv.css('left', this.x())
+    this.webglDiv.css('top', this.y())
+
     this.threeJsCamera.aspect = this.width() / this.height()
     this.threeJsCamera.updateProjectionMatrix()
 
     this.pickingTexture.setSize(this.width(), this.height())
 
     this.soupView.updateView = true
-    this.controller.flag_changed()
+    this.controller.setChangeFlag()
 
     if (util.exists(this.renderer)) {
       this.renderer.setSize(this.width(), this.height())
     }
-
-    this.draw()
 
   }
 
@@ -1161,7 +1137,7 @@ class Display {
 
   doubleclick () {
     if (this.iHoverAtom !== null) {
-      if (this.iHoverAtom === this.soupView.centered_atom().iAtom) {
+      if (this.iHoverAtom === this.soupView.getCenteredAtom().iAtom) {
         this.atomLabelDialog()
       } else {
         this.setTargetViewFromAtom(this.iHoverAtom)
@@ -1267,7 +1243,7 @@ class Display {
     if (this.isDraggingCentralAtom) {
       if (this.iHoverAtom !== null) {
         if (this.iHoverAtom !== this.iDownAtom) {
-          this.controller.make_dist(this.iHoverAtom, this.iDownAtom)
+          this.controller.makeDistance(this.iHoverAtom, this.iDownAtom)
         }
       }
 

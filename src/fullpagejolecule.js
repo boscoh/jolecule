@@ -61,26 +61,26 @@ class ViewPieceList {
   saveViewsToDataServer (success) {
     console.log('ViewPieceList.saveViewsToDataServer')
     this.data_server.save_views(
-      this.controller.get_view_dicts(), success)
+      this.controller.getViewDicts(), success)
   }
 
   updateViews () {
     for (let id in this.viewPiece) {
-      if (!(id in this.soupView.saved_views_by_id)) {
+      if (!(id in this.soupView.savedViewsByViewId)) {
         this.viewPiece[id].div.remove()
         delete this.viewPiece[id]
       }
     }
-    for (let i = 0; i < this.soupView.saved_views.length; i++) {
-      let view = this.soupView.saved_views[i]
+    for (let i = 0; i < this.soupView.savedViews.length; i++) {
+      let view = this.soupView.savedViews[i]
       let id = view.id
 
       if (!(view.id in this.viewPiece)) {
         this.insertNewViewDiv(view.id)
       }
 
-      let i_last_view = this.soupView.i_last_view
-      let last_id = this.soupView.saved_views[i_last_view].id
+      let i_last_view = this.soupView.iLastViewSelected
+      let last_id = this.soupView.savedViews[i_last_view].id
 
       if (last_id === id) {
         this.viewPiece[id].div.removeClass('jolecule-unselected-box')
@@ -109,19 +109,19 @@ class ViewPieceList {
   }
 
   setTargetByViewId (id) {
-    this.controller.set_target_view_by_id(id)
+    this.controller.setTargetViewByViewId(id)
     this.redrawSelectedViewId(id)
     window.location.hash = id
   }
 
   gotoPrevView () {
-    let id = this.controller.set_target_prev_view()
+    let id = this.controller.setTargetToPrevView()
     this.redrawSelectedViewId(id)
     window.location.hash = id
   }
 
   gotoNextView () {
-    let id = this.controller.set_target_next_view()
+    let id = this.controller.setTargetToNextView()
     this.redrawSelectedViewId(id)
     window.location.hash = id
   }
@@ -130,7 +130,7 @@ class ViewPieceList {
     console.log('ViewPieceList.removeView')
     this.viewPiece[id].div.css('background-color', 'lightgray')
     this.data_server.delete_protein_view(id, () => {
-      this.controller.delete_view(id)
+      this.controller.deleteView(id)
       this.viewPiece[id].div.remove()
       delete this.viewPiece[id]
       this.updateViews()
@@ -138,8 +138,8 @@ class ViewPieceList {
   }
 
   swapViews (i, j) {
-    let i_id = this.soupView.saved_views[i].id
-    let j_id = this.soupView.saved_views[j].id
+    let i_id = this.soupView.savedViews[i].id
+    let j_id = this.soupView.savedViews[j].id
     let i_div = this.viewPiece[i_id].div
     let j_div = this.viewPiece[j_id].div
 
@@ -157,7 +157,7 @@ class ViewPieceList {
   }
 
   swapUp (view_id) {
-    let i = this.soupView.get_i_saved_view_from_id(view_id)
+    let i = this.soupView.getIViewFromViewId(view_id)
     if (i < 2) {
       return
     }
@@ -165,15 +165,15 @@ class ViewPieceList {
   }
 
   swapDown (view_id) {
-    let i = this.soupView.get_i_saved_view_from_id(view_id)
-    if (i > this.soupView.saved_views.length - 2) {
+    let i = this.soupView.getIViewFromViewId(view_id)
+    if (i > this.soupView.savedViews.length - 2) {
       return
     }
     this.swapViews(i, i + 1)
   }
 
   makeViewDiv (id) {
-    let view = this.soupView.saved_views_by_id[id]
+    let view = this.soupView.savedViewsByViewId[id]
     this.viewPiece[id] = new ViewPiece({
       view: view,
       isEditable: this.isEditable,
@@ -206,8 +206,8 @@ class ViewPieceList {
   }
 
   makeAllViews () {
-    for (let i = 0; i < this.soupView.saved_views.length; i += 1) {
-      let id = this.soupView.saved_views[i].id
+    for (let i = 0; i < this.soupView.savedViews.length; i += 1) {
+      let id = this.soupView.savedViews[i].id
       let div = this.makeViewDiv(id)
       $('#jolecule-views').append(div)
     }
@@ -216,11 +216,11 @@ class ViewPieceList {
   insertNewViewDiv (new_id) {
     let div = this.makeViewDiv(new_id)
 
-    if (this.soupView.i_last_view === this.soupView.saved_views.length - 1) {
+    if (this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1) {
       $('#jolecule-views').append(div)
     } else {
-      let j = this.soupView.i_last_view - 1
-      let j_id = this.soupView.saved_views[j].id
+      let j = this.soupView.iLastViewSelected - 1
+      let j_id = this.soupView.savedViews[j].id
       let j_div = this.viewPiece[j_id].div
       div.insertAfter(j_div)
     }
@@ -229,7 +229,7 @@ class ViewPieceList {
   makeNewView () {
     console.log('ViewPieceList.makeNewView')
     let newId = randomId()
-    this.controller.save_current_view(newId)
+    this.controller.saveCurrentView(newId)
     this.insertNewViewDiv(newId)
     this.updateViews()
     this.viewPiece[newId].div.css('background-color', 'lightgray')
@@ -290,35 +290,38 @@ class FullPageJolecule {
     this.noData = true
   }
 
-  addDataServer (dataServer) {
-    this.embedJolecule.addDataServer(dataServer, () => {
-      if (this.noData) {
-        this.noData = false
+  async addDataServer (dataServer) {
+    await this.embedJolecule.asyncAddDataServer(dataServer)
+    this.initViewsDisplay(dataServer)
+    console.log('FullPageJolecule.addDataServer finished adding views')
+  }
 
-        this.soupView = this.embedJolecule.soupView
-        this.controller = this.embedJolecule.controller
-        this.display = this.embedJolecule.display
+  initViewsDisplay (dataServer) {
+    if (this.noData) {
+      this.noData = false
 
-        this.viewsDisplay = new ViewPieceList(
-          this.viewsDisplayTag,
-          this.controller,
-          this.display,
-          dataServer,
-          this.params.isEditable)
+      this.soupView = this.embedJolecule.soupView
+      this.controller = this.embedJolecule.controller
+      this.display = this.embedJolecule.display
 
-        this.viewsDisplay.makeAllViews()
-        let hashTag = getWindowUrl().split('#')[1]
-        if (hashTag in this.soupView.saved_views_by_id) {
-          this.viewsDisplay.setTargetByViewId(hashTag)
-        } else {
-          this.viewsDisplay.setTargetByViewId('view:000000')
-        }
-        this.viewsDisplay.updateViews()
-        console.log('FullPageJolecule.addDataServer finished adding views')
+      this.viewsDisplay = new ViewPieceList(
+        this.viewsDisplayTag,
+        this.controller,
+        this.display,
+        dataServer,
+        this.params.isEditable)
+
+      this.viewsDisplay.makeAllViews()
+      let hashTag = getWindowUrl().split('#')[1]
+      if (hashTag in this.soupView.savedViewsByViewId) {
+        this.viewsDisplay.setTargetByViewId(hashTag)
+      } else {
+        this.viewsDisplay.setTargetByViewId('view:000000')
       }
+      this.viewsDisplay.updateViews()
+    }
 
-      this.resize()
-    })
+    this.resize()
   }
 
   isChanged () {
@@ -352,11 +355,11 @@ class FullPageJolecule {
   }
 
   gotoPrevResidue () {
-    this.controller.set_target_prev_residue()
+    this.controller.setTargetToPrevResidue()
   }
 
   gotoNextResidue () {
-    this.controller.set_target_next_residue()
+    this.controller.setTargetToNextResidue()
   }
 
   onkeydown (event) {
@@ -375,35 +378,35 @@ class FullPageJolecule {
       } else if (c === ' ' || event.keyCode === 40) {
         this.viewsDisplay.gotoNextView()
       } else if (c === 'B') {
-        if (this.soupView.current_view.show.all_atom) {
-          this.controller.set_backbone_option('ribbon')
-        } else if (this.soupView.current_view.show.ribbon) {
-          this.controller.set_backbone_option('trace')
-        } else if (this.soupView.current_view.show.trace) {
-          this.controller.set_backbone_option('all_atom')
+        if (this.soupView.currentView.show.backboneAtom) {
+          this.controller.setBackboneOption('ribbon')
+        } else if (this.soupView.currentView.show.ribbon) {
+          this.controller.setBackboneOption('trace')
+        } else if (this.soupView.currentView.show.trace) {
+          this.controller.setBackboneOption('backboneAtom')
         }
       } else if (c === 'L') {
-        this.controller.toggle_show_option('ligands')
+        this.controller.toggleShowOption('ligands')
       } else if (c === 'S') {
-        this.controller.toggle_show_option('sidechain')
+        this.controller.toggleShowOption('sidechain')
       } else if (c === 'W') {
-        this.controller.toggle_show_option('water')
+        this.controller.toggleShowOption('water')
       } else if (c === 'C') {
         this.display.controller.clearSelectedResidues()
       } else if (c === 'E') {
-        let i_view = this.display.soupView.i_last_view
+        let i_view = this.display.soupView.iLastViewSelected
         if (i_view > 0) {
-          let view_id = this.display.soupView.saved_views[i_view].id
+          let view_id = this.display.soupView.savedViews[i_view].id
           this.viewsDisplay.div[view_id].edit_fn()
         }
       } else if (c === 'N') {
-        this.display.controller.toggle_neighbors()
+        this.display.controller.toggleResidueNeighbors()
       } else if (c === 'A') {
         this.display.atomLabelDialog()
       } else {
         let i = parseInt(c) - 1
-        if ((i || i === 0) && (i < this.soupView.saved_views.length)) {
-          let id = this.soupView.saved_views[i].id
+        if ((i || i === 0) && (i < this.soupView.savedViews.length)) {
+          let id = this.soupView.savedViews[i].id
           this.viewsDisplay.setTargetByViewId(id)
         }
       }

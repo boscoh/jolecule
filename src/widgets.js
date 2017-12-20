@@ -240,7 +240,8 @@ class PopupText {
         'background': 'white',
         'padding': '5',
         'opacity': 0.7,
-        'display': 'none'
+        'display': 'none',
+        'pointer-events': 'none',
       })
 
     this.arrow = $('<div>')
@@ -254,7 +255,8 @@ class PopupText {
         'border-right': '5px solid transparent',
         'border-top': '50px solid white',
         'opacity': 0.7,
-        'display': 'none'
+        'display': 'none',
+        'pointer-events': 'none'
       })
 
     this.parentDiv = $(selector)
@@ -321,7 +323,7 @@ class AtomLabelsWidget {
   removePopup (i) {
     this.popups[i].remove()
     this.popups.splice(i, 1)
-    this.controller.delete_label(i)
+    this.controller.deleteAtomLabel(i)
   }
 
   createPopup (i) {
@@ -331,7 +333,7 @@ class AtomLabelsWidget {
   }
 
   draw() {
-    let labels = this.soupView.current_view.labels
+    let labels = this.soupView.currentView.labels
 
     if (labels.length > this.popups.length) {
       for (let i = this.popups.length; i < labels.length; i += 1) {
@@ -385,7 +387,7 @@ class DistanceMeasuresWidget {
   removeDistance (i) {
     this.threeJsScene.remove(this.distanceMeasures[i].line)
     this.distanceMeasures[i].div.remove()
-    this.controller.delete_dist(i)
+    this.controller.deleteDistance(i)
     this.distanceMeasures.splice(i, 1)
   }
 
@@ -419,7 +421,7 @@ class DistanceMeasuresWidget {
   }
 
   draw() {
-    let distances = this.soupView.current_view.distances
+    let distances = this.soupView.currentView.distances
 
     if (distances.length > this.distanceMeasures.length) {
       for (let i = this.distanceMeasures.length; i < distances.length; i += 1) {
@@ -603,8 +605,6 @@ class SequenceWidget extends CanvasWrapper {
       return
     }
 
-    console.log('SequenceWidget.draw')
-
     if (this.residues.length == 0) {
       return
     }
@@ -675,7 +675,7 @@ class SequenceWidget extends CanvasWrapper {
         '8pt Monospace', 'black', 'center')
     }
 
-    let atom = this.soupView.soup.getAtomProxy(this.soupView.current_view.i_atom)
+    let atom = this.soupView.soup.getAtomProxy(this.soupView.currentView.iAtom)
     for (let iRes = this.iStartChar; iRes < this.iEndChar; iRes++) {
       if (iRes === atom.iRes) {
         this.strokeRect(
@@ -773,7 +773,7 @@ class ZSlabWidget extends CanvasWrapper {
 
   draw () {
     let protein = this.soupView.soup
-    let target = this.soupView.current_view.camera
+    let target = this.soupView.currentView.camera
     this.maxZLength = 2.0 * protein.maxLength
 
     let yBack = this.zToY(target.zBack)
@@ -829,7 +829,7 @@ class ZSlabWidget extends CanvasWrapper {
 
     this.getZ(event)
 
-    let target = this.soupView.current_view.camera
+    let target = this.soupView.currentView.camera
 
     if (this.back) {
       target.zBack = Math.max(2, this.z)

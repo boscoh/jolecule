@@ -184,5 +184,9 @@ export {
   darkPurple,
   darkGrey,
   darkRed,
-  ElementColors
+  ElementColors,
+  proteinResTypes,
+  dnaResTypes,
+  rnaResTypes
 }
+
