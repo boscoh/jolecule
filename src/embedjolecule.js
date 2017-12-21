@@ -176,10 +176,8 @@ class ViewPiece {
 }
 
 /**
-
  * EmbedJolecule - the widget that shows proteins and
  * annotations
- *
  */
 
 let defaultArgs = {
@@ -263,38 +261,40 @@ class EmbedJolecule {
     return new Promise(success => {
       dataServer.get_protein_data(async (proteinData) => {
 
-        if (proteinData.pdb_text.length == 0) {
+        let pdbText = proteinData.pdb_text
+        let pdbId = proteinData.pdb_id
+
+        if (proteinData.pdb_text.length === 0) {
           await this.display.asyncSetMesssage('Error: no soup data')
           success()
           return
         }
 
-        await this.display.asyncSetMesssage('Parsing \'' + proteinData.pdb_id + '\'')
-        this.soup.parsePdbData(proteinData.pdb_text, proteinData.pdb_id)
+        await this.display.asyncSetMesssage(`Parsing '${pdbId}'`)
+        this.soup.parsePdbData(pdbText, pdbId)
         this.soup.assignResidueSsAndCentralAtoms()
-
-        await this.display.asyncSetMesssage(
-          `Loaded ${this.soup.getAtomCount()} atoms, ${this.soup.getResidueCount()} residues.` +
-          ` Calculating bonds...`)
-        this.soup.calcBondsStrategic()
-
-        await this.display.asyncSetMesssage(
-          `Calculated ${this.soup.getBondCount()} bonds. Calculating bacbkone H-bond...`)
-        this.soup.findBackboneHbonds()
-
-        await this.display.asyncSetMesssage(`Assigning secondary structure...`)
-        this.soup.findSecondaryStructure()
-
-        await this.display.asyncSetMesssage(`Making residue labels...`)
         this.populateResidueSelector()
         this.soup.calcMaxLength()
 
+        let nAtom = this.soup.getAtomCount()
+        let nRes = this.soup.getResidueCount()
+        await this.display.asyncSetMesssage(
+          `Calculating bonds for ${nAtom} atoms, ${nRes} residues...`)
+        this.soup.calcBondsStrategic()
+
+        let nBond = this.soup.getBondCount()
+        await this.display.asyncSetMesssage(`Calculated ${nBond} bonds.`)
+        await this.display.asyncSetMesssage(`Assigning secondary structure...`)
+        this.soup.findBackboneHbonds()
+        this.soup.findSecondaryStructure()
+
         if (this.soup.parsingError) {
-          await this.display.asyncSetMesssage('Error parsing soup: ' + this.soup.parsingError)
-          success()
-          return
+          let err = this.soup.parsingError
+          await this.display.asyncSetMesssage(`Error parsing soup: ${err}`)
+        } else {
+          this.display.buildScene()
         }
-        this.display.buildScene()
+
         success()
       })
     })

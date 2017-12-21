@@ -76953,10 +76953,8 @@ var ViewPiece = function () {
 }();
 
 /**
-
  * EmbedJolecule - the widget that shows proteins and
  * annotations
- *
  */
 
 var defaultArgs = {
@@ -77071,72 +77069,77 @@ var EmbedJolecule = function () {
                 return _context3.abrupt('return', new Promise(function (success) {
                   dataServer.get_protein_data(function () {
                     var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(proteinData) {
+                      var pdbText, pdbId, nAtom, nRes, nBond, err;
                       return regeneratorRuntime.wrap(function _callee2$(_context2) {
                         while (1) {
                           switch (_context2.prev = _context2.next) {
                             case 0:
-                              if (!(proteinData.pdb_text.length == 0)) {
-                                _context2.next = 5;
+                              pdbText = proteinData.pdb_text;
+                              pdbId = proteinData.pdb_id;
+
+                              if (!(proteinData.pdb_text.length === 0)) {
+                                _context2.next = 7;
                                 break;
                               }
 
-                              _context2.next = 3;
+                              _context2.next = 5;
                               return _this5.display.asyncSetMesssage('Error: no soup data');
 
-                            case 3:
+                            case 5:
                               success();
                               return _context2.abrupt('return');
 
-                            case 5:
-                              _context2.next = 7;
-                              return _this5.display.asyncSetMesssage('Parsing \'' + proteinData.pdb_id + '\'');
-
                             case 7:
-                              _this5.soup.parsePdbData(proteinData.pdb_text, proteinData.pdb_id);
+                              _context2.next = 9;
+                              return _this5.display.asyncSetMesssage('Parsing \'' + pdbId + '\'');
+
+                            case 9:
+                              _this5.soup.parsePdbData(pdbText, pdbId);
                               _this5.soup.assignResidueSsAndCentralAtoms();
-
-                              _context2.next = 11;
-                              return _this5.display.asyncSetMesssage('Loaded ' + _this5.soup.getAtomCount() + ' atoms, ' + _this5.soup.getResidueCount() + ' residues.' + ' Calculating bonds...');
-
-                            case 11:
-                              _this5.soup.calcBondsStrategic();
-
-                              _context2.next = 14;
-                              return _this5.display.asyncSetMesssage('Calculated ' + _this5.soup.getBondCount() + ' bonds. Calculating bacbkone H-bond...');
-
-                            case 14:
-                              _this5.soup.findBackboneHbonds();
-
-                              _context2.next = 17;
-                              return _this5.display.asyncSetMesssage('Assigning secondary structure...');
-
-                            case 17:
-                              _this5.soup.findSecondaryStructure();
-
-                              _context2.next = 20;
-                              return _this5.display.asyncSetMesssage('Making residue labels...');
-
-                            case 20:
                               _this5.populateResidueSelector();
                               _this5.soup.calcMaxLength();
 
+                              nAtom = _this5.soup.getAtomCount();
+                              nRes = _this5.soup.getResidueCount();
+                              _context2.next = 17;
+                              return _this5.display.asyncSetMesssage('Calculating bonds for ' + nAtom + ' atoms, ' + nRes + ' residues...');
+
+                            case 17:
+                              _this5.soup.calcBondsStrategic();
+
+                              nBond = _this5.soup.getBondCount();
+                              _context2.next = 21;
+                              return _this5.display.asyncSetMesssage('Calculated ' + nBond + ' bonds.');
+
+                            case 21:
+                              _context2.next = 23;
+                              return _this5.display.asyncSetMesssage('Assigning secondary structure...');
+
+                            case 23:
+                              _this5.soup.findBackboneHbonds();
+                              _this5.soup.findSecondaryStructure();
+
                               if (!_this5.soup.parsingError) {
-                                _context2.next = 27;
+                                _context2.next = 31;
                                 break;
                               }
 
-                              _context2.next = 25;
-                              return _this5.display.asyncSetMesssage('Error parsing soup: ' + _this5.soup.parsingError);
-
-                            case 25:
-                              success();
-                              return _context2.abrupt('return');
-
-                            case 27:
-                              _this5.display.buildScene();
-                              success();
+                              err = _this5.soup.parsingError;
+                              _context2.next = 29;
+                              return _this5.display.asyncSetMesssage('Error parsing soup: ' + err);
 
                             case 29:
+                              _context2.next = 32;
+                              break;
+
+                            case 31:
+                              _this5.display.buildScene();
+
+                            case 32:
+
+                              success();
+
+                            case 33:
                             case 'end':
                               return _context2.stop();
                           }
@@ -87352,9 +87355,10 @@ var Display = function () {
     this.atomRadius = 0.35;
 
     // Widgets that decorate the display
-    this.sequenceWidget = new _widgets2.default.SequenceWidget(this.divTag, this);
-    this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.divTag, this.soupView);
-    this.gridControlWidget = new _widgets2.default.GridControlWidget(this.divTag, this.soupView, isGrid);
+    this.sequenceWidget = new _widgets2.default.SequenceWidget(this);
+    this.zSlabWidget = new _widgets2.default.ZSlabWidget(this);
+    this.isGrid = isGrid;
+    this.gridControlWidget = new _widgets2.default.GridControlWidget(this);
 
     // Cross-hairs to identify centered atom
     this.buildCrossHairs();
@@ -89683,10 +89687,10 @@ var DistanceMeasuresWidget = function () {
 var SequenceWidget = function (_CanvasWrapper) {
   _inherits(SequenceWidget, _CanvasWrapper);
 
-  function SequenceWidget(selector, proteinDisplay) {
+  function SequenceWidget(proteinDisplay) {
     _classCallCheck(this, SequenceWidget);
 
-    var _this4 = _possibleConstructorReturn(this, (SequenceWidget.__proto__ || Object.getPrototypeOf(SequenceWidget)).call(this, selector));
+    var _this4 = _possibleConstructorReturn(this, (SequenceWidget.__proto__ || Object.getPrototypeOf(SequenceWidget)).call(this, proteinDisplay.divTag));
 
     _this4.display = proteinDisplay;
     _this4.soupView = proteinDisplay.soupView;
@@ -89948,12 +89952,12 @@ var SequenceWidget = function (_CanvasWrapper) {
 var ZSlabWidget = function (_CanvasWrapper2) {
   _inherits(ZSlabWidget, _CanvasWrapper2);
 
-  function ZSlabWidget(selector, scene) {
+  function ZSlabWidget(soupDisplay) {
     _classCallCheck(this, ZSlabWidget);
 
-    var _this5 = _possibleConstructorReturn(this, (ZSlabWidget.__proto__ || Object.getPrototypeOf(ZSlabWidget)).call(this, selector));
+    var _this5 = _possibleConstructorReturn(this, (ZSlabWidget.__proto__ || Object.getPrototypeOf(ZSlabWidget)).call(this, soupDisplay.divTag));
 
-    _this5.soupView = scene;
+    _this5.soupView = soupDisplay.soupView;
     _this5.maxZLength = 0.0;
     _this5.yOffset = 60;
     _this5.div.attr('id', 'zslab');
@@ -90089,13 +90093,13 @@ var ZSlabWidget = function (_CanvasWrapper2) {
 var GridControlWidget = function (_CanvasWrapper3) {
   _inherits(GridControlWidget, _CanvasWrapper3);
 
-  function GridControlWidget(selector, scene, isGrid) {
+  function GridControlWidget(display) {
     _classCallCheck(this, GridControlWidget);
 
-    var _this6 = _possibleConstructorReturn(this, (GridControlWidget.__proto__ || Object.getPrototypeOf(GridControlWidget)).call(this, selector));
+    var _this6 = _possibleConstructorReturn(this, (GridControlWidget.__proto__ || Object.getPrototypeOf(GridControlWidget)).call(this, display.divTag));
 
-    _this6.isGrid = isGrid;
-    _this6.soupView = scene;
+    _this6.isGrid = display.isGrid;
+    _this6.soupView = display.soupView;
     _this6.buttonHeight = 40;
     _this6.sliderHeight = _this6.buttonHeight * 6 - 50;
     _this6.div.attr('id', 'grid-control');

@@ -112,10 +112,10 @@ class Display {
     this.atomRadius = 0.35
 
     // Widgets that decorate the display
-    this.sequenceWidget = new widgets.SequenceWidget(this.divTag, this)
-    this.zSlabWidget = new widgets.ZSlabWidget(this.divTag, this.soupView)
-    this.gridControlWidget = new widgets.GridControlWidget(
-      this.divTag, this.soupView, isGrid)
+    this.sequenceWidget = new widgets.SequenceWidget(this)
+    this.zSlabWidget = new widgets.ZSlabWidget(this)
+    this.isGrid = isGrid
+    this.gridControlWidget = new widgets.GridControlWidget(this)
 
     // Cross-hairs to identify centered atom
     this.buildCrossHairs()

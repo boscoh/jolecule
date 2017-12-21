@@ -494,8 +494,8 @@ class DistanceMeasuresWidget {
  */
 
 class SequenceWidget extends CanvasWrapper {
-  constructor (selector, proteinDisplay) {
-    super(selector)
+  constructor (proteinDisplay) {
+    super(proteinDisplay.divTag)
 
     this.display = proteinDisplay
     this.soupView = proteinDisplay.soupView
@@ -721,9 +721,9 @@ class SequenceWidget extends CanvasWrapper {
  */
 
 class ZSlabWidget extends CanvasWrapper {
-  constructor (selector, scene) {
-    super(selector)
-    this.soupView = scene
+  constructor (soupDisplay) {
+    super(soupDisplay.divTag)
+    this.soupView = soupDisplay.soupView
     this.maxZLength = 0.0
     this.yOffset = 60
     this.div.attr('id', 'zslab')
@@ -847,10 +847,10 @@ class ZSlabWidget extends CanvasWrapper {
  */
 
 class GridControlWidget extends CanvasWrapper {
-  constructor (selector, scene, isGrid) {
-    super(selector)
-    this.isGrid = isGrid
-    this.soupView = scene
+  constructor (display) {
+    super(display.divTag)
+    this.isGrid = display.isGrid
+    this.soupView = display.soupView
     this.buttonHeight = 40
     this.sliderHeight = this.buttonHeight * 6 - 50
     this.div.attr('id', 'grid-control')
