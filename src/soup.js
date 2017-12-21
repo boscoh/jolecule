@@ -117,7 +117,15 @@ class AtomProxy {
   }
 
   get label () {
-    return this.soup.resIds[this.iRes] + ' - ' + this.atomType
+    let iResType = this.soup.residueStore.iResType[this.iRes]
+    let resType = this.soup.resTypeTable[iResType]
+    let label =this.soup.resIds[this.iRes] +
+      ':' + resType +
+      ':' + this.atomType
+    if (this.alt) {
+      label += ':' + this.alt
+    }
+    return label
   }
 
   getBondIndices () {
@@ -778,7 +786,7 @@ class Soup {
       }
     }
 
-    return result
+    this.conhPartners = result
   }
 
   /**
@@ -794,7 +802,7 @@ class Soup {
    * - R - non-standard nucleotide
    */
   findSecondaryStructure () {
-    let conhPartners = this.findBackboneHbonds()
+    let conhPartners = this.conhPartners
     let residueNormals = {}
 
     let nRes = this.getResidueCount()
@@ -817,16 +825,38 @@ class Soup {
       return v3.diff(atom0.pos, atom1.pos)
     }
 
+    // Collect ca atoms
+    let vertices = []
+    let atomIndices = []
+    let resIndices = []
+    for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
+      residue0.iRes = iRes
+      if (residue0.isPolymer) {
+        let a = residue0.getAtom('CA')
+        if (a !== null) {
+          vertices.push([a.pos.x, a.pos.y, a.pos.z])
+          atomIndices.push(a.iAtom)
+          resIndices.push(iRes)
+        }
+      }
+    }
+
     for (let iRes0 = 0; iRes0 < nRes; iRes0 += 1) {
 
       residue0.iRes = iRes0
-      if (_.includes('DR', residue0.ss)) {
+
+      if (!residue0.isPolymer) {
+        continue
+      }
+
+      if (residue0.ss === 'D') {
         pushToListInDict(
-          residueNormals, iRes0, residue0.getNucleotideNormal())}
+          residueNormals, iRes0, residue0.getNucleotideNormal())
+        continue
+      }
 
       // alpha-helix
-      if (isCONH(iRes0, iRes0 + 4) &&
-        isCONH(iRes0 + 1, iRes0 + 5)) {
+      if (isCONH(iRes0, iRes0 + 4) && isCONH(iRes0 + 1, iRes0 + 5)) {
         let normal0 = vecBetweenResidues(iRes0, iRes0 + 4)
         let normal1 = vecBetweenResidues(iRes0 + 1, iRes0 + 5)
         for (let iRes1 = iRes0 + 1; iRes1 < iRes0 + 5; iRes1 += 1) {
@@ -837,8 +867,7 @@ class Soup {
       }
 
       // 3-10 helix
-      if (isCONH(iRes0, iRes0 + 3) &&
-        isCONH(iRes0 + 1, iRes0 + 4)) {
+      if (isCONH(iRes0, iRes0 + 3) && isCONH(iRes0 + 1, iRes0 + 4)) {
         let normal1 = vecBetweenResidues(iRes0, iRes0 + 3)
         let normal2 = vecBetweenResidues(iRes0 + 1, iRes0 + 4)
         for (let iRes1 = iRes0 + 1; iRes1 < iRes0 + 4; iRes1 += 1) {
@@ -847,47 +876,44 @@ class Soup {
           pushToListInDict(residueNormals, iRes1, normal2)
         }
       }
+    }
 
-      for (let iRes1 = iRes0 + 1; iRes1 < nRes; iRes1 += 1) {
-
-        if ((Math.abs(iRes0 - iRes1) <= 5)) {
-          continue
-        }
-
-        let betaResidues = []
-
-        // parallel beta sheet pairs
-        if (isCONH(iRes0, iRes1 + 1) &&
-          isCONH(iRes1 - 1, iRes0)) {
-          betaResidues = betaResidues.concat([iRes0, iRes1])
-        }
-        if (isCONH(iRes0 - 1, iRes1) &&
-          isCONH(iRes1, iRes0 + 1)) {
-          betaResidues = betaResidues.concat([iRes0, iRes1])
-        }
-
-        // anti-parallel hbonded beta sheet pairs
-        if (isCONH(iRes0, iRes1) &&
-          isCONH(iRes1, iRes0)) {
-          betaResidues = betaResidues.concat([iRes0, iRes1])
-          let normal = vecBetweenResidues(iRes0, iRes1)
-          pushToListInDict(residueNormals, iRes0, normal)
-          pushToListInDict(residueNormals, iRes1, v3.scaled(normal, -1))
-        }
-
-        // anti-parallel non-hbonded beta sheet pairs
-        if (isCONH(iRes0 - 1, iRes1 + 1) &&
-          isCONH(iRes1 - 1, iRes0 + 1)) {
-          betaResidues = betaResidues.concat([iRes0, iRes1])
-          let normal = vecBetweenResidues(iRes0, iRes1)
-          pushToListInDict(residueNormals, iRes0, v3.scaled(normal, -1))
-          pushToListInDict(residueNormals, iRes1, normal)
-        }
-
-        for (let iRes3 of betaResidues) {
-          residue0.load(iRes3).ss = 'E'
-        }
+    let betaResidues = []
+    let spaceHash = new SpaceHash(vertices)
+    for (let pair of spaceHash.getClosePairs()) {
+      let [iVertex0, iVertex1] = pair
+      let iRes0 = resIndices[iVertex0]
+      let iRes1 = resIndices[iVertex1]
+      if ((Math.abs(iRes0 - iRes1) <= 5)) {
+        continue
       }
+      // parallel beta sheet pairs
+      if (isCONH(iRes0, iRes1 + 1) && isCONH(iRes1 - 1, iRes0)) {
+        betaResidues = betaResidues.concat([iRes0, iRes1])
+      }
+      if (isCONH(iRes0 - 1, iRes1) && isCONH(iRes1, iRes0 + 1)) {
+        betaResidues = betaResidues.concat([iRes0, iRes1])
+      }
+
+      // anti-parallel hbonded beta sheet pairs
+      if (isCONH(iRes0, iRes1) && isCONH(iRes1, iRes0)) {
+        betaResidues = betaResidues.concat([iRes0, iRes1])
+        let normal = vecBetweenResidues(iRes0, iRes1)
+        pushToListInDict(residueNormals, iRes0, normal)
+        pushToListInDict(residueNormals, iRes1, v3.scaled(normal, -1))
+      }
+
+      // anti-parallel non-hbonded beta sheet pairs
+      if (isCONH(iRes0 - 1, iRes1 + 1) && isCONH(iRes1 - 1, iRes0 + 1)) {
+        betaResidues = betaResidues.concat([iRes0, iRes1])
+        let normal = vecBetweenResidues(iRes0, iRes1)
+        pushToListInDict(residueNormals, iRes0, v3.scaled(normal, -1))
+        pushToListInDict(residueNormals, iRes1, normal)
+      }
+    }
+
+    for (let iRes of betaResidues) {
+      residue0.load(iRes).ss = 'E'
     }
 
     // average residueNormals to make a nice average
@@ -1031,57 +1057,29 @@ class Soup {
 }
 
 /**
- *
  * View
  * ----
  * A view includes all pertinent viewing options
  * needed to render the soup in the way
  * for the user.
  *
- * JolyCamera stores information about
- * the direction and zoom that a soup
- * should be viewed
- *
- * Inside a view are two cameras as a camera is
- * defined in terms of an existing frame of
- * reference. The first camera refers to the
- * currentView camera.
- *
- * The absolute camera is expressed with respect
- * to the original frame of coordinate of the PDB.
- *
- * Converts JolyCamera to Target, the view structure for
- * Display
- *
- * JolyCamera {
- *    pos: soupView center, camera focus
- *    up: gives the direction of the y vector from pos
- *    in: gives the positive z-axis direction
- *    zFront: clipping plane in front of the camera focus
- *    zBack: clipping plane behind the camera focus
+ * cameraParams stores the direction and zoom that a soup
+ * should be viewed:
+ * cameraParams {
+ *   focus: position that cameraParams is looking at
+ *   position: position of cameraParams - distance away gives zoom
+ *   up: vector direction denoting the up direction of cameraParams
+ *   zFront: clipping plane in front of the cameraParams focus
+ *   zBack: clipping plane behind the cameraParams focus
  * }
  *
- * camera {
- *    focus: position that camera is looking at
- *    position: position of camera - distance away gives zoom
- *    up: vector direction denoting the up direction of camera
- *    zFront: clipping plane in front of the camera focus
- *    zBack: clipping plane behind the camera focus
- * }
- *
- * Coordinates
- * - JolyCamera
- *     - soupView is from 0 to positive z; since canvasjolecule draws +z into screen
- *     - as opengl +z is out of screen, need to flip z direction
- *     - in opengl, the box is -1 to 1 that gets projected on screen + perspective
- *     - by adding a i distance to move the camera further into -z
- *     - z_front and z_back define cutoffs
- * - opengl:
- *     - x right -> left
- *     - y bottom -> top (inverse of classic 2D coordinate)
- *     - z far -> near
- *     - that is positive Z direction is out of the screen
- *     - box -1to +1
+ * OpenGL notes:
+ *   - box is -1 to 1 that gets projected on screen + perspective
+ *   - x right -> left
+ *   - y bottom -> top (inverse of classic 2D coordinate)
+ *   - z far -> near
+ *   - that is positive Z direction is out of the screen
+ *   - box -1 to +1
  */
 class View {
 
@@ -1089,7 +1087,7 @@ class View {
     this.id = 'view:000000'
     this.iAtom = -1
     this.order = 1
-    this.camera = {
+    this.cameraParams = {
       focus: v3.create(0, 0, 0),
       position: v3.create(0, 0, -1),
       up: v3.create(0, 1, 0),
@@ -1115,8 +1113,8 @@ class View {
     }
   }
 
-  setCamera (camera) {
-    this.camera = camera
+  setCamera (cameraParams) {
+    this.cameraParams = cameraParams
   }
 
   makeDefaultOfSoup (soup) {
@@ -1125,13 +1123,13 @@ class View {
 
     this.show.sidechain = false
 
-    this.camera.zFront = -soup.maxLength / 2
-    this.camera.zBack = soup.maxLength / 2
-    this.camera.zoom = Math.abs(soup.maxLength) * 1.75
-    this.camera.up = v3.create(0, 1, 0)
-    this.camera.focus.copy(atom.pos)
-    this.camera.position = v3
-      .create(0, 0, -this.camera.zoom).add(atom.pos)
+    this.cameraParams.zFront = -soup.maxLength / 2
+    this.cameraParams.zBack = soup.maxLength / 2
+    this.cameraParams.zoom = Math.abs(soup.maxLength) * 1.75
+    this.cameraParams.up = v3.create(0, 1, 0)
+    this.cameraParams.focus.copy(atom.pos)
+    this.cameraParams.position = v3
+      .create(0, 0, -this.cameraParams.zoom).add(atom.pos)
 
     this.order = 0
     this.text = soup.title
@@ -1140,9 +1138,9 @@ class View {
 
   getViewTranslatedTo (pos) {
     let view = this.clone()
-    let disp = pos.clone().sub(view.camera.focus)
-    view.camera.focus.copy(pos)
-    view.camera.position.add(disp)
+    let disp = pos.clone().sub(view.cameraParams.focus)
+    view.cameraParams.focus.copy(pos)
+    view.cameraParams.position.add(disp)
     return view
   }
 
@@ -1157,20 +1155,26 @@ class View {
     v.text = this.text
     v.time = this.time
     v.url = this.url
-    v.camera = _.cloneDeep(this.camera)
+    v.cameraParams = _.cloneDeep(this.cameraParams)
     v.show = _.cloneDeep(this.show)
     return v
   }
 
   getDict () {
-
-    let cameraDir = this.camera.focus.clone()
-      .sub(this.camera.position)
+    // version 2.0 camera dict structure {
+    //    pos: soupView center, cameraParams focus
+    //    up: gives the direction of the y vector from pos
+    //    in: gives the positive z-axis direction
+    //    zFront: clipping plane in front of the cameraParams focus
+    //    zBack: clipping plane behind the cameraParams focus
+    // }
+    let cameraDir = this.cameraParams.focus.clone()
+      .sub(this.cameraParams.position)
     let zoom = cameraDir.length()
     cameraDir.normalize()
-    let pos = this.camera.focus
+    let pos = this.cameraParams.focus
     let in_v = pos.clone().add(cameraDir)
-    let up_v = pos.clone().sub(this.camera.up)
+    let up_v = pos.clone().sub(this.cameraParams.up)
 
     let show = _.clone(this.show)
     show.all_atom = show.backboneAtom
@@ -1190,8 +1194,8 @@ class View {
       distances: this.distances,
       camera: {
         slab: {
-          z_front: this.camera.zFront,
-          z_back: this.camera.zBack,
+          z_front: this.cameraParams.zFront,
+          z_back: this.cameraParams.zBack,
           zoom: zoom
         },
         pos: [pos.x, pos.y, pos.z],
@@ -1257,7 +1261,7 @@ class View {
       .sub(focus)
       .negate()
 
-    this.camera = {
+    this.cameraParams = {
       focus: focus,
       position: position,
       up: up,
@@ -1328,7 +1332,7 @@ class SoupView {
     // the soup data for the soupView
     this.soup = soup
 
-    // stores the current camera, display
+    // stores the current cameraParams, display
     // options, distances, labels, selected
     // residues
     this.currentView = new View()
@@ -1424,15 +1428,13 @@ class Controller {
     this.soupView.changed = true
   }
 
-  makeDistance (iAtom1, iAtom2) {
-    this.soupView.currentView.distances.push(
-      {'i_atom1': iAtom1, 'i_atom2': iAtom2})
+  makeDistance (i_atom1, i_atom2) {
+    this.soupView.currentView.distances.push({i_atom1, i_atom2})
     this.soupView.changed = true
   }
 
-  makeAtomLabel (iAtom, text) {
-    this.soupView.currentView.labels.push(
-      {'i_atom': iAtom, 'text': text})
+  makeAtomLabel (i_atom, text) {
+    this.soupView.currentView.labels.push({i_atom, text})
     this.soupView.changed = true
   }
 

@@ -377,7 +377,7 @@ class DistanceMeasuresWidget {
 
   constructor(display) {
     this.distanceMeasures = []
-    this.threeJsScene = display.displayScene
+    this.scene = display.displayScene
     this.soupView = display.soupView
     this.controller = display.controller
     this.display = display
@@ -385,7 +385,7 @@ class DistanceMeasuresWidget {
   }
 
   removeDistance (i) {
-    this.threeJsScene.remove(this.distanceMeasures[i].line)
+    this.scene.remove(this.distanceMeasures[i].line)
     this.distanceMeasures[i].div.remove()
     this.controller.deleteDistance(i)
     this.distanceMeasures.splice(i, 1)
@@ -415,7 +415,7 @@ class DistanceMeasuresWidget {
       linewidth: 2
     })
     let line = new THREE.Line(geometry, material)
-    this.threeJsScene.add(line)
+    this.scene.add(line)
 
     return { line, div }
   }
@@ -773,11 +773,11 @@ class ZSlabWidget extends CanvasWrapper {
 
   draw () {
     let protein = this.soupView.soup
-    let target = this.soupView.currentView.camera
+    let cameraParams = this.soupView.currentView.cameraParams
     this.maxZLength = 2.0 * protein.maxLength
 
-    let yBack = this.zToY(target.zBack)
-    let yFront = this.zToY(target.zFront)
+    let yBack = this.zToY(cameraParams.zBack)
+    let yFront = this.zToY(cameraParams.zFront)
     let yMid = this.zToY(0)
 
     this.fillRect(
@@ -829,12 +829,12 @@ class ZSlabWidget extends CanvasWrapper {
 
     this.getZ(event)
 
-    let target = this.soupView.currentView.camera
+    let cameraParams = this.soupView.currentView.cameraParams
 
     if (this.back) {
-      target.zBack = Math.max(2, this.z)
+      cameraParams.zBack = Math.max(2, this.z)
     } else if (this.front) {
-      target.zFront = Math.min(-2, this.z)
+      cameraParams.zFront = Math.min(-2, this.z)
     }
 
     this.soupView.changed = true

@@ -7,14 +7,8 @@ import {
   linkButton,
   toggleButton,
   randomId,
+  delay
 } from './util.js'
-import BitArray from './bitarray'
-
-
-function delay (timeMs) {
-  return new Promise(resolve => { setTimeout(resolve, timeMs) })
-}
-
 
 class ViewPiece {
   /**
@@ -243,62 +237,67 @@ class EmbedJolecule {
 
   async asyncLoadViews (dataServer) {
     return new Promise(success => {
-      dataServer.get_views(view_dicts => {
-        this.loadViewsFromDataServer(view_dicts)
+      dataServer.get_views(viewDicts => {
+
+        this.controller.loadViewsFromViewDicts(viewDicts)
+
+        let viewId = this.soupView.currentView.id
+        if (this.initViewId) {
+          if (this.initViewId in this.soupView.savedViewsByViewId) {
+            viewId = this.initViewId
+          }
+        }
+        this.updateView()
+
+        if (this.params.viewId in this.soupView.savedViewsByViewId) {
+          this.controller.setTargetViewByViewId(this.params.viewId)
+          this.updateView()
+        }
+
         success()
       })
     })
   }
 
   async asyncLoadSoup (dataServer) {
-
     return new Promise(success => {
-
       dataServer.get_protein_data(async (proteinData) => {
 
         if (proteinData.pdb_text.length == 0) {
-          this.display.setProcessingMesssage('Error: no soup data')
-          this.isProcessing.flag = false
+          await this.display.asyncSetMesssage('Error: no soup data')
           success()
           return
         }
 
-        this.display.setProcessingMesssage('Parsing \'' + proteinData.pdb_id + '\'')
-        await delay(0)
-
+        await this.display.asyncSetMesssage('Parsing \'' + proteinData.pdb_id + '\'')
         this.soup.parsePdbData(proteinData.pdb_text, proteinData.pdb_id)
-
         this.soup.assignResidueSsAndCentralAtoms()
 
-        this.display.setProcessingMesssage(
+        await this.display.asyncSetMesssage(
           `Loaded ${this.soup.getAtomCount()} atoms, ${this.soup.getResidueCount()} residues.` +
           ` Calculating bonds...`)
-        await delay(0)
-
         this.soup.calcBondsStrategic()
 
-        this.display.setProcessingMesssage(
-          `Calculated ${this.soup.getBondCount()} bonds. Calculating secondary structure...`)
-        await delay(0)
+        await this.display.asyncSetMesssage(
+          `Calculated ${this.soup.getBondCount()} bonds. Calculating bacbkone H-bond...`)
+        this.soup.findBackboneHbonds()
 
-        this.soup.calcMaxLength()
-
+        await this.display.asyncSetMesssage(`Assigning secondary structure...`)
         this.soup.findSecondaryStructure()
 
+        await this.display.asyncSetMesssage(`Making residue labels...`)
         this.populateResidueSelector()
+        this.soup.calcMaxLength()
 
         if (this.soup.parsingError) {
-          this.display.setProcessingMesssage('Error parsing soup: ' + this.soup.parsingError)
-          this.isProcessing.flag = false
+          await this.display.asyncSetMesssage('Error parsing soup: ' + this.soup.parsingError)
           success()
           return
         }
         this.display.buildScene()
         success()
       })
-
     })
-
   }
 
   async asyncAddDataServer (dataServer) {
@@ -306,33 +305,19 @@ class EmbedJolecule {
       await delay(100)
     }
     this.isProcessing.flag = true
+
     await this.asyncLoadSoup(dataServer)
-    this.display.cleanupProcessingMessage()
+
     this.display.nDataServer += 1
+
     if (this.display.nDataServer === 1) {
-      this.display.setProcessingMesssage('Loading views...')
-      await delay(0)
+      await this.display.asyncSetMesssage('Loading views...')
       await this.asyncLoadViews(dataServer)
-      this.display.cleanupProcessingMessage()
     }
+
+    this.display.cleanupMessage()
+
     this.isProcessing.flag = false
-  }
-
-  loadViewsFromDataServer (viewDicts) {
-    this.controller.loadViewsFromViewDicts(viewDicts)
-
-    let viewId = this.soupView.currentView.id
-    if (this.initViewId) {
-      if (this.initViewId in this.soupView.savedViewsByViewId) {
-        viewId = this.initViewId
-      }
-    }
-    this.updateView()
-
-    if (this.params.viewId in this.soupView.savedViewsByViewId) {
-      this.controller.setTargetViewByViewId(this.params.viewId)
-      this.updateView()
-    }
   }
 
   saveViewsToDataServer (success) {

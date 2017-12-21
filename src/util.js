@@ -5,15 +5,12 @@
  *
  */
 
+import $ from 'jquery'
+import _ from 'lodash'
 
-import $ from "jquery";
-import _ from "lodash";
-
-
-function exists(x) {
-  return !(_.isUndefined(x)) && (x !== null);
+function exists (x) {
+  return !(_.isUndefined(x)) && (x !== null)
 }
-
 
 function extendArray (array, extension) {
   for (let elem of extension) {
@@ -21,169 +18,155 @@ function extendArray (array, extension) {
   }
 }
 
-
-function getWindowUrl() {
-  return "" + window.location;
+function getWindowUrl () {
+  return '' + window.location
 }
 
-
-function getDomPosition(dom) {
-  let currDom = dom;
-  let currLeft = 0;
-  let currTop = 0;
+function getDomPosition (dom) {
+  let currDom = dom
+  let currLeft = 0
+  let currTop = 0
   if (currDom.offsetParent) {
-    currLeft = currDom.offsetLeft;
-    currTop = currDom.offsetTop;
+    currLeft = currDom.offsetLeft
+    currTop = currDom.offsetTop
     while (currDom = currDom.offsetParent) {
-      currLeft += currDom.offsetLeft;
-      currTop += currDom.offsetTop;
+      currLeft += currDom.offsetLeft
+      currTop += currDom.offsetTop
     }
   }
-  currDom = dom;
+  currDom = dom
   do {
-    currLeft -= currDom.scrollLeft || 0;
-    currTop -= currDom.scrollTop || 0;
-  } while (currDom = currDom.parentNode);
-  return [currLeft, currTop];
+    currLeft -= currDom.scrollLeft || 0
+    currTop -= currDom.scrollTop || 0
+  } while (currDom = currDom.parentNode)
+  return [currLeft, currTop]
 }
 
-
-function linkButton(idTag, text, classTag, callback) {
-  let item = 
+function linkButton (idTag, text, classTag, callback) {
+  let item =
     $('<a>')
       .attr('id', idTag)
       .attr('href', '')
-      .html(text);
+      .html(text)
 
   if (classTag) {
-    item.addClass(classTag);
+    item.addClass(classTag)
   }
 
   if (callback) {
     item.on(' click touch ',
-      function(e) { 
-        e.preventDefault();
-        callback(); 
+      function (e) {
+        e.preventDefault()
+        callback()
       }
-    );
+    )
   }
 
-  return item;
+  return item
 }
 
-
-function toggleButton(
-  idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
+function toggleButton (idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
 
   let item =
     $('<a>')
       .attr('id', idTag)
       .attr('href', '')
-      .html(text);
+      .html(text)
 
-  function color() {
+  function color () {
     if (getToggleFn()) {
       if (onColor) {
-        item.css('background-color', onColor);
+        item.css('background-color', onColor)
       } else {
-        item.addClass('jolecule-button-toggle-on');
+        item.addClass('jolecule-button-toggle-on')
       }
     } else {
       if (onColor) {
-        item.css('background-color', '');
+        item.css('background-color', '')
       } else {
-        item.removeClass('jolecule-button-toggle-on');
+        item.removeClass('jolecule-button-toggle-on')
       }
     }
   }
 
   if (classTag) {
-    item.addClass(classTag);
+    item.addClass(classTag)
   }
 
   item.click(
-    function(e) {
-      e.preventDefault();
-      setToggleFn(!getToggleFn()); 
-      color();
-      return false; 
+    function (e) {
+      e.preventDefault()
+      setToggleFn(!getToggleFn())
+      color()
+      return false
     }
-  );
+  )
 
-  item.redraw = color;
+  item.redraw = color
 
-  color();
-  
-  return item;
+  color()
+
+  return item
 }
 
-
-
-
-function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
+function stickJqueryDivInTopLeft (parent, target, xOffset, yOffset) {
   target.css({
-    'position':'absolute',
-    'z-index':'9000'
-  });
-  let top = parent.position().top;
-  let left = parent.position().left;
-  parent.append(target);
+    'position': 'absolute',
+    'z-index': '9000'
+  })
+  let top = parent.position().top
+  let left = parent.position().left
+  parent.append(target)
   target.css({
-      'top': top + yOffset,
-      'left': left + xOffset
-  });
+    'top': top + yOffset,
+    'left': left + xOffset
+  })
 }
 
-
-function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
+function stickJqueryDivInCenter (parent, target, xOffset, yOffset) {
   target.css({
-    'position':'absolute',
-    'z-index':'9000'
-  });
-  let top = parent.position().top;
-  let left = parent.position().left;
-  let widthParent = parent.outerWidth();
-  let heightParent = parent.outerHeight();
-  parent.prepend(target);
-  let widthTarget = target.outerWidth();
-  let heightTarget = target.outerHeight();
+    'position': 'absolute',
+    'z-index': '9000'
+  })
+  let top = parent.position().top
+  let left = parent.position().left
+  let widthParent = parent.outerWidth()
+  let heightParent = parent.outerHeight()
+  parent.prepend(target)
+  let widthTarget = target.outerWidth()
+  let heightTarget = target.outerHeight()
   target.css({
-      'top': top + heightParent/2 - heightTarget/2 - yOffset,
-      'left': left + widthParent/2 - widthTarget/2 - xOffset,
-  });
+    'top': top + heightParent / 2 - heightTarget / 2 - yOffset,
+    'left': left + widthParent / 2 - widthTarget / 2 - xOffset,
+  })
 }
 
-
-function inArray(v, aList) {
-  return aList.indexOf(v) >= 0;
+function inArray (v, aList) {
+  return aList.indexOf(v) >= 0
 }
 
-
-function randomString(n_char) {
-	let chars = 
-	   "0123456789abcdefghiklmnopqrstuvwxyz";
-	let s = '';
-	for (let i=0; i<n_char; i++) {
-		let j = Math.floor(Math.random()*chars.length);
-		s += chars.substring(j,j+1);
-	}
-	return s;
+function randomString (n_char) {
+  let chars =
+    '0123456789abcdefghiklmnopqrstuvwxyz'
+  let s = ''
+  for (let i = 0; i < n_char; i++) {
+    let j = Math.floor(Math.random() * chars.length)
+    s += chars.substring(j, j + 1)
+  }
+  return s
 }
 
-
-function randomId() {
-  return 'view:' + randomString(6);
+function randomId () {
+  return 'view:' + randomString(6)
 }
 
-
-function getCurrentDateStr() {
-  let now = new Date();
-  let month = now.getMonth() + 1;
-  let day = now.getDate();
-  let year = now.getFullYear();
-  return day + "/" + month + "/" + year;
+function getCurrentDateStr () {
+  let now = new Date()
+  let month = now.getMonth() + 1
+  let day = now.getDate()
+  let year = now.getFullYear()
+  return day + '/' + month + '/' + year
 }
-
 
 function textEntryDialog (parentDiv, label, callback) {
   if (!label) {
@@ -218,7 +201,7 @@ function textEntryDialog (parentDiv, label, callback) {
     .css('width', '100%')
     .addClass('jolecule-view-text')
     .keydown(
-      function(e) {
+      function (e) {
         if (e.keyCode === 27) {
           discard()
           return true
@@ -247,6 +230,9 @@ function textEntryDialog (parentDiv, label, callback) {
   }, 100)
 }
 
+function delay (timeMs) {
+  return new Promise(resolve => { setTimeout(resolve, timeMs) })
+}
 
 export {
   exists,
@@ -260,5 +246,6 @@ export {
   inArray,
   randomId,
   getCurrentDateStr,
-  textEntryDialog
+  textEntryDialog,
+  delay
 }

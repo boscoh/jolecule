@@ -9,7 +9,6 @@ import widgets from './widgets'
 import * as data from './data'
 import { interpolateCameras } from './soup'
 
-
 /**
  * Display is the main window for drawing the soup
  * in a WebGL HTML5 canvas, includes various widgets that
@@ -62,20 +61,18 @@ class Display {
     this.webglDiv.contextmenu(() => false)
     this.div.append(this.webglDiv)
 
-    // parameters for viewport
-    this.camera = {
+    // a THREE.js camera, will be set properly before draw
+    this.cameraParams = {
       focus: new THREE.Vector3(0, 0, 0),
       position: new THREE.Vector3(0, 0, -1),
       up: new THREE.Vector3(0, 1, 0),
       // the front and back of viewable area relative to the origin
       zFront: -40,
       zBack: 20,
-      // distance of focus from camera
+      // distance of focus from cameraParams
       zoom: 1.0
     }
-
-    // a THREE.js camera, will be set properly before draw
-    this.threeJsCamera = new THREE.PerspectiveCamera(
+    this.camera = new THREE.PerspectiveCamera(
       45, this.width() / this.height())
 
     this.displayScene = new THREE.Scene()
@@ -140,8 +137,7 @@ class Display {
       .attr('id', 'loading-message')
       .addClass('jolecule-loading-message')
 
-    this.setProcessingMesssage('Loading data...')
-
+    this.setMesssage('Loading data...')
   }
 
   initWebglRenderer () {
@@ -167,13 +163,18 @@ class Display {
     bind('gestureend', e => this.gestureend(e))
   }
 
-  setProcessingMesssage (message) {
+  setMesssage (message) {
     console.log('Display.setProcessingMessage:', message)
     this.messageDiv.html(message).show()
     util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 100, 90)
   };
 
-  cleanupProcessingMessage () {
+  async asyncSetMesssage (message) {
+    this.setMesssage(message)
+    await util.delay(0)
+  };
+
+  cleanupMessage () {
     this.messageDiv.hide()
   };
 
@@ -446,7 +447,7 @@ class Display {
     this.addGeomToDisplayMesh('tube', displayGeom)
   }
 
-  buildAtomMeshes(atomIndices, meshName) {
+  buildAtomMeshes (atomIndices, meshName) {
     if (atomIndices.length === 0) {
       return
     }
@@ -481,9 +482,9 @@ class Display {
 
     let cylinderBufferGeometry = new THREE.CylinderBufferGeometry(1, 1, 1, 4, 1, false)
     cylinderBufferGeometry.applyMatrix(
-          new THREE.Matrix4()
-            .makeRotationFromEuler(
-              new THREE.Euler(Math.PI / 2, Math.PI, 0)))
+      new THREE.Matrix4()
+        .makeRotationFromEuler(
+          new THREE.Euler(Math.PI / 2, Math.PI, 0)))
 
     let displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nCopy)
 
@@ -729,7 +730,7 @@ class Display {
 
   /**
    ******************************************
-   * Handle camera
+   * Handle cameraParams
    ******************************************
    */
 
@@ -738,15 +739,15 @@ class Display {
   }
 
   getCurrentViewCamera () {
-    return this.soupView.currentView.camera
+    return this.soupView.currentView.cameraParams
   }
 
   rotateCameraToCurrentView () {
-    let viewCamera = this.soupView.currentView.camera
+    let viewCamera = this.soupView.currentView.cameraParams
 
     // rotate lights to soupView orientation
-    let cameraDirection = this.camera.position.clone()
-      .sub(this.camera.focus)
+    let cameraDirection = this.cameraParams.position.clone()
+      .sub(this.cameraParams.focus)
       .normalize()
     let viewCameraDirection = viewCamera.position.clone()
       .sub(viewCamera.focus)
@@ -757,31 +758,31 @@ class Display {
       this.lights[i].position.applyQuaternion(rotation)
     }
 
-    this.camera = viewCamera
+    this.cameraParams = viewCamera
 
-    let far = this.camera.zoom + this.camera.zBack
-    let near = this.camera.zoom + this.camera.zFront
+    let far = this.cameraParams.zoom + this.cameraParams.zBack
+    let near = this.cameraParams.zoom + this.cameraParams.zFront
     if (near < 1) {
       near = 1
     }
 
-    this.threeJsCamera.position.copy(this.camera.position)
-    this.threeJsCamera.up.copy(this.camera.up)
-    this.threeJsCamera.lookAt(this.camera.focus)
-    this.threeJsCamera.near = near
-    this.threeJsCamera.far = far
-    this.threeJsCamera.updateProjectionMatrix()
+    this.camera.position.copy(this.cameraParams.position)
+    this.camera.up.copy(this.cameraParams.up)
+    this.camera.lookAt(this.cameraParams.focus)
+    this.camera.near = near
+    this.camera.far = far
+    this.camera.updateProjectionMatrix()
 
     this.displayScene.fog.near = near
     this.displayScene.fog.far = far
   }
 
   adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-    let camera = this.getCurrentViewCamera()
+    let cameraParams = this.getCurrentViewCamera()
 
-    let y = camera.up
-    let z = camera.position.clone()
-      .sub(camera.focus)
+    let y = cameraParams.up
+    let z = cameraParams.position.clone()
+      .sub(cameraParams.focus)
       .normalize()
     let x = (v3.create())
       .crossVectors(y, z)
@@ -801,65 +802,65 @@ class Display {
       .multiply(rot_y)
       .multiply(rot_x)
 
-    let newZoom = zoomRatio * camera.zoom
+    let newZoom = zoomRatio * cameraParams.zoom
 
     if (newZoom < 2) {
       newZoom = 2
     }
 
-    let position = camera.position.clone()
-      .sub(camera.focus)
+    let position = cameraParams.position.clone()
+      .sub(cameraParams.focus)
       .applyQuaternion(rotation)
       .normalize()
       .multiplyScalar(newZoom)
-      .add(camera.focus)
+      .add(cameraParams.focus)
 
     let view = this.soupView.currentView.clone()
-    view.camera.focus = camera.focus.clone()
-    view.camera.position = position
-    view.camera.up = camera.up.clone().applyQuaternion(rotation)
-    view.camera.zoom = newZoom
+    view.cameraParams.focus = cameraParams.focus.clone()
+    view.cameraParams.position = position
+    view.cameraParams.up = cameraParams.up.clone().applyQuaternion(rotation)
+    view.cameraParams.zoom = newZoom
 
     this.controller.setCurrentView(view)
   }
 
   getZ (pos) {
-    let camera = this.getCurrentViewCamera()
-    let cameraDir = camera.focus.clone()
-      .sub(camera.position)
+    let cameraParams = this.getCurrentViewCamera()
+    let cameraDir = cameraParams.focus.clone()
+      .sub(cameraParams.position)
       .normalize()
     let posRelativeToOrigin = pos.clone()
-      .sub(camera.focus)
+      .sub(cameraParams.focus)
     return posRelativeToOrigin.dot(cameraDir)
   }
 
   inZlab (pos) {
     let z = this.getZ(pos)
-    let camera = this.getCurrentViewCamera()
-    return ((z >= camera.zFront) && (z <= camera.zBack))
+    let cameraParams = this.getCurrentViewCamera()
+    return ((z >= cameraParams.zFront) && (z <= cameraParams.zBack))
   }
 
   opacity (pos) {
     let z = this.getZ(pos)
 
-    let camera = this.getCurrentViewCamera()
+    let cameraParams = this.getCurrentViewCamera()
 
-    if (z < camera.zFront) {
+    if (z < cameraParams.zFront) {
       return 1.0
     }
 
-    if (z > camera.zBack) {
+    if (z > cameraParams.zBack) {
       return 0.0
     }
 
-    return 1 - (z - camera.zFront) / (camera.zBack - camera.zFront)
+    return 1 - (z - cameraParams.zFront) / (cameraParams.zBack - cameraParams.zFront)
   }
 
   posXY (pos) {
     let widthHalf = 0.5 * this.width()
     let heightHalf = 0.5 * this.height()
 
-    let vector = pos.clone().project(this.threeJsCamera)
+    let vector = pos.clone().project(this.camera)
 
     return {
       x: (vector.x * widthHalf) + widthHalf + this.x(),
@@ -874,9 +875,9 @@ class Display {
    */
 
   updateCrossHairs () {
-    let camera = this.getCurrentViewCamera()
-    this.crossHairs.position.copy(camera.focus)
-    this.crossHairs.lookAt(camera.position)
+    let cameraParams = this.getCurrentViewCamera()
+    this.crossHairs.position.copy(cameraParams.focus)
+    this.crossHairs.lookAt(cameraParams.position)
     this.crossHairs.updateMatrix()
   }
 
@@ -903,7 +904,7 @@ class Display {
 
     // render the picking soupView off-screen
     this.renderer.render(
-      this.pickingScene, this.threeJsCamera, this.pickingTexture)
+      this.pickingScene, this.camera, this.pickingTexture)
 
     // read the pixel under the mouse from the texture
     this.renderer.readRenderTargetPixels(
@@ -1008,7 +1009,7 @@ class Display {
 
     // renders visible meshes to the gpu
     this.renderer.render(
-      this.displayScene, this.threeJsCamera)
+      this.displayScene, this.camera)
 
     if (this.soupView.updateView) {
       this.zSlabWidget.draw()
@@ -1035,8 +1036,8 @@ class Display {
     }
 
     let newCamera = interpolateCameras(
-      this.soupView.currentView.camera,
-      this.soupView.targetView.camera,
+      this.soupView.currentView.cameraParams,
+      this.soupView.targetView.cameraParams,
       1.0 / nStep)
 
     let view = this.soupView.targetView.clone()
@@ -1062,8 +1063,8 @@ class Display {
     this.webglDiv.css('left', this.x())
     this.webglDiv.css('top', this.y())
 
-    this.threeJsCamera.aspect = this.width() / this.height()
-    this.threeJsCamera.updateProjectionMatrix()
+    this.camera.aspect = this.width() / this.height()
+    this.camera.updateProjectionMatrix()
 
     this.pickingTexture.setSize(this.width(), this.height())
 

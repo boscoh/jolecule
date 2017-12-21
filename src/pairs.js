@@ -87,9 +87,7 @@ class SpaceHash {
             let cell = this.cells[hash]
             for (let jVertexInCell = 0; jVertexInCell < cell.length; jVertexInCell++) {
               let jVertex = cell[jVertexInCell]
-              if (iVertex < jVertex) {
                 pairs.push([iVertex, jVertex])
-              }
             }
           }
         }
@@ -106,6 +104,12 @@ class SpaceHash {
     return pairs
   }
 
+  getVerticesNearPoint (vertex, iVertex) {
+    console.log('SpatialHash.getClosePairs')
+    let pairs = []
+    this.pushCellOfSpace(pairs, vertex, iVertex)
+    return pairs
+  }
 }
 
 export { SpaceHash }
