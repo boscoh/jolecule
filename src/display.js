@@ -125,7 +125,7 @@ class Display {
     // Widgets that decorate the display
 
     // popup hover box over the mouse position
-    this.hover = new widgets.PopupText(this, 'lightblue')
+    this.hover = new widgets.PopupText(this.divTag, 'lightblue')
 
     // Sequence bar of protein at top of embedded window
     this.sequenceWidget = new widgets.SequenceWidget(this)
@@ -690,7 +690,10 @@ class Display {
 
       let getVerticesFromAtomDict = (iRes, atomTypes) => {
         residue.iRes = iRes
-        return _.map(atomTypes, a => residue.getAtom(a).pos.clone())
+        return _.map(atomTypes, a => {
+          atom.iAtom = residue.getIAtom(a)
+          return atom.pos.clone()
+        })
       }
 
       let vertices = getVerticesFromAtomDict(iRes, atomTypes)

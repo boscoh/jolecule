@@ -107,6 +107,14 @@ class AtomProxy {
     return this.soup.atomTypeTable[iAtomType]
   }
 
+  get alt () {
+    return intToChar(this.soup.atomStore.alt[this.iAtom])
+  }
+
+  set alt (c) {
+    this.soup.atomStore.alt[this.iAtom] = charToInt(c)
+  }
+
   get iRes () {
     return this.soup.atomStore.iRes[this.iAtom]
   }
@@ -258,11 +266,22 @@ class ResidueProxy {
     return _.range(iStart, iEnd)
   }
 
-  getAtom (atomType) {
+  getAtomProxy (atomType) {
+    let atom = this.soup.getAtomProxy()
+    for (let iAtom of this.getAtomIndices()) {
+      atom.iAtom = iAtom
+      if (atom.atomType === atomType) {
+        return atom
+      }
+    }
+    return null
+  }
+
+  getIAtom (atomType) {
     for (let iAtom of this.getAtomIndices()) {
       this.soup.atomProxy.iAtom = iAtom
       if (this.soup.atomProxy.atomType === atomType) {
-        return this.soup.atomProxy
+        return iAtom
       }
     }
     return null
@@ -270,8 +289,8 @@ class ResidueProxy {
 
   checkAtomTypes (atomTypes) {
     for (let atomType of atomTypes) {
-      let a = this.getAtom(atomType)
-      if (a === null) {
+      let iAtom = this.getIAtom(atomType)
+      if (iAtom === null) {
         return false
       }
     }
@@ -290,8 +309,8 @@ class ResidueProxy {
     const proteinAtomTypes = ['CA', 'N', 'C']
     if (prevRes.checkAtomTypes(proteinAtomTypes) &&
       thisRes.checkAtomTypes(proteinAtomTypes)) {
-      let c = prevRes.getAtom('C').pos.clone()
-      let n = thisRes.getAtom('N').pos.clone()
+      let c = prevRes.getAtomProxy('C').pos.clone()
+      let n = thisRes.getAtomProxy('N').pos.clone()
       if (v3.distance(c, n) < 2) {
         return true
       }
@@ -314,8 +333,8 @@ class ResidueProxy {
     if (prevRes.checkAtomTypes(nucleicAtomTypes) &&
       thisRes.checkAtomTypes(nucleicAtomTypes) &&
       thisRes.checkAtomTypes(['P'])) {
-      let o3 = prevRes.getAtom('O3\'').pos.clone()
-      let p = thisRes.getAtom('P').pos.clone()
+      let o3 = prevRes.getAtomProxy('O3\'').pos
+      let p = thisRes.getAtomProxy('P').pos
       if (v3.distance(o3, p) < 2.5) {
         return true
       }
@@ -328,9 +347,9 @@ class ResidueProxy {
   }
 
   getNucleotideNormal () {
-    let c3 = this.getAtom('C3\'').pos.clone()
-    let c5 = this.getAtom('C5\'').pos.clone()
-    let c1 = this.getAtom('C1\'').pos.clone()
+    let c3 = this.getAtomProxy('C3\'').pos
+    let c5 = this.getAtomProxy('C5\'').pos
+    let c1 = this.getAtomProxy('C1\'').pos
     let forward = v3.diff(c3, c5)
     let up = v3.diff(c1, c3)
     return v3.crossProduct(forward, up)
@@ -565,7 +584,7 @@ class Soup {
     this.residueStore.atomCount[iRes] = 0
   }
 
-  getCentralAtomProxy () {
+  getAtomProxyOfCenter () {
     let atomIndices = _.range(this.getAtomCount())
     let center = this.getCenter(atomIndices)
     let iAtom = this.getIAtomClosest(center, atomIndices)
@@ -579,12 +598,12 @@ class Soup {
       res.iRes = iRes
 
       if (_.includes(data.proteinResTypes, res.resType)) {
-        res.iAtom = res.getAtom('CA').iAtom
+        res.iAtom = res.getIAtom('CA')
         res.ss = 'C'
         res.isPolymer = true
       } else if (_.includes(data.dnaResTypes, res.resType) ||
         _.includes(data.rnaResTypes, res.resType)) {
-        res.iAtom = res.getAtom('C3\'').iAtom
+        res.iAtom = res.getIAtom('C3\'')
         res.ss = 'D'
         res.isPolymer = true
       } else {
@@ -699,9 +718,7 @@ class Soup {
       let diff_y = atom1.pos.y - atom2.pos.y
       let diff_z = atom1.pos.z - atom2.pos.z
       let dist_sq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z
-      if (dist_sq <= cutoff_sq) {
-        return true
-      }
+      return dist_sq <= cutoff_sq
     }
 
     let makeBond = (atom1, atom2) => {
@@ -741,11 +758,11 @@ class Soup {
       residue1.iRes = iRes2 - 1
       residue2.iRes = iRes2
       if (residue2.isProteinConnectedToPrev()) {
-        atom1.iAtom = residue1.getAtom('C').iAtom
-        atom2.iAtom = residue2.getAtom('N').iAtom
+        atom1.iAtom = residue1.getIAtom('C')
+        atom2.iAtom = residue2.getIAtom('N')
       } else if (residue2.isNucleotideConnectedToPrev()) {
-        atom1.iAtom = residue1.getAtom(`O3'`).iAtom
-        atom2.iAtom = residue2.getAtom('P').iAtom
+        atom1.iAtom = residue1.getIAtom(`O3'`)
+        atom2.iAtom = residue2.getIAtom('P')
       } else {
         continue
       }
@@ -790,10 +807,11 @@ class Soup {
       residue.iRes = iRes
       if (residue.isPolymer) {
         for (let aTypeName of ['O', 'N']) {
-          let a = residue.getAtom(aTypeName)
-          if (a !== null) {
-            vertices.push([a.pos.x, a.pos.y, a.pos.z])
-            atomIndices.push(a.iAtom)
+          let iAtom = residue.getIAtom(aTypeName)
+          if (iAtom !== null) {
+            atom0.iAtom = iAtom
+            vertices.push([atom0.pos.x, atom0.pos.y, atom0.pos.z])
+            atomIndices.push(iAtom)
           }
         }
       }
@@ -867,10 +885,11 @@ class Soup {
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
       residue0.iRes = iRes
       if (residue0.isPolymer && !(residue0.ss === 'D')) {
-        let a = residue0.getAtom('CA')
-        if (a !== null) {
-          vertices.push([a.pos.x, a.pos.y, a.pos.z])
-          atomIndices.push(a.iAtom)
+        let iAtom = residue0.getIAtom('CA')
+        if (iAtom !== null) {
+          atom0.iAtom = iAtom
+          vertices.push([atom0.pos.x, atom0.pos.y, atom0.pos.z])
+          atomIndices.push(iAtom)
           resIndices.push(iRes)
         }
       }
@@ -1153,7 +1172,7 @@ class View {
   }
 
   makeDefaultOfSoup (soup) {
-    let atom = soup.getCentralAtomProxy()
+    let atom = soup.getAtomProxyOfCenter()
     this.iAtom = atom.iAtom
 
     this.show.sidechain = false

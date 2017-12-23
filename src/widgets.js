@@ -231,7 +231,7 @@ class CanvasWrapper {
  */
 
 class PopupText {
-  constructor (display) {
+  constructor (divTag) {
     this.div = $('<div>')
       .css({
         'position': 'absolute',
@@ -259,7 +259,7 @@ class PopupText {
         'pointer-events': 'none'
       })
 
-    this.parentDiv = $(display.divTag)
+    this.parentDiv = $(divTag)
     this.parentDiv.append(this.div)
     this.parentDiv.append(this.arrow)
   }
