@@ -1,20 +1,19 @@
 #!/usr/bin/env node
 
-"use strict";
+'use strict'
 
 const doc = `
 Creates a static jolecule page for a given pdb file.
 
 Usage: jol-static.js [-o out-html-dir] pdb
-`;
+`
 
-
-const fs = require('fs-extra');
-const path = require('path');
-const nopt = require('nopt');
-const mustache = require('mustache');
-const opener = require('opener');
-const _ = require('lodash');
+const fs = require('fs-extra')
+const path = require('path')
+const nopt = require('nopt')
+const mustache = require('mustache')
+const opener = require('opener')
+const _ = require('lodash')
 
 const dataServerMustache = `
 
@@ -53,7 +52,7 @@ return result;
     
 });
 
-`;
+`
 
 const embedIndexHtmlMustache = `
 
@@ -91,13 +90,13 @@ const embedIndexHtmlMustache = `
     require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
       var dataServers = [{{{dataServerArgStr}}}];
       for (var dataServer of dataServers) {
-        j.addDataServer(dataServer);
+        j.asyncAddDataServer(dataServer);
       }
     });
   });
   </script>
 </body>
-`;
+`
 
 const fullPageIndexHtmlMustache = `
 <html>
@@ -132,7 +131,7 @@ const fullPageIndexHtmlMustache = `
             require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
               var dataServers = [{{{dataServerArgStr}}}];
               for (var dataServer of dataServers) {
-                j.addDataServer(dataServer);
+                j.asyncAddDataServer(dataServer);
               }
             });
           });
@@ -143,95 +142,94 @@ const fullPageIndexHtmlMustache = `
 </body>
 
 </html>
-`;
-
+`
 
 let knownOpts = {
-  "out": [String, null],
-  "batch": [Boolean, false],
-};
-let shortHands = {"o": ["--out"]};
-let parsed = nopt(knownOpts, shortHands, process.argv, 2);
-let remain = parsed.argv.remain;
+  'out': [String, null],
+  'batch': [Boolean, false],
+}
+let shortHands = {'o': ['--out']}
+let parsed = nopt(knownOpts, shortHands, process.argv, 2)
+let remain = parsed.argv.remain
 
 if (remain.length < 1) {
-  console.log(doc);
+  console.log(doc)
 } else {
 
-  const pdb = remain[0];
-  let base = path.basename(pdb.replace('.pdb', ''));
-  let targetDir = path.join(path.dirname(pdb), base + '-jol');
+  const pdb = remain[0]
+  let base = path.basename(pdb.replace('.pdb', ''))
+  let targetDir = path.join(path.dirname(pdb), base + '-jol')
   if (parsed.out) {
-    targetDir = parsed.out;
+    targetDir = parsed.out
   }
-  fs.ensureDir(targetDir);
+  fs.ensureDir(targetDir)
 
-  let dataServerLoadStr = '';
-  let dataServerArgStr = '';
-  for (let i=0; i<remain.length; i++) {
-    let pdb = remain[i];
-    let base = path.basename(pdb.replace('.pdb', ''));
-    const dataJs = path.join(targetDir, `data-server${i}.js`);
-    const pdbText = fs.readFileSync(pdb, 'utf8');
+  let dataServerLoadStr = ''
+  let dataServerArgStr = ''
+  for (let i = 0; i < remain.length; i++) {
+    let pdb = remain[i]
+    let base = path.basename(pdb.replace('.pdb', ''))
+    const dataJs = path.join(targetDir, `data-server${i}.js`)
+    const pdbText = fs.readFileSync(pdb, 'utf8')
     if (i > 0) {
-      dataServerLoadStr += ', ';
-      dataServerArgStr += ', ';
+      dataServerLoadStr += ', '
+      dataServerArgStr += ', '
     }
-    dataServerLoadStr += `"data-server${i}"`;
-    dataServerArgStr += `dataServer${i}`;
-    let pdbLines = pdbText.split(/\r?\n/);
-    pdbLines = _.map(pdbLines, (l) => l.replace(/"/g, '\\"'));
-    let pdbId = base;
-    let viewsJson = pdb.replace('.pdb', '') + '.views.json';
-    console.log(`Checking ${viewsJson}`);
-    let views = {};
+    dataServerLoadStr += `"data-server${i}"`
+    dataServerArgStr += `dataServer${i}`
+    let pdbLines = pdbText.split(/\r?\n/)
+    pdbLines = _.map(pdbLines, (l) => l.replace(/"/g, '\\"'))
+    let pdbId = base
+    let viewsJson = pdb.replace('.pdb', '') + '.views.json'
+    console.log(`Checking ${viewsJson}`)
+    let views = {}
     if (fs.existsSync(viewsJson)) {
-      let text = fs.readFileSync(viewsJson, 'utf8');
-      views = JSON.parse(text);
+      let text = fs.readFileSync(viewsJson, 'utf8')
+      views = JSON.parse(text)
     }
-    let viewsJsonStr = JSON.stringify(views, null, 2);
+    let viewsJsonStr = JSON.stringify(views, null, 2)
     let dataJsText = mustache.render(
       dataServerMustache,
-      {pdbId, pdbLines, viewsJsonStr});
-    fs.writeFileSync(dataJs, dataJsText);
+      {pdbId, pdbLines, viewsJsonStr})
+    fs.writeFileSync(dataJs, dataJsText)
   }
 
-  let html = path.join(targetDir, 'index.html');
-  let title = "jolecule";
-  let isFullPage = true;
-  let htmlText;
+  let html = path.join(targetDir, 'index.html')
+  let title = 'jolecule'
+  let isFullPage = true
+  let htmlText
   if (isFullPage) {
-    let user_nickname = 'anonymous';
+    let user_nickname = 'anonymous'
     htmlText = mustache.render(
       fullPageIndexHtmlMustache, {
         dataServerLoadStr,
         dataServerArgStr,
         user_nickname
-      });
+      })
   } else {
     htmlText = mustache.render(
       embedIndexHtmlMustache, {
         dataServerLoadStr,
         dataServerArgStr,
-      });
+      })
   }
-  fs.writeFileSync(html, htmlText);
+  fs.writeFileSync(html, htmlText)
 
   let fnames = [
     'dist/jolecule.js',
     'dist/jolecule.js.map',
     'dist/jolecule.css',
     'dist/full-page-jolecule.css',
-    'node_modules/requirejs/require.js'];
+    'node_modules/requirejs/require.js']
 
   for (let fname of fnames) {
     fs.copySync(
       path.join(__dirname, fname),
-      path.join(targetDir, path.basename(fname)));
+      path.join(targetDir, path.basename(fname)))
   }
 
   if (!parsed.batch) {
-    opener(html);
+    opener(html)
   }
 }
 

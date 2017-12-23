@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 134);
+/******/ 	return __webpack_require__(__webpack_require__.s = 133);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -171,7 +171,7 @@ module.exports = function (it) {
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var store = __webpack_require__(53)('wks');
+var store = __webpack_require__(52)('wks');
 var uid = __webpack_require__(33);
 var Symbol = __webpack_require__(2).Symbol;
 var USE_SYMBOL = typeof Symbol == 'function';
@@ -199,7 +199,7 @@ module.exports = !__webpack_require__(3)(function () {
 /***/ (function(module, exports, __webpack_require__) {
 
 var anObject = __webpack_require__(1);
-var IE8_DOM_DEFINE = __webpack_require__(97);
+var IE8_DOM_DEFINE = __webpack_require__(95);
 var toPrimitive = __webpack_require__(22);
 var dP = Object.defineProperty;
 
@@ -356,7 +356,7 @@ var createDesc = __webpack_require__(32);
 var toIObject = __webpack_require__(15);
 var toPrimitive = __webpack_require__(22);
 var has = __webpack_require__(11);
-var IE8_DOM_DEFINE = __webpack_require__(97);
+var IE8_DOM_DEFINE = __webpack_require__(95);
 var gOPD = Object.getOwnPropertyDescriptor;
 
 exports.f = __webpack_require__(6) ? gOPD : function getOwnPropertyDescriptor(O, P) {
@@ -567,7 +567,7 @@ if (__webpack_require__(6)) {
   var global = __webpack_require__(2);
   var fails = __webpack_require__(3);
   var $export = __webpack_require__(0);
-  var $typed = __webpack_require__(63);
+  var $typed = __webpack_require__(62);
   var $buffer = __webpack_require__(93);
   var ctx = __webpack_require__(18);
   var anInstance = __webpack_require__(40);
@@ -576,7 +576,7 @@ if (__webpack_require__(6)) {
   var redefineAll = __webpack_require__(42);
   var toInteger = __webpack_require__(24);
   var toLength = __webpack_require__(8);
-  var toIndex = __webpack_require__(123);
+  var toIndex = __webpack_require__(121);
   var toAbsoluteIndex = __webpack_require__(36);
   var toPrimitive = __webpack_require__(22);
   var has = __webpack_require__(11);
@@ -591,14 +591,14 @@ if (__webpack_require__(6)) {
   var uid = __webpack_require__(33);
   var wks = __webpack_require__(5);
   var createArrayMethod = __webpack_require__(26);
-  var createArrayIncludes = __webpack_require__(54);
-  var speciesConstructor = __webpack_require__(61);
+  var createArrayIncludes = __webpack_require__(53);
+  var speciesConstructor = __webpack_require__(60);
   var ArrayIterators = __webpack_require__(89);
   var Iterators = __webpack_require__(46);
-  var $iterDetect = __webpack_require__(58);
+  var $iterDetect = __webpack_require__(57);
   var setSpecies = __webpack_require__(39);
   var arrayFill = __webpack_require__(88);
-  var arrayCopyWithin = __webpack_require__(113);
+  var arrayCopyWithin = __webpack_require__(111);
   var $DP = __webpack_require__(7);
   var $GOPD = __webpack_require__(16);
   var dP = $DP.f;
@@ -1047,10 +1047,10 @@ if (__webpack_require__(6)) {
 /* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var Map = __webpack_require__(118);
+var Map = __webpack_require__(116);
 var $export = __webpack_require__(0);
-var shared = __webpack_require__(53)('metadata');
-var store = shared.store || (shared.store = new (__webpack_require__(121))());
+var shared = __webpack_require__(52)('metadata');
+var store = shared.store || (shared.store = new (__webpack_require__(119))());
 
 var getOrCreateMetadataMap = function (target, targetKey, create) {
   var targetMetadata = store.get(target);
@@ -18262,7 +18262,7 @@ module.exports = function (key) {
   }
 }.call(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(67), __webpack_require__(339)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(67), __webpack_require__(338)(module)))
 
 /***/ }),
 /* 32 */
@@ -18301,7 +18301,7 @@ module.exports = false;
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.14 / 15.2.3.14 Object.keys(O)
-var $keys = __webpack_require__(99);
+var $keys = __webpack_require__(97);
 var enumBugKeys = __webpack_require__(71);
 
 module.exports = Object.keys || function keys(O) {
@@ -18328,7 +18328,7 @@ module.exports = function (index, length) {
 
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = __webpack_require__(1);
-var dPs = __webpack_require__(100);
+var dPs = __webpack_require__(98);
 var enumBugKeys = __webpack_require__(71);
 var IE_PROTO = __webpack_require__(70)('IE_PROTO');
 var Empty = function () { /* empty */ };
@@ -18374,7 +18374,7 @@ module.exports = Object.create || function create(O, Properties) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
-var $keys = __webpack_require__(99);
+var $keys = __webpack_require__(97);
 var hiddenKeys = __webpack_require__(71).concat('length', 'prototype');
 
 exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
@@ -18418,7 +18418,7 @@ module.exports = function (it, Constructor, name, forbiddenField) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var ctx = __webpack_require__(18);
-var call = __webpack_require__(111);
+var call = __webpack_require__(109);
 var isArrayIter = __webpack_require__(84);
 var anObject = __webpack_require__(1);
 var toLength = __webpack_require__(8);
@@ -73896,6 +73896,373 @@ function CanvasRenderer() {
 /* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
+var global = __webpack_require__(2);
+var SHARED = '__core-js_shared__';
+var store = global[SHARED] || (global[SHARED] = {});
+module.exports = function (key) {
+  return store[key] || (store[key] = {});
+};
+
+
+/***/ }),
+/* 53 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// false -> Array#indexOf
+// true  -> Array#includes
+var toIObject = __webpack_require__(15);
+var toLength = __webpack_require__(8);
+var toAbsoluteIndex = __webpack_require__(36);
+module.exports = function (IS_INCLUDES) {
+  return function ($this, el, fromIndex) {
+    var O = toIObject($this);
+    var length = toLength(O.length);
+    var index = toAbsoluteIndex(fromIndex, length);
+    var value;
+    // Array#includes uses SameValueZero equality algorithm
+    // eslint-disable-next-line no-self-compare
+    if (IS_INCLUDES && el != el) while (length > index) {
+      value = O[index++];
+      // eslint-disable-next-line no-self-compare
+      if (value != value) return true;
+    // Array#indexOf ignores holes, Array#includes - not
+    } else for (;length > index; index++) if (IS_INCLUDES || index in O) {
+      if (O[index] === el) return IS_INCLUDES || index || 0;
+    } return !IS_INCLUDES && -1;
+  };
+};
+
+
+/***/ }),
+/* 54 */
+/***/ (function(module, exports) {
+
+exports.f = Object.getOwnPropertySymbols;
+
+
+/***/ }),
+/* 55 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 7.2.2 IsArray(argument)
+var cof = __webpack_require__(19);
+module.exports = Array.isArray || function isArray(arg) {
+  return cof(arg) == 'Array';
+};
+
+
+/***/ }),
+/* 56 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 7.2.8 IsRegExp(argument)
+var isObject = __webpack_require__(4);
+var cof = __webpack_require__(19);
+var MATCH = __webpack_require__(5)('match');
+module.exports = function (it) {
+  var isRegExp;
+  return isObject(it) && ((isRegExp = it[MATCH]) !== undefined ? !!isRegExp : cof(it) == 'RegExp');
+};
+
+
+/***/ }),
+/* 57 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var ITERATOR = __webpack_require__(5)('iterator');
+var SAFE_CLOSING = false;
+
+try {
+  var riter = [7][ITERATOR]();
+  riter['return'] = function () { SAFE_CLOSING = true; };
+  // eslint-disable-next-line no-throw-literal
+  Array.from(riter, function () { throw 2; });
+} catch (e) { /* empty */ }
+
+module.exports = function (exec, skipClosing) {
+  if (!skipClosing && !SAFE_CLOSING) return false;
+  var safe = false;
+  try {
+    var arr = [7];
+    var iter = arr[ITERATOR]();
+    iter.next = function () { return { done: safe = true }; };
+    arr[ITERATOR] = function () { return iter; };
+    exec(arr);
+  } catch (e) { /* empty */ }
+  return safe;
+};
+
+
+/***/ }),
+/* 58 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// 21.2.5.3 get RegExp.prototype.flags
+var anObject = __webpack_require__(1);
+module.exports = function () {
+  var that = anObject(this);
+  var result = '';
+  if (that.global) result += 'g';
+  if (that.ignoreCase) result += 'i';
+  if (that.multiline) result += 'm';
+  if (that.unicode) result += 'u';
+  if (that.sticky) result += 'y';
+  return result;
+};
+
+
+/***/ }),
+/* 59 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var hide = __webpack_require__(12);
+var redefine = __webpack_require__(13);
+var fails = __webpack_require__(3);
+var defined = __webpack_require__(23);
+var wks = __webpack_require__(5);
+
+module.exports = function (KEY, length, exec) {
+  var SYMBOL = wks(KEY);
+  var fns = exec(defined, SYMBOL, ''[KEY]);
+  var strfn = fns[0];
+  var rxfn = fns[1];
+  if (fails(function () {
+    var O = {};
+    O[SYMBOL] = function () { return 7; };
+    return ''[KEY](O) != 7;
+  })) {
+    redefine(String.prototype, KEY, strfn);
+    hide(RegExp.prototype, SYMBOL, length == 2
+      // 21.2.5.8 RegExp.prototype[@@replace](string, replaceValue)
+      // 21.2.5.11 RegExp.prototype[@@split](string, limit)
+      ? function (string, arg) { return rxfn.call(string, this, arg); }
+      // 21.2.5.6 RegExp.prototype[@@match](string)
+      // 21.2.5.9 RegExp.prototype[@@search](string)
+      : function (string) { return rxfn.call(string, this); }
+    );
+  }
+};
+
+
+/***/ }),
+/* 60 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 7.3.20 SpeciesConstructor(O, defaultConstructor)
+var anObject = __webpack_require__(1);
+var aFunction = __webpack_require__(10);
+var SPECIES = __webpack_require__(5)('species');
+module.exports = function (O, D) {
+  var C = anObject(O).constructor;
+  var S;
+  return C === undefined || (S = anObject(C)[SPECIES]) == undefined ? D : aFunction(S);
+};
+
+
+/***/ }),
+/* 61 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var global = __webpack_require__(2);
+var $export = __webpack_require__(0);
+var redefine = __webpack_require__(13);
+var redefineAll = __webpack_require__(42);
+var meta = __webpack_require__(29);
+var forOf = __webpack_require__(41);
+var anInstance = __webpack_require__(40);
+var isObject = __webpack_require__(4);
+var fails = __webpack_require__(3);
+var $iterDetect = __webpack_require__(57);
+var setToStringTag = __webpack_require__(44);
+var inheritIfRequired = __webpack_require__(75);
+
+module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
+  var Base = global[NAME];
+  var C = Base;
+  var ADDER = IS_MAP ? 'set' : 'add';
+  var proto = C && C.prototype;
+  var O = {};
+  var fixMethod = function (KEY) {
+    var fn = proto[KEY];
+    redefine(proto, KEY,
+      KEY == 'delete' ? function (a) {
+        return IS_WEAK && !isObject(a) ? false : fn.call(this, a === 0 ? 0 : a);
+      } : KEY == 'has' ? function has(a) {
+        return IS_WEAK && !isObject(a) ? false : fn.call(this, a === 0 ? 0 : a);
+      } : KEY == 'get' ? function get(a) {
+        return IS_WEAK && !isObject(a) ? undefined : fn.call(this, a === 0 ? 0 : a);
+      } : KEY == 'add' ? function add(a) { fn.call(this, a === 0 ? 0 : a); return this; }
+        : function set(a, b) { fn.call(this, a === 0 ? 0 : a, b); return this; }
+    );
+  };
+  if (typeof C != 'function' || !(IS_WEAK || proto.forEach && !fails(function () {
+    new C().entries().next();
+  }))) {
+    // create collection constructor
+    C = common.getConstructor(wrapper, NAME, IS_MAP, ADDER);
+    redefineAll(C.prototype, methods);
+    meta.NEED = true;
+  } else {
+    var instance = new C();
+    // early implementations not supports chaining
+    var HASNT_CHAINING = instance[ADDER](IS_WEAK ? {} : -0, 1) != instance;
+    // V8 ~  Chromium 40- weak-collections throws on primitives, but should return false
+    var THROWS_ON_PRIMITIVES = fails(function () { instance.has(1); });
+    // most early implementations doesn't supports iterables, most modern - not close it correctly
+    var ACCEPT_ITERABLES = $iterDetect(function (iter) { new C(iter); }); // eslint-disable-line no-new
+    // for early implementations -0 and +0 not the same
+    var BUGGY_ZERO = !IS_WEAK && fails(function () {
+      // V8 ~ Chromium 42- fails only with 5+ elements
+      var $instance = new C();
+      var index = 5;
+      while (index--) $instance[ADDER](index, index);
+      return !$instance.has(-0);
+    });
+    if (!ACCEPT_ITERABLES) {
+      C = wrapper(function (target, iterable) {
+        anInstance(target, C, NAME);
+        var that = inheritIfRequired(new Base(), target, C);
+        if (iterable != undefined) forOf(iterable, IS_MAP, that[ADDER], that);
+        return that;
+      });
+      C.prototype = proto;
+      proto.constructor = C;
+    }
+    if (THROWS_ON_PRIMITIVES || BUGGY_ZERO) {
+      fixMethod('delete');
+      fixMethod('has');
+      IS_MAP && fixMethod('get');
+    }
+    if (BUGGY_ZERO || HASNT_CHAINING) fixMethod(ADDER);
+    // weak collections should not contains .clear method
+    if (IS_WEAK && proto.clear) delete proto.clear;
+  }
+
+  setToStringTag(C, NAME);
+
+  O[NAME] = C;
+  $export($export.G + $export.W + $export.F * (C != Base), O);
+
+  if (!IS_WEAK) common.setStrong(C, NAME, IS_MAP);
+
+  return C;
+};
+
+
+/***/ }),
+/* 62 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var global = __webpack_require__(2);
+var hide = __webpack_require__(12);
+var uid = __webpack_require__(33);
+var TYPED = uid('typed_array');
+var VIEW = uid('view');
+var ABV = !!(global.ArrayBuffer && global.DataView);
+var CONSTR = ABV;
+var i = 0;
+var l = 9;
+var Typed;
+
+var TypedArrayConstructors = (
+  'Int8Array,Uint8Array,Uint8ClampedArray,Int16Array,Uint16Array,Int32Array,Uint32Array,Float32Array,Float64Array'
+).split(',');
+
+while (i < l) {
+  if (Typed = global[TypedArrayConstructors[i++]]) {
+    hide(Typed.prototype, TYPED, true);
+    hide(Typed.prototype, VIEW, true);
+  } else CONSTR = false;
+}
+
+module.exports = {
+  ABV: ABV,
+  CONSTR: CONSTR,
+  TYPED: TYPED,
+  VIEW: VIEW
+};
+
+
+/***/ }),
+/* 63 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// Forced replacement prototype accessors methods
+module.exports = __webpack_require__(34) || !__webpack_require__(3)(function () {
+  var K = Math.random();
+  // In FF throws only define methods
+  // eslint-disable-next-line no-undef, no-useless-call
+  __defineSetter__.call(null, K, function () { /* empty */ });
+  delete __webpack_require__(2)[K];
+});
+
+
+/***/ }),
+/* 64 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// https://tc39.github.io/proposal-setmap-offrom/
+var $export = __webpack_require__(0);
+
+module.exports = function (COLLECTION) {
+  $export($export.S, COLLECTION, { of: function of() {
+    var length = arguments.length;
+    var A = new Array(length);
+    while (length--) A[length] = arguments[length];
+    return new this(A);
+  } });
+};
+
+
+/***/ }),
+/* 65 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// https://tc39.github.io/proposal-setmap-offrom/
+var $export = __webpack_require__(0);
+var aFunction = __webpack_require__(10);
+var ctx = __webpack_require__(18);
+var forOf = __webpack_require__(41);
+
+module.exports = function (COLLECTION) {
+  $export($export.S, COLLECTION, { from: function from(source /* , mapFn, thisArg */) {
+    var mapFn = arguments[1];
+    var mapping, A, n, cb;
+    aFunction(this);
+    mapping = mapFn !== undefined;
+    if (mapping) aFunction(mapFn);
+    if (source == undefined) return new this();
+    A = [];
+    if (mapping) {
+      n = 0;
+      cb = ctx(mapFn, arguments[2], 2);
+      forOf(source, false, function (nextItem) {
+        A.push(cb(nextItem, n++));
+      });
+    } else {
+      forOf(source, false, A.push, A);
+    }
+    return new this(A);
+  } });
+};
+
+
+/***/ }),
+/* 66 */
+/***/ (function(module, exports, __webpack_require__) {
+
 "use strict";
 
 
@@ -74155,373 +74522,6 @@ exports.textEntryDialog = textEntryDialog;
 exports.delay = delay;
 
 /***/ }),
-/* 53 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var global = __webpack_require__(2);
-var SHARED = '__core-js_shared__';
-var store = global[SHARED] || (global[SHARED] = {});
-module.exports = function (key) {
-  return store[key] || (store[key] = {});
-};
-
-
-/***/ }),
-/* 54 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// false -> Array#indexOf
-// true  -> Array#includes
-var toIObject = __webpack_require__(15);
-var toLength = __webpack_require__(8);
-var toAbsoluteIndex = __webpack_require__(36);
-module.exports = function (IS_INCLUDES) {
-  return function ($this, el, fromIndex) {
-    var O = toIObject($this);
-    var length = toLength(O.length);
-    var index = toAbsoluteIndex(fromIndex, length);
-    var value;
-    // Array#includes uses SameValueZero equality algorithm
-    // eslint-disable-next-line no-self-compare
-    if (IS_INCLUDES && el != el) while (length > index) {
-      value = O[index++];
-      // eslint-disable-next-line no-self-compare
-      if (value != value) return true;
-    // Array#indexOf ignores holes, Array#includes - not
-    } else for (;length > index; index++) if (IS_INCLUDES || index in O) {
-      if (O[index] === el) return IS_INCLUDES || index || 0;
-    } return !IS_INCLUDES && -1;
-  };
-};
-
-
-/***/ }),
-/* 55 */
-/***/ (function(module, exports) {
-
-exports.f = Object.getOwnPropertySymbols;
-
-
-/***/ }),
-/* 56 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 7.2.2 IsArray(argument)
-var cof = __webpack_require__(19);
-module.exports = Array.isArray || function isArray(arg) {
-  return cof(arg) == 'Array';
-};
-
-
-/***/ }),
-/* 57 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 7.2.8 IsRegExp(argument)
-var isObject = __webpack_require__(4);
-var cof = __webpack_require__(19);
-var MATCH = __webpack_require__(5)('match');
-module.exports = function (it) {
-  var isRegExp;
-  return isObject(it) && ((isRegExp = it[MATCH]) !== undefined ? !!isRegExp : cof(it) == 'RegExp');
-};
-
-
-/***/ }),
-/* 58 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var ITERATOR = __webpack_require__(5)('iterator');
-var SAFE_CLOSING = false;
-
-try {
-  var riter = [7][ITERATOR]();
-  riter['return'] = function () { SAFE_CLOSING = true; };
-  // eslint-disable-next-line no-throw-literal
-  Array.from(riter, function () { throw 2; });
-} catch (e) { /* empty */ }
-
-module.exports = function (exec, skipClosing) {
-  if (!skipClosing && !SAFE_CLOSING) return false;
-  var safe = false;
-  try {
-    var arr = [7];
-    var iter = arr[ITERATOR]();
-    iter.next = function () { return { done: safe = true }; };
-    arr[ITERATOR] = function () { return iter; };
-    exec(arr);
-  } catch (e) { /* empty */ }
-  return safe;
-};
-
-
-/***/ }),
-/* 59 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// 21.2.5.3 get RegExp.prototype.flags
-var anObject = __webpack_require__(1);
-module.exports = function () {
-  var that = anObject(this);
-  var result = '';
-  if (that.global) result += 'g';
-  if (that.ignoreCase) result += 'i';
-  if (that.multiline) result += 'm';
-  if (that.unicode) result += 'u';
-  if (that.sticky) result += 'y';
-  return result;
-};
-
-
-/***/ }),
-/* 60 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var hide = __webpack_require__(12);
-var redefine = __webpack_require__(13);
-var fails = __webpack_require__(3);
-var defined = __webpack_require__(23);
-var wks = __webpack_require__(5);
-
-module.exports = function (KEY, length, exec) {
-  var SYMBOL = wks(KEY);
-  var fns = exec(defined, SYMBOL, ''[KEY]);
-  var strfn = fns[0];
-  var rxfn = fns[1];
-  if (fails(function () {
-    var O = {};
-    O[SYMBOL] = function () { return 7; };
-    return ''[KEY](O) != 7;
-  })) {
-    redefine(String.prototype, KEY, strfn);
-    hide(RegExp.prototype, SYMBOL, length == 2
-      // 21.2.5.8 RegExp.prototype[@@replace](string, replaceValue)
-      // 21.2.5.11 RegExp.prototype[@@split](string, limit)
-      ? function (string, arg) { return rxfn.call(string, this, arg); }
-      // 21.2.5.6 RegExp.prototype[@@match](string)
-      // 21.2.5.9 RegExp.prototype[@@search](string)
-      : function (string) { return rxfn.call(string, this); }
-    );
-  }
-};
-
-
-/***/ }),
-/* 61 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 7.3.20 SpeciesConstructor(O, defaultConstructor)
-var anObject = __webpack_require__(1);
-var aFunction = __webpack_require__(10);
-var SPECIES = __webpack_require__(5)('species');
-module.exports = function (O, D) {
-  var C = anObject(O).constructor;
-  var S;
-  return C === undefined || (S = anObject(C)[SPECIES]) == undefined ? D : aFunction(S);
-};
-
-
-/***/ }),
-/* 62 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var global = __webpack_require__(2);
-var $export = __webpack_require__(0);
-var redefine = __webpack_require__(13);
-var redefineAll = __webpack_require__(42);
-var meta = __webpack_require__(29);
-var forOf = __webpack_require__(41);
-var anInstance = __webpack_require__(40);
-var isObject = __webpack_require__(4);
-var fails = __webpack_require__(3);
-var $iterDetect = __webpack_require__(58);
-var setToStringTag = __webpack_require__(44);
-var inheritIfRequired = __webpack_require__(75);
-
-module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
-  var Base = global[NAME];
-  var C = Base;
-  var ADDER = IS_MAP ? 'set' : 'add';
-  var proto = C && C.prototype;
-  var O = {};
-  var fixMethod = function (KEY) {
-    var fn = proto[KEY];
-    redefine(proto, KEY,
-      KEY == 'delete' ? function (a) {
-        return IS_WEAK && !isObject(a) ? false : fn.call(this, a === 0 ? 0 : a);
-      } : KEY == 'has' ? function has(a) {
-        return IS_WEAK && !isObject(a) ? false : fn.call(this, a === 0 ? 0 : a);
-      } : KEY == 'get' ? function get(a) {
-        return IS_WEAK && !isObject(a) ? undefined : fn.call(this, a === 0 ? 0 : a);
-      } : KEY == 'add' ? function add(a) { fn.call(this, a === 0 ? 0 : a); return this; }
-        : function set(a, b) { fn.call(this, a === 0 ? 0 : a, b); return this; }
-    );
-  };
-  if (typeof C != 'function' || !(IS_WEAK || proto.forEach && !fails(function () {
-    new C().entries().next();
-  }))) {
-    // create collection constructor
-    C = common.getConstructor(wrapper, NAME, IS_MAP, ADDER);
-    redefineAll(C.prototype, methods);
-    meta.NEED = true;
-  } else {
-    var instance = new C();
-    // early implementations not supports chaining
-    var HASNT_CHAINING = instance[ADDER](IS_WEAK ? {} : -0, 1) != instance;
-    // V8 ~  Chromium 40- weak-collections throws on primitives, but should return false
-    var THROWS_ON_PRIMITIVES = fails(function () { instance.has(1); });
-    // most early implementations doesn't supports iterables, most modern - not close it correctly
-    var ACCEPT_ITERABLES = $iterDetect(function (iter) { new C(iter); }); // eslint-disable-line no-new
-    // for early implementations -0 and +0 not the same
-    var BUGGY_ZERO = !IS_WEAK && fails(function () {
-      // V8 ~ Chromium 42- fails only with 5+ elements
-      var $instance = new C();
-      var index = 5;
-      while (index--) $instance[ADDER](index, index);
-      return !$instance.has(-0);
-    });
-    if (!ACCEPT_ITERABLES) {
-      C = wrapper(function (target, iterable) {
-        anInstance(target, C, NAME);
-        var that = inheritIfRequired(new Base(), target, C);
-        if (iterable != undefined) forOf(iterable, IS_MAP, that[ADDER], that);
-        return that;
-      });
-      C.prototype = proto;
-      proto.constructor = C;
-    }
-    if (THROWS_ON_PRIMITIVES || BUGGY_ZERO) {
-      fixMethod('delete');
-      fixMethod('has');
-      IS_MAP && fixMethod('get');
-    }
-    if (BUGGY_ZERO || HASNT_CHAINING) fixMethod(ADDER);
-    // weak collections should not contains .clear method
-    if (IS_WEAK && proto.clear) delete proto.clear;
-  }
-
-  setToStringTag(C, NAME);
-
-  O[NAME] = C;
-  $export($export.G + $export.W + $export.F * (C != Base), O);
-
-  if (!IS_WEAK) common.setStrong(C, NAME, IS_MAP);
-
-  return C;
-};
-
-
-/***/ }),
-/* 63 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var global = __webpack_require__(2);
-var hide = __webpack_require__(12);
-var uid = __webpack_require__(33);
-var TYPED = uid('typed_array');
-var VIEW = uid('view');
-var ABV = !!(global.ArrayBuffer && global.DataView);
-var CONSTR = ABV;
-var i = 0;
-var l = 9;
-var Typed;
-
-var TypedArrayConstructors = (
-  'Int8Array,Uint8Array,Uint8ClampedArray,Int16Array,Uint16Array,Int32Array,Uint32Array,Float32Array,Float64Array'
-).split(',');
-
-while (i < l) {
-  if (Typed = global[TypedArrayConstructors[i++]]) {
-    hide(Typed.prototype, TYPED, true);
-    hide(Typed.prototype, VIEW, true);
-  } else CONSTR = false;
-}
-
-module.exports = {
-  ABV: ABV,
-  CONSTR: CONSTR,
-  TYPED: TYPED,
-  VIEW: VIEW
-};
-
-
-/***/ }),
-/* 64 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// Forced replacement prototype accessors methods
-module.exports = __webpack_require__(34) || !__webpack_require__(3)(function () {
-  var K = Math.random();
-  // In FF throws only define methods
-  // eslint-disable-next-line no-undef, no-useless-call
-  __defineSetter__.call(null, K, function () { /* empty */ });
-  delete __webpack_require__(2)[K];
-});
-
-
-/***/ }),
-/* 65 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// https://tc39.github.io/proposal-setmap-offrom/
-var $export = __webpack_require__(0);
-
-module.exports = function (COLLECTION) {
-  $export($export.S, COLLECTION, { of: function of() {
-    var length = arguments.length;
-    var A = new Array(length);
-    while (length--) A[length] = arguments[length];
-    return new this(A);
-  } });
-};
-
-
-/***/ }),
-/* 66 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// https://tc39.github.io/proposal-setmap-offrom/
-var $export = __webpack_require__(0);
-var aFunction = __webpack_require__(10);
-var ctx = __webpack_require__(18);
-var forOf = __webpack_require__(41);
-
-module.exports = function (COLLECTION) {
-  $export($export.S, COLLECTION, { from: function from(source /* , mapFn, thisArg */) {
-    var mapFn = arguments[1];
-    var mapping, A, n, cb;
-    aFunction(this);
-    mapping = mapFn !== undefined;
-    if (mapping) aFunction(mapFn);
-    if (source == undefined) return new this();
-    A = [];
-    if (mapping) {
-      n = 0;
-      cb = ctx(mapFn, arguments[2], 2);
-      forOf(source, false, function (nextItem) {
-        A.push(cb(nextItem, n++));
-      });
-    } else {
-      forOf(source, false, A.push, A);
-    }
-    return new this(A);
-  } });
-};
-
-
-/***/ }),
 /* 67 */
 /***/ (function(module, exports) {
 
@@ -74568,7 +74568,7 @@ module.exports = function (it) {
 var global = __webpack_require__(2);
 var core = __webpack_require__(21);
 var LIBRARY = __webpack_require__(34);
-var wksExt = __webpack_require__(98);
+var wksExt = __webpack_require__(96);
 var defineProperty = __webpack_require__(7).f;
 module.exports = function (name) {
   var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
@@ -74580,7 +74580,7 @@ module.exports = function (name) {
 /* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var shared = __webpack_require__(53)('keys');
+var shared = __webpack_require__(52)('keys');
 var uid = __webpack_require__(33);
 module.exports = function (key) {
   return shared[key] || (shared[key] = uid(key));
@@ -74830,7 +74830,7 @@ module.exports = function (Constructor, NAME, next) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // helper for String#{startsWith, endsWith, includes}
-var isRegExp = __webpack_require__(57);
+var isRegExp = __webpack_require__(56);
 var defined = __webpack_require__(23);
 
 module.exports = function (that, searchString, NAME) {
@@ -74905,7 +74905,7 @@ module.exports = __webpack_require__(21).getIteratorMethod = function (it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 9.4.2.3 ArraySpeciesCreate(originalArray, length)
-var speciesConstructor = __webpack_require__(227);
+var speciesConstructor = __webpack_require__(226);
 
 module.exports = function (original, length) {
   return new (speciesConstructor(original))(length);
@@ -74941,7 +74941,7 @@ module.exports = function fill(value /* , start = 0, end = @length */) {
 "use strict";
 
 var addToUnscopables = __webpack_require__(30);
-var step = __webpack_require__(114);
+var step = __webpack_require__(112);
 var Iterators = __webpack_require__(46);
 var toIObject = __webpack_require__(15);
 
@@ -74980,7 +74980,7 @@ addToUnscopables('entries');
 /***/ (function(module, exports, __webpack_require__) {
 
 var ctx = __webpack_require__(18);
-var invoke = __webpack_require__(104);
+var invoke = __webpack_require__(102);
 var html = __webpack_require__(72);
 var cel = __webpack_require__(68);
 var global = __webpack_require__(2);
@@ -75173,14 +75173,14 @@ module.exports.f = function (C) {
 var global = __webpack_require__(2);
 var DESCRIPTORS = __webpack_require__(6);
 var LIBRARY = __webpack_require__(34);
-var $typed = __webpack_require__(63);
+var $typed = __webpack_require__(62);
 var hide = __webpack_require__(12);
 var redefineAll = __webpack_require__(42);
 var fails = __webpack_require__(3);
 var anInstance = __webpack_require__(40);
 var toInteger = __webpack_require__(24);
 var toLength = __webpack_require__(8);
-var toIndex = __webpack_require__(123);
+var toIndex = __webpack_require__(121);
 var gOPN = __webpack_require__(38).f;
 var dP = __webpack_require__(7).f;
 var arrayFill = __webpack_require__(88);
@@ -75461,422 +75461,25 @@ module.exports = navigator && navigator.userAgent || '';
 /* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _three = __webpack_require__(51);
-
-var THREE = _interopRequireWildcard(_three);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-var SMALL = 1E-6;
-
-/**
- * 
- * v3.js - is a simple function based wrapper library around the vector
- * portion of THREE.js. THREE.Vector3 are created and manipulated using
- * factory functions, which was the original approach used in a deprecated
- * vector library. This was replaced with the fully-featured vector library
- * in THREE.js
- * 
- */
-
-function isNearZero(a) {
-  return Math.abs(a) < SMALL;
-}
-
-function create(x, y, z) {
-  return new THREE.Vector3(x, y, z);
-}
-
-function clone(v) {
-  return v.clone();
-}
-
-function scaled(v, s) {
-  var w = create(v.x, v.y, v.z);
-  w.multiplyScalar(s);
-  return w;
-}
-
-function normalized(v) {
-  return scaled(v, 1.0 / v.length());
-}
-
-function diff(b, a) {
-  return create(b.x - a.x, b.y - a.y, b.z - a.z);
-}
-
-function sum(a, b) {
-  return create(b.x + a.x, b.y + a.y, b.z + a.z);
-}
-
-function parallel(v, axis) {
-  var axis_len = axis.length();
-  var result = void 0;
-  if (isNearZero(axis_len)) {
-    result = create(v.x, v.y, v.z);
-  } else {
-    var scale = dot_product(v, axis) / axis_len / axis_len;
-    result = scaled(axis, scale);
-  }
-  return result;
-}
-
-function perpendicular(v, axis) {
-  return diff(v, parallel(v, axis));
-}
-
-function crossProduct(a, b) {
-  return new THREE.Vector3().crossVectors(a, b);
-}
-
-function dot_product(a, b) {
-  return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-
-function distance(p1, p2) {
-  return diff(p1, p2).length();
-}
-
-function angle(a, b) {
-  var a_len = a.length();
-  var b_len = b.length();
-  if (isNearZero(a_len * b_len)) {
-    return 0.0;
-  }
-  var c = dot_product(a, b) / a_len / b_len;
-  if (c >= 1.0) {
-    return 0.0;
-  }
-  if (c < -1.0) {
-    return Math.PI;
-  }
-  return Math.acos(c);
-}
-
-function dihedral(ref, axis, v) {
-  // + values: right-hand screw rotation of v
-  //           around axis relative to ref
-  var ref_perp = perpendicular(ref, axis);
-  var v_perp = perpendicular(v, axis);
-  var a = angle(ref_perp, v_perp);
-  var cross = crossProduct(ref_perp, v_perp);
-  if (dot_product(cross, axis) > 0) {
-    a = -a;
-  }
-  return a;
-}
-
-function midPoint(p, q) {
-  var s = sum(p, q);
-  return scaled(s, 0.5);
-}
-
-function random() {
-  return create(Math.random(), Math.random(), Math.random());
-}
-
-function isEqual(v, w) {
-  if (!isNearZero(v.x - w.x)) {
-    return false;
-  } else if (!isNearZero(v.y - w.y)) {
-    return false;
-  } else if (!isNearZero(v.y - w.y)) {
-    return false;
-  }
-  return true;
-}
-
-function isAligned(v, w) {
-  return isNearZero(angle(v, w));
-}
-
-var Matrix4 = THREE.Matrix4;
-
-function matrixProduct(lhs, rhs) {
-  var c = new Matrix4();
-  c.multiplyMatrices(lhs, rhs);
-  return c;
-}
-
-function rotation(axis, theta) {
-  var a = axis.clone().normalize();
-  return new Matrix4().makeRotationAxis(a, theta);
-}
-
-function translation(p) {
-  var c = new Matrix4();
-  return c.makeTranslation(p.x, p.y, p.z);
-}
-
-function degToRad(deg) {
-  return deg * Math.PI / 180.0;
-}
-
-exports.default = {
-  SMALL: SMALL,
-  isNearZero: isNearZero,
-  create: create,
-  clone: clone,
-  scaled: scaled,
-  normalized: normalized,
-  diff: diff,
-  sum: sum,
-  parallel: parallel,
-  perpendicular: perpendicular,
-  crossProduct: crossProduct,
-  dot_product: dot_product,
-  distance: distance,
-  angle: angle,
-  dihedral: dihedral,
-  midPoint: midPoint,
-  random: random,
-  isEqual: isEqual,
-  isAligned: isAligned,
-  Matrix4: Matrix4,
-  matrixProduct: matrixProduct,
-  rotation: rotation,
-  translation: translation,
-  degToRad: degToRad
-};
-
-/***/ }),
-/* 96 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.darkRed = exports.darkGrey = exports.darkPurple = exports.darkYellow = exports.darkBlue = exports.darkGreen = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.fatCoilFace = exports.getSsFace = exports.backboneAtomTypes = exports.getDarkSsColor = exports.resToAa = exports.getSsColor = exports.getIndexColor = undefined;
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }(); /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * Central place to store constants and color
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * accesors
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          */
-
-var _lodash = __webpack_require__(31);
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-var _three = __webpack_require__(51);
-
-var THREE = _interopRequireWildcard(_three);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var proteinResTypes = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR'];
-var dnaResTypes = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C'];
-var rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
-
-// Color constants
-
-var green = new THREE.Color(0x639941);
-var blue = new THREE.Color(0x568AB5);
-var yellow = new THREE.Color(0xFFC900);
-var purple = new THREE.Color(0x9578AA);
-var grey = new THREE.Color(0xBBBBBB);
-var red = new THREE.Color(0x993333);
-
-var darkGreen = new THREE.Color(0x2E471E);
-var darkBlue = new THREE.Color(0x406786);
-var darkYellow = new THREE.Color(0xC39900);
-var darkPurple = new THREE.Color(0x5E4C6B);
-var darkGrey = new THREE.Color(0x555555);
-var darkRed = new THREE.Color(0x662222);
-
-var ElementColors = {
-  'H': 0xCCCCCC,
-  'C': 0xAAAAAA,
-  'O': 0xCC0000,
-  'N': 0x0000CC,
-  'S': 0xAAAA00,
-  'P': 0x6622CC,
-  'F': 0x00CC00,
-  'CL': 0x00CC00,
-  'BR': 0x882200,
-  'I': 0x6600AA,
-  'FE': 0xCC6600,
-  'CA': 0x8888AA,
-  'He': 0x7B86C2,
-  'Ne': 0x9ED2E4,
-  'Ar': 0x5DC4BE,
-  'Kr': 0xACD376,
-  'Xe': 0xF79F7C,
-  'Rn': 0xE29EC5
-};
-
-var _iteratorNormalCompletion = true;
-var _didIteratorError = false;
-var _iteratorError = undefined;
-
-try {
-  for (var _iterator = _lodash2.default.toPairs(ElementColors)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-    var _step$value = _slicedToArray(_step.value, 2),
-        k = _step$value[0],
-        v = _step$value[1];
-
-    ElementColors[k] = new THREE.Color(v);
-  }
-} catch (err) {
-  _didIteratorError = true;
-  _iteratorError = err;
-} finally {
-  try {
-    if (!_iteratorNormalCompletion && _iterator.return) {
-      _iterator.return();
-    }
-  } finally {
-    if (_didIteratorError) {
-      throw _iteratorError;
-    }
-  }
-}
-
-function getIndexColor(i) {
-  return new THREE.Color().setHex(i);
-}
-
-function getSsColor(ss) {
-  if (ss === 'E') {
-    return yellow;
-  } else if (ss === 'H') {
-    return blue;
-  } else if (ss === 'D') {
-    return purple;
-  } else if (ss === 'C') {
-    return green;
-  } else if (ss === 'W') {
-    return red;
-  }
-  return grey;
-}
-
-function getDarkSsColor(ss) {
-  if (ss === 'E') {
-    return darkYellow;
-  } else if (ss === 'H') {
-    return darkBlue;
-  } else if (ss === 'D') {
-    return darkPurple;
-  } else if (ss === 'C') {
-    return darkGreen;
-  } else if (ss === 'W') {
-    return darkRed;
-  }
-  return darkGrey;
-}
-
-var resToAa = {
-  'ALA': 'A',
-  'CYS': 'C',
-  'ASP': 'D',
-  'GLU': 'E',
-  'PHE': 'F',
-  'GLY': 'G',
-  'HIS': 'H',
-  'ILE': 'I',
-  'LYS': 'K',
-  'LEU': 'L',
-  'MET': 'M',
-  'ASN': 'N',
-  'PRO': 'P',
-  'GLN': 'Q',
-  'ARG': 'R',
-  'SER': 'S',
-  'THR': 'T',
-  'VAL': 'V',
-  'TRP': 'W',
-  'TYR': 'Y',
-  'DA': 'A',
-  'DT': 'T',
-  'DG': 'G',
-  'DC': 'C',
-  'A': 'A',
-  'T': 'T',
-  'G': 'G',
-  'C': 'C',
-  'RA': 'A',
-  'RU': 'U',
-  'RC': 'C',
-  'RG': 'G',
-  'U': 'U'
-
-  // Backbone atom names
-
-};var backboneAtomTypes = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', 'C3\'', 'P', 'OP1', 'O5\'', 'OP2', 'C5\'', 'O5\'', 'O3\'', 'C4\'', 'O4\'', 'C1\'', 'C2\'', 'O2\'', 'H2\'', 'H2\'\'', 'H3\'', 'H4\'', 'H5\'', 'H5\'\'', 'HO3\''];
-
-// Cartoon cross-sections
-var ribbonFace = new THREE.Shape([new THREE.Vector2(-1.5, -0.2), new THREE.Vector2(-1.5, +0.2), new THREE.Vector2(+1.5, +0.2), new THREE.Vector2(+1.5, -0.2)]);
-var coilFace = new THREE.Shape([new THREE.Vector2(-0.2, -0.2), new THREE.Vector2(-0.2, +0.2), new THREE.Vector2(+0.2, +0.2), new THREE.Vector2(+0.2, -0.2)]);
-
-// Tube cross-sections
-var fatCoilFace = new THREE.Shape([new THREE.Vector2(-0.25, -0.25), new THREE.Vector2(-0.25, +0.25), new THREE.Vector2(+0.25, +0.25), new THREE.Vector2(+0.25, -0.25)]);
-
-function getSsFace(ss) {
-  if (ss === 'C' || ss === '-') {
-    return coilFace;
-  }
-  return ribbonFace;
-}
-
-exports.getIndexColor = getIndexColor;
-exports.getSsColor = getSsColor;
-exports.resToAa = resToAa;
-exports.getDarkSsColor = getDarkSsColor;
-exports.backboneAtomTypes = backboneAtomTypes;
-exports.getSsFace = getSsFace;
-exports.fatCoilFace = fatCoilFace;
-exports.green = green;
-exports.blue = blue;
-exports.yellow = yellow;
-exports.purple = purple;
-exports.grey = grey;
-exports.red = red;
-exports.darkGreen = darkGreen;
-exports.darkBlue = darkBlue;
-exports.darkYellow = darkYellow;
-exports.darkPurple = darkPurple;
-exports.darkGrey = darkGrey;
-exports.darkRed = darkRed;
-exports.ElementColors = ElementColors;
-exports.proteinResTypes = proteinResTypes;
-exports.dnaResTypes = dnaResTypes;
-exports.rnaResTypes = rnaResTypes;
-
-/***/ }),
-/* 97 */
-/***/ (function(module, exports, __webpack_require__) {
-
 module.exports = !__webpack_require__(6) && !__webpack_require__(3)(function () {
   return Object.defineProperty(__webpack_require__(68)('div'), 'a', { get: function () { return 7; } }).a != 7;
 });
 
 
 /***/ }),
-/* 98 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports.f = __webpack_require__(5);
 
 
 /***/ }),
-/* 99 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var has = __webpack_require__(11);
 var toIObject = __webpack_require__(15);
-var arrayIndexOf = __webpack_require__(54)(false);
+var arrayIndexOf = __webpack_require__(53)(false);
 var IE_PROTO = __webpack_require__(70)('IE_PROTO');
 
 module.exports = function (object, names) {
@@ -75894,7 +75497,7 @@ module.exports = function (object, names) {
 
 
 /***/ }),
-/* 100 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP = __webpack_require__(7);
@@ -75913,7 +75516,7 @@ module.exports = __webpack_require__(6) ? Object.defineProperties : function def
 
 
 /***/ }),
-/* 101 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
@@ -75938,14 +75541,14 @@ module.exports.f = function getOwnPropertyNames(it) {
 
 
 /***/ }),
-/* 102 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 // 19.1.2.1 Object.assign(target, source, ...)
 var getKeys = __webpack_require__(35);
-var gOPS = __webpack_require__(55);
+var gOPS = __webpack_require__(54);
 var pIE = __webpack_require__(49);
 var toObject = __webpack_require__(9);
 var IObject = __webpack_require__(48);
@@ -75979,14 +75582,14 @@ module.exports = !$assign || __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 103 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var aFunction = __webpack_require__(10);
 var isObject = __webpack_require__(4);
-var invoke = __webpack_require__(104);
+var invoke = __webpack_require__(102);
 var arraySlice = [].slice;
 var factories = {};
 
@@ -76011,7 +75614,7 @@ module.exports = Function.bind || function bind(that /* , ...args */) {
 
 
 /***/ }),
-/* 104 */
+/* 102 */
 /***/ (function(module, exports) {
 
 // fast apply, http://jsperf.lnkit.com/fast-apply/5
@@ -76033,7 +75636,7 @@ module.exports = function (fn, args, that) {
 
 
 /***/ }),
-/* 105 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $parseInt = __webpack_require__(2).parseInt;
@@ -76048,7 +75651,7 @@ module.exports = $parseInt(ws + '08') !== 8 || $parseInt(ws + '0x16') !== 22 ? f
 
 
 /***/ }),
-/* 106 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $parseFloat = __webpack_require__(2).parseFloat;
@@ -76062,7 +75665,7 @@ module.exports = 1 / $parseFloat(__webpack_require__(74) + '-0') !== -Infinity ?
 
 
 /***/ }),
-/* 107 */
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var cof = __webpack_require__(19);
@@ -76073,7 +75676,7 @@ module.exports = function (it, msg) {
 
 
 /***/ }),
-/* 108 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.3 Number.isInteger(number)
@@ -76085,7 +75688,7 @@ module.exports = function isInteger(it) {
 
 
 /***/ }),
-/* 109 */
+/* 107 */
 /***/ (function(module, exports) {
 
 // 20.2.2.20 Math.log1p(x)
@@ -76095,7 +75698,7 @@ module.exports = Math.log1p || function log1p(x) {
 
 
 /***/ }),
-/* 110 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.16 Math.fround(x)
@@ -76124,7 +75727,7 @@ module.exports = Math.fround || function fround(x) {
 
 
 /***/ }),
-/* 111 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // call something on iterator step with safe closing on error
@@ -76142,7 +75745,7 @@ module.exports = function (iterator, fn, value, entries) {
 
 
 /***/ }),
-/* 112 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var aFunction = __webpack_require__(10);
@@ -76176,7 +75779,7 @@ module.exports = function (that, callbackfn, aLen, memo, isRight) {
 
 
 /***/ }),
-/* 113 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -76209,7 +75812,7 @@ module.exports = [].copyWithin || function copyWithin(target /* = 0 */, start /*
 
 
 /***/ }),
-/* 114 */
+/* 112 */
 /***/ (function(module, exports) {
 
 module.exports = function (done, value) {
@@ -76218,18 +75821,18 @@ module.exports = function (done, value) {
 
 
 /***/ }),
-/* 115 */
+/* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 21.2.5.3 get RegExp.prototype.flags()
 if (__webpack_require__(6) && /./g.flags != 'g') __webpack_require__(7).f(RegExp.prototype, 'flags', {
   configurable: true,
-  get: __webpack_require__(59)
+  get: __webpack_require__(58)
 });
 
 
 /***/ }),
-/* 116 */
+/* 114 */
 /***/ (function(module, exports) {
 
 module.exports = function (exec) {
@@ -76242,7 +75845,7 @@ module.exports = function (exec) {
 
 
 /***/ }),
-/* 117 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var anObject = __webpack_require__(1);
@@ -76260,17 +75863,17 @@ module.exports = function (C, x) {
 
 
 /***/ }),
-/* 118 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var strong = __webpack_require__(119);
+var strong = __webpack_require__(117);
 var validate = __webpack_require__(47);
 var MAP = 'Map';
 
 // 23.1 Map Objects
-module.exports = __webpack_require__(62)(MAP, function (get) {
+module.exports = __webpack_require__(61)(MAP, function (get) {
   return function Map() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
 }, {
   // 23.1.3.6 Map.prototype.get(key)
@@ -76286,7 +75889,7 @@ module.exports = __webpack_require__(62)(MAP, function (get) {
 
 
 /***/ }),
-/* 119 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -76298,7 +75901,7 @@ var ctx = __webpack_require__(18);
 var anInstance = __webpack_require__(40);
 var forOf = __webpack_require__(41);
 var $iterDefine = __webpack_require__(80);
-var step = __webpack_require__(114);
+var step = __webpack_require__(112);
 var setSpecies = __webpack_require__(39);
 var DESCRIPTORS = __webpack_require__(6);
 var fastKey = __webpack_require__(29).fastKey;
@@ -76437,17 +76040,17 @@ module.exports = {
 
 
 /***/ }),
-/* 120 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var strong = __webpack_require__(119);
+var strong = __webpack_require__(117);
 var validate = __webpack_require__(47);
 var SET = 'Set';
 
 // 23.2 Set Objects
-module.exports = __webpack_require__(62)(SET, function (get) {
+module.exports = __webpack_require__(61)(SET, function (get) {
   return function Set() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
 }, {
   // 23.2.3.1 Set.prototype.add(value)
@@ -76458,7 +76061,7 @@ module.exports = __webpack_require__(62)(SET, function (get) {
 
 
 /***/ }),
-/* 121 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -76466,8 +76069,8 @@ module.exports = __webpack_require__(62)(SET, function (get) {
 var each = __webpack_require__(26)(0);
 var redefine = __webpack_require__(13);
 var meta = __webpack_require__(29);
-var assign = __webpack_require__(102);
-var weak = __webpack_require__(122);
+var assign = __webpack_require__(100);
+var weak = __webpack_require__(120);
 var isObject = __webpack_require__(4);
 var fails = __webpack_require__(3);
 var validate = __webpack_require__(47);
@@ -76500,7 +76103,7 @@ var methods = {
 };
 
 // 23.3 WeakMap Objects
-var $WeakMap = module.exports = __webpack_require__(62)(WEAK_MAP, wrapper, methods, weak, true, true);
+var $WeakMap = module.exports = __webpack_require__(61)(WEAK_MAP, wrapper, methods, weak, true, true);
 
 // IE11 WeakMap frozen keys fix
 if (fails(function () { return new $WeakMap().set((Object.freeze || Object)(tmp), 7).get(tmp) != 7; })) {
@@ -76524,7 +76127,7 @@ if (fails(function () { return new $WeakMap().set((Object.freeze || Object)(tmp)
 
 
 /***/ }),
-/* 122 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -76616,7 +76219,7 @@ module.exports = {
 
 
 /***/ }),
-/* 123 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/ecma262/#sec-toindex
@@ -76632,12 +76235,12 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 124 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // all object keys, includes non-enumerable and symbols
 var gOPN = __webpack_require__(38);
-var gOPS = __webpack_require__(55);
+var gOPS = __webpack_require__(54);
 var anObject = __webpack_require__(1);
 var Reflect = __webpack_require__(2).Reflect;
 module.exports = Reflect && Reflect.ownKeys || function ownKeys(it) {
@@ -76648,13 +76251,13 @@ module.exports = Reflect && Reflect.ownKeys || function ownKeys(it) {
 
 
 /***/ }),
-/* 125 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 // https://tc39.github.io/proposal-flatMap/#sec-FlattenIntoArray
-var isArray = __webpack_require__(56);
+var isArray = __webpack_require__(55);
 var isObject = __webpack_require__(4);
 var toLength = __webpack_require__(8);
 var ctx = __webpack_require__(18);
@@ -76694,7 +76297,7 @@ module.exports = flattenIntoArray;
 
 
 /***/ }),
-/* 126 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-string-pad-start-end
@@ -76716,7 +76319,7 @@ module.exports = function (that, maxLength, fillString, left) {
 
 
 /***/ }),
-/* 127 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var getKeys = __webpack_require__(35);
@@ -76738,12 +76341,12 @@ module.exports = function (isEntries) {
 
 
 /***/ }),
-/* 128 */
+/* 126 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/DavidBruant/Map-Set.prototype.toJSON
 var classof = __webpack_require__(50);
-var from = __webpack_require__(129);
+var from = __webpack_require__(127);
 module.exports = function (NAME) {
   return function toJSON() {
     if (classof(this) != NAME) throw TypeError(NAME + "#toJSON isn't generic");
@@ -76753,7 +76356,7 @@ module.exports = function (NAME) {
 
 
 /***/ }),
-/* 129 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var forOf = __webpack_require__(41);
@@ -76766,7 +76369,7 @@ module.exports = function (iter, ITERATOR) {
 
 
 /***/ }),
-/* 130 */
+/* 128 */
 /***/ (function(module, exports) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -76790,7 +76393,7 @@ module.exports = Math.scale || function scale(x, inLow, inHigh, outLow, outHigh)
 
 
 /***/ }),
-/* 131 */
+/* 129 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -76811,11 +76414,11 @@ var _lodash = __webpack_require__(31);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _soup = __webpack_require__(132);
+var _soup = __webpack_require__(130);
 
-var _display = __webpack_require__(343);
+var _display = __webpack_require__(339);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(66);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -77547,7 +77150,7 @@ exports.defaultArgs = defaultArgs;
 exports.ViewPiece = ViewPiece;
 
 /***/ }),
-/* 132 */
+/* 130 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77562,27 +77165,27 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _v = __webpack_require__(95);
+var _v = __webpack_require__(131);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(66);
 
-var _glgeom = __webpack_require__(133);
+var _glgeom = __webpack_require__(340);
 
 var glgeom = _interopRequireWildcard(_glgeom);
 
-var _pairs = __webpack_require__(340);
+var _pairs = __webpack_require__(344);
 
-var _store = __webpack_require__(341);
+var _store = __webpack_require__(345);
 
 var _store2 = _interopRequireDefault(_store);
 
-var _bitarray = __webpack_require__(342);
+var _bitarray = __webpack_require__(346);
 
 var _bitarray2 = _interopRequireDefault(_bitarray);
 
-var _data = __webpack_require__(96);
+var _data = __webpack_require__(132);
 
 var data = _interopRequireWildcard(_data);
 
@@ -77850,8 +77453,30 @@ var ResidueProxy = function () {
       return true;
     }
   }, {
-    key: 'isConnectedToPrev',
-    value: function isConnectedToPrev() {
+    key: 'isProteinConnectedToPrev',
+    value: function isProteinConnectedToPrev() {
+
+      if (this.iRes === 0) {
+        return false;
+      }
+
+      var thisRes = this;
+      var prevRes = new ResidueProxy(this.soup, this.iRes - 1);
+
+      var proteinAtomTypes = ['CA', 'N', 'C'];
+      if (prevRes.checkAtomTypes(proteinAtomTypes) && thisRes.checkAtomTypes(proteinAtomTypes)) {
+        var c = prevRes.getAtom('C').pos.clone();
+        var n = thisRes.getAtom('N').pos.clone();
+        if (_v2.default.distance(c, n) < 2) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+  }, {
+    key: 'isNucleotideConnectedToPrev',
+    value: function isNucleotideConnectedToPrev() {
 
       if (this.iRes === 0) {
         return false;
@@ -77862,26 +77487,19 @@ var ResidueProxy = function () {
 
       var nucleicAtomTypes = ['C3\'', 'O3\'', 'C5\'', 'O4\'', 'C1\''];
 
-      var isSugarPhosphateConnected = false;
       if (prevRes.checkAtomTypes(nucleicAtomTypes) && thisRes.checkAtomTypes(nucleicAtomTypes) && thisRes.checkAtomTypes(['P'])) {
         var o3 = prevRes.getAtom('O3\'').pos.clone();
         var p = thisRes.getAtom('P').pos.clone();
         if (_v2.default.distance(o3, p) < 2.5) {
-          isSugarPhosphateConnected = true;
+          return true;
         }
       }
-
-      var isPeptideConnected = false;
-      var proteinAtomTypes = ['CA', 'N', 'C'];
-      if (prevRes.checkAtomTypes(proteinAtomTypes) && thisRes.checkAtomTypes(proteinAtomTypes)) {
-        var c = prevRes.getAtom('C').pos.clone();
-        var n = thisRes.getAtom('N').pos.clone();
-        if (_v2.default.distance(c, n) < 2) {
-          isPeptideConnected = true;
-        }
-      }
-
-      return isPeptideConnected || isSugarPhosphateConnected;
+      return false;
+    }
+  }, {
+    key: 'isConnectedToPrev',
+    value: function isConnectedToPrev() {
+      return this.isProteinConnectedToPrev() || this.isNucleotideConnectedToPrev();
     }
   }, {
     key: 'getNucleotideNormal',
@@ -78394,6 +78012,8 @@ var Soup = function () {
   }, {
     key: 'calcBondsStrategic',
     value: function calcBondsStrategic() {
+      var _this = this;
+
       this.bondStore.count = 0;
 
       var small_cutoff_sq = 1.2 * 1.2;
@@ -78402,6 +78022,9 @@ var Soup = function () {
       var CHONPS = ['C', 'H', 'O', 'N', 'P', 'S'];
 
       function isBonded(atom1, atom2) {
+        if (atom1 === null || atom2 === null) {
+          return false;
+        }
         // don't include bonds between different alt positions
         if (atom1.alt !== '' && atom2.alt !== '') {
           if (atom1.alt !== atom2.alt) {
@@ -78422,16 +78045,31 @@ var Soup = function () {
         var diff_y = atom1.pos.y - atom2.pos.y;
         var diff_z = atom1.pos.z - atom2.pos.z;
         var dist_sq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
-        return dist_sq <= cutoff_sq;
+        if (dist_sq <= cutoff_sq) {
+          return true;
+        }
       }
 
+      var makeBond = function makeBond(atom1, atom2) {
+        var iBond = _this.getBondCount();
+        _this.bondStore.increment();
+        _this.bondStore.iAtom1[iBond] = atom1.iAtom;
+        _this.bondStore.iAtom2[iBond] = atom2.iAtom;
+
+        iBond = _this.getBondCount();
+        _this.bondStore.increment();
+        _this.bondStore.iAtom1[iBond] = atom2.iAtom;
+        _this.bondStore.iAtom2[iBond] = atom1.iAtom;
+      };
+
       var residue1 = this.getResidueProxy();
+      var residue2 = this.getResidueProxy();
       var nRes = this.getResidueCount();
       var atom1 = this.getAtomProxy();
       var atom2 = this.getAtomProxy();
 
       for (var iRes1 = 0; iRes1 < nRes; iRes1++) {
-        residue1.iRes = iRes1;
+        residue2.iRes = iRes1;
 
         // cycle through all atoms within a residue
         var _iteratorNormalCompletion7 = true;
@@ -78439,29 +78077,20 @@ var Soup = function () {
         var _iteratorError7 = undefined;
 
         try {
-          for (var _iterator7 = residue1.getAtomIndices()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          for (var _iterator7 = residue2.getAtomIndices()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
             var _iAtom = _step7.value;
             var _iteratorNormalCompletion8 = true;
             var _didIteratorError8 = false;
             var _iteratorError8 = undefined;
 
             try {
-              for (var _iterator8 = residue1.getAtomIndices()[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+              for (var _iterator8 = residue2.getAtomIndices()[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
                 var iAtom2 = _step8.value;
 
                 atom1.iAtom = _iAtom;
                 atom2.iAtom = iAtom2;
-
                 if (isBonded(atom1, atom2)) {
-                  var iBond = this.getBondCount();
-                  this.bondStore.increment();
-                  this.bondStore.iAtom1[iBond] = atom1.iAtom;
-                  this.bondStore.iAtom2[iBond] = atom2.iAtom;
-
-                  iBond = this.getBondCount();
-                  this.bondStore.increment();
-                  this.bondStore.iAtom1[iBond] = atom2.iAtom;
-                  this.bondStore.iAtom2[iBond] = atom1.iAtom;
+                  makeBond(atom1, atom2);
                 }
               }
             } catch (err) {
@@ -78495,6 +78124,21 @@ var Soup = function () {
         }
       }
 
+      for (var iRes2 = 1; iRes2 < nRes; iRes2++) {
+        residue1.iRes = iRes2 - 1;
+        residue2.iRes = iRes2;
+        if (residue2.isProteinConnectedToPrev()) {
+          atom1.iAtom = residue1.getAtom('C').iAtom;
+          atom2.iAtom = residue2.getAtom('N').iAtom;
+        } else if (residue2.isNucleotideConnectedToPrev()) {
+          atom1.iAtom = residue1.getAtom('O3\'').iAtom;
+          atom2.iAtom = residue2.getAtom('P').iAtom;
+        } else {
+          continue;
+        }
+        makeBond(atom1, atom2);
+      }
+
       // sort bonds by iAtom1
       var iAtom1Array = this.bondStore.iAtom1;
       this.bondStore.sort(function (i, j) {
@@ -78507,11 +78151,11 @@ var Soup = function () {
       }
       var bond = this.getBondProxy();
       var iAtom1 = null;
-      for (var _iBond = 0; _iBond < this.getBondCount(); _iBond += 1) {
-        bond.iBond = _iBond;
+      for (var iBond = 0; iBond < this.getBondCount(); iBond += 1) {
+        bond.iBond = iBond;
         if (iAtom1 !== bond.iAtom1) {
           iAtom1 = bond.iAtom1;
-          this.atomStore.bondOffset[iAtom1] = _iBond;
+          this.atomStore.bondOffset[iAtom1] = iBond;
         }
         this.atomStore.bondCount[iAtom1] += 1;
       }
@@ -78643,7 +78287,7 @@ var Soup = function () {
       var resIndices = [];
       for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
         residue0.iRes = iRes;
-        if (residue0.isPolymer) {
+        if (residue0.isPolymer && !(residue0.ss === 'D')) {
           var a = residue0.getAtom('CA');
           if (a !== null) {
             vertices.push([a.pos.x, a.pos.y, a.pos.z]);
@@ -79634,7 +79278,7 @@ exports.interpolateCameras = interpolateCameras;
 exports.SoupView = SoupView;
 
 /***/ }),
-/* 133 */
+/* 131 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -79643,954 +79287,413 @@ exports.SoupView = SoupView;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.applyColorToVector3array = exports.applyRotationOfMatrix4toVector3array = exports.applyMatrix4toVector3array = exports.CopyBufferGeometry = exports.getCylinderMatrix = exports.getSphereMatrix = exports.mergeUnitGeom = exports.Trace = exports.clearObject3D = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.setVisible = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Custom geometry and mesh generators based on the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * THREE.js library.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * In particular, there is a Ribbon class which is an
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * extrusion where the normal and tangents are specified.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
 
 var _three = __webpack_require__(51);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _v = __webpack_require__(95);
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-var _v2 = _interopRequireDefault(_v);
+var SMALL = 1E-6;
+
+/**
+ * 
+ * v3.js - is a simple function based wrapper library around the vector
+ * portion of THREE.js. THREE.Vector3 are created and manipulated using
+ * factory functions, which was the original approach used in a deprecated
+ * vector library. This was replaced with the fully-featured vector library
+ * in THREE.js
+ * 
+ */
+
+function isNearZero(a) {
+  return Math.abs(a) < SMALL;
+}
+
+function create(x, y, z) {
+  return new THREE.Vector3(x, y, z);
+}
+
+function clone(v) {
+  return v.clone();
+}
+
+function scaled(v, s) {
+  var w = create(v.x, v.y, v.z);
+  w.multiplyScalar(s);
+  return w;
+}
+
+function normalized(v) {
+  return scaled(v, 1.0 / v.length());
+}
+
+function diff(b, a) {
+  return create(b.x - a.x, b.y - a.y, b.z - a.z);
+}
+
+function sum(a, b) {
+  return create(b.x + a.x, b.y + a.y, b.z + a.z);
+}
+
+function parallel(v, axis) {
+  var axis_len = axis.length();
+  var result = void 0;
+  if (isNearZero(axis_len)) {
+    result = create(v.x, v.y, v.z);
+  } else {
+    var scale = dot_product(v, axis) / axis_len / axis_len;
+    result = scaled(axis, scale);
+  }
+  return result;
+}
+
+function perpendicular(v, axis) {
+  return diff(v, parallel(v, axis));
+}
+
+function crossProduct(a, b) {
+  return new THREE.Vector3().crossVectors(a, b);
+}
+
+function dot_product(a, b) {
+  return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+function distance(p1, p2) {
+  return diff(p1, p2).length();
+}
+
+function angle(a, b) {
+  var a_len = a.length();
+  var b_len = b.length();
+  if (isNearZero(a_len * b_len)) {
+    return 0.0;
+  }
+  var c = dot_product(a, b) / a_len / b_len;
+  if (c >= 1.0) {
+    return 0.0;
+  }
+  if (c < -1.0) {
+    return Math.PI;
+  }
+  return Math.acos(c);
+}
+
+function dihedral(ref, axis, v) {
+  // + values: right-hand screw rotation of v
+  //           around axis relative to ref
+  var ref_perp = perpendicular(ref, axis);
+  var v_perp = perpendicular(v, axis);
+  var a = angle(ref_perp, v_perp);
+  var cross = crossProduct(ref_perp, v_perp);
+  if (dot_product(cross, axis) > 0) {
+    a = -a;
+  }
+  return a;
+}
+
+function midPoint(p, q) {
+  var s = sum(p, q);
+  return scaled(s, 0.5);
+}
+
+function random() {
+  return create(Math.random(), Math.random(), Math.random());
+}
+
+function isEqual(v, w) {
+  if (!isNearZero(v.x - w.x)) {
+    return false;
+  } else if (!isNearZero(v.y - w.y)) {
+    return false;
+  } else if (!isNearZero(v.y - w.y)) {
+    return false;
+  }
+  return true;
+}
+
+function isAligned(v, w) {
+  return isNearZero(angle(v, w));
+}
+
+var Matrix4 = THREE.Matrix4;
+
+function matrixProduct(lhs, rhs) {
+  var c = new Matrix4();
+  c.multiplyMatrices(lhs, rhs);
+  return c;
+}
+
+function rotation(axis, theta) {
+  var a = axis.clone().normalize();
+  return new Matrix4().makeRotationAxis(a, theta);
+}
+
+function translation(p) {
+  var c = new Matrix4();
+  return c.makeTranslation(p.x, p.y, p.z);
+}
+
+function degToRad(deg) {
+  return deg * Math.PI / 180.0;
+}
+
+exports.default = {
+  SMALL: SMALL,
+  isNearZero: isNearZero,
+  create: create,
+  clone: clone,
+  scaled: scaled,
+  normalized: normalized,
+  diff: diff,
+  sum: sum,
+  parallel: parallel,
+  perpendicular: perpendicular,
+  crossProduct: crossProduct,
+  dot_product: dot_product,
+  distance: distance,
+  angle: angle,
+  dihedral: dihedral,
+  midPoint: midPoint,
+  random: random,
+  isEqual: isEqual,
+  isAligned: isAligned,
+  Matrix4: Matrix4,
+  matrixProduct: matrixProduct,
+  rotation: rotation,
+  translation: translation,
+  degToRad: degToRad
+};
+
+/***/ }),
+/* 132 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.darkRed = exports.darkGrey = exports.darkPurple = exports.darkYellow = exports.darkBlue = exports.darkGreen = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.fatCoilFace = exports.getSsFace = exports.backboneAtomTypes = exports.getDarkSsColor = exports.resToAa = exports.getSsColor = exports.getIndexColor = undefined;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * Central place to store constants and color
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * accesors
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          */
 
 var _lodash = __webpack_require__(31);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _three = __webpack_require__(51);
+
+var THREE = _interopRequireWildcard(_three);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+var proteinResTypes = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR'];
+var dnaResTypes = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C'];
+var rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+// Color constants
 
-function CatmullRom(t, p0, p1, p2, p3) {
+var green = new THREE.Color(0x639941);
+var blue = new THREE.Color(0x568AB5);
+var yellow = new THREE.Color(0xFFC900);
+var purple = new THREE.Color(0x9578AA);
+var grey = new THREE.Color(0xBBBBBB);
+var red = new THREE.Color(0x993333);
 
-  var v0 = (p2 - p0) * 0.5;
-  var v1 = (p3 - p1) * 0.5;
-  var t2 = t * t;
-  var t3 = t * t2;
-  return (2 * p1 - 2 * p2 + v0 + v1) * t3 + (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t2 + v0 * t + p1;
-}
+var darkGreen = new THREE.Color(0x2E471E);
+var darkBlue = new THREE.Color(0x406786);
+var darkYellow = new THREE.Color(0xC39900);
+var darkPurple = new THREE.Color(0x5E4C6B);
+var darkGrey = new THREE.Color(0x555555);
+var darkRed = new THREE.Color(0x662222);
 
-/**
- * Interpolation function for a Catmul-Rom spline
- * in 3D space, where the 4 guide-points are given
- * and an interpolation parameter is given.
- *
- * @param {Number} t - interpolation from [0, 1]
- * @param {THREE.Vector3} p1
- * @param {THREE.Vector3} p2
- * @param {THREE.Vector3} p3
- * @param {THREE.Vector3} p4
- * @returns {THREE.Vector3} the interpolated point
- */
-function catmulRomSpline(t, p1, p2, p3, p4) {
-  return _v2.default.create(CatmullRom(t, p1.x, p2.x, p3.x, p4.x), CatmullRom(t, p1.y, p2.y, p3.y, p4.y), CatmullRom(t, p1.z, p2.z, p3.z, p4.z));
-}
+var ElementColors = {
+  'H': 0xCCCCCC,
+  'C': 0xAAAAAA,
+  'O': 0xCC0000,
+  'N': 0x0000CC,
+  'S': 0xAAAA00,
+  'P': 0x6622CC,
+  'F': 0x00CC00,
+  'CL': 0x00CC00,
+  'BR': 0x882200,
+  'I': 0x6600AA,
+  'FE': 0xCC6600,
+  'CA': 0x8888AA,
+  'He': 0x7B86C2,
+  'Ne': 0x9ED2E4,
+  'Ar': 0x5DC4BE,
+  'Kr': 0xACD376,
+  'Xe': 0xF79F7C,
+  'Rn': 0xE29EC5
+};
 
-/**
- * Create a path for extrusion where the direction of the
- * normal and binormal is defined, as well as the tangent.
- *
- * In particular, the path provides a slice() function
- * that produces a sub-portion of the path.
- */
+var _iteratorNormalCompletion = true;
+var _didIteratorError = false;
+var _iteratorError = undefined;
 
-var PathAndFrenetFrames = function () {
-  function PathAndFrenetFrames() {
-    _classCallCheck(this, PathAndFrenetFrames);
+try {
+  for (var _iterator = _lodash2.default.toPairs(ElementColors)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+    var _step$value = _slicedToArray(_step.value, 2),
+        k = _step$value[0],
+        v = _step$value[1];
 
-    this.points = [];
-    this.normals = [];
-    this.tangents = [];
-    this.binormals = [];
+    ElementColors[k] = new THREE.Color(v);
   }
-
-  _createClass(PathAndFrenetFrames, [{
-    key: 'slice',
-    value: function slice(i, j) {
-      var subPath = new PathAndFrenetFrames();
-      subPath.points = this.points.slice(i, j);
-      subPath.normals = this.normals.slice(i, j);
-      subPath.tangents = this.tangents.slice(i, j);
-      subPath.binormals = this.binormals.slice(i, j);
-      return subPath;
+} catch (err) {
+  _didIteratorError = true;
+  _iteratorError = err;
+} finally {
+  try {
+    if (!_iteratorNormalCompletion && _iterator.return) {
+      _iterator.return();
     }
-  }]);
-
-  return PathAndFrenetFrames;
-}();
-
-/**
- * Extrusion along a path that aligns a 2D shape as cross-section, with
- * orientation along the normal for the cross-section.
- *
- * Accepts a cross-section shape, which is a collection of 2D points around
- * the origin, and a path, which contains points, normals and binormals
- * and builds a oriented extrusion out of it.
- *
- * If round is set, then the vertex normals are set to orient along the
- * normal/binormal axis from the origin, otherwise, face normals are defined
- * perpedicular to the face.
- *
- * For a segment between two path points and a repetition of the cross-section,
- * two triangles are defined.
- */
-
-
-var RibbonGeometry = function (_THREE$Geometry) {
-  _inherits(RibbonGeometry, _THREE$Geometry);
-
-  /**
-   * @param {THREE.Shape} shape - collection of 2D points for cross section
-   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
-   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
-   * @param {boolean} front - draw front cross-section
-   * @param {boolean} back - draw back cross-section
-   */
-  function RibbonGeometry(shape, path, round, front, back) {
-    _classCallCheck(this, RibbonGeometry);
-
-    var _this = _possibleConstructorReturn(this, (RibbonGeometry.__proto__ || Object.getPrototypeOf(RibbonGeometry)).call(this));
-
-    _this.type = 'RibbonGeometry';
-
-    _this.parameters = {
-      shape: shape,
-      path: path,
-      round: round
-    };
-
-    if (path.points.length < 2) {
-      return _possibleConstructorReturn(_this);
+  } finally {
+    if (_didIteratorError) {
+      throw _iteratorError;
     }
-
-    var shapePoints = shape.extractPoints(4).shape;
-    var nVertex = shapePoints.length;
-
-    if (_lodash2.default.isUndefined(round)) {
-      round = false;
-    }
-
-    var shapeEdgeNormals = [];
-
-    if (!round) {
-
-      for (var j = 0; j < nVertex; j += 1) {
-        var i = j - 1;
-        if (i === -1) {
-          i = nVertex - 1;
-        }
-        var v0 = shapePoints[i];
-        var v1 = shapePoints[j];
-        var x = -(v1.y - v0.y);
-        var y = v1.x - v0.x;
-        shapeEdgeNormals.push(new THREE.Vector2(x, y));
-      }
-    }
-
-    for (var iPoint = 0; iPoint < path.points.length; iPoint += 1) {
-
-      var point = path.points[iPoint];
-      var normal = path.normals[iPoint];
-      var binormal = path.binormals[iPoint];
-
-      for (var iShapePoint = 0; iShapePoint < nVertex; iShapePoint += 1) {
-
-        var shapePoint = shapePoints[iShapePoint];
-
-        var _x = normal.clone().multiplyScalar(shapePoint.x);
-        var _y = binormal.clone().multiplyScalar(shapePoint.y);
-
-        var vertex = point.clone().add(_x).add(_y);
-
-        _this.vertices.push(vertex);
-      }
-
-      var topOffset = _this.vertices.length - 2 * nVertex;
-      if (topOffset < 0) {
-        continue;
-      }
-
-      if (round) {
-        // Smoothed normals to give a rounded look
-        for (var _j = 0; _j < nVertex; _j += 1) {
-          var _i = void 0;
-          if (_j === 0) {
-            _i = nVertex - 1;
-          } else {
-            _i = _j - 1;
-          }
-          var k = topOffset + _i;
-          var l = topOffset + _j;
-
-          var _x2 = void 0,
-              _y2 = void 0;
-
-          _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_j].x);
-          _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_j].y);
-          var normal01 = _x2.add(_y2);
-
-          _x2 = path.normals[iPoint].clone().multiplyScalar(shapePoints[_j].x);
-          _y2 = path.binormals[iPoint].clone().multiplyScalar(shapePoints[_j].y);
-          var normal11 = _x2.add(_y2);
-
-          _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_i].x);
-          _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_i].y);
-          var normal00 = _x2.add(_y2);
-
-          _x2 = path.normals[iPoint].clone().multiplyScalar(shapePoints[_i].x);
-          _y2 = path.binormals[iPoint].clone().multiplyScalar(shapePoints[_i].y);
-          var normal10 = _x2.add(_y2);
-
-          var face = new THREE.Face3(k, k + nVertex, l + nVertex);
-          face.vertexNormals = [normal00, normal10, normal11];
-          _this.faces.push(face);
-
-          face = new THREE.Face3(k, l + nVertex, l);
-          face.vertexNormals = [normal00, normal11, normal01];
-          _this.faces.push(face);
-        }
-      } else {
-        // Continuous normals but keep faces distinct
-        // along ribbon
-        for (var _j2 = 0; _j2 < nVertex; _j2 += 1) {
-          var _i2 = void 0;
-          if (_j2 === 0) {
-            _i2 = nVertex - 1;
-          } else {
-            _i2 = _j2 - 1;
-          }
-          var _k = topOffset + _i2;
-          var _l = topOffset + _j2;
-
-          var _x3 = void 0,
-              _y3 = void 0;
-
-          _x3 = path.normals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[_j2].x);
-          _y3 = path.binormals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[_j2].y);
-          var normal0 = _x3.add(_y3);
-
-          _x3 = path.normals[iPoint].clone().multiplyScalar(shapeEdgeNormals[_j2].x);
-          _y3 = path.binormals[iPoint].clone().multiplyScalar(shapeEdgeNormals[_j2].y);
-          var normal1 = _x3.add(_y3);
-
-          var _face = new THREE.Face3(_k, _k + nVertex, _l + nVertex);
-          _face.vertexNormals = [normal0, normal1, normal1];
-          _this.faces.push(_face);
-
-          _face = new THREE.Face3(_k, _l + nVertex, _l);
-          _face.vertexNormals = [normal0, normal1, normal0];
-          _this.faces.push(_face);
-        }
-      }
-    }
-
-    if (front) {
-      // Draw front face
-      var _normal = threePointNormal([_this.vertices[0], _this.vertices[1], _this.vertices[2]]);
-      for (var _i3 = 0; _i3 < nVertex - 2; _i3 += 1) {
-        var _face2 = new THREE.Face3(_i3, _i3 + 1, nVertex - 1);
-        _face2.normal.copy(_normal);
-        _this.faces.push(_face2);
-      }
-    }
-
-    if (back) {
-      // draw back face
-      var offset = _this.vertices.length - 1 - nVertex;
-
-      var _normal2 = threePointNormal([_this.vertices[offset], _this.vertices[offset + nVertex - 1], _this.vertices[offset + 1]]);
-
-      for (var _i4 = 0; _i4 < nVertex - 2; _i4 += 1) {
-        var _face3 = new THREE.Face3(offset + _i4, offset + nVertex - 1, offset + _i4 + 1);
-        _face3.normal.copy(_normal2);
-        _this.faces.push(_face3);
-      }
-    }
-    return _this;
-  }
-
-  return RibbonGeometry;
-}(THREE.Geometry);
-
-/**
- * Creates a new path out of a slice of the oldPath, with
- * n number of segments between two points, using a Catmul-Rom
- * spline based on the two points, and the two surrounding
- * points. At the ends, the external points are projected
- * from the end using the tangent at the ends.
- *
- * @param {PathAndFrenetFrames} oldPath
- * @param {Number} n
- * @param {Number} iOldPoint
- * @param {Number} jOldPoint
- * @returns {PathAndFrenetFrames}
- */
-
-
-function expandPath(oldPath, n, iOldPoint, jOldPoint) {
-
-  var newPath = new PathAndFrenetFrames();
-
-  newPath.points.push(oldPath.points[iOldPoint]);
-
-  for (var i = iOldPoint; i < jOldPoint - 1; i += 1) {
-
-    var j_start = 1;
-    var j_end = n + 1;
-
-    for (var j = j_start; j < j_end; j += 1) {
-
-      var t = j / n;
-
-      var prevOldPoint = void 0,
-          nextOldPoint = void 0;
-
-      if (i > 0) {
-        prevOldPoint = oldPath.points[i - 1];
-      } else {
-        prevOldPoint = oldPath.points[i].clone().sub(oldPath.tangents[i]);
-      }
-
-      if (i < oldPath.points.length - 2) {
-        nextOldPoint = oldPath.points[i + 2];
-      } else {
-        nextOldPoint = oldPath.points[i + 1].clone().add(oldPath.tangents[i]);
-      }
-
-      newPath.points.push(catmulRomSpline(t, prevOldPoint, oldPath.points[i], oldPath.points[i + 1], nextOldPoint));
-    }
-  }
-
-  newPath.normals.push(oldPath.normals[iOldPoint]);
-  for (var _i5 = iOldPoint; _i5 < jOldPoint - 1; _i5 += 1) {
-
-    for (var _j3 = 1; _j3 < n + 1; _j3 += 1) {
-
-      var _t = _j3 / n;
-
-      var prevOldNormal = void 0,
-          nextOldNormal = void 0;
-
-      if (_i5 > 0) {
-        prevOldNormal = oldPath.normals[_i5 - 1];
-      } else {
-        prevOldNormal = oldPath.normals[_i5];
-      }
-
-      if (_i5 < oldPath.normals.length - 2) {
-        nextOldNormal = oldPath.normals[_i5 + 2];
-      } else {
-        nextOldNormal = oldPath.normals[_i5 + 1];
-      }
-
-      newPath.normals.push(catmulRomSpline(_t, prevOldNormal, oldPath.normals[_i5], oldPath.normals[_i5 + 1], nextOldNormal).normalize());
-    }
-  }
-
-  for (var _i6 = 0; _i6 < newPath.points.length; _i6 += 1) {
-    if (_i6 === 0) {
-      newPath.tangents.push(oldPath.tangents[0]);
-    } else if (_i6 === newPath.points.length - 1) {
-      newPath.tangents.push(oldPath.tangents[jOldPoint - 1]);
-    } else {
-      newPath.tangents.push(newPath.points[_i6 + 1].clone().sub(newPath.points[_i6 - 1]).normalize());
-    }
-  }
-
-  for (var _i7 = 0; _i7 < newPath.points.length; _i7 += 1) {
-    newPath.binormals.push(_v2.default.create().crossVectors(newPath.tangents[_i7], newPath.normals[_i7]));
-  }
-
-  return newPath;
-}
-
-/**
- * Trace is an object designed to be built up progressively
- * by adding to this.indices, this.points and this.normals.
- *
- * Once built, it can be expanded into a more detailed
- * trace, which is used to generate geometric pieces of
- * an extrusion where the normals and tangents are
- * controlled.
- */
-
-var Trace = function (_PathAndFrenetFrames) {
-  _inherits(Trace, _PathAndFrenetFrames);
-
-  function Trace() {
-    _classCallCheck(this, Trace);
-
-    var _this2 = _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this));
-
-    _this2.indices = [];
-    _this2.detail = 2;
-    return _this2;
-  }
-
-  _createClass(Trace, [{
-    key: 'getReference',
-    value: function getReference(i) {
-      var iRef = this.indices[i];
-      return this.referenceObjects[iRef];
-    }
-
-    /**
-     * Calculates tangents as an average on neighbouring points
-     * so that we get a smooth path.
-     */
-
-  }, {
-    key: 'calcTangents',
-    value: function calcTangents() {
-      var iStart = 0;
-      var iEnd = this.points.length;
-      var iLast = iEnd - 1;
-      if (iEnd - iStart > 2) {
-
-        // project out first tangent from main chain
-        this.tangents[iStart] = this.points[iStart + 1].clone().sub(this.points[iStart]).normalize();
-
-        // calculate tangents as averages of neighbouring residues
-        for (var i = iStart + 1; i < iLast; i += 1) {
-          this.tangents[i] = this.points[i + 1].clone().sub(this.points[i - 1]).normalize();
-        }
-
-        // project out last tangent from main chain
-        this.tangents[iLast] = this.points[iLast].clone().sub(this.points[iLast - 1]).normalize();
-      } else {
-
-        // for short 2 point traces
-        var tangent = this.points[iLast].clone().sub(this.points[iStart]).normalize();
-
-        this.tangents[iStart] = tangent;
-        this.tangents[iLast] = tangent;
-      }
-    }
-
-    /**
-     * If normal[i] is not null,
-     * it will use the normal, otherwise it will generate own
-     * normal from the path curvature
-     */
-
-  }, {
-    key: 'calcNormals',
-    value: function calcNormals() {
-      var iStart = 0;
-      var iEnd = this.points.length;
-      var iLast = iEnd - 1;
-      if (iEnd - iStart > 2) {
-
-        for (var i = iStart + 1; i < iLast; i += 1) {
-          if (this.normals[i] !== null) {
-            // normal already provided, normalize properly against tangent
-            this.normals[i] = perpVector(this.tangents[i], this.normals[i]);
-            this.normals[i].normalize();
-          } else {
-            // generate a normal from curvature
-            var diff = this.points[i].clone().sub(this.points[i - 1]);
-            this.normals[i] = _v2.default.create().crossVectors(diff, this.tangents[i]).normalize();
-
-            // smooth out auto-generated normal if flipped 180deg from prev
-            var prevNormal = this.normals[i - 1];
-            if (prevNormal !== null) {
-              if (this.normals[i].dot(prevNormal) < 0) {
-                this.normals[i].negate();
-              }
-            }
-          }
-        }
-
-        this.normals[iStart] = this.normals[iStart + 1];
-        this.normals[iLast] = this.normals[iLast - 1];
-      } else {
-
-        for (var _i8 = iStart; _i8 <= iLast; _i8 += 1) {
-          if (this.normals[_i8] !== null) {
-            this.normals[_i8] = perpVector(this.tangents[_i8], this.normals[_i8]);
-            this.normals[_i8].normalize();
-          } else {
-            var randomDir = this.points[_i8];
-            this.normals[_i8] = _v2.default.create().crossVectors(randomDir, this.tangents[_i8]).normalize();
-          }
-        }
-      }
-    }
-  }, {
-    key: 'calcBinormals',
-    value: function calcBinormals() {
-      var iStart = 0;
-      var iEnd = this.points.length;
-      for (var i = iStart; i < iEnd; i += 1) {
-        this.binormals[i] = _v2.default.create().crossVectors(this.tangents[i], this.normals[i]);
-      }
-    }
-  }, {
-    key: 'expand',
-    value: function expand() {
-      this.detailedPath = expandPath(this, 2 * this.detail, 0, this.points.length);
-    }
-
-    /**
-     * A path is generated with 2*detail. If a
-     * residue is not at the end of a piece,
-     * will be extended to detail beyond that is
-     * half-way between the residue and the neighboring
-     * residue in a different piece.
-     */
-
-  }, {
-    key: 'getSegmentGeometry',
-    value: function getSegmentGeometry(iRes, face, isRound, isFront, isBack, color) {
-      var path = this.detailedPath;
-
-      // works out start on expanded path, including overhang
-      var iPathStart = iRes * 2 * this.detail - this.detail;
-      if (iPathStart < 0) {
-        iPathStart = 0;
-      }
-
-      // works out end of expanded path, including overhang
-      var iPathEnd = (iRes + 1) * 2 * this.detail - this.detail + 1;
-      if (iPathEnd >= path.points.length) {
-        iPathEnd = path.points.length - 1;
-      }
-
-      var segmentPath = path.slice(iPathStart, iPathEnd);
-
-      var geom = new RibbonGeometry(face, segmentPath, isRound, isFront, isBack);
-
-      setGeometryVerticesColor(geom, color);
-
-      return geom;
-    }
-  }]);
-
-  return Trace;
-}(PathAndFrenetFrames);
-
-/**
- * Creates a unit-based block arrow pointing in the -Z direction.
- * It can be reorientated using a lookAt() call
- */
-
-
-var BlockArrowGeometry = function (_THREE$ExtrudeGeometr) {
-  _inherits(BlockArrowGeometry, _THREE$ExtrudeGeometr);
-
-  function BlockArrowGeometry() {
-    _classCallCheck(this, BlockArrowGeometry);
-
-    var shape = new THREE.Shape([new THREE.Vector2(-0.4, -0.5), new THREE.Vector2(0.0, +0.5), new THREE.Vector2(+0.4, -0.5)]);
-
-    var path = new THREE.CatmullRomCurve3([_v2.default.create(0, -0.3, 0), _v2.default.create(0, 0.3, 0)]);
-
-    var _this3 = _possibleConstructorReturn(this, (BlockArrowGeometry.__proto__ || Object.getPrototypeOf(BlockArrowGeometry)).call(this, shape, {
-      steps: 2,
-      bevelEnabled: false,
-      extrudePath: path
-    }));
-
-    _this3.type = 'BlockArrowGeometry';
-
-    _this3.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, 0)));
-    return _this3;
-  }
-
-  return BlockArrowGeometry;
-}(THREE.ExtrudeGeometry);
-
-/**
- * Creates a cylinder that is orientated along
- * the z-direction. Use lookAt to reorientate
- */
-
-
-var UnitCylinderGeometry = function (_THREE$CylinderGeomet) {
-  _inherits(UnitCylinderGeometry, _THREE$CylinderGeomet);
-
-  function UnitCylinderGeometry() {
-    _classCallCheck(this, UnitCylinderGeometry);
-
-    var _this4 = _possibleConstructorReturn(this, (UnitCylinderGeometry.__proto__ || Object.getPrototypeOf(UnitCylinderGeometry)).call(this, 1, 1, 1, 4, 1, false));
-
-    _this4.type = 'UnitCylinderGeometry';
-
-    _this4.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
-    return _this4;
-  }
-
-  return UnitCylinderGeometry;
-}(THREE.CylinderGeometry);
-
-/**
- * Takes a bunch of points and treats it as defining
- * a polygon, and raises it to a certain thickness.
- */
-
-
-var RaisedShapeGeometry = function (_THREE$Geometry2) {
-  _inherits(RaisedShapeGeometry, _THREE$Geometry2);
-
-  function RaisedShapeGeometry(vertices, thickness) {
-    _classCallCheck(this, RaisedShapeGeometry);
-
-    var _this5 = _possibleConstructorReturn(this, (RaisedShapeGeometry.__proto__ || Object.getPrototypeOf(RaisedShapeGeometry)).call(this));
-
-    _this5.type = 'RaisedShapeGeometry';
-
-    _this5.parameters = {
-      vertices: vertices,
-      thickness: thickness
-    };
-
-    var normal = threePointNormal(vertices.slice(0, 3));
-
-    var displacement = normal.clone().multiplyScalar(thickness / 2);
-
-    var nVertex = vertices.length;
-    var iLast = nVertex - 1;
-    var offset = nVertex;
-
-    for (var i = 0; i < vertices.length; i += 1) {
-      _this5.vertices.push(vertices[i].clone().add(displacement));
-    }
-    for (var _i9 = 0; _i9 < vertices.length; _i9 += 1) {
-      _this5.vertices.push(vertices[_i9].clone().sub(displacement));
-    }
-
-    for (var _i10 = 0; _i10 < nVertex - 2; _i10 += 1) {
-      var face = new THREE.Face3(_i10, _i10 + 1, iLast);
-      _this5.faces.push(face);
-    }
-
-    for (var _i11 = 0; _i11 < nVertex - 2; _i11 += 1) {
-      var _face4 = new THREE.Face3(offset + _i11, offset + iLast, offset + _i11 + 1);
-      _this5.faces.push(_face4);
-    }
-
-    for (var _i12 = 0; _i12 < nVertex; _i12 += 1) {
-      var j = void 0;
-      if (_i12 === nVertex - 1) {
-        j = 0;
-      } else {
-        j = _i12 + 1;
-      }
-
-      _this5.faces.push(new THREE.Face3(_i12, _i12 + offset, j + offset));
-      _this5.faces.push(new THREE.Face3(_i12, j + offset, j));
-    }
-
-    _this5.computeFaceNormals();
-
-    return _this5;
-  }
-
-  return RaisedShapeGeometry;
-}(THREE.Geometry);
-
-/**
- * Convenience function to set the visibility of a THREE
- * Object3D collection of meshes and other objects
- *
- * @param {THREE.Object3D} obj
- * @param {boolean} visibility
- */
-
-
-function setVisible(obj, visibility) {
-
-  if (_lodash2.default.isUndefined(obj)) {
-    return;
-  }
-  obj.traverse(function (c) {
-    c.visible = visibility;
-  });
-}
-
-/**
- * A generic cleaner for a THREE.Object3D collection,
- * where a custom 'dontDelete' field is used to
- * avoid deletion, and all other children are
- * disposed of correctly to reclaim memory
- *
- * @param {THREE.Object3D} obj
- */
-function clearObject3D(obj) {
-  var iLast = obj.children.length - 1;
-  for (var i = iLast; i >= 0; i -= 1) {
-    var child = obj.children[i];
-    if (!_lodash2.default.isUndefined(child.dontDelete)) {
-      continue;
-    }
-    if (!_lodash2.default.isUndefined(child.geometry)) {
-      child.geometry.dispose();
-    }
-    if (!_lodash2.default.isUndefined(child.material)) {
-      child.material.dispose();
-    }
-    obj.remove(child);
   }
 }
 
-function perpVector(ref, vec) {
-
-  var vec_along_ref = ref.clone().multiplyScalar(vec.dot(ref));
-
-  return vec.clone().sub(vec_along_ref);
+function getIndexColor(i) {
+  return new THREE.Color().setHex(i);
 }
 
-function threePointNormal(vertices) {
-
-  var cb = new THREE.Vector3();
-  var ab = new THREE.Vector3();
-
-  cb.subVectors(vertices[2], vertices[1]);
-  ab.subVectors(vertices[0], vertices[1]);
-  cb.cross(ab);
-
-  cb.normalize();
-
-  return cb;
-}
-
-function getUnitVectorRotation(reference, target) {
-  return new THREE.Quaternion().setFromUnitVectors(reference, target);
-}
-
-function fraction(reference, target, t) {
-  return t * (target - reference) + reference;
-}
-
-function getFractionRotation(rotation, t) {
-  var identity = new THREE.Quaternion();
-  return identity.slerp(rotation, t);
-}
-
-function setGeometryVerticesColor(geom, color) {
-  for (var i = 0; i < geom.faces.length; i += 1) {
-    var face = geom.faces[i];
-    face.vertexColors[0] = color;
-    face.vertexColors[1] = color;
-    face.vertexColors[2] = color;
+function getSsColor(ss) {
+  if (ss === 'E') {
+    return yellow;
+  } else if (ss === 'H') {
+    return blue;
+  } else if (ss === 'D') {
+    return purple;
+  } else if (ss === 'C') {
+    return green;
+  } else if (ss === 'W') {
+    return red;
   }
+  return grey;
 }
 
-function mergeUnitGeom(totalGeom, unitGeom, color, matrix) {
-  setGeometryVerticesColor(unitGeom, color);
-  totalGeom.merge(unitGeom, matrix);
-}
-
-/**
- * Calculates the transform matrix for a SphereGeometry
- * to a given position and radius
- *
- * @param {THREE.Vector3} pos
- * @param {Number} radius
- * @returns {THREE.Matrix4}
- */
-function getSphereMatrix(pos, radius) {
-  var obj = new THREE.Object3D();
-  obj.matrix.identity();
-  obj.position.copy(pos);
-  obj.scale.set(radius, radius, radius);
-  obj.updateMatrix();
-  return obj.matrix;
-}
-
-/**
- * Calculates the transform matrix for a UnitCylinderGeometry
- * to orientate along the axis between the 'from' and 'to' vector
- *
- * @param {THREE.Vector3} from
- * @param {THREE.Vector3} to
- * @param {Number} radius
- * @returns {THREE.Matrix4}
- */
-function getCylinderMatrix(from, to, radius) {
-  var obj = new THREE.Object3D();
-  obj.scale.set(radius, radius, from.distanceTo(to));
-  obj.position.copy(from).add(to).multiplyScalar(0.5);
-  obj.lookAt(to);
-  obj.updateMatrix();
-  return obj.matrix;
-}
-
-function applyMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
-  var elems = matrix.elements;
-  for (var i = iStart; i < iEnd; i += 3) {
-    var x = vec3Array[i];
-    var y = vec3Array[i + 1];
-    var z = vec3Array[i + 2];
-    vec3Array[i] = elems[0] * x + elems[4] * y + elems[8] * z + elems[12];
-    vec3Array[i + 1] = elems[1] * x + elems[5] * y + elems[9] * z + elems[13];
-    vec3Array[i + 2] = elems[2] * x + elems[6] * y + elems[10] * z + elems[14];
+function getDarkSsColor(ss) {
+  if (ss === 'E') {
+    return darkYellow;
+  } else if (ss === 'H') {
+    return darkBlue;
+  } else if (ss === 'D') {
+    return darkPurple;
+  } else if (ss === 'C') {
+    return darkGreen;
+  } else if (ss === 'W') {
+    return darkRed;
   }
+  return darkGrey;
 }
 
-function applyRotationOfMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
-  var elems = matrix.elements;
-  for (var i = iStart; i < iEnd; i += 3) {
-    var x = vec3Array[i];
-    var y = vec3Array[i + 1];
-    var z = vec3Array[i + 2];
-    vec3Array[i] = elems[0] * x + elems[4] * y + elems[8] * z;
-    vec3Array[i + 1] = elems[1] * x + elems[5] * y + elems[9] * z;
-    vec3Array[i + 2] = elems[2] * x + elems[6] * y + elems[10] * z;
+var resToAa = {
+  'ALA': 'A',
+  'CYS': 'C',
+  'ASP': 'D',
+  'GLU': 'E',
+  'PHE': 'F',
+  'GLY': 'G',
+  'HIS': 'H',
+  'ILE': 'I',
+  'LYS': 'K',
+  'LEU': 'L',
+  'MET': 'M',
+  'ASN': 'N',
+  'PRO': 'P',
+  'GLN': 'Q',
+  'ARG': 'R',
+  'SER': 'S',
+  'THR': 'T',
+  'VAL': 'V',
+  'TRP': 'W',
+  'TYR': 'Y',
+  'DA': 'A',
+  'DT': 'T',
+  'DG': 'G',
+  'DC': 'C',
+  'A': 'A',
+  'T': 'T',
+  'G': 'G',
+  'C': 'C',
+  'RA': 'A',
+  'RU': 'U',
+  'RC': 'C',
+  'RG': 'G',
+  'U': 'U'
+
+  // Backbone atom names
+
+};var backboneAtomTypes = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', 'C3\'', 'P', 'OP1', 'O5\'', 'OP2', 'C5\'', 'O5\'', 'O3\'', 'C4\'', 'O4\'', 'C1\'', 'C2\'', 'O2\'', 'H2\'', 'H2\'\'', 'H3\'', 'H4\'', 'H5\'', 'H5\'\'', 'HO3\''];
+
+// Cartoon cross-sections
+var ribbonFace = new THREE.Shape([new THREE.Vector2(-1.5, -0.2), new THREE.Vector2(-1.5, +0.2), new THREE.Vector2(+1.5, +0.2), new THREE.Vector2(+1.5, -0.2)]);
+var coilFace = new THREE.Shape([new THREE.Vector2(-0.2, -0.2), new THREE.Vector2(-0.2, +0.2), new THREE.Vector2(+0.2, +0.2), new THREE.Vector2(+0.2, -0.2)]);
+
+// Tube cross-sections
+var fatCoilFace = new THREE.Shape([new THREE.Vector2(-0.25, -0.25), new THREE.Vector2(-0.25, +0.25), new THREE.Vector2(+0.25, +0.25), new THREE.Vector2(+0.25, -0.25)]);
+
+function getSsFace(ss) {
+  if (ss === 'C' || ss === '-') {
+    return coilFace;
   }
+  return ribbonFace;
 }
 
-function expandFloatArray(refArray, nCopy) {
-  var nElem = refArray.length;
-  var targetArray = new Float32Array(nElem * nCopy);
-  for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
-    var iStart = iCopy * nElem;
-    for (var i = 0; i < nElem; i += 1) {
-      targetArray[iStart + i] = refArray[i];
-    }
-  }
-  return targetArray;
-}
+exports.getIndexColor = getIndexColor;
+exports.getSsColor = getSsColor;
+exports.resToAa = resToAa;
+exports.getDarkSsColor = getDarkSsColor;
+exports.backboneAtomTypes = backboneAtomTypes;
+exports.getSsFace = getSsFace;
+exports.fatCoilFace = fatCoilFace;
+exports.green = green;
+exports.blue = blue;
+exports.yellow = yellow;
+exports.purple = purple;
+exports.grey = grey;
+exports.red = red;
+exports.darkGreen = darkGreen;
+exports.darkBlue = darkBlue;
+exports.darkYellow = darkYellow;
+exports.darkPurple = darkPurple;
+exports.darkGrey = darkGrey;
+exports.darkRed = darkRed;
+exports.ElementColors = ElementColors;
+exports.proteinResTypes = proteinResTypes;
+exports.dnaResTypes = dnaResTypes;
+exports.rnaResTypes = rnaResTypes;
 
-function applyColorToVector3array(color, vec3Array, iStart, iEnd) {
-  for (var i = iStart; i < iEnd; i += 3) {
-    vec3Array[i] = color.r;
-    vec3Array[i + 1] = color.g;
-    vec3Array[i + 2] = color.b;
-  }
-}
+/***/ }),
+/* 133 */
+/***/ (function(module, exports, __webpack_require__) {
 
-function expandIndices(refArray, nCopy, nIndexInCopy) {
-  var nElem = refArray.length;
-  var targetArray = new Uint32Array(nElem * nCopy);
-  for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
-    var iStart = iCopy * nElem;
-    var indexOffset = iCopy * nIndexInCopy;
-    for (var i = 0; i < nElem; i += 1) {
-      targetArray[iStart + i] = refArray[i] + indexOffset;
-    }
-  }
-  return targetArray;
-}
+__webpack_require__(134);
+module.exports = __webpack_require__(336);
 
-/**
- */
-
-var CopyBufferGeometry = function (_THREE$BufferGeometry) {
-  _inherits(CopyBufferGeometry, _THREE$BufferGeometry);
-
-  function CopyBufferGeometry(copyBufferGeometry, nCopy) {
-    _classCallCheck(this, CopyBufferGeometry);
-
-    var _this6 = _possibleConstructorReturn(this, (CopyBufferGeometry.__proto__ || Object.getPrototypeOf(CopyBufferGeometry)).call(this));
-
-    _this6.type = 'CopyBufferGeometry';
-    _this6.parameters = {
-      nCopy: nCopy
-    };
-
-    _this6.refBufferGeometry = copyBufferGeometry;
-
-    var positions = expandFloatArray(copyBufferGeometry.attributes.position.array, nCopy);
-    _this6.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-
-    var normals = expandFloatArray(copyBufferGeometry.attributes.normal.array, nCopy);
-    _this6.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-
-    var uvs = expandFloatArray(copyBufferGeometry.attributes.uv.array, nCopy);
-    _this6.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-
-    var nVertexInCopy = copyBufferGeometry.attributes.position.count;
-
-    if ('index' in copyBufferGeometry) {
-      var indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy);
-      _this6.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
-    }
-
-    var colors = new Float32Array(nVertexInCopy * 3 * nCopy);
-    _this6.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    return _this6;
-  }
-
-  _createClass(CopyBufferGeometry, [{
-    key: 'applyMatrixToCopy',
-    value: function applyMatrixToCopy(matrix, iCopy) {
-      var nElemRef = this.refBufferGeometry.attributes.position.array.length;
-      var positions = this.attributes.position.array;
-      var normals = this.attributes.normal.array;
-      var iElemStart = iCopy * nElemRef;
-      var iElemEnd = iElemStart + nElemRef;
-      applyMatrix4toVector3array(matrix, positions, iElemStart, iElemEnd);
-      applyRotationOfMatrix4toVector3array(matrix, normals, iElemStart, iElemEnd);
-    }
-  }, {
-    key: 'applyColorToCopy',
-    value: function applyColorToCopy(color, iCopy) {
-      var nElemRef = this.refBufferGeometry.attributes.position.array.length;
-      var colors = this.attributes.color.array;
-      var iElemStart = iCopy * nElemRef;
-      var iElemEnd = iElemStart + nElemRef;
-      applyColorToVector3array(color, colors, iElemStart, iElemEnd);
-    }
-  }]);
-
-  return CopyBufferGeometry;
-}(THREE.BufferGeometry);
-
-exports.BlockArrowGeometry = BlockArrowGeometry;
-exports.UnitCylinderGeometry = UnitCylinderGeometry;
-exports.setVisible = setVisible;
-exports.RaisedShapeGeometry = RaisedShapeGeometry;
-exports.RibbonGeometry = RibbonGeometry;
-exports.getUnitVectorRotation = getUnitVectorRotation;
-exports.getFractionRotation = getFractionRotation;
-exports.fraction = fraction;
-exports.setGeometryVerticesColor = setGeometryVerticesColor;
-exports.clearObject3D = clearObject3D;
-exports.Trace = Trace;
-exports.mergeUnitGeom = mergeUnitGeom;
-exports.getSphereMatrix = getSphereMatrix;
-exports.getCylinderMatrix = getCylinderMatrix;
-exports.CopyBufferGeometry = CopyBufferGeometry;
-exports.applyMatrix4toVector3array = applyMatrix4toVector3array;
-exports.applyRotationOfMatrix4toVector3array = applyRotationOfMatrix4toVector3array;
-exports.applyColorToVector3array = applyColorToVector3array;
 
 /***/ }),
 /* 134 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(135);
-module.exports = __webpack_require__(337);
-
-
-/***/ }),
-/* 135 */
-/***/ (function(module, exports, __webpack_require__) {
-
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
-__webpack_require__(136);
+__webpack_require__(135);
+
+__webpack_require__(332);
 
 __webpack_require__(333);
-
-__webpack_require__(334);
 
 if (global._babelPolyfill) {
   throw new Error("only one instance of babel-polyfill is allowed");
@@ -80615,10 +79718,11 @@ define(String.prototype, "padRight", "".padEnd);
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(67)))
 
 /***/ }),
-/* 136 */
+/* 135 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(137);
+__webpack_require__(136);
+__webpack_require__(138);
 __webpack_require__(139);
 __webpack_require__(140);
 __webpack_require__(141);
@@ -80633,7 +79737,7 @@ __webpack_require__(149);
 __webpack_require__(150);
 __webpack_require__(151);
 __webpack_require__(152);
-__webpack_require__(153);
+__webpack_require__(154);
 __webpack_require__(155);
 __webpack_require__(156);
 __webpack_require__(157);
@@ -80694,16 +79798,16 @@ __webpack_require__(211);
 __webpack_require__(212);
 __webpack_require__(213);
 __webpack_require__(214);
-__webpack_require__(215);
+__webpack_require__(216);
 __webpack_require__(217);
-__webpack_require__(218);
+__webpack_require__(219);
 __webpack_require__(220);
 __webpack_require__(221);
 __webpack_require__(222);
 __webpack_require__(223);
 __webpack_require__(224);
 __webpack_require__(225);
-__webpack_require__(226);
+__webpack_require__(227);
 __webpack_require__(228);
 __webpack_require__(229);
 __webpack_require__(230);
@@ -80716,19 +79820,19 @@ __webpack_require__(236);
 __webpack_require__(237);
 __webpack_require__(238);
 __webpack_require__(239);
-__webpack_require__(240);
 __webpack_require__(89);
+__webpack_require__(240);
 __webpack_require__(241);
+__webpack_require__(113);
 __webpack_require__(242);
-__webpack_require__(115);
 __webpack_require__(243);
 __webpack_require__(244);
 __webpack_require__(245);
 __webpack_require__(246);
-__webpack_require__(247);
+__webpack_require__(116);
 __webpack_require__(118);
-__webpack_require__(120);
-__webpack_require__(121);
+__webpack_require__(119);
+__webpack_require__(247);
 __webpack_require__(248);
 __webpack_require__(249);
 __webpack_require__(250);
@@ -80813,12 +79917,11 @@ __webpack_require__(328);
 __webpack_require__(329);
 __webpack_require__(330);
 __webpack_require__(331);
-__webpack_require__(332);
 module.exports = __webpack_require__(21);
 
 
 /***/ }),
-/* 137 */
+/* 136 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -80831,21 +79934,21 @@ var $export = __webpack_require__(0);
 var redefine = __webpack_require__(13);
 var META = __webpack_require__(29).KEY;
 var $fails = __webpack_require__(3);
-var shared = __webpack_require__(53);
+var shared = __webpack_require__(52);
 var setToStringTag = __webpack_require__(44);
 var uid = __webpack_require__(33);
 var wks = __webpack_require__(5);
-var wksExt = __webpack_require__(98);
+var wksExt = __webpack_require__(96);
 var wksDefine = __webpack_require__(69);
-var enumKeys = __webpack_require__(138);
-var isArray = __webpack_require__(56);
+var enumKeys = __webpack_require__(137);
+var isArray = __webpack_require__(55);
 var anObject = __webpack_require__(1);
 var isObject = __webpack_require__(4);
 var toIObject = __webpack_require__(15);
 var toPrimitive = __webpack_require__(22);
 var createDesc = __webpack_require__(32);
 var _create = __webpack_require__(37);
-var gOPNExt = __webpack_require__(101);
+var gOPNExt = __webpack_require__(99);
 var $GOPD = __webpack_require__(16);
 var $DP = __webpack_require__(7);
 var $keys = __webpack_require__(35);
@@ -80973,7 +80076,7 @@ if (!USE_NATIVE) {
   $DP.f = $defineProperty;
   __webpack_require__(38).f = gOPNExt.f = $getOwnPropertyNames;
   __webpack_require__(49).f = $propertyIsEnumerable;
-  __webpack_require__(55).f = $getOwnPropertySymbols;
+  __webpack_require__(54).f = $getOwnPropertySymbols;
 
   if (DESCRIPTORS && !__webpack_require__(34)) {
     redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
@@ -81059,12 +80162,12 @@ setToStringTag(global.JSON, 'JSON', true);
 
 
 /***/ }),
-/* 138 */
+/* 137 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // all enumerable object keys, includes symbols
 var getKeys = __webpack_require__(35);
-var gOPS = __webpack_require__(55);
+var gOPS = __webpack_require__(54);
 var pIE = __webpack_require__(49);
 module.exports = function (it) {
   var result = getKeys(it);
@@ -81080,7 +80183,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 139 */
+/* 138 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -81089,7 +80192,7 @@ $export($export.S, 'Object', { create: __webpack_require__(37) });
 
 
 /***/ }),
-/* 140 */
+/* 139 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -81098,16 +80201,16 @@ $export($export.S + $export.F * !__webpack_require__(6), 'Object', { definePrope
 
 
 /***/ }),
-/* 141 */
+/* 140 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
 // 19.1.2.3 / 15.2.3.7 Object.defineProperties(O, Properties)
-$export($export.S + $export.F * !__webpack_require__(6), 'Object', { defineProperties: __webpack_require__(100) });
+$export($export.S + $export.F * !__webpack_require__(6), 'Object', { defineProperties: __webpack_require__(98) });
 
 
 /***/ }),
-/* 142 */
+/* 141 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
@@ -81122,7 +80225,7 @@ __webpack_require__(25)('getOwnPropertyDescriptor', function () {
 
 
 /***/ }),
-/* 143 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.9 Object.getPrototypeOf(O)
@@ -81137,7 +80240,7 @@ __webpack_require__(25)('getPrototypeOf', function () {
 
 
 /***/ }),
-/* 144 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.14 Object.keys(O)
@@ -81152,17 +80255,17 @@ __webpack_require__(25)('keys', function () {
 
 
 /***/ }),
-/* 145 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.7 Object.getOwnPropertyNames(O)
 __webpack_require__(25)('getOwnPropertyNames', function () {
-  return __webpack_require__(101).f;
+  return __webpack_require__(99).f;
 });
 
 
 /***/ }),
-/* 146 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.5 Object.freeze(O)
@@ -81177,7 +80280,7 @@ __webpack_require__(25)('freeze', function ($freeze) {
 
 
 /***/ }),
-/* 147 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.17 Object.seal(O)
@@ -81192,7 +80295,7 @@ __webpack_require__(25)('seal', function ($seal) {
 
 
 /***/ }),
-/* 148 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.15 Object.preventExtensions(O)
@@ -81207,7 +80310,7 @@ __webpack_require__(25)('preventExtensions', function ($preventExtensions) {
 
 
 /***/ }),
-/* 149 */
+/* 148 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.12 Object.isFrozen(O)
@@ -81221,7 +80324,7 @@ __webpack_require__(25)('isFrozen', function ($isFrozen) {
 
 
 /***/ }),
-/* 150 */
+/* 149 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.13 Object.isSealed(O)
@@ -81235,7 +80338,7 @@ __webpack_require__(25)('isSealed', function ($isSealed) {
 
 
 /***/ }),
-/* 151 */
+/* 150 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.11 Object.isExtensible(O)
@@ -81249,26 +80352,26 @@ __webpack_require__(25)('isExtensible', function ($isExtensible) {
 
 
 /***/ }),
-/* 152 */
+/* 151 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.3.1 Object.assign(target, source)
 var $export = __webpack_require__(0);
 
-$export($export.S + $export.F, 'Object', { assign: __webpack_require__(102) });
+$export($export.S + $export.F, 'Object', { assign: __webpack_require__(100) });
 
 
 /***/ }),
-/* 153 */
+/* 152 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.3.10 Object.is(value1, value2)
 var $export = __webpack_require__(0);
-$export($export.S, 'Object', { is: __webpack_require__(154) });
+$export($export.S, 'Object', { is: __webpack_require__(153) });
 
 
 /***/ }),
-/* 154 */
+/* 153 */
 /***/ (function(module, exports) {
 
 // 7.2.9 SameValue(x, y)
@@ -81279,7 +80382,7 @@ module.exports = Object.is || function is(x, y) {
 
 
 /***/ }),
-/* 155 */
+/* 154 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.3.19 Object.setPrototypeOf(O, proto)
@@ -81288,7 +80391,7 @@ $export($export.S, 'Object', { setPrototypeOf: __webpack_require__(73).set });
 
 
 /***/ }),
-/* 156 */
+/* 155 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -81305,17 +80408,17 @@ if (test + '' != '[object z]') {
 
 
 /***/ }),
-/* 157 */
+/* 156 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.2.3.2 / 15.3.4.5 Function.prototype.bind(thisArg, args...)
 var $export = __webpack_require__(0);
 
-$export($export.P, 'Function', { bind: __webpack_require__(103) });
+$export($export.P, 'Function', { bind: __webpack_require__(101) });
 
 
 /***/ }),
-/* 158 */
+/* 157 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP = __webpack_require__(7).f;
@@ -81337,7 +80440,7 @@ NAME in FProto || __webpack_require__(6) && dP(FProto, NAME, {
 
 
 /***/ }),
-/* 159 */
+/* 158 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -81357,27 +80460,27 @@ if (!(HAS_INSTANCE in FunctionProto)) __webpack_require__(7).f(FunctionProto, HA
 
 
 /***/ }),
-/* 160 */
+/* 159 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
-var $parseInt = __webpack_require__(105);
+var $parseInt = __webpack_require__(103);
 // 18.2.5 parseInt(string, radix)
 $export($export.G + $export.F * (parseInt != $parseInt), { parseInt: $parseInt });
 
 
 /***/ }),
-/* 161 */
+/* 160 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
-var $parseFloat = __webpack_require__(106);
+var $parseFloat = __webpack_require__(104);
 // 18.2.4 parseFloat(string)
 $export($export.G + $export.F * (parseFloat != $parseFloat), { parseFloat: $parseFloat });
 
 
 /***/ }),
-/* 162 */
+/* 161 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -81453,14 +80556,14 @@ if (!$Number(' 0o1') || !$Number('0b1') || $Number('+0x1')) {
 
 
 /***/ }),
-/* 163 */
+/* 162 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var $export = __webpack_require__(0);
 var toInteger = __webpack_require__(24);
-var aNumberValue = __webpack_require__(107);
+var aNumberValue = __webpack_require__(105);
 var repeat = __webpack_require__(76);
 var $toFixed = 1.0.toFixed;
 var floor = Math.floor;
@@ -81574,14 +80677,14 @@ $export($export.P + $export.F * (!!$toFixed && (
 
 
 /***/ }),
-/* 164 */
+/* 163 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var $export = __webpack_require__(0);
 var $fails = __webpack_require__(3);
-var aNumberValue = __webpack_require__(107);
+var aNumberValue = __webpack_require__(105);
 var $toPrecision = 1.0.toPrecision;
 
 $export($export.P + $export.F * ($fails(function () {
@@ -81599,7 +80702,7 @@ $export($export.P + $export.F * ($fails(function () {
 
 
 /***/ }),
-/* 165 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.1 Number.EPSILON
@@ -81609,7 +80712,7 @@ $export($export.S, 'Number', { EPSILON: Math.pow(2, -52) });
 
 
 /***/ }),
-/* 166 */
+/* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.2 Number.isFinite(number)
@@ -81624,17 +80727,17 @@ $export($export.S, 'Number', {
 
 
 /***/ }),
-/* 167 */
+/* 166 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.3 Number.isInteger(number)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Number', { isInteger: __webpack_require__(108) });
+$export($export.S, 'Number', { isInteger: __webpack_require__(106) });
 
 
 /***/ }),
-/* 168 */
+/* 167 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.4 Number.isNaN(number)
@@ -81649,12 +80752,12 @@ $export($export.S, 'Number', {
 
 
 /***/ }),
-/* 169 */
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.5 Number.isSafeInteger(number)
 var $export = __webpack_require__(0);
-var isInteger = __webpack_require__(108);
+var isInteger = __webpack_require__(106);
 var abs = Math.abs;
 
 $export($export.S, 'Number', {
@@ -81665,7 +80768,7 @@ $export($export.S, 'Number', {
 
 
 /***/ }),
-/* 170 */
+/* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.6 Number.MAX_SAFE_INTEGER
@@ -81675,7 +80778,7 @@ $export($export.S, 'Number', { MAX_SAFE_INTEGER: 0x1fffffffffffff });
 
 
 /***/ }),
-/* 171 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.10 Number.MIN_SAFE_INTEGER
@@ -81685,32 +80788,32 @@ $export($export.S, 'Number', { MIN_SAFE_INTEGER: -0x1fffffffffffff });
 
 
 /***/ }),
+/* 171 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var $export = __webpack_require__(0);
+var $parseFloat = __webpack_require__(104);
+// 20.1.2.12 Number.parseFloat(string)
+$export($export.S + $export.F * (Number.parseFloat != $parseFloat), 'Number', { parseFloat: $parseFloat });
+
+
+/***/ }),
 /* 172 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
-var $parseFloat = __webpack_require__(106);
-// 20.1.2.12 Number.parseFloat(string)
-$export($export.S + $export.F * (Number.parseFloat != $parseFloat), 'Number', { parseFloat: $parseFloat });
+var $parseInt = __webpack_require__(103);
+// 20.1.2.13 Number.parseInt(string, radix)
+$export($export.S + $export.F * (Number.parseInt != $parseInt), 'Number', { parseInt: $parseInt });
 
 
 /***/ }),
 /* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var $export = __webpack_require__(0);
-var $parseInt = __webpack_require__(105);
-// 20.1.2.13 Number.parseInt(string, radix)
-$export($export.S + $export.F * (Number.parseInt != $parseInt), 'Number', { parseInt: $parseInt });
-
-
-/***/ }),
-/* 174 */
-/***/ (function(module, exports, __webpack_require__) {
-
 // 20.2.2.3 Math.acosh(x)
 var $export = __webpack_require__(0);
-var log1p = __webpack_require__(109);
+var log1p = __webpack_require__(107);
 var sqrt = Math.sqrt;
 var $acosh = Math.acosh;
 
@@ -81729,7 +80832,7 @@ $export($export.S + $export.F * !($acosh
 
 
 /***/ }),
-/* 175 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.5 Math.asinh(x)
@@ -81745,7 +80848,7 @@ $export($export.S + $export.F * !($asinh && 1 / $asinh(0) > 0), 'Math', { asinh:
 
 
 /***/ }),
-/* 176 */
+/* 175 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.7 Math.atanh(x)
@@ -81761,7 +80864,7 @@ $export($export.S + $export.F * !($atanh && 1 / $atanh(-0) < 0), 'Math', {
 
 
 /***/ }),
-/* 177 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.9 Math.cbrt(x)
@@ -81776,7 +80879,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 178 */
+/* 177 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.11 Math.clz32(x)
@@ -81790,7 +80893,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 179 */
+/* 178 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.12 Math.cosh(x)
@@ -81805,7 +80908,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 180 */
+/* 179 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.14 Math.expm1(x)
@@ -81816,17 +80919,17 @@ $export($export.S + $export.F * ($expm1 != Math.expm1), 'Math', { expm1: $expm1 
 
 
 /***/ }),
-/* 181 */
+/* 180 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.16 Math.fround(x)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Math', { fround: __webpack_require__(110) });
+$export($export.S, 'Math', { fround: __webpack_require__(108) });
 
 
 /***/ }),
-/* 182 */
+/* 181 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.17 Math.hypot([value1[, value2[, … ]]])
@@ -81857,7 +80960,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 183 */
+/* 182 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.18 Math.imul(x, y)
@@ -81880,7 +80983,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 184 */
+/* 183 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.21 Math.log10(x)
@@ -81894,17 +80997,17 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 185 */
+/* 184 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.20 Math.log1p(x)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Math', { log1p: __webpack_require__(109) });
+$export($export.S, 'Math', { log1p: __webpack_require__(107) });
 
 
 /***/ }),
-/* 186 */
+/* 185 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.22 Math.log2(x)
@@ -81918,7 +81021,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 187 */
+/* 186 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.28 Math.sign(x)
@@ -81928,7 +81031,7 @@ $export($export.S, 'Math', { sign: __webpack_require__(77) });
 
 
 /***/ }),
-/* 188 */
+/* 187 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.30 Math.sinh(x)
@@ -81949,7 +81052,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 189 */
+/* 188 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.33 Math.tanh(x)
@@ -81967,7 +81070,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 190 */
+/* 189 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.34 Math.trunc(x)
@@ -81981,7 +81084,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 191 */
+/* 190 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -82010,7 +81113,7 @@ $export($export.S + $export.F * (!!$fromCodePoint && $fromCodePoint.length != 1)
 
 
 /***/ }),
-/* 192 */
+/* 191 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -82034,7 +81137,7 @@ $export($export.S, 'String', {
 
 
 /***/ }),
-/* 193 */
+/* 192 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82048,7 +81151,7 @@ __webpack_require__(45)('trim', function ($trim) {
 
 
 /***/ }),
-/* 194 */
+/* 193 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82072,7 +81175,7 @@ __webpack_require__(80)(String, 'String', function (iterated) {
 
 
 /***/ }),
-/* 195 */
+/* 194 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82088,7 +81191,7 @@ $export($export.P, 'String', {
 
 
 /***/ }),
-/* 196 */
+/* 195 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82115,7 +81218,7 @@ $export($export.P + $export.F * __webpack_require__(83)(ENDS_WITH), 'String', {
 
 
 /***/ }),
-/* 197 */
+/* 196 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82134,7 +81237,7 @@ $export($export.P + $export.F * __webpack_require__(83)(INCLUDES), 'String', {
 
 
 /***/ }),
-/* 198 */
+/* 197 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -82146,7 +81249,7 @@ $export($export.P, 'String', {
 
 
 /***/ }),
-/* 199 */
+/* 198 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82171,7 +81274,7 @@ $export($export.P + $export.F * __webpack_require__(83)(STARTS_WITH), 'String', 
 
 
 /***/ }),
-/* 200 */
+/* 199 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82185,7 +81288,7 @@ __webpack_require__(14)('anchor', function (createHTML) {
 
 
 /***/ }),
-/* 201 */
+/* 200 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82199,7 +81302,7 @@ __webpack_require__(14)('big', function (createHTML) {
 
 
 /***/ }),
-/* 202 */
+/* 201 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82213,7 +81316,7 @@ __webpack_require__(14)('blink', function (createHTML) {
 
 
 /***/ }),
-/* 203 */
+/* 202 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82227,7 +81330,7 @@ __webpack_require__(14)('bold', function (createHTML) {
 
 
 /***/ }),
-/* 204 */
+/* 203 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82241,7 +81344,7 @@ __webpack_require__(14)('fixed', function (createHTML) {
 
 
 /***/ }),
-/* 205 */
+/* 204 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82255,7 +81358,7 @@ __webpack_require__(14)('fontcolor', function (createHTML) {
 
 
 /***/ }),
-/* 206 */
+/* 205 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82269,7 +81372,7 @@ __webpack_require__(14)('fontsize', function (createHTML) {
 
 
 /***/ }),
-/* 207 */
+/* 206 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82283,7 +81386,7 @@ __webpack_require__(14)('italics', function (createHTML) {
 
 
 /***/ }),
-/* 208 */
+/* 207 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82297,7 +81400,7 @@ __webpack_require__(14)('link', function (createHTML) {
 
 
 /***/ }),
-/* 209 */
+/* 208 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82311,7 +81414,7 @@ __webpack_require__(14)('small', function (createHTML) {
 
 
 /***/ }),
-/* 210 */
+/* 209 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82325,7 +81428,7 @@ __webpack_require__(14)('strike', function (createHTML) {
 
 
 /***/ }),
-/* 211 */
+/* 210 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82339,7 +81442,7 @@ __webpack_require__(14)('sub', function (createHTML) {
 
 
 /***/ }),
-/* 212 */
+/* 211 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82353,7 +81456,7 @@ __webpack_require__(14)('sup', function (createHTML) {
 
 
 /***/ }),
-/* 213 */
+/* 212 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.3.3.1 / 15.9.4.4 Date.now()
@@ -82363,7 +81466,7 @@ $export($export.S, 'Date', { now: function () { return new Date().getTime(); } }
 
 
 /***/ }),
-/* 214 */
+/* 213 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82386,12 +81489,12 @@ $export($export.P + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 215 */
+/* 214 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.3.4.36 / 15.9.5.43 Date.prototype.toISOString()
 var $export = __webpack_require__(0);
-var toISOString = __webpack_require__(216);
+var toISOString = __webpack_require__(215);
 
 // PhantomJS / old WebKit has a broken implementations
 $export($export.P + $export.F * (Date.prototype.toISOString !== toISOString), 'Date', {
@@ -82400,7 +81503,7 @@ $export($export.P + $export.F * (Date.prototype.toISOString !== toISOString), 'D
 
 
 /***/ }),
-/* 216 */
+/* 215 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82433,7 +81536,7 @@ module.exports = (fails(function () {
 
 
 /***/ }),
-/* 217 */
+/* 216 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var DateProto = Date.prototype;
@@ -82451,17 +81554,17 @@ if (new Date(NaN) + '' != INVALID_DATE) {
 
 
 /***/ }),
-/* 218 */
+/* 217 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var TO_PRIMITIVE = __webpack_require__(5)('toPrimitive');
 var proto = Date.prototype;
 
-if (!(TO_PRIMITIVE in proto)) __webpack_require__(12)(proto, TO_PRIMITIVE, __webpack_require__(219));
+if (!(TO_PRIMITIVE in proto)) __webpack_require__(12)(proto, TO_PRIMITIVE, __webpack_require__(218));
 
 
 /***/ }),
-/* 219 */
+/* 218 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82477,17 +81580,17 @@ module.exports = function (hint) {
 
 
 /***/ }),
-/* 220 */
+/* 219 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.2.2 / 15.4.3.2 Array.isArray(arg)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Array', { isArray: __webpack_require__(56) });
+$export($export.S, 'Array', { isArray: __webpack_require__(55) });
 
 
 /***/ }),
-/* 221 */
+/* 220 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82495,13 +81598,13 @@ $export($export.S, 'Array', { isArray: __webpack_require__(56) });
 var ctx = __webpack_require__(18);
 var $export = __webpack_require__(0);
 var toObject = __webpack_require__(9);
-var call = __webpack_require__(111);
+var call = __webpack_require__(109);
 var isArrayIter = __webpack_require__(84);
 var toLength = __webpack_require__(8);
 var createProperty = __webpack_require__(85);
 var getIterFn = __webpack_require__(86);
 
-$export($export.S + $export.F * !__webpack_require__(58)(function (iter) { Array.from(iter); }), 'Array', {
+$export($export.S + $export.F * !__webpack_require__(57)(function (iter) { Array.from(iter); }), 'Array', {
   // 22.1.2.1 Array.from(arrayLike, mapfn = undefined, thisArg = undefined)
   from: function from(arrayLike /* , mapfn = undefined, thisArg = undefined */) {
     var O = toObject(arrayLike);
@@ -82531,7 +81634,7 @@ $export($export.S + $export.F * !__webpack_require__(58)(function (iter) { Array
 
 
 /***/ }),
-/* 222 */
+/* 221 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82557,7 +81660,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 223 */
+/* 222 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82576,7 +81679,7 @@ $export($export.P + $export.F * (__webpack_require__(48) != Object || !__webpack
 
 
 /***/ }),
-/* 224 */
+/* 223 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82611,7 +81714,7 @@ $export($export.P + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 225 */
+/* 224 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82641,7 +81744,7 @@ $export($export.P + $export.F * (fails(function () {
 
 
 /***/ }),
-/* 226 */
+/* 225 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82659,11 +81762,11 @@ $export($export.P + $export.F * !STRICT, 'Array', {
 
 
 /***/ }),
-/* 227 */
+/* 226 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(4);
-var isArray = __webpack_require__(56);
+var isArray = __webpack_require__(55);
 var SPECIES = __webpack_require__(5)('species');
 
 module.exports = function (original) {
@@ -82681,7 +81784,7 @@ module.exports = function (original) {
 
 
 /***/ }),
-/* 228 */
+/* 227 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82698,7 +81801,7 @@ $export($export.P + $export.F * !__webpack_require__(20)([].map, true), 'Array',
 
 
 /***/ }),
-/* 229 */
+/* 228 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82715,7 +81818,7 @@ $export($export.P + $export.F * !__webpack_require__(20)([].filter, true), 'Arra
 
 
 /***/ }),
-/* 230 */
+/* 229 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82732,7 +81835,7 @@ $export($export.P + $export.F * !__webpack_require__(20)([].some, true), 'Array'
 
 
 /***/ }),
-/* 231 */
+/* 230 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82749,18 +81852,35 @@ $export($export.P + $export.F * !__webpack_require__(20)([].every, true), 'Array
 
 
 /***/ }),
+/* 231 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $export = __webpack_require__(0);
+var $reduce = __webpack_require__(110);
+
+$export($export.P + $export.F * !__webpack_require__(20)([].reduce, true), 'Array', {
+  // 22.1.3.18 / 15.4.4.21 Array.prototype.reduce(callbackfn [, initialValue])
+  reduce: function reduce(callbackfn /* , initialValue */) {
+    return $reduce(this, callbackfn, arguments.length, arguments[1], false);
+  }
+});
+
+
+/***/ }),
 /* 232 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var $export = __webpack_require__(0);
-var $reduce = __webpack_require__(112);
+var $reduce = __webpack_require__(110);
 
-$export($export.P + $export.F * !__webpack_require__(20)([].reduce, true), 'Array', {
-  // 22.1.3.18 / 15.4.4.21 Array.prototype.reduce(callbackfn [, initialValue])
-  reduce: function reduce(callbackfn /* , initialValue */) {
-    return $reduce(this, callbackfn, arguments.length, arguments[1], false);
+$export($export.P + $export.F * !__webpack_require__(20)([].reduceRight, true), 'Array', {
+  // 22.1.3.19 / 15.4.4.22 Array.prototype.reduceRight(callbackfn [, initialValue])
+  reduceRight: function reduceRight(callbackfn /* , initialValue */) {
+    return $reduce(this, callbackfn, arguments.length, arguments[1], true);
   }
 });
 
@@ -82772,24 +81892,7 @@ $export($export.P + $export.F * !__webpack_require__(20)([].reduce, true), 'Arra
 "use strict";
 
 var $export = __webpack_require__(0);
-var $reduce = __webpack_require__(112);
-
-$export($export.P + $export.F * !__webpack_require__(20)([].reduceRight, true), 'Array', {
-  // 22.1.3.19 / 15.4.4.22 Array.prototype.reduceRight(callbackfn [, initialValue])
-  reduceRight: function reduceRight(callbackfn /* , initialValue */) {
-    return $reduce(this, callbackfn, arguments.length, arguments[1], true);
-  }
-});
-
-
-/***/ }),
-/* 234 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var $export = __webpack_require__(0);
-var $indexOf = __webpack_require__(54)(false);
+var $indexOf = __webpack_require__(53)(false);
 var $native = [].indexOf;
 var NEGATIVE_ZERO = !!$native && 1 / [1].indexOf(1, -0) < 0;
 
@@ -82805,7 +81908,7 @@ $export($export.P + $export.F * (NEGATIVE_ZERO || !__webpack_require__(20)($nati
 
 
 /***/ }),
-/* 235 */
+/* 234 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82834,19 +81937,19 @@ $export($export.P + $export.F * (NEGATIVE_ZERO || !__webpack_require__(20)($nati
 
 
 /***/ }),
-/* 236 */
+/* 235 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
 var $export = __webpack_require__(0);
 
-$export($export.P, 'Array', { copyWithin: __webpack_require__(113) });
+$export($export.P, 'Array', { copyWithin: __webpack_require__(111) });
 
 __webpack_require__(30)('copyWithin');
 
 
 /***/ }),
-/* 237 */
+/* 236 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
@@ -82858,7 +81961,7 @@ __webpack_require__(30)('fill');
 
 
 /***/ }),
-/* 238 */
+/* 237 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82879,7 +81982,7 @@ __webpack_require__(30)(KEY);
 
 
 /***/ }),
-/* 239 */
+/* 238 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82900,22 +82003,22 @@ __webpack_require__(30)(KEY);
 
 
 /***/ }),
-/* 240 */
+/* 239 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(39)('Array');
 
 
 /***/ }),
-/* 241 */
+/* 240 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(2);
 var inheritIfRequired = __webpack_require__(75);
 var dP = __webpack_require__(7).f;
 var gOPN = __webpack_require__(38).f;
-var isRegExp = __webpack_require__(57);
-var $flags = __webpack_require__(59);
+var isRegExp = __webpack_require__(56);
+var $flags = __webpack_require__(58);
 var $RegExp = global.RegExp;
 var Base = $RegExp;
 var proto = $RegExp.prototype;
@@ -82956,14 +82059,14 @@ __webpack_require__(39)('RegExp');
 
 
 /***/ }),
-/* 242 */
+/* 241 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-__webpack_require__(115);
+__webpack_require__(113);
 var anObject = __webpack_require__(1);
-var $flags = __webpack_require__(59);
+var $flags = __webpack_require__(58);
 var DESCRIPTORS = __webpack_require__(6);
 var TO_STRING = 'toString';
 var $toString = /./[TO_STRING];
@@ -82988,11 +82091,11 @@ if (__webpack_require__(3)(function () { return $toString.call({ source: 'a', fl
 
 
 /***/ }),
-/* 243 */
+/* 242 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // @@match logic
-__webpack_require__(60)('match', 1, function (defined, MATCH, $match) {
+__webpack_require__(59)('match', 1, function (defined, MATCH, $match) {
   // 21.1.3.11 String.prototype.match(regexp)
   return [function match(regexp) {
     'use strict';
@@ -83004,11 +82107,11 @@ __webpack_require__(60)('match', 1, function (defined, MATCH, $match) {
 
 
 /***/ }),
-/* 244 */
+/* 243 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // @@replace logic
-__webpack_require__(60)('replace', 2, function (defined, REPLACE, $replace) {
+__webpack_require__(59)('replace', 2, function (defined, REPLACE, $replace) {
   // 21.1.3.14 String.prototype.replace(searchValue, replaceValue)
   return [function replace(searchValue, replaceValue) {
     'use strict';
@@ -83022,11 +82125,11 @@ __webpack_require__(60)('replace', 2, function (defined, REPLACE, $replace) {
 
 
 /***/ }),
-/* 245 */
+/* 244 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // @@search logic
-__webpack_require__(60)('search', 1, function (defined, SEARCH, $search) {
+__webpack_require__(59)('search', 1, function (defined, SEARCH, $search) {
   // 21.1.3.15 String.prototype.search(regexp)
   return [function search(regexp) {
     'use strict';
@@ -83038,13 +82141,13 @@ __webpack_require__(60)('search', 1, function (defined, SEARCH, $search) {
 
 
 /***/ }),
-/* 246 */
+/* 245 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // @@split logic
-__webpack_require__(60)('split', 2, function (defined, SPLIT, $split) {
+__webpack_require__(59)('split', 2, function (defined, SPLIT, $split) {
   'use strict';
-  var isRegExp = __webpack_require__(57);
+  var isRegExp = __webpack_require__(56);
   var _split = $split;
   var $push = [].push;
   var $SPLIT = 'split';
@@ -83115,7 +82218,7 @@ __webpack_require__(60)('split', 2, function (defined, SPLIT, $split) {
 
 
 /***/ }),
-/* 247 */
+/* 246 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -83129,12 +82232,12 @@ var isObject = __webpack_require__(4);
 var aFunction = __webpack_require__(10);
 var anInstance = __webpack_require__(40);
 var forOf = __webpack_require__(41);
-var speciesConstructor = __webpack_require__(61);
+var speciesConstructor = __webpack_require__(60);
 var task = __webpack_require__(90).set;
 var microtask = __webpack_require__(91)();
 var newPromiseCapabilityModule = __webpack_require__(92);
-var perform = __webpack_require__(116);
-var promiseResolve = __webpack_require__(117);
+var perform = __webpack_require__(114);
+var promiseResolve = __webpack_require__(115);
 var PROMISE = 'Promise';
 var TypeError = global.TypeError;
 var process = global.process;
@@ -83348,7 +82451,7 @@ $export($export.S + $export.F * (LIBRARY || !USE_NATIVE), PROMISE, {
     return promiseResolve(LIBRARY && this === Wrapper ? $Promise : this, x);
   }
 });
-$export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(58)(function (iter) {
+$export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(57)(function (iter) {
   $Promise.all(iter)['catch'](empty);
 })), PROMISE, {
   // 25.4.4.1 Promise.all(iterable)
@@ -83395,17 +82498,17 @@ $export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(58)(function
 
 
 /***/ }),
-/* 248 */
+/* 247 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var weak = __webpack_require__(122);
+var weak = __webpack_require__(120);
 var validate = __webpack_require__(47);
 var WEAK_SET = 'WeakSet';
 
 // 23.4 WeakSet Objects
-__webpack_require__(62)(WEAK_SET, function (get) {
+__webpack_require__(61)(WEAK_SET, function (get) {
   return function WeakSet() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
 }, {
   // 23.4.3.1 WeakSet.prototype.add(value)
@@ -83416,20 +82519,20 @@ __webpack_require__(62)(WEAK_SET, function (get) {
 
 
 /***/ }),
-/* 249 */
+/* 248 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var $export = __webpack_require__(0);
-var $typed = __webpack_require__(63);
+var $typed = __webpack_require__(62);
 var buffer = __webpack_require__(93);
 var anObject = __webpack_require__(1);
 var toAbsoluteIndex = __webpack_require__(36);
 var toLength = __webpack_require__(8);
 var isObject = __webpack_require__(4);
 var ArrayBuffer = __webpack_require__(2).ArrayBuffer;
-var speciesConstructor = __webpack_require__(61);
+var speciesConstructor = __webpack_require__(60);
 var $ArrayBuffer = buffer.ArrayBuffer;
 var $DataView = buffer.DataView;
 var $isView = $typed.ABV && ArrayBuffer.isView;
@@ -83469,17 +82572,17 @@ __webpack_require__(39)(ARRAY_BUFFER);
 
 
 /***/ }),
-/* 250 */
+/* 249 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
-$export($export.G + $export.W + $export.F * !__webpack_require__(63).ABV, {
+$export($export.G + $export.W + $export.F * !__webpack_require__(62).ABV, {
   DataView: __webpack_require__(93).DataView
 });
 
 
 /***/ }),
-/* 251 */
+/* 250 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Int8', 1, function (init) {
@@ -83490,7 +82593,7 @@ __webpack_require__(27)('Int8', 1, function (init) {
 
 
 /***/ }),
-/* 252 */
+/* 251 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Uint8', 1, function (init) {
@@ -83501,7 +82604,7 @@ __webpack_require__(27)('Uint8', 1, function (init) {
 
 
 /***/ }),
-/* 253 */
+/* 252 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Uint8', 1, function (init) {
@@ -83512,7 +82615,7 @@ __webpack_require__(27)('Uint8', 1, function (init) {
 
 
 /***/ }),
-/* 254 */
+/* 253 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Int16', 2, function (init) {
@@ -83523,7 +82626,7 @@ __webpack_require__(27)('Int16', 2, function (init) {
 
 
 /***/ }),
-/* 255 */
+/* 254 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Uint16', 2, function (init) {
@@ -83534,7 +82637,7 @@ __webpack_require__(27)('Uint16', 2, function (init) {
 
 
 /***/ }),
-/* 256 */
+/* 255 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Int32', 4, function (init) {
@@ -83545,7 +82648,7 @@ __webpack_require__(27)('Int32', 4, function (init) {
 
 
 /***/ }),
-/* 257 */
+/* 256 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Uint32', 4, function (init) {
@@ -83556,7 +82659,7 @@ __webpack_require__(27)('Uint32', 4, function (init) {
 
 
 /***/ }),
-/* 258 */
+/* 257 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Float32', 4, function (init) {
@@ -83567,7 +82670,7 @@ __webpack_require__(27)('Float32', 4, function (init) {
 
 
 /***/ }),
-/* 259 */
+/* 258 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Float64', 8, function (init) {
@@ -83578,7 +82681,7 @@ __webpack_require__(27)('Float64', 8, function (init) {
 
 
 /***/ }),
-/* 260 */
+/* 259 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.1 Reflect.apply(target, thisArgument, argumentsList)
@@ -83600,7 +82703,7 @@ $export($export.S + $export.F * !__webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 261 */
+/* 260 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.2 Reflect.construct(target, argumentsList [, newTarget])
@@ -83610,7 +82713,7 @@ var aFunction = __webpack_require__(10);
 var anObject = __webpack_require__(1);
 var isObject = __webpack_require__(4);
 var fails = __webpack_require__(3);
-var bind = __webpack_require__(103);
+var bind = __webpack_require__(101);
 var rConstruct = (__webpack_require__(2).Reflect || {}).construct;
 
 // MS Edge supports only 2 arguments and argumentsList argument is optional
@@ -83653,7 +82756,7 @@ $export($export.S + $export.F * (NEW_TARGET_BUG || ARGS_BUG), 'Reflect', {
 
 
 /***/ }),
-/* 262 */
+/* 261 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.3 Reflect.defineProperty(target, propertyKey, attributes)
@@ -83682,7 +82785,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 263 */
+/* 262 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.4 Reflect.deleteProperty(target, propertyKey)
@@ -83699,7 +82802,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 264 */
+/* 263 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -83732,7 +82835,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 265 */
+/* 264 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.6 Reflect.get(target, propertyKey [, receiver])
@@ -83759,7 +82862,7 @@ $export($export.S, 'Reflect', { get: get });
 
 
 /***/ }),
-/* 266 */
+/* 265 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.7 Reflect.getOwnPropertyDescriptor(target, propertyKey)
@@ -83775,7 +82878,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 267 */
+/* 266 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.8 Reflect.getPrototypeOf(target)
@@ -83791,7 +82894,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 268 */
+/* 267 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.9 Reflect.has(target, propertyKey)
@@ -83805,7 +82908,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 269 */
+/* 268 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.10 Reflect.isExtensible(target)
@@ -83822,17 +82925,17 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 270 */
+/* 269 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.11 Reflect.ownKeys(target)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Reflect', { ownKeys: __webpack_require__(124) });
+$export($export.S, 'Reflect', { ownKeys: __webpack_require__(122) });
 
 
 /***/ }),
-/* 271 */
+/* 270 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.12 Reflect.preventExtensions(target)
@@ -83854,7 +82957,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 272 */
+/* 271 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.13 Reflect.set(target, propertyKey, V [, receiver])
@@ -83891,7 +82994,7 @@ $export($export.S, 'Reflect', { set: set });
 
 
 /***/ }),
-/* 273 */
+/* 272 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.14 Reflect.setPrototypeOf(target, proto)
@@ -83912,14 +83015,14 @@ if (setProto) $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 274 */
+/* 273 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 // https://github.com/tc39/Array.prototype.includes
 var $export = __webpack_require__(0);
-var $includes = __webpack_require__(54)(true);
+var $includes = __webpack_require__(53)(true);
 
 $export($export.P, 'Array', {
   includes: function includes(el /* , fromIndex = 0 */) {
@@ -83931,14 +83034,14 @@ __webpack_require__(30)('includes');
 
 
 /***/ }),
-/* 275 */
+/* 274 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 // https://tc39.github.io/proposal-flatMap/#sec-Array.prototype.flatMap
 var $export = __webpack_require__(0);
-var flattenIntoArray = __webpack_require__(125);
+var flattenIntoArray = __webpack_require__(123);
 var toObject = __webpack_require__(9);
 var toLength = __webpack_require__(8);
 var aFunction = __webpack_require__(10);
@@ -83960,14 +83063,14 @@ __webpack_require__(30)('flatMap');
 
 
 /***/ }),
-/* 276 */
+/* 275 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 // https://tc39.github.io/proposal-flatMap/#sec-Array.prototype.flatten
 var $export = __webpack_require__(0);
-var flattenIntoArray = __webpack_require__(125);
+var flattenIntoArray = __webpack_require__(123);
 var toObject = __webpack_require__(9);
 var toLength = __webpack_require__(8);
 var toInteger = __webpack_require__(24);
@@ -83988,7 +83091,7 @@ __webpack_require__(30)('flatten');
 
 
 /***/ }),
-/* 277 */
+/* 276 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84005,14 +83108,14 @@ $export($export.P, 'String', {
 
 
 /***/ }),
-/* 278 */
+/* 277 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 // https://github.com/tc39/proposal-string-pad-start-end
 var $export = __webpack_require__(0);
-var $pad = __webpack_require__(126);
+var $pad = __webpack_require__(124);
 var userAgent = __webpack_require__(94);
 
 // https://github.com/zloirock/core-js/issues/280
@@ -84024,14 +83127,14 @@ $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAge
 
 
 /***/ }),
-/* 279 */
+/* 278 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 // https://github.com/tc39/proposal-string-pad-start-end
 var $export = __webpack_require__(0);
-var $pad = __webpack_require__(126);
+var $pad = __webpack_require__(124);
 var userAgent = __webpack_require__(94);
 
 // https://github.com/zloirock/core-js/issues/280
@@ -84043,7 +83146,7 @@ $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAge
 
 
 /***/ }),
-/* 280 */
+/* 279 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84057,7 +83160,7 @@ __webpack_require__(45)('trimLeft', function ($trim) {
 
 
 /***/ }),
-/* 281 */
+/* 280 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84071,7 +83174,7 @@ __webpack_require__(45)('trimRight', function ($trim) {
 
 
 /***/ }),
-/* 282 */
+/* 281 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84080,8 +83183,8 @@ __webpack_require__(45)('trimRight', function ($trim) {
 var $export = __webpack_require__(0);
 var defined = __webpack_require__(23);
 var toLength = __webpack_require__(8);
-var isRegExp = __webpack_require__(57);
-var getFlags = __webpack_require__(59);
+var isRegExp = __webpack_require__(56);
+var getFlags = __webpack_require__(58);
 var RegExpProto = RegExp.prototype;
 
 var $RegExpStringIterator = function (regexp, string) {
@@ -84108,26 +83211,26 @@ $export($export.P, 'String', {
 
 
 /***/ }),
-/* 283 */
+/* 282 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(69)('asyncIterator');
 
 
 /***/ }),
-/* 284 */
+/* 283 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(69)('observable');
 
 
 /***/ }),
-/* 285 */
+/* 284 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-getownpropertydescriptors
 var $export = __webpack_require__(0);
-var ownKeys = __webpack_require__(124);
+var ownKeys = __webpack_require__(122);
 var toIObject = __webpack_require__(15);
 var gOPD = __webpack_require__(16);
 var createProperty = __webpack_require__(85);
@@ -84150,12 +83253,12 @@ $export($export.S, 'Object', {
 
 
 /***/ }),
-/* 286 */
+/* 285 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-values-entries
 var $export = __webpack_require__(0);
-var $values = __webpack_require__(127)(false);
+var $values = __webpack_require__(125)(false);
 
 $export($export.S, 'Object', {
   values: function values(it) {
@@ -84165,16 +83268,35 @@ $export($export.S, 'Object', {
 
 
 /***/ }),
-/* 287 */
+/* 286 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-values-entries
 var $export = __webpack_require__(0);
-var $entries = __webpack_require__(127)(true);
+var $entries = __webpack_require__(125)(true);
 
 $export($export.S, 'Object', {
   entries: function entries(it) {
     return $entries(it);
+  }
+});
+
+
+/***/ }),
+/* 287 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $export = __webpack_require__(0);
+var toObject = __webpack_require__(9);
+var aFunction = __webpack_require__(10);
+var $defineProperty = __webpack_require__(7);
+
+// B.2.2.2 Object.prototype.__defineGetter__(P, getter)
+__webpack_require__(6) && $export($export.P + __webpack_require__(63), 'Object', {
+  __defineGetter__: function __defineGetter__(P, getter) {
+    $defineProperty.f(toObject(this), P, { get: aFunction(getter), enumerable: true, configurable: true });
   }
 });
 
@@ -84190,10 +83312,10 @@ var toObject = __webpack_require__(9);
 var aFunction = __webpack_require__(10);
 var $defineProperty = __webpack_require__(7);
 
-// B.2.2.2 Object.prototype.__defineGetter__(P, getter)
-__webpack_require__(6) && $export($export.P + __webpack_require__(64), 'Object', {
-  __defineGetter__: function __defineGetter__(P, getter) {
-    $defineProperty.f(toObject(this), P, { get: aFunction(getter), enumerable: true, configurable: true });
+// B.2.2.3 Object.prototype.__defineSetter__(P, setter)
+__webpack_require__(6) && $export($export.P + __webpack_require__(63), 'Object', {
+  __defineSetter__: function __defineSetter__(P, setter) {
+    $defineProperty.f(toObject(this), P, { set: aFunction(setter), enumerable: true, configurable: true });
   }
 });
 
@@ -84206,13 +83328,19 @@ __webpack_require__(6) && $export($export.P + __webpack_require__(64), 'Object',
 
 var $export = __webpack_require__(0);
 var toObject = __webpack_require__(9);
-var aFunction = __webpack_require__(10);
-var $defineProperty = __webpack_require__(7);
+var toPrimitive = __webpack_require__(22);
+var getPrototypeOf = __webpack_require__(17);
+var getOwnPropertyDescriptor = __webpack_require__(16).f;
 
-// B.2.2.3 Object.prototype.__defineSetter__(P, setter)
-__webpack_require__(6) && $export($export.P + __webpack_require__(64), 'Object', {
-  __defineSetter__: function __defineSetter__(P, setter) {
-    $defineProperty.f(toObject(this), P, { set: aFunction(setter), enumerable: true, configurable: true });
+// B.2.2.4 Object.prototype.__lookupGetter__(P)
+__webpack_require__(6) && $export($export.P + __webpack_require__(63), 'Object', {
+  __lookupGetter__: function __lookupGetter__(P) {
+    var O = toObject(this);
+    var K = toPrimitive(P, true);
+    var D;
+    do {
+      if (D = getOwnPropertyDescriptor(O, K)) return D.get;
+    } while (O = getPrototypeOf(O));
   }
 });
 
@@ -84229,33 +83357,8 @@ var toPrimitive = __webpack_require__(22);
 var getPrototypeOf = __webpack_require__(17);
 var getOwnPropertyDescriptor = __webpack_require__(16).f;
 
-// B.2.2.4 Object.prototype.__lookupGetter__(P)
-__webpack_require__(6) && $export($export.P + __webpack_require__(64), 'Object', {
-  __lookupGetter__: function __lookupGetter__(P) {
-    var O = toObject(this);
-    var K = toPrimitive(P, true);
-    var D;
-    do {
-      if (D = getOwnPropertyDescriptor(O, K)) return D.get;
-    } while (O = getPrototypeOf(O));
-  }
-});
-
-
-/***/ }),
-/* 291 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var $export = __webpack_require__(0);
-var toObject = __webpack_require__(9);
-var toPrimitive = __webpack_require__(22);
-var getPrototypeOf = __webpack_require__(17);
-var getOwnPropertyDescriptor = __webpack_require__(16).f;
-
 // B.2.2.5 Object.prototype.__lookupSetter__(P)
-__webpack_require__(6) && $export($export.P + __webpack_require__(64), 'Object', {
+__webpack_require__(6) && $export($export.P + __webpack_require__(63), 'Object', {
   __lookupSetter__: function __lookupSetter__(P) {
     var O = toObject(this);
     var K = toPrimitive(P, true);
@@ -84268,91 +83371,91 @@ __webpack_require__(6) && $export($export.P + __webpack_require__(64), 'Object',
 
 
 /***/ }),
+/* 291 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// https://github.com/DavidBruant/Map-Set.prototype.toJSON
+var $export = __webpack_require__(0);
+
+$export($export.P + $export.R, 'Map', { toJSON: __webpack_require__(126)('Map') });
+
+
+/***/ }),
 /* 292 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/DavidBruant/Map-Set.prototype.toJSON
 var $export = __webpack_require__(0);
 
-$export($export.P + $export.R, 'Map', { toJSON: __webpack_require__(128)('Map') });
+$export($export.P + $export.R, 'Set', { toJSON: __webpack_require__(126)('Set') });
 
 
 /***/ }),
 /* 293 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// https://github.com/DavidBruant/Map-Set.prototype.toJSON
-var $export = __webpack_require__(0);
-
-$export($export.P + $export.R, 'Set', { toJSON: __webpack_require__(128)('Set') });
+// https://tc39.github.io/proposal-setmap-offrom/#sec-map.of
+__webpack_require__(64)('Map');
 
 
 /***/ }),
 /* 294 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// https://tc39.github.io/proposal-setmap-offrom/#sec-map.of
-__webpack_require__(65)('Map');
+// https://tc39.github.io/proposal-setmap-offrom/#sec-set.of
+__webpack_require__(64)('Set');
 
 
 /***/ }),
 /* 295 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// https://tc39.github.io/proposal-setmap-offrom/#sec-set.of
-__webpack_require__(65)('Set');
+// https://tc39.github.io/proposal-setmap-offrom/#sec-weakmap.of
+__webpack_require__(64)('WeakMap');
 
 
 /***/ }),
 /* 296 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// https://tc39.github.io/proposal-setmap-offrom/#sec-weakmap.of
-__webpack_require__(65)('WeakMap');
+// https://tc39.github.io/proposal-setmap-offrom/#sec-weakset.of
+__webpack_require__(64)('WeakSet');
 
 
 /***/ }),
 /* 297 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// https://tc39.github.io/proposal-setmap-offrom/#sec-weakset.of
-__webpack_require__(65)('WeakSet');
+// https://tc39.github.io/proposal-setmap-offrom/#sec-map.from
+__webpack_require__(65)('Map');
 
 
 /***/ }),
 /* 298 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// https://tc39.github.io/proposal-setmap-offrom/#sec-map.from
-__webpack_require__(66)('Map');
+// https://tc39.github.io/proposal-setmap-offrom/#sec-set.from
+__webpack_require__(65)('Set');
 
 
 /***/ }),
 /* 299 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// https://tc39.github.io/proposal-setmap-offrom/#sec-set.from
-__webpack_require__(66)('Set');
+// https://tc39.github.io/proposal-setmap-offrom/#sec-weakmap.from
+__webpack_require__(65)('WeakMap');
 
 
 /***/ }),
 /* 300 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// https://tc39.github.io/proposal-setmap-offrom/#sec-weakmap.from
-__webpack_require__(66)('WeakMap');
+// https://tc39.github.io/proposal-setmap-offrom/#sec-weakset.from
+__webpack_require__(65)('WeakSet');
 
 
 /***/ }),
 /* 301 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// https://tc39.github.io/proposal-setmap-offrom/#sec-weakset.from
-__webpack_require__(66)('WeakSet');
-
-
-/***/ }),
-/* 302 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-global
@@ -84362,7 +83465,7 @@ $export($export.G, { global: __webpack_require__(2) });
 
 
 /***/ }),
-/* 303 */
+/* 302 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-global
@@ -84372,7 +83475,7 @@ $export($export.S, 'System', { global: __webpack_require__(2) });
 
 
 /***/ }),
-/* 304 */
+/* 303 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/ljharb/proposal-is-error
@@ -84387,7 +83490,7 @@ $export($export.S, 'Error', {
 
 
 /***/ }),
-/* 305 */
+/* 304 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -84401,7 +83504,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 306 */
+/* 305 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -84411,7 +83514,7 @@ $export($export.S, 'Math', { DEG_PER_RAD: Math.PI / 180 });
 
 
 /***/ }),
-/* 307 */
+/* 306 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -84426,13 +83529,13 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 308 */
+/* 307 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
 var $export = __webpack_require__(0);
-var scale = __webpack_require__(130);
-var fround = __webpack_require__(110);
+var scale = __webpack_require__(128);
+var fround = __webpack_require__(108);
 
 $export($export.S, 'Math', {
   fscale: function fscale(x, inLow, inHigh, outLow, outHigh) {
@@ -84442,7 +83545,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 309 */
+/* 308 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
@@ -84459,7 +83562,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 310 */
+/* 309 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
@@ -84476,7 +83579,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 311 */
+/* 310 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
@@ -84498,7 +83601,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 312 */
+/* 311 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -84508,7 +83611,7 @@ $export($export.S, 'Math', { RAD_PER_DEG: 180 / Math.PI });
 
 
 /***/ }),
-/* 313 */
+/* 312 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -84523,17 +83626,17 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 314 */
+/* 313 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Math', { scale: __webpack_require__(130) });
+$export($export.S, 'Math', { scale: __webpack_require__(128) });
 
 
 /***/ }),
-/* 315 */
+/* 314 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
@@ -84555,7 +83658,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 316 */
+/* 315 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // http://jfbastien.github.io/papers/Math.signbit.html
@@ -84568,7 +83671,7 @@ $export($export.S, 'Math', { signbit: function signbit(x) {
 
 
 /***/ }),
-/* 317 */
+/* 316 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84577,8 +83680,8 @@ $export($export.S, 'Math', { signbit: function signbit(x) {
 var $export = __webpack_require__(0);
 var core = __webpack_require__(21);
 var global = __webpack_require__(2);
-var speciesConstructor = __webpack_require__(61);
-var promiseResolve = __webpack_require__(117);
+var speciesConstructor = __webpack_require__(60);
+var promiseResolve = __webpack_require__(115);
 
 $export($export.P + $export.R, 'Promise', { 'finally': function (onFinally) {
   var C = speciesConstructor(this, core.Promise || global.Promise);
@@ -84595,7 +83698,7 @@ $export($export.P + $export.R, 'Promise', { 'finally': function (onFinally) {
 
 
 /***/ }),
-/* 318 */
+/* 317 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84603,7 +83706,7 @@ $export($export.P + $export.R, 'Promise', { 'finally': function (onFinally) {
 // https://github.com/tc39/proposal-promise-try
 var $export = __webpack_require__(0);
 var newPromiseCapability = __webpack_require__(92);
-var perform = __webpack_require__(116);
+var perform = __webpack_require__(114);
 
 $export($export.S, 'Promise', { 'try': function (callbackfn) {
   var promiseCapability = newPromiseCapability.f(this);
@@ -84614,7 +83717,7 @@ $export($export.S, 'Promise', { 'try': function (callbackfn) {
 
 
 /***/ }),
-/* 319 */
+/* 318 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -84628,7 +83731,7 @@ metadata.exp({ defineMetadata: function defineMetadata(metadataKey, metadataValu
 
 
 /***/ }),
-/* 320 */
+/* 319 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -84649,7 +83752,7 @@ metadata.exp({ deleteMetadata: function deleteMetadata(metadataKey, target /* , 
 
 
 /***/ }),
-/* 321 */
+/* 320 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -84672,11 +83775,11 @@ metadata.exp({ getMetadata: function getMetadata(metadataKey, target /* , target
 
 
 /***/ }),
-/* 322 */
+/* 321 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var Set = __webpack_require__(120);
-var from = __webpack_require__(129);
+var Set = __webpack_require__(118);
+var from = __webpack_require__(127);
 var metadata = __webpack_require__(28);
 var anObject = __webpack_require__(1);
 var getPrototypeOf = __webpack_require__(17);
@@ -84697,7 +83800,7 @@ metadata.exp({ getMetadataKeys: function getMetadataKeys(target /* , targetKey *
 
 
 /***/ }),
-/* 323 */
+/* 322 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -84712,7 +83815,7 @@ metadata.exp({ getOwnMetadata: function getOwnMetadata(metadataKey, target /* , 
 
 
 /***/ }),
-/* 324 */
+/* 323 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -84726,7 +83829,7 @@ metadata.exp({ getOwnMetadataKeys: function getOwnMetadataKeys(target /* , targe
 
 
 /***/ }),
-/* 325 */
+/* 324 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -84748,7 +83851,7 @@ metadata.exp({ hasMetadata: function hasMetadata(metadataKey, target /* , target
 
 
 /***/ }),
-/* 326 */
+/* 325 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -84763,7 +83866,7 @@ metadata.exp({ hasOwnMetadata: function hasOwnMetadata(metadataKey, target /* , 
 
 
 /***/ }),
-/* 327 */
+/* 326 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $metadata = __webpack_require__(28);
@@ -84784,7 +83887,7 @@ $metadata.exp({ metadata: function metadata(metadataKey, metadataValue) {
 
 
 /***/ }),
-/* 328 */
+/* 327 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/rwaldron/tc39-notes/blob/master/es6/2014-09/sept-25.md#510-globalasap-for-enqueuing-a-microtask
@@ -84802,7 +83905,7 @@ $export($export.G, {
 
 
 /***/ }),
-/* 329 */
+/* 328 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85008,7 +84111,7 @@ __webpack_require__(39)('Observable');
 
 
 /***/ }),
-/* 330 */
+/* 329 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // ie9- setTimeout & setInterval additional parameters fix
@@ -85034,7 +84137,7 @@ $export($export.G + $export.B + $export.F * MSIE, {
 
 
 /***/ }),
-/* 331 */
+/* 330 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -85046,7 +84149,7 @@ $export($export.G + $export.B, {
 
 
 /***/ }),
-/* 332 */
+/* 331 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $iterators = __webpack_require__(89);
@@ -85110,7 +84213,7 @@ for (var collections = getKeys(DOMIterables), i = 0; i < collections.length; i++
 
 
 /***/ }),
-/* 333 */
+/* 332 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -85853,26 +84956,26 @@ for (var collections = getKeys(DOMIterables), i = 0; i < collections.length; i++
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(67)))
 
 /***/ }),
-/* 334 */
+/* 333 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(335);
+__webpack_require__(334);
 module.exports = __webpack_require__(21).RegExp.escape;
 
 
 /***/ }),
-/* 335 */
+/* 334 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/benjamingr/RexExp.escape
 var $export = __webpack_require__(0);
-var $re = __webpack_require__(336)(/[\\^$*+?.()|[\]{}]/g, '\\$&');
+var $re = __webpack_require__(335)(/[\\^$*+?.()|[\]{}]/g, '\\$&');
 
 $export($export.S, 'RegExp', { escape: function escape(it) { return $re(it); } });
 
 
 /***/ }),
-/* 336 */
+/* 335 */
 /***/ (function(module, exports) {
 
 module.exports = function (regExp, replace) {
@@ -85886,7 +84989,7 @@ module.exports = function (regExp, replace) {
 
 
 /***/ }),
-/* 337 */
+/* 336 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85897,11 +85000,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.remoteDataServer = exports.initFullPageJolecule = exports.initEmbedJolecule = undefined;
 
-var _animation = __webpack_require__(338);
+var _animation = __webpack_require__(337);
 
-var _embedjolecule = __webpack_require__(131);
+var _embedjolecule = __webpack_require__(129);
 
-var _fullpagejolecule = __webpack_require__(345);
+var _fullpagejolecule = __webpack_require__(342);
 
 var _lodash = __webpack_require__(31);
 
@@ -85986,7 +85089,7 @@ exports.initFullPageJolecule = initFullPageJolecule;
 exports.remoteDataServer = remoteDataServer;
 
 /***/ }),
-/* 338 */
+/* 337 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86100,7 +85203,7 @@ function registerGlobalAnimationLoop(widget) {
 exports.registerGlobalAnimationLoop = registerGlobalAnimationLoop;
 
 /***/ }),
-/* 339 */
+/* 338 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -86128,1081 +85231,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 340 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * Finds pairs of vertices that have been coarsely grouped together
- * using spatial hashes of boxes of div^3. All vertices in neighboring
- * boxes are considered close pairs.
- *
- * Vertex - [x, y, z] in real coordinates
- *
- * Space - [i, j, k] integer indices in grid space
- *
- * Spacehash - hash integer hash of a space
- *
- * SpaceHashes are spaces converted to a single integer
- *
- * @param {Array<THREE.Vector3>} vertices - list of positions
- * @returns {Array} - array of pairs of positions
- */
-var SpaceHash = function () {
-  function SpaceHash(vertices) {
-    _classCallCheck(this, SpaceHash);
-
-    console.log('SpaceHash assigning vertices to cells');
-
-    this.vertices = vertices;
-    this.padding = 0.05;
-    this.div = 5.0;
-    this.invDiv = 1.0 / this.div;
-    this.maxima = [0.0, 0.0, 0.0];
-    this.minima = [0.0, 0.0, 0.0];
-    this.spans = [0.0, 0.0, 0.0];
-    this.sizes = [0, 0, 0];
-
-    for (var iDim = 0; iDim < 3; iDim++) {
-      for (var iVertex = 0; iVertex < this.vertices.length; iVertex += 1) {
-        if (this.minima[iDim] > this.vertices[iVertex][iDim]) {
-          this.minima[iDim] = this.vertices[iVertex][iDim];
-        }
-        if (this.maxima[iDim] < this.vertices[iVertex][iDim]) {
-          this.maxima[iDim] = this.vertices[iVertex][iDim];
-        }
-      }
-      this.minima[iDim] -= this.padding;
-      this.maxima[iDim] += this.padding;
-      this.spans[iDim] = this.maxima[iDim] - this.minima[iDim];
-      this.sizes[iDim] = Math.ceil(this.spans[iDim] * this.invDiv);
-    }
-
-    this.cells = {};
-    this.spaces = [];
-    for (var _iVertex = 0; _iVertex < this.vertices.length; _iVertex++) {
-      var vertex = this.vertices[_iVertex];
-      var space = this.getSpaceFromVertex(vertex);
-      this.spaces.push(space);
-      var hash = this.getHashFromSpace(space);
-      if (!(hash in this.cells)) {
-        this.cells[hash] = [];
-      }
-      this.cells[hash].push(_iVertex);
-    }
-  }
-
-  _createClass(SpaceHash, [{
-    key: 'getSpaceFromVertex',
-    value: function getSpaceFromVertex(vertex) {
-      var result = [];
-      for (var iDim = 0; iDim < 3; iDim++) {
-        result.push(Math.round((vertex[iDim] - this.minima[iDim]) * this.invDiv));
-      }
-      return result;
-    }
-  }, {
-    key: 'getHashFromSpace',
-    value: function getHashFromSpace(s) {
-      return s[0] * this.sizes[1] * this.sizes[2] + s[1] * this.sizes[2] + s[2];
-    }
-  }, {
-    key: 'pushCellOfSpace',
-    value: function pushCellOfSpace(pairs, vertex, iVertex) {
-      var spaceCenter = this.getSpaceFromVertex(vertex);
-
-      var space0start = Math.max(0, spaceCenter[0] - 1);
-      var space0end = Math.min(this.sizes[0], spaceCenter[0] + 2);
-      var space1start = Math.max(0, spaceCenter[1] - 1);
-      var space1end = Math.min(this.sizes[1], spaceCenter[1] + 2);
-      var space2start = Math.max(0, spaceCenter[2] - 1);
-      var space2end = Math.min(this.sizes[2], spaceCenter[2] + 2);
-
-      for (var space0 = space0start; space0 < space0end; space0++) {
-        for (var space1 = space1start; space1 < space1end; space1++) {
-          for (var space2 = space2start; space2 < space2end; space2++) {
-            var hash = this.getHashFromSpace([space0, space1, space2]);
-            if (hash in this.cells) {
-              var cell = this.cells[hash];
-              for (var jVertexInCell = 0; jVertexInCell < cell.length; jVertexInCell++) {
-                var jVertex = cell[jVertexInCell];
-                pairs.push([iVertex, jVertex]);
-              }
-            }
-          }
-        }
-      }
-    }
-  }, {
-    key: 'getClosePairs',
-    value: function getClosePairs() {
-      console.log('SpatialHash.getClosePairs');
-      var pairs = [];
-      for (var iVertex = 0; iVertex < this.vertices.length; iVertex++) {
-        this.pushCellOfSpace(pairs, this.vertices[iVertex], iVertex);
-      }
-      return pairs;
-    }
-  }, {
-    key: 'getVerticesNearPoint',
-    value: function getVerticesNearPoint(vertex, iVertex) {
-      console.log('SpatialHash.getClosePairs');
-      var pairs = [];
-      this.pushCellOfSpace(pairs, vertex, iVertex);
-      return pairs;
-    }
-  }]);
-
-  return SpaceHash;
-}();
-
-exports.SpaceHash = SpaceHash;
-
-/***/ }),
-/* 341 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * @file Store - an array-based space-efficient typed datastore, to be used
- * as a Flyweight, with an associated Proxy
- *
- * adapted from NGL @author Alexander Rose <alexander.rose@weirdbyte.de>
- */
-
-function getTypedArray(arrayType, arraySize) {
-  switch (arrayType) {
-    case 'int8':
-      return new Int8Array(arraySize);
-    case 'int16':
-      return new Int16Array(arraySize);
-    case 'int32':
-      return new Int32Array(arraySize);
-    case 'uint8':
-      return new Uint8Array(arraySize);
-    case 'uint16':
-      return new Uint16Array(arraySize);
-    case 'uint32':
-      return new Uint32Array(arraySize);
-    case 'float32':
-      return new Float32Array(arraySize);
-    default:
-      throw new Error('arrayType unknown: ' + arrayType);
-  }
-}
-
-/**
- * Store - an array-based space-efficient typed datastore, to be used
- * as a Flyweight, with an associated Proxy
- */
-
-var Store = function () {
-  /**
-   * @param fields - list of typed fields in the store
-   * @param {Integer} size - initial size of the datastore
-   */
-  function Store(fields, size) {
-    _classCallCheck(this, Store);
-
-    // actual size allocated
-    this.length = 0;
-
-    // size to use, updated by this.growIfFull
-    this.count = 0;
-
-    this._fields = fields;
-
-    if (Number.isInteger(size)) {
-      this._init(size);
-    } else {
-      this._init(0);
-    }
-  }
-
-  /**
-   * Initialize the store
-   * @param {Integer} size - size to initialize
-   */
-
-
-  _createClass(Store, [{
-    key: '_init',
-    value: function _init(size) {
-      this.length = size;
-      this.count = 0;
-
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = this._fields[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var field = _step.value;
-
-          this._initField.apply(this, _toConsumableArray(field));
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-      }
-    }
-
-    /**
-     * Initialize a field
-     * @param  {String} name - field name
-     * @param  {Integer} size - element size
-     * @param  {String} type - data type, one of int8, int16, int32,
-     *                         uint8, uint16, uint32, float32
-     */
-
-  }, {
-    key: '_initField',
-    value: function _initField(name, size, type) {
-      this[name] = getTypedArray(type, this.length * size);
-    }
-
-    /**
-     * Add a field
-     * @param  {String} name - field name
-     * @param  {Integer} size - element size
-     * @param  {String} type - data type, one of int8, int16, int32,
-     *                         uint8, uint16, uint32, float32
-     */
-
-  }, {
-    key: 'addField',
-    value: function addField(name, size, type) {
-      this._fields.push([name, size, type]);
-      this._initField(name, size, type);
-    }
-
-    /**
-     * Resize the store to the new size
-     * @param  {Integer} size - new size
-     */
-
-  }, {
-    key: 'resize',
-    value: function resize(size) {
-      // Log.time( "Store.resize" );
-
-      this.length = Math.round(size || 0);
-      this.count = Math.min(this.count, this.length);
-
-      for (var i = 0, il = this._fields.length; i < il; ++i) {
-        var name = this._fields[i][0];
-        var itemSize = this._fields[i][1];
-        var arraySize = this.length * itemSize;
-        var tmpArray = new this[name].constructor(arraySize);
-
-        if (this[name].length > arraySize) {
-          tmpArray.set(this[name].subarray(0, arraySize));
-        } else {
-          tmpArray.set(this[name]);
-        }
-        this[name] = tmpArray;
-      }
-
-      // Log.timeEnd( "Store.resize" );
-    }
-
-    /**
-     * Resize the store to 1.5 times its current size if full, or to 256 if empty
-     */
-
-  }, {
-    key: 'growIfFull',
-    value: function growIfFull() {
-      if (this.count >= this.length) {
-        var size = Math.round(this.length * 1.5);
-        this.resize(Math.max(256, size));
-      }
-    }
-
-    /**
-     * Increase the store by 1, and resize if necessary
-     */
-
-  }, {
-    key: 'increment',
-    value: function increment() {
-      this.count += 1;
-      this.growIfFull();
-    }
-
-    /**
-     * Copy data from one store to another
-     * @param  {Store} other - store to copy from
-     * @param  {Integer} thisOffset - offset to start copying to
-     * @param  {Integer} otherOffset - offset to start copying from
-     * @param  {Integer} length - number of entries to copy
-     */
-
-  }, {
-    key: 'copyFrom',
-    value: function copyFrom(other, thisOffset, otherOffset, length) {
-      for (var i = 0, il = this._fields.length; i < il; ++i) {
-        var name = this._fields[i][0];
-        var itemSize = this._fields[i][1];
-        var thisField = this[name];
-        var otherField = other[name];
-
-        for (var j = 0; j < length; ++j) {
-          var thisIndex = itemSize * (thisOffset + j);
-          var otherIndex = itemSize * (otherOffset + j);
-          for (var k = 0; k < itemSize; ++k) {
-            thisField[thisIndex + k] = otherField[otherIndex + k];
-          }
-        }
-      }
-    }
-
-    /**
-     * Copy data within this store
-     * @param  {Integer} offsetTarget - offset to start copying to
-     * @param  {Integer} offsetSource - offset to start copying from
-     * @param  {Integer} length - number of entries to copy
-     */
-
-  }, {
-    key: 'copyWithin',
-    value: function copyWithin(offsetTarget, offsetSource, length) {
-      for (var i = 0, il = this._fields.length; i < il; ++i) {
-        var name = this._fields[i][0];
-        var itemSize = this._fields[i][1];
-        var thisField = this[name];
-
-        for (var j = 0; j < length; ++j) {
-          var targetIndex = itemSize * (offsetTarget + j);
-          var sourceIndex = itemSize * (offsetSource + j);
-          for (var k = 0; k < itemSize; ++k) {
-            thisField[targetIndex + k] = thisField[sourceIndex + k];
-          }
-        }
-      }
-    }
-
-    /**
-     * Sort entries in the store given the compare function
-     * @param  {Function} compareFunction - function to sort by (i, j) -> Integer
-     *            the return value is - if item[i] is smaller than item[j]
-     */
-
-  }, {
-    key: 'sort',
-    value: function sort(compareFunction) {
-      var thisStore = this;
-      var tmpStore = new this.constructor(this._fields, 1);
-
-      function swap(index1, index2) {
-        if (index1 === index2) return;
-        tmpStore.copyFrom(thisStore, 0, index1, 1);
-        thisStore.copyWithin(index1, index2, 1);
-        thisStore.copyFrom(tmpStore, index2, 0, 1);
-      }
-
-      function quicksort(left, right) {
-        if (left < right) {
-          var pivot = Math.floor((left + right) / 2);
-          var leftNew = left;
-          var rightNew = right;
-          do {
-            while (compareFunction(leftNew, pivot) < 0) {
-              leftNew += 1;
-            }
-            while (compareFunction(rightNew, pivot) > 0) {
-              rightNew -= 1;
-            }
-            if (leftNew <= rightNew) {
-              if (leftNew === pivot) {
-                pivot = rightNew;
-              } else if (rightNew === pivot) {
-                pivot = leftNew;
-              }
-              swap(leftNew, rightNew);
-              leftNew += 1;
-              rightNew -= 1;
-            }
-          } while (leftNew <= rightNew);
-          quicksort(left, rightNew);
-          quicksort(leftNew, right);
-        }
-      }
-
-      quicksort(0, this.count - 1);
-    }
-
-    /**
-     * Empty the store, but keep the allocated memory
-     */
-
-  }, {
-    key: 'clear',
-    value: function clear() {
-      this.count = 0;
-    }
-
-    /**
-     * Dispose of the store entries and fields
-     */
-
-  }, {
-    key: 'dispose',
-    value: function dispose() {
-      delete this.length;
-      delete this.count;
-
-      for (var i = 0, il = this._fields.length; i < il; ++i) {
-        var name = this._fields[i][0];
-        delete this[name];
-      }
-    }
-  }]);
-
-  return Store;
-}();
-
-exports.default = Store;
-
-/***/ }),
-/* 342 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * @file Bit array
- * @author Alexander Rose <alexander.rose@weirdbyte.de>
- * @author Paul Pillot <paulpillot@gmail.com>
- * @private
- */
-
-/**
- * Compute the Hamming weight of a 32-bit unsigned integer
- * @param  {Integer} v - a 32-bit unsigned integer
- * @return {Integer} the Hamming weight
- */
-function hammingWeight(v) {
-  // works with signed or unsigned shifts
-  v -= v >>> 1 & 0x55555555;
-  v = (v & 0x33333333) + (v >>> 2 & 0x33333333);
-  return (v + (v >>> 4) & 0xF0F0F0F) * 0x1010101 >>> 24;
-}
-
-/**
- * Bit array
- *
- * Based heavily on https://github.com/lemire/FastBitSet.js
- * which is licensed under the Apache License, Version 2.0.
- */
-
-var BitArray = function () {
-  /**
-   * @param  {Integer} length - array length
-   * @param  {Boolean} [setAll] - initialize with true
-   */
-  function BitArray(length, setAll) {
-    _classCallCheck(this, BitArray);
-
-    this.length = length;
-    this._words = new Uint32Array(length + 32 >>> 5);
-    if (setAll === true) {
-      this.setAll();
-    }
-  }
-
-  /**
-   * Get value at index
-   * @param  {Integer} index - the index
-   * @return {Boolean} value
-   */
-
-
-  _createClass(BitArray, [{
-    key: 'get',
-    value: function get(index) {
-      return (this._words[index >>> 5] & 1 << index) !== 0;
-    }
-
-    /**
-     * Set value at index to true
-     * @param  {Integer} index - the index
-     * @return {undefined}
-     */
-
-  }, {
-    key: 'set',
-    value: function set(index) {
-      this._words[index >>> 5] |= 1 << index;
-    }
-
-    /**
-     * Set value at index to false
-     * @param  {Integer} index - the index
-     * @return {undefined}
-     */
-
-  }, {
-    key: 'clear',
-    value: function clear(index) {
-      this._words[index >>> 5] &= ~(1 << index);
-    }
-
-    /**
-     * Flip value at index
-     * @param  {Integer} index - the index
-     * @return {undefined}
-     */
-
-  }, {
-    key: 'flip',
-    value: function flip(index) {
-      this._words[index >>> 5] ^= 1 << index;
-    }
-  }, {
-    key: '_assignRange',
-    value: function _assignRange(start, end, value) {
-      var words = this._words;
-      var wordValue = value === true ? 0xFFFFFFFF : 0;
-      var wordStart = start >>> 5;
-      var wordEnd = end >>> 5;
-      // set complete words when applicable
-      for (var k = wordStart; k < wordEnd; ++k) {
-        words[k] = wordValue;
-      }
-      // set parts of the range not spanning complete words
-      var startWord = wordStart << 5;
-      var endWord = wordEnd << 5;
-      if (value === true) {
-        if (end - start < 32) {
-          for (var i = start, n = end + 1; i < n; ++i) {
-            words[i >>> 5] |= 1 << i;
-          }
-        } else {
-          for (var _i = start, _n = startWord; _i < _n; ++_i) {
-            words[_i >>> 5] |= 1 << _i;
-          }
-          for (var _i2 = endWord, _n2 = end + 1; _i2 < _n2; ++_i2) {
-            words[_i2 >>> 5] |= 1 << _i2;
-          }
-        }
-      } else {
-        if (end - start < 32) {
-          for (var _i3 = start, _n3 = end + 1; _i3 < _n3; ++_i3) {
-            words[_i3 >>> 5] &= ~(1 << _i3);
-          }
-        } else {
-          for (var _i4 = start, _n4 = startWord; _i4 < _n4; ++_i4) {
-            words[_i4 >>> 5] &= ~(1 << _i4);
-          }
-          for (var _i5 = endWord, _n5 = end + 1; _i5 < _n5; ++_i5) {
-            words[_i5 >>> 5] &= ~(1 << _i5);
-          }
-        }
-      }
-      return this;
-    }
-
-    /**
-     * Set bits of the given range
-     * @param {Integer} start - start index
-     * @param {Integer} end - end index
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'setRange',
-    value: function setRange(start, end) {
-      return this._assignRange(start, end, true);
-    }
-
-    /**
-     * Clear bits of the given range
-     * @param {Integer} start - start index
-     * @param {Integer} end - end index
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'clearRange',
-    value: function clearRange(start, end) {
-      return this._assignRange(start, end, false);
-    }
-
-    /**
-     * Set bits at all given indices
-     * @param {...Integer} arguments - indices
-     * @return {Boolean} this object
-     */
-
-  }, {
-    key: 'setBits',
-    value: function setBits() {
-      var words = this._words;
-      var n = arguments.length;
-      for (var i = 0; i < n; ++i) {
-        var index = arguments[i];
-        words[index >>> 5] |= 1 << index;
-      }
-      return this;
-    }
-
-    /**
-     * Clear bits at all given indices
-     * @param {...Integer} arguments - indices
-     * @return {Boolean} this object
-     */
-
-  }, {
-    key: 'clearBits',
-    value: function clearBits() {
-      var words = this._words;
-      var n = arguments.length;
-      for (var i = 0; i < n; ++i) {
-        var index = arguments[i];
-        words[index >>> 5] &= ~(1 << index);
-      }
-      return this;
-    }
-
-    /**
-     * Set all bits of the array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'setAll',
-    value: function setAll() {
-      return this._assignRange(0, this.length - 1, true);
-    }
-
-    /**
-     * Clear all bits of the array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'clearAll',
-    value: function clearAll() {
-      return this._assignRange(0, this.length - 1, false);
-    }
-
-    /**
-     * Flip all the values in the array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'flipAll',
-    value: function flipAll() {
-      var count = this._words.length;
-      var words = this._words;
-      var bs = 32 - this.length % 32;
-      for (var k = 0; k < count - 1; ++k) {
-        words[k] = ~words[k];
-      }
-      words[count - 1] = ~(words[count - 1] << bs) >>> bs;
-      return this;
-    }
-  }, {
-    key: '_isRangeValue',
-    value: function _isRangeValue(start, end, value) {
-      var words = this._words;
-      var wordValue = value === true ? 0xFFFFFFFF : 0;
-      var wordStart = start >>> 5;
-      var wordEnd = end >>> 5;
-      // set complete words when applicable
-      for (var k = wordStart; k < wordEnd; ++k) {
-        if (words[k] !== wordValue) return false;
-      }
-      // set parts of the range not spanning complete words
-      if (end - start < 32) {
-        for (var i = start, n = end + 1; i < n; ++i) {
-          if (!!(words[i >>> 5] & 1 << i) !== value) return false;
-        }
-      } else {
-        var startWord = wordStart << 5;
-        var endWord = wordEnd << 5;
-        for (var _i6 = start, _n6 = startWord << 5; _i6 < _n6; ++_i6) {
-          if (!!(words[_i6 >>> 5] & 1 << _i6) !== value) return false;
-        }
-        for (var _i7 = endWord, _n7 = end + 1; _i7 < _n7; ++_i7) {
-          if (!!(words[_i7 >>> 5] & 1 << _i7) !== value) return false;
-        }
-      }
-      return true;
-    }
-
-    /**
-     * Test if bits in given range are set
-     * @param {Integer} start - start index
-     * @param {Integer} end - end index
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'isRangeSet',
-    value: function isRangeSet(start, end) {
-      return this._isRangeValue(start, end, true);
-    }
-
-    /**
-     * Test if bits in given range are clear
-     * @param {Integer} start - start index
-     * @param {Integer} end - end index
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'isRangeClear',
-    value: function isRangeClear(start, end) {
-      return this._isRangeValue(start, end, false);
-    }
-
-    /**
-     * Test if all bits in the array are set
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isAllSet',
-    value: function isAllSet() {
-      return this._isRangeValue(0, this.length - 1, true);
-    }
-
-    /**
-     * Test if all bits in the array are clear
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isAllClear',
-    value: function isAllClear() {
-      return this._isRangeValue(0, this.length - 1, false);
-    }
-
-    /**
-     * Test if bits at all given indices are set
-     * @param {...Integer} arguments - indices
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isSet',
-    value: function isSet() {
-      var words = this._words;
-      var n = arguments.length;
-      for (var i = 0; i < n; ++i) {
-        var index = arguments[i];
-        if ((words[index >>> 5] & 1 << index) === 0) return false;
-      }
-      return true;
-    }
-
-    /**
-     * Test if bits at all given indices are clear
-     * @param {...Integer} arguments - indices
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isClear',
-    value: function isClear() {
-      var words = this._words;
-      var n = arguments.length;
-      for (var i = 0; i < n; ++i) {
-        var index = arguments[i];
-        if ((words[index >>> 5] & 1 << index) !== 0) return false;
-      }
-      return true;
-    }
-
-    /**
-     * Test if two BitArrays are identical in all their values
-     * @param {BitArray} otherBitarray - the other BitArray
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isEqualTo',
-    value: function isEqualTo(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        if (words1[k] !== words2[k]) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    /**
-     * How many set bits?
-     * @return {Integer} number of set bits
-     */
-
-  }, {
-    key: 'getSize',
-    value: function getSize() {
-      var count = this._words.length;
-      var words = this._words;
-      var size = 0;
-      for (var i = 0; i < count; ++i) {
-        size += hammingWeight(words[i]);
-      }
-      return size;
-    }
-
-    /**
-     * Calculate difference betwen this and another bit array.
-     * Store result in this object.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'difference',
-    value: function difference(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        words1[k] = words1[k] & ~words2[k];
-      }
-      for (var _k = words1.length; _k < count; ++_k) {
-        words1[_k] = 0;
-      }
-      return this;
-    }
-
-    /**
-     * Calculate union betwen this and another bit array.
-     * Store result in this object.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'union',
-    value: function union(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        words1[k] |= words2[k];
-      }
-      for (var _k2 = words1.length; _k2 < count; ++_k2) {
-        words1[_k2] = 0;
-      }
-      return this;
-    }
-
-    /**
-     * Calculate intersection betwen this and another bit array.
-     * Store result in this object.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'intersection',
-    value: function intersection(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        words1[k] &= words2[k];
-      }
-      for (var _k3 = words1.length; _k3 < count; ++_k3) {
-        words1[_k3] = 0;
-      }
-      return this;
-    }
-
-    /**
-     * Test if there is any intersection betwen this and another bit array.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'intersects',
-    value: function intersects(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        if ((words1[k] & words2[k]) !== 0) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    /**
-     * Calculate the number of bits in common betwen this and another bit array.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {Integer} size
-     */
-
-  }, {
-    key: 'getIntersectionSize',
-    value: function getIntersectionSize(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      var size = 0;
-      for (var k = 0; k < count; ++k) {
-        size += hammingWeight(words1[k] & words2[k]);
-      }
-      return size;
-    }
-
-    /**
-     * Calculate intersection betwen this and another bit array.
-     * Store result in a new bit array.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {BitArray} the new bit array
-     */
-
-  }, {
-    key: 'makeIntersection',
-    value: function makeIntersection(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      var wordsA = new Uint32Array(count);
-      var intersection = Object.create(BitArray.prototype);
-      intersection._words = wordsA;
-      intersection.length = Math.min(this.length, otherBitarray.length);
-      for (var k = 0; k < count; ++k) {
-        wordsA[k] = words1[k] & words2[k];
-      }
-      return intersection;
-    }
-
-    /**
-     * Iterate over all set bits in the array
-     * @param  {function( index: Integer, i: Integer )} callback - the callback
-     * @return {undefined}
-     */
-
-  }, {
-    key: 'forEach',
-    value: function forEach(callback) {
-      var count = this._words.length;
-      var words = this._words;
-      var i = 0;
-      for (var k = 0; k < count; ++k) {
-        var w = words[k];
-        while (w !== 0) {
-          var t = w & -w;
-          var index = (k << 5) + hammingWeight(t - 1);
-          callback(index, i);
-          w ^= t;
-          ++i;
-        }
-      }
-    }
-
-    /**
-     * Get an array with the set bits
-     * @return {Array} bit indices
-     */
-
-  }, {
-    key: 'toArray',
-    value: function toArray() {
-      var words = this._words;
-      var answer = new Array(this.getSize());
-      var count = this._words.length;
-      var pos = 0;
-      for (var k = 0; k < count; ++k) {
-        var w = words[k];
-        while (w !== 0) {
-          var t = w & -w;
-          answer[pos++] = (k << 5) + hammingWeight(t - 1);
-          w ^= t;
-        }
-      }
-      return answer;
-    }
-  }, {
-    key: 'toString',
-    value: function toString() {
-      return '{' + this.toArray().join(',') + '}';
-    }
-  }, {
-    key: 'toSeleString',
-    value: function toSeleString() {
-      var sele = this.toArray().join(',');
-      return sele ? '@' + sele : 'NONE';
-    }
-
-    /**
-     * Clone this object
-     * @return {BitArray} the cloned object
-     */
-
-  }, {
-    key: 'clone',
-    value: function clone() {
-      var clone = Object.create(BitArray.prototype);
-      clone.length = this.length;
-      clone._words = new Uint32Array(this._words);
-      return clone;
-    }
-  }]);
-
-  return BitArray;
-}();
-
-exports.default = BitArray;
-
-/***/ }),
-/* 343 */
+/* 339 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87223,7 +85252,7 @@ var _lodash = __webpack_require__(31);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _v = __webpack_require__(95);
+var _v = __webpack_require__(131);
 
 var _v2 = _interopRequireDefault(_v);
 
@@ -87231,23 +85260,23 @@ var _three = __webpack_require__(51);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _glgeom = __webpack_require__(133);
+var _glgeom = __webpack_require__(340);
 
 var glgeom = _interopRequireWildcard(_glgeom);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(66);
 
 var util = _interopRequireWildcard(_util);
 
-var _widgets = __webpack_require__(344);
+var _widgets = __webpack_require__(341);
 
 var _widgets2 = _interopRequireDefault(_widgets);
 
-var _data = __webpack_require__(96);
+var _data = __webpack_require__(132);
 
 var data = _interopRequireWildcard(_data);
 
-var _soup = __webpack_require__(132);
+var _soup = __webpack_require__(130);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -87307,18 +85336,19 @@ var Display = function () {
     });
     this.div.append(this.webglDiv);
 
-    // a THREE.js camera, will be set properly before draw
+    // Params that will be used to set the camera below
     this.cameraParams = {
       focus: new THREE.Vector3(0, 0, 0),
       position: new THREE.Vector3(0, 0, -1),
       up: new THREE.Vector3(0, 1, 0),
-      // the front and back of viewable area relative to the origin
+      // clipping planes relative to focus
       zFront: -40,
       zBack: 20,
-      // distance of focus from cameraParams
+      // distance of focus from position
       zoom: 1.0
-    };
-    this.camera = new THREE.PerspectiveCamera(45, this.width() / this.height());
+
+      // a THREE.js camera, will be set properly before draw
+    };this.camera = new THREE.PerspectiveCamera(45, this.width() / this.height());
 
     this.displayScene = new THREE.Scene();
     this.displayScene.background = new THREE.Color(this.backgroundColor);
@@ -87354,14 +85384,27 @@ var Display = function () {
     // screen atom radius
     this.atomRadius = 0.35;
 
-    // Widgets that decorate the display
-    this.sequenceWidget = new _widgets2.default.SequenceWidget(this);
-    this.zSlabWidget = new _widgets2.default.ZSlabWidget(this);
-    this.isGrid = isGrid;
-    this.gridControlWidget = new _widgets2.default.GridControlWidget(this);
-
     // Cross-hairs to identify centered atom
     this.buildCrossHairs();
+
+    // div to display processing messages
+    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
+    this.setMesssage('Loading data...');
+
+    // Widgets that decorate the display
+
+    // popup hover box over the mouse position
+    this.hover = new _widgets2.default.PopupText(this, 'lightblue');
+
+    // Sequence bar of protein at top of embedded window
+    this.sequenceWidget = new _widgets2.default.SequenceWidget(this);
+
+    // Clipping plane control bar to the right
+    this.zSlabWidget = new _widgets2.default.ZSlabWidget(this);
+
+    // Docking display control
+    this.isGrid = isGrid;
+    this.gridControlWidget = new _widgets2.default.GridControlWidget(this);
 
     // display distance measures between atoms
     this.distanceWidget = new _widgets2.default.DistanceMeasuresWidget(this);
@@ -87370,15 +85413,7 @@ var Display = function () {
     this.labelWidget = new _widgets2.default.AtomLabelsWidget(this);
 
     // draw onscreen line for mouse dragging between atoms
-    this.lineElement = new _widgets2.default.LineElement(this.divTag, '#FF7777');
-
-    // popup hover box over the mouse position
-    this.hover = new _widgets2.default.PopupText(this.divTag, 'lightblue');
-
-    // div to display processing messages
-    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
-
-    this.setMesssage('Loading data...');
+    this.lineElement = new _widgets2.default.LineElement(this, '#FF7777');
   }
 
   _createClass(Display, [{
@@ -87567,6 +85602,7 @@ var Display = function () {
   }, {
     key: 'buildScene',
     value: function buildScene() {
+
       if (this.soupView.savedViews.length == 0) {
         this.soupView.currentView.makeDefaultOfSoup(this.soup);
         this.soupView.saveView(this.soupView.currentView);
@@ -87608,7 +85644,7 @@ var Display = function () {
       this.buildMeshOfGrid();
       this.buildMeshOfLigands();
       this.buildMeshOfNucleotides();
-      // this.buildMeshOfArrows()
+      this.buildMeshOfArrows();
 
       this.rebuildSceneWithMeshes();
 
@@ -87620,7 +85656,6 @@ var Display = function () {
 
     /**
      * Clears/creates a mesh entry in the mesh collection
-     *
      * @param meshName - the name for a mesh collection
      */
 
@@ -88772,7 +86807,7 @@ var Display = function () {
       this.setMeshVisible('tube', show.trace);
       this.setMeshVisible('water', show.water);
       this.setMeshVisible('ribbons', show.ribbon);
-      // this.setMeshVisible('arrows', !show.backboneAtom)
+      this.setMeshVisible('arrows', !show.backboneAtom);
       this.setMeshVisible('backbone', show.backboneAtom);
       this.setMeshVisible('ligands', show.ligands);
 
@@ -88857,8 +86892,9 @@ var Display = function () {
       this.gridControlWidget.resize();
       this.sequenceWidget.resize();
 
-      this.webglDiv.css('left', this.x());
-      this.webglDiv.css('top', this.y());
+      var position = this.div.position();
+      this.webglDiv.css('left', this.x() + position.left);
+      this.webglDiv.css('top', this.y() + position.top);
 
       this.camera.aspect = this.width() / this.height();
       this.camera.updateProjectionMatrix();
@@ -89098,7 +87134,945 @@ var Display = function () {
 exports.Display = Display;
 
 /***/ }),
-/* 344 */
+/* 340 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.applyColorToVector3array = exports.applyRotationOfMatrix4toVector3array = exports.applyMatrix4toVector3array = exports.CopyBufferGeometry = exports.getCylinderMatrix = exports.getSphereMatrix = exports.mergeUnitGeom = exports.Trace = exports.clearObject3D = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.setVisible = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Custom geometry and mesh generators based on the
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * THREE.js library.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * In particular, there is a Ribbon class which is an
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * extrusion where the normal and tangents are specified.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _three = __webpack_require__(51);
+
+var THREE = _interopRequireWildcard(_three);
+
+var _v = __webpack_require__(131);
+
+var _v2 = _interopRequireDefault(_v);
+
+var _lodash = __webpack_require__(31);
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function CatmullRom(t, p0, p1, p2, p3) {
+
+  var v0 = (p2 - p0) * 0.5;
+  var v1 = (p3 - p1) * 0.5;
+  var t2 = t * t;
+  var t3 = t * t2;
+  return (2 * p1 - 2 * p2 + v0 + v1) * t3 + (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t2 + v0 * t + p1;
+}
+
+/**
+ * Interpolation function for a Catmul-Rom spline
+ * in 3D space, where the 4 guide-points are given
+ * and an interpolation parameter is given.
+ *
+ * @param {Number} t - interpolation from [0, 1]
+ * @param {THREE.Vector3} p1
+ * @param {THREE.Vector3} p2
+ * @param {THREE.Vector3} p3
+ * @param {THREE.Vector3} p4
+ * @returns {THREE.Vector3} the interpolated point
+ */
+function catmulRomSpline(t, p1, p2, p3, p4) {
+  return _v2.default.create(CatmullRom(t, p1.x, p2.x, p3.x, p4.x), CatmullRom(t, p1.y, p2.y, p3.y, p4.y), CatmullRom(t, p1.z, p2.z, p3.z, p4.z));
+}
+
+/**
+ * Create a path for extrusion where the direction of the
+ * normal and binormal is defined, as well as the tangent.
+ *
+ * In particular, the path provides a slice() function
+ * that produces a sub-portion of the path.
+ */
+
+var PathAndFrenetFrames = function () {
+  function PathAndFrenetFrames() {
+    _classCallCheck(this, PathAndFrenetFrames);
+
+    this.points = [];
+    this.normals = [];
+    this.tangents = [];
+    this.binormals = [];
+  }
+
+  _createClass(PathAndFrenetFrames, [{
+    key: 'slice',
+    value: function slice(i, j) {
+      var subPath = new PathAndFrenetFrames();
+      subPath.points = this.points.slice(i, j);
+      subPath.normals = this.normals.slice(i, j);
+      subPath.tangents = this.tangents.slice(i, j);
+      subPath.binormals = this.binormals.slice(i, j);
+      return subPath;
+    }
+  }]);
+
+  return PathAndFrenetFrames;
+}();
+
+/**
+ * Extrusion along a path that aligns a 2D shape as cross-section, with
+ * orientation along the normal for the cross-section.
+ *
+ * Accepts a cross-section shape, which is a collection of 2D points around
+ * the origin, and a path, which contains points, normals and binormals
+ * and builds a oriented extrusion out of it.
+ *
+ * If round is set, then the vertex normals are set to orient along the
+ * normal/binormal axis from the origin, otherwise, face normals are defined
+ * perpedicular to the face.
+ *
+ * For a segment between two path points and a repetition of the cross-section,
+ * two triangles are defined.
+ */
+
+
+var RibbonGeometry = function (_THREE$Geometry) {
+  _inherits(RibbonGeometry, _THREE$Geometry);
+
+  /**
+   * @param {THREE.Shape} shape - collection of 2D points for cross section
+   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
+   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
+   * @param {boolean} front - draw front cross-section
+   * @param {boolean} back - draw back cross-section
+   */
+  function RibbonGeometry(shape, path, round, front, back) {
+    _classCallCheck(this, RibbonGeometry);
+
+    var _this = _possibleConstructorReturn(this, (RibbonGeometry.__proto__ || Object.getPrototypeOf(RibbonGeometry)).call(this));
+
+    _this.type = 'RibbonGeometry';
+
+    _this.parameters = {
+      shape: shape,
+      path: path,
+      round: round
+    };
+
+    if (path.points.length < 2) {
+      return _possibleConstructorReturn(_this);
+    }
+
+    var shapePoints = shape.extractPoints(4).shape;
+    var nVertex = shapePoints.length;
+
+    if (_lodash2.default.isUndefined(round)) {
+      round = false;
+    }
+
+    var shapeEdgeNormals = [];
+
+    if (!round) {
+
+      for (var j = 0; j < nVertex; j += 1) {
+        var i = j - 1;
+        if (i === -1) {
+          i = nVertex - 1;
+        }
+        var v0 = shapePoints[i];
+        var v1 = shapePoints[j];
+        var x = -(v1.y - v0.y);
+        var y = v1.x - v0.x;
+        shapeEdgeNormals.push(new THREE.Vector2(x, y));
+      }
+    }
+
+    for (var iPoint = 0; iPoint < path.points.length; iPoint += 1) {
+
+      var point = path.points[iPoint];
+      var normal = path.normals[iPoint];
+      var binormal = path.binormals[iPoint];
+
+      for (var iShapePoint = 0; iShapePoint < nVertex; iShapePoint += 1) {
+
+        var shapePoint = shapePoints[iShapePoint];
+
+        var _x = normal.clone().multiplyScalar(shapePoint.x);
+        var _y = binormal.clone().multiplyScalar(shapePoint.y);
+
+        var vertex = point.clone().add(_x).add(_y);
+
+        _this.vertices.push(vertex);
+      }
+
+      var topOffset = _this.vertices.length - 2 * nVertex;
+      if (topOffset < 0) {
+        continue;
+      }
+
+      if (round) {
+        // Smoothed normals to give a rounded look
+        for (var _j = 0; _j < nVertex; _j += 1) {
+          var _i = void 0;
+          if (_j === 0) {
+            _i = nVertex - 1;
+          } else {
+            _i = _j - 1;
+          }
+          var k = topOffset + _i;
+          var l = topOffset + _j;
+
+          var _x2 = void 0,
+              _y2 = void 0;
+
+          _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_j].x);
+          _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_j].y);
+          var normal01 = _x2.add(_y2);
+
+          _x2 = path.normals[iPoint].clone().multiplyScalar(shapePoints[_j].x);
+          _y2 = path.binormals[iPoint].clone().multiplyScalar(shapePoints[_j].y);
+          var normal11 = _x2.add(_y2);
+
+          _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_i].x);
+          _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_i].y);
+          var normal00 = _x2.add(_y2);
+
+          _x2 = path.normals[iPoint].clone().multiplyScalar(shapePoints[_i].x);
+          _y2 = path.binormals[iPoint].clone().multiplyScalar(shapePoints[_i].y);
+          var normal10 = _x2.add(_y2);
+
+          var face = new THREE.Face3(k, k + nVertex, l + nVertex);
+          face.vertexNormals = [normal00, normal10, normal11];
+          _this.faces.push(face);
+
+          face = new THREE.Face3(k, l + nVertex, l);
+          face.vertexNormals = [normal00, normal11, normal01];
+          _this.faces.push(face);
+        }
+      } else {
+        // Continuous normals but keep faces distinct
+        // along ribbon
+        for (var _j2 = 0; _j2 < nVertex; _j2 += 1) {
+          var _i2 = void 0;
+          if (_j2 === 0) {
+            _i2 = nVertex - 1;
+          } else {
+            _i2 = _j2 - 1;
+          }
+          var _k = topOffset + _i2;
+          var _l = topOffset + _j2;
+
+          var _x3 = void 0,
+              _y3 = void 0;
+
+          _x3 = path.normals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[_j2].x);
+          _y3 = path.binormals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[_j2].y);
+          var normal0 = _x3.add(_y3);
+
+          _x3 = path.normals[iPoint].clone().multiplyScalar(shapeEdgeNormals[_j2].x);
+          _y3 = path.binormals[iPoint].clone().multiplyScalar(shapeEdgeNormals[_j2].y);
+          var normal1 = _x3.add(_y3);
+
+          var _face = new THREE.Face3(_k, _k + nVertex, _l + nVertex);
+          _face.vertexNormals = [normal0, normal1, normal1];
+          _this.faces.push(_face);
+
+          _face = new THREE.Face3(_k, _l + nVertex, _l);
+          _face.vertexNormals = [normal0, normal1, normal0];
+          _this.faces.push(_face);
+        }
+      }
+    }
+
+    if (front) {
+      // Draw front face
+      var _normal = threePointNormal([_this.vertices[0], _this.vertices[1], _this.vertices[2]]);
+      for (var _i3 = 0; _i3 < nVertex - 2; _i3 += 1) {
+        var _face2 = new THREE.Face3(_i3, _i3 + 1, nVertex - 1);
+        _face2.normal.copy(_normal);
+        _this.faces.push(_face2);
+      }
+    }
+
+    if (back) {
+      // draw back face
+      var offset = _this.vertices.length - 1 - nVertex;
+
+      var _normal2 = threePointNormal([_this.vertices[offset], _this.vertices[offset + nVertex - 1], _this.vertices[offset + 1]]);
+
+      for (var _i4 = 0; _i4 < nVertex - 2; _i4 += 1) {
+        var _face3 = new THREE.Face3(offset + _i4, offset + nVertex - 1, offset + _i4 + 1);
+        _face3.normal.copy(_normal2);
+        _this.faces.push(_face3);
+      }
+    }
+    return _this;
+  }
+
+  return RibbonGeometry;
+}(THREE.Geometry);
+
+/**
+ * Creates a new path out of a slice of the oldPath, with
+ * n number of segments between two points, using a Catmul-Rom
+ * spline based on the two points, and the two surrounding
+ * points. At the ends, the external points are projected
+ * from the end using the tangent at the ends.
+ *
+ * @param {PathAndFrenetFrames} oldPath
+ * @param {Number} n
+ * @param {Number} iOldPoint
+ * @param {Number} jOldPoint
+ * @returns {PathAndFrenetFrames}
+ */
+
+
+function expandPath(oldPath, n, iOldPoint, jOldPoint) {
+
+  var newPath = new PathAndFrenetFrames();
+
+  newPath.points.push(oldPath.points[iOldPoint]);
+
+  for (var i = iOldPoint; i < jOldPoint - 1; i += 1) {
+
+    var j_start = 1;
+    var j_end = n + 1;
+
+    for (var j = j_start; j < j_end; j += 1) {
+
+      var t = j / n;
+
+      var prevOldPoint = void 0,
+          nextOldPoint = void 0;
+
+      if (i > 0) {
+        prevOldPoint = oldPath.points[i - 1];
+      } else {
+        prevOldPoint = oldPath.points[i].clone().sub(oldPath.tangents[i]);
+      }
+
+      if (i < oldPath.points.length - 2) {
+        nextOldPoint = oldPath.points[i + 2];
+      } else {
+        nextOldPoint = oldPath.points[i + 1].clone().add(oldPath.tangents[i]);
+      }
+
+      newPath.points.push(catmulRomSpline(t, prevOldPoint, oldPath.points[i], oldPath.points[i + 1], nextOldPoint));
+    }
+  }
+
+  newPath.normals.push(oldPath.normals[iOldPoint]);
+  for (var _i5 = iOldPoint; _i5 < jOldPoint - 1; _i5 += 1) {
+
+    for (var _j3 = 1; _j3 < n + 1; _j3 += 1) {
+
+      var _t = _j3 / n;
+
+      var prevOldNormal = void 0,
+          nextOldNormal = void 0;
+
+      if (_i5 > 0) {
+        prevOldNormal = oldPath.normals[_i5 - 1];
+      } else {
+        prevOldNormal = oldPath.normals[_i5];
+      }
+
+      if (_i5 < oldPath.normals.length - 2) {
+        nextOldNormal = oldPath.normals[_i5 + 2];
+      } else {
+        nextOldNormal = oldPath.normals[_i5 + 1];
+      }
+
+      newPath.normals.push(catmulRomSpline(_t, prevOldNormal, oldPath.normals[_i5], oldPath.normals[_i5 + 1], nextOldNormal).normalize());
+    }
+  }
+
+  for (var _i6 = 0; _i6 < newPath.points.length; _i6 += 1) {
+    if (_i6 === 0) {
+      newPath.tangents.push(oldPath.tangents[0]);
+    } else if (_i6 === newPath.points.length - 1) {
+      newPath.tangents.push(oldPath.tangents[jOldPoint - 1]);
+    } else {
+      newPath.tangents.push(newPath.points[_i6 + 1].clone().sub(newPath.points[_i6 - 1]).normalize());
+    }
+  }
+
+  for (var _i7 = 0; _i7 < newPath.points.length; _i7 += 1) {
+    newPath.binormals.push(_v2.default.create().crossVectors(newPath.tangents[_i7], newPath.normals[_i7]));
+  }
+
+  return newPath;
+}
+
+/**
+ * Trace is an object designed to be built up progressively
+ * by adding to this.indices, this.points and this.normals.
+ *
+ * Once built, it can be expanded into a more detailed
+ * trace, which is used to generate geometric pieces of
+ * an extrusion where the normals and tangents are
+ * controlled.
+ */
+
+var Trace = function (_PathAndFrenetFrames) {
+  _inherits(Trace, _PathAndFrenetFrames);
+
+  function Trace() {
+    _classCallCheck(this, Trace);
+
+    var _this2 = _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this));
+
+    _this2.indices = [];
+    _this2.detail = 2;
+    return _this2;
+  }
+
+  _createClass(Trace, [{
+    key: 'getReference',
+    value: function getReference(i) {
+      var iRef = this.indices[i];
+      return this.referenceObjects[iRef];
+    }
+
+    /**
+     * Calculates tangents as an average on neighbouring points
+     * so that we get a smooth path.
+     */
+
+  }, {
+    key: 'calcTangents',
+    value: function calcTangents() {
+      var iStart = 0;
+      var iEnd = this.points.length;
+      var iLast = iEnd - 1;
+      if (iEnd - iStart > 2) {
+
+        // project out first tangent from main chain
+        this.tangents[iStart] = this.points[iStart + 1].clone().sub(this.points[iStart]).normalize();
+
+        // calculate tangents as averages of neighbouring residues
+        for (var i = iStart + 1; i < iLast; i += 1) {
+          this.tangents[i] = this.points[i + 1].clone().sub(this.points[i - 1]).normalize();
+        }
+
+        // project out last tangent from main chain
+        this.tangents[iLast] = this.points[iLast].clone().sub(this.points[iLast - 1]).normalize();
+      } else {
+
+        // for short 2 point traces
+        var tangent = this.points[iLast].clone().sub(this.points[iStart]).normalize();
+
+        this.tangents[iStart] = tangent;
+        this.tangents[iLast] = tangent;
+      }
+    }
+
+    /**
+     * If normal[i] is not null,
+     * it will use the normal, otherwise it will generate own
+     * normal from the path curvature
+     */
+
+  }, {
+    key: 'calcNormals',
+    value: function calcNormals() {
+      var iStart = 0;
+      var iEnd = this.points.length;
+      var iLast = iEnd - 1;
+      if (iEnd - iStart > 2) {
+
+        for (var i = iStart + 1; i < iLast; i += 1) {
+          if (this.normals[i] !== null) {
+            // normal already provided, normalize properly against tangent
+            this.normals[i] = perpVector(this.tangents[i], this.normals[i]);
+            this.normals[i].normalize();
+          } else {
+            // generate a normal from curvature
+            var diff = this.points[i].clone().sub(this.points[i - 1]);
+            this.normals[i] = _v2.default.create().crossVectors(diff, this.tangents[i]).normalize();
+
+            // smooth out auto-generated normal if flipped 180deg from prev
+            var prevNormal = this.normals[i - 1];
+            if (prevNormal !== null) {
+              if (this.normals[i].dot(prevNormal) < 0) {
+                this.normals[i].negate();
+              }
+            }
+          }
+        }
+
+        this.normals[iStart] = this.normals[iStart + 1];
+        this.normals[iLast] = this.normals[iLast - 1];
+      } else {
+
+        for (var _i8 = iStart; _i8 <= iLast; _i8 += 1) {
+          if (this.normals[_i8] !== null) {
+            this.normals[_i8] = perpVector(this.tangents[_i8], this.normals[_i8]);
+            this.normals[_i8].normalize();
+          } else {
+            var randomDir = this.points[_i8];
+            this.normals[_i8] = _v2.default.create().crossVectors(randomDir, this.tangents[_i8]).normalize();
+          }
+        }
+      }
+    }
+  }, {
+    key: 'calcBinormals',
+    value: function calcBinormals() {
+      var iStart = 0;
+      var iEnd = this.points.length;
+      for (var i = iStart; i < iEnd; i += 1) {
+        this.binormals[i] = _v2.default.create().crossVectors(this.tangents[i], this.normals[i]);
+      }
+    }
+  }, {
+    key: 'expand',
+    value: function expand() {
+      this.detailedPath = expandPath(this, 2 * this.detail, 0, this.points.length);
+    }
+
+    /**
+     * A path is generated with 2*detail. If a
+     * residue is not at the end of a piece,
+     * will be extended to detail beyond that is
+     * half-way between the residue and the neighboring
+     * residue in a different piece.
+     */
+
+  }, {
+    key: 'getSegmentGeometry',
+    value: function getSegmentGeometry(iRes, face, isRound, isFront, isBack, color) {
+      var path = this.detailedPath;
+
+      // works out start on expanded path, including overhang
+      var iPathStart = iRes * 2 * this.detail - this.detail;
+      if (iPathStart < 0) {
+        iPathStart = 0;
+      }
+
+      // works out end of expanded path, including overhang
+      var iPathEnd = (iRes + 1) * 2 * this.detail - this.detail + 1;
+      if (iPathEnd >= path.points.length) {
+        iPathEnd = path.points.length - 1;
+      }
+
+      var segmentPath = path.slice(iPathStart, iPathEnd);
+
+      var geom = new RibbonGeometry(face, segmentPath, isRound, isFront, isBack);
+
+      setGeometryVerticesColor(geom, color);
+
+      return geom;
+    }
+  }]);
+
+  return Trace;
+}(PathAndFrenetFrames);
+
+/**
+ * Creates a unit-based block arrow pointing in the -Z direction.
+ * It can be reorientated using a lookAt() call
+ */
+
+
+var BlockArrowGeometry = function (_THREE$ExtrudeGeometr) {
+  _inherits(BlockArrowGeometry, _THREE$ExtrudeGeometr);
+
+  function BlockArrowGeometry() {
+    _classCallCheck(this, BlockArrowGeometry);
+
+    var shape = new THREE.Shape([new THREE.Vector2(-0.4, -0.5), new THREE.Vector2(0.0, +0.5), new THREE.Vector2(+0.4, -0.5)]);
+
+    var path = new THREE.CatmullRomCurve3([_v2.default.create(0, -0.3, 0), _v2.default.create(0, 0.3, 0)]);
+
+    var _this3 = _possibleConstructorReturn(this, (BlockArrowGeometry.__proto__ || Object.getPrototypeOf(BlockArrowGeometry)).call(this, shape, {
+      steps: 2,
+      bevelEnabled: false,
+      extrudePath: path
+    }));
+
+    _this3.type = 'BlockArrowGeometry';
+
+    _this3.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, 0)));
+    return _this3;
+  }
+
+  return BlockArrowGeometry;
+}(THREE.ExtrudeGeometry);
+
+/**
+ * Creates a cylinder that is orientated along
+ * the z-direction. Use lookAt to reorientate
+ */
+
+
+var UnitCylinderGeometry = function (_THREE$CylinderGeomet) {
+  _inherits(UnitCylinderGeometry, _THREE$CylinderGeomet);
+
+  function UnitCylinderGeometry() {
+    _classCallCheck(this, UnitCylinderGeometry);
+
+    var _this4 = _possibleConstructorReturn(this, (UnitCylinderGeometry.__proto__ || Object.getPrototypeOf(UnitCylinderGeometry)).call(this, 1, 1, 1, 4, 1, false));
+
+    _this4.type = 'UnitCylinderGeometry';
+
+    _this4.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
+    return _this4;
+  }
+
+  return UnitCylinderGeometry;
+}(THREE.CylinderGeometry);
+
+/**
+ * Takes a bunch of points and treats it as defining
+ * a polygon, and raises it to a certain thickness.
+ */
+
+
+var RaisedShapeGeometry = function (_THREE$Geometry2) {
+  _inherits(RaisedShapeGeometry, _THREE$Geometry2);
+
+  function RaisedShapeGeometry(vertices, thickness) {
+    _classCallCheck(this, RaisedShapeGeometry);
+
+    var _this5 = _possibleConstructorReturn(this, (RaisedShapeGeometry.__proto__ || Object.getPrototypeOf(RaisedShapeGeometry)).call(this));
+
+    _this5.type = 'RaisedShapeGeometry';
+
+    _this5.parameters = {
+      vertices: vertices,
+      thickness: thickness
+    };
+
+    var normal = threePointNormal(vertices.slice(0, 3));
+
+    var displacement = normal.clone().multiplyScalar(thickness / 2);
+
+    var nVertex = vertices.length;
+    var iLast = nVertex - 1;
+    var offset = nVertex;
+
+    for (var i = 0; i < vertices.length; i += 1) {
+      _this5.vertices.push(vertices[i].clone().add(displacement));
+    }
+    for (var _i9 = 0; _i9 < vertices.length; _i9 += 1) {
+      _this5.vertices.push(vertices[_i9].clone().sub(displacement));
+    }
+
+    for (var _i10 = 0; _i10 < nVertex - 2; _i10 += 1) {
+      var face = new THREE.Face3(_i10, _i10 + 1, iLast);
+      _this5.faces.push(face);
+    }
+
+    for (var _i11 = 0; _i11 < nVertex - 2; _i11 += 1) {
+      var _face4 = new THREE.Face3(offset + _i11, offset + iLast, offset + _i11 + 1);
+      _this5.faces.push(_face4);
+    }
+
+    for (var _i12 = 0; _i12 < nVertex; _i12 += 1) {
+      var j = void 0;
+      if (_i12 === nVertex - 1) {
+        j = 0;
+      } else {
+        j = _i12 + 1;
+      }
+
+      _this5.faces.push(new THREE.Face3(_i12, _i12 + offset, j + offset));
+      _this5.faces.push(new THREE.Face3(_i12, j + offset, j));
+    }
+
+    _this5.computeFaceNormals();
+
+    return _this5;
+  }
+
+  return RaisedShapeGeometry;
+}(THREE.Geometry);
+
+/**
+ * Convenience function to set the visibility of a THREE
+ * Object3D collection of meshes and other objects
+ *
+ * @param {THREE.Object3D} obj
+ * @param {boolean} visibility
+ */
+
+
+function setVisible(obj, visibility) {
+
+  if (_lodash2.default.isUndefined(obj)) {
+    return;
+  }
+  obj.traverse(function (c) {
+    c.visible = visibility;
+  });
+}
+
+/**
+ * A generic cleaner for a THREE.Object3D collection,
+ * where a custom 'dontDelete' field is used to
+ * avoid deletion, and all other children are
+ * disposed of correctly to reclaim memory
+ *
+ * @param {THREE.Object3D} obj
+ */
+function clearObject3D(obj) {
+  var iLast = obj.children.length - 1;
+  for (var i = iLast; i >= 0; i -= 1) {
+    var child = obj.children[i];
+    if (!_lodash2.default.isUndefined(child.dontDelete)) {
+      continue;
+    }
+    if (!_lodash2.default.isUndefined(child.geometry)) {
+      child.geometry.dispose();
+    }
+    if (!_lodash2.default.isUndefined(child.material)) {
+      child.material.dispose();
+    }
+    obj.remove(child);
+  }
+}
+
+function perpVector(ref, vec) {
+
+  var vec_along_ref = ref.clone().multiplyScalar(vec.dot(ref));
+
+  return vec.clone().sub(vec_along_ref);
+}
+
+function threePointNormal(vertices) {
+
+  var cb = new THREE.Vector3();
+  var ab = new THREE.Vector3();
+
+  cb.subVectors(vertices[2], vertices[1]);
+  ab.subVectors(vertices[0], vertices[1]);
+  cb.cross(ab);
+
+  cb.normalize();
+
+  return cb;
+}
+
+function getUnitVectorRotation(reference, target) {
+  return new THREE.Quaternion().setFromUnitVectors(reference, target);
+}
+
+function fraction(reference, target, t) {
+  return t * (target - reference) + reference;
+}
+
+function getFractionRotation(rotation, t) {
+  var identity = new THREE.Quaternion();
+  return identity.slerp(rotation, t);
+}
+
+function setGeometryVerticesColor(geom, color) {
+  for (var i = 0; i < geom.faces.length; i += 1) {
+    var face = geom.faces[i];
+    face.vertexColors[0] = color;
+    face.vertexColors[1] = color;
+    face.vertexColors[2] = color;
+  }
+}
+
+function mergeUnitGeom(totalGeom, unitGeom, color, matrix) {
+  setGeometryVerticesColor(unitGeom, color);
+  totalGeom.merge(unitGeom, matrix);
+}
+
+/**
+ * Calculates the transform matrix for a SphereGeometry
+ * to a given position and radius
+ *
+ * @param {THREE.Vector3} pos
+ * @param {Number} radius
+ * @returns {THREE.Matrix4}
+ */
+function getSphereMatrix(pos, radius) {
+  var obj = new THREE.Object3D();
+  obj.matrix.identity();
+  obj.position.copy(pos);
+  obj.scale.set(radius, radius, radius);
+  obj.updateMatrix();
+  return obj.matrix;
+}
+
+/**
+ * Calculates the transform matrix for a UnitCylinderGeometry
+ * to orientate along the axis between the 'from' and 'to' vector
+ *
+ * @param {THREE.Vector3} from
+ * @param {THREE.Vector3} to
+ * @param {Number} radius
+ * @returns {THREE.Matrix4}
+ */
+function getCylinderMatrix(from, to, radius) {
+  var obj = new THREE.Object3D();
+  obj.scale.set(radius, radius, from.distanceTo(to));
+  obj.position.copy(from).add(to).multiplyScalar(0.5);
+  obj.lookAt(to);
+  obj.updateMatrix();
+  return obj.matrix;
+}
+
+function applyMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
+  var elems = matrix.elements;
+  for (var i = iStart; i < iEnd; i += 3) {
+    var x = vec3Array[i];
+    var y = vec3Array[i + 1];
+    var z = vec3Array[i + 2];
+    vec3Array[i] = elems[0] * x + elems[4] * y + elems[8] * z + elems[12];
+    vec3Array[i + 1] = elems[1] * x + elems[5] * y + elems[9] * z + elems[13];
+    vec3Array[i + 2] = elems[2] * x + elems[6] * y + elems[10] * z + elems[14];
+  }
+}
+
+function applyRotationOfMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
+  var elems = matrix.elements;
+  for (var i = iStart; i < iEnd; i += 3) {
+    var x = vec3Array[i];
+    var y = vec3Array[i + 1];
+    var z = vec3Array[i + 2];
+    vec3Array[i] = elems[0] * x + elems[4] * y + elems[8] * z;
+    vec3Array[i + 1] = elems[1] * x + elems[5] * y + elems[9] * z;
+    vec3Array[i + 2] = elems[2] * x + elems[6] * y + elems[10] * z;
+  }
+}
+
+function expandFloatArray(refArray, nCopy) {
+  var nElem = refArray.length;
+  var targetArray = new Float32Array(nElem * nCopy);
+  for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
+    var iStart = iCopy * nElem;
+    for (var i = 0; i < nElem; i += 1) {
+      targetArray[iStart + i] = refArray[i];
+    }
+  }
+  return targetArray;
+}
+
+function applyColorToVector3array(color, vec3Array, iStart, iEnd) {
+  for (var i = iStart; i < iEnd; i += 3) {
+    vec3Array[i] = color.r;
+    vec3Array[i + 1] = color.g;
+    vec3Array[i + 2] = color.b;
+  }
+}
+
+function expandIndices(refArray, nCopy, nIndexInCopy) {
+  var nElem = refArray.length;
+  var targetArray = new Uint32Array(nElem * nCopy);
+  for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
+    var iStart = iCopy * nElem;
+    var indexOffset = iCopy * nIndexInCopy;
+    for (var i = 0; i < nElem; i += 1) {
+      targetArray[iStart + i] = refArray[i] + indexOffset;
+    }
+  }
+  return targetArray;
+}
+
+/**
+ */
+
+var CopyBufferGeometry = function (_THREE$BufferGeometry) {
+  _inherits(CopyBufferGeometry, _THREE$BufferGeometry);
+
+  function CopyBufferGeometry(copyBufferGeometry, nCopy) {
+    _classCallCheck(this, CopyBufferGeometry);
+
+    var _this6 = _possibleConstructorReturn(this, (CopyBufferGeometry.__proto__ || Object.getPrototypeOf(CopyBufferGeometry)).call(this));
+
+    _this6.type = 'CopyBufferGeometry';
+    _this6.parameters = {
+      nCopy: nCopy
+    };
+
+    _this6.refBufferGeometry = copyBufferGeometry;
+
+    var positions = expandFloatArray(copyBufferGeometry.attributes.position.array, nCopy);
+    _this6.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+    var normals = expandFloatArray(copyBufferGeometry.attributes.normal.array, nCopy);
+    _this6.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+
+    var uvs = expandFloatArray(copyBufferGeometry.attributes.uv.array, nCopy);
+    _this6.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+
+    var nVertexInCopy = copyBufferGeometry.attributes.position.count;
+
+    if ('index' in copyBufferGeometry) {
+      var indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy);
+      _this6.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
+    }
+
+    var colors = new Float32Array(nVertexInCopy * 3 * nCopy);
+    _this6.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    return _this6;
+  }
+
+  _createClass(CopyBufferGeometry, [{
+    key: 'applyMatrixToCopy',
+    value: function applyMatrixToCopy(matrix, iCopy) {
+      var nElemRef = this.refBufferGeometry.attributes.position.array.length;
+      var positions = this.attributes.position.array;
+      var normals = this.attributes.normal.array;
+      var iElemStart = iCopy * nElemRef;
+      var iElemEnd = iElemStart + nElemRef;
+      applyMatrix4toVector3array(matrix, positions, iElemStart, iElemEnd);
+      applyRotationOfMatrix4toVector3array(matrix, normals, iElemStart, iElemEnd);
+    }
+  }, {
+    key: 'applyColorToCopy',
+    value: function applyColorToCopy(color, iCopy) {
+      var nElemRef = this.refBufferGeometry.attributes.position.array.length;
+      var colors = this.attributes.color.array;
+      var iElemStart = iCopy * nElemRef;
+      var iElemEnd = iElemStart + nElemRef;
+      applyColorToVector3array(color, colors, iElemStart, iElemEnd);
+    }
+  }]);
+
+  return CopyBufferGeometry;
+}(THREE.BufferGeometry);
+
+exports.BlockArrowGeometry = BlockArrowGeometry;
+exports.UnitCylinderGeometry = UnitCylinderGeometry;
+exports.setVisible = setVisible;
+exports.RaisedShapeGeometry = RaisedShapeGeometry;
+exports.RibbonGeometry = RibbonGeometry;
+exports.getUnitVectorRotation = getUnitVectorRotation;
+exports.getFractionRotation = getFractionRotation;
+exports.fraction = fraction;
+exports.setGeometryVerticesColor = setGeometryVerticesColor;
+exports.clearObject3D = clearObject3D;
+exports.Trace = Trace;
+exports.mergeUnitGeom = mergeUnitGeom;
+exports.getSphereMatrix = getSphereMatrix;
+exports.getCylinderMatrix = getCylinderMatrix;
+exports.CopyBufferGeometry = CopyBufferGeometry;
+exports.applyMatrix4toVector3array = applyMatrix4toVector3array;
+exports.applyRotationOfMatrix4toVector3array = applyRotationOfMatrix4toVector3array;
+exports.applyColorToVector3array = applyColorToVector3array;
+
+/***/ }),
+/* 341 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -89134,11 +88108,11 @@ var _lodash = __webpack_require__(31);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _data = __webpack_require__(96);
+var _data = __webpack_require__(132);
 
 var data = _interopRequireWildcard(_data);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(66);
 
 var util = _interopRequireWildcard(_util);
 
@@ -89160,7 +88134,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  */
 
 var LineElement = function () {
-  function LineElement(selector, color) {
+  function LineElement(display, color) {
     _classCallCheck(this, LineElement);
 
     this.color = color;
@@ -89175,7 +88149,7 @@ var LineElement = function () {
     this.canvas = this.div[0];
     this.context2d = this.canvas.getContext('2d');
 
-    this.parentDiv = (0, _jquery2.default)(selector);
+    this.parentDiv = (0, _jquery2.default)(display.divTag);
     this.parentDiv.append(this.div);
   }
 
@@ -89391,7 +88365,7 @@ var CanvasWrapper = function () {
  */
 
 var PopupText = function () {
-  function PopupText(selector) {
+  function PopupText(display) {
     _classCallCheck(this, PopupText);
 
     this.div = (0, _jquery2.default)('<div>').css({
@@ -89419,7 +88393,7 @@ var PopupText = function () {
       'pointer-events': 'none'
     });
 
-    this.parentDiv = (0, _jquery2.default)(selector);
+    this.parentDiv = (0, _jquery2.default)(display.divTag);
     this.parentDiv.append(this.div);
     this.parentDiv.append(this.arrow);
   }
@@ -89480,13 +88454,13 @@ var PopupText = function () {
 
 
 var AtomLabelsWidget = function () {
-  function AtomLabelsWidget(proteinDisplay) {
+  function AtomLabelsWidget(display) {
     _classCallCheck(this, AtomLabelsWidget);
 
+    this.display = display;
+    this.soupView = display.soupView;
+    this.controller = display.controller;
     this.popups = [];
-    this.soupView = proteinDisplay.soupView;
-    this.controller = proteinDisplay.controller;
-    this.display = proteinDisplay;
   }
 
   _createClass(AtomLabelsWidget, [{
@@ -89687,14 +88661,14 @@ var DistanceMeasuresWidget = function () {
 var SequenceWidget = function (_CanvasWrapper) {
   _inherits(SequenceWidget, _CanvasWrapper);
 
-  function SequenceWidget(proteinDisplay) {
+  function SequenceWidget(display) {
     _classCallCheck(this, SequenceWidget);
 
-    var _this4 = _possibleConstructorReturn(this, (SequenceWidget.__proto__ || Object.getPrototypeOf(SequenceWidget)).call(this, proteinDisplay.divTag));
+    var _this4 = _possibleConstructorReturn(this, (SequenceWidget.__proto__ || Object.getPrototypeOf(SequenceWidget)).call(this, display.divTag));
 
-    _this4.display = proteinDisplay;
-    _this4.soupView = proteinDisplay.soupView;
-    _this4.traces = proteinDisplay.traces;
+    _this4.display = display;
+    _this4.soupView = display.soupView;
+    _this4.traces = display.traces;
 
     _this4.iRes = 0;
 
@@ -89952,12 +88926,12 @@ var SequenceWidget = function (_CanvasWrapper) {
 var ZSlabWidget = function (_CanvasWrapper2) {
   _inherits(ZSlabWidget, _CanvasWrapper2);
 
-  function ZSlabWidget(soupDisplay) {
+  function ZSlabWidget(display) {
     _classCallCheck(this, ZSlabWidget);
 
-    var _this5 = _possibleConstructorReturn(this, (ZSlabWidget.__proto__ || Object.getPrototypeOf(ZSlabWidget)).call(this, soupDisplay.divTag));
+    var _this5 = _possibleConstructorReturn(this, (ZSlabWidget.__proto__ || Object.getPrototypeOf(ZSlabWidget)).call(this, display.divTag));
 
-    _this5.soupView = soupDisplay.soupView;
+    _this5.soupView = display.soupView;
     _this5.maxZLength = 0.0;
     _this5.yOffset = 60;
     _this5.div.attr('id', 'zslab');
@@ -90315,7 +89289,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 345 */
+/* 342 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -90332,7 +89306,7 @@ var _jquery = __webpack_require__(43);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _jquery3 = __webpack_require__(346);
+var _jquery3 = __webpack_require__(343);
 
 var _jquery4 = _interopRequireDefault(_jquery3);
 
@@ -90340,9 +89314,9 @@ var _lodash = __webpack_require__(31);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _embedjolecule = __webpack_require__(131);
+var _embedjolecule = __webpack_require__(129);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(66);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -90632,7 +89606,7 @@ var FullPageJolecule = function () {
   }
 
   _createClass(FullPageJolecule, [{
-    key: 'addDataServer',
+    key: 'asyncAddDataServer',
     value: function () {
       var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(dataServer) {
         return regeneratorRuntime.wrap(function _callee$(_context) {
@@ -90644,7 +89618,7 @@ var FullPageJolecule = function () {
 
               case 2:
                 this.initViewsDisplay(dataServer);
-                console.log('FullPageJolecule.addDataServer finished adding views');
+                console.log('FullPageJolecule.asyncAddDataServer finished adding views');
 
               case 4:
               case 'end':
@@ -90654,11 +89628,11 @@ var FullPageJolecule = function () {
         }, _callee, this);
       }));
 
-      function addDataServer(_x) {
+      function asyncAddDataServer(_x) {
         return _ref.apply(this, arguments);
       }
 
-      return addDataServer;
+      return asyncAddDataServer;
     }()
   }, {
     key: 'initViewsDisplay',
@@ -90789,7 +89763,7 @@ var FullPageJolecule = function () {
 exports.FullPageJolecule = FullPageJolecule;
 
 /***/ }),
-/* 346 */
+/* 343 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -91006,6 +89980,1080 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 	return $scrollTo;
 });
 
+
+/***/ }),
+/* 344 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * Finds pairs of vertices that have been coarsely grouped together
+ * using spatial hashes of boxes of div^3. All vertices in neighboring
+ * boxes are considered close pairs.
+ *
+ * Vertex - [x, y, z] in real coordinates
+ *
+ * Space - [i, j, k] integer indices in grid space
+ *
+ * Spacehash - hash integer hash of a space
+ *
+ * SpaceHashes are spaces converted to a single integer
+ *
+ * @param {Array<THREE.Vector3>} vertices - list of positions
+ * @returns {Array} - array of pairs of positions
+ */
+var SpaceHash = function () {
+  function SpaceHash(vertices) {
+    _classCallCheck(this, SpaceHash);
+
+    console.log('SpaceHash assigning vertices to cells');
+
+    this.vertices = vertices;
+    this.padding = 0.05;
+    this.div = 5.0;
+    this.invDiv = 1.0 / this.div;
+    this.maxima = [0.0, 0.0, 0.0];
+    this.minima = [0.0, 0.0, 0.0];
+    this.spans = [0.0, 0.0, 0.0];
+    this.sizes = [0, 0, 0];
+
+    for (var iDim = 0; iDim < 3; iDim++) {
+      for (var iVertex = 0; iVertex < this.vertices.length; iVertex += 1) {
+        if (this.minima[iDim] > this.vertices[iVertex][iDim]) {
+          this.minima[iDim] = this.vertices[iVertex][iDim];
+        }
+        if (this.maxima[iDim] < this.vertices[iVertex][iDim]) {
+          this.maxima[iDim] = this.vertices[iVertex][iDim];
+        }
+      }
+      this.minima[iDim] -= this.padding;
+      this.maxima[iDim] += this.padding;
+      this.spans[iDim] = this.maxima[iDim] - this.minima[iDim];
+      this.sizes[iDim] = Math.ceil(this.spans[iDim] * this.invDiv);
+    }
+
+    this.cells = {};
+    this.spaces = [];
+    for (var _iVertex = 0; _iVertex < this.vertices.length; _iVertex++) {
+      var vertex = this.vertices[_iVertex];
+      var space = this.getSpaceFromVertex(vertex);
+      this.spaces.push(space);
+      var hash = this.getHashFromSpace(space);
+      if (!(hash in this.cells)) {
+        this.cells[hash] = [];
+      }
+      this.cells[hash].push(_iVertex);
+    }
+  }
+
+  _createClass(SpaceHash, [{
+    key: 'getSpaceFromVertex',
+    value: function getSpaceFromVertex(vertex) {
+      var result = [];
+      for (var iDim = 0; iDim < 3; iDim++) {
+        result.push(Math.round((vertex[iDim] - this.minima[iDim]) * this.invDiv));
+      }
+      return result;
+    }
+  }, {
+    key: 'getHashFromSpace',
+    value: function getHashFromSpace(s) {
+      return s[0] * this.sizes[1] * this.sizes[2] + s[1] * this.sizes[2] + s[2];
+    }
+  }, {
+    key: 'pushCellOfSpace',
+    value: function pushCellOfSpace(pairs, vertex, iVertex) {
+      var spaceCenter = this.getSpaceFromVertex(vertex);
+
+      var space0start = Math.max(0, spaceCenter[0] - 1);
+      var space0end = Math.min(this.sizes[0], spaceCenter[0] + 2);
+      var space1start = Math.max(0, spaceCenter[1] - 1);
+      var space1end = Math.min(this.sizes[1], spaceCenter[1] + 2);
+      var space2start = Math.max(0, spaceCenter[2] - 1);
+      var space2end = Math.min(this.sizes[2], spaceCenter[2] + 2);
+
+      for (var space0 = space0start; space0 < space0end; space0++) {
+        for (var space1 = space1start; space1 < space1end; space1++) {
+          for (var space2 = space2start; space2 < space2end; space2++) {
+            var hash = this.getHashFromSpace([space0, space1, space2]);
+            if (hash in this.cells) {
+              var cell = this.cells[hash];
+              for (var jVertexInCell = 0; jVertexInCell < cell.length; jVertexInCell++) {
+                var jVertex = cell[jVertexInCell];
+                pairs.push([iVertex, jVertex]);
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    key: 'getClosePairs',
+    value: function getClosePairs() {
+      console.log('SpatialHash.getClosePairs');
+      var pairs = [];
+      for (var iVertex = 0; iVertex < this.vertices.length; iVertex++) {
+        this.pushCellOfSpace(pairs, this.vertices[iVertex], iVertex);
+      }
+      return pairs;
+    }
+  }, {
+    key: 'getVerticesNearPoint',
+    value: function getVerticesNearPoint(vertex, iVertex) {
+      console.log('SpatialHash.getClosePairs');
+      var pairs = [];
+      this.pushCellOfSpace(pairs, vertex, iVertex);
+      return pairs;
+    }
+  }]);
+
+  return SpaceHash;
+}();
+
+exports.SpaceHash = SpaceHash;
+
+/***/ }),
+/* 345 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * @file Store - an array-based space-efficient typed datastore, to be used
+ * as a Flyweight, with an associated Proxy
+ *
+ * adapted from NGL @author Alexander Rose <alexander.rose@weirdbyte.de>
+ */
+
+function getTypedArray(arrayType, arraySize) {
+  switch (arrayType) {
+    case 'int8':
+      return new Int8Array(arraySize);
+    case 'int16':
+      return new Int16Array(arraySize);
+    case 'int32':
+      return new Int32Array(arraySize);
+    case 'uint8':
+      return new Uint8Array(arraySize);
+    case 'uint16':
+      return new Uint16Array(arraySize);
+    case 'uint32':
+      return new Uint32Array(arraySize);
+    case 'float32':
+      return new Float32Array(arraySize);
+    default:
+      throw new Error('arrayType unknown: ' + arrayType);
+  }
+}
+
+/**
+ * Store - an array-based space-efficient typed datastore, to be used
+ * as a Flyweight, with an associated Proxy
+ */
+
+var Store = function () {
+  /**
+   * @param fields - list of typed fields in the store
+   * @param {Integer} size - initial size of the datastore
+   */
+  function Store(fields, size) {
+    _classCallCheck(this, Store);
+
+    // actual size allocated
+    this.length = 0;
+
+    // size to use, updated by this.growIfFull
+    this.count = 0;
+
+    this._fields = fields;
+
+    if (Number.isInteger(size)) {
+      this._init(size);
+    } else {
+      this._init(0);
+    }
+  }
+
+  /**
+   * Initialize the store
+   * @param {Integer} size - size to initialize
+   */
+
+
+  _createClass(Store, [{
+    key: '_init',
+    value: function _init(size) {
+      this.length = size;
+      this.count = 0;
+
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = this._fields[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var field = _step.value;
+
+          this._initField.apply(this, _toConsumableArray(field));
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+    }
+
+    /**
+     * Initialize a field
+     * @param  {String} name - field name
+     * @param  {Integer} size - element size
+     * @param  {String} type - data type, one of int8, int16, int32,
+     *                         uint8, uint16, uint32, float32
+     */
+
+  }, {
+    key: '_initField',
+    value: function _initField(name, size, type) {
+      this[name] = getTypedArray(type, this.length * size);
+    }
+
+    /**
+     * Add a field
+     * @param  {String} name - field name
+     * @param  {Integer} size - element size
+     * @param  {String} type - data type, one of int8, int16, int32,
+     *                         uint8, uint16, uint32, float32
+     */
+
+  }, {
+    key: 'addField',
+    value: function addField(name, size, type) {
+      this._fields.push([name, size, type]);
+      this._initField(name, size, type);
+    }
+
+    /**
+     * Resize the store to the new size
+     * @param  {Integer} size - new size
+     */
+
+  }, {
+    key: 'resize',
+    value: function resize(size) {
+      // Log.time( "Store.resize" );
+
+      this.length = Math.round(size || 0);
+      this.count = Math.min(this.count, this.length);
+
+      for (var i = 0, il = this._fields.length; i < il; ++i) {
+        var name = this._fields[i][0];
+        var itemSize = this._fields[i][1];
+        var arraySize = this.length * itemSize;
+        var tmpArray = new this[name].constructor(arraySize);
+
+        if (this[name].length > arraySize) {
+          tmpArray.set(this[name].subarray(0, arraySize));
+        } else {
+          tmpArray.set(this[name]);
+        }
+        this[name] = tmpArray;
+      }
+
+      // Log.timeEnd( "Store.resize" );
+    }
+
+    /**
+     * Resize the store to 1.5 times its current size if full, or to 256 if empty
+     */
+
+  }, {
+    key: 'growIfFull',
+    value: function growIfFull() {
+      if (this.count >= this.length) {
+        var size = Math.round(this.length * 1.5);
+        this.resize(Math.max(256, size));
+      }
+    }
+
+    /**
+     * Increase the store by 1, and resize if necessary
+     */
+
+  }, {
+    key: 'increment',
+    value: function increment() {
+      this.count += 1;
+      this.growIfFull();
+    }
+
+    /**
+     * Copy data from one store to another
+     * @param  {Store} other - store to copy from
+     * @param  {Integer} thisOffset - offset to start copying to
+     * @param  {Integer} otherOffset - offset to start copying from
+     * @param  {Integer} length - number of entries to copy
+     */
+
+  }, {
+    key: 'copyFrom',
+    value: function copyFrom(other, thisOffset, otherOffset, length) {
+      for (var i = 0, il = this._fields.length; i < il; ++i) {
+        var name = this._fields[i][0];
+        var itemSize = this._fields[i][1];
+        var thisField = this[name];
+        var otherField = other[name];
+
+        for (var j = 0; j < length; ++j) {
+          var thisIndex = itemSize * (thisOffset + j);
+          var otherIndex = itemSize * (otherOffset + j);
+          for (var k = 0; k < itemSize; ++k) {
+            thisField[thisIndex + k] = otherField[otherIndex + k];
+          }
+        }
+      }
+    }
+
+    /**
+     * Copy data within this store
+     * @param  {Integer} offsetTarget - offset to start copying to
+     * @param  {Integer} offsetSource - offset to start copying from
+     * @param  {Integer} length - number of entries to copy
+     */
+
+  }, {
+    key: 'copyWithin',
+    value: function copyWithin(offsetTarget, offsetSource, length) {
+      for (var i = 0, il = this._fields.length; i < il; ++i) {
+        var name = this._fields[i][0];
+        var itemSize = this._fields[i][1];
+        var thisField = this[name];
+
+        for (var j = 0; j < length; ++j) {
+          var targetIndex = itemSize * (offsetTarget + j);
+          var sourceIndex = itemSize * (offsetSource + j);
+          for (var k = 0; k < itemSize; ++k) {
+            thisField[targetIndex + k] = thisField[sourceIndex + k];
+          }
+        }
+      }
+    }
+
+    /**
+     * Sort entries in the store given the compare function
+     * @param  {Function} compareFunction - function to sort by (i, j) -> Integer
+     *            the return value is - if item[i] is smaller than item[j]
+     */
+
+  }, {
+    key: 'sort',
+    value: function sort(compareFunction) {
+      var thisStore = this;
+      var tmpStore = new this.constructor(this._fields, 1);
+
+      function swap(index1, index2) {
+        if (index1 === index2) return;
+        tmpStore.copyFrom(thisStore, 0, index1, 1);
+        thisStore.copyWithin(index1, index2, 1);
+        thisStore.copyFrom(tmpStore, index2, 0, 1);
+      }
+
+      function quicksort(left, right) {
+        if (left < right) {
+          var pivot = Math.floor((left + right) / 2);
+          var leftNew = left;
+          var rightNew = right;
+          do {
+            while (compareFunction(leftNew, pivot) < 0) {
+              leftNew += 1;
+            }
+            while (compareFunction(rightNew, pivot) > 0) {
+              rightNew -= 1;
+            }
+            if (leftNew <= rightNew) {
+              if (leftNew === pivot) {
+                pivot = rightNew;
+              } else if (rightNew === pivot) {
+                pivot = leftNew;
+              }
+              swap(leftNew, rightNew);
+              leftNew += 1;
+              rightNew -= 1;
+            }
+          } while (leftNew <= rightNew);
+          quicksort(left, rightNew);
+          quicksort(leftNew, right);
+        }
+      }
+
+      quicksort(0, this.count - 1);
+    }
+
+    /**
+     * Empty the store, but keep the allocated memory
+     */
+
+  }, {
+    key: 'clear',
+    value: function clear() {
+      this.count = 0;
+    }
+
+    /**
+     * Dispose of the store entries and fields
+     */
+
+  }, {
+    key: 'dispose',
+    value: function dispose() {
+      delete this.length;
+      delete this.count;
+
+      for (var i = 0, il = this._fields.length; i < il; ++i) {
+        var name = this._fields[i][0];
+        delete this[name];
+      }
+    }
+  }]);
+
+  return Store;
+}();
+
+exports.default = Store;
+
+/***/ }),
+/* 346 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * @file Bit array
+ * @author Alexander Rose <alexander.rose@weirdbyte.de>
+ * @author Paul Pillot <paulpillot@gmail.com>
+ * @private
+ */
+
+/**
+ * Compute the Hamming weight of a 32-bit unsigned integer
+ * @param  {Integer} v - a 32-bit unsigned integer
+ * @return {Integer} the Hamming weight
+ */
+function hammingWeight(v) {
+  // works with signed or unsigned shifts
+  v -= v >>> 1 & 0x55555555;
+  v = (v & 0x33333333) + (v >>> 2 & 0x33333333);
+  return (v + (v >>> 4) & 0xF0F0F0F) * 0x1010101 >>> 24;
+}
+
+/**
+ * Bit array
+ *
+ * Based heavily on https://github.com/lemire/FastBitSet.js
+ * which is licensed under the Apache License, Version 2.0.
+ */
+
+var BitArray = function () {
+  /**
+   * @param  {Integer} length - array length
+   * @param  {Boolean} [setAll] - initialize with true
+   */
+  function BitArray(length, setAll) {
+    _classCallCheck(this, BitArray);
+
+    this.length = length;
+    this._words = new Uint32Array(length + 32 >>> 5);
+    if (setAll === true) {
+      this.setAll();
+    }
+  }
+
+  /**
+   * Get value at index
+   * @param  {Integer} index - the index
+   * @return {Boolean} value
+   */
+
+
+  _createClass(BitArray, [{
+    key: 'get',
+    value: function get(index) {
+      return (this._words[index >>> 5] & 1 << index) !== 0;
+    }
+
+    /**
+     * Set value at index to true
+     * @param  {Integer} index - the index
+     * @return {undefined}
+     */
+
+  }, {
+    key: 'set',
+    value: function set(index) {
+      this._words[index >>> 5] |= 1 << index;
+    }
+
+    /**
+     * Set value at index to false
+     * @param  {Integer} index - the index
+     * @return {undefined}
+     */
+
+  }, {
+    key: 'clear',
+    value: function clear(index) {
+      this._words[index >>> 5] &= ~(1 << index);
+    }
+
+    /**
+     * Flip value at index
+     * @param  {Integer} index - the index
+     * @return {undefined}
+     */
+
+  }, {
+    key: 'flip',
+    value: function flip(index) {
+      this._words[index >>> 5] ^= 1 << index;
+    }
+  }, {
+    key: '_assignRange',
+    value: function _assignRange(start, end, value) {
+      var words = this._words;
+      var wordValue = value === true ? 0xFFFFFFFF : 0;
+      var wordStart = start >>> 5;
+      var wordEnd = end >>> 5;
+      // set complete words when applicable
+      for (var k = wordStart; k < wordEnd; ++k) {
+        words[k] = wordValue;
+      }
+      // set parts of the range not spanning complete words
+      var startWord = wordStart << 5;
+      var endWord = wordEnd << 5;
+      if (value === true) {
+        if (end - start < 32) {
+          for (var i = start, n = end + 1; i < n; ++i) {
+            words[i >>> 5] |= 1 << i;
+          }
+        } else {
+          for (var _i = start, _n = startWord; _i < _n; ++_i) {
+            words[_i >>> 5] |= 1 << _i;
+          }
+          for (var _i2 = endWord, _n2 = end + 1; _i2 < _n2; ++_i2) {
+            words[_i2 >>> 5] |= 1 << _i2;
+          }
+        }
+      } else {
+        if (end - start < 32) {
+          for (var _i3 = start, _n3 = end + 1; _i3 < _n3; ++_i3) {
+            words[_i3 >>> 5] &= ~(1 << _i3);
+          }
+        } else {
+          for (var _i4 = start, _n4 = startWord; _i4 < _n4; ++_i4) {
+            words[_i4 >>> 5] &= ~(1 << _i4);
+          }
+          for (var _i5 = endWord, _n5 = end + 1; _i5 < _n5; ++_i5) {
+            words[_i5 >>> 5] &= ~(1 << _i5);
+          }
+        }
+      }
+      return this;
+    }
+
+    /**
+     * Set bits of the given range
+     * @param {Integer} start - start index
+     * @param {Integer} end - end index
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'setRange',
+    value: function setRange(start, end) {
+      return this._assignRange(start, end, true);
+    }
+
+    /**
+     * Clear bits of the given range
+     * @param {Integer} start - start index
+     * @param {Integer} end - end index
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'clearRange',
+    value: function clearRange(start, end) {
+      return this._assignRange(start, end, false);
+    }
+
+    /**
+     * Set bits at all given indices
+     * @param {...Integer} arguments - indices
+     * @return {Boolean} this object
+     */
+
+  }, {
+    key: 'setBits',
+    value: function setBits() {
+      var words = this._words;
+      var n = arguments.length;
+      for (var i = 0; i < n; ++i) {
+        var index = arguments[i];
+        words[index >>> 5] |= 1 << index;
+      }
+      return this;
+    }
+
+    /**
+     * Clear bits at all given indices
+     * @param {...Integer} arguments - indices
+     * @return {Boolean} this object
+     */
+
+  }, {
+    key: 'clearBits',
+    value: function clearBits() {
+      var words = this._words;
+      var n = arguments.length;
+      for (var i = 0; i < n; ++i) {
+        var index = arguments[i];
+        words[index >>> 5] &= ~(1 << index);
+      }
+      return this;
+    }
+
+    /**
+     * Set all bits of the array
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'setAll',
+    value: function setAll() {
+      return this._assignRange(0, this.length - 1, true);
+    }
+
+    /**
+     * Clear all bits of the array
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'clearAll',
+    value: function clearAll() {
+      return this._assignRange(0, this.length - 1, false);
+    }
+
+    /**
+     * Flip all the values in the array
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'flipAll',
+    value: function flipAll() {
+      var count = this._words.length;
+      var words = this._words;
+      var bs = 32 - this.length % 32;
+      for (var k = 0; k < count - 1; ++k) {
+        words[k] = ~words[k];
+      }
+      words[count - 1] = ~(words[count - 1] << bs) >>> bs;
+      return this;
+    }
+  }, {
+    key: '_isRangeValue',
+    value: function _isRangeValue(start, end, value) {
+      var words = this._words;
+      var wordValue = value === true ? 0xFFFFFFFF : 0;
+      var wordStart = start >>> 5;
+      var wordEnd = end >>> 5;
+      // set complete words when applicable
+      for (var k = wordStart; k < wordEnd; ++k) {
+        if (words[k] !== wordValue) return false;
+      }
+      // set parts of the range not spanning complete words
+      if (end - start < 32) {
+        for (var i = start, n = end + 1; i < n; ++i) {
+          if (!!(words[i >>> 5] & 1 << i) !== value) return false;
+        }
+      } else {
+        var startWord = wordStart << 5;
+        var endWord = wordEnd << 5;
+        for (var _i6 = start, _n6 = startWord << 5; _i6 < _n6; ++_i6) {
+          if (!!(words[_i6 >>> 5] & 1 << _i6) !== value) return false;
+        }
+        for (var _i7 = endWord, _n7 = end + 1; _i7 < _n7; ++_i7) {
+          if (!!(words[_i7 >>> 5] & 1 << _i7) !== value) return false;
+        }
+      }
+      return true;
+    }
+
+    /**
+     * Test if bits in given range are set
+     * @param {Integer} start - start index
+     * @param {Integer} end - end index
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'isRangeSet',
+    value: function isRangeSet(start, end) {
+      return this._isRangeValue(start, end, true);
+    }
+
+    /**
+     * Test if bits in given range are clear
+     * @param {Integer} start - start index
+     * @param {Integer} end - end index
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'isRangeClear',
+    value: function isRangeClear(start, end) {
+      return this._isRangeValue(start, end, false);
+    }
+
+    /**
+     * Test if all bits in the array are set
+     * @return {Boolean} test result
+     */
+
+  }, {
+    key: 'isAllSet',
+    value: function isAllSet() {
+      return this._isRangeValue(0, this.length - 1, true);
+    }
+
+    /**
+     * Test if all bits in the array are clear
+     * @return {Boolean} test result
+     */
+
+  }, {
+    key: 'isAllClear',
+    value: function isAllClear() {
+      return this._isRangeValue(0, this.length - 1, false);
+    }
+
+    /**
+     * Test if bits at all given indices are set
+     * @param {...Integer} arguments - indices
+     * @return {Boolean} test result
+     */
+
+  }, {
+    key: 'isSet',
+    value: function isSet() {
+      var words = this._words;
+      var n = arguments.length;
+      for (var i = 0; i < n; ++i) {
+        var index = arguments[i];
+        if ((words[index >>> 5] & 1 << index) === 0) return false;
+      }
+      return true;
+    }
+
+    /**
+     * Test if bits at all given indices are clear
+     * @param {...Integer} arguments - indices
+     * @return {Boolean} test result
+     */
+
+  }, {
+    key: 'isClear',
+    value: function isClear() {
+      var words = this._words;
+      var n = arguments.length;
+      for (var i = 0; i < n; ++i) {
+        var index = arguments[i];
+        if ((words[index >>> 5] & 1 << index) !== 0) return false;
+      }
+      return true;
+    }
+
+    /**
+     * Test if two BitArrays are identical in all their values
+     * @param {BitArray} otherBitarray - the other BitArray
+     * @return {Boolean} test result
+     */
+
+  }, {
+    key: 'isEqualTo',
+    value: function isEqualTo(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      for (var k = 0; k < count; ++k) {
+        if (words1[k] !== words2[k]) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /**
+     * How many set bits?
+     * @return {Integer} number of set bits
+     */
+
+  }, {
+    key: 'getSize',
+    value: function getSize() {
+      var count = this._words.length;
+      var words = this._words;
+      var size = 0;
+      for (var i = 0; i < count; ++i) {
+        size += hammingWeight(words[i]);
+      }
+      return size;
+    }
+
+    /**
+     * Calculate difference betwen this and another bit array.
+     * Store result in this object.
+     * @param  {BitArray} otherBitarray - the other bit array
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'difference',
+    value: function difference(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      for (var k = 0; k < count; ++k) {
+        words1[k] = words1[k] & ~words2[k];
+      }
+      for (var _k = words1.length; _k < count; ++_k) {
+        words1[_k] = 0;
+      }
+      return this;
+    }
+
+    /**
+     * Calculate union betwen this and another bit array.
+     * Store result in this object.
+     * @param  {BitArray} otherBitarray - the other bit array
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'union',
+    value: function union(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      for (var k = 0; k < count; ++k) {
+        words1[k] |= words2[k];
+      }
+      for (var _k2 = words1.length; _k2 < count; ++_k2) {
+        words1[_k2] = 0;
+      }
+      return this;
+    }
+
+    /**
+     * Calculate intersection betwen this and another bit array.
+     * Store result in this object.
+     * @param  {BitArray} otherBitarray - the other bit array
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'intersection',
+    value: function intersection(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      for (var k = 0; k < count; ++k) {
+        words1[k] &= words2[k];
+      }
+      for (var _k3 = words1.length; _k3 < count; ++_k3) {
+        words1[_k3] = 0;
+      }
+      return this;
+    }
+
+    /**
+     * Test if there is any intersection betwen this and another bit array.
+     * @param  {BitArray} otherBitarray - the other bit array
+     * @return {Boolean} test result
+     */
+
+  }, {
+    key: 'intersects',
+    value: function intersects(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      for (var k = 0; k < count; ++k) {
+        if ((words1[k] & words2[k]) !== 0) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Calculate the number of bits in common betwen this and another bit array.
+     * @param  {BitArray} otherBitarray - the other bit array
+     * @return {Integer} size
+     */
+
+  }, {
+    key: 'getIntersectionSize',
+    value: function getIntersectionSize(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      var size = 0;
+      for (var k = 0; k < count; ++k) {
+        size += hammingWeight(words1[k] & words2[k]);
+      }
+      return size;
+    }
+
+    /**
+     * Calculate intersection betwen this and another bit array.
+     * Store result in a new bit array.
+     * @param  {BitArray} otherBitarray - the other bit array
+     * @return {BitArray} the new bit array
+     */
+
+  }, {
+    key: 'makeIntersection',
+    value: function makeIntersection(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      var wordsA = new Uint32Array(count);
+      var intersection = Object.create(BitArray.prototype);
+      intersection._words = wordsA;
+      intersection.length = Math.min(this.length, otherBitarray.length);
+      for (var k = 0; k < count; ++k) {
+        wordsA[k] = words1[k] & words2[k];
+      }
+      return intersection;
+    }
+
+    /**
+     * Iterate over all set bits in the array
+     * @param  {function( index: Integer, i: Integer )} callback - the callback
+     * @return {undefined}
+     */
+
+  }, {
+    key: 'forEach',
+    value: function forEach(callback) {
+      var count = this._words.length;
+      var words = this._words;
+      var i = 0;
+      for (var k = 0; k < count; ++k) {
+        var w = words[k];
+        while (w !== 0) {
+          var t = w & -w;
+          var index = (k << 5) + hammingWeight(t - 1);
+          callback(index, i);
+          w ^= t;
+          ++i;
+        }
+      }
+    }
+
+    /**
+     * Get an array with the set bits
+     * @return {Array} bit indices
+     */
+
+  }, {
+    key: 'toArray',
+    value: function toArray() {
+      var words = this._words;
+      var answer = new Array(this.getSize());
+      var count = this._words.length;
+      var pos = 0;
+      for (var k = 0; k < count; ++k) {
+        var w = words[k];
+        while (w !== 0) {
+          var t = w & -w;
+          answer[pos++] = (k << 5) + hammingWeight(t - 1);
+          w ^= t;
+        }
+      }
+      return answer;
+    }
+  }, {
+    key: 'toString',
+    value: function toString() {
+      return '{' + this.toArray().join(',') + '}';
+    }
+  }, {
+    key: 'toSeleString',
+    value: function toSeleString() {
+      var sele = this.toArray().join(',');
+      return sele ? '@' + sele : 'NONE';
+    }
+
+    /**
+     * Clone this object
+     * @return {BitArray} the cloned object
+     */
+
+  }, {
+    key: 'clone',
+    value: function clone() {
+      var clone = Object.create(BitArray.prototype);
+      clone.length = this.length;
+      clone._words = new Uint32Array(this._words);
+      return clone;
+    }
+  }]);
+
+  return BitArray;
+}();
+
+exports.default = BitArray;
 
 /***/ })
 /******/ ]);

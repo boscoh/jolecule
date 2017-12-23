@@ -27,7 +27,7 @@ import * as util from './util'
  */
 
 class LineElement {
-  constructor (selector, color) {
+  constructor (display, color) {
     this.color = color
 
     this.div = $('<canvas>')
@@ -41,7 +41,7 @@ class LineElement {
     this.canvas = this.div[0]
     this.context2d = this.canvas.getContext('2d')
 
-    this.parentDiv = $(selector)
+    this.parentDiv = $(display.divTag)
     this.parentDiv.append(this.div)
   }
 
@@ -231,7 +231,7 @@ class CanvasWrapper {
  */
 
 class PopupText {
-  constructor (selector) {
+  constructor (display) {
     this.div = $('<div>')
       .css({
         'position': 'absolute',
@@ -259,7 +259,7 @@ class PopupText {
         'pointer-events': 'none'
       })
 
-    this.parentDiv = $(selector)
+    this.parentDiv = $(display.divTag)
     this.parentDiv.append(this.div)
     this.parentDiv.append(this.arrow)
   }
@@ -313,11 +313,11 @@ class PopupText {
  */
 class AtomLabelsWidget {
 
-  constructor(proteinDisplay) {
+  constructor(display) {
+    this.display = display
+    this.soupView = display.soupView
+    this.controller = display.controller
     this.popups = []
-    this.soupView = proteinDisplay.soupView
-    this.controller = proteinDisplay.controller
-    this.display = proteinDisplay
   }
 
   removePopup (i) {
@@ -494,12 +494,12 @@ class DistanceMeasuresWidget {
  */
 
 class SequenceWidget extends CanvasWrapper {
-  constructor (proteinDisplay) {
-    super(proteinDisplay.divTag)
+  constructor (display) {
+    super(display.divTag)
 
-    this.display = proteinDisplay
-    this.soupView = proteinDisplay.soupView
-    this.traces = proteinDisplay.traces
+    this.display = display
+    this.soupView = display.soupView
+    this.traces = display.traces
 
     this.iRes = 0
 
@@ -721,9 +721,9 @@ class SequenceWidget extends CanvasWrapper {
  */
 
 class ZSlabWidget extends CanvasWrapper {
-  constructor (soupDisplay) {
-    super(soupDisplay.divTag)
-    this.soupView = soupDisplay.soupView
+  constructor (display) {
+    super(display.divTag)
+    this.soupView = display.soupView
     this.maxZLength = 0.0
     this.yOffset = 60
     this.div.attr('id', 'zslab')

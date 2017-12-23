@@ -61,17 +61,19 @@ class Display {
     this.webglDiv.contextmenu(() => false)
     this.div.append(this.webglDiv)
 
-    // a THREE.js camera, will be set properly before draw
+    // Params that will be used to set the camera below
     this.cameraParams = {
       focus: new THREE.Vector3(0, 0, 0),
       position: new THREE.Vector3(0, 0, -1),
       up: new THREE.Vector3(0, 1, 0),
-      // the front and back of viewable area relative to the origin
+      // clipping planes relative to focus
       zFront: -40,
       zBack: 20,
-      // distance of focus from cameraParams
+      // distance of focus from position
       zoom: 1.0
     }
+
+    // a THREE.js camera, will be set properly before draw
     this.camera = new THREE.PerspectiveCamera(
       45, this.width() / this.height())
 
@@ -111,14 +113,29 @@ class Display {
     // screen atom radius
     this.atomRadius = 0.35
 
-    // Widgets that decorate the display
-    this.sequenceWidget = new widgets.SequenceWidget(this)
-    this.zSlabWidget = new widgets.ZSlabWidget(this)
-    this.isGrid = isGrid
-    this.gridControlWidget = new widgets.GridControlWidget(this)
-
     // Cross-hairs to identify centered atom
     this.buildCrossHairs()
+
+    // div to display processing messages
+    this.messageDiv = $('<div>')
+      .attr('id', 'loading-message')
+      .addClass('jolecule-loading-message')
+    this.setMesssage('Loading data...')
+
+    // Widgets that decorate the display
+
+    // popup hover box over the mouse position
+    this.hover = new widgets.PopupText(this, 'lightblue')
+
+    // Sequence bar of protein at top of embedded window
+    this.sequenceWidget = new widgets.SequenceWidget(this)
+
+    // Clipping plane control bar to the right
+    this.zSlabWidget = new widgets.ZSlabWidget(this)
+
+    // Docking display control
+    this.isGrid = isGrid
+    this.gridControlWidget = new widgets.GridControlWidget(this)
 
     // display distance measures between atoms
     this.distanceWidget = new widgets.DistanceMeasuresWidget(this)
@@ -127,17 +144,8 @@ class Display {
     this.labelWidget = new widgets.AtomLabelsWidget(this)
 
     // draw onscreen line for mouse dragging between atoms
-    this.lineElement = new widgets.LineElement(this.divTag, '#FF7777')
+    this.lineElement = new widgets.LineElement(this, '#FF7777')
 
-    // popup hover box over the mouse position
-    this.hover = new widgets.PopupText(this.divTag, 'lightblue')
-
-    // div to display processing messages
-    this.messageDiv = $('<div>')
-      .attr('id', 'loading-message')
-      .addClass('jolecule-loading-message')
-
-    this.setMesssage('Loading data...')
   }
 
   initWebglRenderer () {
@@ -246,6 +254,7 @@ class Display {
    */
 
   buildScene () {
+
     if (this.soupView.savedViews.length == 0) {
       this.soupView.currentView.makeDefaultOfSoup(this.soup)
       this.soupView.saveView(this.soupView.currentView)
@@ -265,7 +274,7 @@ class Display {
     this.buildMeshOfGrid()
     this.buildMeshOfLigands()
     this.buildMeshOfNucleotides()
-    // this.buildMeshOfArrows()
+    this.buildMeshOfArrows()
 
     this.rebuildSceneWithMeshes()
 
@@ -277,7 +286,6 @@ class Display {
 
   /**
    * Clears/creates a mesh entry in the mesh collection
-   *
    * @param meshName - the name for a mesh collection
    */
   createOrClearMesh (meshName) {
@@ -974,7 +982,7 @@ class Display {
     this.setMeshVisible('tube', show.trace)
     this.setMeshVisible('water', show.water)
     this.setMeshVisible('ribbons', show.ribbon)
-    // this.setMeshVisible('arrows', !show.backboneAtom)
+    this.setMeshVisible('arrows', !show.backboneAtom)
     this.setMeshVisible('backbone', show.backboneAtom)
     this.setMeshVisible('ligands', show.ligands)
 
@@ -1060,8 +1068,9 @@ class Display {
     this.gridControlWidget.resize()
     this.sequenceWidget.resize()
 
-    this.webglDiv.css('left', this.x())
-    this.webglDiv.css('top', this.y())
+    let position = this.div.position()
+    this.webglDiv.css('left', this.x() + position.left)
+    this.webglDiv.css('top', this.y() + position.top)
 
     this.camera.aspect = this.width() / this.height()
     this.camera.updateProjectionMatrix()

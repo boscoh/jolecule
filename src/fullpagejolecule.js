@@ -290,10 +290,10 @@ class FullPageJolecule {
     this.noData = true
   }
 
-  async addDataServer (dataServer) {
+  async asyncAddDataServer (dataServer) {
     await this.embedJolecule.asyncAddDataServer(dataServer)
     this.initViewsDisplay(dataServer)
-    console.log('FullPageJolecule.addDataServer finished adding views')
+    console.log('FullPageJolecule.asyncAddDataServer finished adding views')
   }
 
   initViewsDisplay (dataServer) {

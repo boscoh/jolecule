@@ -278,7 +278,29 @@ class ResidueProxy {
     return true
   }
 
-  isConnectedToPrev () {
+  isProteinConnectedToPrev () {
+
+    if (this.iRes === 0) {
+      return false
+    }
+
+    let thisRes = this
+    let prevRes = new ResidueProxy(this.soup, this.iRes - 1)
+
+    const proteinAtomTypes = ['CA', 'N', 'C']
+    if (prevRes.checkAtomTypes(proteinAtomTypes) &&
+      thisRes.checkAtomTypes(proteinAtomTypes)) {
+      let c = prevRes.getAtom('C').pos.clone()
+      let n = thisRes.getAtom('N').pos.clone()
+      if (v3.distance(c, n) < 2) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  isNucleotideConnectedToPrev () {
 
     if (this.iRes === 0) {
       return false
@@ -289,29 +311,20 @@ class ResidueProxy {
 
     const nucleicAtomTypes = ['C3\'', 'O3\'', 'C5\'', 'O4\'', 'C1\'']
 
-    let isSugarPhosphateConnected = false
     if (prevRes.checkAtomTypes(nucleicAtomTypes) &&
-        thisRes.checkAtomTypes(nucleicAtomTypes) &&
-        thisRes.checkAtomTypes(['P'])) {
+      thisRes.checkAtomTypes(nucleicAtomTypes) &&
+      thisRes.checkAtomTypes(['P'])) {
       let o3 = prevRes.getAtom('O3\'').pos.clone()
       let p = thisRes.getAtom('P').pos.clone()
       if (v3.distance(o3, p) < 2.5) {
-        isSugarPhosphateConnected = true
+        return true
       }
     }
+    return false
+  }
 
-    let isPeptideConnected = false
-    const proteinAtomTypes = ['CA', 'N', 'C']
-    if (prevRes.checkAtomTypes(proteinAtomTypes) &&
-        thisRes.checkAtomTypes(proteinAtomTypes)) {
-      let c = prevRes.getAtom('C').pos.clone()
-      let n = thisRes.getAtom('N').pos.clone()
-      if (v3.distance(c, n) < 2) {
-        isPeptideConnected = true
-      }
-    }
-
-    return isPeptideConnected || isSugarPhosphateConnected
+  isConnectedToPrev () {
+    return this.isProteinConnectedToPrev() || this.isNucleotideConnectedToPrev()
   }
 
   getNucleotideNormal () {
@@ -322,8 +335,6 @@ class ResidueProxy {
     let up = v3.diff(c1, c3)
     return v3.crossProduct(forward, up)
   }
-
-
 }
 
 const bondStoreFields = [
@@ -662,7 +673,10 @@ class Soup {
     const large_cutoff_sq = 2.4 * 2.4
     const CHONPS = ['C', 'H', 'O', 'N', 'P', 'S']
 
-    function isBonded (atom1, atom2) {
+    function isBonded(atom1, atom2) {
+      if ((atom1 === null) || (atom2 === null)) {
+        return false
+      }
       // don't include bonds between different alt positions
       if ((atom1.alt !== '') && (atom2.alt !== '')) {
         if (atom1.alt !== atom2.alt) {
@@ -685,36 +699,57 @@ class Soup {
       let diff_y = atom1.pos.y - atom2.pos.y
       let diff_z = atom1.pos.z - atom2.pos.z
       let dist_sq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z
-      return dist_sq <= cutoff_sq
+      if (dist_sq <= cutoff_sq) {
+        return true
+      }
+    }
+
+    let makeBond = (atom1, atom2) => {
+      let iBond = this.getBondCount()
+      this.bondStore.increment()
+      this.bondStore.iAtom1[iBond] = atom1.iAtom
+      this.bondStore.iAtom2[iBond] = atom2.iAtom
+
+      iBond = this.getBondCount()
+      this.bondStore.increment()
+      this.bondStore.iAtom1[iBond] = atom2.iAtom
+      this.bondStore.iAtom2[iBond] = atom1.iAtom
     }
 
     let residue1 = this.getResidueProxy()
+    let residue2 = this.getResidueProxy()
     let nRes = this.getResidueCount()
     let atom1 = this.getAtomProxy()
     let atom2 = this.getAtomProxy()
 
     for (let iRes1 = 0; iRes1 < nRes; iRes1++) {
-      residue1.iRes = iRes1
+      residue2.iRes = iRes1
 
       // cycle through all atoms within a residue
-      for (let iAtom1 of residue1.getAtomIndices()) {
-        for (let iAtom2 of residue1.getAtomIndices()) {
+      for (let iAtom1 of residue2.getAtomIndices()) {
+        for (let iAtom2 of residue2.getAtomIndices()) {
           atom1.iAtom = iAtom1
           atom2.iAtom = iAtom2
-
           if (isBonded(atom1, atom2)) {
-            let iBond = this.getBondCount()
-            this.bondStore.increment()
-            this.bondStore.iAtom1[iBond] = atom1.iAtom
-            this.bondStore.iAtom2[iBond] = atom2.iAtom
-
-            iBond = this.getBondCount()
-            this.bondStore.increment()
-            this.bondStore.iAtom1[iBond] = atom2.iAtom
-            this.bondStore.iAtom2[iBond] = atom1.iAtom
+            makeBond(atom1, atom2)
           }
         }
       }
+    }
+
+    for (let iRes2 = 1; iRes2 < nRes; iRes2++) {
+      residue1.iRes = iRes2 - 1
+      residue2.iRes = iRes2
+      if (residue2.isProteinConnectedToPrev()) {
+        atom1.iAtom = residue1.getAtom('C').iAtom
+        atom2.iAtom = residue2.getAtom('N').iAtom
+      } else if (residue2.isNucleotideConnectedToPrev()) {
+        atom1.iAtom = residue1.getAtom(`O3'`).iAtom
+        atom2.iAtom = residue2.getAtom('P').iAtom
+      } else {
+        continue
+      }
+      makeBond(atom1, atom2)
     }
 
     // sort bonds by iAtom1
@@ -831,7 +866,7 @@ class Soup {
     let resIndices = []
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
       residue0.iRes = iRes
-      if (residue0.isPolymer) {
+      if (residue0.isPolymer && !(residue0.ss === 'D')) {
         let a = residue0.getAtom('CA')
         if (a !== null) {
           vertices.push([a.pos.x, a.pos.y, a.pos.z])
