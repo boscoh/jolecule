@@ -890,8 +890,10 @@ class CopyBufferGeometry extends THREE.BufferGeometry {
     let nVertexInCopy = copyBufferGeometry.attributes.position.count
 
     if ('index' in copyBufferGeometry) {
-      let indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy)
-      this.setIndex(new THREE.Uint32BufferAttribute(indices, 1))
+      if (copyBufferGeometry.index) {
+        let indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy)
+        this.setIndex(new THREE.Uint32BufferAttribute(indices, 1))
+      }
     }
 
     let colors = new Float32Array(nVertexInCopy * 3 * nCopy)

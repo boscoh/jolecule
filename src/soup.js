@@ -279,8 +279,9 @@ class ResidueProxy {
 
   getIAtom (atomType) {
     for (let iAtom of this.getAtomIndices()) {
-      this.soup.atomProxy.iAtom = iAtom
-      if (this.soup.atomProxy.atomType === atomType) {
+      let iAtomType = this.soup.atomStore.iAtomType[iAtom]
+      let testAatomType = this.soup.atomTypeTable[iAtomType]
+      if (testAatomType === atomType) {
         return iAtom
       }
     }
@@ -289,8 +290,7 @@ class ResidueProxy {
 
   checkAtomTypes (atomTypes) {
     for (let atomType of atomTypes) {
-      let iAtom = this.getIAtom(atomType)
-      if (iAtom === null) {
+      if (this.getIAtom(atomType) === null) {
         return false
       }
     }
@@ -309,8 +309,8 @@ class ResidueProxy {
     const proteinAtomTypes = ['CA', 'N', 'C']
     if (prevRes.checkAtomTypes(proteinAtomTypes) &&
       thisRes.checkAtomTypes(proteinAtomTypes)) {
-      let c = prevRes.getAtomProxy('C').pos.clone()
-      let n = thisRes.getAtomProxy('N').pos.clone()
+      let c = prevRes.getAtomProxy('C').pos
+      let n = thisRes.getAtomProxy('N').pos
       if (v3.distance(c, n) < 2) {
         return true
       }
@@ -331,8 +331,8 @@ class ResidueProxy {
     const nucleicAtomTypes = ['C3\'', 'O3\'', 'C5\'', 'O4\'', 'C1\'']
 
     if (prevRes.checkAtomTypes(nucleicAtomTypes) &&
-      thisRes.checkAtomTypes(nucleicAtomTypes) &&
-      thisRes.checkAtomTypes(['P'])) {
+        thisRes.checkAtomTypes(nucleicAtomTypes) &&
+        thisRes.checkAtomTypes(['P'])) {
       let o3 = prevRes.getAtomProxy('O3\'').pos
       let p = thisRes.getAtomProxy('P').pos
       if (v3.distance(o3, p) < 2.5) {

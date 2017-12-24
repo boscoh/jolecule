@@ -395,40 +395,7 @@ class Display {
     this.addGeomToDisplayMesh('ribbons', displayGeom)
     this.addGeomToPickingMesh('ribbons', pickingGeom)
   }
-
-  buildMeshOfArrows () {
-    this.createOrClearMesh('arrows')
-
-    let geom = new THREE.Geometry()
-    let blockArrowGeometry = new glgeom.BlockArrowGeometry()
-    blockArrowGeometry.computeFaceNormals()
-
-    let obj = new THREE.Object3D()
-
-    for (let trace of this.traces) {
-      for (let i of _.range(trace.points.length)) {
-        let point = trace.points[i]
-        let tangent = trace.tangents[i]
-        let normal = trace.binormals[i]
-        let target = point.clone().add(tangent)
-
-        let res = trace.getReference(i)
-        let color = data.getDarkSsColor(res.ss)
-        glgeom.setGeometryVerticesColor(blockArrowGeometry, color)
-
-        obj.matrix.identity()
-        obj.position.copy(point)
-        obj.up.copy(normal)
-        obj.lookAt(target)
-        obj.updateMatrix()
-
-        geom.merge(blockArrowGeometry, obj.matrix)
-      }
-    }
-
-    this.addGeomToDisplayMesh('arrows', geom)
-  }
-
+  
   buildMeshOfTube () {
     this.createOrClearMesh('tube')
     let displayGeom = new THREE.Geometry()
@@ -453,6 +420,58 @@ class Display {
     }
     this.addGeomToPickingMesh('tube', pickingGeom)
     this.addGeomToDisplayMesh('tube', displayGeom)
+  }
+
+  buildMeshOfArrows () {
+    this.createOrClearMesh('arrows')
+    let nCopy = 0
+    for (let trace of this.traces) {
+      nCopy += trace.points.length
+    }
+
+    let blockArrowGeometry = new glgeom.BlockArrowGeometry()
+    let bufferGeometry = new THREE.BufferGeometry().fromGeometry( blockArrowGeometry );
+
+    let displayGeom = new glgeom.CopyBufferGeometry(bufferGeometry, nCopy)
+    let pickingGeom = new glgeom.CopyBufferGeometry(bufferGeometry, nCopy)
+
+    let obj = new THREE.Object3D()
+
+    let iCopy = 0
+    for (let trace of this.traces) {
+      let n = trace.points.length
+      for (let i of _.range(n)) {
+        let point = trace.points[i]
+        let tangent = trace.tangents[i]
+        let normal = trace.binormals[i]
+        let target = point.clone().add(tangent)
+
+        let res = trace.getReference(i)
+        let color = data.getDarkSsColor(res.ss)
+        let iAtom = res.iAtom
+
+        obj.matrix.identity()
+        obj.position.copy(point)
+        obj.up.copy(normal)
+        obj.lookAt(target)
+        obj.updateMatrix()
+
+        displayGeom.applyMatrixToCopy(obj.matrix, iCopy)
+        displayGeom.applyColorToCopy(color, iCopy)
+
+        pickingGeom.applyMatrixToCopy(obj.matrix, iCopy)
+        pickingGeom.applyColorToCopy(data.getIndexColor(iAtom), iCopy)
+
+        iCopy += 1
+      }
+    }
+
+    let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
+    this.displayMeshes['arrows'].add(displayMesh)
+
+    let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
+    this.pickingMeshes['arrows'].add(pickingMesh)
+
   }
 
   buildAtomMeshes (atomIndices, meshName) {
