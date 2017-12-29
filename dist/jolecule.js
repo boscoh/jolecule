@@ -75656,7 +75656,7 @@ exports.default = {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.darkRed = exports.darkGrey = exports.darkPurple = exports.darkYellow = exports.darkBlue = exports.darkGreen = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.fatCoilFace = exports.getSsFace = exports.backboneAtomTypes = exports.getDarkSsColor = exports.resToAa = exports.getSsColor = exports.getIndexColor = undefined;
+exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.darkRed = exports.darkGrey = exports.darkPurple = exports.darkYellow = exports.darkBlue = exports.darkGreen = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.fatCoilFace = exports.coilFace = exports.getSsFace = exports.backboneAtomTypes = exports.getDarkSsColor = exports.resToAa = exports.getSsColor = exports.getIndexColor = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }(); /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * Central place to store constants and color
@@ -75836,6 +75836,7 @@ exports.resToAa = resToAa;
 exports.getDarkSsColor = getDarkSsColor;
 exports.backboneAtomTypes = backboneAtomTypes;
 exports.getSsFace = getSsFace;
+exports.coilFace = coilFace;
 exports.fatCoilFace = fatCoilFace;
 exports.green = green;
 exports.blue = blue;
@@ -79355,6 +79356,8 @@ var SoupView = function () {
     // the soup data for the soupView
     this.soup = soup;
 
+    this.changed = true;
+
     // stores the current cameraParams, display
     // options, distances, labels, selected
     // residues
@@ -79380,6 +79383,15 @@ var SoupView = function () {
   }
 
   _createClass(SoupView, [{
+    key: 'initViewsAfterSoupLoad',
+    value: function initViewsAfterSoupLoad() {
+      if (this.savedViews.length == 0) {
+        this.currentView.makeDefaultOfSoup(this.soup);
+        this.saveView(this.currentView);
+        this.changed = true;
+      }
+    }
+  }, {
     key: 'setTargetView',
     value: function setTargetView(view) {
       this.nUpdateStep = this.maxUpdateStep;
@@ -79726,7 +79738,9 @@ exports.SoupView = SoupView;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.applyColorToVector3array = exports.applyRotationOfMatrix4toVector3array = exports.applyMatrix4toVector3array = exports.CopyBufferGeometry = exports.getCylinderMatrix = exports.getSphereMatrix = exports.mergeUnitGeom = exports.Trace = exports.clearObject3D = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.setVisible = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = undefined;
+exports.applyColorToVector3array = exports.applyRotationOfMatrix4toVector3array = exports.applyMatrix4toVector3array = exports.CopyBufferGeometry = exports.getCylinderMatrix = exports.getSphereMatrix = exports.mergeUnitGeom = exports.Trace = exports.clearObject3D = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.BufferRibbonGeometry = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.setVisible = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = undefined;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * Custom geometry and mesh generators based on the
@@ -79923,6 +79937,10 @@ var RibbonGeometry = function (_THREE$Geometry) {
           var _x2 = void 0,
               _y2 = void 0;
 
+          _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_i].x);
+          _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_i].y);
+          var normal00 = _x2.add(_y2);
+
           _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_j].x);
           _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_j].y);
           var normal01 = _x2.add(_y2);
@@ -79930,10 +79948,6 @@ var RibbonGeometry = function (_THREE$Geometry) {
           _x2 = path.normals[iPoint].clone().multiplyScalar(shapePoints[_j].x);
           _y2 = path.binormals[iPoint].clone().multiplyScalar(shapePoints[_j].y);
           var normal11 = _x2.add(_y2);
-
-          _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_i].x);
-          _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_i].y);
-          var normal00 = _x2.add(_y2);
 
           _x2 = path.normals[iPoint].clone().multiplyScalar(shapePoints[_i].x);
           _y2 = path.binormals[iPoint].clone().multiplyScalar(shapePoints[_i].y);
@@ -80011,6 +80025,408 @@ var RibbonGeometry = function (_THREE$Geometry) {
 }(THREE.Geometry);
 
 /**
+ * Extrusion along a path that aligns a 2D shape as cross-section, with
+ * orientation along the normal for the cross-section.
+ *
+ * Accepts a cross-section shape, which is a collection of 2D points around
+ * the origin, and a path, which contains points, normals and binormals
+ * and builds a oriented extrusion out of it.
+ *
+ * If round is set, then the vertex normals are set to orient along the
+ * normal/binormal axis from the origin, otherwise, face normals are defined
+ * perpedicular to the face.
+ *
+ * For a segment between two path points and a repetition of the cross-section,
+ * two triangles are defined.
+ */
+
+
+var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
+  _inherits(BufferRibbonGeometry, _THREE$BufferGeometry);
+
+  /**
+   * @param {THREE.Shape} shape - collection of 2D points for cross section
+   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
+   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
+   * @param {boolean} front - draw front cross-section
+   * @param {boolean} back - draw back cross-section
+   */
+  function BufferRibbonGeometry(traces, shape, round, front, back, color) {
+    _classCallCheck(this, BufferRibbonGeometry);
+
+    var _this2 = _possibleConstructorReturn(this, (BufferRibbonGeometry.__proto__ || Object.getPrototypeOf(BufferRibbonGeometry)).call(this));
+
+    _this2.type = 'BufferRibbonGeometry';
+
+    if (_lodash2.default.isUndefined(round)) {
+      round = false;
+    }
+
+    _this2.parameters = {
+      shape: shape,
+      traces: traces,
+      round: round,
+      front: front,
+      back: back
+    };
+
+    _this2.shapePoints = shape.extractPoints(4).shape;
+    _this2.nShape = _this2.shapePoints.length;
+
+    _this2.shapeEdgeNormals = [];
+
+    if (!round) {
+
+      for (var j = 0; j < _this2.nShape; j += 1) {
+        var i = j - 1;
+        if (i === -1) {
+          i = _this2.nShape - 1;
+        }
+        var v0 = _this2.shapePoints[i];
+        var v1 = _this2.shapePoints[j];
+        var x = -(v1.y - v0.y);
+        var y = v1.x - v0.x;
+        _this2.shapeEdgeNormals.push(new THREE.Vector2(x, y));
+      }
+    }
+
+    _this2.nVertex = 0;
+    _this2.nFace = 0;
+
+    _this2.paths = [];
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = traces[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var _trace = _step.value;
+
+        _this2.paths.push(_this2.getPath(_trace, 0, _trace.points.length));
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+
+    var _iteratorNormalCompletion2 = true;
+    var _didIteratorError2 = false;
+    var _iteratorError2 = undefined;
+
+    try {
+      for (var _iterator2 = _this2.paths[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        var path = _step2.value;
+
+        if (path.points.length > 1) {
+          _this2.countVertexAndFacesOfPath(path, front, back);
+        }
+      }
+    } catch (err) {
+      _didIteratorError2 = true;
+      _iteratorError2 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+          _iterator2.return();
+        }
+      } finally {
+        if (_didIteratorError2) {
+          throw _iteratorError2;
+        }
+      }
+    }
+
+    _this2.setAttributes();
+
+    var _iteratorNormalCompletion3 = true;
+    var _didIteratorError3 = false;
+    var _iteratorError3 = undefined;
+
+    try {
+      for (var _iterator3 = _this2.paths.entries()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+        var _step3$value = _slicedToArray(_step3.value, 2),
+            _i5 = _step3$value[0],
+            _path = _step3$value[1];
+
+        console.log(_i5, _path);
+        if (_path.points.length > 1) {
+          _this2.setPath(_path, color, front, back);
+        }
+      }
+    } catch (err) {
+      _didIteratorError3 = true;
+      _iteratorError3 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+          _iterator3.return();
+        }
+      } finally {
+        if (_didIteratorError3) {
+          throw _iteratorError3;
+        }
+      }
+    }
+
+    console.log('BufferRibbonGeometry vertices', _this2.nVertex, _this2.positionCount / 3, _this2.positions.length / 3);
+    console.log('BufferRibbonGeometry faces', _this2.nFace, _this2.indexCount / 3, _this2.indices.length / 3);
+    console.log('BufferRibbonGeometry attributes', _this2.attributes);
+    return _this2;
+  }
+
+  _createClass(BufferRibbonGeometry, [{
+    key: 'setPath',
+    value: function setPath(path, color, front, back) {
+
+      for (var iPoint = 0; iPoint < path.points.length; iPoint += 1) {
+
+        var point = path.points[iPoint];
+        var normal = path.normals[iPoint];
+        var binormal = path.binormals[iPoint];
+
+        for (var iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
+
+          var shapePoint = this.shapePoints[iShapePoint];
+
+          var x = normal.clone().multiplyScalar(shapePoint.x);
+          var y = binormal.clone().multiplyScalar(shapePoint.y);
+
+          var vertex = point.clone().add(x).add(y);
+
+          this.pushVertex(vertex, color);
+        }
+
+        // offset to two points back
+        var iVertexOffset = this.vertexCount - 2 * this.nShape;
+
+        // skip for first point
+        if (iPoint === 0) {
+          continue;
+        }
+
+        if (this.parameters.round) {
+          // Smoothed normals to give a rounded look
+          for (var _iShapePoint = 0; _iShapePoint < this.nShape; _iShapePoint += 1) {
+            var iLastShapePoint = void 0;
+            if (_iShapePoint === 0) {
+              iLastShapePoint = this.nShape - 1;
+            } else {
+              iLastShapePoint = _iShapePoint - 1;
+            }
+            var _x4 = void 0,
+                _y4 = void 0;
+
+            _x4 = path.normals[iPoint - 1].clone().multiplyScalar(this.shapePoints[iLastShapePoint].x);
+            _y4 = path.binormals[iPoint - 1].clone().multiplyScalar(this.shapePoints[iLastShapePoint].y);
+            var normal00 = _x4.add(_y4);
+
+            _x4 = path.normals[iPoint - 1].clone().multiplyScalar(this.shapePoints[_iShapePoint].x);
+            _y4 = path.binormals[iPoint - 1].clone().multiplyScalar(this.shapePoints[_iShapePoint].y);
+            var normal01 = _x4.add(_y4);
+
+            _x4 = path.normals[iPoint].clone().multiplyScalar(this.shapePoints[_iShapePoint].x);
+            _y4 = path.binormals[iPoint].clone().multiplyScalar(this.shapePoints[_iShapePoint].y);
+            var normal11 = _x4.add(_y4);
+
+            _x4 = path.normals[iPoint].clone().multiplyScalar(this.shapePoints[iLastShapePoint].x);
+            _y4 = path.binormals[iPoint].clone().multiplyScalar(this.shapePoints[iLastShapePoint].y);
+            var normal10 = _x4.add(_y4);
+
+            var iVertexLast = iVertexOffset + iLastShapePoint;
+            var iVertexCurr = iVertexOffset + _iShapePoint;
+            var jVertexLast = iVertexOffset + this.nShape + iLastShapePoint;
+            var jVertexCurr = iVertexOffset + this.nShape + _iShapePoint;
+
+            this.pushFace(iVertexLast, jVertexLast, jVertexCurr, normal00, normal10, normal11);
+
+            this.pushFace(iVertexLast, jVertexCurr, iVertexCurr, normal00, normal11, normal01);
+          }
+        } else {
+          // Continuous normals but keep faces distinct
+          // along ribbon
+          for (var _iShapePoint2 = 0; _iShapePoint2 < this.nShape; _iShapePoint2 += 1) {
+            var _iLastShapePoint = void 0;
+            if (_iShapePoint2 === 0) {
+              _iLastShapePoint = this.nShape - 1;
+            } else {
+              _iLastShapePoint = _iShapePoint2 - 1;
+            }
+
+            var _x5 = void 0,
+                _y5 = void 0;
+
+            _x5 = path.normals[iPoint - 1].clone().multiplyScalar(this.shapeEdgeNormals[_iShapePoint2].x);
+            _y5 = path.binormals[iPoint - 1].clone().multiplyScalar(this.shapeEdgeNormals[_iShapePoint2].y);
+            var normal0 = _x5.add(_y5);
+
+            _x5 = path.normals[iPoint].clone().multiplyScalar(this.shapeEdgeNormals[_iShapePoint2].x);
+            _y5 = path.binormals[iPoint].clone().multiplyScalar(this.shapeEdgeNormals[_iShapePoint2].y);
+            var normal1 = _x5.add(_y5);
+
+            var iLastVertex = iVertexOffset + _iLastShapePoint;
+            var iVertex = iVertexOffset + this.nShape + _iShapePoint2;
+
+            var _iVertexLast = iVertexOffset + _iLastShapePoint;
+            var _iVertexCurr = iVertexOffset + _iShapePoint2;
+            var _jVertexLast = iVertexOffset + this.nShape + _iLastShapePoint;
+            var _jVertexCurr = iVertexOffset + this.nShape + _iShapePoint2;
+
+            this.pushFace(_iVertexLast, _jVertexLast, _jVertexCurr, normal0, normal1, normal1);
+
+            this.pushFace(_iVertexLast, _jVertexCurr, _iVertexCurr, normal0, normal1, normal0);
+          }
+        }
+      }
+
+      // back must be drawn before front as offset of last
+      // point segment is easily calculated from here
+      if (this.parameters.back) {
+        var iVertexOffsetLast = this.vertexCount - 1 - this.nShape;
+
+        var iVertexOffsetBack = this.vertexCount;
+        for (var _iShapePoint3 = 0; _iShapePoint3 < this.nShape; _iShapePoint3 += 1) {
+          var _iVertex = iVertexOffsetLast + _iShapePoint3;
+          this.pushVertex(this.getVertex(_iVertex), color);
+        }
+
+        var _normal3 = threePointNormal([this.getVertex(iVertexOffsetLast), this.getVertex(iVertexOffsetLast + this.nShape - 1), this.getVertex(iVertexOffsetLast + 1)]);
+
+        for (var i = 0; i < this.nShape - 2; i += 1) {
+          this.pushFace(iVertexOffsetBack + i, iVertexOffsetBack + this.nShape - 1, iVertexOffsetBack + i + 1, _normal3, _normal3, _normal3);
+        }
+      }
+
+      // Draw front face
+      if (this.parameters.front) {
+        var _normal4 = threePointNormal([this.getVertex(this.iVertexTraceOffset), this.getVertex(this.iVertexTraceOffset + 1), this.getVertex(this.iVertexTraceOffset + 2)]);
+        var iVertexOffsetFront = this.vertexCount;
+        for (var _iShapePoint4 = 0; _iShapePoint4 < this.nShape; _iShapePoint4 += 1) {
+          var _iVertex2 = this.iVertexTraceOffset + _iShapePoint4;
+          this.pushVertex(this.getVertex(_iVertex2), color);
+        }
+        for (var _iShapePoint5 = 0; _iShapePoint5 < this.nShape - 2; _iShapePoint5 += 1) {
+          this.pushFace(iVertexOffsetFront + _iShapePoint5, iVertexOffsetFront + _iShapePoint5 + 1, iVertexOffsetFront + this.nShape - 1, _normal4, _normal4, _normal4);
+        }
+      }
+    }
+  }, {
+    key: 'getPath',
+    value: function getPath(trace, iResStart, iResEnd) {
+      var fullPath = trace.detailedPath;
+
+      // works out start on expanded path, including overhang
+      var iPathStart = iResStart * 2 * trace.detail - trace.detail;
+      if (iPathStart < 0) {
+        iPathStart = 0;
+      }
+
+      // works out end of expanded path, including overhang
+      var iPathEnd = iResEnd * 2 * trace.detail - trace.detail + 1;
+      if (iPathEnd >= fullPath.points.length) {
+        iPathEnd = fullPath.points.length - 1;
+      }
+
+      return fullPath.slice(iPathStart, iPathEnd);
+    }
+  }, {
+    key: 'setAttributes',
+    value: function setAttributes() {
+      var positions = new Float32Array(this.nVertex * 3);
+      var normals = new Float32Array(this.nVertex * 3);
+      var indices = new Int32Array(this.nFace * 3);
+      var colors = new Float32Array(this.nVertex * 3);
+
+      this.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      this.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+      this.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      this.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
+
+      this.positions = this.attributes.position.array;
+      this.normals = this.attributes.normal.array;
+      this.indices = this.index.array;
+      this.colors = this.attributes.color.array;
+
+      this.positionCount = 0;
+      this.indexCount = 0;
+      this.iVertexTraceOffset = 0;
+      this.vertexCount = 0;
+    }
+  }, {
+    key: 'pushVertex',
+    value: function pushVertex(vertex, color) {
+      this.positions[this.positionCount] = vertex.x;
+      this.positions[this.positionCount + 1] = vertex.y;
+      this.positions[this.positionCount + 2] = vertex.z;
+
+      this.colors[this.positionCount] = color.r;
+      this.colors[this.positionCount + 1] = color.g;
+      this.colors[this.positionCount + 2] = color.b;
+
+      this.positionCount += 3;
+      this.vertexCount += 1;
+    }
+  }, {
+    key: 'pushFace',
+    value: function pushFace(i, j, k, normalI, normalJ, normalK) {
+      this.indices[this.indexCount] = i;
+      this.indices[this.indexCount + 1] = j;
+      this.indices[this.indexCount + 2] = k;
+
+      this.indexCount += 3;
+
+      this.normals[i * 3] = normalI.x;
+      this.normals[i * 3 + 1] = normalI.y;
+      this.normals[i * 3 + 2] = normalI.z;
+
+      this.normals[j * 3] = normalJ.x;
+      this.normals[j * 3 + 1] = normalJ.y;
+      this.normals[j * 3 + 2] = normalJ.z;
+
+      this.normals[k * 3] = normalK.x;
+      this.normals[k * 3 + 1] = normalK.y;
+      this.normals[k * 3 + 2] = normalK.z;
+    }
+  }, {
+    key: 'getVertex',
+    value: function getVertex(iVertex) {
+      return _v2.default.create(this.positions[iVertex * 3], this.positions[iVertex * 3 + 1], this.positions[iVertex * 3 + 2]);
+    }
+  }, {
+    key: 'countVertexAndFacesOfPath',
+    value: function countVertexAndFacesOfPath(path, front, back) {
+      for (var iPoint = 0; iPoint < path.points.length; iPoint += 1) {
+        this.nVertex += this.nShape;
+        if (iPoint > 0) {
+          this.nFace += 2 * this.nShape;
+        }
+      }
+
+      if (back) {
+        this.nVertex += this.nShape;
+        this.nFace += this.nShape - 2;
+      }
+
+      if (front) {
+        this.nVertex += this.nShape;
+        this.nFace += this.nShape - 2;
+      }
+    }
+  }]);
+
+  return BufferRibbonGeometry;
+}(THREE.BufferGeometry);
+
+/**
  * Creates a new path out of a slice of the oldPath, with
  * n number of segments between two points, using a Catmul-Rom
  * spline based on the two points, and the two surrounding
@@ -80060,7 +80476,7 @@ function expandPath(oldPath, n, iOldPoint, jOldPoint) {
   }
 
   newPath.normals.push(oldPath.normals[iOldPoint]);
-  for (var _i5 = iOldPoint; _i5 < jOldPoint - 1; _i5 += 1) {
+  for (var _i6 = iOldPoint; _i6 < jOldPoint - 1; _i6 += 1) {
 
     for (var _j3 = 1; _j3 < n + 1; _j3 += 1) {
 
@@ -80069,34 +80485,34 @@ function expandPath(oldPath, n, iOldPoint, jOldPoint) {
       var prevOldNormal = void 0,
           nextOldNormal = void 0;
 
-      if (_i5 > 0) {
-        prevOldNormal = oldPath.normals[_i5 - 1];
+      if (_i6 > 0) {
+        prevOldNormal = oldPath.normals[_i6 - 1];
       } else {
-        prevOldNormal = oldPath.normals[_i5];
+        prevOldNormal = oldPath.normals[_i6];
       }
 
-      if (_i5 < oldPath.normals.length - 2) {
-        nextOldNormal = oldPath.normals[_i5 + 2];
+      if (_i6 < oldPath.normals.length - 2) {
+        nextOldNormal = oldPath.normals[_i6 + 2];
       } else {
-        nextOldNormal = oldPath.normals[_i5 + 1];
+        nextOldNormal = oldPath.normals[_i6 + 1];
       }
 
-      newPath.normals.push(catmulRomSpline(_t, prevOldNormal, oldPath.normals[_i5], oldPath.normals[_i5 + 1], nextOldNormal).normalize());
-    }
-  }
-
-  for (var _i6 = 0; _i6 < newPath.points.length; _i6 += 1) {
-    if (_i6 === 0) {
-      newPath.tangents.push(oldPath.tangents[0]);
-    } else if (_i6 === newPath.points.length - 1) {
-      newPath.tangents.push(oldPath.tangents[jOldPoint - 1]);
-    } else {
-      newPath.tangents.push(newPath.points[_i6 + 1].clone().sub(newPath.points[_i6 - 1]).normalize());
+      newPath.normals.push(catmulRomSpline(_t, prevOldNormal, oldPath.normals[_i6], oldPath.normals[_i6 + 1], nextOldNormal).normalize());
     }
   }
 
   for (var _i7 = 0; _i7 < newPath.points.length; _i7 += 1) {
-    newPath.binormals.push(_v2.default.create().crossVectors(newPath.tangents[_i7], newPath.normals[_i7]));
+    if (_i7 === 0) {
+      newPath.tangents.push(oldPath.tangents[0]);
+    } else if (_i7 === newPath.points.length - 1) {
+      newPath.tangents.push(oldPath.tangents[jOldPoint - 1]);
+    } else {
+      newPath.tangents.push(newPath.points[_i7 + 1].clone().sub(newPath.points[_i7 - 1]).normalize());
+    }
+  }
+
+  for (var _i8 = 0; _i8 < newPath.points.length; _i8 += 1) {
+    newPath.binormals.push(_v2.default.create().crossVectors(newPath.tangents[_i8], newPath.normals[_i8]));
   }
 
   return newPath;
@@ -80118,11 +80534,11 @@ var Trace = function (_PathAndFrenetFrames) {
   function Trace() {
     _classCallCheck(this, Trace);
 
-    var _this2 = _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this));
+    var _this3 = _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this));
 
-    _this2.indices = [];
-    _this2.detail = 2;
-    return _this2;
+    _this3.indices = [];
+    _this3.detail = 2;
+    return _this3;
   }
 
   _createClass(Trace, [{
@@ -80203,13 +80619,13 @@ var Trace = function (_PathAndFrenetFrames) {
         this.normals[iLast] = this.normals[iLast - 1];
       } else {
 
-        for (var _i8 = iStart; _i8 <= iLast; _i8 += 1) {
-          if (this.normals[_i8] !== null) {
-            this.normals[_i8] = perpVector(this.tangents[_i8], this.normals[_i8]);
-            this.normals[_i8].normalize();
+        for (var _i9 = iStart; _i9 <= iLast; _i9 += 1) {
+          if (this.normals[_i9] !== null) {
+            this.normals[_i9] = perpVector(this.tangents[_i9], this.normals[_i9]);
+            this.normals[_i9].normalize();
           } else {
-            var randomDir = this.points[_i8];
-            this.normals[_i8] = _v2.default.create().crossVectors(randomDir, this.tangents[_i8]).normalize();
+            var randomDir = this.points[_i9];
+            this.normals[_i9] = _v2.default.create().crossVectors(randomDir, this.tangents[_i9]).normalize();
           }
         }
       }
@@ -80262,6 +80678,31 @@ var Trace = function (_PathAndFrenetFrames) {
 
       return geom;
     }
+  }, {
+    key: 'getGeometry',
+    value: function getGeometry(face, isRound, isFront, isBack, color) {
+      var path = this.detailedPath;
+      var iResStart = 0;
+      var iResEnd = this.points.length;
+
+      // works out start on expanded path, including overhang
+      var iPathStart = iResStart * 2 * this.detail - this.detail;
+      if (iPathStart < 0) {
+        iPathStart = 0;
+      }
+
+      // works out end of expanded path, including overhang
+      var iPathEnd = iResEnd * 2 * this.detail - this.detail + 1;
+      if (iPathEnd >= path.points.length) {
+        iPathEnd = path.points.length - 1;
+      }
+
+      var segmentPath = path.slice(iPathStart, iPathEnd);
+
+      var geom = new BufferRibbonGeometry(trace, segmentPath, isRound, isFront, isBack, color);
+
+      return geom;
+    }
   }]);
 
   return Trace;
@@ -80283,16 +80724,16 @@ var BlockArrowGeometry = function (_THREE$ExtrudeGeometr) {
 
     var path = new THREE.CatmullRomCurve3([_v2.default.create(0, -0.3, 0), _v2.default.create(0, 0.3, 0)]);
 
-    var _this3 = _possibleConstructorReturn(this, (BlockArrowGeometry.__proto__ || Object.getPrototypeOf(BlockArrowGeometry)).call(this, shape, {
+    var _this4 = _possibleConstructorReturn(this, (BlockArrowGeometry.__proto__ || Object.getPrototypeOf(BlockArrowGeometry)).call(this, shape, {
       steps: 2,
       bevelEnabled: false,
       extrudePath: path
     }));
 
-    _this3.type = 'BlockArrowGeometry';
+    _this4.type = 'BlockArrowGeometry';
 
-    _this3.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, 0)));
-    return _this3;
+    _this4.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, 0)));
+    return _this4;
   }
 
   return BlockArrowGeometry;
@@ -80310,12 +80751,12 @@ var UnitCylinderGeometry = function (_THREE$CylinderGeomet) {
   function UnitCylinderGeometry() {
     _classCallCheck(this, UnitCylinderGeometry);
 
-    var _this4 = _possibleConstructorReturn(this, (UnitCylinderGeometry.__proto__ || Object.getPrototypeOf(UnitCylinderGeometry)).call(this, 1, 1, 1, 4, 1, false));
+    var _this5 = _possibleConstructorReturn(this, (UnitCylinderGeometry.__proto__ || Object.getPrototypeOf(UnitCylinderGeometry)).call(this, 1, 1, 1, 4, 1, false));
 
-    _this4.type = 'UnitCylinderGeometry';
+    _this5.type = 'UnitCylinderGeometry';
 
-    _this4.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
-    return _this4;
+    _this5.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
+    return _this5;
   }
 
   return UnitCylinderGeometry;
@@ -80333,11 +80774,11 @@ var RaisedShapeGeometry = function (_THREE$Geometry2) {
   function RaisedShapeGeometry(vertices, thickness) {
     _classCallCheck(this, RaisedShapeGeometry);
 
-    var _this5 = _possibleConstructorReturn(this, (RaisedShapeGeometry.__proto__ || Object.getPrototypeOf(RaisedShapeGeometry)).call(this));
+    var _this6 = _possibleConstructorReturn(this, (RaisedShapeGeometry.__proto__ || Object.getPrototypeOf(RaisedShapeGeometry)).call(this));
 
-    _this5.type = 'RaisedShapeGeometry';
+    _this6.type = 'RaisedShapeGeometry';
 
-    _this5.parameters = {
+    _this6.parameters = {
       vertices: vertices,
       thickness: thickness
     };
@@ -80351,37 +80792,37 @@ var RaisedShapeGeometry = function (_THREE$Geometry2) {
     var offset = nVertex;
 
     for (var i = 0; i < vertices.length; i += 1) {
-      _this5.vertices.push(vertices[i].clone().add(displacement));
+      _this6.vertices.push(vertices[i].clone().add(displacement));
     }
-    for (var _i9 = 0; _i9 < vertices.length; _i9 += 1) {
-      _this5.vertices.push(vertices[_i9].clone().sub(displacement));
-    }
-
-    for (var _i10 = 0; _i10 < nVertex - 2; _i10 += 1) {
-      var face = new THREE.Face3(_i10, _i10 + 1, iLast);
-      _this5.faces.push(face);
+    for (var _i10 = 0; _i10 < vertices.length; _i10 += 1) {
+      _this6.vertices.push(vertices[_i10].clone().sub(displacement));
     }
 
     for (var _i11 = 0; _i11 < nVertex - 2; _i11 += 1) {
-      var _face4 = new THREE.Face3(offset + _i11, offset + iLast, offset + _i11 + 1);
-      _this5.faces.push(_face4);
+      var face = new THREE.Face3(_i11, _i11 + 1, iLast);
+      _this6.faces.push(face);
     }
 
-    for (var _i12 = 0; _i12 < nVertex; _i12 += 1) {
+    for (var _i12 = 0; _i12 < nVertex - 2; _i12 += 1) {
+      var _face4 = new THREE.Face3(offset + _i12, offset + iLast, offset + _i12 + 1);
+      _this6.faces.push(_face4);
+    }
+
+    for (var _i13 = 0; _i13 < nVertex; _i13 += 1) {
       var j = void 0;
-      if (_i12 === nVertex - 1) {
+      if (_i13 === nVertex - 1) {
         j = 0;
       } else {
-        j = _i12 + 1;
+        j = _i13 + 1;
       }
 
-      _this5.faces.push(new THREE.Face3(_i12, _i12 + offset, j + offset));
-      _this5.faces.push(new THREE.Face3(_i12, j + offset, j));
+      _this6.faces.push(new THREE.Face3(_i13, _i13 + offset, j + offset));
+      _this6.faces.push(new THREE.Face3(_i13, j + offset, j));
     }
 
-    _this5.computeFaceNormals();
+    _this6.computeFaceNormals();
 
-    return _this5;
+    return _this6;
   }
 
   return RaisedShapeGeometry;
@@ -80572,44 +81013,47 @@ function expandIndices(refArray, nCopy, nIndexInCopy) {
 }
 
 /**
+ * CopyBufferGeometry is designed to replicate multiple copies of
+ * an existing BufferGeometry in one single assignment - thus
+ * efficiently creating a large dataset
  */
 
-var CopyBufferGeometry = function (_THREE$BufferGeometry) {
-  _inherits(CopyBufferGeometry, _THREE$BufferGeometry);
+var CopyBufferGeometry = function (_THREE$BufferGeometry2) {
+  _inherits(CopyBufferGeometry, _THREE$BufferGeometry2);
 
   function CopyBufferGeometry(copyBufferGeometry, nCopy) {
     _classCallCheck(this, CopyBufferGeometry);
 
-    var _this6 = _possibleConstructorReturn(this, (CopyBufferGeometry.__proto__ || Object.getPrototypeOf(CopyBufferGeometry)).call(this));
+    var _this7 = _possibleConstructorReturn(this, (CopyBufferGeometry.__proto__ || Object.getPrototypeOf(CopyBufferGeometry)).call(this));
 
-    _this6.type = 'CopyBufferGeometry';
-    _this6.parameters = {
+    _this7.type = 'CopyBufferGeometry';
+    _this7.parameters = {
       nCopy: nCopy
     };
 
-    _this6.refBufferGeometry = copyBufferGeometry;
+    _this7.refBufferGeometry = copyBufferGeometry;
 
     var positions = expandFloatArray(copyBufferGeometry.attributes.position.array, nCopy);
-    _this6.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    _this7.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
 
     var normals = expandFloatArray(copyBufferGeometry.attributes.normal.array, nCopy);
-    _this6.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    _this7.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
 
     var uvs = expandFloatArray(copyBufferGeometry.attributes.uv.array, nCopy);
-    _this6.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    _this7.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
 
     var nVertexInCopy = copyBufferGeometry.attributes.position.count;
 
     if ('index' in copyBufferGeometry) {
       if (copyBufferGeometry.index) {
         var indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy);
-        _this6.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
+        _this7.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
       }
     }
 
     var colors = new Float32Array(nVertexInCopy * 3 * nCopy);
-    _this6.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    return _this6;
+    _this7.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    return _this7;
   }
 
   _createClass(CopyBufferGeometry, [{
@@ -80642,6 +81086,7 @@ exports.UnitCylinderGeometry = UnitCylinderGeometry;
 exports.setVisible = setVisible;
 exports.RaisedShapeGeometry = RaisedShapeGeometry;
 exports.RibbonGeometry = RibbonGeometry;
+exports.BufferRibbonGeometry = BufferRibbonGeometry;
 exports.getUnitVectorRotation = getUnitVectorRotation;
 exports.getFractionRotation = getFractionRotation;
 exports.fraction = fraction;
@@ -87659,11 +88104,7 @@ var Display = function () {
     key: 'buildScene',
     value: function buildScene() {
 
-      if (this.soupView.savedViews.length == 0) {
-        this.soupView.currentView.makeDefaultOfSoup(this.soup);
-        this.soupView.saveView(this.soupView.currentView);
-        this.soupView.changed = true;
-      }
+      this.soupView.initViewsAfterSoupLoad();
 
       // pre-calculations needed before building meshes
       var residue = this.soup.getResidueProxy();
@@ -87920,8 +88361,20 @@ var Display = function () {
     key: 'buildMeshOfTube',
     value: function buildMeshOfTube() {
       this.createOrClearMesh('tube');
-      var displayGeom = new THREE.Geometry();
-      var pickingGeom = new THREE.Geometry();
+      var res = this.traces[0].getReference(0);
+      var color = res.color;
+      var isRound = true;
+      var isFront = false;
+      var isBack = false;
+      var geom = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace, isRound, isFront, isBack, color);
+      var displayMesh = new THREE.Mesh(geom, this.displayMaterial);
+      this.displayMeshes['tube'].add(displayMesh);
+    }
+  }, {
+    key: 'buildMeshOfArrows',
+    value: function buildMeshOfArrows() {
+      this.createOrClearMesh('arrows');
+      var nCopy = 0;
       var _iteratorNormalCompletion7 = true;
       var _didIteratorError7 = false;
       var _iteratorError7 = undefined;
@@ -87930,41 +88383,7 @@ var Display = function () {
         for (var _iterator7 = this.traces[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
           var trace = _step7.value;
 
-          var n = trace.points.length;
-          var _iteratorNormalCompletion8 = true;
-          var _didIteratorError8 = false;
-          var _iteratorError8 = undefined;
-
-          try {
-            for (var _iterator8 = _lodash2.default.range(n)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-              var i = _step8.value;
-
-              var res = trace.getReference(i);
-              var color = res.color;
-              var iAtom = res.iAtom;
-              var isRound = true;
-              var isFront = i === 0;
-              var isBack = i === n - 1;
-              var resGeom = trace.getSegmentGeometry(i, data.fatCoilFace, isRound, isFront, isBack, color);
-              displayGeom.merge(resGeom);
-              glgeom.setGeometryVerticesColor(resGeom, new THREE.Color().setHex(iAtom));
-              glgeom.setGeometryVerticesColor(resGeom, data.getIndexColor(iAtom));
-              pickingGeom.merge(resGeom);
-            }
-          } catch (err) {
-            _didIteratorError8 = true;
-            _iteratorError8 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion8 && _iterator8.return) {
-                _iterator8.return();
-              }
-            } finally {
-              if (_didIteratorError8) {
-                throw _iteratorError8;
-              }
-            }
-          }
+          nCopy += trace.points.length;
         }
       } catch (err) {
         _didIteratorError7 = true;
@@ -87981,39 +88400,6 @@ var Display = function () {
         }
       }
 
-      this.addGeomToPickingMesh('tube', pickingGeom);
-      this.addGeomToDisplayMesh('tube', displayGeom);
-    }
-  }, {
-    key: 'buildMeshOfArrows',
-    value: function buildMeshOfArrows() {
-      this.createOrClearMesh('arrows');
-      var nCopy = 0;
-      var _iteratorNormalCompletion9 = true;
-      var _didIteratorError9 = false;
-      var _iteratorError9 = undefined;
-
-      try {
-        for (var _iterator9 = this.traces[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-          var trace = _step9.value;
-
-          nCopy += trace.points.length;
-        }
-      } catch (err) {
-        _didIteratorError9 = true;
-        _iteratorError9 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion9 && _iterator9.return) {
-            _iterator9.return();
-          }
-        } finally {
-          if (_didIteratorError9) {
-            throw _iteratorError9;
-          }
-        }
-      }
-
       var blockArrowGeometry = new glgeom.BlockArrowGeometry();
       var bufferGeometry = new THREE.BufferGeometry().fromGeometry(blockArrowGeometry);
 
@@ -88023,22 +88409,22 @@ var Display = function () {
       var obj = new THREE.Object3D();
 
       var iCopy = 0;
-      var _iteratorNormalCompletion10 = true;
-      var _didIteratorError10 = false;
-      var _iteratorError10 = undefined;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
 
       try {
-        for (var _iterator10 = this.traces[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-          var _trace = _step10.value;
+        for (var _iterator8 = this.traces[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var _trace = _step8.value;
 
           var n = _trace.points.length;
-          var _iteratorNormalCompletion11 = true;
-          var _didIteratorError11 = false;
-          var _iteratorError11 = undefined;
+          var _iteratorNormalCompletion9 = true;
+          var _didIteratorError9 = false;
+          var _iteratorError9 = undefined;
 
           try {
-            for (var _iterator11 = _lodash2.default.range(n)[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-              var i = _step11.value;
+            for (var _iterator9 = _lodash2.default.range(n)[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+              var i = _step9.value;
 
               var point = _trace.points[i];
               var tangent = _trace.tangents[i];
@@ -88064,31 +88450,31 @@ var Display = function () {
               iCopy += 1;
             }
           } catch (err) {
-            _didIteratorError11 = true;
-            _iteratorError11 = err;
+            _didIteratorError9 = true;
+            _iteratorError9 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion11 && _iterator11.return) {
-                _iterator11.return();
+              if (!_iteratorNormalCompletion9 && _iterator9.return) {
+                _iterator9.return();
               }
             } finally {
-              if (_didIteratorError11) {
-                throw _iteratorError11;
+              if (_didIteratorError9) {
+                throw _iteratorError9;
               }
             }
           }
         }
       } catch (err) {
-        _didIteratorError10 = true;
-        _iteratorError10 = err;
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion10 && _iterator10.return) {
-            _iterator10.return();
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
           }
         } finally {
-          if (_didIteratorError10) {
-            throw _iteratorError10;
+          if (_didIteratorError8) {
+            throw _iteratorError8;
           }
         }
       }
@@ -88185,13 +88571,13 @@ var Display = function () {
       var atom = this.soup.getAtomProxy();
       var residue = this.soup.getResidueProxy();
 
-      var _iteratorNormalCompletion12 = true;
-      var _didIteratorError12 = false;
-      var _iteratorError12 = undefined;
+      var _iteratorNormalCompletion10 = true;
+      var _didIteratorError10 = false;
+      var _iteratorError10 = undefined;
 
       try {
-        for (var _iterator12 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-          var iRes = _step12.value;
+        for (var _iterator10 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+          var iRes = _step10.value;
 
           residue.iRes = iRes;
           if (!residue.isPolymer) {
@@ -88201,69 +88587,69 @@ var Display = function () {
           if (!residueShow) {
             continue;
           }
-          var _iteratorNormalCompletion13 = true;
-          var _didIteratorError13 = false;
-          var _iteratorError13 = undefined;
+          var _iteratorNormalCompletion11 = true;
+          var _didIteratorError11 = false;
+          var _iteratorError11 = undefined;
 
           try {
-            for (var _iterator13 = residue.getAtomIndices()[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-              var iAtom = _step13.value;
+            for (var _iterator11 = residue.getAtomIndices()[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+              var iAtom = _step11.value;
 
               atom.iAtom = iAtom;
               if (!util.inArray(atom.atomType, data.backboneAtomTypes)) {
                 atomIndices.push(iAtom);
-                var _iteratorNormalCompletion14 = true;
-                var _didIteratorError14 = false;
-                var _iteratorError14 = undefined;
+                var _iteratorNormalCompletion12 = true;
+                var _didIteratorError12 = false;
+                var _iteratorError12 = undefined;
 
                 try {
-                  for (var _iterator14 = atom.getBondIndices()[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-                    var iBond = _step14.value;
+                  for (var _iterator12 = atom.getBondIndices()[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+                    var iBond = _step12.value;
 
                     bondIndices.push(iBond);
                   }
                 } catch (err) {
-                  _didIteratorError14 = true;
-                  _iteratorError14 = err;
+                  _didIteratorError12 = true;
+                  _iteratorError12 = err;
                 } finally {
                   try {
-                    if (!_iteratorNormalCompletion14 && _iterator14.return) {
-                      _iterator14.return();
+                    if (!_iteratorNormalCompletion12 && _iterator12.return) {
+                      _iterator12.return();
                     }
                   } finally {
-                    if (_didIteratorError14) {
-                      throw _iteratorError14;
+                    if (_didIteratorError12) {
+                      throw _iteratorError12;
                     }
                   }
                 }
               }
             }
           } catch (err) {
-            _didIteratorError13 = true;
-            _iteratorError13 = err;
+            _didIteratorError11 = true;
+            _iteratorError11 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion13 && _iterator13.return) {
-                _iterator13.return();
+              if (!_iteratorNormalCompletion11 && _iterator11.return) {
+                _iterator11.return();
               }
             } finally {
-              if (_didIteratorError13) {
-                throw _iteratorError13;
+              if (_didIteratorError11) {
+                throw _iteratorError11;
               }
             }
           }
         }
       } catch (err) {
-        _didIteratorError12 = true;
-        _iteratorError12 = err;
+        _didIteratorError10 = true;
+        _iteratorError10 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion12 && _iterator12.return) {
-            _iterator12.return();
+          if (!_iteratorNormalCompletion10 && _iterator10.return) {
+            _iterator10.return();
           }
         } finally {
-          if (_didIteratorError12) {
-            throw _iteratorError12;
+          if (_didIteratorError10) {
+            throw _iteratorError10;
           }
         }
       }
@@ -88282,81 +88668,81 @@ var Display = function () {
       var atom = this.soup.getAtomProxy();
       var residue = this.soup.getResidueProxy();
 
-      var _iteratorNormalCompletion15 = true;
-      var _didIteratorError15 = false;
-      var _iteratorError15 = undefined;
+      var _iteratorNormalCompletion13 = true;
+      var _didIteratorError13 = false;
+      var _iteratorError13 = undefined;
 
       try {
-        for (var _iterator15 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-          var iRes = _step15.value;
+        for (var _iterator13 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+          var iRes = _step13.value;
 
           residue.iRes = iRes;
           if (!residue.isPolymer) {
             continue;
           }
-          var _iteratorNormalCompletion16 = true;
-          var _didIteratorError16 = false;
-          var _iteratorError16 = undefined;
+          var _iteratorNormalCompletion14 = true;
+          var _didIteratorError14 = false;
+          var _iteratorError14 = undefined;
 
           try {
-            for (var _iterator16 = residue.getAtomIndices()[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-              var iAtom = _step16.value;
+            for (var _iterator14 = residue.getAtomIndices()[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+              var iAtom = _step14.value;
 
               atom.iAtom = iAtom;
               if (util.inArray(atom.atomType, data.backboneAtomTypes)) {
                 atomIndices.push(iAtom);
-                var _iteratorNormalCompletion17 = true;
-                var _didIteratorError17 = false;
-                var _iteratorError17 = undefined;
+                var _iteratorNormalCompletion15 = true;
+                var _didIteratorError15 = false;
+                var _iteratorError15 = undefined;
 
                 try {
-                  for (var _iterator17 = atom.getBondIndices()[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
-                    var iBond = _step17.value;
+                  for (var _iterator15 = atom.getBondIndices()[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+                    var iBond = _step15.value;
 
                     bondIndices.push(iBond);
                   }
                 } catch (err) {
-                  _didIteratorError17 = true;
-                  _iteratorError17 = err;
+                  _didIteratorError15 = true;
+                  _iteratorError15 = err;
                 } finally {
                   try {
-                    if (!_iteratorNormalCompletion17 && _iterator17.return) {
-                      _iterator17.return();
+                    if (!_iteratorNormalCompletion15 && _iterator15.return) {
+                      _iterator15.return();
                     }
                   } finally {
-                    if (_didIteratorError17) {
-                      throw _iteratorError17;
+                    if (_didIteratorError15) {
+                      throw _iteratorError15;
                     }
                   }
                 }
               }
             }
           } catch (err) {
-            _didIteratorError16 = true;
-            _iteratorError16 = err;
+            _didIteratorError14 = true;
+            _iteratorError14 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion16 && _iterator16.return) {
-                _iterator16.return();
+              if (!_iteratorNormalCompletion14 && _iterator14.return) {
+                _iterator14.return();
               }
             } finally {
-              if (_didIteratorError16) {
-                throw _iteratorError16;
+              if (_didIteratorError14) {
+                throw _iteratorError14;
               }
             }
           }
         }
       } catch (err) {
-        _didIteratorError15 = true;
-        _iteratorError15 = err;
+        _didIteratorError13 = true;
+        _iteratorError13 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion15 && _iterator15.return) {
-            _iterator15.return();
+          if (!_iteratorNormalCompletion13 && _iterator13.return) {
+            _iterator13.return();
           }
         } finally {
-          if (_didIteratorError15) {
-            throw _iteratorError15;
+          if (_didIteratorError13) {
+            throw _iteratorError13;
           }
         }
       }
@@ -88374,79 +88760,79 @@ var Display = function () {
       var atom = this.soup.getAtomProxy();
       var residue = this.soup.getResidueProxy();
 
-      var _iteratorNormalCompletion18 = true;
-      var _didIteratorError18 = false;
-      var _iteratorError18 = undefined;
+      var _iteratorNormalCompletion16 = true;
+      var _didIteratorError16 = false;
+      var _iteratorError16 = undefined;
 
       try {
-        for (var _iterator18 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-          var iRes = _step18.value;
+        for (var _iterator16 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+          var iRes = _step16.value;
 
           residue.iRes = iRes;
           if (residue.ss !== '-') {
             continue;
           }
-          var _iteratorNormalCompletion19 = true;
-          var _didIteratorError19 = false;
-          var _iteratorError19 = undefined;
+          var _iteratorNormalCompletion17 = true;
+          var _didIteratorError17 = false;
+          var _iteratorError17 = undefined;
 
           try {
-            for (var _iterator19 = residue.getAtomIndices()[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-              var iAtom = _step19.value;
+            for (var _iterator17 = residue.getAtomIndices()[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+              var iAtom = _step17.value;
 
               atom.iAtom = iAtom;
               atomIndices.push(iAtom);
-              var _iteratorNormalCompletion20 = true;
-              var _didIteratorError20 = false;
-              var _iteratorError20 = undefined;
+              var _iteratorNormalCompletion18 = true;
+              var _didIteratorError18 = false;
+              var _iteratorError18 = undefined;
 
               try {
-                for (var _iterator20 = atom.getBondIndices()[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-                  var iBond = _step20.value;
+                for (var _iterator18 = atom.getBondIndices()[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+                  var iBond = _step18.value;
 
                   bondIndices.push(iBond);
                 }
               } catch (err) {
-                _didIteratorError20 = true;
-                _iteratorError20 = err;
+                _didIteratorError18 = true;
+                _iteratorError18 = err;
               } finally {
                 try {
-                  if (!_iteratorNormalCompletion20 && _iterator20.return) {
-                    _iterator20.return();
+                  if (!_iteratorNormalCompletion18 && _iterator18.return) {
+                    _iterator18.return();
                   }
                 } finally {
-                  if (_didIteratorError20) {
-                    throw _iteratorError20;
+                  if (_didIteratorError18) {
+                    throw _iteratorError18;
                   }
                 }
               }
             }
           } catch (err) {
-            _didIteratorError19 = true;
-            _iteratorError19 = err;
+            _didIteratorError17 = true;
+            _iteratorError17 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion19 && _iterator19.return) {
-                _iterator19.return();
+              if (!_iteratorNormalCompletion17 && _iterator17.return) {
+                _iterator17.return();
               }
             } finally {
-              if (_didIteratorError19) {
-                throw _iteratorError19;
+              if (_didIteratorError17) {
+                throw _iteratorError17;
               }
             }
           }
         }
       } catch (err) {
-        _didIteratorError18 = true;
-        _iteratorError18 = err;
+        _didIteratorError16 = true;
+        _iteratorError16 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion18 && _iterator18.return) {
-            _iterator18.return();
+          if (!_iteratorNormalCompletion16 && _iterator16.return) {
+            _iterator16.return();
           }
         } finally {
-          if (_didIteratorError18) {
-            throw _iteratorError18;
+          if (_didIteratorError16) {
+            throw _iteratorError16;
           }
         }
       }
@@ -88460,13 +88846,13 @@ var Display = function () {
       this.createOrClearMesh('water');
       var atomIndices = [];
       var residue = this.soup.getResidueProxy();
-      var _iteratorNormalCompletion21 = true;
-      var _didIteratorError21 = false;
-      var _iteratorError21 = undefined;
+      var _iteratorNormalCompletion19 = true;
+      var _didIteratorError19 = false;
+      var _iteratorError19 = undefined;
 
       try {
-        for (var _iterator21 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-          var iRes = _step21.value;
+        for (var _iterator19 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+          var iRes = _step19.value;
 
           residue.iRes = iRes;
           if (residue.resType === 'HOH') {
@@ -88474,16 +88860,16 @@ var Display = function () {
           }
         }
       } catch (err) {
-        _didIteratorError21 = true;
-        _iteratorError21 = err;
+        _didIteratorError19 = true;
+        _iteratorError19 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion21 && _iterator21.return) {
-            _iterator21.return();
+          if (!_iteratorNormalCompletion19 && _iterator19.return) {
+            _iterator19.return();
           }
         } finally {
-          if (_didIteratorError21) {
-            throw _iteratorError21;
+          if (_didIteratorError19) {
+            throw _iteratorError19;
           }
         }
       }
@@ -88503,13 +88889,13 @@ var Display = function () {
       var atomIndices = [];
       var residue = this.soup.getResidueProxy();
       var atom = this.soup.getAtomProxy();
-      var _iteratorNormalCompletion22 = true;
-      var _didIteratorError22 = false;
-      var _iteratorError22 = undefined;
+      var _iteratorNormalCompletion20 = true;
+      var _didIteratorError20 = false;
+      var _iteratorError20 = undefined;
 
       try {
-        for (var _iterator22 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-          var iRes = _step22.value;
+        for (var _iterator20 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+          var iRes = _step20.value;
 
           residue.iRes = iRes;
           if (residue.ss === 'G') {
@@ -88520,16 +88906,16 @@ var Display = function () {
           }
         }
       } catch (err) {
-        _didIteratorError22 = true;
-        _iteratorError22 = err;
+        _didIteratorError20 = true;
+        _iteratorError20 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion22 && _iterator22.return) {
-            _iterator22.return();
+          if (!_iteratorNormalCompletion20 && _iterator20.return) {
+            _iterator20.return();
           }
         } finally {
-          if (_didIteratorError22) {
-            throw _iteratorError22;
+          if (_didIteratorError20) {
+            throw _iteratorError20;
           }
         }
       }
@@ -88549,13 +88935,13 @@ var Display = function () {
       var residue = this.soup.getResidueProxy();
       var atom = this.soup.getAtomProxy();
 
-      var _iteratorNormalCompletion23 = true;
-      var _didIteratorError23 = false;
-      var _iteratorError23 = undefined;
+      var _iteratorNormalCompletion21 = true;
+      var _didIteratorError21 = false;
+      var _iteratorError21 = undefined;
 
       try {
-        for (var _iterator23 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-          var iRes = _step23.value;
+        for (var _iterator21 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+          var iRes = _step21.value;
 
           residue.iRes = iRes;
           if (residue.ss !== 'D' || !residue.isPolymer) {
@@ -88594,13 +88980,13 @@ var Display = function () {
           var faceGeom = new glgeom.RaisedShapeGeometry(vertices, 0.2);
           basepairGeom.merge(faceGeom);
 
-          var _iteratorNormalCompletion24 = true;
-          var _didIteratorError24 = false;
-          var _iteratorError24 = undefined;
+          var _iteratorNormalCompletion22 = true;
+          var _didIteratorError22 = false;
+          var _iteratorError22 = undefined;
 
           try {
-            for (var _iterator24 = bondTypes[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-              var bond = _step24.value;
+            for (var _iterator22 = bondTypes[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+              var bond = _step22.value;
 
               var _vertices = getVerticesFromAtomDict(iRes, [bond[0], bond[1]]);
               basepairGeom.merge(cylinderGeom, glgeom.getCylinderMatrix(_vertices[0], _vertices[1], 0.2));
@@ -88610,16 +88996,16 @@ var Display = function () {
             // sets no uv but cylinder does, and the merged geometry causes
             // warnings in THREE.js v0.79
           } catch (err) {
-            _didIteratorError24 = true;
-            _iteratorError24 = err;
+            _didIteratorError22 = true;
+            _iteratorError22 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion24 && _iterator24.return) {
-                _iterator24.return();
+              if (!_iteratorNormalCompletion22 && _iterator22.return) {
+                _iterator22.return();
               }
             } finally {
-              if (_didIteratorError24) {
-                throw _iteratorError24;
+              if (_didIteratorError22) {
+                throw _iteratorError22;
               }
             }
           }
@@ -88633,16 +89019,16 @@ var Display = function () {
           pickingGeom.merge(basepairGeom);
         }
       } catch (err) {
-        _didIteratorError23 = true;
-        _iteratorError23 = err;
+        _didIteratorError21 = true;
+        _iteratorError21 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion23 && _iterator23.return) {
-            _iterator23.return();
+          if (!_iteratorNormalCompletion21 && _iterator21.return) {
+            _iterator21.return();
           }
         } finally {
-          if (_didIteratorError23) {
-            throw _iteratorError23;
+          if (_didIteratorError21) {
+            throw _iteratorError21;
           }
         }
       }
@@ -88904,7 +89290,7 @@ var Display = function () {
       this.setMeshVisible('tube', show.trace);
       this.setMeshVisible('water', show.water);
       this.setMeshVisible('ribbons', show.ribbon);
-      this.setMeshVisible('arrows', !show.backboneAtom);
+      this.setMeshVisible('arrows', !show.backboneAtoms);
       this.setMeshVisible('backbone', show.backboneAtom);
       this.setMeshVisible('ligands', show.ligands);
 

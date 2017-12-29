@@ -175,6 +175,12 @@ class RibbonGeometry extends THREE.Geometry {
           let x, y
 
           x = path.normals[iPoint - 1].clone()
+            .multiplyScalar(shapePoints[i].x)
+          y = path.binormals[iPoint - 1].clone()
+            .multiplyScalar(shapePoints[i].y)
+          let normal00 = x.add(y)
+
+          x = path.normals[iPoint - 1].clone()
             .multiplyScalar(shapePoints[j].x)
           y = path.binormals[iPoint - 1].clone()
             .multiplyScalar(shapePoints[j].y)
@@ -185,12 +191,6 @@ class RibbonGeometry extends THREE.Geometry {
           y = path.binormals[iPoint].clone()
             .multiplyScalar(shapePoints[j].y)
           let normal11 = x.add(y)
-
-          x = path.normals[iPoint - 1].clone()
-            .multiplyScalar(shapePoints[i].x)
-          y = path.binormals[iPoint - 1].clone()
-            .multiplyScalar(shapePoints[i].y)
-          let normal00 = x.add(y)
 
           x = path.normals[iPoint].clone()
             .multiplyScalar(shapePoints[i].x)
@@ -280,6 +280,380 @@ class RibbonGeometry extends THREE.Geometry {
   }
 
 }
+
+/**
+ * Extrusion along a path that aligns a 2D shape as cross-section, with
+ * orientation along the normal for the cross-section.
+ *
+ * Accepts a cross-section shape, which is a collection of 2D points around
+ * the origin, and a path, which contains points, normals and binormals
+ * and builds a oriented extrusion out of it.
+ *
+ * If round is set, then the vertex normals are set to orient along the
+ * normal/binormal axis from the origin, otherwise, face normals are defined
+ * perpedicular to the face.
+ *
+ * For a segment between two path points and a repetition of the cross-section,
+ * two triangles are defined.
+ */
+class BufferRibbonGeometry extends THREE.BufferGeometry {
+
+  /**
+   * @param {THREE.Shape} shape - collection of 2D points for cross section
+   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
+   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
+   * @param {boolean} front - draw front cross-section
+   * @param {boolean} back - draw back cross-section
+   */
+  constructor (traces, shape, round, front, back, color) {
+
+    super()
+
+    this.type = 'BufferRibbonGeometry'
+
+    if (_.isUndefined(round)) {
+      round = false
+    }
+
+    this.parameters = {
+      shape: shape,
+      traces: traces,
+      round: round,
+      front: front,
+      back: back,
+    }
+
+    this.shapePoints = shape.extractPoints(4).shape
+    this.nShape = this.shapePoints.length
+
+    this.shapeEdgeNormals = []
+
+    if (!round) {
+
+      for (let j = 0; j < this.nShape; j += 1) {
+        let i = j - 1
+        if (i === -1) {
+          i = this.nShape - 1
+        }
+        let v0 = this.shapePoints[i]
+        let v1 = this.shapePoints[j]
+        let x = -(v1.y - v0.y)
+        let y = v1.x - v0.x
+        this.shapeEdgeNormals.push(new THREE.Vector2(x, y))
+      }
+
+    }
+
+    this.nVertex = 0
+    this.nFace = 0
+
+    this.paths = []
+    for (let trace of traces) {
+      this.paths.push(this.getPath(trace, 0, trace.points.length))
+    }
+
+    for (let path of this.paths) {
+      if (path.points.length > 1) {
+        this.countVertexAndFacesOfPath(path, front, back)
+      }
+    }
+
+    this.setAttributes()
+
+    for (let [i, path] of this.paths.entries()) {
+      console.log(i, path)
+      if (path.points.length > 1) {
+        this.setPath (path, color, front, back)
+      }
+    }
+
+    console.log('BufferRibbonGeometry vertices', this.nVertex, this.positionCount / 3, this.positions.length / 3)
+    console.log('BufferRibbonGeometry faces', this.nFace, this.indexCount / 3, this.indices.length / 3)
+    console.log('BufferRibbonGeometry attributes', this.attributes)
+  }
+
+  setPath (path, color, front, back) {
+
+    for (let iPoint = 0; iPoint < path.points.length; iPoint += 1) {
+
+      let point = path.points[iPoint]
+      let normal = path.normals[iPoint]
+      let binormal = path.binormals[iPoint]
+
+      for (let iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
+
+        let shapePoint = this.shapePoints[iShapePoint]
+
+        let x = normal.clone().multiplyScalar(shapePoint.x)
+        let y = binormal.clone().multiplyScalar(shapePoint.y)
+
+        let vertex = point.clone().add(x).add(y)
+
+        this.pushVertex(vertex, color)
+      }
+
+      // offset to two points back
+      let iVertexOffset = this.vertexCount - 2 * this.nShape
+
+      // skip for first point
+      if (iPoint === 0) {
+        continue
+      }
+
+      if (this.parameters.round) {
+        // Smoothed normals to give a rounded look
+        for (let iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
+          let iLastShapePoint
+          if (iShapePoint === 0) {
+            iLastShapePoint = this.nShape - 1
+          } else {
+            iLastShapePoint = iShapePoint - 1
+          }
+          let x, y
+
+          x = path.normals[iPoint - 1].clone()
+            .multiplyScalar(this.shapePoints[iLastShapePoint].x)
+          y = path.binormals[iPoint - 1].clone()
+            .multiplyScalar(this.shapePoints[iLastShapePoint].y)
+          let normal00 = x.add(y)
+
+          x = path.normals[iPoint - 1].clone()
+            .multiplyScalar(this.shapePoints[iShapePoint].x)
+          y = path.binormals[iPoint - 1].clone()
+            .multiplyScalar(this.shapePoints[iShapePoint].y)
+          let normal01 = x.add(y)
+
+          x = path.normals[iPoint].clone()
+            .multiplyScalar(this.shapePoints[iShapePoint].x)
+          y = path.binormals[iPoint].clone()
+            .multiplyScalar(this.shapePoints[iShapePoint].y)
+          let normal11 = x.add(y)
+
+          x = path.normals[iPoint].clone()
+            .multiplyScalar(this.shapePoints[iLastShapePoint].x)
+          y = path.binormals[iPoint].clone()
+            .multiplyScalar(this.shapePoints[iLastShapePoint].y)
+          let normal10 = x.add(y)
+
+          let iVertexLast = iVertexOffset + iLastShapePoint
+          let iVertexCurr = iVertexOffset + iShapePoint
+          let jVertexLast = iVertexOffset + this.nShape + iLastShapePoint
+          let jVertexCurr = iVertexOffset + this.nShape + iShapePoint
+
+          this.pushFace(
+            iVertexLast, jVertexLast, jVertexCurr,
+            normal00, normal10, normal11
+          )
+
+          this.pushFace(
+            iVertexLast, jVertexCurr, iVertexCurr,
+            normal00, normal11, normal01
+          )
+        }
+
+      } else {
+        // Continuous normals but keep faces distinct
+        // along ribbon
+        for (let iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
+          let iLastShapePoint
+          if (iShapePoint === 0) {
+            iLastShapePoint = this.nShape - 1
+          } else {
+            iLastShapePoint = iShapePoint - 1
+          }
+
+          let x, y
+
+          x = path.normals[iPoint - 1].clone()
+            .multiplyScalar(this.shapeEdgeNormals[iShapePoint].x)
+          y = path.binormals[iPoint - 1].clone()
+            .multiplyScalar(this.shapeEdgeNormals[iShapePoint].y)
+          let normal0 = x.add(y)
+
+          x = path.normals[iPoint].clone()
+            .multiplyScalar(this.shapeEdgeNormals[iShapePoint].x)
+          y = path.binormals[iPoint].clone()
+            .multiplyScalar(this.shapeEdgeNormals[iShapePoint].y)
+          let normal1 = x.add(y)
+
+          let iLastVertex = iVertexOffset + iLastShapePoint
+          let iVertex = iVertexOffset + this.nShape + iShapePoint
+
+          let iVertexLast = iVertexOffset + iLastShapePoint
+          let iVertexCurr = iVertexOffset + iShapePoint
+          let jVertexLast = iVertexOffset + this.nShape + iLastShapePoint
+          let jVertexCurr = iVertexOffset + this.nShape + iShapePoint
+
+          this.pushFace(
+            iVertexLast, jVertexLast, jVertexCurr,
+            normal0, normal1, normal1
+          )
+
+          this.pushFace(
+            iVertexLast, jVertexCurr, iVertexCurr,
+            normal0, normal1, normal0
+          )
+        }
+      }
+    }
+
+    // back must be drawn before front as offset of last
+    // point segment is easily calculated from here
+    if (this.parameters.back) {
+      let iVertexOffsetLast = this.vertexCount - 1 - this.nShape
+
+      let iVertexOffsetBack = this.vertexCount
+      for (let iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
+        let iVertex = iVertexOffsetLast + iShapePoint
+        this.pushVertex(this.getVertex(iVertex), color)
+      }
+
+      let normal = threePointNormal([
+        this.getVertex(iVertexOffsetLast),
+        this.getVertex(iVertexOffsetLast + this.nShape - 1),
+        this.getVertex(iVertexOffsetLast + 1)
+      ])
+
+      for (let i = 0; i < this.nShape - 2; i += 1) {
+        this.pushFace(
+          iVertexOffsetBack + i,
+          iVertexOffsetBack + this.nShape - 1,
+          iVertexOffsetBack + i + 1,
+          normal, normal, normal
+        )
+      }
+
+    }
+
+    // Draw front face
+    if (this.parameters.front) {
+      let normal = threePointNormal([
+        this.getVertex(this.iVertexTraceOffset),
+        this.getVertex(this.iVertexTraceOffset + 1),
+        this.getVertex(this.iVertexTraceOffset + 2)
+      ])
+      let iVertexOffsetFront = this.vertexCount
+      for (let iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
+        let iVertex = this.iVertexTraceOffset + iShapePoint
+        this.pushVertex(this.getVertex(iVertex), color)
+      }
+      for (let iShapePoint = 0; iShapePoint < this.nShape - 2; iShapePoint += 1) {
+        this.pushFace(
+          iVertexOffsetFront + iShapePoint,
+          iVertexOffsetFront + iShapePoint + 1,
+          iVertexOffsetFront + this.nShape - 1,
+          normal,
+          normal,
+          normal
+        )
+      }
+    }
+  }
+
+  getPath (trace, iResStart, iResEnd) {
+    let fullPath = trace.detailedPath
+
+    // works out start on expanded path, including overhang
+    let iPathStart = (iResStart * 2 * trace.detail) - trace.detail
+    if (iPathStart < 0) {
+      iPathStart = 0
+    }
+
+    // works out end of expanded path, including overhang
+    let iPathEnd = ((iResEnd) * 2 * trace.detail) - trace.detail + 1
+    if (iPathEnd >= fullPath.points.length) {
+      iPathEnd = fullPath.points.length - 1
+    }
+
+    return fullPath.slice(iPathStart, iPathEnd)
+  }
+
+  setAttributes () {
+    let positions = new Float32Array(this.nVertex * 3)
+    let normals = new Float32Array(this.nVertex * 3)
+    let indices = new Int32Array(this.nFace * 3)
+    let colors = new Float32Array(this.nVertex * 3)
+
+    this.addAttribute(
+      'position', new THREE.Float32BufferAttribute(positions, 3))
+    this.addAttribute(
+      'normal', new THREE.Float32BufferAttribute(normals, 3))
+    this.addAttribute(
+      'color', new THREE.Float32BufferAttribute(colors, 3))
+    this.setIndex(new THREE.Uint32BufferAttribute(indices, 1))
+
+    this.positions = this.attributes.position.array
+    this.normals = this.attributes.normal.array
+    this.indices = this.index.array
+    this.colors = this.attributes.color.array
+
+    this.positionCount = 0
+    this.indexCount = 0
+    this.iVertexTraceOffset = 0
+    this.vertexCount = 0
+  }
+
+  pushVertex (vertex, color) {
+    this.positions[this.positionCount] = vertex.x
+    this.positions[this.positionCount + 1] = vertex.y
+    this.positions[this.positionCount + 2] = vertex.z
+
+    this.colors[this.positionCount] = color.r
+    this.colors[this.positionCount + 1] = color.g
+    this.colors[this.positionCount + 2] = color.b
+
+    this.positionCount += 3
+    this.vertexCount += 1
+  }
+
+  pushFace (i, j, k, normalI, normalJ, normalK) {
+    this.indices[this.indexCount] = i
+    this.indices[this.indexCount + 1] = j
+    this.indices[this.indexCount + 2] = k
+
+    this.indexCount += 3
+
+    this.normals[i*3] = normalI.x
+    this.normals[i*3+1] = normalI.y
+    this.normals[i*3+2] = normalI.z
+
+    this.normals[j*3] = normalJ.x
+    this.normals[j*3+1] = normalJ.y
+    this.normals[j*3+2] = normalJ.z
+
+    this.normals[k*3] = normalK.x
+    this.normals[k*3+1] = normalK.y
+    this.normals[k*3+2] = normalK.z
+  }
+
+  getVertex (iVertex) {
+    return v3.create(
+      this.positions[iVertex * 3],
+      this.positions[iVertex * 3 + 1],
+      this.positions[iVertex * 3 + 2])
+  }
+
+  countVertexAndFacesOfPath (path, front, back) {
+    for (let iPoint = 0; iPoint < path.points.length; iPoint += 1) {
+      this.nVertex += this.nShape
+      if (iPoint > 0) {
+        this.nFace += 2 * this.nShape
+      }
+    }
+
+    if (back) {
+      this.nVertex += this.nShape
+      this.nFace += this.nShape - 2
+    }
+
+    if (front) {
+      this.nVertex += this.nShape
+      this.nFace += this.nShape - 2
+    }
+  }
+
+}
+
 
 /**
  * Creates a new path out of a slice of the oldPath, with
@@ -553,6 +927,31 @@ class Trace extends PathAndFrenetFrames {
       face, segmentPath, isRound, isFront, isBack)
 
     setGeometryVerticesColor(geom, color)
+
+    return geom
+  }
+
+  getGeometry (face, isRound, isFront, isBack, color) {
+    let path = this.detailedPath
+    let iResStart = 0
+    let iResEnd = this.points.length
+
+    // works out start on expanded path, including overhang
+    let iPathStart = (iResStart * 2 * this.detail) - this.detail
+    if (iPathStart < 0) {
+      iPathStart = 0
+    }
+
+    // works out end of expanded path, including overhang
+    let iPathEnd = ((iResEnd) * 2 * this.detail) - this.detail + 1
+    if (iPathEnd >= path.points.length) {
+      iPathEnd = path.points.length - 1
+    }
+
+    let segmentPath = path.slice(iPathStart, iPathEnd)
+
+    let geom = new BufferRibbonGeometry(
+      trace, segmentPath, isRound, isFront, isBack, color)
 
     return geom
   }
@@ -861,6 +1260,9 @@ function expandIndices (refArray, nCopy, nIndexInCopy) {
 }
 
 /**
+ * CopyBufferGeometry is designed to replicate multiple copies of
+ * an existing BufferGeometry in one single assignment - thus
+ * efficiently creating a large dataset
  */
 class CopyBufferGeometry extends THREE.BufferGeometry {
 
@@ -926,6 +1328,7 @@ export {
   setVisible,
   RaisedShapeGeometry,
   RibbonGeometry,
+  BufferRibbonGeometry,
   getUnitVectorRotation,
   getFractionRotation,
   fraction,

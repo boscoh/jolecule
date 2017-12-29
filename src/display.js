@@ -255,11 +255,7 @@ class Display {
 
   buildScene () {
 
-    if (this.soupView.savedViews.length == 0) {
-      this.soupView.currentView.makeDefaultOfSoup(this.soup)
-      this.soupView.saveView(this.soupView.currentView)
-      this.soupView.changed = true
-    }
+    this.soupView.initViewsAfterSoupLoad()
 
     // pre-calculations needed before building meshes
     let residue = this.soup.getResidueProxy()
@@ -395,31 +391,18 @@ class Display {
     this.addGeomToDisplayMesh('ribbons', displayGeom)
     this.addGeomToPickingMesh('ribbons', pickingGeom)
   }
-  
+
   buildMeshOfTube () {
     this.createOrClearMesh('tube')
-    let displayGeom = new THREE.Geometry()
-    let pickingGeom = new THREE.Geometry()
-    for (let trace of this.traces) {
-      let n = trace.points.length
-      for (let i of _.range(n)) {
-        let res = trace.getReference(i)
-        let color = res.color
-        let iAtom = res.iAtom
-        let isRound = true
-        let isFront = (i === 0)
-        let isBack = (i === n - 1)
-        let resGeom = trace.getSegmentGeometry(
-          i, data.fatCoilFace, isRound, isFront, isBack, color)
-        displayGeom.merge(resGeom)
-        glgeom.setGeometryVerticesColor(
-          resGeom, new THREE.Color().setHex(iAtom))
-        glgeom.setGeometryVerticesColor(resGeom, data.getIndexColor(iAtom))
-        pickingGeom.merge(resGeom)
-      }
-    }
-    this.addGeomToPickingMesh('tube', pickingGeom)
-    this.addGeomToDisplayMesh('tube', displayGeom)
+    let res = this.traces[0].getReference(0)
+    let color = res.color
+    let isRound = true
+    let isFront = false
+    let isBack = false
+    let geom = new glgeom.BufferRibbonGeometry(
+      this.traces, data.coilFace, isRound, isFront, isBack, color)
+    let displayMesh = new THREE.Mesh(geom, this.displayMaterial)
+    this.displayMeshes['tube'].add(displayMesh)
   }
 
   buildMeshOfArrows () {
@@ -1004,7 +987,7 @@ class Display {
     this.setMeshVisible('tube', show.trace)
     this.setMeshVisible('water', show.water)
     this.setMeshVisible('ribbons', show.ribbon)
-    this.setMeshVisible('arrows', !show.backboneAtom)
+    this.setMeshVisible('arrows', !show.backboneAtoms)
     this.setMeshVisible('backbone', show.backboneAtom)
     this.setMeshVisible('ligands', show.ligands)
 

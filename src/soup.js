@@ -1386,6 +1386,8 @@ class SoupView {
     // the soup data for the soupView
     this.soup = soup
 
+    this.changed = true
+
     // stores the current cameraParams, display
     // options, distances, labels, selected
     // residues
@@ -1408,6 +1410,14 @@ class SoupView {
 
     this.updateResidueSelection = false
     this.updateView = true
+  }
+
+  initViewsAfterSoupLoad () {
+    if (this.savedViews.length == 0) {
+      this.currentView.makeDefaultOfSoup(this.soup)
+      this.saveView(this.currentView)
+      this.changed = true
+    }
   }
 
   setTargetView (view) {

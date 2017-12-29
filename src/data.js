@@ -171,6 +171,7 @@ export {
   getDarkSsColor,
   backboneAtomTypes,
   getSsFace,
+  coilFace,
   fatCoilFace,
   green,
   blue,
