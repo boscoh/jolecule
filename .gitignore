@@ -1,5 +1,6 @@
 .idea
 electron/node_modules
-electron/renderer.js
-electron/index.html
+package-lock.json
 node_modules
+**.DS_Store
+.vscode

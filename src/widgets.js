@@ -10,14 +10,12 @@
  * this.resize - called after every resize of window
  */
 
-
 import $ from 'jquery'
 import * as THREE from 'three'
 import _ from 'lodash'
 
 import * as data from './data'
 import * as util from './util'
-
 
 /**
  * LineElement
@@ -77,7 +75,6 @@ class LineElement {
     this.context2d.stroke()
   }
 }
-
 
 /**
  * CanvasWrapper
@@ -202,27 +199,11 @@ class CanvasWrapper {
   }
 
   getPointer (event) {
-    let x, y
-    if (event.touches) {
-      x = event.touches[0].clientX
-      y = event.touches[0].clientY
-    } else {
-      x = event.clientX
-      y = event.clientY
-    }
-
-    this.pointerX = x +
-      document.body.scrollLeft +
-      document.documentElement.scrollLeft -
-      this.x()
-
-    this.pointerY = y +
-      document.body.scrollTop +
-      document.documentElement.scrollTop -
-      this.y()
+    let rect = event.target.getBoundingClientRect()
+    this.pointerX = event.clientX - rect.left
+    this.pointerY = event.clientY - rect.top
   }
 }
-
 
 /**
  * PopupText is a little blob of text with a down
@@ -241,7 +222,7 @@ class PopupText {
         'padding': '5',
         'opacity': 0.7,
         'display': 'none',
-        'pointer-events': 'none',
+        'pointer-events': 'none'
       })
 
     this.arrow = $('<div>')
@@ -269,14 +250,17 @@ class PopupText {
     let width = this.div.innerWidth()
     let height = this.div.innerHeight()
 
-    if ((x < 0) || (x > this.parentDiv.width()) || (y < 0) ||
+    if (
+      (x < 0) ||
+      (x > this.parentDiv.width()) ||
+      (y < 0) ||
       (y > this.parentDiv.height())) {
       this.hide()
       return
     }
 
     this.div.css({
-      'top': y - height - 50 + parentDivPos.top,
+      'top': y - height - 50 + 10 + parentDivPos.top,
       'left': x - width / 2 + parentDivPos.left,
       'display': 'block',
       'font-family': 'sans-serif',
@@ -305,15 +289,13 @@ class PopupText {
   }
 }
 
-
 /**
  * A set of pop-up text labels over specified atoms, rendered as
  * DIV text on the DOM on top of Display but using opacity
  * of the given z position of the associated atoms
  */
 class AtomLabelsWidget {
-
-  constructor(display) {
+  constructor (display) {
     this.display = display
     this.soupView = display.soupView
     this.controller = display.controller
@@ -332,7 +314,7 @@ class AtomLabelsWidget {
     return popup
   }
 
-  draw() {
+  draw () {
     let labels = this.soupView.currentView.labels
 
     if (labels.length > this.popups.length) {
@@ -374,8 +356,7 @@ class AtomLabelsWidget {
  * tags
  */
 class DistanceMeasuresWidget {
-
-  constructor(display) {
+  constructor (display) {
     this.distanceMeasures = []
     this.scene = display.displayScene
     this.soupView = display.soupView
@@ -420,7 +401,7 @@ class DistanceMeasuresWidget {
     return { line, div }
   }
 
-  draw() {
+  draw () {
     let distances = this.soupView.currentView.distances
 
     if (distances.length > this.distanceMeasures.length) {
@@ -480,7 +461,6 @@ class DistanceMeasuresWidget {
         distanceMeasure.div.css('display', 'none')
       }
     }
-
   }
 }
 
@@ -605,7 +585,7 @@ class SequenceWidget extends CanvasWrapper {
       return
     }
 
-    if (this.residues.length == 0) {
+    if (this.residues.length === 0) {
       return
     }
 
@@ -749,7 +729,8 @@ class ZSlabWidget extends CanvasWrapper {
 
   y () {
     let parentDivPos = this.parentDiv.position()
-    return parentDivPos.top + this.yOffset
+    let result = parentDivPos.top + this.yOffset
+    return result
   }
 
   height () {
@@ -802,7 +783,6 @@ class ZSlabWidget extends CanvasWrapper {
 
   getZ (event) {
     this.getPointer(event)
-
     this.z = this.yToZ(this.pointerY)
   }
 
@@ -836,7 +816,6 @@ class ZSlabWidget extends CanvasWrapper {
     } else if (this.front) {
       cameraParams.zFront = Math.min(-2, this.z)
     }
-
     this.soupView.changed = true
     this.draw()
   }
@@ -881,13 +860,12 @@ class GridControlWidget extends CanvasWrapper {
     } else {
       this.div.show()
     }
-
   }
 
   makeElemButton (elem, y) {
     let color = data.ElementColors[elem]
     let colorHexStr = color.getHexString()
-    let text_button = util.toggleButton(
+    let textButton = util.toggleButton(
       'toggle_text',
       elem,
       'jolecule-button',
@@ -898,11 +876,11 @@ class GridControlWidget extends CanvasWrapper {
         this.soupView.changed = true
       },
       colorHexStr)
-    text_button.css('position', 'absolute')
-    text_button.css('top', y + 'px')
-    text_button.css('left', '40px')
-    text_button.css('width', '20px')
-    return text_button
+    textButton.css('position', 'absolute')
+    textButton.css('top', y + 'px')
+    textButton.css('left', '40px')
+    textButton.css('width', '20px')
+    return textButton
   }
 
   resize () {
@@ -1018,7 +996,6 @@ class GridControlWidget extends CanvasWrapper {
   }
 }
 
-
 export default {
   LineElement,
   PopupText,
@@ -1026,5 +1003,5 @@ export default {
   DistanceMeasuresWidget,
   SequenceWidget,
   ZSlabWidget,
-  GridControlWidget,
+  GridControlWidget
 }

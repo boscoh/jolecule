@@ -22,26 +22,6 @@ function getWindowUrl () {
   return '' + window.location
 }
 
-function getDomPosition (dom) {
-  let currDom = dom
-  let currLeft = 0
-  let currTop = 0
-  if (currDom.offsetParent) {
-    currLeft = currDom.offsetLeft
-    currTop = currDom.offsetTop
-    while (currDom = currDom.offsetParent) {
-      currLeft += currDom.offsetLeft
-      currTop += currDom.offsetTop
-    }
-  }
-  currDom = dom
-  do {
-    currLeft -= currDom.scrollLeft || 0
-    currTop -= currDom.scrollTop || 0
-  } while (currDom = currDom.parentNode)
-  return [currLeft, currTop]
-}
-
 function linkButton (idTag, text, classTag, callback) {
   let item =
     $('<a>')
@@ -66,7 +46,6 @@ function linkButton (idTag, text, classTag, callback) {
 }
 
 function toggleButton (idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
-
   let item =
     $('<a>')
       .attr('id', idTag)
@@ -137,7 +116,7 @@ function stickJqueryDivInCenter (parent, target, xOffset, yOffset) {
   let heightTarget = target.outerHeight()
   target.css({
     'top': top + heightParent / 2 - heightTarget / 2 - yOffset,
-    'left': left + widthParent / 2 - widthTarget / 2 - xOffset,
+    'left': left + widthParent / 2 - widthTarget / 2 - xOffset
   })
 }
 
@@ -145,11 +124,11 @@ function inArray (v, aList) {
   return aList.indexOf(v) >= 0
 }
 
-function randomString (n_char) {
+function randomString (nChar) {
   let chars =
     '0123456789abcdefghiklmnopqrstuvwxyz'
   let s = ''
-  for (let i = 0; i < n_char; i++) {
+  for (let i = 0; i < nChar; i++) {
     let j = Math.floor(Math.random() * chars.length)
     s += chars.substring(j, j + 1)
   }
@@ -191,10 +170,10 @@ function textEntryDialog (parentDiv, label, callback) {
     window.keyboard_lock = false
   }
 
-  let save_button = linkButton(
+  let saveButton = linkButton(
     'okay', 'okay', 'jolecule-small-button', accept)
 
-  let discard_button = linkButton(
+  let discardButton = linkButton(
     'discard', 'discard', 'jolecule-small-button', discard)
 
   let textarea = $('<textarea>')
@@ -212,9 +191,9 @@ function textEntryDialog (parentDiv, label, callback) {
     .css('width', '100%')
     .append(label)
     .append(textarea)
-    .append(save_button)
+    .append(saveButton)
     .append(' ')
-    .append(discard_button)
+    .append(discardButton)
 
   let dialog = $('<div>')
     .addClass('jolecule-dialog')
@@ -238,7 +217,6 @@ export {
   exists,
   extendArray,
   getWindowUrl,
-  getDomPosition,
   linkButton,
   toggleButton,
   stickJqueryDivInCenter,

@@ -1,5 +1,5 @@
 import $ from 'jquery'
-import scrollTo from 'jquery.scrollto'
+import scrollTo from 'jquery.scrollto' // eslint-disable-line
 import _ from 'lodash'
 import { EmbedJolecule, ViewPiece } from './embedjolecule'
 import { getWindowUrl, linkButton, randomId, exists } from './util'
@@ -9,14 +9,13 @@ import { getWindowUrl, linkButton, randomId, exists } from './util'
  */
 
 class ViewPieceList {
-
-  constructor (divTag, controller, proteinDisplay, data_server, isEditable) {
+  constructor (divTag, controller, proteinDisplay, dataServer, isEditable) {
     this.divTag = divTag
     this.display = proteinDisplay
     this.soupView = controller.soupView
     this.controller = controller
     this.isEditable = isEditable
-    this.data_server = data_server
+    this.data_server = dataServer
     this.viewPiece = {}
     this.topDiv = $(this.divTag)
       .append(
@@ -79,10 +78,10 @@ class ViewPieceList {
         this.insertNewViewDiv(view.id)
       }
 
-      let i_last_view = this.soupView.iLastViewSelected
-      let last_id = this.soupView.savedViews[i_last_view].id
+      let iLastView = this.soupView.iLastViewSelected
+      let lastId = this.soupView.savedViews[iLastView].id
 
-      if (last_id === id) {
+      if (lastId === id) {
         this.viewPiece[id].div.removeClass('jolecule-unselected-box')
         this.viewPiece[id].div.addClass('jolecule-selected-box')
       } else {
@@ -138,34 +137,34 @@ class ViewPieceList {
   }
 
   swapViews (i, j) {
-    let i_id = this.soupView.savedViews[i].id
-    let j_id = this.soupView.savedViews[j].id
-    let i_div = this.viewPiece[i_id].div
-    let j_div = this.viewPiece[j_id].div
+    let iId = this.soupView.savedViews[i].id
+    let jId = this.soupView.savedViews[j].id
+    let iDiv = this.viewPiece[iId].div
+    let jDiv = this.viewPiece[jId].div
 
     this.controller.swapViews(i, j)
 
-    i_div.css('background-color', 'lightgray')
-    j_div.css('background-color', 'lightgray')
+    iDiv.css('background-color', 'lightgray')
+    jDiv.css('background-color', 'lightgray')
 
     this.saveViewsToDataServer(() => {
-      j_div.insertBefore(i_div)
+      jDiv.insertBefore(iDiv)
       this.updateViews()
-      i_div.css('background-color', '')
-      j_div.css('background-color', '')
+      iDiv.css('background-color', '')
+      jDiv.css('background-color', '')
     })
   }
 
-  swapUp (view_id) {
-    let i = this.soupView.getIViewFromViewId(view_id)
+  swapUp (viewId) {
+    let i = this.soupView.getIViewFromViewId(viewId)
     if (i < 2) {
       return
     }
     this.swapViews(i - 1, i)
   }
 
-  swapDown (view_id) {
-    let i = this.soupView.getIViewFromViewId(view_id)
+  swapDown (viewId) {
+    let i = this.soupView.getIViewFromViewId(viewId)
     if (i > this.soupView.savedViews.length - 2) {
       return
     }
@@ -180,8 +179,8 @@ class ViewPieceList {
       delete_view: () => {
         this.removeView(id)
       },
-      save_change: (changed_text) => {
-        view.text = changed_text
+      save_change: (changedText) => {
+        view.text = changedText
         this.viewPiece[id].div.css('background-color', 'lightgray')
         this.saveViewsToDataServer(() => {
           this.viewPiece[id].div.css('background-color', '')
@@ -200,7 +199,7 @@ class ViewPieceList {
       },
       embed_view: () => {
         window.location.href = '/embed/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id
-      },
+      }
     })
     return this.viewPiece[id].div
   }
@@ -213,16 +212,16 @@ class ViewPieceList {
     }
   }
 
-  insertNewViewDiv (new_id) {
-    let div = this.makeViewDiv(new_id)
+  insertNewViewDiv (newId) {
+    let div = this.makeViewDiv(newId)
 
     if (this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1) {
       $('#jolecule-views').append(div)
     } else {
       let j = this.soupView.iLastViewSelected - 1
-      let j_id = this.soupView.savedViews[j].id
-      let j_div = this.viewPiece[j_id].div
-      div.insertAfter(j_div)
+      let jId = this.soupView.savedViews[j].id
+      let jDiv = this.viewPiece[jId].div
+      div.insertAfter(jDiv)
     }
   }
 
@@ -241,7 +240,6 @@ class ViewPieceList {
         this.viewPiece[newId].div, 1000, {offset: {top: -80}})
     })
   }
-
 }
 
 /**
@@ -251,12 +249,11 @@ class ViewPieceList {
  */
 
 class FullPageJolecule {
-
-  constructor (proteinDisplayTag,
-               sequenceDisplayTag,
-               viewsDisplayTag,
-               params) {
-
+  constructor (
+    proteinDisplayTag,
+    sequenceDisplayTag,
+    viewsDisplayTag,
+    params) {
     this.viewsDisplayTag = viewsDisplayTag
     this.sequenceDisplayTag = sequenceDisplayTag
 
@@ -281,11 +278,9 @@ class FullPageJolecule {
 
     document.oncontextmenu = _.noop
     document.onkeydown = (e) => this.onkeydown(e)
-    let resize_fn = () => {
-      this.resize()
-    }
-    $(window).resize(resize_fn)
-    window.onorientationchange = resize_fn
+    let resizeFn = () => { this.resize() }
+    $(window).resize(resizeFn)
+    window.onorientationchange = resizeFn
 
     this.noData = true
   }
@@ -365,7 +360,6 @@ class FullPageJolecule {
   onkeydown (event) {
     if (!window.keyboard_lock) {
       let c = String.fromCharCode(event.keyCode).toUpperCase()
-      let s = '[' + c + ']'
       if (c === 'V') {
         this.viewsDisplay.makeNewView()
         return
@@ -394,10 +388,10 @@ class FullPageJolecule {
       } else if (c === 'C') {
         this.display.controller.clearSelectedResidues()
       } else if (c === 'E') {
-        let i_view = this.display.soupView.iLastViewSelected
-        if (i_view > 0) {
-          let view_id = this.display.soupView.savedViews[i_view].id
-          this.viewsDisplay.div[view_id].edit_fn()
+        let iView = this.display.soupView.iLastViewSelected
+        if (iView > 0) {
+          let viewId = this.display.soupView.savedViews[iView].id
+          this.viewsDisplay.div[viewId].edit_fn()
         }
       } else if (c === 'N') {
         this.display.controller.toggleResidueNeighbors()
@@ -413,10 +407,6 @@ class FullPageJolecule {
       this.display.soupView.changed = true
     }
   }
-
 }
 
 export { FullPageJolecule }
-
-
-

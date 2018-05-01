@@ -72,7 +72,6 @@ class ViewPiece {
   }
 
   makeEditDiv () {
-
     this.editTextArea = $('<textarea>')
       .addClass('jolecule-view-text')
       .css('width', '100%')
@@ -105,10 +104,6 @@ class ViewPiece {
       '', 'edit', 'jolecule-small-button',
       () => { this.startEdit() })
 
-    var embedButton = linkButton(
-      '', 'embed', 'jolecule-small-button',
-      () => { this.params.embed_view() })
-
     this.showTextDiv = $('<div>')
       .addClass('jolecule-view-text')
       .html(this.params.view.text)
@@ -117,7 +112,7 @@ class ViewPiece {
       .css('width', '100%')
       .append(this.showTextDiv)
 
-    if (view.id != 'view:000000') {
+    if (view.id !== 'view:000000') {
       this.showDiv
         .append(
           $('<div>')
@@ -126,12 +121,11 @@ class ViewPiece {
         )
     }
 
-    let isEditable = this.params.isEditable
-      && (!view.lock)
-      && (view.id != 'view:000000')
+    let isEditable = this.params.isEditable &&
+      (!view.lock) &&
+      (view.id !== 'view:000000')
 
     if (isEditable) {
-
       // this.showDiv
       //   .append(embedButton)
       //   .append(' ');
@@ -139,21 +133,23 @@ class ViewPiece {
       this.showDiv
         .append(editButton)
 
-      if (exists(this.params.swapUp) && this.params.swapUp)
+      if (exists(this.params.swapUp) && this.params.swapUp) {
         this.showDiv
           .append(' ')
           .append(
             linkButton(
               '', 'up', 'jolecule-small-button',
               () => { this.params.swapUp() }))
+      }
 
-      if (exists(this.params.swapUp) && this.params.swapDown)
+      if (exists(this.params.swapUp) && this.params.swapDown) {
         this.showDiv
           .append(' ')
           .append(
             linkButton(
               '', 'down', 'jolecule-small-button',
               () => { this.params.swapDown() }))
+      }
 
       if (exists(this.params.deleteView)) {
         this.showDiv
@@ -172,7 +168,6 @@ class ViewPiece {
 
     this.div.append(this.showDiv)
   }
-
 }
 
 /**
@@ -192,7 +187,6 @@ let defaultArgs = {
 }
 
 class EmbedJolecule {
-
   constructor (params) {
     this.params = params
     this.isLoop = this.params.isLoop
@@ -234,17 +228,16 @@ class EmbedJolecule {
   };
 
   async asyncLoadViews (dataServer) {
-    return new Promise(success => {
+    return new Promise(resolve => {
       dataServer.get_views(viewDicts => {
-
         this.controller.loadViewsFromViewDicts(viewDicts)
 
-        let viewId = this.soupView.currentView.id
-        if (this.initViewId) {
-          if (this.initViewId in this.soupView.savedViewsByViewId) {
-            viewId = this.initViewId
-          }
-        }
+        // let viewId = this.soupView.currentView.id
+        // if (this.initViewId) {
+        //   if (this.initViewId in this.soupView.savedViewsByViewId) {
+        //     viewId = this.initViewId
+        //   }
+        // }
         this.updateView()
 
         if (this.params.viewId in this.soupView.savedViewsByViewId) {
@@ -252,21 +245,20 @@ class EmbedJolecule {
           this.updateView()
         }
 
-        success()
+        resolve()
       })
     })
   }
 
   async asyncLoadSoup (dataServer) {
-    return new Promise(success => {
+    return new Promise(resolve => {
       dataServer.get_protein_data(async (proteinData) => {
-
         let pdbText = proteinData.pdb_text
         let pdbId = proteinData.pdb_id
 
         if (proteinData.pdb_text.length === 0) {
           await this.display.asyncSetMesssage('Error: no soup data')
-          success()
+          resolve()
           return
         }
 
@@ -295,7 +287,7 @@ class EmbedJolecule {
           this.display.buildScene()
         }
 
-        success()
+        resolve()
       })
     })
   }
@@ -355,7 +347,7 @@ class EmbedJolecule {
 
   deleteCurrView () {
     var i = this.soupView.iLastViewSelected
-    if (i == 0) {
+    if (i === 0) {
       // skip default view:000000
       return
     }
@@ -405,11 +397,9 @@ class EmbedJolecule {
   }
 
   cycleBackbone () {
-    if (this.soupView.currentView.show.backboneAtom) {
+    if (!this.soupView.currentView.show.ribbon) {
       this.controller.setBackboneOption('ribbon')
-    } else if (this.soupView.currentView.show.ribbon) {
-      this.controller.setBackboneOption('trace')
-    } else if (this.soupView.currentView.show.trace) {
+    } else {
       this.controller.setBackboneOption('backboneAtom')
     }
   }
@@ -476,7 +466,6 @@ class EmbedJolecule {
   }
 
   createStatusDiv () {
-
     this.statusText = $('<span>')
 
     var textButton = toggleButton(
@@ -542,7 +531,7 @@ class EmbedJolecule {
       .addClass('jolecule-residue-selector')
       .css({
         'outline': 'none',
-        '-moz-appearance': 'none',
+        '-moz-appearance': 'none'
       })
 
     this.residueSelector.change(() => {
@@ -606,7 +595,7 @@ class EmbedJolecule {
       pick: _.noop,
       embed_view: function () {
         window.location.href = '/embed/pdb/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id
-      },
+      }
     })
     this.realViewDiv = viewPiece.div
     this.realViewDiv
@@ -630,9 +619,9 @@ class EmbedJolecule {
 
   resize () {
     this.proteinDiv.width(this.div.outerWidth())
-    var newHeight = this.div.outerHeight()
-      - this.viewDiv.outerHeight()
-      - this.statusDiv.outerHeight()
+    var newHeight = this.div.outerHeight() -
+      this.viewDiv.outerHeight() -
+      this.statusDiv.outerHeight()
     if (exists(this.display)) {
       if (exists(this.display.renderer)) {
         this.display.renderer.domElement.style.height = newHeight
@@ -642,7 +631,6 @@ class EmbedJolecule {
     this.proteinDiv.css('height', newHeight)
     this.display.resize()
   }
-
 }
 
 export { EmbedJolecule, defaultArgs, ViewPiece }

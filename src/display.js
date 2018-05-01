@@ -20,7 +20,6 @@ import { interpolateCameras } from './soup'
  * and their associated views
  */
 class Display {
-
   /**
    * @param soupView - SoupView object that holds a soup and views
    * @param divTag - a selector tag for a DOM element
@@ -29,7 +28,6 @@ class Display {
    * @param backgroundColor - the background color of canvas and webgl
    */
   constructor (soupView, divTag, controller, isGrid, backgroundColor) {
-
     this.divTag = divTag
     this.div = $(this.divTag)
     this.div.css('overflow', 'hidden')
@@ -145,11 +143,10 @@ class Display {
 
     // draw onscreen line for mouse dragging between atoms
     this.lineElement = new widgets.LineElement(this, '#FF7777')
-
   }
 
   initWebglRenderer () {
-    this.renderer = new THREE.WebGLRenderer()
+    this.renderer = new THREE.WebGLRenderer({antialias: true})
     this.renderer.setClearColor(this.backgroundColor)
     this.renderer.setSize(this.width(), this.height())
 
@@ -210,9 +207,10 @@ class Display {
 
         atom.iAtom = residue.iAtom
         lastTrace.points.push(atom.pos.clone())
-
-        let normal = residue.normal
-        lastTrace.normals.push(normal)
+        lastTrace.colors.push(new THREE.Color(residue.color))
+        lastTrace.indexColors.push(data.getIndexColor(residue.iAtom))
+        lastTrace.segmentTypes.push(residue.ss)
+        lastTrace.normals.push(residue.normal)
       }
     }
 
@@ -222,7 +220,6 @@ class Display {
       trace.calcBinormals()
       trace.expand()
     }
-
   }
 
   buildLights () {
@@ -254,7 +251,6 @@ class Display {
    */
 
   buildScene () {
-
     this.soupView.initViewsAfterSoupLoad()
 
     // pre-calculations needed before building meshes
@@ -266,7 +262,7 @@ class Display {
     this.soup.findGridLimits()
     this.calculateTracesForRibbons()
 
-    this.buildMeshOfRibbons()
+    this.buildMeshOfTube()
     this.buildMeshOfGrid()
     this.buildMeshOfLigands()
     this.buildMeshOfNucleotides()
@@ -365,44 +361,18 @@ class Display {
     this.pickingMeshes[meshName].add(mesh)
   }
 
-  buildMeshOfRibbons () {
-    this.createOrClearMesh('ribbons')
-    let displayGeom = new THREE.Geometry()
-    let pickingGeom = new THREE.Geometry()
-    for (let trace of this.traces) {
-      let n = trace.points.length
-      for (let i of _.range(n)) {
-        let res = trace.getReference(i)
-        let face = data.getSsFace(res.ss)
-        let color = res.color
-        let iAtom = res.iAtom
-        let isRound = res.ss === 'C'
-        let isFront = ((i === 0) ||
-          (res.ss !== trace.getReference(i - 1).ss))
-        let isBack = ((i === n - 1) ||
-          (res.ss !== trace.getReference(i + 1).ss))
-        let resGeom = trace.getSegmentGeometry(
-          i, face, isRound, isFront, isBack, color)
-        displayGeom.merge(resGeom)
-        glgeom.setGeometryVerticesColor(resGeom, data.getIndexColor(iAtom))
-        pickingGeom.merge(resGeom)
-      }
-    }
-    this.addGeomToDisplayMesh('ribbons', displayGeom)
-    this.addGeomToPickingMesh('ribbons', pickingGeom)
-  }
-
   buildMeshOfTube () {
     this.createOrClearMesh('tube')
-    let res = this.traces[0].getReference(0)
-    let color = res.color
-    let isRound = true
     let isFront = false
     let isBack = false
-    let geom = new glgeom.BufferRibbonGeometry(
-      this.traces, data.coilFace, isRound, isFront, isBack, color)
-    let displayMesh = new THREE.Mesh(geom, this.displayMaterial)
+    let displayGeom = new glgeom.BufferRibbonGeometry(
+      this.traces, data.coilFace, isFront, isBack)
+    let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
     this.displayMeshes['tube'].add(displayMesh)
+    let pickingGeom = new glgeom.BufferRibbonGeometry(
+      this.traces, data.coilFace, isFront, isBack, true)
+    let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
+    this.pickingMeshes['tube'].add(pickingMesh)
   }
 
   buildMeshOfArrows () {
@@ -413,7 +383,7 @@ class Display {
     }
 
     let blockArrowGeometry = new glgeom.BlockArrowGeometry()
-    let bufferGeometry = new THREE.BufferGeometry().fromGeometry( blockArrowGeometry );
+    let bufferGeometry = new THREE.BufferGeometry().fromGeometry(blockArrowGeometry)
 
     let displayGeom = new glgeom.CopyBufferGeometry(bufferGeometry, nCopy)
     let pickingGeom = new glgeom.CopyBufferGeometry(bufferGeometry, nCopy)
@@ -429,10 +399,6 @@ class Display {
         let normal = trace.binormals[i]
         let target = point.clone().add(tangent)
 
-        let res = trace.getReference(i)
-        let color = data.getDarkSsColor(res.ss)
-        let iAtom = res.iAtom
-
         obj.matrix.identity()
         obj.position.copy(point)
         obj.up.copy(normal)
@@ -440,10 +406,12 @@ class Display {
         obj.updateMatrix()
 
         displayGeom.applyMatrixToCopy(obj.matrix, iCopy)
+        let color = trace.colors[i].clone()
+        color.offsetHSL(0, 0, -0.2)
         displayGeom.applyColorToCopy(color, iCopy)
 
         pickingGeom.applyMatrixToCopy(obj.matrix, iCopy)
-        pickingGeom.applyColorToCopy(data.getIndexColor(iAtom), iCopy)
+        pickingGeom.applyColorToCopy(trace.indexColors[i], iCopy)
 
         iCopy += 1
       }
@@ -454,7 +422,6 @@ class Display {
 
     let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
     this.pickingMeshes['arrows'].add(pickingMesh)
-
   }
 
   buildAtomMeshes (atomIndices, meshName) {
@@ -711,7 +678,7 @@ class Display {
       // explicitly set to zero-length array as RaisedShapeGeometry
       // sets no uv but cylinder does, and the merged geometry causes
       // warnings in THREE.js v0.79
-      basepairGeom.faceVertexUvs = [new Array()]
+      basepairGeom.faceVertexUvs = [[]]
 
       glgeom.setGeometryVerticesColor(
         basepairGeom, residue.color)
@@ -801,19 +768,19 @@ class Display {
       .crossVectors(y, z)
       .normalize()
 
-    let rot_z = new THREE.Quaternion()
+    let rotZ = new THREE.Quaternion()
       .setFromAxisAngle(z, zRotationAngle)
 
-    let rot_y = new THREE.Quaternion()
+    let rotY = new THREE.Quaternion()
       .setFromAxisAngle(y, -yRotationAngle)
 
-    let rot_x = new THREE.Quaternion()
+    let rotX = new THREE.Quaternion()
       .setFromAxisAngle(x, -xRotationAngle)
 
     let rotation = new THREE.Quaternion()
-      .multiply(rot_z)
-      .multiply(rot_y)
-      .multiply(rot_x)
+      .multiply(rotZ)
+      .multiply(rotY)
+      .multiply(rotX)
 
     let newZoom = zoomRatio * cameraParams.zoom
 
@@ -927,9 +894,10 @@ class Display {
       pixelBuffer)
 
     // interpret the pixel as an ID
-    let i = (pixelBuffer[0] << 16)
-      | (pixelBuffer[1] << 8)
-      | (pixelBuffer[2])
+    let i =
+      (pixelBuffer[0] << 16) |
+      (pixelBuffer[1] << 8) |
+      (pixelBuffer[2])
 
     if (i < this.soup.getAtomCount()) {
       return i
@@ -984,9 +952,8 @@ class Display {
     this.updateMeshesInScene = false
 
     let show = this.soupView.currentView.show
-    this.setMeshVisible('tube', show.trace)
+    this.setMeshVisible('tube', show.ribbon)
     this.setMeshVisible('water', show.water)
-    this.setMeshVisible('ribbons', show.ribbon)
     this.setMeshVisible('arrows', !show.backboneAtoms)
     this.setMeshVisible('backbone', show.backboneAtom)
     this.setMeshVisible('ligands', show.ligands)
@@ -1088,7 +1055,6 @@ class Display {
     if (util.exists(this.renderer)) {
       this.renderer.setSize(this.width(), this.height())
     }
-
   }
 
   x () {
@@ -1124,9 +1090,9 @@ class Display {
       this.eventY = event.clientY
     }
 
-    let result = util.getDomPosition(this.div[0])
-    this.mouseX = this.eventX - result[0] - this.x()
-    this.mouseY = this.eventY - result[1] - this.y()
+    let rect = event.target.getBoundingClientRect()
+    this.mouseX = this.eventX - rect.left
+    this.mouseY = this.eventY - rect.top
 
     let x = this.mouseX - this.width() / 2
     let y = this.mouseY - this.height() / 2
@@ -1303,7 +1269,6 @@ class Display {
     this.iDownAtom = null
     this.mousePressed = false
   }
-
 }
 
 export { Display }

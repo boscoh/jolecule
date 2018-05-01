@@ -1,0 +1,6 @@
+# JetBrains Configuration
+.idea
+files
+database.sqlite
+yarn.lock
+src/config.js

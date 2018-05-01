@@ -4,7 +4,7 @@
  */
 
 import _ from 'lodash'
-import * as THREE from "three";
+import * as THREE from 'three'
 
 const proteinResTypes = [
   'ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS',
@@ -12,7 +12,6 @@ const proteinResTypes = [
   'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR']
 const dnaResTypes = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C']
 const rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U']
-
 
 // Color constants
 
@@ -190,4 +189,3 @@ export {
   dnaResTypes,
   rnaResTypes
 }
-

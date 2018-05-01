@@ -1,0 +1,161 @@
+#!/usr/bin/env node
+
+/**
+ * Create config.js from defaultConfig.js if not found
+ */
+
+const path = require('path')
+const fs = require('fs-extra')
+const configJs = path.resolve(__dirname, '../config.js')
+const defaultConfigJs = path.resolve(__dirname, '../defaultConfig.js')
+if (!fs.existsSync(configJs)) {
+  fs.copySync(defaultConfigJs, configJs)
+}
+
+/**
+ * Module dependencies.
+ */
+
+const app = require('../app')
+const debug = require('debug')('app:server')
+const http = require('http')
+
+const config = require('../config')
+
+/**
+ * Open compiled webclient if `-c` is passed as argument
+ */
+
+const url = `http://localhost:${config.port}`
+const util = require('../modules/util')
+const opn = require('opn')
+
+// https://coderwall.com/p/184h4a/get-request-with-promise-in-nodejs
+function getUrl (url) {
+  return new Promise(function (resolve, reject) {
+    let request = http.get(url, function (response) {
+      if (response.statusCode < 200 || response.statusCode > 299) {
+        reject(new Error('Failed to load page, status code: ' + response.statusCode))
+      }
+      let body = []
+      response.on('data', function (chunk) {
+        return body.push(chunk)
+      })
+      response.on('end', function () {
+        return resolve(body.join(''))
+      })
+    })
+    request.on('error', function (err) {
+      return reject(err)
+    })
+  })
+}
+
+let isNotServerReady = true
+let elapsed = 0
+
+async function openWebClient () {
+  while (isNotServerReady) {
+    await util.delay(1000)
+    try {
+      let body = await getUrl(url)
+      isNotServerReady = false
+    }
+    catch (e) {
+      elapsed += 1
+      console.log(`Waiting ${elapsed} s for ${url}`)
+    }
+  }
+  console.log(`Opening ${url}`)
+  opn(url)
+}
+
+for (let arg of process.argv) {
+  if (arg === '-c') {
+    openWebClient()
+    break
+  }
+}
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+let port = normalizePort(process.env.PORT || normalizePort(config.port))
+app.set('port', port)
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app)
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+let ip = config.ip
+server.listen(port, ip)
+server.on('error', onError)
+server.on('listening', onListening)
+console.log(`Serving on ${ip}:${port}`)
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort (val) {
+  var port = parseInt(val, 10)
+
+  if (isNaN(port)) {
+    // named pipe
+    return val
+  }
+
+  if (port >= 0) {
+    // port number
+    return port
+  }
+
+  return false
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError (error) {
+  if (error.syscall !== 'listen') {
+    throw error
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges')
+      process.exit(1)
+      break
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use')
+      process.exit(1)
+      break
+    default:
+      throw error
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening () {
+  var addr = server.address()
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port
+  debug('Listening on ' + bind)
+}

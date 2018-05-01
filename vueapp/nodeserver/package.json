@@ -1,0 +1,49 @@
+{
+  "name": "plasticgui-node-server",
+  "version": "1.0.0",
+  "author": "Bosco Ho <apposite@gmail.com>",
+  "private": true,
+  "scripts": {
+    "start": "node src/bin/www",
+    "lint": "eslint --ext .js src"
+  },
+  "contributors": [
+    {
+      "name": "Bosco Ho",
+      "email": "boscoh@gmail.com",
+      "url": "http://boscoh.com"
+    }
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "babel-eslint": "^8.2.1",
+    "bcryptjs": "*",
+    "body-parser": "*",
+    "debug": "*",
+    "del": "*",
+    "denodeify": "*",
+    "eslint": "^4.15.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-friendly-formatter": "^3.0.0",
+    "eslint-loader": "^1.7.1",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-node": "^5.2.0",
+    "eslint-plugin-promise": "^3.4.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "eslint-plugin-vue": "^4.0.0",
+    "express": "*",
+    "express-session": "*",
+    "fs-extra": "^5.0.0",
+    "morgan": "*",
+    "multer": "*",
+    "opn": "^5.3.0",
+    "passport": "*",
+    "passport-local": "*",
+    "pretty-ms": "*",
+    "rimraf": "*",
+    "sequelize": "*",
+    "sequelize-json": "*",
+    "shortid": "*",
+    "sqlite3": "*"
+  }
+}

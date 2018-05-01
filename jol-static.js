@@ -168,6 +168,9 @@ if (remain.length < 1) {
   let dataServerArgStr = ''
   for (let i = 0; i < remain.length; i++) {
     let pdb = remain[i]
+    if (!_.endsWith(pdb, '.pdb')) {
+      pdb += '.pdb'
+    }
     let base = path.basename(pdb.replace('.pdb', ''))
     const dataJs = path.join(targetDir, `data-server${i}.js`)
     const pdbText = fs.readFileSync(pdb, 'utf8')

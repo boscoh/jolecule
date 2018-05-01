@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import v3 from './v3'
 import { getWindowUrl, inArray, getCurrentDateStr } from './util.js'
 import * as glgeom from './glgeom'
@@ -64,11 +65,10 @@ const atomStoreFields = [
   ['iRes', 1, 'uint32'],
   ['iChain', 1, 'int32'],
   ['bondOffset', 1, 'uint32'],
-  ['bondCount', 1, 'uint16'],
+  ['bondCount', 1, 'uint16']
 ]
 
 class AtomProxy {
-
   constructor (soup, iAtom) {
     this.soup = soup
     if (Number.isInteger(iAtom)) {
@@ -127,7 +127,7 @@ class AtomProxy {
   get label () {
     let iResType = this.soup.residueStore.iResType[this.iRes]
     let resType = this.soup.resTypeTable[iResType]
-    let label =this.soup.resIds[this.iRes] +
+    let label = this.soup.resIds[this.iRes] +
       ':' + resType +
       ':' + this.atomType
     if (this.alt) {
@@ -153,7 +153,6 @@ class AtomProxy {
     }
     return data.darkGrey
   }
-
 }
 
 const residueStoreFields = [
@@ -166,11 +165,10 @@ const residueStoreFields = [
   ['insCode', 1, 'uint8'],
   ['sstruc', 1, 'uint8'],
   ['iColor', 1, 'uint8'],
-  ['isPolymer', 1, 'uint8'],
+  ['isPolymer', 1, 'uint8']
 ]
 
 class ResidueProxy {
-
   constructor (soup, iRes) {
     this.soup = soup
     if (Number.isInteger(iRes)) {
@@ -208,7 +206,7 @@ class ResidueProxy {
   }
 
   set insCode (c) {
-    return this.soup.residueStore.insCode[this.iRes] = charToInt(c)
+    this.soup.residueStore.insCode[this.iRes] = charToInt(c)
   }
 
   get isPolymer () {
@@ -259,6 +257,14 @@ class ResidueProxy {
     this.soup.residueStore.sstruc[this.iRes] = charToInt(c)
   }
 
+  get label () {
+    let iResType = this.soup.residueStore.iResType[this.iRes]
+    let resType = this.soup.resTypeTable[iResType]
+    let label = this.soup.resIds[this.iRes] +
+      ':' + resType
+    return label
+  }
+
   getAtomIndices () {
     let iStart = this.soup.residueStore.atomOffset[this.iRes]
     let n = this.soup.residueStore.atomCount[this.iRes]
@@ -298,7 +304,6 @@ class ResidueProxy {
   }
 
   isProteinConnectedToPrev () {
-
     if (this.iRes === 0) {
       return false
     }
@@ -320,7 +325,6 @@ class ResidueProxy {
   }
 
   isNucleotideConnectedToPrev () {
-
     if (this.iRes === 0) {
       return false
     }
@@ -358,11 +362,10 @@ class ResidueProxy {
 
 const bondStoreFields = [
   ['iAtom1', 1, 'int32'],
-  ['iAtom2', 1, 'int32'],
+  ['iAtom2', 1, 'int32']
 ]
 
 class BondProxy {
-
   constructor (soup, iBond) {
     this.soup = soup
     if (Number.isInteger(iBond)) {
@@ -393,7 +396,6 @@ class BondProxy {
  * will be made via the Controller.
  */
 class Soup {
-
   constructor () {
     this.parsingError = ''
     this.title = ''
@@ -427,7 +429,6 @@ class Soup {
   }
 
   load (pdbData) {
-
     console.log(`Soup.load parse ${this.pdbId}...`)
 
     this.parsePdbData(pdbData.pdb_text, this.pdbId)
@@ -447,11 +448,9 @@ class Soup {
 
     this.findSecondaryStructure()
     console.log(`Soup.load calculated secondary-structure`)
-
   }
 
   parsePdbData (pdbText, pdbId) {
-
     if (!this.pdbId) {
       this.pdbId = pdbId
       console.log('Set pdbId', this.pdbId)
@@ -480,7 +479,7 @@ class Soup {
       return
     }
 
-    let x, y, z, chain, resNumIns, resType
+    let x, y, z, chain, resType
     let atomType, bfactor, elem, alt, resNum, insCode
 
     for (let iLine = 0; iLine < lines.length; iLine += 1) {
@@ -516,7 +515,6 @@ class Soup {
   }
 
   addAtom (x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain) {
-
     let iAtom = this.atomStore.count
 
     this.atomStore.increment()
@@ -594,7 +592,6 @@ class Soup {
   assignResidueSsAndCentralAtoms () {
     let res = this.getResidueProxy()
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-
       res.iRes = iRes
 
       if (_.includes(data.proteinResTypes, res.resType)) {
@@ -627,7 +624,7 @@ class Soup {
 
   getIAtomClosest (pos, atomIndices) {
     let iAtomClosest = null
-    let min_d = 1E6
+    let minD = 1E6
     let atom = this.getAtomProxy()
     for (let iAtom of atomIndices) {
       if (iAtomClosest === null) {
@@ -635,9 +632,9 @@ class Soup {
       } else {
         atom.iAtom = iAtom
         let d = v3.distance(pos, atom.pos)
-        if (d < min_d) {
+        if (d < minD) {
           iAtomClosest = iAtom
-          min_d = d
+          minD = d
         }
       }
     }
@@ -687,12 +684,12 @@ class Soup {
   calcBondsStrategic () {
     this.bondStore.count = 0
 
-    const small_cutoff_sq = 1.2 * 1.2
-    const medium_cutoff_sq = 1.9 * 1.9
-    const large_cutoff_sq = 2.4 * 2.4
+    const smallCutoffSq = 1.2 * 1.2
+    const mediumCutoffSq = 1.9 * 1.9
+    const largeCutoffSq = 2.4 * 2.4
     const CHONPS = ['C', 'H', 'O', 'N', 'P', 'S']
 
-    function isBonded(atom1, atom2) {
+    function isBonded (atom1, atom2) {
       if ((atom1 === null) || (atom2 === null)) {
         return false
       }
@@ -703,22 +700,22 @@ class Soup {
         }
       }
 
-      let cutoff_sq
+      let cutoffSq
       if ((atom1.elem === 'H') || (atom2.elem === 'H')) {
-        cutoff_sq = small_cutoff_sq
+        cutoffSq = smallCutoffSq
       } else if (
         inArray(atom1.elem, CHONPS) &&
         inArray(atom2.elem, CHONPS)) {
-        cutoff_sq = medium_cutoff_sq
+        cutoffSq = mediumCutoffSq
       } else {
-        cutoff_sq = large_cutoff_sq
+        cutoffSq = largeCutoffSq
       }
 
-      let diff_x = atom1.pos.x - atom2.pos.x
-      let diff_y = atom1.pos.y - atom2.pos.y
-      let diff_z = atom1.pos.z - atom2.pos.z
-      let dist_sq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z
-      return dist_sq <= cutoff_sq
+      let diffX = atom1.pos.x - atom2.pos.x
+      let diffY = atom1.pos.y - atom2.pos.y
+      let diffZ = atom1.pos.z - atom2.pos.z
+      let distSq = diffX * diffX + diffY * diffY + diffZ * diffZ
+      return distSq <= cutoffSq
     }
 
     let makeBond = (atom1, atom2) => {
@@ -896,7 +893,6 @@ class Soup {
     }
 
     for (let iRes0 = 0; iRes0 < nRes; iRes0 += 1) {
-
       residue0.iRes = iRes0
 
       if (!residue0.isPolymer) {
@@ -994,7 +990,6 @@ class Soup {
         }
       }
     }
-
   }
 
   getAtomProxy (iAtom) {
@@ -1107,7 +1102,6 @@ class Soup {
     }
     this.grid.bCutoff = this.grid.bMin
   }
-
 }
 
 /**
@@ -1136,7 +1130,6 @@ class Soup {
  *   - box -1 to +1
  */
 class View {
-
   constructor () {
     this.id = 'view:000000'
     this.iAtom = -1
@@ -1161,7 +1154,7 @@ class View {
       hydrogen: false,
       water: false,
       ligands: true,
-      trace: false,
+      trace: true,
       backboneAtom: false,
       ribbon: true
     }
@@ -1227,8 +1220,8 @@ class View {
     let zoom = cameraDir.length()
     cameraDir.normalize()
     let pos = this.cameraParams.focus
-    let in_v = pos.clone().add(cameraDir)
-    let up_v = pos.clone().sub(this.cameraParams.up)
+    let inV = pos.clone().add(cameraDir)
+    let upV = pos.clone().sub(this.cameraParams.up)
 
     let show = _.clone(this.show)
     show.all_atom = show.backboneAtom
@@ -1253,29 +1246,29 @@ class View {
           zoom: zoom
         },
         pos: [pos.x, pos.y, pos.z],
-        up: [up_v.x, up_v.y, up_v.z],
-        in: [in_v.x, in_v.y, in_v.z]
+        up: [upV.x, upV.y, upV.z],
+        in: [inV.x, inV.y, inV.z]
       }
     }
   }
 
-  setFromDict (flat_dict) {
-    this.id = flat_dict.view_id
-    this.view_id = flat_dict.view_id
-    this.pdb_id = flat_dict.pdb_id
-    this.lock = flat_dict.lock
-    this.text = flat_dict.text
-    this.creator = flat_dict.creator
-    this.order = flat_dict.order
-    this.res_id = flat_dict.res_id
-    this.iAtom = flat_dict.i_atom
+  setFromDict (flatDict) {
+    this.id = flatDict.view_id
+    this.view_id = flatDict.view_id
+    this.pdb_id = flatDict.pdb_id
+    this.lock = flatDict.lock
+    this.text = flatDict.text
+    this.creator = flatDict.creator
+    this.order = flatDict.order
+    this.res_id = flatDict.res_id
+    this.iAtom = flatDict.i_atom
 
-    this.labels = flat_dict.labels
-    this.selected = flat_dict.selected
-    this.distances = flat_dict.distances
+    this.labels = flatDict.labels
+    this.selected = flatDict.selected
+    this.distances = flatDict.distances
 
-    this.show = flat_dict.show
-    this.show.backboneAtom = flat_dict.show.all_atom
+    this.show = flatDict.show
+    this.show.backboneAtom = flatDict.show.all_atom
     delete this.show.all_atom
 
     if (!(this.show.backboneAtom || this.show.trace || this.show.ribbon)) {
@@ -1283,26 +1276,26 @@ class View {
     }
 
     let pos = v3.create(
-      flat_dict.camera.pos[0],
-      flat_dict.camera.pos[1],
-      flat_dict.camera.pos[2])
+      flatDict.camera.pos[0],
+      flatDict.camera.pos[1],
+      flatDict.camera.pos[2])
 
-    let up_v = v3.create(
-      flat_dict.camera.up[0],
-      flat_dict.camera.up[1],
-      flat_dict.camera.up[2])
+    let upV = v3.create(
+      flatDict.camera.up[0],
+      flatDict.camera.up[1],
+      flatDict.camera.up[2])
 
-    let in_v = v3.create(
-      flat_dict.camera.in[0],
-      flat_dict.camera.in[1],
-      flat_dict.camera.in[2])
+    let inV = v3.create(
+      flatDict.camera.in[0],
+      flatDict.camera.in[1],
+      flatDict.camera.in[2])
 
-    let zoom = flat_dict.camera.slab.zoom
+    let zoom = flatDict.camera.slab.zoom
 
     let focus = v3.clone(pos)
 
     let cameraDirection = v3
-      .clone(in_v)
+      .clone(inV)
       .sub(focus)
       .multiplyScalar(zoom)
       .negate()
@@ -1311,7 +1304,7 @@ class View {
       .clone(focus).add(cameraDirection)
 
     let up = v3
-      .clone(up_v)
+      .clone(upV)
       .sub(focus)
       .negate()
 
@@ -1319,16 +1312,14 @@ class View {
       focus: focus,
       position: position,
       up: up,
-      zFront: flat_dict.camera.slab.z_front,
-      zBack: flat_dict.camera.slab.z_back,
+      zFront: flatDict.camera.slab.z_front,
+      zBack: flatDict.camera.slab.z_back,
       zoom: zoom
     }
   }
-
 }
 
 function interpolateCameras (oldCamera, futureCamera, t) {
-
   let oldCameraDirection = oldCamera.position.clone()
     .sub(oldCamera.focus)
   let oldZoom = oldCameraDirection.length()
@@ -1380,9 +1371,7 @@ function interpolateCameras (oldCamera, futureCamera, t) {
  * view, and a target view for animation
  */
 class SoupView {
-
   constructor (soup) {
-
     // the soup data for the soupView
     this.soup = soup
 
@@ -1413,7 +1402,7 @@ class SoupView {
   }
 
   initViewsAfterSoupLoad () {
-    if (this.savedViews.length == 0) {
+    if (this.savedViews.length === 0) {
       this.currentView.makeDefaultOfSoup(this.soup)
       this.saveView(this.currentView)
       this.changed = true
@@ -1473,7 +1462,6 @@ class SoupView {
     this.savedViewsByViewId[view.id] = view
     this.savedViews.push(view)
   }
-
 }
 
 /**
@@ -1481,7 +1469,6 @@ class SoupView {
  * to a Soup and its Views go through here.
  */
 class Controller {
-
   constructor (scene) {
     this.soup = scene.soup
     this.soupView = scene
@@ -1492,13 +1479,13 @@ class Controller {
     this.soupView.changed = true
   }
 
-  makeDistance (i_atom1, i_atom2) {
-    this.soupView.currentView.distances.push({i_atom1, i_atom2})
+  makeDistance (iAtom1, iAtom2) {
+    this.soupView.currentView.distances.push({i_atom1: iAtom1, i_atom2: iAtom2})
     this.soupView.changed = true
   }
 
-  makeAtomLabel (i_atom, text) {
-    this.soupView.currentView.labels.push({i_atom, text})
+  makeAtomLabel (iAtom, text) {
+    this.soupView.currentView.labels.push({i_atom: iAtom, text})
     this.soupView.changed = true
   }
 
@@ -1579,11 +1566,11 @@ class Controller {
   }
 
   getViewDicts () {
-    let view_dicts = []
+    let viewDicts = []
     for (let i = 1; i < this.soupView.savedViews.length; i += 1) {
-      view_dicts.push(this.soupView.savedViews[i].getDict())
+      viewDicts.push(this.soupView.savedViews[i].getDict())
     }
-    return view_dicts
+    return viewDicts
   }
 
   makeSelectedResidueList () {
@@ -1628,18 +1615,18 @@ class Controller {
 
   saveCurrentView (newViewId) {
     let iNewView = this.soupView.iLastViewSelected + 1
-    let new_view = this.soupView.currentView.clone()
-    new_view.text = 'Click edit to change this text.'
-    new_view.pdb_id = this.soup.pdb_id
+    let newView = this.soupView.currentView.clone()
+    newView.text = 'Click edit to change this text.'
+    newView.pdb_id = this.soup.pdb_id
     let time = getCurrentDateStr()
     if (user === '' || typeof user === 'undefined') {
-      new_view.creator = '~ [public] @' + time
+      newView.creator = '~ [public] @' + time
     } else {
-      new_view.creator = '~ ' + user + ' @' + time
+      newView.creator = '~ ' + user + ' @' + time
     }
-    new_view.id = newViewId
-    new_view.selected = this.makeSelectedResidueList()
-    this.soupView.insertView(iNewView, newViewId, new_view)
+    newView.id = newViewId
+    newView.selected = this.makeSelectedResidueList()
+    this.soupView.insertView(iNewView, newViewId, newView)
     return iNewView
   }
 
@@ -1648,11 +1635,11 @@ class Controller {
   }
 
   sortViewsByOrder () {
-    function order_sort (a, b) {
+    function orderSort (a, b) {
       return a.order - b.order
     }
 
-    this.soupView.savedViews.sort(order_sort)
+    this.soupView.savedViews.sort(orderSort)
     for (let i = 0; i < this.soupView.savedViews.length; i += 1) {
       this.soupView.savedViews[i].order = i
     }
@@ -1702,12 +1689,10 @@ class Controller {
 
   setCurrentView (view) {
     this.soupView.currentView = view.clone()
-    let atom = this.soup.getAtomProxy(view.iAtom)
     this.soupView.soup.clearSelectedResidues()
     this.soupView.soup.selectResidues(view.selected, true)
     this.soupView.changed = true
   }
-
 }
 
 export {

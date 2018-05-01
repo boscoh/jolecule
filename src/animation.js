@@ -19,10 +19,10 @@ var MS_PER_STEP = 25
 function loop () {
   requestAnimationFrame(loop)
 
-  if (window.globalWidgets == []) {
+  if (window.globalWidgets === []) {
     return
   }
-  var currTime = (new Date).getTime()
+  var currTime = (new Date()).getTime()
   var elapsedTime = currTime - window.lastTime
   var nStep = (elapsedTime) / MS_PER_STEP
   if (nStep < 1) {
@@ -50,15 +50,12 @@ function loop () {
  * window space to lock one single copy of loop
  */
 function registerGlobalAnimationLoop (widget) {
-  if (typeof window.globalWidgets == 'undefined') {
+  if (typeof window.globalWidgets === 'undefined') {
     window.globalWidgets = []
     loop()
-    window.lastTime = (new Date).getTime()
+    window.lastTime = (new Date()).getTime()
   }
   window.globalWidgets.push(widget)
 }
 
 export { registerGlobalAnimationLoop }
-
-
-

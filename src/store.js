@@ -5,7 +5,6 @@
  * adapted from NGL @author Alexander Rose <alexander.rose@weirdbyte.de>
  */
 
-
 function getTypedArray (arrayType, arraySize) {
   switch (arrayType) {
     case 'int8':
@@ -37,7 +36,6 @@ class Store {
    * @param {Integer} size - initial size of the datastore
    */
   constructor (fields, size) {
-
     // actual size allocated
     this.length = 0
 

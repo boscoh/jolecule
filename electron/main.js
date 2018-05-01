@@ -69,7 +69,7 @@ let j = jolecule.initEmbedJolecule({
   isGrid: false, 
   backgroundColor: 0xCCCCCC
 });
-j.addDataServer(dataServer);
+j.asyncAddDataServer(dataServer);
 
 `;
 

@@ -15,7 +15,6 @@
  * @returns {Array} - array of pairs of positions
  */
 class SpaceHash {
-
   constructor (vertices) {
     console.log('SpaceHash assigning vertices to cells')
 
@@ -87,7 +86,7 @@ class SpaceHash {
             let cell = this.cells[hash]
             for (let jVertexInCell = 0; jVertexInCell < cell.length; jVertexInCell++) {
               let jVertex = cell[jVertexInCell]
-                pairs.push([iVertex, jVertex])
+              pairs.push([iVertex, jVertex])
             }
           }
         }

@@ -1104,78 +1104,6 @@ module.exports = {
 /* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var META = __webpack_require__(33)('meta');
-var isObject = __webpack_require__(4);
-var has = __webpack_require__(11);
-var setDesc = __webpack_require__(7).f;
-var id = 0;
-var isExtensible = Object.isExtensible || function () {
-  return true;
-};
-var FREEZE = !__webpack_require__(3)(function () {
-  return isExtensible(Object.preventExtensions({}));
-});
-var setMeta = function (it) {
-  setDesc(it, META, { value: {
-    i: 'O' + ++id, // object ID
-    w: {}          // weak collections IDs
-  } });
-};
-var fastKey = function (it, create) {
-  // return primitive with prefix
-  if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
-  if (!has(it, META)) {
-    // can't set metadata to uncaught frozen object
-    if (!isExtensible(it)) return 'F';
-    // not necessary to add metadata
-    if (!create) return 'E';
-    // add missing metadata
-    setMeta(it);
-  // return object ID
-  } return it[META].i;
-};
-var getWeak = function (it, create) {
-  if (!has(it, META)) {
-    // can't set metadata to uncaught frozen object
-    if (!isExtensible(it)) return true;
-    // not necessary to add metadata
-    if (!create) return false;
-    // add missing metadata
-    setMeta(it);
-  // return hash weak collections IDs
-  } return it[META].w;
-};
-// add metadata on freeze-family methods calling
-var onFreeze = function (it) {
-  if (FREEZE && meta.NEED && isExtensible(it) && !has(it, META)) setMeta(it);
-  return it;
-};
-var meta = module.exports = {
-  KEY: META,
-  NEED: false,
-  fastKey: fastKey,
-  getWeak: getWeak,
-  onFreeze: onFreeze
-};
-
-
-/***/ }),
-/* 30 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 22.1.3.31 Array.prototype[@@unscopables]
-var UNSCOPABLES = __webpack_require__(5)('unscopables');
-var ArrayProto = Array.prototype;
-if (ArrayProto[UNSCOPABLES] == undefined) __webpack_require__(12)(ArrayProto, UNSCOPABLES, {});
-module.exports = function (key) {
-  ArrayProto[UNSCOPABLES][key] = true;
-};
-
-
-/***/ }),
-/* 31 */
-/***/ (function(module, exports, __webpack_require__) {
-
 /* WEBPACK VAR INJECTION */(function(global, module) {var __WEBPACK_AMD_DEFINE_RESULT__;/**
  * @license
  * Lodash <https://lodash.com/>
@@ -18263,6 +18191,78 @@ module.exports = function (key) {
 }.call(this));
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(67), __webpack_require__(339)(module)))
+
+/***/ }),
+/* 30 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var META = __webpack_require__(33)('meta');
+var isObject = __webpack_require__(4);
+var has = __webpack_require__(11);
+var setDesc = __webpack_require__(7).f;
+var id = 0;
+var isExtensible = Object.isExtensible || function () {
+  return true;
+};
+var FREEZE = !__webpack_require__(3)(function () {
+  return isExtensible(Object.preventExtensions({}));
+});
+var setMeta = function (it) {
+  setDesc(it, META, { value: {
+    i: 'O' + ++id, // object ID
+    w: {}          // weak collections IDs
+  } });
+};
+var fastKey = function (it, create) {
+  // return primitive with prefix
+  if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
+  if (!has(it, META)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return 'F';
+    // not necessary to add metadata
+    if (!create) return 'E';
+    // add missing metadata
+    setMeta(it);
+  // return object ID
+  } return it[META].i;
+};
+var getWeak = function (it, create) {
+  if (!has(it, META)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return true;
+    // not necessary to add metadata
+    if (!create) return false;
+    // add missing metadata
+    setMeta(it);
+  // return hash weak collections IDs
+  } return it[META].w;
+};
+// add metadata on freeze-family methods calling
+var onFreeze = function (it) {
+  if (FREEZE && meta.NEED && isExtensible(it) && !has(it, META)) setMeta(it);
+  return it;
+};
+var meta = module.exports = {
+  KEY: META,
+  NEED: false,
+  fastKey: fastKey,
+  getWeak: getWeak,
+  onFreeze: onFreeze
+};
+
+
+/***/ }),
+/* 31 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 22.1.3.31 Array.prototype[@@unscopables]
+var UNSCOPABLES = __webpack_require__(5)('unscopables');
+var ArrayProto = Array.prototype;
+if (ArrayProto[UNSCOPABLES] == undefined) __webpack_require__(12)(ArrayProto, UNSCOPABLES, {});
+module.exports = function (key) {
+  ArrayProto[UNSCOPABLES][key] = true;
+};
+
 
 /***/ }),
 /* 32 */
@@ -73902,13 +73902,13 @@ function CanvasRenderer() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.delay = exports.textEntryDialog = exports.getCurrentDateStr = exports.randomId = exports.inArray = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.toggleButton = exports.linkButton = exports.getDomPosition = exports.getWindowUrl = exports.extendArray = exports.exists = undefined;
+exports.delay = exports.textEntryDialog = exports.getCurrentDateStr = exports.randomId = exports.inArray = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.toggleButton = exports.linkButton = exports.getWindowUrl = exports.extendArray = exports.exists = undefined;
 
 var _jquery = __webpack_require__(43);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _lodash = __webpack_require__(31);
+var _lodash = __webpack_require__(29);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -73956,26 +73956,6 @@ function getWindowUrl() {
   return '' + window.location;
 }
 
-function getDomPosition(dom) {
-  var currDom = dom;
-  var currLeft = 0;
-  var currTop = 0;
-  if (currDom.offsetParent) {
-    currLeft = currDom.offsetLeft;
-    currTop = currDom.offsetTop;
-    while (currDom = currDom.offsetParent) {
-      currLeft += currDom.offsetLeft;
-      currTop += currDom.offsetTop;
-    }
-  }
-  currDom = dom;
-  do {
-    currLeft -= currDom.scrollLeft || 0;
-    currTop -= currDom.scrollTop || 0;
-  } while (currDom = currDom.parentNode);
-  return [currLeft, currTop];
-}
-
 function linkButton(idTag, text, classTag, callback) {
   var item = (0, _jquery2.default)('<a>').attr('id', idTag).attr('href', '').html(text);
 
@@ -73994,7 +73974,6 @@ function linkButton(idTag, text, classTag, callback) {
 }
 
 function toggleButton(idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
-
   var item = (0, _jquery2.default)('<a>').attr('id', idTag).attr('href', '').html(text);
 
   function color() {
@@ -74067,10 +74046,10 @@ function inArray(v, aList) {
   return aList.indexOf(v) >= 0;
 }
 
-function randomString(n_char) {
+function randomString(nChar) {
   var chars = '0123456789abcdefghiklmnopqrstuvwxyz';
   var s = '';
-  for (var i = 0; i < n_char; i++) {
+  for (var i = 0; i < nChar; i++) {
     var j = Math.floor(Math.random() * chars.length);
     s += chars.substring(j, j + 1);
   }
@@ -74112,9 +74091,9 @@ function textEntryDialog(parentDiv, label, callback) {
     window.keyboard_lock = false;
   }
 
-  var save_button = linkButton('okay', 'okay', 'jolecule-small-button', accept);
+  var saveButton = linkButton('okay', 'okay', 'jolecule-small-button', accept);
 
-  var discard_button = linkButton('discard', 'discard', 'jolecule-small-button', discard);
+  var discardButton = linkButton('discard', 'discard', 'jolecule-small-button', discard);
 
   var textarea = (0, _jquery2.default)('<textarea>').css('width', '100%').addClass('jolecule-view-text').keydown(function (e) {
     if (e.keyCode === 27) {
@@ -74123,7 +74102,7 @@ function textEntryDialog(parentDiv, label, callback) {
     }
   });
 
-  var editbox = (0, _jquery2.default)('<div>').css('width', '100%').append(label).append(textarea).append(save_button).append(' ').append(discard_button);
+  var editbox = (0, _jquery2.default)('<div>').css('width', '100%').append(label).append(textarea).append(saveButton).append(' ').append(discardButton);
 
   var dialog = (0, _jquery2.default)('<div>').addClass('jolecule-dialog').css('display', 'block').css('z-index', '2000').css('width', Math.min(400, parentDiv.width() - 100)).append(editbox);
 
@@ -74143,7 +74122,6 @@ function delay(timeMs) {
 exports.exists = exists;
 exports.extendArray = extendArray;
 exports.getWindowUrl = getWindowUrl;
-exports.getDomPosition = getDomPosition;
 exports.linkButton = linkButton;
 exports.toggleButton = toggleButton;
 exports.stickJqueryDivInCenter = stickJqueryDivInCenter;
@@ -74335,7 +74313,7 @@ var global = __webpack_require__(2);
 var $export = __webpack_require__(0);
 var redefine = __webpack_require__(13);
 var redefineAll = __webpack_require__(42);
-var meta = __webpack_require__(29);
+var meta = __webpack_require__(30);
 var forOf = __webpack_require__(41);
 var anInstance = __webpack_require__(40);
 var isObject = __webpack_require__(4);
@@ -74940,7 +74918,7 @@ module.exports = function fill(value /* , start = 0, end = @length */) {
 
 "use strict";
 
-var addToUnscopables = __webpack_require__(30);
+var addToUnscopables = __webpack_require__(31);
 var step = __webpack_require__(114);
 var Iterators = __webpack_require__(46);
 var toIObject = __webpack_require__(15);
@@ -75475,15 +75453,14 @@ var THREE = _interopRequireWildcard(_three);
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var SMALL = 1E-6;
-
 /**
- * 
+ *
  * v3.js - is a simple function based wrapper library around the vector
  * portion of THREE.js. THREE.Vector3 are created and manipulated using
  * factory functions, which was the original approach used in a deprecated
  * vector library. This was replaced with the fully-featured vector library
  * in THREE.js
- * 
+ *
  */
 
 function isNearZero(a) {
@@ -75517,12 +75494,12 @@ function sum(a, b) {
 }
 
 function parallel(v, axis) {
-  var axis_len = axis.length();
+  var axisLen = axis.length();
   var result = void 0;
-  if (isNearZero(axis_len)) {
+  if (isNearZero(axisLen)) {
     result = create(v.x, v.y, v.z);
   } else {
-    var scale = dot_product(v, axis) / axis_len / axis_len;
+    var scale = dotProduct(v, axis) / axisLen / axisLen;
     result = scaled(axis, scale);
   }
   return result;
@@ -75536,7 +75513,7 @@ function crossProduct(a, b) {
   return new THREE.Vector3().crossVectors(a, b);
 }
 
-function dot_product(a, b) {
+function dotProduct(a, b) {
   return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
@@ -75545,12 +75522,12 @@ function distance(p1, p2) {
 }
 
 function angle(a, b) {
-  var a_len = a.length();
-  var b_len = b.length();
-  if (isNearZero(a_len * b_len)) {
+  var aLen = a.length();
+  var bLen = b.length();
+  if (isNearZero(aLen * bLen)) {
     return 0.0;
   }
-  var c = dot_product(a, b) / a_len / b_len;
+  var c = dotProduct(a, b) / aLen / bLen;
   if (c >= 1.0) {
     return 0.0;
   }
@@ -75563,11 +75540,11 @@ function angle(a, b) {
 function dihedral(ref, axis, v) {
   // + values: right-hand screw rotation of v
   //           around axis relative to ref
-  var ref_perp = perpendicular(ref, axis);
-  var v_perp = perpendicular(v, axis);
-  var a = angle(ref_perp, v_perp);
-  var cross = crossProduct(ref_perp, v_perp);
-  if (dot_product(cross, axis) > 0) {
+  var refPerp = perpendicular(ref, axis);
+  var vPerp = perpendicular(v, axis);
+  var a = angle(refPerp, vPerp);
+  var cross = crossProduct(refPerp, vPerp);
+  if (dotProduct(cross, axis) > 0) {
     a = -a;
   }
   return a;
@@ -75631,7 +75608,7 @@ exports.default = {
   parallel: parallel,
   perpendicular: perpendicular,
   crossProduct: crossProduct,
-  dot_product: dot_product,
+  dotProduct: dotProduct,
   distance: distance,
   angle: angle,
   dihedral: dihedral,
@@ -75663,7 +75640,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * accesors
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           */
 
-var _lodash = __webpack_require__(31);
+var _lodash = __webpack_require__(29);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -76302,7 +76279,7 @@ var $iterDefine = __webpack_require__(80);
 var step = __webpack_require__(114);
 var setSpecies = __webpack_require__(39);
 var DESCRIPTORS = __webpack_require__(6);
-var fastKey = __webpack_require__(29).fastKey;
+var fastKey = __webpack_require__(30).fastKey;
 var validate = __webpack_require__(47);
 var SIZE = DESCRIPTORS ? '_s' : 'size';
 
@@ -76466,7 +76443,7 @@ module.exports = __webpack_require__(62)(SET, function (get) {
 
 var each = __webpack_require__(26)(0);
 var redefine = __webpack_require__(13);
-var meta = __webpack_require__(29);
+var meta = __webpack_require__(30);
 var assign = __webpack_require__(102);
 var weak = __webpack_require__(122);
 var isObject = __webpack_require__(4);
@@ -76531,7 +76508,7 @@ if (fails(function () { return new $WeakMap().set((Object.freeze || Object)(tmp)
 "use strict";
 
 var redefineAll = __webpack_require__(42);
-var getWeak = __webpack_require__(29).getWeak;
+var getWeak = __webpack_require__(30).getWeak;
 var anObject = __webpack_require__(1);
 var isObject = __webpack_require__(4);
 var anInstance = __webpack_require__(40);
@@ -76808,7 +76785,7 @@ var _jquery = __webpack_require__(43);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _lodash = __webpack_require__(31);
+var _lodash = __webpack_require__(29);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -76908,35 +76885,34 @@ var ViewPiece = function () {
         _this2.startEdit();
       });
 
-      var embedButton = (0, _util.linkButton)('', 'embed', 'jolecule-small-button', function () {
-        _this2.params.embed_view();
-      });
-
       this.showTextDiv = (0, _jquery2.default)('<div>').addClass('jolecule-view-text').html(this.params.view.text);
 
       this.showDiv = (0, _jquery2.default)('<div>').css('width', '100%').append(this.showTextDiv);
 
-      if (view.id != 'view:000000') {
+      if (view.id !== 'view:000000') {
         this.showDiv.append((0, _jquery2.default)('<div>').addClass('jolecule-author').html(view.creator));
       }
 
-      var isEditable = this.params.isEditable && !view.lock && view.id != 'view:000000';
+      var isEditable = this.params.isEditable && !view.lock && view.id !== 'view:000000';
 
       if (isEditable) {
-
         // this.showDiv
         //   .append(embedButton)
         //   .append(' ');
 
         this.showDiv.append(editButton);
 
-        if ((0, _util.exists)(this.params.swapUp) && this.params.swapUp) this.showDiv.append(' ').append((0, _util.linkButton)('', 'up', 'jolecule-small-button', function () {
-          _this2.params.swapUp();
-        }));
+        if ((0, _util.exists)(this.params.swapUp) && this.params.swapUp) {
+          this.showDiv.append(' ').append((0, _util.linkButton)('', 'up', 'jolecule-small-button', function () {
+            _this2.params.swapUp();
+          }));
+        }
 
-        if ((0, _util.exists)(this.params.swapUp) && this.params.swapDown) this.showDiv.append(' ').append((0, _util.linkButton)('', 'down', 'jolecule-small-button', function () {
-          _this2.params.swapDown();
-        }));
+        if ((0, _util.exists)(this.params.swapUp) && this.params.swapDown) {
+          this.showDiv.append(' ').append((0, _util.linkButton)('', 'down', 'jolecule-small-button', function () {
+            _this2.params.swapDown();
+          }));
+        }
 
         if ((0, _util.exists)(this.params.deleteView)) {
           this.showDiv.append((0, _jquery2.default)('<div>').css('float', 'right').append((0, _util.linkButton)('', 'delete', 'jolecule-small-button', function () {
@@ -77021,17 +76997,16 @@ var EmbedJolecule = function () {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                return _context.abrupt('return', new Promise(function (success) {
+                return _context.abrupt('return', new Promise(function (resolve) {
                   dataServer.get_views(function (viewDicts) {
-
                     _this4.controller.loadViewsFromViewDicts(viewDicts);
 
-                    var viewId = _this4.soupView.currentView.id;
-                    if (_this4.initViewId) {
-                      if (_this4.initViewId in _this4.soupView.savedViewsByViewId) {
-                        viewId = _this4.initViewId;
-                      }
-                    }
+                    // let viewId = this.soupView.currentView.id
+                    // if (this.initViewId) {
+                    //   if (this.initViewId in this.soupView.savedViewsByViewId) {
+                    //     viewId = this.initViewId
+                    //   }
+                    // }
                     _this4.updateView();
 
                     if (_this4.params.viewId in _this4.soupView.savedViewsByViewId) {
@@ -77039,7 +77014,7 @@ var EmbedJolecule = function () {
                       _this4.updateView();
                     }
 
-                    success();
+                    resolve();
                   });
                 }));
 
@@ -77067,7 +77042,7 @@ var EmbedJolecule = function () {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                return _context3.abrupt('return', new Promise(function (success) {
+                return _context3.abrupt('return', new Promise(function (resolve) {
                   dataServer.get_protein_data(function () {
                     var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(proteinData) {
                       var pdbText, pdbId, nAtom, nRes, nBond, err;
@@ -77087,7 +77062,7 @@ var EmbedJolecule = function () {
                               return _this5.display.asyncSetMesssage('Error: no soup data');
 
                             case 5:
-                              success();
+                              resolve();
                               return _context2.abrupt('return');
 
                             case 7:
@@ -77138,7 +77113,7 @@ var EmbedJolecule = function () {
 
                             case 32:
 
-                              success();
+                              resolve();
 
                             case 33:
                             case 'end':
@@ -77279,7 +77254,7 @@ var EmbedJolecule = function () {
       var _this8 = this;
 
       var i = this.soupView.iLastViewSelected;
-      if (i == 0) {
+      if (i === 0) {
         // skip default view:000000
         return;
       }
@@ -77331,11 +77306,9 @@ var EmbedJolecule = function () {
   }, {
     key: 'cycleBackbone',
     value: function cycleBackbone() {
-      if (this.soupView.currentView.show.backboneAtom) {
+      if (!this.soupView.currentView.show.ribbon) {
         this.controller.setBackboneOption('ribbon');
-      } else if (this.soupView.currentView.show.ribbon) {
-        this.controller.setBackboneOption('trace');
-      } else if (this.soupView.currentView.show.trace) {
+      } else {
         this.controller.setBackboneOption('backboneAtom');
       }
     }
@@ -77563,6 +77536,10 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _lodash = __webpack_require__(29);
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 var _v = __webpack_require__(95);
 
 var _v2 = _interopRequireDefault(_v);
@@ -77607,7 +77584,7 @@ function pushToListInDict(dict, key, value) {
 }
 
 function getValueTableIndex(valueList, value) {
-  if (!_.includes(valueList, value)) {
+  if (!_lodash2.default.includes(valueList, value)) {
     valueList.push(value);
   }
   return valueList.indexOf(value);
@@ -77687,7 +77664,7 @@ var AtomProxy = function () {
       var iStart = this.soup.atomStore.bondOffset[this.iAtom];
       var n = this.soup.atomStore.bondCount[this.iAtom];
       var iEnd = iStart + n;
-      return _.range(iStart, iEnd);
+      return _lodash2.default.range(iStart, iEnd);
     }
   }, {
     key: 'pos',
@@ -77790,7 +77767,7 @@ var ResidueProxy = function () {
       var iStart = this.soup.residueStore.atomOffset[this.iRes];
       var n = this.soup.residueStore.atomCount[this.iRes];
       var iEnd = iStart + n;
-      return _.range(iStart, iEnd);
+      return _lodash2.default.range(iStart, iEnd);
     }
   }, {
     key: 'getAtomProxy',
@@ -77895,7 +77872,6 @@ var ResidueProxy = function () {
   }, {
     key: 'isProteinConnectedToPrev',
     value: function isProteinConnectedToPrev() {
-
       if (this.iRes === 0) {
         return false;
       }
@@ -77917,7 +77893,6 @@ var ResidueProxy = function () {
   }, {
     key: 'isNucleotideConnectedToPrev',
     value: function isNucleotideConnectedToPrev() {
-
       if (this.iRes === 0) {
         return false;
       }
@@ -77980,7 +77955,7 @@ var ResidueProxy = function () {
       return intToChar(this.soup.residueStore.insCode[this.iRes]);
     },
     set: function set(c) {
-      return this.soup.residueStore.insCode[this.iRes] = charToInt(c);
+      this.soup.residueStore.insCode[this.iRes] = charToInt(c);
     }
   }, {
     key: 'isPolymer',
@@ -78031,6 +78006,14 @@ var ResidueProxy = function () {
     },
     set: function set(c) {
       this.soup.residueStore.sstruc[this.iRes] = charToInt(c);
+    }
+  }, {
+    key: 'label',
+    get: function get() {
+      var iResType = this.soup.residueStore.iResType[this.iRes];
+      var resType = this.soup.resTypeTable[iResType];
+      var label = this.soup.resIds[this.iRes] + ':' + resType;
+      return label;
     }
   }]);
 
@@ -78118,7 +78101,6 @@ var Soup = function () {
   _createClass(Soup, [{
     key: 'load',
     value: function load(pdbData) {
-
       console.log('Soup.load parse ' + this.pdbId + '...');
 
       this.parsePdbData(pdbData.pdb_text, this.pdbId);
@@ -78140,7 +78122,6 @@ var Soup = function () {
   }, {
     key: 'parsePdbData',
     value: function parsePdbData(pdbText, pdbId) {
-
       if (!this.pdbId) {
         this.pdbId = pdbId;
         console.log('Set pdbId', this.pdbId);
@@ -78193,7 +78174,6 @@ var Soup = function () {
           y = void 0,
           z = void 0,
           chain = void 0,
-          resNumIns = void 0,
           resType = void 0;
       var atomType = void 0,
           bfactor = void 0,
@@ -78206,17 +78186,17 @@ var Soup = function () {
         var line = lines[iLine];
         if (line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM') {
           try {
-            atomType = _.trim(line.substr(12, 4));
-            alt = _.trim(line.substr(16, 1));
-            resType = _.trim(line.substr(17, 3));
-            chain = _.trim(line[21]);
+            atomType = _lodash2.default.trim(line.substr(12, 4));
+            alt = _lodash2.default.trim(line.substr(16, 1));
+            resType = _lodash2.default.trim(line.substr(17, 3));
+            chain = _lodash2.default.trim(line[21]);
             resNum = parseInt(line.substr(22, 4));
             insCode = line.substr(26, 1);
             x = parseFloat(line.substr(30, 7));
             y = parseFloat(line.substr(38, 7));
             z = parseFloat(line.substr(46, 7));
             bfactor = parseFloat(line.substr(60, 6));
-            elem = deleteNumbers(_.trim(line.substr(76, 2)));
+            elem = deleteNumbers(_lodash2.default.trim(line.substr(76, 2)));
           } catch (e) {
             this.parsingError = 'line ' + iLine;
             console.log('Error: "' + line + '"');
@@ -78224,7 +78204,7 @@ var Soup = function () {
           }
 
           if (elem === '') {
-            elem = deleteNumbers(_.trim(atomType)).substr(0, 1);
+            elem = deleteNumbers(_lodash2.default.trim(atomType)).substr(0, 1);
           }
 
           this.addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain);
@@ -78234,7 +78214,6 @@ var Soup = function () {
   }, {
     key: 'addAtom',
     value: function addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain) {
-
       var iAtom = this.atomStore.count;
 
       this.atomStore.increment();
@@ -78284,7 +78263,7 @@ var Soup = function () {
       if (chain) {
         resId += chain + ':';
       }
-      resId += resNum + _.trim(insCode);
+      resId += resNum + _lodash2.default.trim(insCode);
 
       this.resIds.push(resId);
 
@@ -78302,7 +78281,7 @@ var Soup = function () {
   }, {
     key: 'getAtomProxyOfCenter',
     value: function getAtomProxyOfCenter() {
-      var atomIndices = _.range(this.getAtomCount());
+      var atomIndices = _lodash2.default.range(this.getAtomCount());
       var center = this.getCenter(atomIndices);
       var iAtom = this.getIAtomClosest(center, atomIndices);
       return this.getAtomProxy(iAtom);
@@ -78312,14 +78291,13 @@ var Soup = function () {
     value: function assignResidueSsAndCentralAtoms() {
       var res = this.getResidueProxy();
       for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-
         res.iRes = iRes;
 
-        if (_.includes(data.proteinResTypes, res.resType)) {
+        if (_lodash2.default.includes(data.proteinResTypes, res.resType)) {
           res.iAtom = res.getIAtom('CA');
           res.ss = 'C';
           res.isPolymer = true;
-        } else if (_.includes(data.dnaResTypes, res.resType) || _.includes(data.rnaResTypes, res.resType)) {
+        } else if (_lodash2.default.includes(data.dnaResTypes, res.resType) || _lodash2.default.includes(data.rnaResTypes, res.resType)) {
           res.iAtom = res.getIAtom('C3\'');
           res.ss = 'D';
           res.isPolymer = true;
@@ -78345,7 +78323,7 @@ var Soup = function () {
     key: 'getIAtomClosest',
     value: function getIAtomClosest(pos, atomIndices) {
       var iAtomClosest = null;
-      var min_d = 1E6;
+      var minD = 1E6;
       var atom = this.getAtomProxy();
       var _iteratorNormalCompletion6 = true;
       var _didIteratorError6 = false;
@@ -78360,9 +78338,9 @@ var Soup = function () {
           } else {
             atom.iAtom = iAtom;
             var d = _v2.default.distance(pos, atom.pos);
-            if (d < min_d) {
+            if (d < minD) {
               iAtomClosest = iAtom;
-              min_d = d;
+              minD = d;
             }
           }
         }
@@ -78456,9 +78434,9 @@ var Soup = function () {
 
       this.bondStore.count = 0;
 
-      var small_cutoff_sq = 1.2 * 1.2;
-      var medium_cutoff_sq = 1.9 * 1.9;
-      var large_cutoff_sq = 2.4 * 2.4;
+      var smallCutoffSq = 1.2 * 1.2;
+      var mediumCutoffSq = 1.9 * 1.9;
+      var largeCutoffSq = 2.4 * 2.4;
       var CHONPS = ['C', 'H', 'O', 'N', 'P', 'S'];
 
       function isBonded(atom1, atom2) {
@@ -78472,20 +78450,20 @@ var Soup = function () {
           }
         }
 
-        var cutoff_sq = void 0;
+        var cutoffSq = void 0;
         if (atom1.elem === 'H' || atom2.elem === 'H') {
-          cutoff_sq = small_cutoff_sq;
+          cutoffSq = smallCutoffSq;
         } else if ((0, _util.inArray)(atom1.elem, CHONPS) && (0, _util.inArray)(atom2.elem, CHONPS)) {
-          cutoff_sq = medium_cutoff_sq;
+          cutoffSq = mediumCutoffSq;
         } else {
-          cutoff_sq = large_cutoff_sq;
+          cutoffSq = largeCutoffSq;
         }
 
-        var diff_x = atom1.pos.x - atom2.pos.x;
-        var diff_y = atom1.pos.y - atom2.pos.y;
-        var diff_z = atom1.pos.z - atom2.pos.z;
-        var dist_sq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
-        return dist_sq <= cutoff_sq;
+        var diffX = atom1.pos.x - atom2.pos.x;
+        var diffY = atom1.pos.y - atom2.pos.y;
+        var diffZ = atom1.pos.z - atom2.pos.z;
+        var distSq = diffX * diffX + diffY * diffY + diffZ * diffZ;
+        return distSq <= cutoffSq;
       }
 
       var makeBond = function makeBond(atom1, atom2) {
@@ -78711,7 +78689,7 @@ var Soup = function () {
         if (iRes1 < 0 || iRes1 >= nRes || iRes0 < 0 || iRes0 >= nRes) {
           return false;
         }
-        return _.includes(conhPartners[iRes1], iRes0);
+        return _lodash2.default.includes(conhPartners[iRes1], iRes0);
       }
 
       function vecBetweenResidues(iRes0, iRes1) {
@@ -78738,7 +78716,6 @@ var Soup = function () {
       }
 
       for (var iRes0 = 0; iRes0 < nRes; iRes0 += 1) {
-
         residue0.iRes = iRes0;
 
         if (!residue0.isPolymer) {
@@ -79151,7 +79128,7 @@ var View = function () {
       hydrogen: false,
       water: false,
       ligands: true,
-      trace: false,
+      trace: true,
       backboneAtom: false,
       ribbon: true
     };
@@ -79197,14 +79174,14 @@ var View = function () {
       v.id = this.id;
       v.iAtom = this.iAtom;
       v.selected = this.selected;
-      v.labels = _.cloneDeep(this.labels);
-      v.distances = _.cloneDeep(this.distances);
+      v.labels = _lodash2.default.cloneDeep(this.labels);
+      v.distances = _lodash2.default.cloneDeep(this.distances);
       v.order = this.order;
       v.text = this.text;
       v.time = this.time;
       v.url = this.url;
-      v.cameraParams = _.cloneDeep(this.cameraParams);
-      v.show = _.cloneDeep(this.show);
+      v.cameraParams = _lodash2.default.cloneDeep(this.cameraParams);
+      v.show = _lodash2.default.cloneDeep(this.show);
       return v;
     }
   }, {
@@ -79221,10 +79198,10 @@ var View = function () {
       var zoom = cameraDir.length();
       cameraDir.normalize();
       var pos = this.cameraParams.focus;
-      var in_v = pos.clone().add(cameraDir);
-      var up_v = pos.clone().sub(this.cameraParams.up);
+      var inV = pos.clone().add(cameraDir);
+      var upV = pos.clone().sub(this.cameraParams.up);
 
-      var show = _.clone(this.show);
+      var show = _lodash2.default.clone(this.show);
       show.all_atom = show.backboneAtom;
       delete show.backboneAtom;
 
@@ -79247,58 +79224,58 @@ var View = function () {
             zoom: zoom
           },
           pos: [pos.x, pos.y, pos.z],
-          up: [up_v.x, up_v.y, up_v.z],
-          in: [in_v.x, in_v.y, in_v.z]
+          up: [upV.x, upV.y, upV.z],
+          in: [inV.x, inV.y, inV.z]
         }
       };
     }
   }, {
     key: 'setFromDict',
-    value: function setFromDict(flat_dict) {
-      this.id = flat_dict.view_id;
-      this.view_id = flat_dict.view_id;
-      this.pdb_id = flat_dict.pdb_id;
-      this.lock = flat_dict.lock;
-      this.text = flat_dict.text;
-      this.creator = flat_dict.creator;
-      this.order = flat_dict.order;
-      this.res_id = flat_dict.res_id;
-      this.iAtom = flat_dict.i_atom;
+    value: function setFromDict(flatDict) {
+      this.id = flatDict.view_id;
+      this.view_id = flatDict.view_id;
+      this.pdb_id = flatDict.pdb_id;
+      this.lock = flatDict.lock;
+      this.text = flatDict.text;
+      this.creator = flatDict.creator;
+      this.order = flatDict.order;
+      this.res_id = flatDict.res_id;
+      this.iAtom = flatDict.i_atom;
 
-      this.labels = flat_dict.labels;
-      this.selected = flat_dict.selected;
-      this.distances = flat_dict.distances;
+      this.labels = flatDict.labels;
+      this.selected = flatDict.selected;
+      this.distances = flatDict.distances;
 
-      this.show = flat_dict.show;
-      this.show.backboneAtom = flat_dict.show.all_atom;
+      this.show = flatDict.show;
+      this.show.backboneAtom = flatDict.show.all_atom;
       delete this.show.all_atom;
 
       if (!(this.show.backboneAtom || this.show.trace || this.show.ribbon)) {
         this.show.ribbon = true;
       }
 
-      var pos = _v2.default.create(flat_dict.camera.pos[0], flat_dict.camera.pos[1], flat_dict.camera.pos[2]);
+      var pos = _v2.default.create(flatDict.camera.pos[0], flatDict.camera.pos[1], flatDict.camera.pos[2]);
 
-      var up_v = _v2.default.create(flat_dict.camera.up[0], flat_dict.camera.up[1], flat_dict.camera.up[2]);
+      var upV = _v2.default.create(flatDict.camera.up[0], flatDict.camera.up[1], flatDict.camera.up[2]);
 
-      var in_v = _v2.default.create(flat_dict.camera.in[0], flat_dict.camera.in[1], flat_dict.camera.in[2]);
+      var inV = _v2.default.create(flatDict.camera.in[0], flatDict.camera.in[1], flatDict.camera.in[2]);
 
-      var zoom = flat_dict.camera.slab.zoom;
+      var zoom = flatDict.camera.slab.zoom;
 
       var focus = _v2.default.clone(pos);
 
-      var cameraDirection = _v2.default.clone(in_v).sub(focus).multiplyScalar(zoom).negate();
+      var cameraDirection = _v2.default.clone(inV).sub(focus).multiplyScalar(zoom).negate();
 
       var position = _v2.default.clone(focus).add(cameraDirection);
 
-      var up = _v2.default.clone(up_v).sub(focus).negate();
+      var up = _v2.default.clone(upV).sub(focus).negate();
 
       this.cameraParams = {
         focus: focus,
         position: position,
         up: up,
-        zFront: flat_dict.camera.slab.z_front,
-        zBack: flat_dict.camera.slab.z_back,
+        zFront: flatDict.camera.slab.z_front,
+        zBack: flatDict.camera.slab.z_back,
         zoom: zoom
       };
     }
@@ -79308,7 +79285,6 @@ var View = function () {
 }();
 
 function interpolateCameras(oldCamera, futureCamera, t) {
-
   var oldCameraDirection = oldCamera.position.clone().sub(oldCamera.focus);
   var oldZoom = oldCameraDirection.length();
   oldCameraDirection.normalize();
@@ -79385,7 +79361,7 @@ var SoupView = function () {
   _createClass(SoupView, [{
     key: 'initViewsAfterSoupLoad',
     value: function initViewsAfterSoupLoad() {
-      if (this.savedViews.length == 0) {
+      if (this.savedViews.length === 0) {
         this.currentView.makeDefaultOfSoup(this.soup);
         this.saveView(this.currentView);
         this.changed = true;
@@ -79478,14 +79454,14 @@ var Controller = function () {
     }
   }, {
     key: 'makeDistance',
-    value: function makeDistance(i_atom1, i_atom2) {
-      this.soupView.currentView.distances.push({ i_atom1: i_atom1, i_atom2: i_atom2 });
+    value: function makeDistance(iAtom1, iAtom2) {
+      this.soupView.currentView.distances.push({ i_atom1: iAtom1, i_atom2: iAtom2 });
       this.soupView.changed = true;
     }
   }, {
     key: 'makeAtomLabel',
-    value: function makeAtomLabel(i_atom, text) {
-      this.soupView.currentView.labels.push({ i_atom: i_atom, text: text });
+    value: function makeAtomLabel(iAtom, text) {
+      this.soupView.currentView.labels.push({ i_atom: iAtom, text: text });
       this.soupView.changed = true;
     }
   }, {
@@ -79576,11 +79552,11 @@ var Controller = function () {
   }, {
     key: 'getViewDicts',
     value: function getViewDicts() {
-      var view_dicts = [];
+      var viewDicts = [];
       for (var i = 1; i < this.soupView.savedViews.length; i += 1) {
-        view_dicts.push(this.soupView.savedViews[i].getDict());
+        viewDicts.push(this.soupView.savedViews[i].getDict());
       }
-      return view_dicts;
+      return viewDicts;
     }
   }, {
     key: 'makeSelectedResidueList',
@@ -79630,18 +79606,18 @@ var Controller = function () {
     key: 'saveCurrentView',
     value: function saveCurrentView(newViewId) {
       var iNewView = this.soupView.iLastViewSelected + 1;
-      var new_view = this.soupView.currentView.clone();
-      new_view.text = 'Click edit to change this text.';
-      new_view.pdb_id = this.soup.pdb_id;
+      var newView = this.soupView.currentView.clone();
+      newView.text = 'Click edit to change this text.';
+      newView.pdb_id = this.soup.pdb_id;
       var time = (0, _util.getCurrentDateStr)();
       if (user === '' || typeof user === 'undefined') {
-        new_view.creator = '~ [public] @' + time;
+        newView.creator = '~ [public] @' + time;
       } else {
-        new_view.creator = '~ ' + user + ' @' + time;
+        newView.creator = '~ ' + user + ' @' + time;
       }
-      new_view.id = newViewId;
-      new_view.selected = this.makeSelectedResidueList();
-      this.soupView.insertView(iNewView, newViewId, new_view);
+      newView.id = newViewId;
+      newView.selected = this.makeSelectedResidueList();
+      this.soupView.insertView(iNewView, newViewId, newView);
       return iNewView;
     }
   }, {
@@ -79652,11 +79628,11 @@ var Controller = function () {
   }, {
     key: 'sortViewsByOrder',
     value: function sortViewsByOrder() {
-      function order_sort(a, b) {
+      function orderSort(a, b) {
         return a.order - b.order;
       }
 
-      this.soupView.savedViews.sort(order_sort);
+      this.soupView.savedViews.sort(orderSort);
       for (var i = 0; i < this.soupView.savedViews.length; i += 1) {
         this.soupView.savedViews[i].order = i;
       }
@@ -79713,7 +79689,6 @@ var Controller = function () {
     key: 'setCurrentView',
     value: function setCurrentView(view) {
       this.soupView.currentView = view.clone();
-      var atom = this.soup.getAtomProxy(view.iAtom);
       this.soupView.soup.clearSelectedResidues();
       this.soupView.soup.selectResidues(view.selected, true);
       this.soupView.changed = true;
@@ -79740,8 +79715,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.applyColorToVector3array = exports.applyRotationOfMatrix4toVector3array = exports.applyMatrix4toVector3array = exports.CopyBufferGeometry = exports.getCylinderMatrix = exports.getSphereMatrix = exports.mergeUnitGeom = exports.Trace = exports.clearObject3D = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.BufferRibbonGeometry = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.setVisible = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = undefined;
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * Custom geometry and mesh generators based on the
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * THREE.js library.
@@ -79759,7 +79732,7 @@ var _v = __webpack_require__(95);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _lodash = __webpack_require__(31);
+var _lodash = __webpack_require__(29);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -79774,7 +79747,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function CatmullRom(t, p0, p1, p2, p3) {
-
   var v0 = (p2 - p0) * 0.5;
   var v1 = (p3 - p1) * 0.5;
   var t2 = t * t;
@@ -79814,6 +79786,10 @@ var PathAndFrenetFrames = function () {
     this.normals = [];
     this.tangents = [];
     this.binormals = [];
+
+    this.colors = [];
+    this.indexColors = [];
+    this.segmentTypes = [];
   }
 
   _createClass(PathAndFrenetFrames, [{
@@ -79832,601 +79808,6 @@ var PathAndFrenetFrames = function () {
 }();
 
 /**
- * Extrusion along a path that aligns a 2D shape as cross-section, with
- * orientation along the normal for the cross-section.
- *
- * Accepts a cross-section shape, which is a collection of 2D points around
- * the origin, and a path, which contains points, normals and binormals
- * and builds a oriented extrusion out of it.
- *
- * If round is set, then the vertex normals are set to orient along the
- * normal/binormal axis from the origin, otherwise, face normals are defined
- * perpedicular to the face.
- *
- * For a segment between two path points and a repetition of the cross-section,
- * two triangles are defined.
- */
-
-
-var RibbonGeometry = function (_THREE$Geometry) {
-  _inherits(RibbonGeometry, _THREE$Geometry);
-
-  /**
-   * @param {THREE.Shape} shape - collection of 2D points for cross section
-   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
-   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
-   * @param {boolean} front - draw front cross-section
-   * @param {boolean} back - draw back cross-section
-   */
-  function RibbonGeometry(shape, path, round, front, back) {
-    _classCallCheck(this, RibbonGeometry);
-
-    var _this = _possibleConstructorReturn(this, (RibbonGeometry.__proto__ || Object.getPrototypeOf(RibbonGeometry)).call(this));
-
-    _this.type = 'RibbonGeometry';
-
-    _this.parameters = {
-      shape: shape,
-      path: path,
-      round: round
-    };
-
-    if (path.points.length < 2) {
-      return _possibleConstructorReturn(_this);
-    }
-
-    var shapePoints = shape.extractPoints(4).shape;
-    var nVertex = shapePoints.length;
-
-    if (_lodash2.default.isUndefined(round)) {
-      round = false;
-    }
-
-    var shapeEdgeNormals = [];
-
-    if (!round) {
-
-      for (var j = 0; j < nVertex; j += 1) {
-        var i = j - 1;
-        if (i === -1) {
-          i = nVertex - 1;
-        }
-        var v0 = shapePoints[i];
-        var v1 = shapePoints[j];
-        var x = -(v1.y - v0.y);
-        var y = v1.x - v0.x;
-        shapeEdgeNormals.push(new THREE.Vector2(x, y));
-      }
-    }
-
-    for (var iPoint = 0; iPoint < path.points.length; iPoint += 1) {
-
-      var point = path.points[iPoint];
-      var normal = path.normals[iPoint];
-      var binormal = path.binormals[iPoint];
-
-      for (var iShapePoint = 0; iShapePoint < nVertex; iShapePoint += 1) {
-
-        var shapePoint = shapePoints[iShapePoint];
-
-        var _x = normal.clone().multiplyScalar(shapePoint.x);
-        var _y = binormal.clone().multiplyScalar(shapePoint.y);
-
-        var vertex = point.clone().add(_x).add(_y);
-
-        _this.vertices.push(vertex);
-      }
-
-      var topOffset = _this.vertices.length - 2 * nVertex;
-      if (topOffset < 0) {
-        continue;
-      }
-
-      if (round) {
-        // Smoothed normals to give a rounded look
-        for (var _j = 0; _j < nVertex; _j += 1) {
-          var _i = void 0;
-          if (_j === 0) {
-            _i = nVertex - 1;
-          } else {
-            _i = _j - 1;
-          }
-          var k = topOffset + _i;
-          var l = topOffset + _j;
-
-          var _x2 = void 0,
-              _y2 = void 0;
-
-          _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_i].x);
-          _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_i].y);
-          var normal00 = _x2.add(_y2);
-
-          _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_j].x);
-          _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_j].y);
-          var normal01 = _x2.add(_y2);
-
-          _x2 = path.normals[iPoint].clone().multiplyScalar(shapePoints[_j].x);
-          _y2 = path.binormals[iPoint].clone().multiplyScalar(shapePoints[_j].y);
-          var normal11 = _x2.add(_y2);
-
-          _x2 = path.normals[iPoint].clone().multiplyScalar(shapePoints[_i].x);
-          _y2 = path.binormals[iPoint].clone().multiplyScalar(shapePoints[_i].y);
-          var normal10 = _x2.add(_y2);
-
-          var face = new THREE.Face3(k, k + nVertex, l + nVertex);
-          face.vertexNormals = [normal00, normal10, normal11];
-          _this.faces.push(face);
-
-          face = new THREE.Face3(k, l + nVertex, l);
-          face.vertexNormals = [normal00, normal11, normal01];
-          _this.faces.push(face);
-        }
-      } else {
-        // Continuous normals but keep faces distinct
-        // along ribbon
-        for (var _j2 = 0; _j2 < nVertex; _j2 += 1) {
-          var _i2 = void 0;
-          if (_j2 === 0) {
-            _i2 = nVertex - 1;
-          } else {
-            _i2 = _j2 - 1;
-          }
-          var _k = topOffset + _i2;
-          var _l = topOffset + _j2;
-
-          var _x3 = void 0,
-              _y3 = void 0;
-
-          _x3 = path.normals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[_j2].x);
-          _y3 = path.binormals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[_j2].y);
-          var normal0 = _x3.add(_y3);
-
-          _x3 = path.normals[iPoint].clone().multiplyScalar(shapeEdgeNormals[_j2].x);
-          _y3 = path.binormals[iPoint].clone().multiplyScalar(shapeEdgeNormals[_j2].y);
-          var normal1 = _x3.add(_y3);
-
-          var _face = new THREE.Face3(_k, _k + nVertex, _l + nVertex);
-          _face.vertexNormals = [normal0, normal1, normal1];
-          _this.faces.push(_face);
-
-          _face = new THREE.Face3(_k, _l + nVertex, _l);
-          _face.vertexNormals = [normal0, normal1, normal0];
-          _this.faces.push(_face);
-        }
-      }
-    }
-
-    if (front) {
-      // Draw front face
-      var _normal = threePointNormal([_this.vertices[0], _this.vertices[1], _this.vertices[2]]);
-      for (var _i3 = 0; _i3 < nVertex - 2; _i3 += 1) {
-        var _face2 = new THREE.Face3(_i3, _i3 + 1, nVertex - 1);
-        _face2.normal.copy(_normal);
-        _this.faces.push(_face2);
-      }
-    }
-
-    if (back) {
-      // draw back face
-      var offset = _this.vertices.length - 1 - nVertex;
-
-      var _normal2 = threePointNormal([_this.vertices[offset], _this.vertices[offset + nVertex - 1], _this.vertices[offset + 1]]);
-
-      for (var _i4 = 0; _i4 < nVertex - 2; _i4 += 1) {
-        var _face3 = new THREE.Face3(offset + _i4, offset + nVertex - 1, offset + _i4 + 1);
-        _face3.normal.copy(_normal2);
-        _this.faces.push(_face3);
-      }
-    }
-    return _this;
-  }
-
-  return RibbonGeometry;
-}(THREE.Geometry);
-
-/**
- * Extrusion along a path that aligns a 2D shape as cross-section, with
- * orientation along the normal for the cross-section.
- *
- * Accepts a cross-section shape, which is a collection of 2D points around
- * the origin, and a path, which contains points, normals and binormals
- * and builds a oriented extrusion out of it.
- *
- * If round is set, then the vertex normals are set to orient along the
- * normal/binormal axis from the origin, otherwise, face normals are defined
- * perpedicular to the face.
- *
- * For a segment between two path points and a repetition of the cross-section,
- * two triangles are defined.
- */
-
-
-var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
-  _inherits(BufferRibbonGeometry, _THREE$BufferGeometry);
-
-  /**
-   * @param {THREE.Shape} shape - collection of 2D points for cross section
-   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
-   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
-   * @param {boolean} front - draw front cross-section
-   * @param {boolean} back - draw back cross-section
-   */
-  function BufferRibbonGeometry(traces, shape, round, front, back, color) {
-    _classCallCheck(this, BufferRibbonGeometry);
-
-    var _this2 = _possibleConstructorReturn(this, (BufferRibbonGeometry.__proto__ || Object.getPrototypeOf(BufferRibbonGeometry)).call(this));
-
-    _this2.type = 'BufferRibbonGeometry';
-
-    if (_lodash2.default.isUndefined(round)) {
-      round = false;
-    }
-
-    _this2.parameters = {
-      shape: shape,
-      traces: traces,
-      round: round,
-      front: front,
-      back: back
-    };
-
-    _this2.shapePoints = shape.extractPoints(4).shape;
-    _this2.nShape = _this2.shapePoints.length;
-
-    _this2.shapeEdgeNormals = [];
-
-    if (!round) {
-
-      for (var j = 0; j < _this2.nShape; j += 1) {
-        var i = j - 1;
-        if (i === -1) {
-          i = _this2.nShape - 1;
-        }
-        var v0 = _this2.shapePoints[i];
-        var v1 = _this2.shapePoints[j];
-        var x = -(v1.y - v0.y);
-        var y = v1.x - v0.x;
-        _this2.shapeEdgeNormals.push(new THREE.Vector2(x, y));
-      }
-    }
-
-    _this2.nVertex = 0;
-    _this2.nFace = 0;
-
-    _this2.paths = [];
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = traces[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var _trace = _step.value;
-
-        _this2.paths.push(_this2.getPath(_trace, 0, _trace.points.length));
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
-
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
-
-    try {
-      for (var _iterator2 = _this2.paths[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-        var path = _step2.value;
-
-        if (path.points.length > 1) {
-          _this2.countVertexAndFacesOfPath(path, front, back);
-        }
-      }
-    } catch (err) {
-      _didIteratorError2 = true;
-      _iteratorError2 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion2 && _iterator2.return) {
-          _iterator2.return();
-        }
-      } finally {
-        if (_didIteratorError2) {
-          throw _iteratorError2;
-        }
-      }
-    }
-
-    _this2.setAttributes();
-
-    var _iteratorNormalCompletion3 = true;
-    var _didIteratorError3 = false;
-    var _iteratorError3 = undefined;
-
-    try {
-      for (var _iterator3 = _this2.paths.entries()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-        var _step3$value = _slicedToArray(_step3.value, 2),
-            _i5 = _step3$value[0],
-            _path = _step3$value[1];
-
-        console.log(_i5, _path);
-        if (_path.points.length > 1) {
-          _this2.setPath(_path, color, front, back);
-        }
-      }
-    } catch (err) {
-      _didIteratorError3 = true;
-      _iteratorError3 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion3 && _iterator3.return) {
-          _iterator3.return();
-        }
-      } finally {
-        if (_didIteratorError3) {
-          throw _iteratorError3;
-        }
-      }
-    }
-
-    console.log('BufferRibbonGeometry vertices', _this2.nVertex, _this2.positionCount / 3, _this2.positions.length / 3);
-    console.log('BufferRibbonGeometry faces', _this2.nFace, _this2.indexCount / 3, _this2.indices.length / 3);
-    console.log('BufferRibbonGeometry attributes', _this2.attributes);
-    return _this2;
-  }
-
-  _createClass(BufferRibbonGeometry, [{
-    key: 'setPath',
-    value: function setPath(path, color, front, back) {
-
-      for (var iPoint = 0; iPoint < path.points.length; iPoint += 1) {
-
-        var point = path.points[iPoint];
-        var normal = path.normals[iPoint];
-        var binormal = path.binormals[iPoint];
-
-        for (var iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
-
-          var shapePoint = this.shapePoints[iShapePoint];
-
-          var x = normal.clone().multiplyScalar(shapePoint.x);
-          var y = binormal.clone().multiplyScalar(shapePoint.y);
-
-          var vertex = point.clone().add(x).add(y);
-
-          this.pushVertex(vertex, color);
-        }
-
-        // offset to two points back
-        var iVertexOffset = this.vertexCount - 2 * this.nShape;
-
-        // skip for first point
-        if (iPoint === 0) {
-          continue;
-        }
-
-        if (this.parameters.round) {
-          // Smoothed normals to give a rounded look
-          for (var _iShapePoint = 0; _iShapePoint < this.nShape; _iShapePoint += 1) {
-            var iLastShapePoint = void 0;
-            if (_iShapePoint === 0) {
-              iLastShapePoint = this.nShape - 1;
-            } else {
-              iLastShapePoint = _iShapePoint - 1;
-            }
-            var _x4 = void 0,
-                _y4 = void 0;
-
-            _x4 = path.normals[iPoint - 1].clone().multiplyScalar(this.shapePoints[iLastShapePoint].x);
-            _y4 = path.binormals[iPoint - 1].clone().multiplyScalar(this.shapePoints[iLastShapePoint].y);
-            var normal00 = _x4.add(_y4);
-
-            _x4 = path.normals[iPoint - 1].clone().multiplyScalar(this.shapePoints[_iShapePoint].x);
-            _y4 = path.binormals[iPoint - 1].clone().multiplyScalar(this.shapePoints[_iShapePoint].y);
-            var normal01 = _x4.add(_y4);
-
-            _x4 = path.normals[iPoint].clone().multiplyScalar(this.shapePoints[_iShapePoint].x);
-            _y4 = path.binormals[iPoint].clone().multiplyScalar(this.shapePoints[_iShapePoint].y);
-            var normal11 = _x4.add(_y4);
-
-            _x4 = path.normals[iPoint].clone().multiplyScalar(this.shapePoints[iLastShapePoint].x);
-            _y4 = path.binormals[iPoint].clone().multiplyScalar(this.shapePoints[iLastShapePoint].y);
-            var normal10 = _x4.add(_y4);
-
-            var iVertexLast = iVertexOffset + iLastShapePoint;
-            var iVertexCurr = iVertexOffset + _iShapePoint;
-            var jVertexLast = iVertexOffset + this.nShape + iLastShapePoint;
-            var jVertexCurr = iVertexOffset + this.nShape + _iShapePoint;
-
-            this.pushFace(iVertexLast, jVertexLast, jVertexCurr, normal00, normal10, normal11);
-
-            this.pushFace(iVertexLast, jVertexCurr, iVertexCurr, normal00, normal11, normal01);
-          }
-        } else {
-          // Continuous normals but keep faces distinct
-          // along ribbon
-          for (var _iShapePoint2 = 0; _iShapePoint2 < this.nShape; _iShapePoint2 += 1) {
-            var _iLastShapePoint = void 0;
-            if (_iShapePoint2 === 0) {
-              _iLastShapePoint = this.nShape - 1;
-            } else {
-              _iLastShapePoint = _iShapePoint2 - 1;
-            }
-
-            var _x5 = void 0,
-                _y5 = void 0;
-
-            _x5 = path.normals[iPoint - 1].clone().multiplyScalar(this.shapeEdgeNormals[_iShapePoint2].x);
-            _y5 = path.binormals[iPoint - 1].clone().multiplyScalar(this.shapeEdgeNormals[_iShapePoint2].y);
-            var normal0 = _x5.add(_y5);
-
-            _x5 = path.normals[iPoint].clone().multiplyScalar(this.shapeEdgeNormals[_iShapePoint2].x);
-            _y5 = path.binormals[iPoint].clone().multiplyScalar(this.shapeEdgeNormals[_iShapePoint2].y);
-            var normal1 = _x5.add(_y5);
-
-            var iLastVertex = iVertexOffset + _iLastShapePoint;
-            var iVertex = iVertexOffset + this.nShape + _iShapePoint2;
-
-            var _iVertexLast = iVertexOffset + _iLastShapePoint;
-            var _iVertexCurr = iVertexOffset + _iShapePoint2;
-            var _jVertexLast = iVertexOffset + this.nShape + _iLastShapePoint;
-            var _jVertexCurr = iVertexOffset + this.nShape + _iShapePoint2;
-
-            this.pushFace(_iVertexLast, _jVertexLast, _jVertexCurr, normal0, normal1, normal1);
-
-            this.pushFace(_iVertexLast, _jVertexCurr, _iVertexCurr, normal0, normal1, normal0);
-          }
-        }
-      }
-
-      // back must be drawn before front as offset of last
-      // point segment is easily calculated from here
-      if (this.parameters.back) {
-        var iVertexOffsetLast = this.vertexCount - 1 - this.nShape;
-
-        var iVertexOffsetBack = this.vertexCount;
-        for (var _iShapePoint3 = 0; _iShapePoint3 < this.nShape; _iShapePoint3 += 1) {
-          var _iVertex = iVertexOffsetLast + _iShapePoint3;
-          this.pushVertex(this.getVertex(_iVertex), color);
-        }
-
-        var _normal3 = threePointNormal([this.getVertex(iVertexOffsetLast), this.getVertex(iVertexOffsetLast + this.nShape - 1), this.getVertex(iVertexOffsetLast + 1)]);
-
-        for (var i = 0; i < this.nShape - 2; i += 1) {
-          this.pushFace(iVertexOffsetBack + i, iVertexOffsetBack + this.nShape - 1, iVertexOffsetBack + i + 1, _normal3, _normal3, _normal3);
-        }
-      }
-
-      // Draw front face
-      if (this.parameters.front) {
-        var _normal4 = threePointNormal([this.getVertex(this.iVertexTraceOffset), this.getVertex(this.iVertexTraceOffset + 1), this.getVertex(this.iVertexTraceOffset + 2)]);
-        var iVertexOffsetFront = this.vertexCount;
-        for (var _iShapePoint4 = 0; _iShapePoint4 < this.nShape; _iShapePoint4 += 1) {
-          var _iVertex2 = this.iVertexTraceOffset + _iShapePoint4;
-          this.pushVertex(this.getVertex(_iVertex2), color);
-        }
-        for (var _iShapePoint5 = 0; _iShapePoint5 < this.nShape - 2; _iShapePoint5 += 1) {
-          this.pushFace(iVertexOffsetFront + _iShapePoint5, iVertexOffsetFront + _iShapePoint5 + 1, iVertexOffsetFront + this.nShape - 1, _normal4, _normal4, _normal4);
-        }
-      }
-    }
-  }, {
-    key: 'getPath',
-    value: function getPath(trace, iResStart, iResEnd) {
-      var fullPath = trace.detailedPath;
-
-      // works out start on expanded path, including overhang
-      var iPathStart = iResStart * 2 * trace.detail - trace.detail;
-      if (iPathStart < 0) {
-        iPathStart = 0;
-      }
-
-      // works out end of expanded path, including overhang
-      var iPathEnd = iResEnd * 2 * trace.detail - trace.detail + 1;
-      if (iPathEnd >= fullPath.points.length) {
-        iPathEnd = fullPath.points.length - 1;
-      }
-
-      return fullPath.slice(iPathStart, iPathEnd);
-    }
-  }, {
-    key: 'setAttributes',
-    value: function setAttributes() {
-      var positions = new Float32Array(this.nVertex * 3);
-      var normals = new Float32Array(this.nVertex * 3);
-      var indices = new Int32Array(this.nFace * 3);
-      var colors = new Float32Array(this.nVertex * 3);
-
-      this.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-      this.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-      this.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-      this.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
-
-      this.positions = this.attributes.position.array;
-      this.normals = this.attributes.normal.array;
-      this.indices = this.index.array;
-      this.colors = this.attributes.color.array;
-
-      this.positionCount = 0;
-      this.indexCount = 0;
-      this.iVertexTraceOffset = 0;
-      this.vertexCount = 0;
-    }
-  }, {
-    key: 'pushVertex',
-    value: function pushVertex(vertex, color) {
-      this.positions[this.positionCount] = vertex.x;
-      this.positions[this.positionCount + 1] = vertex.y;
-      this.positions[this.positionCount + 2] = vertex.z;
-
-      this.colors[this.positionCount] = color.r;
-      this.colors[this.positionCount + 1] = color.g;
-      this.colors[this.positionCount + 2] = color.b;
-
-      this.positionCount += 3;
-      this.vertexCount += 1;
-    }
-  }, {
-    key: 'pushFace',
-    value: function pushFace(i, j, k, normalI, normalJ, normalK) {
-      this.indices[this.indexCount] = i;
-      this.indices[this.indexCount + 1] = j;
-      this.indices[this.indexCount + 2] = k;
-
-      this.indexCount += 3;
-
-      this.normals[i * 3] = normalI.x;
-      this.normals[i * 3 + 1] = normalI.y;
-      this.normals[i * 3 + 2] = normalI.z;
-
-      this.normals[j * 3] = normalJ.x;
-      this.normals[j * 3 + 1] = normalJ.y;
-      this.normals[j * 3 + 2] = normalJ.z;
-
-      this.normals[k * 3] = normalK.x;
-      this.normals[k * 3 + 1] = normalK.y;
-      this.normals[k * 3 + 2] = normalK.z;
-    }
-  }, {
-    key: 'getVertex',
-    value: function getVertex(iVertex) {
-      return _v2.default.create(this.positions[iVertex * 3], this.positions[iVertex * 3 + 1], this.positions[iVertex * 3 + 2]);
-    }
-  }, {
-    key: 'countVertexAndFacesOfPath',
-    value: function countVertexAndFacesOfPath(path, front, back) {
-      for (var iPoint = 0; iPoint < path.points.length; iPoint += 1) {
-        this.nVertex += this.nShape;
-        if (iPoint > 0) {
-          this.nFace += 2 * this.nShape;
-        }
-      }
-
-      if (back) {
-        this.nVertex += this.nShape;
-        this.nFace += this.nShape - 2;
-      }
-
-      if (front) {
-        this.nVertex += this.nShape;
-        this.nFace += this.nShape - 2;
-      }
-    }
-  }]);
-
-  return BufferRibbonGeometry;
-}(THREE.BufferGeometry);
-
-/**
  * Creates a new path out of a slice of the oldPath, with
  * n number of segments between two points, using a Catmul-Rom
  * spline based on the two points, and the two surrounding
@@ -80442,18 +79823,15 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
 
 
 function expandPath(oldPath, n, iOldPoint, jOldPoint) {
-
   var newPath = new PathAndFrenetFrames();
 
   newPath.points.push(oldPath.points[iOldPoint]);
 
   for (var i = iOldPoint; i < jOldPoint - 1; i += 1) {
+    var jStart = 1;
+    var jEnd = n + 1;
 
-    var j_start = 1;
-    var j_end = n + 1;
-
-    for (var j = j_start; j < j_end; j += 1) {
-
+    for (var j = jStart; j < jEnd; j += 1) {
       var t = j / n;
 
       var prevOldPoint = void 0,
@@ -80476,43 +79854,41 @@ function expandPath(oldPath, n, iOldPoint, jOldPoint) {
   }
 
   newPath.normals.push(oldPath.normals[iOldPoint]);
-  for (var _i6 = iOldPoint; _i6 < jOldPoint - 1; _i6 += 1) {
-
-    for (var _j3 = 1; _j3 < n + 1; _j3 += 1) {
-
-      var _t = _j3 / n;
+  for (var _i = iOldPoint; _i < jOldPoint - 1; _i += 1) {
+    for (var _j = 1; _j < n + 1; _j += 1) {
+      var _t = _j / n;
 
       var prevOldNormal = void 0,
           nextOldNormal = void 0;
 
-      if (_i6 > 0) {
-        prevOldNormal = oldPath.normals[_i6 - 1];
+      if (_i > 0) {
+        prevOldNormal = oldPath.normals[_i - 1];
       } else {
-        prevOldNormal = oldPath.normals[_i6];
+        prevOldNormal = oldPath.normals[_i];
       }
 
-      if (_i6 < oldPath.normals.length - 2) {
-        nextOldNormal = oldPath.normals[_i6 + 2];
+      if (_i < oldPath.normals.length - 2) {
+        nextOldNormal = oldPath.normals[_i + 2];
       } else {
-        nextOldNormal = oldPath.normals[_i6 + 1];
+        nextOldNormal = oldPath.normals[_i + 1];
       }
 
-      newPath.normals.push(catmulRomSpline(_t, prevOldNormal, oldPath.normals[_i6], oldPath.normals[_i6 + 1], nextOldNormal).normalize());
+      newPath.normals.push(catmulRomSpline(_t, prevOldNormal, oldPath.normals[_i], oldPath.normals[_i + 1], nextOldNormal).normalize());
     }
   }
 
-  for (var _i7 = 0; _i7 < newPath.points.length; _i7 += 1) {
-    if (_i7 === 0) {
+  for (var _i2 = 0; _i2 < newPath.points.length; _i2 += 1) {
+    if (_i2 === 0) {
       newPath.tangents.push(oldPath.tangents[0]);
-    } else if (_i7 === newPath.points.length - 1) {
+    } else if (_i2 === newPath.points.length - 1) {
       newPath.tangents.push(oldPath.tangents[jOldPoint - 1]);
     } else {
-      newPath.tangents.push(newPath.points[_i7 + 1].clone().sub(newPath.points[_i7 - 1]).normalize());
+      newPath.tangents.push(newPath.points[_i2 + 1].clone().sub(newPath.points[_i2 - 1]).normalize());
     }
   }
 
-  for (var _i8 = 0; _i8 < newPath.points.length; _i8 += 1) {
-    newPath.binormals.push(_v2.default.create().crossVectors(newPath.tangents[_i8], newPath.normals[_i8]));
+  for (var _i3 = 0; _i3 < newPath.points.length; _i3 += 1) {
+    newPath.binormals.push(_v2.default.create().crossVectors(newPath.tangents[_i3], newPath.normals[_i3]));
   }
 
   return newPath;
@@ -80534,11 +79910,11 @@ var Trace = function (_PathAndFrenetFrames) {
   function Trace() {
     _classCallCheck(this, Trace);
 
-    var _this3 = _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this));
+    var _this = _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this));
 
-    _this3.indices = [];
-    _this3.detail = 2;
-    return _this3;
+    _this.indices = [];
+    _this.detail = 2;
+    return _this;
   }
 
   _createClass(Trace, [{
@@ -80560,7 +79936,6 @@ var Trace = function (_PathAndFrenetFrames) {
       var iEnd = this.points.length;
       var iLast = iEnd - 1;
       if (iEnd - iStart > 2) {
-
         // project out first tangent from main chain
         this.tangents[iStart] = this.points[iStart + 1].clone().sub(this.points[iStart]).normalize();
 
@@ -80572,7 +79947,6 @@ var Trace = function (_PathAndFrenetFrames) {
         // project out last tangent from main chain
         this.tangents[iLast] = this.points[iLast].clone().sub(this.points[iLast - 1]).normalize();
       } else {
-
         // for short 2 point traces
         var tangent = this.points[iLast].clone().sub(this.points[iStart]).normalize();
 
@@ -80594,7 +79968,6 @@ var Trace = function (_PathAndFrenetFrames) {
       var iEnd = this.points.length;
       var iLast = iEnd - 1;
       if (iEnd - iStart > 2) {
-
         for (var i = iStart + 1; i < iLast; i += 1) {
           if (this.normals[i] !== null) {
             // normal already provided, normalize properly against tangent
@@ -80618,14 +79991,13 @@ var Trace = function (_PathAndFrenetFrames) {
         this.normals[iStart] = this.normals[iStart + 1];
         this.normals[iLast] = this.normals[iLast - 1];
       } else {
-
-        for (var _i9 = iStart; _i9 <= iLast; _i9 += 1) {
-          if (this.normals[_i9] !== null) {
-            this.normals[_i9] = perpVector(this.tangents[_i9], this.normals[_i9]);
-            this.normals[_i9].normalize();
+        for (var _i4 = iStart; _i4 <= iLast; _i4 += 1) {
+          if (this.normals[_i4] !== null) {
+            this.normals[_i4] = perpVector(this.tangents[_i4], this.normals[_i4]);
+            this.normals[_i4].normalize();
           } else {
-            var randomDir = this.points[_i9];
-            this.normals[_i9] = _v2.default.create().crossVectors(randomDir, this.tangents[_i9]).normalize();
+            var randomDir = this.points[_i4];
+            this.normals[_i4] = _v2.default.create().crossVectors(randomDir, this.tangents[_i4]).normalize();
           }
         }
       }
@@ -80699,7 +80071,7 @@ var Trace = function (_PathAndFrenetFrames) {
 
       var segmentPath = path.slice(iPathStart, iPathEnd);
 
-      var geom = new BufferRibbonGeometry(trace, segmentPath, isRound, isFront, isBack, color);
+      var geom = new BufferRibbonGeometry(this, segmentPath, isRound, isFront, isBack, color);
 
       return geom;
     }
@@ -80707,6 +80079,534 @@ var Trace = function (_PathAndFrenetFrames) {
 
   return Trace;
 }(PathAndFrenetFrames);
+
+/**
+ * Extrusion along a path that aligns a 2D shape as cross-section, with
+ * orientation along the normal for the cross-section.
+ *
+ * Accepts a cross-section shape, which is a collection of 2D points around
+ * the origin, and a path, which contains points, normals and binormals
+ * and builds a oriented extrusion out of it.
+ *
+ * If round is set, then the vertex normals are set to orient along the
+ * normal/binormal axis from the origin, otherwise, face normals are defined
+ * perpedicular to the face.
+ *
+ * For a segment between two path points and a repetition of the cross-section,
+ * two triangles are defined.
+ */
+
+
+var RibbonGeometry = function (_THREE$Geometry) {
+  _inherits(RibbonGeometry, _THREE$Geometry);
+
+  /**
+   * @param {THREE.Shape} shape - collection of 2D points for cross section
+   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
+   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
+   * @param {boolean} front - draw front cross-section
+   * @param {boolean} back - draw back cross-section
+   */
+  function RibbonGeometry(shape, path, round, front, back) {
+    _classCallCheck(this, RibbonGeometry);
+
+    var _this2 = _possibleConstructorReturn(this, (RibbonGeometry.__proto__ || Object.getPrototypeOf(RibbonGeometry)).call(this));
+
+    _this2.type = 'RibbonGeometry';
+
+    _this2.parameters = {
+      shape: shape,
+      path: path,
+      round: round
+    };
+
+    if (path.points.length < 2) {
+      return _possibleConstructorReturn(_this2);
+    }
+
+    var shapePoints = shape.extractPoints(4).shape;
+    var nVertex = shapePoints.length;
+
+    if (_lodash2.default.isUndefined(round)) {
+      round = false;
+    }
+
+    var shapeEdgeNormals = [];
+
+    if (!round) {
+      for (var j = 0; j < nVertex; j += 1) {
+        var i = j - 1;
+        if (i === -1) {
+          i = nVertex - 1;
+        }
+        var v0 = shapePoints[i];
+        var v1 = shapePoints[j];
+        var x = -(v1.y - v0.y);
+        var y = v1.x - v0.x;
+        shapeEdgeNormals.push(new THREE.Vector2(x, y));
+      }
+    }
+
+    for (var iPoint = 0; iPoint < path.points.length; iPoint += 1) {
+      var point = path.points[iPoint];
+      var normal = path.normals[iPoint];
+      var binormal = path.binormals[iPoint];
+
+      for (var iShapePoint = 0; iShapePoint < nVertex; iShapePoint += 1) {
+        var shapePoint = shapePoints[iShapePoint];
+
+        var _x = normal.clone().multiplyScalar(shapePoint.x);
+        var _y = binormal.clone().multiplyScalar(shapePoint.y);
+
+        var vertex = point.clone().add(_x).add(_y);
+
+        _this2.vertices.push(vertex);
+      }
+
+      var topOffset = _this2.vertices.length - 2 * nVertex;
+      if (topOffset < 0) {
+        continue;
+      }
+
+      if (round) {
+        // Smoothed normals to give a rounded look
+        for (var _j2 = 0; _j2 < nVertex; _j2 += 1) {
+          var _i5 = void 0;
+          if (_j2 === 0) {
+            _i5 = nVertex - 1;
+          } else {
+            _i5 = _j2 - 1;
+          }
+          var k = topOffset + _i5;
+          var l = topOffset + _j2;
+
+          var _x2 = void 0,
+              _y2 = void 0;
+
+          _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_i5].x);
+          _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_i5].y);
+          var normal00 = _x2.add(_y2);
+
+          _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_j2].x);
+          _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_j2].y);
+          var normal01 = _x2.add(_y2);
+
+          _x2 = path.normals[iPoint].clone().multiplyScalar(shapePoints[_j2].x);
+          _y2 = path.binormals[iPoint].clone().multiplyScalar(shapePoints[_j2].y);
+          var normal11 = _x2.add(_y2);
+
+          _x2 = path.normals[iPoint].clone().multiplyScalar(shapePoints[_i5].x);
+          _y2 = path.binormals[iPoint].clone().multiplyScalar(shapePoints[_i5].y);
+          var normal10 = _x2.add(_y2);
+
+          var face = new THREE.Face3(k, k + nVertex, l + nVertex);
+          face.vertexNormals = [normal00, normal10, normal11];
+          _this2.faces.push(face);
+
+          face = new THREE.Face3(k, l + nVertex, l);
+          face.vertexNormals = [normal00, normal11, normal01];
+          _this2.faces.push(face);
+        }
+      } else {
+        // Continuous normals but keep faces distinct
+        // along ribbon
+        for (var _j3 = 0; _j3 < nVertex; _j3 += 1) {
+          var _i6 = void 0;
+          if (_j3 === 0) {
+            _i6 = nVertex - 1;
+          } else {
+            _i6 = _j3 - 1;
+          }
+          var _k = topOffset + _i6;
+          var _l = topOffset + _j3;
+
+          var _x3 = void 0,
+              _y3 = void 0;
+
+          _x3 = path.normals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[_j3].x);
+          _y3 = path.binormals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[_j3].y);
+          var normal0 = _x3.add(_y3);
+
+          _x3 = path.normals[iPoint].clone().multiplyScalar(shapeEdgeNormals[_j3].x);
+          _y3 = path.binormals[iPoint].clone().multiplyScalar(shapeEdgeNormals[_j3].y);
+          var normal1 = _x3.add(_y3);
+
+          var _face = new THREE.Face3(_k, _k + nVertex, _l + nVertex);
+          _face.vertexNormals = [normal0, normal1, normal1];
+          _this2.faces.push(_face);
+
+          _face = new THREE.Face3(_k, _l + nVertex, _l);
+          _face.vertexNormals = [normal0, normal1, normal0];
+          _this2.faces.push(_face);
+        }
+      }
+    }
+
+    if (front) {
+      // Draw front face
+      var _normal = threePointNormal([_this2.vertices[0], _this2.vertices[1], _this2.vertices[2]]);
+      for (var _i7 = 0; _i7 < nVertex - 2; _i7 += 1) {
+        var _face2 = new THREE.Face3(_i7, _i7 + 1, nVertex - 1);
+        _face2.normal.copy(_normal);
+        _this2.faces.push(_face2);
+      }
+    }
+
+    if (back) {
+      // draw back face
+      var offset = _this2.vertices.length - 1 - nVertex;
+
+      var _normal2 = threePointNormal([_this2.vertices[offset], _this2.vertices[offset + nVertex - 1], _this2.vertices[offset + 1]]);
+
+      for (var _i8 = 0; _i8 < nVertex - 2; _i8 += 1) {
+        var _face3 = new THREE.Face3(offset + _i8, offset + nVertex - 1, offset + _i8 + 1);
+        _face3.normal.copy(_normal2);
+        _this2.faces.push(_face3);
+      }
+    }
+    return _this2;
+  }
+
+  return RibbonGeometry;
+}(THREE.Geometry);
+
+/**
+ * Extrusion along a path that aligns a 2D shape as cross-section, with
+ * orientation along the normal for the cross-section.
+ *
+ * Accepts a cross-section shape, which is a collection of 2D points around
+ * the origin, and a path, which contains points, normals and binormals
+ * and builds a oriented extrusion out of it.
+ *
+ * If round is set, then the vertex normals are set to orient along the
+ * normal/binormal axis from the origin, otherwise, face normals are defined
+ * perpedicular to the face.
+ *
+ * For a segment between two path points and a repetition of the cross-section,
+ * two triangles are defined.
+ */
+
+
+var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
+  _inherits(BufferRibbonGeometry, _THREE$BufferGeometry);
+
+  /**
+   * @param {THREE.Shape} shape - collection of 2D points for cross section
+   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
+   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
+   * @param {boolean} front - draw front cross-section
+   * @param {boolean} back - draw back cross-section
+   */
+  function BufferRibbonGeometry(traces, shape, front, back) {
+    var isIndexColor = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
+
+    _classCallCheck(this, BufferRibbonGeometry);
+
+    var _this3 = _possibleConstructorReturn(this, (BufferRibbonGeometry.__proto__ || Object.getPrototypeOf(BufferRibbonGeometry)).call(this));
+
+    _this3.type = 'BufferRibbonGeometry';
+
+    _this3.parameters = {
+      shape: shape,
+      traces: traces,
+      front: front,
+      back: back,
+      isIndexColor: isIndexColor
+    };
+
+    _this3.shapePoints = shape.extractPoints(4).shape;
+    _this3.nShape = _this3.shapePoints.length;
+
+    _this3.nVertex = 0;
+    _this3.nFace = 0;
+
+    _this3.countVertexAndFacesOfPath(front, back);
+    _this3.setAttributes();
+
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = _lodash2.default.range(_this3.paths.length)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var iPath = _step.value;
+
+        _this3.setPath(iPath, front, back);
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+
+    console.log('BufferRibbonGeometry.constructor vertices', _this3.nVertex, 'faces', _this3.nFace);
+    return _this3;
+  }
+
+  _createClass(BufferRibbonGeometry, [{
+    key: 'setPath',
+    value: function setPath(iPath, front, back) {
+      var path = this.paths[iPath];
+      var trace = this.parameters.traces[iPath];
+
+      var iVertexOffsetOfPathPoint = [];
+
+      var iTraceStart = 0;
+      var iTraceEnd = trace.points.length;
+
+      function getWidth(iTracePoint) {
+        return trace.segmentTypes[iTracePoint] === 'C' ? 0.5 : 8;
+      }
+
+      for (var iTracePoint = iTraceStart; iTracePoint < iTraceEnd; iTracePoint += 1) {
+        // iPathStart, iPathEnd on the expanded path for a given tracePoint
+        // assumes an overhang between neighbouring pieces to allow for disjoint
+        // coloring
+        var iPathStart = iTracePoint * 2 * trace.detail - trace.detail;
+        if (iPathStart < 0) {
+          iPathStart = 0;
+        }
+
+        // works out end of expanded path, including overhang
+        var iPathEnd = (iTracePoint + 1) * 2 * trace.detail - trace.detail + 1;
+        if (iPathEnd >= path.points.length) {
+          iPathEnd = path.points.length;
+        }
+
+        for (var iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
+          iVertexOffsetOfPathPoint[iPathPoint] = this.vertexCount;
+
+          var color = void 0;
+          if (this.parameters.isIndexColor) {
+            color = trace.indexColors[iTracePoint];
+          } else {
+            color = trace.colors[iTracePoint].clone();
+          }
+
+          var width = getWidth(iTracePoint);
+
+          var height = 1.0;
+
+          if (iPathPoint === iPathStart && iPathPoint > 0) {
+            if (trace.segmentTypes[iTracePoint - 1] === 'C' && trace.segmentTypes[iTracePoint] !== 'C') {
+              width = getWidth(iTracePoint - 1);
+            }
+          }
+          if (iPathPoint === iPathEnd - 1 && iTracePoint < trace.points.length - 1) {
+            var iNextTracePoint = iTracePoint + 1;
+            if (trace.segmentTypes[iNextTracePoint] === 'C' && trace.segmentTypes[iTracePoint] !== 'C') {
+              width = getWidth(iNextTracePoint);
+            }
+          }
+
+          var point = path.points[iPathPoint];
+          var normal = path.normals[iPathPoint];
+          var binormal = path.binormals[iPathPoint];
+
+          var _shapePoints = _lodash2.default.cloneDeep(this.shapePoints);
+          var _iteratorNormalCompletion2 = true;
+          var _didIteratorError2 = false;
+          var _iteratorError2 = undefined;
+
+          try {
+            for (var _iterator2 = _shapePoints[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+              var shapePoint = _step2.value;
+
+              shapePoint.x = shapePoint.x * width;
+              shapePoint.y = shapePoint.y * height;
+            }
+          } catch (err) {
+            _didIteratorError2 = true;
+            _iteratorError2 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                _iterator2.return();
+              }
+            } finally {
+              if (_didIteratorError2) {
+                throw _iteratorError2;
+              }
+            }
+          }
+
+          var _iteratorNormalCompletion3 = true;
+          var _didIteratorError3 = false;
+          var _iteratorError3 = undefined;
+
+          try {
+            for (var _iterator3 = _shapePoints[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+              var _shapePoint = _step3.value;
+
+              var x = normal.clone().multiplyScalar(_shapePoint.x);
+              var y = binormal.clone().multiplyScalar(_shapePoint.y);
+              this.pushVertex(point.clone().add(x).add(y), color);
+            }
+          } catch (err) {
+            _didIteratorError3 = true;
+            _iteratorError3 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                _iterator3.return();
+              }
+            } finally {
+              if (_didIteratorError3) {
+                throw _iteratorError3;
+              }
+            }
+          }
+
+          if (iPathPoint === 0) {
+            continue;
+          }
+
+          var iVertexOffset = iVertexOffsetOfPathPoint[iPathPoint - 1];
+
+          // Smoothed normals to give a rounded look
+          for (var iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
+            var iLastShapePoint = void 0;
+            if (iShapePoint === 0) {
+              iLastShapePoint = this.nShape - 1;
+            } else {
+              iLastShapePoint = iShapePoint - 1;
+            }
+
+            var iVertex00 = iVertexOffset + iLastShapePoint;
+            var iVertex01 = iVertexOffset + iShapePoint;
+            var iVertex10 = iVertex00 + this.nShape;
+            var iVertex11 = iVertex01 + this.nShape;
+
+            this.pushFace(iVertex00, iVertex10, iVertex11);
+            this.pushFace(iVertex01, iVertex00, iVertex11);
+          }
+        }
+      }
+
+      // need to calculate own normals to be smoother
+      this.computeVertexNormals();
+
+      console.log('BufferRibbonGeometry.setPath vertices', this.vertexCount);
+    }
+  }, {
+    key: 'setAttributes',
+    value: function setAttributes() {
+      var positions = new Float32Array(this.nVertex * 3);
+      var normals = new Float32Array(this.nVertex * 3);
+      var indices = new Int32Array(this.nFace * 3);
+      var colors = new Float32Array(this.nVertex * 3);
+
+      this.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      this.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+      this.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      this.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
+
+      this.positions = this.attributes.position.array;
+      this.normals = this.attributes.normal.array;
+      this.indices = this.index.array;
+      this.colors = this.attributes.color.array;
+
+      this.positionCount = 0;
+      this.indexCount = 0;
+      this.vertexCount = 0;
+    }
+  }, {
+    key: 'pushVertex',
+    value: function pushVertex(vertex, color) {
+      this.positions[this.positionCount] = vertex.x;
+      this.positions[this.positionCount + 1] = vertex.y;
+      this.positions[this.positionCount + 2] = vertex.z;
+
+      this.colors[this.positionCount] = color.r;
+      this.colors[this.positionCount + 1] = color.g;
+      this.colors[this.positionCount + 2] = color.b;
+
+      this.positionCount += 3;
+      this.vertexCount += 1;
+    }
+  }, {
+    key: 'pushFace',
+    value: function pushFace(i, j, k) {
+      this.indices[this.indexCount] = i;
+      this.indices[this.indexCount + 1] = j;
+      this.indices[this.indexCount + 2] = k;
+
+      this.indexCount += 3;
+    }
+  }, {
+    key: 'pushFaceAndNormals',
+    value: function pushFaceAndNormals(i, j, k, normalI, normalJ, normalK) {
+      this.pushFace(i, j, k);
+
+      this.normals[i * 3] = normalI.x;
+      this.normals[i * 3 + 1] = normalI.y;
+      this.normals[i * 3 + 2] = normalI.z;
+
+      this.normals[j * 3] = normalJ.x;
+      this.normals[j * 3 + 1] = normalJ.y;
+      this.normals[j * 3 + 2] = normalJ.z;
+
+      this.normals[k * 3] = normalK.x;
+      this.normals[k * 3 + 1] = normalK.y;
+      this.normals[k * 3 + 2] = normalK.z;
+    }
+  }, {
+    key: 'getVertex',
+    value: function getVertex(iVertex) {
+      return _v2.default.create(this.positions[iVertex * 3], this.positions[iVertex * 3 + 1], this.positions[iVertex * 3 + 2]);
+    }
+  }, {
+    key: 'countVertexAndFacesOfPath',
+    value: function countVertexAndFacesOfPath(front, back) {
+      this.nVertex = 0;
+      this.nFace = 0;
+
+      this.paths = [];
+      var _iteratorNormalCompletion4 = true;
+      var _didIteratorError4 = false;
+      var _iteratorError4 = undefined;
+
+      try {
+        for (var _iterator4 = this.parameters.traces[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+          var trace = _step4.value;
+
+          var path = trace.detailedPath;
+          this.paths.push(path);
+
+          var nPath = path.points.length;
+          this.nVertex += (nPath + trace.points.length - 1) * this.nShape;
+
+          var nTrace = trace.points.length;
+          this.nFace += (nTrace - 1) * 2 * this.nShape * (2 * trace.detail + 1);
+        }
+      } catch (err) {
+        _didIteratorError4 = true;
+        _iteratorError4 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion4 && _iterator4.return) {
+            _iterator4.return();
+          }
+        } finally {
+          if (_didIteratorError4) {
+            throw _iteratorError4;
+          }
+        }
+      }
+    }
+  }]);
+
+  return BufferRibbonGeometry;
+}(THREE.BufferGeometry);
 
 /**
  * Creates a unit-based block arrow pointing in the -Z direction.
@@ -80794,34 +80694,33 @@ var RaisedShapeGeometry = function (_THREE$Geometry2) {
     for (var i = 0; i < vertices.length; i += 1) {
       _this6.vertices.push(vertices[i].clone().add(displacement));
     }
-    for (var _i10 = 0; _i10 < vertices.length; _i10 += 1) {
-      _this6.vertices.push(vertices[_i10].clone().sub(displacement));
+    for (var _i9 = 0; _i9 < vertices.length; _i9 += 1) {
+      _this6.vertices.push(vertices[_i9].clone().sub(displacement));
     }
 
-    for (var _i11 = 0; _i11 < nVertex - 2; _i11 += 1) {
-      var face = new THREE.Face3(_i11, _i11 + 1, iLast);
+    for (var _i10 = 0; _i10 < nVertex - 2; _i10 += 1) {
+      var face = new THREE.Face3(_i10, _i10 + 1, iLast);
       _this6.faces.push(face);
     }
 
-    for (var _i12 = 0; _i12 < nVertex - 2; _i12 += 1) {
-      var _face4 = new THREE.Face3(offset + _i12, offset + iLast, offset + _i12 + 1);
+    for (var _i11 = 0; _i11 < nVertex - 2; _i11 += 1) {
+      var _face4 = new THREE.Face3(offset + _i11, offset + iLast, offset + _i11 + 1);
       _this6.faces.push(_face4);
     }
 
-    for (var _i13 = 0; _i13 < nVertex; _i13 += 1) {
+    for (var _i12 = 0; _i12 < nVertex; _i12 += 1) {
       var j = void 0;
-      if (_i13 === nVertex - 1) {
+      if (_i12 === nVertex - 1) {
         j = 0;
       } else {
-        j = _i13 + 1;
+        j = _i12 + 1;
       }
 
-      _this6.faces.push(new THREE.Face3(_i13, _i13 + offset, j + offset));
-      _this6.faces.push(new THREE.Face3(_i13, j + offset, j));
+      _this6.faces.push(new THREE.Face3(_i12, _i12 + offset, j + offset));
+      _this6.faces.push(new THREE.Face3(_i12, j + offset, j));
     }
 
     _this6.computeFaceNormals();
-
     return _this6;
   }
 
@@ -80838,7 +80737,6 @@ var RaisedShapeGeometry = function (_THREE$Geometry2) {
 
 
 function setVisible(obj, visibility) {
-
   if (_lodash2.default.isUndefined(obj)) {
     return;
   }
@@ -80873,14 +80771,12 @@ function clearObject3D(obj) {
 }
 
 function perpVector(ref, vec) {
+  var vecAlongRef = ref.clone().multiplyScalar(vec.dot(ref));
 
-  var vec_along_ref = ref.clone().multiplyScalar(vec.dot(ref));
-
-  return vec.clone().sub(vec_along_ref);
+  return vec.clone().sub(vecAlongRef);
 }
 
 function threePointNormal(vertices) {
-
   var cb = new THREE.Vector3();
   var ab = new THREE.Vector3();
 
@@ -81359,7 +81255,7 @@ var has = __webpack_require__(11);
 var DESCRIPTORS = __webpack_require__(6);
 var $export = __webpack_require__(0);
 var redefine = __webpack_require__(13);
-var META = __webpack_require__(29).KEY;
+var META = __webpack_require__(30).KEY;
 var $fails = __webpack_require__(3);
 var shared = __webpack_require__(53);
 var setToStringTag = __webpack_require__(44);
@@ -81697,7 +81593,7 @@ __webpack_require__(25)('getOwnPropertyNames', function () {
 
 // 19.1.2.5 Object.freeze(O)
 var isObject = __webpack_require__(4);
-var meta = __webpack_require__(29).onFreeze;
+var meta = __webpack_require__(30).onFreeze;
 
 __webpack_require__(25)('freeze', function ($freeze) {
   return function freeze(it) {
@@ -81712,7 +81608,7 @@ __webpack_require__(25)('freeze', function ($freeze) {
 
 // 19.1.2.17 Object.seal(O)
 var isObject = __webpack_require__(4);
-var meta = __webpack_require__(29).onFreeze;
+var meta = __webpack_require__(30).onFreeze;
 
 __webpack_require__(25)('seal', function ($seal) {
   return function seal(it) {
@@ -81727,7 +81623,7 @@ __webpack_require__(25)('seal', function ($seal) {
 
 // 19.1.2.15 Object.preventExtensions(O)
 var isObject = __webpack_require__(4);
-var meta = __webpack_require__(29).onFreeze;
+var meta = __webpack_require__(30).onFreeze;
 
 __webpack_require__(25)('preventExtensions', function ($preventExtensions) {
   return function preventExtensions(it) {
@@ -83372,7 +83268,7 @@ var $export = __webpack_require__(0);
 
 $export($export.P, 'Array', { copyWithin: __webpack_require__(113) });
 
-__webpack_require__(30)('copyWithin');
+__webpack_require__(31)('copyWithin');
 
 
 /***/ }),
@@ -83384,7 +83280,7 @@ var $export = __webpack_require__(0);
 
 $export($export.P, 'Array', { fill: __webpack_require__(88) });
 
-__webpack_require__(30)('fill');
+__webpack_require__(31)('fill');
 
 
 /***/ }),
@@ -83405,7 +83301,7 @@ $export($export.P + $export.F * forced, 'Array', {
     return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
-__webpack_require__(30)(KEY);
+__webpack_require__(31)(KEY);
 
 
 /***/ }),
@@ -83426,7 +83322,7 @@ $export($export.P + $export.F * forced, 'Array', {
     return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
-__webpack_require__(30)(KEY);
+__webpack_require__(31)(KEY);
 
 
 /***/ }),
@@ -84457,7 +84353,7 @@ $export($export.P, 'Array', {
   }
 });
 
-__webpack_require__(30)('includes');
+__webpack_require__(31)('includes');
 
 
 /***/ }),
@@ -84486,7 +84382,7 @@ $export($export.P, 'Array', {
   }
 });
 
-__webpack_require__(30)('flatMap');
+__webpack_require__(31)('flatMap');
 
 
 /***/ }),
@@ -84514,7 +84410,7 @@ $export($export.P, 'Array', {
   }
 });
 
-__webpack_require__(30)('flatten');
+__webpack_require__(31)('flatten');
 
 
 /***/ }),
@@ -86433,7 +86329,7 @@ var _embedjolecule = __webpack_require__(131);
 
 var _fullpagejolecule = __webpack_require__(345);
 
-var _lodash = __webpack_require__(31);
+var _lodash = __webpack_require__(29);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -86546,7 +86442,7 @@ var MS_PER_STEP = 25;
 function loop() {
   requestAnimationFrame(loop);
 
-  if (window.globalWidgets == []) {
+  if (window.globalWidgets === []) {
     return;
   }
   var currTime = new Date().getTime();
@@ -86619,7 +86515,7 @@ function loop() {
  * window space to lock one single copy of loop
  */
 function registerGlobalAnimationLoop(widget) {
-  if (typeof window.globalWidgets == 'undefined') {
+  if (typeof window.globalWidgets === 'undefined') {
     window.globalWidgets = [];
     loop();
     window.lastTime = new Date().getTime();
@@ -87749,7 +87645,7 @@ var _jquery = __webpack_require__(43);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _lodash = __webpack_require__(31);
+var _lodash = __webpack_require__(29);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -87798,7 +87694,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * and their associated views
  */
 var Display = function () {
-
   /**
    * @param soupView - SoupView object that holds a soup and views
    * @param divTag - a selector tag for a DOM element
@@ -87922,7 +87817,7 @@ var Display = function () {
     value: function initWebglRenderer() {
       var _this = this;
 
-      this.renderer = new THREE.WebGLRenderer();
+      this.renderer = new THREE.WebGLRenderer({ antialias: true });
       this.renderer.setClearColor(this.backgroundColor);
       this.renderer.setSize(this.width(), this.height());
 
@@ -88037,9 +87932,10 @@ var Display = function () {
 
           atom.iAtom = residue.iAtom;
           lastTrace.points.push(atom.pos.clone());
-
-          var normal = residue.normal;
-          lastTrace.normals.push(normal);
+          lastTrace.colors.push(new THREE.Color(residue.color));
+          lastTrace.indexColors.push(data.getIndexColor(residue.iAtom));
+          lastTrace.segmentTypes.push(residue.ss);
+          lastTrace.normals.push(residue.normal);
         }
       }
 
@@ -88103,7 +87999,6 @@ var Display = function () {
   }, {
     key: 'buildScene',
     value: function buildScene() {
-
       this.soupView.initViewsAfterSoupLoad();
 
       // pre-calculations needed before building meshes
@@ -88137,7 +88032,7 @@ var Display = function () {
       this.soup.findGridLimits();
       this.calculateTracesForRibbons();
 
-      this.buildMeshOfRibbons();
+      this.buildMeshOfTube();
       this.buildMeshOfGrid();
       this.buildMeshOfLigands();
       this.buildMeshOfNucleotides();
@@ -88290,11 +88185,23 @@ var Display = function () {
       this.pickingMeshes[meshName].add(mesh);
     }
   }, {
-    key: 'buildMeshOfRibbons',
-    value: function buildMeshOfRibbons() {
-      this.createOrClearMesh('ribbons');
-      var displayGeom = new THREE.Geometry();
-      var pickingGeom = new THREE.Geometry();
+    key: 'buildMeshOfTube',
+    value: function buildMeshOfTube() {
+      this.createOrClearMesh('tube');
+      var isFront = false;
+      var isBack = false;
+      var displayGeom = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace, isFront, isBack);
+      var displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial);
+      this.displayMeshes['tube'].add(displayMesh);
+      var pickingGeom = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace, isFront, isBack, true);
+      var pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial);
+      this.pickingMeshes['tube'].add(pickingMesh);
+    }
+  }, {
+    key: 'buildMeshOfArrows',
+    value: function buildMeshOfArrows() {
+      this.createOrClearMesh('arrows');
+      var nCopy = 0;
       var _iteratorNormalCompletion5 = true;
       var _didIteratorError5 = false;
       var _iteratorError5 = undefined;
@@ -88303,41 +88210,7 @@ var Display = function () {
         for (var _iterator5 = this.traces[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
           var trace = _step5.value;
 
-          var n = trace.points.length;
-          var _iteratorNormalCompletion6 = true;
-          var _didIteratorError6 = false;
-          var _iteratorError6 = undefined;
-
-          try {
-            for (var _iterator6 = _lodash2.default.range(n)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-              var i = _step6.value;
-
-              var res = trace.getReference(i);
-              var face = data.getSsFace(res.ss);
-              var color = res.color;
-              var iAtom = res.iAtom;
-              var isRound = res.ss === 'C';
-              var isFront = i === 0 || res.ss !== trace.getReference(i - 1).ss;
-              var isBack = i === n - 1 || res.ss !== trace.getReference(i + 1).ss;
-              var resGeom = trace.getSegmentGeometry(i, face, isRound, isFront, isBack, color);
-              displayGeom.merge(resGeom);
-              glgeom.setGeometryVerticesColor(resGeom, data.getIndexColor(iAtom));
-              pickingGeom.merge(resGeom);
-            }
-          } catch (err) {
-            _didIteratorError6 = true;
-            _iteratorError6 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                _iterator6.return();
-              }
-            } finally {
-              if (_didIteratorError6) {
-                throw _iteratorError6;
-              }
-            }
-          }
+          nCopy += trace.points.length;
         }
       } catch (err) {
         _didIteratorError5 = true;
@@ -88354,52 +88227,6 @@ var Display = function () {
         }
       }
 
-      this.addGeomToDisplayMesh('ribbons', displayGeom);
-      this.addGeomToPickingMesh('ribbons', pickingGeom);
-    }
-  }, {
-    key: 'buildMeshOfTube',
-    value: function buildMeshOfTube() {
-      this.createOrClearMesh('tube');
-      var res = this.traces[0].getReference(0);
-      var color = res.color;
-      var isRound = true;
-      var isFront = false;
-      var isBack = false;
-      var geom = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace, isRound, isFront, isBack, color);
-      var displayMesh = new THREE.Mesh(geom, this.displayMaterial);
-      this.displayMeshes['tube'].add(displayMesh);
-    }
-  }, {
-    key: 'buildMeshOfArrows',
-    value: function buildMeshOfArrows() {
-      this.createOrClearMesh('arrows');
-      var nCopy = 0;
-      var _iteratorNormalCompletion7 = true;
-      var _didIteratorError7 = false;
-      var _iteratorError7 = undefined;
-
-      try {
-        for (var _iterator7 = this.traces[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-          var trace = _step7.value;
-
-          nCopy += trace.points.length;
-        }
-      } catch (err) {
-        _didIteratorError7 = true;
-        _iteratorError7 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion7 && _iterator7.return) {
-            _iterator7.return();
-          }
-        } finally {
-          if (_didIteratorError7) {
-            throw _iteratorError7;
-          }
-        }
-      }
-
       var blockArrowGeometry = new glgeom.BlockArrowGeometry();
       var bufferGeometry = new THREE.BufferGeometry().fromGeometry(blockArrowGeometry);
 
@@ -88409,31 +88236,27 @@ var Display = function () {
       var obj = new THREE.Object3D();
 
       var iCopy = 0;
-      var _iteratorNormalCompletion8 = true;
-      var _didIteratorError8 = false;
-      var _iteratorError8 = undefined;
+      var _iteratorNormalCompletion6 = true;
+      var _didIteratorError6 = false;
+      var _iteratorError6 = undefined;
 
       try {
-        for (var _iterator8 = this.traces[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-          var _trace = _step8.value;
+        for (var _iterator6 = this.traces[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+          var _trace = _step6.value;
 
           var n = _trace.points.length;
-          var _iteratorNormalCompletion9 = true;
-          var _didIteratorError9 = false;
-          var _iteratorError9 = undefined;
+          var _iteratorNormalCompletion7 = true;
+          var _didIteratorError7 = false;
+          var _iteratorError7 = undefined;
 
           try {
-            for (var _iterator9 = _lodash2.default.range(n)[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-              var i = _step9.value;
+            for (var _iterator7 = _lodash2.default.range(n)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+              var i = _step7.value;
 
               var point = _trace.points[i];
               var tangent = _trace.tangents[i];
               var normal = _trace.binormals[i];
               var target = point.clone().add(tangent);
-
-              var res = _trace.getReference(i);
-              var color = data.getDarkSsColor(res.ss);
-              var iAtom = res.iAtom;
 
               obj.matrix.identity();
               obj.position.copy(point);
@@ -88442,39 +88265,41 @@ var Display = function () {
               obj.updateMatrix();
 
               displayGeom.applyMatrixToCopy(obj.matrix, iCopy);
+              var color = _trace.colors[i].clone();
+              color.offsetHSL(0, 0, -0.2);
               displayGeom.applyColorToCopy(color, iCopy);
 
               pickingGeom.applyMatrixToCopy(obj.matrix, iCopy);
-              pickingGeom.applyColorToCopy(data.getIndexColor(iAtom), iCopy);
+              pickingGeom.applyColorToCopy(_trace.indexColors[i], iCopy);
 
               iCopy += 1;
             }
           } catch (err) {
-            _didIteratorError9 = true;
-            _iteratorError9 = err;
+            _didIteratorError7 = true;
+            _iteratorError7 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion9 && _iterator9.return) {
-                _iterator9.return();
+              if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                _iterator7.return();
               }
             } finally {
-              if (_didIteratorError9) {
-                throw _iteratorError9;
+              if (_didIteratorError7) {
+                throw _iteratorError7;
               }
             }
           }
         }
       } catch (err) {
-        _didIteratorError8 = true;
-        _iteratorError8 = err;
+        _didIteratorError6 = true;
+        _iteratorError6 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-            _iterator8.return();
+          if (!_iteratorNormalCompletion6 && _iterator6.return) {
+            _iterator6.return();
           }
         } finally {
-          if (_didIteratorError8) {
-            throw _iteratorError8;
+          if (_didIteratorError6) {
+            throw _iteratorError6;
           }
         }
       }
@@ -88571,13 +88396,13 @@ var Display = function () {
       var atom = this.soup.getAtomProxy();
       var residue = this.soup.getResidueProxy();
 
-      var _iteratorNormalCompletion10 = true;
-      var _didIteratorError10 = false;
-      var _iteratorError10 = undefined;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
 
       try {
-        for (var _iterator10 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-          var iRes = _step10.value;
+        for (var _iterator8 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var iRes = _step8.value;
 
           residue.iRes = iRes;
           if (!residue.isPolymer) {
@@ -88587,69 +88412,69 @@ var Display = function () {
           if (!residueShow) {
             continue;
           }
-          var _iteratorNormalCompletion11 = true;
-          var _didIteratorError11 = false;
-          var _iteratorError11 = undefined;
+          var _iteratorNormalCompletion9 = true;
+          var _didIteratorError9 = false;
+          var _iteratorError9 = undefined;
 
           try {
-            for (var _iterator11 = residue.getAtomIndices()[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-              var iAtom = _step11.value;
+            for (var _iterator9 = residue.getAtomIndices()[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+              var iAtom = _step9.value;
 
               atom.iAtom = iAtom;
               if (!util.inArray(atom.atomType, data.backboneAtomTypes)) {
                 atomIndices.push(iAtom);
-                var _iteratorNormalCompletion12 = true;
-                var _didIteratorError12 = false;
-                var _iteratorError12 = undefined;
+                var _iteratorNormalCompletion10 = true;
+                var _didIteratorError10 = false;
+                var _iteratorError10 = undefined;
 
                 try {
-                  for (var _iterator12 = atom.getBondIndices()[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-                    var iBond = _step12.value;
+                  for (var _iterator10 = atom.getBondIndices()[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                    var iBond = _step10.value;
 
                     bondIndices.push(iBond);
                   }
                 } catch (err) {
-                  _didIteratorError12 = true;
-                  _iteratorError12 = err;
+                  _didIteratorError10 = true;
+                  _iteratorError10 = err;
                 } finally {
                   try {
-                    if (!_iteratorNormalCompletion12 && _iterator12.return) {
-                      _iterator12.return();
+                    if (!_iteratorNormalCompletion10 && _iterator10.return) {
+                      _iterator10.return();
                     }
                   } finally {
-                    if (_didIteratorError12) {
-                      throw _iteratorError12;
+                    if (_didIteratorError10) {
+                      throw _iteratorError10;
                     }
                   }
                 }
               }
             }
           } catch (err) {
-            _didIteratorError11 = true;
-            _iteratorError11 = err;
+            _didIteratorError9 = true;
+            _iteratorError9 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion11 && _iterator11.return) {
-                _iterator11.return();
+              if (!_iteratorNormalCompletion9 && _iterator9.return) {
+                _iterator9.return();
               }
             } finally {
-              if (_didIteratorError11) {
-                throw _iteratorError11;
+              if (_didIteratorError9) {
+                throw _iteratorError9;
               }
             }
           }
         }
       } catch (err) {
-        _didIteratorError10 = true;
-        _iteratorError10 = err;
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion10 && _iterator10.return) {
-            _iterator10.return();
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
           }
         } finally {
-          if (_didIteratorError10) {
-            throw _iteratorError10;
+          if (_didIteratorError8) {
+            throw _iteratorError8;
           }
         }
       }
@@ -88668,81 +88493,81 @@ var Display = function () {
       var atom = this.soup.getAtomProxy();
       var residue = this.soup.getResidueProxy();
 
-      var _iteratorNormalCompletion13 = true;
-      var _didIteratorError13 = false;
-      var _iteratorError13 = undefined;
+      var _iteratorNormalCompletion11 = true;
+      var _didIteratorError11 = false;
+      var _iteratorError11 = undefined;
 
       try {
-        for (var _iterator13 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-          var iRes = _step13.value;
+        for (var _iterator11 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+          var iRes = _step11.value;
 
           residue.iRes = iRes;
           if (!residue.isPolymer) {
             continue;
           }
-          var _iteratorNormalCompletion14 = true;
-          var _didIteratorError14 = false;
-          var _iteratorError14 = undefined;
+          var _iteratorNormalCompletion12 = true;
+          var _didIteratorError12 = false;
+          var _iteratorError12 = undefined;
 
           try {
-            for (var _iterator14 = residue.getAtomIndices()[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-              var iAtom = _step14.value;
+            for (var _iterator12 = residue.getAtomIndices()[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+              var iAtom = _step12.value;
 
               atom.iAtom = iAtom;
               if (util.inArray(atom.atomType, data.backboneAtomTypes)) {
                 atomIndices.push(iAtom);
-                var _iteratorNormalCompletion15 = true;
-                var _didIteratorError15 = false;
-                var _iteratorError15 = undefined;
+                var _iteratorNormalCompletion13 = true;
+                var _didIteratorError13 = false;
+                var _iteratorError13 = undefined;
 
                 try {
-                  for (var _iterator15 = atom.getBondIndices()[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-                    var iBond = _step15.value;
+                  for (var _iterator13 = atom.getBondIndices()[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+                    var iBond = _step13.value;
 
                     bondIndices.push(iBond);
                   }
                 } catch (err) {
-                  _didIteratorError15 = true;
-                  _iteratorError15 = err;
+                  _didIteratorError13 = true;
+                  _iteratorError13 = err;
                 } finally {
                   try {
-                    if (!_iteratorNormalCompletion15 && _iterator15.return) {
-                      _iterator15.return();
+                    if (!_iteratorNormalCompletion13 && _iterator13.return) {
+                      _iterator13.return();
                     }
                   } finally {
-                    if (_didIteratorError15) {
-                      throw _iteratorError15;
+                    if (_didIteratorError13) {
+                      throw _iteratorError13;
                     }
                   }
                 }
               }
             }
           } catch (err) {
-            _didIteratorError14 = true;
-            _iteratorError14 = err;
+            _didIteratorError12 = true;
+            _iteratorError12 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion14 && _iterator14.return) {
-                _iterator14.return();
+              if (!_iteratorNormalCompletion12 && _iterator12.return) {
+                _iterator12.return();
               }
             } finally {
-              if (_didIteratorError14) {
-                throw _iteratorError14;
+              if (_didIteratorError12) {
+                throw _iteratorError12;
               }
             }
           }
         }
       } catch (err) {
-        _didIteratorError13 = true;
-        _iteratorError13 = err;
+        _didIteratorError11 = true;
+        _iteratorError11 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion13 && _iterator13.return) {
-            _iterator13.return();
+          if (!_iteratorNormalCompletion11 && _iterator11.return) {
+            _iterator11.return();
           }
         } finally {
-          if (_didIteratorError13) {
-            throw _iteratorError13;
+          if (_didIteratorError11) {
+            throw _iteratorError11;
           }
         }
       }
@@ -88760,79 +88585,79 @@ var Display = function () {
       var atom = this.soup.getAtomProxy();
       var residue = this.soup.getResidueProxy();
 
-      var _iteratorNormalCompletion16 = true;
-      var _didIteratorError16 = false;
-      var _iteratorError16 = undefined;
+      var _iteratorNormalCompletion14 = true;
+      var _didIteratorError14 = false;
+      var _iteratorError14 = undefined;
 
       try {
-        for (var _iterator16 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-          var iRes = _step16.value;
+        for (var _iterator14 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+          var iRes = _step14.value;
 
           residue.iRes = iRes;
           if (residue.ss !== '-') {
             continue;
           }
-          var _iteratorNormalCompletion17 = true;
-          var _didIteratorError17 = false;
-          var _iteratorError17 = undefined;
+          var _iteratorNormalCompletion15 = true;
+          var _didIteratorError15 = false;
+          var _iteratorError15 = undefined;
 
           try {
-            for (var _iterator17 = residue.getAtomIndices()[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
-              var iAtom = _step17.value;
+            for (var _iterator15 = residue.getAtomIndices()[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+              var iAtom = _step15.value;
 
               atom.iAtom = iAtom;
               atomIndices.push(iAtom);
-              var _iteratorNormalCompletion18 = true;
-              var _didIteratorError18 = false;
-              var _iteratorError18 = undefined;
+              var _iteratorNormalCompletion16 = true;
+              var _didIteratorError16 = false;
+              var _iteratorError16 = undefined;
 
               try {
-                for (var _iterator18 = atom.getBondIndices()[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-                  var iBond = _step18.value;
+                for (var _iterator16 = atom.getBondIndices()[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+                  var iBond = _step16.value;
 
                   bondIndices.push(iBond);
                 }
               } catch (err) {
-                _didIteratorError18 = true;
-                _iteratorError18 = err;
+                _didIteratorError16 = true;
+                _iteratorError16 = err;
               } finally {
                 try {
-                  if (!_iteratorNormalCompletion18 && _iterator18.return) {
-                    _iterator18.return();
+                  if (!_iteratorNormalCompletion16 && _iterator16.return) {
+                    _iterator16.return();
                   }
                 } finally {
-                  if (_didIteratorError18) {
-                    throw _iteratorError18;
+                  if (_didIteratorError16) {
+                    throw _iteratorError16;
                   }
                 }
               }
             }
           } catch (err) {
-            _didIteratorError17 = true;
-            _iteratorError17 = err;
+            _didIteratorError15 = true;
+            _iteratorError15 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion17 && _iterator17.return) {
-                _iterator17.return();
+              if (!_iteratorNormalCompletion15 && _iterator15.return) {
+                _iterator15.return();
               }
             } finally {
-              if (_didIteratorError17) {
-                throw _iteratorError17;
+              if (_didIteratorError15) {
+                throw _iteratorError15;
               }
             }
           }
         }
       } catch (err) {
-        _didIteratorError16 = true;
-        _iteratorError16 = err;
+        _didIteratorError14 = true;
+        _iteratorError14 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion16 && _iterator16.return) {
-            _iterator16.return();
+          if (!_iteratorNormalCompletion14 && _iterator14.return) {
+            _iterator14.return();
           }
         } finally {
-          if (_didIteratorError16) {
-            throw _iteratorError16;
+          if (_didIteratorError14) {
+            throw _iteratorError14;
           }
         }
       }
@@ -88846,13 +88671,13 @@ var Display = function () {
       this.createOrClearMesh('water');
       var atomIndices = [];
       var residue = this.soup.getResidueProxy();
-      var _iteratorNormalCompletion19 = true;
-      var _didIteratorError19 = false;
-      var _iteratorError19 = undefined;
+      var _iteratorNormalCompletion17 = true;
+      var _didIteratorError17 = false;
+      var _iteratorError17 = undefined;
 
       try {
-        for (var _iterator19 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-          var iRes = _step19.value;
+        for (var _iterator17 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+          var iRes = _step17.value;
 
           residue.iRes = iRes;
           if (residue.resType === 'HOH') {
@@ -88860,16 +88685,16 @@ var Display = function () {
           }
         }
       } catch (err) {
-        _didIteratorError19 = true;
-        _iteratorError19 = err;
+        _didIteratorError17 = true;
+        _iteratorError17 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion19 && _iterator19.return) {
-            _iterator19.return();
+          if (!_iteratorNormalCompletion17 && _iterator17.return) {
+            _iterator17.return();
           }
         } finally {
-          if (_didIteratorError19) {
-            throw _iteratorError19;
+          if (_didIteratorError17) {
+            throw _iteratorError17;
           }
         }
       }
@@ -88889,13 +88714,13 @@ var Display = function () {
       var atomIndices = [];
       var residue = this.soup.getResidueProxy();
       var atom = this.soup.getAtomProxy();
-      var _iteratorNormalCompletion20 = true;
-      var _didIteratorError20 = false;
-      var _iteratorError20 = undefined;
+      var _iteratorNormalCompletion18 = true;
+      var _didIteratorError18 = false;
+      var _iteratorError18 = undefined;
 
       try {
-        for (var _iterator20 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-          var iRes = _step20.value;
+        for (var _iterator18 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+          var iRes = _step18.value;
 
           residue.iRes = iRes;
           if (residue.ss === 'G') {
@@ -88906,16 +88731,16 @@ var Display = function () {
           }
         }
       } catch (err) {
-        _didIteratorError20 = true;
-        _iteratorError20 = err;
+        _didIteratorError18 = true;
+        _iteratorError18 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion20 && _iterator20.return) {
-            _iterator20.return();
+          if (!_iteratorNormalCompletion18 && _iterator18.return) {
+            _iterator18.return();
           }
         } finally {
-          if (_didIteratorError20) {
-            throw _iteratorError20;
+          if (_didIteratorError18) {
+            throw _iteratorError18;
           }
         }
       }
@@ -88935,13 +88760,13 @@ var Display = function () {
       var residue = this.soup.getResidueProxy();
       var atom = this.soup.getAtomProxy();
 
-      var _iteratorNormalCompletion21 = true;
-      var _didIteratorError21 = false;
-      var _iteratorError21 = undefined;
+      var _iteratorNormalCompletion19 = true;
+      var _didIteratorError19 = false;
+      var _iteratorError19 = undefined;
 
       try {
-        for (var _iterator21 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-          var iRes = _step21.value;
+        for (var _iterator19 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+          var iRes = _step19.value;
 
           residue.iRes = iRes;
           if (residue.ss !== 'D' || !residue.isPolymer) {
@@ -88980,13 +88805,13 @@ var Display = function () {
           var faceGeom = new glgeom.RaisedShapeGeometry(vertices, 0.2);
           basepairGeom.merge(faceGeom);
 
-          var _iteratorNormalCompletion22 = true;
-          var _didIteratorError22 = false;
-          var _iteratorError22 = undefined;
+          var _iteratorNormalCompletion20 = true;
+          var _didIteratorError20 = false;
+          var _iteratorError20 = undefined;
 
           try {
-            for (var _iterator22 = bondTypes[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-              var bond = _step22.value;
+            for (var _iterator20 = bondTypes[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+              var bond = _step20.value;
 
               var _vertices = getVerticesFromAtomDict(iRes, [bond[0], bond[1]]);
               basepairGeom.merge(cylinderGeom, glgeom.getCylinderMatrix(_vertices[0], _vertices[1], 0.2));
@@ -88996,21 +88821,21 @@ var Display = function () {
             // sets no uv but cylinder does, and the merged geometry causes
             // warnings in THREE.js v0.79
           } catch (err) {
-            _didIteratorError22 = true;
-            _iteratorError22 = err;
+            _didIteratorError20 = true;
+            _iteratorError20 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion22 && _iterator22.return) {
-                _iterator22.return();
+              if (!_iteratorNormalCompletion20 && _iterator20.return) {
+                _iterator20.return();
               }
             } finally {
-              if (_didIteratorError22) {
-                throw _iteratorError22;
+              if (_didIteratorError20) {
+                throw _iteratorError20;
               }
             }
           }
 
-          basepairGeom.faceVertexUvs = [new Array()];
+          basepairGeom.faceVertexUvs = [[]];
 
           glgeom.setGeometryVerticesColor(basepairGeom, residue.color);
           displayGeom.merge(basepairGeom);
@@ -89019,16 +88844,16 @@ var Display = function () {
           pickingGeom.merge(basepairGeom);
         }
       } catch (err) {
-        _didIteratorError21 = true;
-        _iteratorError21 = err;
+        _didIteratorError19 = true;
+        _iteratorError19 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion21 && _iterator21.return) {
-            _iterator21.return();
+          if (!_iteratorNormalCompletion19 && _iterator19.return) {
+            _iterator19.return();
           }
         } finally {
-          if (_didIteratorError21) {
-            throw _iteratorError21;
+          if (_didIteratorError19) {
+            throw _iteratorError19;
           }
         }
       }
@@ -89109,13 +88934,13 @@ var Display = function () {
       var z = cameraParams.position.clone().sub(cameraParams.focus).normalize();
       var x = _v2.default.create().crossVectors(y, z).normalize();
 
-      var rot_z = new THREE.Quaternion().setFromAxisAngle(z, zRotationAngle);
+      var rotZ = new THREE.Quaternion().setFromAxisAngle(z, zRotationAngle);
 
-      var rot_y = new THREE.Quaternion().setFromAxisAngle(y, -yRotationAngle);
+      var rotY = new THREE.Quaternion().setFromAxisAngle(y, -yRotationAngle);
 
-      var rot_x = new THREE.Quaternion().setFromAxisAngle(x, -xRotationAngle);
+      var rotX = new THREE.Quaternion().setFromAxisAngle(x, -xRotationAngle);
 
-      var rotation = new THREE.Quaternion().multiply(rot_z).multiply(rot_y).multiply(rot_x);
+      var rotation = new THREE.Quaternion().multiply(rotZ).multiply(rotY).multiply(rotX);
 
       var newZoom = zoomRatio * cameraParams.zoom;
 
@@ -89287,9 +89112,8 @@ var Display = function () {
       this.updateMeshesInScene = false;
 
       var show = this.soupView.currentView.show;
-      this.setMeshVisible('tube', show.trace);
+      this.setMeshVisible('tube', show.ribbon);
       this.setMeshVisible('water', show.water);
-      this.setMeshVisible('ribbons', show.ribbon);
       this.setMeshVisible('arrows', !show.backboneAtoms);
       this.setMeshVisible('backbone', show.backboneAtom);
       this.setMeshVisible('ligands', show.ligands);
@@ -89430,9 +89254,9 @@ var Display = function () {
         this.eventY = event.clientY;
       }
 
-      var result = util.getDomPosition(this.div[0]);
-      this.mouseX = this.eventX - result[0] - this.x();
-      this.mouseY = this.eventY - result[1] - this.y();
+      var rect = event.target.getBoundingClientRect();
+      this.mouseX = this.eventX - rect.left;
+      this.mouseY = this.eventY - rect.top;
 
       var x = this.mouseX - this.width() / 2;
       var y = this.mouseY - this.height() / 2;
@@ -89649,7 +89473,7 @@ var _three = __webpack_require__(51);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _lodash = __webpack_require__(31);
+var _lodash = __webpack_require__(29);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -89884,19 +89708,9 @@ var CanvasWrapper = function () {
   }, {
     key: 'getPointer',
     value: function getPointer(event) {
-      var x = void 0,
-          y = void 0;
-      if (event.touches) {
-        x = event.touches[0].clientX;
-        y = event.touches[0].clientY;
-      } else {
-        x = event.clientX;
-        y = event.clientY;
-      }
-
-      this.pointerX = x + document.body.scrollLeft + document.documentElement.scrollLeft - this.x();
-
-      this.pointerY = y + document.body.scrollTop + document.documentElement.scrollTop - this.y();
+      var rect = event.target.getBoundingClientRect();
+      this.pointerX = event.clientX - rect.left;
+      this.pointerY = event.clientY - rect.top;
     }
   }]);
 
@@ -89956,7 +89770,7 @@ var PopupText = function () {
       }
 
       this.div.css({
-        'top': y - height - 50 + parentDivPos.top,
+        'top': y - height - 50 + 10 + parentDivPos.top,
         'left': x - width / 2 + parentDivPos.left,
         'display': 'block',
         'font-family': 'sans-serif',
@@ -90368,7 +90182,7 @@ var SequenceWidget = function (_CanvasWrapper) {
         return;
       }
 
-      if (this.residues.length == 0) {
+      if (this.residues.length === 0) {
         return;
       }
 
@@ -90507,7 +90321,8 @@ var ZSlabWidget = function (_CanvasWrapper2) {
     key: 'y',
     value: function y() {
       var parentDivPos = this.parentDiv.position();
-      return parentDivPos.top + this.yOffset;
+      var result = parentDivPos.top + this.yOffset;
+      return result;
     }
   }, {
     key: 'height',
@@ -90560,7 +90375,6 @@ var ZSlabWidget = function (_CanvasWrapper2) {
     key: 'getZ',
     value: function getZ(event) {
       this.getPointer(event);
-
       this.z = this.yToZ(this.pointerY);
     }
   }, {
@@ -90596,7 +90410,6 @@ var ZSlabWidget = function (_CanvasWrapper2) {
       } else if (this.front) {
         cameraParams.zFront = Math.min(-2, this.z);
       }
-
       this.soupView.changed = true;
       this.draw();
     }
@@ -90681,18 +90494,18 @@ var GridControlWidget = function (_CanvasWrapper3) {
 
       var color = data.ElementColors[elem];
       var colorHexStr = color.getHexString();
-      var text_button = util.toggleButton('toggle_text', elem, 'jolecule-button', function () {
+      var textButton = util.toggleButton('toggle_text', elem, 'jolecule-button', function () {
         return _this7.soupView.soup.grid.isElem[elem];
       }, function (b) {
         _this7.soupView.soup.grid.isElem[elem] = b;
         _this7.soupView.soup.grid.changed = true;
         _this7.soupView.changed = true;
       }, colorHexStr);
-      text_button.css('position', 'absolute');
-      text_button.css('top', y + 'px');
-      text_button.css('left', '40px');
-      text_button.css('width', '20px');
-      return text_button;
+      textButton.css('position', 'absolute');
+      textButton.css('top', y + 'px');
+      textButton.css('left', '40px');
+      textButton.css('width', '20px');
+      return textButton;
     }
   }, {
     key: 'resize',
@@ -90845,7 +90658,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.FullPageJolecule = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // eslint-disable-line
+
 
 var _jquery = __webpack_require__(43);
 
@@ -90855,7 +90669,7 @@ var _jquery3 = __webpack_require__(346);
 
 var _jquery4 = _interopRequireDefault(_jquery3);
 
-var _lodash = __webpack_require__(31);
+var _lodash = __webpack_require__(29);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -90874,7 +90688,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  */
 
 var ViewPieceList = function () {
-  function ViewPieceList(divTag, controller, proteinDisplay, data_server, isEditable) {
+  function ViewPieceList(divTag, controller, proteinDisplay, dataServer, isEditable) {
     var _this = this;
 
     _classCallCheck(this, ViewPieceList);
@@ -90884,7 +90698,7 @@ var ViewPieceList = function () {
     this.soupView = controller.soupView;
     this.controller = controller;
     this.isEditable = isEditable;
-    this.data_server = data_server;
+    this.data_server = dataServer;
     this.viewPiece = {};
     this.topDiv = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('VIEWS OF PROTEIN').append('<br>').append('<br>').append((0, _util.linkButton)('', '+[v]iew', 'jolecule-button', function () {
       _this.makeNewView();
@@ -90920,10 +90734,10 @@ var ViewPieceList = function () {
           this.insertNewViewDiv(view.id);
         }
 
-        var i_last_view = this.soupView.iLastViewSelected;
-        var last_id = this.soupView.savedViews[i_last_view].id;
+        var iLastView = this.soupView.iLastViewSelected;
+        var lastId = this.soupView.savedViews[iLastView].id;
 
-        if (last_id === _id) {
+        if (lastId === _id) {
           this.viewPiece[_id].div.removeClass('jolecule-unselected-box');
           this.viewPiece[_id].div.addClass('jolecule-selected-box');
         } else {
@@ -90986,27 +90800,27 @@ var ViewPieceList = function () {
     value: function swapViews(i, j) {
       var _this3 = this;
 
-      var i_id = this.soupView.savedViews[i].id;
-      var j_id = this.soupView.savedViews[j].id;
-      var i_div = this.viewPiece[i_id].div;
-      var j_div = this.viewPiece[j_id].div;
+      var iId = this.soupView.savedViews[i].id;
+      var jId = this.soupView.savedViews[j].id;
+      var iDiv = this.viewPiece[iId].div;
+      var jDiv = this.viewPiece[jId].div;
 
       this.controller.swapViews(i, j);
 
-      i_div.css('background-color', 'lightgray');
-      j_div.css('background-color', 'lightgray');
+      iDiv.css('background-color', 'lightgray');
+      jDiv.css('background-color', 'lightgray');
 
       this.saveViewsToDataServer(function () {
-        j_div.insertBefore(i_div);
+        jDiv.insertBefore(iDiv);
         _this3.updateViews();
-        i_div.css('background-color', '');
-        j_div.css('background-color', '');
+        iDiv.css('background-color', '');
+        jDiv.css('background-color', '');
       });
     }
   }, {
     key: 'swapUp',
-    value: function swapUp(view_id) {
-      var i = this.soupView.getIViewFromViewId(view_id);
+    value: function swapUp(viewId) {
+      var i = this.soupView.getIViewFromViewId(viewId);
       if (i < 2) {
         return;
       }
@@ -91014,8 +90828,8 @@ var ViewPieceList = function () {
     }
   }, {
     key: 'swapDown',
-    value: function swapDown(view_id) {
-      var i = this.soupView.getIViewFromViewId(view_id);
+    value: function swapDown(viewId) {
+      var i = this.soupView.getIViewFromViewId(viewId);
       if (i > this.soupView.savedViews.length - 2) {
         return;
       }
@@ -91033,8 +90847,8 @@ var ViewPieceList = function () {
         delete_view: function delete_view() {
           _this4.removeView(id);
         },
-        save_change: function save_change(changed_text) {
-          view.text = changed_text;
+        save_change: function save_change(changedText) {
+          view.text = changedText;
           _this4.viewPiece[id].div.css('background-color', 'lightgray');
           _this4.saveViewsToDataServer(function () {
             _this4.viewPiece[id].div.css('background-color', '');
@@ -91068,16 +90882,16 @@ var ViewPieceList = function () {
     }
   }, {
     key: 'insertNewViewDiv',
-    value: function insertNewViewDiv(new_id) {
-      var div = this.makeViewDiv(new_id);
+    value: function insertNewViewDiv(newId) {
+      var div = this.makeViewDiv(newId);
 
       if (this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1) {
         (0, _jquery2.default)('#jolecule-views').append(div);
       } else {
         var j = this.soupView.iLastViewSelected - 1;
-        var j_id = this.soupView.savedViews[j].id;
-        var j_div = this.viewPiece[j_id].div;
-        div.insertAfter(j_div);
+        var jId = this.soupView.savedViews[j].id;
+        var jDiv = this.viewPiece[jId].div;
+        div.insertAfter(jDiv);
       }
     }
   }, {
@@ -91141,11 +90955,11 @@ var FullPageJolecule = function () {
     document.onkeydown = function (e) {
       return _this6.onkeydown(e);
     };
-    var resize_fn = function resize_fn() {
+    var resizeFn = function resizeFn() {
       _this6.resize();
     };
-    (0, _jquery2.default)(window).resize(resize_fn);
-    window.onorientationchange = resize_fn;
+    (0, _jquery2.default)(window).resize(resizeFn);
+    window.onorientationchange = resizeFn;
 
     this.noData = true;
   }
@@ -91252,7 +91066,6 @@ var FullPageJolecule = function () {
     value: function onkeydown(event) {
       if (!window.keyboard_lock) {
         var c = String.fromCharCode(event.keyCode).toUpperCase();
-        var s = '[' + c + ']';
         if (c === 'V') {
           this.viewsDisplay.makeNewView();
           return;
@@ -91281,10 +91094,10 @@ var FullPageJolecule = function () {
         } else if (c === 'C') {
           this.display.controller.clearSelectedResidues();
         } else if (c === 'E') {
-          var i_view = this.display.soupView.iLastViewSelected;
-          if (i_view > 0) {
-            var view_id = this.display.soupView.savedViews[i_view].id;
-            this.viewsDisplay.div[view_id].edit_fn();
+          var iView = this.display.soupView.iLastViewSelected;
+          if (iView > 0) {
+            var viewId = this.display.soupView.savedViews[iView].id;
+            this.viewsDisplay.div[viewId].edit_fn();
           }
         } else if (c === 'N') {
           this.display.controller.toggleResidueNeighbors();
