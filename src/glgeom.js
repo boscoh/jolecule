@@ -59,6 +59,7 @@ class PathAndFrenetFrames {
     this.colors = []
     this.indexColors = []
     this.segmentTypes = []
+    this.refIndices = []
   }
 
   slice (i, j) {

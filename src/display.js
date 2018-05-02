@@ -77,7 +77,7 @@ class Display {
 
     this.displayScene = new THREE.Scene()
     this.displayScene.background = new THREE.Color(this.backgroundColor)
-    this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
+    // this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
 
     // this.displayMeshes is a dictionary that holds THREE.Object3D
     // collections of meshes. This allows collections to be collectively
@@ -106,8 +106,10 @@ class Display {
     this.soup = soupView.soup
     this.controller = controller
     this.nDataServer = 0
+
     // stores trace of protein/nucleotide backbones for ribbons
     this.traces = []
+
     // screen atom radius
     this.atomRadius = 0.35
 
@@ -124,6 +126,9 @@ class Display {
 
     // popup hover box over the mouse position
     this.hover = new widgets.PopupText(this.divTag, 'lightblue')
+    this.iHoverResidue = null
+    this.iHoverResidueColor = null
+    this.iHoverAtom = null
 
     // Sequence bar of protein at top of embedded window
     this.sequenceWidget = new widgets.SequenceWidget(this)
@@ -146,7 +151,7 @@ class Display {
   }
 
   initWebglRenderer () {
-    this.renderer = new THREE.WebGLRenderer({antialias: true})
+    this.renderer = new THREE.WebGLRenderer({antialias: false})
     this.renderer.setClearColor(this.backgroundColor)
     this.renderer.setSize(this.width(), this.height())
 
@@ -206,6 +211,7 @@ class Display {
         lastTrace.indices.push(iRes)
 
         atom.iAtom = residue.iAtom
+        lastTrace.refIndices.push(residue.iRes)
         lastTrace.points.push(atom.pos.clone())
         lastTrace.colors.push(new THREE.Color(residue.color))
         lastTrace.indexColors.push(data.getIndexColor(residue.iAtom))
@@ -500,7 +506,8 @@ class Display {
     this.displayMeshes[meshName].add(displayMesh)
   }
 
-  buildSelectedResidues (showAllResidues) {
+  buildMeshOfSelectedResidues () {
+    let showAllResidues = this.soupView.currentView.show.sidechain
     this.createOrClearMesh('sidechains')
 
     let atomIndices = []
@@ -753,8 +760,8 @@ class Display {
     this.camera.far = far
     this.camera.updateProjectionMatrix()
 
-    this.displayScene.fog.near = near
-    this.displayScene.fog.far = far
+    // this.displayScene.fog.near = near
+    // this.displayScene.fog.far = far
   }
 
   adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
@@ -913,9 +920,10 @@ class Display {
     }
 
     this.iHoverAtom = this.getIAtomHover()
-
+    let iNewHoverResidue = null
     if (this.iHoverAtom) {
       let atom = this.soup.getAtomProxy(this.iHoverAtom)
+      iNewHoverResidue = atom.iRes
       let text = atom.label
       let iAtom = atom.iAtom
       let pos = atom.pos.clone()
@@ -931,6 +939,30 @@ class Display {
       this.hover.move(vector.x, vector.y)
     } else {
       this.hover.hide()
+    }
+
+    if (iNewHoverResidue !== this.iHoverResidue) {
+      if (this.iHoverResidue !== null) {
+        for (let trace of this.traces) {
+          for (let [i, iRes] of trace.refIndices.entries()) {
+            if (iRes === this.iHoverResidue) {
+              trace.colors[i].copy(this.hoverResidueColor)
+            }
+          }
+        }
+      }
+      for (let trace of this.traces) {
+        for (let [i, iRes] of trace.refIndices.entries()) {
+          if (iRes === iNewHoverResidue) {
+            this.hoverResidueColor = trace.colors[i].clone()
+            trace.colors[i].offsetHSL(0, 0, +0.3)
+          }
+        }
+      }
+      this.buildMeshOfTube()
+      this.buildMeshOfArrows()
+      this.soupView.changed = true
+      this.iHoverResidue = iNewHoverResidue
     }
   }
 
@@ -953,8 +985,8 @@ class Display {
 
     let show = this.soupView.currentView.show
     this.setMeshVisible('tube', show.ribbon)
-    this.setMeshVisible('water', show.water)
     this.setMeshVisible('arrows', !show.backboneAtoms)
+    this.setMeshVisible('water', show.water)
     this.setMeshVisible('backbone', show.backboneAtom)
     this.setMeshVisible('ligands', show.ligands)
 
@@ -965,7 +997,7 @@ class Display {
     }
 
     if (this.soupView.updateResidueSelection) {
-      this.buildSelectedResidues(show.sidechain)
+      this.buildMeshOfSelectedResidues()
       this.soupView.updateResidueSelection = false
       this.updateMeshesInScene = true
     }

@@ -22,33 +22,6 @@
 
       <md-layout md-flex="33">
         <md-whiteframe>
-          <div
-            style="
-              border: 1px solid #EEE;
-              width: 100%;
-              height: 100px"
-            id="webgl">
-          </div>
-        </md-whiteframe>
-      </md-layout>
-
-      <md-layout md-flex="33">
-        <md-whiteframe
-          style="width: 500px">
-          <h3 class="md-title">
-            Canvas 2d Graphics
-          f</h3>
-          <div
-            id="rect"
-            style="width: 200px; height: 200px">
-          </div>
-          {{ pointerX }} - {{ pointerY }}
-        </md-whiteframe>
-      </md-layout>
-
-      <md-layout md-flex="33">
-        <md-whiteframe
-          style="width: 500px">
           <h3 class="md-title">File Download</h3>
           <div>
             <md-button
@@ -247,41 +220,17 @@ export default {
     this.chartWidget.addDataset('sample')
     this.randomizeGraph()
 
-    this.canvasWidget = new CanvasWidget('#rect')
-    this.canvasWidget.drawWidth = this.canvasWidget.width()
-    this.canvasWidget.drawHeight = this.canvasWidget.height()
-    this.canvasWidget.mousemove = e => {
-      this.canvasWidget.getPointer(event)
-      this.canvasWidget.drawWidth = this.canvasWidget.pointerX
-      this.canvasWidget.drawHeight = this.canvasWidget.pointerY
-      this.pointerX = this.canvasWidget.pointerX.toFixed(0)
-      this.pointerY = this.canvasWidget.pointerY.toFixed(0)
-      this.drawCanvas()
-    }
-    this.drawCanvas()
-
-    this.webglWidget = new webglstarterkit.WebglWidget('#webgl', '#FFFFFF')
-    let geometry = new THREE.BoxGeometry(50, 32, 32)
-    let material = new THREE.MeshPhongMaterial({
-      color: 0x156289,
-      emissive: 0x072534,
-      side: THREE.DoubleSide,
-      flatShading: true
-    })
-    this.webglWidget.scene.add(new THREE.Mesh(geometry, material))
-    this.webglWidget.moveCameraToShowAll()
-    this.webglWidget.update = () => {
-      this.webglWidget.rotateCameraAroundScene(0.005, 0.01, 0)
-    }
-    this.webglWidget.draw()
-
     this.joleculeWidget = initEmbedJolecule({
       divTag: '#jolecule',
       isGrid: true,
       isEditable: true,
       backgroundColor: 0xCCCCCC})
-    const dataServer0 = require('../data/data-server0.js')
+
+    const dataServer0 = require('../../../dataservers/1a0a-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer0)
+
+    const dataServer1 = require('../../../dataservers/1be9-data-server')
+    await this.joleculeWidget.asyncAddDataServer(dataServer1)
 
     let response = await rpc.rpcRun('publicGetText')
     if (response.result) {

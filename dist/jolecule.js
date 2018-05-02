@@ -87817,7 +87817,7 @@ var Display = function () {
     value: function initWebglRenderer() {
       var _this = this;
 
-      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+      this.renderer = new THREE.WebGLRenderer({ antialias: false });
       this.renderer.setClearColor(this.backgroundColor);
       this.renderer.setSize(this.width(), this.height());
 
