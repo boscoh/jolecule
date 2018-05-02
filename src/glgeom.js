@@ -604,13 +604,16 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.nFace = 0
 
     this.countVertexAndFacesOfPath(front, back)
+
+    console.log('BufferRibbonGeometry reserved vertices', this.nVertex, 'faces', this.nFace)
+
     this.setAttributes()
 
     for (let iPath of _.range(this.paths.length)) {
       this.setPath(iPath, front, back)
     }
 
-    console.log('BufferRibbonGeometry.constructor vertices', this.nVertex, 'faces', this.nFace)
+    console.log('BufferRibbonGeometry used vertices', this.vertexCount)
   }
 
   setPath (iPath, front, back) {
@@ -713,8 +716,6 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
 
     // need to calculate own normals to be smoother
     this.computeVertexNormals()
-
-    console.log('BufferRibbonGeometry.setPath vertices', this.vertexCount)
   }
 
   setAttributes () {

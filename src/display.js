@@ -127,7 +127,7 @@ class Display {
     // popup hover box over the mouse position
     this.hover = new widgets.PopupText(this.divTag, 'lightblue')
     this.iHoverResidue = null
-    this.iHoverResidueColor = null
+    this.hoverResidueColor = null
     this.iHoverAtom = null
 
     // Sequence bar of protein at top of embedded window
@@ -1103,14 +1103,12 @@ class Display {
 
   width () {
     let width = this.div.width() - this.x()
-    if (!_.isUndefined(this.zSlabWidget)) {
-      width -= this.zSlabWidget.width()
-    }
     return width
   }
 
   height () {
-    return this.div.height() - this.y()
+    let height = this.div.height() - this.y()
+    return height
   }
 
   getMouse (event) {

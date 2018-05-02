@@ -84,7 +84,7 @@ class LineElement {
  *   - creates methods that redirects mouse commands to that canvas
  */
 
-class CanvasWrapper {
+class CanvasWidget {
   constructor (selector) {
     this.parentDiv = $(selector)
 
@@ -473,7 +473,7 @@ class DistanceMeasuresWidget {
  *   - these two are integrated so that they share state
  */
 
-class SequenceWidget extends CanvasWrapper {
+class SequenceWidget extends CanvasWidget {
   constructor (display) {
     super(display.divTag)
 
@@ -700,12 +700,11 @@ class SequenceWidget extends CanvasWrapper {
  * ZSlabWidget
  */
 
-class ZSlabWidget extends CanvasWrapper {
+class ZSlabWidget extends CanvasWidget {
   constructor (display) {
     super(display.divTag)
     this.soupView = display.soupView
     this.maxZLength = 0.0
-    this.yOffset = 60
     this.div.attr('id', 'zslab')
 
     this.backColor = 'rgb(150, 150, 150)'
@@ -723,33 +722,33 @@ class ZSlabWidget extends CanvasWrapper {
     super.resize()
   }
 
-  width () {
-    return 40
+  x () {
+    let parentDivPos = this.parentDiv.position()
+    return parentDivPos.left
   }
 
   y () {
     let parentDivPos = this.parentDiv.position()
-    let result = parentDivPos.top + this.yOffset
-    return result
+    let parentHeight = this.parentDiv.height()
+    return parentDivPos.top + parentHeight - this.height()
+  }
+
+  width () {
+    return this.parentDiv.width()
   }
 
   height () {
-    return this.parentDiv.height() - this.yOffset
+    return 20
   }
 
-  x () {
-    let parentDivPos = this.parentDiv.position()
-    return this.parentDiv.width() - this.width() + parentDivPos.left
-  }
-
-  yToZ (y) {
-    let fraction = y / this.height()
+  xToZ (x) {
+    let fraction = x / this.width()
     return (0.5 - fraction) * this.maxZLength
   }
 
-  zToY (z) {
+  zToX (z) {
     let fraction = z / this.maxZLength
-    return (0.5 - fraction) * this.height()
+    return (0.5 - fraction) * this.width()
   }
 
   draw () {
@@ -757,33 +756,33 @@ class ZSlabWidget extends CanvasWrapper {
     let cameraParams = this.soupView.currentView.cameraParams
     this.maxZLength = 2.0 * protein.maxLength
 
-    let yBack = this.zToY(cameraParams.zBack)
-    let yFront = this.zToY(cameraParams.zFront)
-    let yMid = this.zToY(0)
+    let xBack = this.zToX(cameraParams.zBack)
+    let xFront = this.zToX(cameraParams.zFront)
+    let xMid = this.zToX(0)
 
     this.fillRect(
       0, 0, this.width(), this.height(), this.backColor)
 
     this.fillRect(
-      0, yBack, this.width(), yMid - yBack, this.zBackColor)
+      xBack, 0, xMid - xBack, this.height(), this.zBackColor)
 
     this.fillRect(
-      0, yMid, this.width(), yFront - yMid, this.zFrontColor)
+      xMid, 0, xFront - xMid, this.height(), this.zFrontColor)
 
     let font = '12px sans-serif'
-    let xm = this.width() / 2
+    let ym = this.width() / 2
 
-    this.text(
-      'zslab', xm, 10, font, this.zFrontColor, 'center')
-    this.text(
-      'back', xm, yBack - 7, font, this.zBackColor, 'center')
-    this.text(
-      'front', xm, yFront + 7, font, this.zFrontColor, 'center')
+    // this.text(
+    //   'zslab', 10, ym, 10, font, this.zFrontColor, 'center')
+    // this.text(
+    //   'back', ym, xBack - 7, font, this.zBackColor, 'center')
+    // this.text(
+    //   'front', ym, xFront + 7, font, this.zFrontColor, 'center')
   }
 
   getZ (event) {
     this.getPointer(event)
-    this.z = this.yToZ(this.pointerY)
+    this.z = this.xToZ(this.pointerX)
   }
 
   mousedown (event) {
@@ -825,7 +824,7 @@ class ZSlabWidget extends CanvasWrapper {
  * GridControlWidget
  */
 
-class GridControlWidget extends CanvasWrapper {
+class GridControlWidget extends CanvasWidget {
   constructor (display) {
     super(display.divTag)
     this.isGrid = display.isGrid
