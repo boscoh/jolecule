@@ -11,6 +11,8 @@
     "nopt": "^3.0.6",
     "opener": "^1.4.2",
     "requirejs": "^2.3.2",
+    "signals": "^1.0.0",
+    "three": "^0.92.0",
     "webpack": "^3.10.0"
   },
   "devDependencies": {

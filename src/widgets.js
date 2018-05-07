@@ -155,11 +155,13 @@ class CanvasWidget {
   }
 
   fillRect (x, y, w, h, fillStyle) {
+    this.drawContext.beginPath()
     this.drawContext.fillStyle = fillStyle
     this.drawContext.fillRect(x, y, w, h)
   }
 
   line (x1, y1, x2, y2, lineWidth, color) {
+    this.drawContext.beginPath()
     this.drawContext.moveTo(x1, y1)
     this.drawContext.lineTo(x2, y2)
     this.drawContext.lineWidth = lineWidth
@@ -480,6 +482,7 @@ class SequenceWidget extends CanvasWidget {
     this.display = display
     this.soupView = display.soupView
     this.traces = display.traces
+    this.display.addObserver(this)
 
     this.iRes = 0
 
@@ -701,9 +704,12 @@ class SequenceWidget extends CanvasWidget {
  */
 
 class ZSlabWidget extends CanvasWidget {
-  constructor (display) {
-    super(display.divTag)
+  constructor (display, selector) {
+    super(selector)
     this.soupView = display.soupView
+    display.addObserver(this)
+
+    console.log(`ZSlabWidget.init`, this.parentDiv[0], this.parentDiv.width(), this.parentDiv.innerHeight())
     this.maxZLength = 0.0
     this.div.attr('id', 'zslab')
 
@@ -723,14 +729,11 @@ class ZSlabWidget extends CanvasWidget {
   }
 
   x () {
-    let parentDivPos = this.parentDiv.position()
-    return parentDivPos.left
+    return 10
   }
 
   y () {
-    let parentDivPos = this.parentDiv.position()
-    let parentHeight = this.parentDiv.height()
-    return parentDivPos.top + parentHeight - this.height()
+    return 10
   }
 
   width () {
@@ -738,7 +741,7 @@ class ZSlabWidget extends CanvasWidget {
   }
 
   height () {
-    return 20
+    return this.parentDiv.height()
   }
 
   xToZ (x) {
@@ -754,30 +757,19 @@ class ZSlabWidget extends CanvasWidget {
   draw () {
     let protein = this.soupView.soup
     let cameraParams = this.soupView.currentView.cameraParams
-    this.maxZLength = 2.0 * protein.maxLength
+    this.maxZLength = 1.1 * protein.maxLength
 
     let xBack = this.zToX(cameraParams.zBack)
     let xFront = this.zToX(cameraParams.zFront)
     let xMid = this.zToX(0)
+    let yMid = this.height() / 2
 
-    this.fillRect(
-      0, 0, this.width(), this.height(), this.backColor)
-
-    this.fillRect(
-      xBack, 0, xMid - xBack, this.height(), this.zBackColor)
-
-    this.fillRect(
-      xMid, 0, xFront - xMid, this.height(), this.zFrontColor)
-
-    let font = '12px sans-serif'
-    let ym = this.width() / 2
-
-    // this.text(
-    //   'zslab', 10, ym, 10, font, this.zFrontColor, 'center')
-    // this.text(
-    //   'back', ym, xBack - 7, font, this.zBackColor, 'center')
-    // this.text(
-    //   'front', ym, xFront + 7, font, this.zFrontColor, 'center')
+    this.fillRect(0, 0, this.width(), this.height(), '#AAB')
+    this.strokeRect(0, 0, this.width(), this.height(), this.backColor)
+    this.fillRect(xMid, 1, xBack - xMid, this.height() - 2, this.zBackColor)
+    this.fillRect(xFront, 1, xMid - xFront, this.height() - 2, this.zFrontColor)
+    // this.line(xFront, yMid, xBack, yMid, 1, '#AAB')
+    this.line(xMid, 1, xMid, this.height() - 2, 1, '#AAB')
   }
 
   getZ (event) {
@@ -829,6 +821,7 @@ class GridControlWidget extends CanvasWidget {
     super(display.divTag)
     this.isGrid = display.isGrid
     this.soupView = display.soupView
+    display.addObserver(this)
     this.buttonHeight = 40
     this.sliderHeight = this.buttonHeight * 6 - 50
     this.div.attr('id', 'grid-control')

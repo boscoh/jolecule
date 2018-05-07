@@ -150,10 +150,7 @@ import rpc from '../modules/rpc'
 import vueSlider from 'vue-slider-component'
 import config from '../config'
 import ChartWidget from '../modules/chart-widget'
-import CanvasWidget from '../modules/canvas-widget'
 import Model from '../modules/model'
-import webglstarterkit from '../modules/webgl-widget'
-import * as THREE from 'three'
 import {initEmbedJolecule} from '../../../../src/main'
 
 function getRandomColor () {
@@ -226,11 +223,11 @@ export default {
       isEditable: true,
       backgroundColor: 0xCCCCCC})
 
-    const dataServer0 = require('../../../dataservers/1a0a-data-server')
+    const dataServer0 = require('../../../dataservers/1cvn-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer0)
 
-    const dataServer1 = require('../../../dataservers/1be9-data-server')
-    await this.joleculeWidget.asyncAddDataServer(dataServer1)
+    // const dataServer1 = require('../../../dataservers/1be9-data-server')
+    // await this.joleculeWidget.asyncAddDataServer(dataServer1)
 
     let response = await rpc.rpcRun('publicGetText')
     if (response.result) {

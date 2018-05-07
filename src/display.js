@@ -1,10 +1,11 @@
 import $ from 'jquery'
 import _ from 'lodash'
-import v3 from './v3'
-
 import * as THREE from 'three'
-import * as glgeom from './glgeom'
+import Signal from 'signals'
+
+import v3 from './v3'
 import * as util from './util'
+import * as glgeom from './glgeom'
 import widgets from './widgets'
 import * as data from './data'
 import { interpolateCameras } from './soup'
@@ -45,6 +46,11 @@ class Display {
     this.mouseR = null
     this.mouseT = null
     this.mousePressed = false
+
+    // js-signals observer hooks
+    this.reset = new Signal()
+    this.drawn = new Signal()
+    this.resized = new Signal()
 
     // WebGL related properties
 
@@ -130,15 +136,8 @@ class Display {
     this.hoverResidueColor = null
     this.iHoverAtom = null
 
-    // Sequence bar of protein at top of embedded window
-    this.sequenceWidget = new widgets.SequenceWidget(this)
-
-    // Clipping plane control bar to the right
-    this.zSlabWidget = new widgets.ZSlabWidget(this)
-
     // Docking display control
     this.isGrid = isGrid
-    this.gridControlWidget = new widgets.GridControlWidget(this)
 
     // display distance measures between atoms
     this.distanceWidget = new widgets.DistanceMeasuresWidget(this)
@@ -148,6 +147,18 @@ class Display {
 
     // draw onscreen line for mouse dragging between atoms
     this.lineElement = new widgets.LineElement(this, '#FF7777')
+  }
+
+  addObserver (observer) {
+    if ('draw' in observer) {
+      this.drawn.add(() => { observer.draw() })
+    }
+    if ('reset' in observer) {
+      this.reset.add(() => { observer.reset() })
+    }
+    if ('resize' in observer) {
+      this.resized.add(() => { observer.resize() })
+    }
   }
 
   initWebglRenderer () {
@@ -276,8 +287,7 @@ class Display {
 
     this.rebuildSceneWithMeshes()
 
-    this.sequenceWidget.reset()
-    this.gridControlWidget.reset()
+    this.reset.dispatch()
 
     this.soupView.updateView = true
   }
@@ -606,7 +616,7 @@ class Display {
   }
 
   buildMeshOfGrid () {
-    if (!this.gridControlWidget.isGrid) {
+    if (!this.isGrid) {
       return
     }
     this.createOrClearMesh('grid')
@@ -955,7 +965,7 @@ class Display {
         for (let [i, iRes] of trace.refIndices.entries()) {
           if (iRes === iNewHoverResidue) {
             this.hoverResidueColor = trace.colors[i].clone()
-            trace.colors[i].offsetHSL(0, 0, +0.3)
+            trace.colors[i].offsetHSL(0, 0, +0.2)
           }
         }
       }
@@ -1024,9 +1034,7 @@ class Display {
       this.displayScene, this.camera)
 
     if (this.soupView.updateView) {
-      this.zSlabWidget.draw()
-      this.sequenceWidget.draw()
-      this.gridControlWidget.draw()
+      this.drawn.dispatch()
       this.soupView.updateView = false
     }
 
@@ -1068,9 +1076,7 @@ class Display {
   resize () {
     console.log('Display.resize')
 
-    this.zSlabWidget.resize()
-    this.gridControlWidget.resize()
-    this.sequenceWidget.resize()
+    this.resized.dispatch()
 
     let position = this.div.position()
     this.webglDiv.css('left', this.x() + position.left)
@@ -1094,11 +1100,7 @@ class Display {
   }
 
   y () {
-    let y = 0
-    if (!_.isUndefined(this.sequenceWidget)) {
-      y += this.sequenceWidget.height()
-    }
-    return y
+    return 0
   }
 
   width () {

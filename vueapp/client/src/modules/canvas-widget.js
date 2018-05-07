@@ -89,7 +89,8 @@ class CanvasWidget {
     this.drawContext.moveTo(x1, y1)
     this.drawContext.lineTo(x2, y2)
     this.drawContext.lineWidth = lineWidth
-    this.drawContext.strokeStyle = color
+    this.drawContext.strokeStyle = 'red'
+    this.drawContext.lineStyle = 'blue'
     this.drawContext.stroke()
   }
 

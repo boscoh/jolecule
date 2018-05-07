@@ -9,6 +9,7 @@ import {
   randomId,
   delay
 } from './util.js'
+import widgets from './widgets'
 
 class ViewPiece {
   /**
@@ -207,6 +208,7 @@ class EmbedJolecule {
     this.residueSelector = null
 
     this.createProteinDiv()
+
     this.display = new Display(
       this.soupView,
       '#jolecule-soup-display',
@@ -215,6 +217,17 @@ class EmbedJolecule {
       params.backgroundColor)
 
     this.createStatusDiv()
+
+    // Sequence bar of protein at top of embedded window
+    this.sequenceWidget = new widgets.SequenceWidget(this.display)
+
+    // Clipping plane control bar to the right
+    this.zSlabWidget = new widgets.ZSlabWidget(this.display, '#zslab')
+
+    // Panel to show binding grid atoms
+    this.gridControlWidget = new widgets.GridControlWidget(this.display)
+
+
     this.createViewDiv()
 
     this.isViewTextShown = this.params.isViewTextShown
@@ -549,10 +562,13 @@ class EmbedJolecule {
             .append(prevButton)
             .append(this.statusText)
             .append(nextButton)
-            .append(saveButton))
+            .append(saveButton)
+            .append(`<div id="zslab" style="margin-left: 1px; position: relative; width: 200px; background-color: #999; border-radius: 3px; padding: 10px 10px; height: 40px;"></div>`)
+        )
         .append(
           $('<div style="flex: 1; display: flex; flex-direction: row; justify-content: flex-end;">')
-            .append(this.residueSelector))
+            .append(this.residueSelector)
+        )
 
     this.sidechainDiv =
       $('<div style="width: 100%; display: flex; flex-direction: row; margin-top: 5px">')
