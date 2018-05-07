@@ -768,7 +768,6 @@ class ZSlabWidget extends CanvasWidget {
     this.strokeRect(0, 0, this.width(), this.height(), this.backColor)
     this.fillRect(xMid, 1, xBack - xMid, this.height() - 2, this.zBackColor)
     this.fillRect(xFront, 1, xMid - xFront, this.height() - 2, this.zFrontColor)
-    // this.line(xFront, yMid, xBack, yMid, 1, '#AAB')
     this.line(xMid, 1, xMid, this.height() - 2, 1, '#AAB')
   }
 
@@ -988,6 +987,54 @@ class GridControlWidget extends CanvasWidget {
   }
 }
 
+class ResidueSelectorWidget {
+  constructor (display, selector) {
+    this.scene = display.displayScene
+    this.soupView = display.soupView
+    this.controller = display.controller
+    this.display = display
+    this.div = $(selector)
+    this.selector = $('<select>')
+      .addClass(
+        'jolecule-residue-selector')
+      .css({
+        'outline': 'none',
+        '-moz-appearance': 'none'
+      })
+    this.div.append(this.selector)
+    this.selector.change(() => { this.change() })
+    this.display.addObserver(this)
+  }
+
+  change () {
+    let iRes = parseInt(this.selector.find(':selected').val())
+    this.display.setTargetViewFromAtom(
+      this.soupView.soup.getResidueProxy(iRes).iAtom)
+  }
+
+  reset () {
+    // clear selector
+    this.selector
+      .find('option')
+      .remove()
+
+    // rebuild selector
+    this.soup = this.soupView.soup
+    let residue = this.soup.getResidueProxy()
+    for (let i of _.range(this.soup.getResidueCount())) {
+      residue.iRes = i
+      let text = residue.resId + '-' + residue.resType
+      this.selector.append($('<option>').attr('value', i).text(text))
+    }
+  }
+
+  draw () {
+    let iAtom = this.soupView.currentView.iAtom
+    let iRes = this.soupView.soup.getAtomProxy(iAtom).iRes
+    this.selector.val(iRes)
+  }
+}
+
 export default {
   LineElement,
   PopupText,
@@ -995,5 +1042,6 @@ export default {
   DistanceMeasuresWidget,
   SequenceWidget,
   ZSlabWidget,
-  GridControlWidget
+  GridControlWidget,
+  ResidueSelectorWidget
 }

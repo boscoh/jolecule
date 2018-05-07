@@ -10,6 +10,7 @@ import {
   delay
 } from './util.js'
 import widgets from './widgets'
+import * as THREE from 'three'
 
 class ViewPiece {
   /**
@@ -171,6 +172,44 @@ class ViewPiece {
   }
 }
 
+class OptionButtonWidget {
+  constructor (display, selector, option) {
+    this.controller = display.controller
+    this.display = display
+    this.option = option
+    this.div = $(selector)
+    this.div
+      .attr('href', '')
+      .html('sidechains')
+      .addClass('jolecule-button')
+    this.div.on('click touch',
+      (e) => {
+        e.preventDefault()
+        this.callback()
+      }
+    )
+    this.display.addObserver(this)
+  }
+
+  callback () {
+    let newOptionVal = !this.controller.getShowOption(this.option)
+    console.log('ButtonWidget.callback', newOptionVal)
+    this.controller.setShowOption(this.option, newOptionVal)
+    if (newOptionVal === false) {
+      this.controller.clearSelectedResidues()
+    }
+    this.draw()
+  }
+
+  draw () {
+    if (this.controller.getShowOption(this.option)) {
+      this.div.addClass('jolecule-button-toggle-on')
+    } else {
+      this.div.removeClass('jolecule-button-toggle-on')
+    }
+  }
+}
+
 /**
  * EmbedJolecule - the widget that shows proteins and
  * annotations
@@ -205,8 +244,6 @@ class EmbedJolecule {
     this.soupView = new SoupView(this.soup)
     this.controller = new Controller(this.soupView)
 
-    this.residueSelector = null
-
     this.createProteinDiv()
 
     this.display = new Display(
@@ -218,15 +255,11 @@ class EmbedJolecule {
 
     this.createStatusDiv()
 
-    // Sequence bar of protein at top of embedded window
     this.sequenceWidget = new widgets.SequenceWidget(this.display)
-
-    // Clipping plane control bar to the right
     this.zSlabWidget = new widgets.ZSlabWidget(this.display, '#zslab')
-
-    // Panel to show binding grid atoms
     this.gridControlWidget = new widgets.GridControlWidget(this.display)
-
+    this.residueSelectorWidget = new widgets.ResidueSelectorWidget(this.display, '#res-selector')
+    this.sidechainWidget = new OptionButtonWidget(this.display, '#sidechain', 'sidechain')
 
     this.createViewDiv()
 
@@ -245,12 +278,6 @@ class EmbedJolecule {
       dataServer.get_views(viewDicts => {
         this.controller.loadViewsFromViewDicts(viewDicts)
 
-        // let viewId = this.soupView.currentView.id
-        // if (this.initViewId) {
-        //   if (this.initViewId in this.soupView.savedViewsByViewId) {
-        //     viewId = this.initViewId
-        //   }
-        // }
         this.updateView()
 
         if (this.params.viewId in this.soupView.savedViewsByViewId) {
@@ -278,7 +305,6 @@ class EmbedJolecule {
         await this.display.asyncSetMesssage(`Parsing '${pdbId}'`)
         this.soup.parsePdbData(pdbText, pdbId)
         this.soup.assignResidueSsAndCentralAtoms()
-        this.populateResidueSelector()
         this.soup.calcMaxLength()
 
         let nAtom = this.soup.getAtomCount()
@@ -403,7 +429,6 @@ class EmbedJolecule {
       if (this.soupView.changed) {
         this.updateView()
         this.display.draw()
-        this.populateResidueSelector()
         this.soupView.changed = false
       }
     }
@@ -445,9 +470,7 @@ class EmbedJolecule {
   }
 
   createProteinDiv () {
-    var height =
-      this.div.outerHeight() -
-      this.hAnnotationView
+    var height = this.div.outerHeight() - this.hAnnotationView
     this.proteinDiv =
       $('<div>')
         .attr('id', 'jolecule-soup-display')
@@ -456,26 +479,6 @@ class EmbedJolecule {
         .css('width', this.div.outerWidth())
         .css('height', height)
     this.div.append(this.proteinDiv)
-  }
-
-  populateResidueSelector () {
-    // clear selector
-    this.residueSelector
-      .find('option')
-      .remove()
-
-    // rebuild selector
-    let residue = this.soup.getResidueProxy()
-    for (let i = 0; i < this.soup.getResidueCount(); i++) {
-      residue.iRes = i
-      let text = residue.resId + '-' + residue.resType
-      this.residueSelector.append(
-        $('<option>').attr('value', i).text(text))
-    }
-
-    let iAtom = this.soupView.currentView.iAtom
-    let iRes = this.soup.getAtomProxy(iAtom).iRes
-    this.residueSelector.val(iRes)
   }
 
   createStatusDiv () {
@@ -503,89 +506,29 @@ class EmbedJolecule {
         'saveView', '+', 'jolecule-button', () => { this.saveCurrView() })
     }
 
-    this.ligButton = toggleButton(
-      '', 'lig', 'jolecule-button',
+    this.ligandButton = toggleButton(
+      '', 'ligands', 'jolecule-button',
       () => this.controller.getShowOption('ligands'),
       (b) => { this.controller.setShowOption('ligands', b) }
     )
 
-    this.watButton = toggleButton(
-      '', 'water', 'jolecule-button',
-      () => this.controller.getShowOption('water'),
-      (b) => { this.controller.setShowOption('water', b) }
-    )
-
-    this.hydButton = toggleButton(
-      '', 'h', 'jolecule-button',
-      () => this.controller.getShowOption('hydrogen'),
-      (b) => { this.controller.setShowOption('hydrogen', b) }
-    )
-    this.hydButton = ''
-
-    var backboneButton = linkButton(
-      '', 'backbone', 'jolecule-button',
-      () => { this.cycleBackbone() })
-
-    var allSidechainButton = linkButton('', 'all', 'jolecule-button',
-      () => { this.controller.setShowOption('sidechain', true) })
-
-    var clearSidechainButton = linkButton(
-      '', 'x', 'jolecule-button',
-      () => {
-        this.controller.setShowOption('sidechain', false)
-        this.controller.clearSelectedResidues()
-      })
-
     var nearSidechainButton = linkButton(
-      '', 'near', 'jolecule-button',
+      '', 'neighbors', 'jolecule-button',
       () => { this.controller.toggleResidueNeighbors() })
-
-    this.residueSelector = $('<select>')
-      .addClass('jolecule-residue-selector')
-      .css({
-        'outline': 'none',
-        '-moz-appearance': 'none'
-      })
-
-    this.residueSelector.change(() => {
-      var iRes = parseInt(this.residueSelector.find(':selected').val())
-      this.display.setTargetViewFromAtom(
-        this.soupView.soup.getResidueProxy(iRes).iAtom)
-    })
 
     this.viewBarDiv =
       $('<div style="width: 100%; display: flex; flex-direction: row">')
         .append(
           $('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">')
-            .append(loopButton)
-            .append(textButton)
-            .append(prevButton)
-            .append(this.statusText)
-            .append(nextButton)
-            .append(saveButton)
-            .append(`<div id="zslab" style="margin-left: 1px; position: relative; width: 200px; background-color: #999; border-radius: 3px; padding: 10px 10px; height: 40px;"></div>`)
+            .append($('<div id="res-selector" class="jolecule-button"></div>'))
+            .append($('<div id="sidechain"></div>'))
+            .append(nearSidechainButton)
+            .append(this.ligandButton)
         )
         .append(
           $('<div style="flex: 1; display: flex; flex-direction: row; justify-content: flex-end;">')
-            .append(this.residueSelector)
+            .append(`<div id="zslab" class="jolecule-button" style="margin-left: 2px; position: relative; width: 200px; height: 40px;"></div>`)
         )
-
-    this.sidechainDiv =
-      $('<div style="width: 100%; display: flex; flex-direction: row; margin-top: 5px">')
-        .append(
-          $('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">')
-            .append(backboneButton)
-            .append(' ')
-            .append(this.ligButton)
-            .append(this.hydButton)
-            .append(this.watButton)
-            .append(' '))
-        .append(
-          $('<div style="flex: 1; justify-content: flex-end; display: flex; flex-direction: row; align-items: center;">')
-            .append(' sidechain: ')
-            .append(allSidechainButton)
-            .append(clearSidechainButton)
-            .append(nearSidechainButton))
 
     this.statusDiv = $('<div style="display: flex; flex-direction: column">')
       .addClass('jolecule-embed-view-bar')
@@ -620,11 +563,7 @@ class EmbedJolecule {
     this.viewDiv
       .empty()
       .append(this.realViewDiv)
-    this.ligButton.redraw()
-    this.watButton.redraw()
-    if (this.hydButton) {
-      this.hydButton.redraw()
-    }
+    this.ligandButton.redraw()
   }
 
   createViewDiv () {

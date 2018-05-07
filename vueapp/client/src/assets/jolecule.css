@@ -8,6 +8,7 @@
     font-size: 12px;
     font-weight: normal;
     letter-spacing: 0.1em;
+    cursor: pointer;
 }
 .jolecule-residue-selector {
     border: 0;
@@ -30,7 +31,7 @@ a.jolecule-small-button:visited {
     color: #333;
     text-decoration: none;
 }
-a.jolecule-button-toggle-on,
+.jolecule-button-toggle-on,
 a.jolecule-button-toggle-on:link,
 a.jolecule-button-toggle-on:visited {
     background-color: #777;

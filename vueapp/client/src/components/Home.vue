@@ -223,11 +223,14 @@ export default {
       isEditable: true,
       backgroundColor: 0xCCCCCC})
 
-    const dataServer0 = require('../../../dataservers/1cvn-data-server')
+    // const dataServer0 = require('../../../dataservers/1mbo-data-server')
+    // await this.joleculeWidget.asyncAddDataServer(dataServer0)
+
+    const dataServer0 = require('../../../dataservers/1a0a-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer0)
 
-    // const dataServer1 = require('../../../dataservers/1be9-data-server')
-    // await this.joleculeWidget.asyncAddDataServer(dataServer1)
+    const dataServer1 = require('../../../dataservers/1a0a-Ar-data-server')
+    await this.joleculeWidget.asyncAddDataServer(dataServer1)
 
     let response = await rpc.rpcRun('publicGetText')
     if (response.result) {
