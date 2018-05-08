@@ -247,8 +247,8 @@ class PopupText {
 
   move (x, y) {
     let parentDivPos = this.parentDiv.position()
-    let width = this.div.outerWidth()
-    let height = this.div.outerHeight()
+    let width = this.div.width()
+    let height = this.div.height()
 
     if (
       (x < 0) ||
@@ -303,11 +303,9 @@ class AtomLabelsWidget {
   }
 
   removePopup (i) {
-    console.log('AtomLabelsWidget.removePopup before', i, this.popups, this.soupView.currentView.labels)
     this.controller.deleteAtomLabel(i)
     this.popups[i].remove()
     this.popups.splice(i, 1)
-    console.log('AtomLabelsWidget.removePopup after', i, this.popups, this.soupView.currentView.labels)
   }
 
   createPopup (i) {
@@ -368,6 +366,7 @@ class DistanceMeasuresWidget {
     this.controller = display.controller
     this.display = display
     this.parentDiv = $(this.display.divTag)
+    this.divs = []
   }
 
   removeDistance (i) {
@@ -388,7 +387,8 @@ class DistanceMeasuresWidget {
         'opacity': 0.7,
         'font-family': 'sans-serif'
       })
-    div.click(() => { this.removeDistance(i) })
+    div.i = i
+    div.click(() => { this.removeDistance(div.i) })
     this.parentDiv.append(div)
 
     let geometry = new THREE.Geometry()
@@ -428,6 +428,7 @@ class DistanceMeasuresWidget {
 
     for (let i = 0; i < distances.length; i += 1) {
       let distance = distances[i]
+      this.distanceMeasures[i].div.i = i
       let distanceMeasure = this.distanceMeasures[i]
 
       let p1 = a0.load(distance.i_atom1).pos

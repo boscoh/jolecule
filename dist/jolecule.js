@@ -82149,8 +82149,8 @@ var PopupText = function () {
     key: 'move',
     value: function move(x, y) {
       var parentDivPos = this.parentDiv.position();
-      var width = this.div.outerWidth();
-      var height = this.div.outerHeight();
+      var width = this.div.width();
+      var height = this.div.height();
 
       if (x < 0 || x > this.parentDiv.width() || y < 0 || y > this.parentDiv.height()) {
         this.hide();
@@ -82213,11 +82213,9 @@ var AtomLabelsWidget = function () {
   _createClass(AtomLabelsWidget, [{
     key: 'removePopup',
     value: function removePopup(i) {
-      console.log('AtomLabelsWidget.removePopup before', i, this.popups, this.soupView.currentView.labels);
       this.controller.deleteAtomLabel(i);
       this.popups[i].remove();
       this.popups.splice(i, 1);
-      console.log('AtomLabelsWidget.removePopup after', i, this.popups, this.soupView.currentView.labels);
     }
   }, {
     key: 'createPopup',
