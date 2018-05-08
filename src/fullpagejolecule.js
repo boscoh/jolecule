@@ -1,8 +1,168 @@
 import $ from 'jquery'
 import scrollTo from 'jquery.scrollto' // eslint-disable-line
 import _ from 'lodash'
-import { EmbedJolecule, ViewPiece } from './embedjolecule'
+import { EmbedJolecule } from './embedjolecule'
 import { getWindowUrl, linkButton, randomId, exists } from './util'
+
+class ViewPiece {
+  /**
+   * @param {Object} params {
+   *    goto,
+   *    saveChage(txt),
+   *    pick,
+   *    view,
+   *    deleteView,
+   *    isEditable,
+   *    swapUp
+   * }
+   */
+  constructor (params) {
+    this.params = params
+    this.div = $('<div>').addClass('jolecule-view')
+
+    if (exists(params.goto)) {
+      this.div
+        .append(
+          linkButton(
+            '',
+            this.params.goto,
+            'jolecule-button',
+            this.params.pick)
+        )
+        .append(
+          '<div style="width: 10px">'
+        )
+    }
+    this.params = params
+    this.makeEditDiv()
+
+    this.makeShowDiv()
+  }
+
+  saveChange () {
+    console.log('ViewPiece.saveChange')
+    let changedTet = this.editTextArea.val()
+    this.editDiv.hide()
+    this.showDiv.show()
+    this.showTextDiv.html(changedTet)
+    this.params.saveChange(changedTet)
+    window.keyboard_lock = false
+  }
+
+  startEdit () {
+    this.params.pick()
+    this.editTextArea.text(this.params.view.text)
+    this.editDiv.show()
+    this.showDiv.hide()
+    let textarea = this.editTextArea.find('textarea')
+    setTimeout(function () { textarea.focus() }, 100)
+    window.keyboard_lock = true
+  }
+
+  discardChange () {
+    this.editDiv.hide()
+    this.showDiv.show()
+    window.keyboard_lock = false
+  }
+
+  makeEditDiv () {
+    this.editTextArea = $('<textarea>')
+      .addClass('jolecule-view-text')
+      .css('width', '100%')
+      .css('height', '5em')
+      .click(_.noop)
+
+    this.editDiv = $('<div>')
+      .css('width', '100%')
+      .click(_.noop)
+      .append(this.editTextArea)
+      .append('<br><br>')
+      .append(
+        linkButton(
+          '', 'save', 'jolecule-small-button',
+          (event) => { this.saveChange() }))
+      .append(' &nbsp; ')
+      .append(
+        linkButton(
+          '', 'discard', 'jolecule-small-button',
+          (event) => { this.discardChange() }))
+      .hide()
+
+    this.div.append(this.editDiv)
+  }
+
+  makeShowDiv () {
+    let view = this.params.view
+
+    let editButton = linkButton(
+      '', 'edit', 'jolecule-small-button',
+      () => { this.startEdit() })
+
+    this.showTextDiv = $('<div>')
+      .addClass('jolecule-view-text')
+      .html(this.params.view.text)
+
+    this.showDiv = $('<div>')
+      .css('width', '100%')
+      .append(this.showTextDiv)
+
+    if (view.id !== 'view:000000') {
+      this.showDiv
+        .append(
+          $('<div>')
+            .addClass('jolecule-author')
+            .html(view.creator)
+        )
+    }
+
+    let isEditable = this.params.isEditable &&
+      (!view.lock) &&
+      (view.id !== 'view:000000')
+
+    if (isEditable) {
+      // this.showDiv
+      //   .append(embedButton)
+      //   .append(' ');
+
+      this.showDiv
+        .append(editButton)
+
+      if (exists(this.params.swapUp) && this.params.swapUp) {
+        this.showDiv
+          .append(' ')
+          .append(
+            linkButton(
+              '', 'up', 'jolecule-small-button',
+              () => { this.params.swapUp() }))
+      }
+
+      if (exists(this.params.swapUp) && this.params.swapDown) {
+        this.showDiv
+          .append(' ')
+          .append(
+            linkButton(
+              '', 'down', 'jolecule-small-button',
+              () => { this.params.swapDown() }))
+      }
+
+      if (exists(this.params.deleteView)) {
+        this.showDiv
+          .append(
+            $('<div>')
+              .css('float', 'right')
+              .append(
+                linkButton(
+                  '', 'delete', 'jolecule-small-button',
+                  () => {
+                    console.log('ViewPiece.deleteButton')
+                    this.params.deleteView()
+                  })))
+      }
+    }
+
+    this.div.append(this.showDiv)
+  }
+}
 
 /**
  * ViewPieceList keeps track of the views

@@ -24,7 +24,7 @@ function getWindowUrl () {
 
 function linkButton (idTag, text, classTag, callback) {
   let item =
-    $('<a>')
+    $('<span>')
       .attr('id', idTag)
       .attr('href', '')
       .html(text)

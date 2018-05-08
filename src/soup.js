@@ -453,7 +453,6 @@ class Soup {
   parsePdbData (pdbText, pdbId) {
     if (!this.pdbId) {
       this.pdbId = pdbId
-      console.log('Set pdbId', this.pdbId)
     }
 
     if (!this.title) {

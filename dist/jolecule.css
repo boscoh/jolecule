@@ -8,6 +8,10 @@
     font-size: 12px;
     font-weight: normal;
     letter-spacing: 0.1em;
+    cursor: pointer;
+    user-select: none;
+    box-sizing: content-box;
+    height: 20px;
 }
 .jolecule-residue-selector {
     border: 0;
@@ -17,7 +21,8 @@
 a.jolecule-button input a,
 a.jolecule-button,
 a.jolecule-button:link,
-a.jolecule-button:visited {
+a.jolecule-button:visited,
+a.jolecule-button:hover {
     background-color: #999;
     color: #333;
     text-decoration: none;
@@ -29,7 +34,7 @@ a.jolecule-small-button:visited {
     color: #333;
     text-decoration: none;
 }
-a.jolecule-button-toggle-on,
+.jolecule-button-toggle-on,
 a.jolecule-button-toggle-on:link,
 a.jolecule-button-toggle-on:visited {
     background-color: #777;
@@ -49,6 +54,7 @@ a.jolecule-small-button:visited {
     letter-spacing: 0.1em;
     line-height: 15px;
 }
+.jolecule-button:active,
 a.jolecule-button:active,
 a.jolecule-small-button:active,
 a.jolecule-large-button:active {

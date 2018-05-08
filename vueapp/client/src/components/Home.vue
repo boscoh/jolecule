@@ -140,7 +140,7 @@
 </style>
 
 <style>
-  @import '../assets/jolecule.css';
+  @import '../../../../dist/jolecule.css';
 </style>
 
 <script>
@@ -223,12 +223,12 @@ export default {
       isEditable: true,
       backgroundColor: 0xCCCCCC})
 
-    // const dataServer0 = require('../../../dataservers/1mbo-data-server')
+    // const dataServer0 = require('../../../dataservers/1bmf-data-server')
     // await this.joleculeWidget.asyncAddDataServer(dataServer0)
 
     const dataServer0 = require('../../../dataservers/1a0a-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer0)
-
+    //
     const dataServer1 = require('../../../dataservers/1a0a-Ar-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer1)
 

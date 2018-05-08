@@ -23,7 +23,6 @@ import * as util from './util'
  *   (x2, y2) within a jquery div
  * - used to display the mouse tool for making distance labels
  */
-
 class LineElement {
   constructor (display, color) {
     this.color = color
@@ -83,7 +82,6 @@ class LineElement {
  *   - attaches a canvas to this div
  *   - creates methods that redirects mouse commands to that canvas
  */
-
 class CanvasWidget {
   constructor (selector) {
     this.parentDiv = $(selector)
@@ -212,7 +210,6 @@ class CanvasWidget {
  * arrow that can be displayed in a (x, y) position
  * within a parent div denoted by selector
  */
-
 class PopupText {
   constructor (divTag) {
     this.div = $('<div>')
@@ -224,7 +221,8 @@ class PopupText {
         'padding': '5',
         'opacity': 0.7,
         'display': 'none',
-        'pointer-events': 'none'
+        'z-index': 1000,
+        'cursor': 'pointer'
       })
 
     this.arrow = $('<div>')
@@ -249,8 +247,8 @@ class PopupText {
 
   move (x, y) {
     let parentDivPos = this.parentDiv.position()
-    let width = this.div.innerWidth()
-    let height = this.div.innerHeight()
+    let width = this.div.outerWidth()
+    let height = this.div.outerHeight()
 
     if (
       (x < 0) ||
@@ -262,7 +260,7 @@ class PopupText {
     }
 
     this.div.css({
-      'top': y - height - 50 + 10 + parentDivPos.top,
+      'top': y - height - 50 + parentDivPos.top,
       'left': x - width / 2 + parentDivPos.left,
       'display': 'block',
       'font-family': 'sans-serif',
@@ -305,14 +303,17 @@ class AtomLabelsWidget {
   }
 
   removePopup (i) {
+    console.log('AtomLabelsWidget.removePopup before', i, this.popups, this.soupView.currentView.labels)
+    this.controller.deleteAtomLabel(i)
     this.popups[i].remove()
     this.popups.splice(i, 1)
-    this.controller.deleteAtomLabel(i)
+    console.log('AtomLabelsWidget.removePopup after', i, this.popups, this.soupView.currentView.labels)
   }
 
   createPopup (i) {
     let popup = new PopupText(this.display.divTag)
-    popup.div.click(() => { this.removePopup(i) })
+    popup.i = i
+    popup.div.click(() => { this.removePopup(popup.i) })
     return popup
   }
 
@@ -333,6 +334,8 @@ class AtomLabelsWidget {
 
     let atom = this.soupView.soup.getAtomProxy()
     for (let i = 0; i < labels.length; i += 1) {
+      this.popups[i].i = i
+
       atom.iAtom = labels[i].i_atom
 
       this.popups[i].html(labels[i].text)
@@ -474,7 +477,6 @@ class DistanceMeasuresWidget {
  *   - the second band is a sequence text widget
  *   - these two are integrated so that they share state
  */
-
 class SequenceWidget extends CanvasWidget {
   constructor (display) {
     super(display.divTag)
@@ -702,38 +704,37 @@ class SequenceWidget extends CanvasWidget {
 /**
  * ZSlabWidget
  */
-
 class ZSlabWidget extends CanvasWidget {
   constructor (display, selector) {
     super(selector)
     this.soupView = display.soupView
     display.addObserver(this)
 
-    console.log(`ZSlabWidget.init`, this.parentDiv[0], this.parentDiv.width(), this.parentDiv.innerHeight())
+    console.log(`ZSlabWidget.init`, this.parentDiv.width(), this.parentDiv.innerHeight())
     this.maxZLength = 0.0
-    this.div.attr('id', 'zslab')
-
+    this.div.css('box-sizing', 'border-box')
     this.backColor = 'rgb(150, 150, 150)'
     this.zBackColor = 'rgb(100, 70, 70)'
     this.zFrontColor = 'rgb(150, 90, 90)'
   }
 
   resize () {
+    console.log('ZSlabWidget.resize', this.width(), this.height())
+    console.log('ZSlabWidget.resize', this.parentDiv.width(),  this.parentDiv.parent().width(), this.parentDiv.css('width'), this.parentDiv.attr('id'))
     this.div.css({
       'width': this.width(),
       'height': this.height(),
-      'top': this.y(),
-      'left': this.x()
     })
     super.resize()
+    this.draw()
   }
 
   x () {
-    return 10
+    return 0
   }
 
   y () {
-    return 10
+    return 0
   }
 
   width () {
@@ -814,7 +815,6 @@ class ZSlabWidget extends CanvasWidget {
 /**
  * GridControlWidget
  */
-
 class GridControlWidget extends CanvasWidget {
   constructor (display) {
     super(display.divTag)
@@ -999,6 +999,8 @@ class ResidueSelectorWidget {
         'jolecule-residue-selector')
       .css({
         'outline': 'none',
+        'box-sizing': 'content-box',
+        'height': '20px',
         '-moz-appearance': 'none'
       })
     this.div.append(this.selector)
@@ -1035,6 +1037,47 @@ class ResidueSelectorWidget {
   }
 }
 
+class ToggleButtonWidget {
+  constructor (display, selector, option) {
+    this.controller = display.controller
+    this.display = display
+    if (option) {
+      this.option = option
+    }
+    this.div = $(selector)
+      .attr('href', '')
+      .html(option)
+      .addClass('jolecule-button')
+      .on('click touch', (e) => {
+        e.preventDefault()
+        this.callback()
+      })
+    this.display.addObserver(this)
+  }
+
+  callback () {
+    let newOptionVal = !this.controller.getShowOption(this.option)
+    console.log('ButtonWidget.callback', newOptionVal)
+    this.controller.setShowOption(this.option, newOptionVal)
+    if ((this.option === 'sidechains') && (newOptionVal === false)) {
+      this.controller.clearSelectedResidues()
+    }
+    this.draw()
+  }
+
+  draw () {
+    if (this.controller.getShowOption(this.option)) {
+      if (!this.div.hasClass('jolecule-button-toggle-on')) {
+        this.div.addClass('jolecule-button-toggle-on')
+      }
+    } else {
+      if (this.div.hasClass('jolecule-button-toggle-on')) {
+        this.div.removeClass('jolecule-button-toggle-on')
+      }
+    }
+  }
+}
+
 export default {
   LineElement,
   PopupText,
@@ -1043,5 +1086,6 @@ export default {
   SequenceWidget,
   ZSlabWidget,
   GridControlWidget,
-  ResidueSelectorWidget
+  ResidueSelectorWidget,
+  ToggleButtonWidget
 }

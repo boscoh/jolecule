@@ -83,7 +83,7 @@ class Display {
 
     this.displayScene = new THREE.Scene()
     this.displayScene.background = new THREE.Color(this.backgroundColor)
-    // this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
+    this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
 
     // this.displayMeshes is a dictionary that holds THREE.Object3D
     // collections of meshes. This allows collections to be collectively
@@ -162,7 +162,7 @@ class Display {
   }
 
   initWebglRenderer () {
-    this.renderer = new THREE.WebGLRenderer({antialias: false})
+    this.renderer = new THREE.WebGLRenderer({antialias: true})
     this.renderer.setClearColor(this.backgroundColor)
     this.renderer.setSize(this.width(), this.height())
 
@@ -770,8 +770,8 @@ class Display {
     this.camera.far = far
     this.camera.updateProjectionMatrix()
 
-    // this.displayScene.fog.near = near
-    // this.displayScene.fog.far = far
+    this.displayScene.fog.near = near
+    this.displayScene.fog.far = far
   }
 
   adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
@@ -966,13 +966,13 @@ class Display {
           if (iRes === iNewHoverResidue) {
             this.hoverResidueColor = trace.colors[i].clone()
             trace.colors[i].offsetHSL(0, 0, +0.2)
+            // this.buildMeshOfTube()
+            // this.buildMeshOfArrows()
+            // this.soupView.changed = true
+            this.iHoverResidue = iNewHoverResidue
           }
         }
       }
-      this.buildMeshOfTube()
-      this.buildMeshOfArrows()
-      this.soupView.changed = true
-      this.iHoverResidue = iNewHoverResidue
     }
   }
 
@@ -1074,8 +1074,6 @@ class Display {
    */
 
   resize () {
-    console.log('Display.resize')
-
     this.resized.dispatch()
 
     let position = this.div.position()

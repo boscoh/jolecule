@@ -16,8 +16,6 @@
  */
 class SpaceHash {
   constructor (vertices) {
-    console.log('SpaceHash assigning vertices to cells')
-
     this.vertices = vertices
     this.padding = 0.05
     this.div = 5.0
@@ -95,7 +93,6 @@ class SpaceHash {
   }
 
   getClosePairs () {
-    console.log('SpatialHash.getClosePairs')
     let pairs = []
     for (let iVertex = 0; iVertex < this.vertices.length; iVertex++) {
       this.pushCellOfSpace(pairs, this.vertices[iVertex], iVertex)

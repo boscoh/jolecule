@@ -16,8 +16,8 @@ class CanvasWidget {
     this.parentDiv.append(this.div)
 
     this.canvas = $('<canvas>')
-    this.canvas.attr('width', this.parentDiv.width())
-    this.canvas.attr('height', this.parentDiv.height())
+    this.canvas.attr('width', this.parentDiv.innerWidth())
+    this.canvas.attr('height', this.parentDiv.innerHeight())
     this.div.append(this.canvas)
 
     this.canvasDom = this.canvas[0]
