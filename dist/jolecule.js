@@ -81940,8 +81940,8 @@ var LineElement = function () {
 }();
 
 /**
- * CanvasWrapper
- *   - abstract class to wrap a canvas element
+ * CanvasWidget
+ *   - abstract class to wrap a canvas2d element
  *   - instantiates an absolute div that fits the $(selector)
  *   - attaches a canvas to this div
  *   - creates methods that redirects mouse commands to that canvas
@@ -82119,6 +82119,7 @@ var PopupText = function () {
       'top': 0,
       'left': 0,
       'background': 'white',
+      'box-sizing': 'border-box',
       'padding': '5',
       'opacity': 0.7,
       'display': 'none',
@@ -82132,6 +82133,7 @@ var PopupText = function () {
       'left': 0,
       'width': 0,
       'height': 0,
+      'box-sizing': 'border-box',
       'border-left': '5px solid transparent',
       'border-right': '5px solid transparent',
       'border-top': '50px solid white',
@@ -82149,27 +82151,27 @@ var PopupText = function () {
     key: 'move',
     value: function move(x, y) {
       var parentDivPos = this.parentDiv.position();
-      var width = this.div.outerWidth(true);
-      var height = this.div.outerHeight(true);
-      console.log('PopupText.move', this.parentDiv[0], this.parentDiv.position(), width, height);
+
+      this.div.css({ 'display': 'block' });
+      var rect = this.div[0].getBoundingClientRect();
+      var width = rect.width;
+      var height = rect.height;
+
+      this.arrow.css({ 'display': 'block' });
 
       if (x < 0 || x > this.parentDiv.width() || y < 0 || y > this.parentDiv.height()) {
         this.hide();
         return;
       }
 
-      this.div.css({
-        'top': y - height - 50 + parentDivPos.top,
-        'left': x - width / 2 + parentDivPos.left,
-        'display': 'block',
-        'font-family': 'sans-serif',
-        'cursor': 'pointer'
-      });
-
       this.arrow.css({
         'top': y - 50 + parentDivPos.top,
-        'left': x - 5 + parentDivPos.left,
-        'display': 'block'
+        'left': x - 5 + parentDivPos.left
+      });
+
+      this.div.css({
+        'top': y - 50 + parentDivPos.top - height,
+        'left': x + parentDivPos.left - width / 2
       });
     }
   }, {

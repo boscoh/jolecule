@@ -76,8 +76,8 @@ class LineElement {
 }
 
 /**
- * CanvasWrapper
- *   - abstract class to wrap a canvas element
+ * CanvasWidget
+ *   - abstract class to wrap a canvas2d element
  *   - instantiates an absolute div that fits the $(selector)
  *   - attaches a canvas to this div
  *   - creates methods that redirects mouse commands to that canvas
@@ -248,12 +248,14 @@ class PopupText {
   }
 
   move (x, y) {
-    this.div.css({'display': 'block'})
-    this.arrow.css({'display': 'block'})
-
     let parentDivPos = this.parentDiv.position()
-    let width = this.div.width()
-    let height = this.div.height()
+
+    this.div.css({'display': 'block'})
+    let rect = this.div[0].getBoundingClientRect()
+    let width = rect.width
+    let height = rect.height
+
+    this.arrow.css({'display': 'block'})
 
     if (
       (x < 0) ||
