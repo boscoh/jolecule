@@ -82149,8 +82149,9 @@ var PopupText = function () {
     key: 'move',
     value: function move(x, y) {
       var parentDivPos = this.parentDiv.position();
-      var width = this.div.width();
-      var height = this.div.height();
+      var width = this.div.outerWidth(true);
+      var height = this.div.outerHeight(true);
+      console.log('PopupText.move', this.parentDiv[0], this.parentDiv.position(), width, height);
 
       if (x < 0 || x > this.parentDiv.width() || y < 0 || y > this.parentDiv.height()) {
         this.hide();
@@ -82289,6 +82290,7 @@ var DistanceMeasuresWidget = function () {
     this.controller = display.controller;
     this.display = display;
     this.parentDiv = (0, _jquery2.default)(this.display.divTag);
+    this.divs = [];
   }
 
   _createClass(DistanceMeasuresWidget, [{
@@ -82313,8 +82315,9 @@ var DistanceMeasuresWidget = function () {
         'opacity': 0.7,
         'font-family': 'sans-serif'
       });
+      div.i = i;
       div.click(function () {
-        _this3.removeDistance(i);
+        _this3.removeDistance(div.i);
       });
       this.parentDiv.append(div);
 
@@ -82356,6 +82359,7 @@ var DistanceMeasuresWidget = function () {
 
       for (var _i4 = 0; _i4 < distances.length; _i4 += 1) {
         var distance = distances[_i4];
+        this.distanceMeasures[_i4].div.i = _i4;
         var distanceMeasure = this.distanceMeasures[_i4];
 
         var p1 = a0.load(distance.i_atom1).pos;

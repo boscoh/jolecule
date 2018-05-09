@@ -218,6 +218,7 @@ class PopupText {
         'top': 0,
         'left': 0,
         'background': 'white',
+        'box-sizing': 'border-box',
         'padding': '5',
         'opacity': 0.7,
         'display': 'none',
@@ -232,6 +233,7 @@ class PopupText {
         'left': 0,
         'width': 0,
         'height': 0,
+        'box-sizing': 'border-box',
         'border-left': '5px solid transparent',
         'border-right': '5px solid transparent',
         'border-top': '50px solid white',
@@ -246,6 +248,9 @@ class PopupText {
   }
 
   move (x, y) {
+    this.div.css({'display': 'block'})
+    this.arrow.css({'display': 'block'})
+
     let parentDivPos = this.parentDiv.position()
     let width = this.div.width()
     let height = this.div.height()
@@ -259,18 +264,14 @@ class PopupText {
       return
     }
 
-    this.div.css({
-      'top': y - height - 50 + parentDivPos.top,
-      'left': x - width / 2 + parentDivPos.left,
-      'display': 'block',
-      'font-family': 'sans-serif',
-      'cursor': 'pointer'
-    })
-
     this.arrow.css({
       'top': y - 50 + parentDivPos.top,
       'left': x - 5 + parentDivPos.left,
-      'display': 'block'
+    })
+
+    this.div.css({
+      'top': y - 50 + parentDivPos.top - height,
+      'left': x + parentDivPos.left - width / 2,
     })
   }
 
