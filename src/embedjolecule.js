@@ -191,16 +191,18 @@ class EmbedJolecule {
       $('<div style="width: 100%; display: flex; flex-direction: row">')
         .append(
           $('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">')
-            .append($('<div id="res-selector" class="jolecule-button" style="box-sizing: content-box; height: 20px;"></div>'))
+            .append($('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))
             .append($('<div id="sidechain"></div>'))
             .append(linkButton(
               '', 'neighbors', 'jolecule-button',
               () => { this.controller.toggleResidueNeighbors() })
             )
             .append($('<div id="ligand"></div>'))
+        )
+        .append(
+          $('<div style="flex: 1; display: flex; flex-direction: row; justify-content: flex-end;">')
             .append(`<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 120px; height: 20px;"></div>`)
         )
-
     this.statusDiv = $('<div style="display: flex; flex-direction: column">')
       .addClass('jolecule-embed-view-bar')
       .append(this.viewBarDiv)

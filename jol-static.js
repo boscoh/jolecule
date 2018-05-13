@@ -64,6 +64,7 @@ const embedIndexHtmlMustache = `
     <meta name="mobile-web-app-capable" content="yes">
     <title>jolecule</title>
     <link rel="stylesheet" type="text/css" href="jolecule.css"/>
+    <link rel="stylesheet" type="text/css" href="select2.css"/>
     <style>
         body {
             margin: 0;
@@ -106,6 +107,7 @@ const fullPageIndexHtmlMustache = `
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
   <link rel="stylesheet" type="text/css" href="full-page-jolecule.css" />
   <link rel="stylesheet" type="text/css" href="jolecule.css"/>
+  <link rel="stylesheet" type="text/css" href="select2.css"/>
   <title>jolecule</title>
 </head>
 
@@ -225,6 +227,7 @@ if (remain.length < 1) {
     'dist/jolecule.js.map',
     'dist/jolecule.css',
     'dist/full-page-jolecule.css',
+    'dist/select2.css',
     'node_modules/requirejs/require.js']
 
   for (let fname of fnames) {

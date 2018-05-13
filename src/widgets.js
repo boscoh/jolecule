@@ -13,10 +13,10 @@
 import $ from 'jquery'
 import * as THREE from 'three'
 import _ from 'lodash'
+import select2 from 'select2'
 
 import * as data from './data'
 import * as util from './util'
-
 /**
  * LineElement
  * - instantiates a DOM object is to draw a line between (x1, y1) and
@@ -998,46 +998,45 @@ class ResidueSelectorWidget {
     this.controller = display.controller
     this.display = display
     this.div = $(selector)
-    this.selector = $('<select>')
-      .addClass(
-        'jolecule-residue-selector')
+    this.divTag = '#residue-select'
+    this.selector = $('<select id="residue-select">')
+      // .addClass(
+      //   'jolecule-residue-selector')
       .css({
         'outline': 'none',
-        'box-sizing': 'content-box',
-        'height': '20px',
         '-moz-appearance': 'none'
       })
     this.div.append(this.selector)
-    this.selector.change(() => { this.change() })
     this.display.addObserver(this)
   }
 
   change () {
-    let iRes = parseInt(this.selector.find(':selected').val())
+    let iRes = parseInt(this.$elem.select2('val'))
     this.display.setTargetViewFromAtom(
       this.soupView.soup.getResidueProxy(iRes).iAtom)
   }
 
   reset () {
     // clear selector
-    this.selector
-      .find('option')
-      .remove()
+    this.$elem = $(this.divTag)
+    this.$elem.empty()
 
     // rebuild selector
     this.soup = this.soupView.soup
     let residue = this.soup.getResidueProxy()
-    for (let i of _.range(this.soup.getResidueCount())) {
-      residue.iRes = i
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      residue.iRes = iRes
       let text = residue.resId + '-' + residue.resType
-      this.selector.append($('<option>').attr('value', i).text(text))
+      this.$elem.append(new Option(text, `${iRes}`))
     }
+    this.$elem.select2({width: '150px'})
+    this.$elem.on('select2:select', () => { this.change() })
   }
 
   draw () {
     let iAtom = this.soupView.currentView.iAtom
     let iRes = this.soupView.soup.getAtomProxy(iAtom).iRes
-    this.selector.val(iRes)
+    this.$elem.val(`${iRes}`).trigger('change')
   }
 }
 

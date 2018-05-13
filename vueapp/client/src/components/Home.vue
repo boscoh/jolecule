@@ -141,6 +141,7 @@
 
 <style>
   @import '../../../../dist/jolecule.css';
+  @import '../../../../dist/select2.css';
 </style>
 
 <script>
