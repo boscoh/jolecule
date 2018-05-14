@@ -54,10 +54,6 @@ for (let [k, v] of _.toPairs(ElementColors)) {
   ElementColors[k] = new THREE.Color(v)
 }
 
-function getIndexColor (i) {
-  return new THREE.Color().setHex(i + 1)
-}
-
 function getSsColor (ss) {
   if (ss === 'E') {
     return yellow

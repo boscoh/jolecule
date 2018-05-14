@@ -38,7 +38,7 @@ let router = new Router({
       component: AdminUsers
     },
     {
-      path: '/reset-password/:tokenId',
+      path: '/observerReset-password/:tokenId',
       name: 'resetPassword',
       component: ResetPassword
     }

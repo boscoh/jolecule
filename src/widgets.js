@@ -5,7 +5,7 @@
  * of HTML DOM elements and WebGL elements such as lines, atom labels,
  * distance measures, sequence bars, z-slab control, grid controls
  *
- * this.reset - called after model rebuild
+ * this.observerReset - called after model rebuild
  * this.draw - called at every draw event
  * this.resize - called after every resize of window
  */
@@ -346,7 +346,7 @@ class AtomLabelsWidget {
       this.popups[i].div.css('opacity', opacity)
       this.popups[i].arrow.css('opacity', opacity)
 
-      let v = this.display.posXY(atom.pos)
+      let v = this.display.getPosXY(atom.pos)
       this.popups[i].move(v.x, v.y)
 
       if (!this.display.inZlab(atom.pos)) {
@@ -444,7 +444,7 @@ class DistanceMeasuresWidget {
       let m = p1.clone().add(p2).multiplyScalar(0.5)
       let opacity = 0.7 * this.display.opacity(m) + 0.3
 
-      let v = this.display.posXY(m)
+      let v = this.display.getPosXY(m)
       let x = v.x
       let y = v.y
 
@@ -692,7 +692,7 @@ class SequenceWidget extends CanvasWidget {
     if (this.pointerY < (this.heightBar + this.spacingY * 2)) {
       this.iRes = this.xToI(this.pointerX)
 
-      // reset sequence window
+      // observerReset sequence window
       this.iStartChar = Math.max(this.iRes - 0.5 * this.nChar, 0)
       this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar)
       this.iStartChar = parseInt(this.iStartChar)
@@ -1064,7 +1064,7 @@ class ResidueSelectorWidget {
       this.$elem.append(new Option(text, `${iRes}`))
     }
 
-    // reset using select2
+    // observerReset using select2
     this.$elem.select2({width: '150px'})
     this.$elem.on('select2:select', () => { this.change() })
   }

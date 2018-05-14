@@ -62,7 +62,7 @@ export default {
       this.error = ''
       let response = await auth.resetPassword(this.tokenId, this.rawPassword)
       if (response.result) {
-        this.error = 'Password reset'
+        this.error = 'Password observerReset'
       } else {
         console.log('> ResetPassword.submit fail', response)
         this.error = response.error.message

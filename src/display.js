@@ -125,6 +125,22 @@ class WebglWidget {
     this.renderer.render(this.displayScene, this.camera)
   }
 
+  getPosXY (pos) {
+    let widthHalf = 0.5 * this.width()
+    let heightHalf = 0.5 * this.height()
+
+    let vector = pos.clone().project(this.camera)
+
+    return {
+      x: (vector.x * widthHalf) + widthHalf + this.x(),
+      y: -(vector.y * heightHalf) + heightHalf + this.y()
+    }
+  }
+
+  getIndexColor (i) {
+    return new THREE.Color().setHex(i + 1)
+  }
+
   getPickColorFromMouse () {
     let x = this.mouseX
     let y = this.mouseY
@@ -147,12 +163,12 @@ class WebglWidget {
       1, 1,
       pixelBuffer)
 
-    // interpret the pixel as an ID
-    let i =
+    // interpret the color as an Uint8 integer
+    return (
       (pixelBuffer[0] << 16) |
       (pixelBuffer[1] << 8) |
       (pixelBuffer[2])
-    return i
+    )
   }
 
   setCameraParams (cameraParams) {
@@ -396,9 +412,9 @@ class Display extends WebglWidget {
     super(divTag, backgroundColor)
 
     // js-signals observer hooks
-    this.reset = new Signal()
-    this.drawn = new Signal()
-    this.resized = new Signal()
+    this.observerReset = new Signal()
+    this.observerDrawn = new Signal()
+    this.observerResized = new Signal()
 
     // Hooks to protein data
     this.soupView = soupView
@@ -435,13 +451,13 @@ class Display extends WebglWidget {
 
   addObserver (observer) {
     if ('draw' in observer) {
-      this.drawn.add(() => { observer.draw() })
+      this.observerDrawn.add(() => { observer.draw() })
     }
     if ('reset' in observer) {
-      this.reset.add(() => { observer.reset() })
+      this.observerReset.add(() => { observer.reset() })
     }
     if ('resize' in observer) {
-      this.resized.add(() => { observer.resize() })
+      this.observerResized.add(() => { observer.resize() })
     }
   }
 
@@ -471,7 +487,7 @@ class Display extends WebglWidget {
         lastTrace.refIndices.push(residue.iRes)
         lastTrace.points.push(atom.pos.clone())
         lastTrace.colors.push(new THREE.Color(residue.color))
-        lastTrace.indexColors.push(data.getIndexColor(residue.iAtom))
+        lastTrace.indexColors.push(this.getIndexColor(residue.iAtom))
         lastTrace.segmentTypes.push(residue.ss)
         lastTrace.normals.push(residue.normal)
       }
@@ -517,7 +533,7 @@ class Display extends WebglWidget {
 
     this.rebuildSceneWithMeshes()
 
-    this.reset.dispatch()
+    this.observerReset.dispatch()
 
     this.soupView.updateView = true
   }
@@ -602,7 +618,7 @@ class Display extends WebglWidget {
       displayGeom.applyMatrixToCopy(matrix, iCopy)
       pickingGeom.applyMatrixToCopy(matrix, iCopy)
       displayGeom.applyColorToCopy(atom.color, iCopy)
-      pickingGeom.applyColorToCopy(data.getIndexColor(iAtom), iCopy)
+      pickingGeom.applyColorToCopy(this.getIndexColor(iAtom), iCopy)
     }
 
     let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
@@ -845,7 +861,7 @@ class Display extends WebglWidget {
       displayGeom.merge(basepairGeom)
 
       glgeom.setGeometryVerticesColor(
-        basepairGeom, data.getIndexColor(residue.iAtom))
+        basepairGeom, this.getIndexColor(residue.iAtom))
       pickingGeom.merge(basepairGeom)
     }
 
@@ -878,16 +894,16 @@ class Display extends WebglWidget {
     this.controller.setTargetViewByAtom(iAtom)
   }
 
-  getCurrentViewCameraParams () {
+  getCameraOfCurrentView () {
     return this.soupView.currentView.cameraParams
   }
   
   rotateCameraParamsToCurrentView () {
-    this.setCameraParams(this.getCurrentViewCameraParams())
+    this.setCameraParams(this.getCameraOfCurrentView())
   }
 
   adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-    let cameraParams = this.getCurrentViewCameraParams()
+    let cameraParams = this.getCameraOfCurrentView()
 
     let y = cameraParams.up
     let z = cameraParams.position.clone()
@@ -934,7 +950,7 @@ class Display extends WebglWidget {
   }
 
   getZ (pos) {
-    let cameraParams = this.getCurrentViewCameraParams()
+    let cameraParams = this.getCameraOfCurrentView()
     let cameraDir = cameraParams.focus.clone()
       .sub(cameraParams.position)
       .normalize()
@@ -945,14 +961,14 @@ class Display extends WebglWidget {
 
   inZlab (pos) {
     let z = this.getZ(pos)
-    let cameraParams = this.getCurrentViewCameraParams()
+    let cameraParams = this.getCameraOfCurrentView()
     return ((z >= cameraParams.zFront) && (z <= cameraParams.zBack))
   }
 
   opacity (pos) {
     let z = this.getZ(pos)
 
-    let cameraParams = this.getCurrentViewCameraParams()
+    let cameraParams = this.getCameraOfCurrentView()
 
     if (z < cameraParams.zFront) {
       return 1.0
@@ -965,18 +981,6 @@ class Display extends WebglWidget {
     return 1 - (z - cameraParams.zFront) / (cameraParams.zBack - cameraParams.zFront)
   }
 
-  posXY (pos) {
-    let widthHalf = 0.5 * this.width()
-    let heightHalf = 0.5 * this.height()
-
-    let vector = pos.clone().project(this.camera)
-
-    return {
-      x: (vector.x * widthHalf) + widthHalf + this.x(),
-      y: -(vector.y * heightHalf) + heightHalf + this.y()
-    }
-  }
-
   /**
    ******************************************
    * Draw & Animate Graphical objects
@@ -984,7 +988,7 @@ class Display extends WebglWidget {
    */
 
   updateCrossHairs () {
-    let cameraParams = this.getCurrentViewCameraParams()
+    let cameraParams = this.getCameraOfCurrentView()
     this.crossHairs.position.copy(cameraParams.focus)
     this.crossHairs.lookAt(cameraParams.position)
     this.crossHairs.updateMatrix()
@@ -1030,7 +1034,7 @@ class Display extends WebglWidget {
         text += '</div>'
       }
       this.hover.html(text)
-      let vector = this.posXY(pos)
+      let vector = this.getPosXY(pos)
       this.hover.move(vector.x, vector.y)
     } else {
       this.hover.hide()
@@ -1105,18 +1109,18 @@ class Display extends WebglWidget {
 
     this.rotateCameraParamsToCurrentView()
 
-    // needs to be drawn before render
+    // needs to be observerDrawn before render
     // as lines must be placed in THREE.js scene
     this.distanceMeasuresWidget.draw()
 
     this.displayRender()
 
     if (this.soupView.updateView) {
-      this.drawn.dispatch()
+      this.observerDrawn.dispatch()
       this.soupView.updateView = false
     }
 
-    // needs to be drawn after render
+    // needs to be observerDrawn after render
     this.atomLabelsWidget.draw()
 
     this.soupView.changed = false
@@ -1152,10 +1156,8 @@ class Display extends WebglWidget {
    */
 
   resize () {
-    this.resized.dispatch()
-
+    this.observerResized.dispatch()
     super.resize()
-
     this.soupView.updateView = true
     this.controller.setChangeFlag()
   }
@@ -1208,7 +1210,7 @@ class Display extends WebglWidget {
     this.updateHover()
 
     if (this.isDraggingCentralAtom) {
-      let v = this.posXY(this.soup.getAtomProxy(this.iDownAtom).pos)
+      let v = this.getPosXY(this.soup.getAtomProxy(this.iDownAtom).pos)
 
       this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y)
     } else {
