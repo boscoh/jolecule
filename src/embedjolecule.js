@@ -90,6 +90,8 @@ class EmbedJolecule {
         this.soup.findBackboneHbonds()
         this.soup.findSecondaryStructure()
 
+        this.soupView.changed = true
+
         if (this.soup.parsingError) {
           let err = this.soup.parsingError
           await this.display.asyncSetMesssage(`Error parsing soup: ${err}`)
@@ -119,8 +121,6 @@ class EmbedJolecule {
 
     this.display.cleanupMessage()
 
-    this.display.soupView.changed = true
-    
     this.isProcessing.flag = false
   }
 

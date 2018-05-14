@@ -488,6 +488,7 @@ class SequenceWidget extends CanvasWidget {
 
     this.display = display
     this.soupView = display.soupView
+    this.controller = display.controller
     this.traces = display.traces
     this.display.addObserver(this)
 
@@ -696,11 +697,11 @@ class SequenceWidget extends CanvasWidget {
       this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar)
       this.iStartChar = parseInt(this.iStartChar)
 
-      this.display.setTargetViewFromAtom(this.getCurrIAtom())
+      this.controller.setTargetViewByAtom(this.getCurrIAtom())
       this.draw()
     } else {
       this.iRes = this.xToIChar(this.pointerX)
-      this.display.setTargetViewFromAtom(this.getCurrIAtom())
+      this.controller.setTargetViewByAtom(this.getCurrIAtom())
       this.draw()
     }
   }
@@ -713,6 +714,7 @@ class ZSlabWidget extends CanvasWidget {
   constructor (display, selector) {
     super(selector)
     this.soupView = display.soupView
+    this.controller = display.controller
     display.addObserver(this)
     this.maxZLength = 0.0
     this.div.css('box-sizing', 'border-box')
@@ -802,65 +804,21 @@ class ZSlabWidget extends CanvasWidget {
     this.getZ(event)
 
     let cameraParams = this.soupView.currentView.cameraParams
-
+    let zBack = cameraParams.zBack
+    let zFront = cameraParams.zFront
     if (this.back) {
-      cameraParams.zBack = Math.max(2, this.z)
+      this.controller.setZoom(Math.max(2, this.z), zFront)
     } else if (this.front) {
-      cameraParams.zFront = Math.min(-2, this.z)
+      this.controller.setZoom(zBack, Math.min(-2, this.z))
     }
-    this.soupView.changed = true
     this.draw()
   }
-}
-
-function toggleButton (idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
-  let item =
-    $('<a>')
-      .attr('id', idTag)
-      .attr('href', '')
-      .html(text)
-
-  function color () {
-    let item = $('#' + idTag)
-    if (getToggleFn()) {
-      if (onColor) {
-        item.css('background-color', '#' + onColor)
-        console.log('toggleButton', onColor, item.css('background-color'), onColor)
-      } else {
-        item.addClass('jolecule-button-toggle-on')
-      }
-    } else {
-      if (onColor) {
-        item.css('background-color', '')
-      } else {
-        item.removeClass('jolecule-button-toggle-on')
-      }
-    }
-  }
-
-  if (classTag) {
-    item.addClass(classTag)
-  }
-
-  item.click(
-    function (e) {
-      e.preventDefault()
-      setToggleFn(!getToggleFn())
-      color()
-      return false
-    }
-  )
-
-  item.redraw = color
-
-  color()
-
-  return item
 }
 
 class GridToggleButtonWidget {
   constructor (display, selector, elem, y, color) {
     this.soupView = display.soupView
+    this.controller = display.controller
     this.elem = elem
     this.color = color
     this.div = $(selector)
@@ -884,9 +842,7 @@ class GridToggleButtonWidget {
   }
 
   toggle () {
-    this.soupView.soup.grid.isElem[this.elem] = !this.getToggle()
-    this.soupView.soup.grid.changed = true
-    this.soupView.changed = true
+    this.controller.toggleGridElem(this.elem)
     this.draw()
   }
 
@@ -917,6 +873,7 @@ class GridControlWidget extends CanvasWidget {
 
     this.display = display
     this.soupView = display.soupView
+    this.controller = display.controller
     display.addObserver(this)
 
     this.backgroundColor = '#AAA'
@@ -1060,12 +1017,9 @@ class GridControlWidget extends CanvasWidget {
     }
 
     this.getZ(event)
-
-    this.soupView.soup.grid.bCutoff = this.z
-    this.soupView.soup.grid.changed = true
+    this.controller.setGridCutoff(this.z)
     this.draw()
 
-    this.soupView.changed = true
   }
 
   mouseup (event) {
@@ -1078,20 +1032,22 @@ class GridControlWidget extends CanvasWidget {
 class ResidueSelectorWidget {
   constructor (display, selector) {
     this.scene = display.displayScene
-    this.soupView = display.soupView
     this.controller = display.controller
+    this.soupView = display.soupView
     this.display = display
+    this.display.addObserver(this)
+
     this.div = $(selector)
     this.divTag = '#residue-select'
-    this.selector = $('<select id="residue-select">')
-    this.div.append(this.selector)
-    this.display.addObserver(this)
+    let $elem = $('<select id="residue-select">')
+    this.div.append($elem)
+    $elem.select2()
   }
 
   change () {
     let iRes = parseInt(this.$elem.select2('val'))
-    this.display.setTargetViewFromAtom(
-      this.soupView.soup.getResidueProxy(iRes).iAtom)
+    let residue = this.soupView.soup.getResidueProxy(iRes)
+    this.controller.setTargetViewByAtom(residue.iAtom)
   }
 
   reset () {
@@ -1107,6 +1063,8 @@ class ResidueSelectorWidget {
       let text = residue.resId + '-' + residue.resType
       this.$elem.append(new Option(text, `${iRes}`))
     }
+
+    // reset using select2
     this.$elem.select2({width: '150px'})
     this.$elem.on('select2:select', () => { this.change() })
   }
@@ -1140,7 +1098,6 @@ class ToggleButtonWidget {
 
   callback () {
     let newOptionVal = !this.controller.getShowOption(this.option)
-    console.log('ButtonWidget.callback', newOptionVal)
     this.controller.setShowOption(this.option, newOptionVal)
     if ((this.option === 'sidechains') && (newOptionVal === false)) {
       this.controller.clearSelectedResidues()

@@ -183,14 +183,14 @@ This is the loading code in `index.html`:
     </script>
 
 For multiple widgets in a single page, you can load multiple times, using
-different values for `data_server` and `div_tag`.
+different values for `dataServer` and `div_tag`.
 
 The parameters in `initEmbedJolecule` controls how the widget is displayed:
 
 - `div_tag`: which HTML `<div>` tag that the widget is attached to.
   You can size this `<div>` yourself, but make sure there is no
   padding or margin.
-- `data_server`: the name of the variable for the data in `data_server.js`.
+- `dataServer`: the name of the variable for the data in `dataServer.js`.
   A unique name is crucial for multiple widgets.
 - `view_id`: the id of the view you want to start with, by default it's the PDB's view
 - `view_height`: the size of the text window for the view text

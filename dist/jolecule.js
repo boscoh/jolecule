@@ -78087,27 +78087,29 @@ var EmbedJolecule = function () {
                               _this3.soup.findBackboneHbonds();
                               _this3.soup.findSecondaryStructure();
 
+                              _this3.soupView.changed = true;
+
                               if (!_this3.soup.parsingError) {
-                                _context2.next = 30;
+                                _context2.next = 31;
                                 break;
                               }
 
                               err = _this3.soup.parsingError;
-                              _context2.next = 28;
+                              _context2.next = 29;
                               return _this3.display.asyncSetMesssage('Error parsing soup: ' + err);
 
-                            case 28:
-                              _context2.next = 31;
+                            case 29:
+                              _context2.next = 32;
                               break;
 
-                            case 30:
+                            case 31:
                               _this3.display.buildScene();
 
-                            case 31:
+                            case 32:
 
                               resolve();
 
-                            case 32:
+                            case 33:
                             case 'end':
                               return _context2.stop();
                           }
@@ -78181,11 +78183,9 @@ var EmbedJolecule = function () {
 
                 this.display.cleanupMessage();
 
-                this.display.soupView.changed = true;
-
                 this.isProcessing.flag = false;
 
-              case 17:
+              case 16:
               case 'end':
                 return _context4.stop();
             }
@@ -80461,6 +80461,29 @@ var Controller = function () {
       }
       this.soupView.changed = true;
     }
+  }, {
+    key: 'setZoom',
+    value: function setZoom(zBack, zFront) {
+      var cameraParams = this.soupView.currentView.cameraParams;
+      cameraParams.zBack = zBack;
+      cameraParams.zFront = zFront;
+      this.soupView.changed = true;
+    }
+  }, {
+    key: 'toggleGridElem',
+    value: function toggleGridElem(elem) {
+      var b = this.soupView.soup.grid.isElem[elem];
+      this.soupView.soup.grid.isElem[elem] = !b;
+      this.soupView.soup.grid.changed = true;
+      this.soupView.changed = true;
+    }
+  }, {
+    key: 'setGridCutoff',
+    value: function setGridCutoff(cutoff) {
+      this.soupView.soup.grid.bCutoff = cutoff;
+      this.soupView.soup.grid.changed = true;
+      this.soupView.changed = true;
+    }
   }]);
 
   return Controller;
@@ -82371,6 +82394,7 @@ var SequenceWidget = function (_CanvasWidget) {
 
     _this4.display = display;
     _this4.soupView = display.soupView;
+    _this4.controller = display.controller;
     _this4.traces = display.traces;
     _this4.display.addObserver(_this4);
 
@@ -82610,11 +82634,11 @@ var SequenceWidget = function (_CanvasWidget) {
         this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar);
         this.iStartChar = parseInt(this.iStartChar);
 
-        this.display.setTargetViewFromAtom(this.getCurrIAtom());
+        this.controller.setTargetViewByAtom(this.getCurrIAtom());
         this.draw();
       } else {
         this.iRes = this.xToIChar(this.pointerX);
-        this.display.setTargetViewFromAtom(this.getCurrIAtom());
+        this.controller.setTargetViewByAtom(this.getCurrIAtom());
         this.draw();
       }
     }
@@ -82637,6 +82661,7 @@ var ZSlabWidget = function (_CanvasWidget2) {
     var _this5 = _possibleConstructorReturn(this, (ZSlabWidget.__proto__ || Object.getPrototypeOf(ZSlabWidget)).call(this, selector));
 
     _this5.soupView = display.soupView;
+    _this5.controller = display.controller;
     display.addObserver(_this5);
     _this5.maxZLength = 0.0;
     _this5.div.css('box-sizing', 'border-box');
@@ -82739,58 +82764,19 @@ var ZSlabWidget = function (_CanvasWidget2) {
       this.getZ(event);
 
       var cameraParams = this.soupView.currentView.cameraParams;
-
+      var zBack = cameraParams.zBack;
+      var zFront = cameraParams.zFront;
       if (this.back) {
-        cameraParams.zBack = Math.max(2, this.z);
+        this.controller.setZoom(Math.max(2, this.z), zFront);
       } else if (this.front) {
-        cameraParams.zFront = Math.min(-2, this.z);
+        this.controller.setZoom(zBack, Math.min(-2, this.z));
       }
-      this.soupView.changed = true;
       this.draw();
     }
   }]);
 
   return ZSlabWidget;
 }(CanvasWidget);
-
-function toggleButton(idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
-  var item = (0, _jquery2.default)('<a>').attr('id', idTag).attr('href', '').html(text);
-
-  function color() {
-    var item = (0, _jquery2.default)('#' + idTag);
-    if (getToggleFn()) {
-      if (onColor) {
-        item.css('background-color', '#' + onColor);
-        console.log('toggleButton', onColor, item.css('background-color'), onColor);
-      } else {
-        item.addClass('jolecule-button-toggle-on');
-      }
-    } else {
-      if (onColor) {
-        item.css('background-color', '');
-      } else {
-        item.removeClass('jolecule-button-toggle-on');
-      }
-    }
-  }
-
-  if (classTag) {
-    item.addClass(classTag);
-  }
-
-  item.click(function (e) {
-    e.preventDefault();
-    setToggleFn(!getToggleFn());
-    color();
-    return false;
-  });
-
-  item.redraw = color;
-
-  color();
-
-  return item;
-}
 
 var GridToggleButtonWidget = function () {
   function GridToggleButtonWidget(display, selector, elem, y, color) {
@@ -82799,6 +82785,7 @@ var GridToggleButtonWidget = function () {
     _classCallCheck(this, GridToggleButtonWidget);
 
     this.soupView = display.soupView;
+    this.controller = display.controller;
     this.elem = elem;
     this.color = color;
     this.div = (0, _jquery2.default)(selector).text(elem).addClass('jolecule-button').css('position', 'absolute').css('top', y + 'px').css('left', '40px').css('height', '15px').css('width', '20px').on('click touch', function (e) {
@@ -82817,9 +82804,7 @@ var GridToggleButtonWidget = function () {
   }, {
     key: 'toggle',
     value: function toggle() {
-      this.soupView.soup.grid.isElem[this.elem] = !this.getToggle();
-      this.soupView.soup.grid.changed = true;
-      this.soupView.changed = true;
+      this.controller.toggleGridElem(this.elem);
       this.draw();
     }
   }, {
@@ -82859,6 +82844,7 @@ var GridControlWidget = function (_CanvasWidget3) {
 
     _this7.display = display;
     _this7.soupView = display.soupView;
+    _this7.controller = display.controller;
     display.addObserver(_this7);
 
     _this7.backgroundColor = '#AAA';
@@ -83038,12 +83024,8 @@ var GridControlWidget = function (_CanvasWidget3) {
       }
 
       this.getZ(event);
-
-      this.soupView.soup.grid.bCutoff = this.z;
-      this.soupView.soup.grid.changed = true;
+      this.controller.setGridCutoff(this.z);
       this.draw();
-
-      this.soupView.changed = true;
     }
   }, {
     key: 'mouseup',
@@ -83062,21 +83044,24 @@ var ResidueSelectorWidget = function () {
     _classCallCheck(this, ResidueSelectorWidget);
 
     this.scene = display.displayScene;
-    this.soupView = display.soupView;
     this.controller = display.controller;
+    this.soupView = display.soupView;
     this.display = display;
+    this.display.addObserver(this);
+
     this.div = (0, _jquery2.default)(selector);
     this.divTag = '#residue-select';
-    this.selector = (0, _jquery2.default)('<select id="residue-select">');
-    this.div.append(this.selector);
-    this.display.addObserver(this);
+    var $elem = (0, _jquery2.default)('<select id="residue-select">');
+    this.div.append($elem);
+    $elem.select2();
   }
 
   _createClass(ResidueSelectorWidget, [{
     key: 'change',
     value: function change() {
       var iRes = parseInt(this.$elem.select2('val'));
-      this.display.setTargetViewFromAtom(this.soupView.soup.getResidueProxy(iRes).iAtom);
+      var residue = this.soupView.soup.getResidueProxy(iRes);
+      this.controller.setTargetViewByAtom(residue.iAtom);
     }
   }, {
     key: 'reset',
@@ -83102,6 +83087,8 @@ var ResidueSelectorWidget = function () {
           var text = residue.resId + '-' + residue.resType;
           this.$elem.append(new Option(text, '' + iRes));
         }
+
+        // reset using select2
       } catch (err) {
         _didIteratorError4 = true;
         _iteratorError4 = err;
@@ -83158,7 +83145,6 @@ var ToggleButtonWidget = function () {
     key: 'callback',
     value: function callback() {
       var newOptionVal = !this.controller.getShowOption(this.option);
-      console.log('ButtonWidget.callback', newOptionVal);
       this.controller.setShowOption(this.option, newOptionVal);
       if (this.option === 'sidechains' && newOptionVal === false) {
         this.controller.clearSelectedResidues();
@@ -98242,7 +98228,7 @@ var ViewListPanel = function () {
     this.soupView = controller.soupView;
     this.controller = controller;
     this.isEditable = isEditable;
-    this.data_server = dataServer;
+    this.dataServer = dataServer;
     this.viewPiece = {};
     this.topDiv = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('VIEWS OF PROTEIN').append('<br>').append('<br>').append((0, _util.linkButton)('', '+[v]iew', 'jolecule-button', function () {
       _this3.makeNewView();
@@ -98259,7 +98245,7 @@ var ViewListPanel = function () {
     key: 'saveViewsToDataServer',
     value: function saveViewsToDataServer(success) {
       console.log('ViewPieceList.saveViewsToDataServer');
-      this.data_server.save_views(this.controller.getViewDicts(), success);
+      this.dataServer.save_views(this.controller.getViewDicts(), success);
     }
   }, {
     key: 'updateViews',
@@ -98332,7 +98318,7 @@ var ViewListPanel = function () {
 
       console.log('ViewPieceList.removeView');
       this.viewPiece[id].div.css('background-color', 'lightgray');
-      this.data_server.delete_protein_view(id, function () {
+      this.dataServer.delete_protein_view(id, function () {
         _this4.controller.deleteView(id);
         _this4.viewPiece[id].div.remove();
         delete _this4.viewPiece[id];
@@ -98461,9 +98447,10 @@ var ViewListPanel = function () {
 
 /**
  * FullPageJolecule - full page wrapper around an embedded EmbedJolecule
- * widget. Handles keypresses and urls and adds a better views annotation
- * list tool
+ * widget. Handles keypresses and urls and adds a view list side-panel
+ * FullPageJolecule satisfies the interface for animation.js
  */
+
 
 var FullPageJolecule = function () {
   function FullPageJolecule(proteinDisplayTag, sequenceDisplayTag, viewsDisplayTag, params) {

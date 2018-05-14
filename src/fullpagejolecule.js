@@ -169,7 +169,7 @@ class ViewListPanel {
     this.soupView = controller.soupView
     this.controller = controller
     this.isEditable = isEditable
-    this.data_server = dataServer
+    this.dataServer = dataServer
     this.viewPiece = {}
     this.topDiv = $(this.divTag)
       .append(
@@ -213,7 +213,7 @@ class ViewListPanel {
 
   saveViewsToDataServer (success) {
     console.log('ViewPieceList.saveViewsToDataServer')
-    this.data_server.save_views(
+    this.dataServer.save_views(
       this.controller.getViewDicts(), success)
   }
 
@@ -282,7 +282,7 @@ class ViewListPanel {
   removeView (id) {
     console.log('ViewPieceList.removeView')
     this.viewPiece[id].div.css('background-color', 'lightgray')
-    this.data_server.delete_protein_view(id, () => {
+    this.dataServer.delete_protein_view(id, () => {
       this.controller.deleteView(id)
       this.viewPiece[id].div.remove()
       delete this.viewPiece[id]
@@ -397,10 +397,9 @@ class ViewListPanel {
 
 /**
  * FullPageJolecule - full page wrapper around an embedded EmbedJolecule
- * widget. Handles keypresses and urls and adds a better views annotation
- * list tool
+ * widget. Handles keypresses and urls and adds a view list side-panel
+ * FullPageJolecule satisfies the interface for animation.js
  */
-
 class FullPageJolecule {
   constructor (
     proteinDisplayTag,

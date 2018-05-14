@@ -1700,6 +1700,26 @@ class Controller {
     }
     this.soupView.changed = true
   }
+
+  setZoom (zBack, zFront) {
+    let cameraParams = this.soupView.currentView.cameraParams
+    cameraParams.zBack = zBack
+    cameraParams.zFront = zFront
+    this.soupView.changed = true
+  }
+
+  toggleGridElem (elem) {
+    let b = this.soupView.soup.grid.isElem[elem]
+    this.soupView.soup.grid.isElem[elem] = !b
+    this.soupView.soup.grid.changed = true
+    this.soupView.changed = true
+  }
+
+  setGridCutoff (cutoff) {
+    this.soupView.soup.grid.bCutoff = cutoff
+    this.soupView.soup.grid.changed = true
+    this.soupView.changed = true
+  }
 }
 
 export {
