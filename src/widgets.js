@@ -13,10 +13,11 @@
 import $ from 'jquery'
 import * as THREE from 'three'
 import _ from 'lodash'
-import select2 from 'select2'
+import select2 from 'select2' // eslint-disable-line no-alert
 
 import * as data from './data'
 import * as util from './util'
+
 /**
  * LineElement
  * - instantiates a DOM object is to draw a line between (x1, y1) and
@@ -713,8 +714,6 @@ class ZSlabWidget extends CanvasWidget {
     super(selector)
     this.soupView = display.soupView
     display.addObserver(this)
-
-    console.log(`ZSlabWidget.init`, this.parentDiv.width(), this.parentDiv.innerHeight())
     this.maxZLength = 0.0
     this.div.css('box-sizing', 'border-box')
     this.backColor = 'rgb(150, 150, 150)'
@@ -723,8 +722,6 @@ class ZSlabWidget extends CanvasWidget {
   }
 
   resize () {
-    console.log('ZSlabWidget.resize', this.width(), this.height())
-    console.log('ZSlabWidget.resize', this.parentDiv.width(),  this.parentDiv.parent().width(), this.parentDiv.css('width'), this.parentDiv.attr('id'))
     this.div.css({
       'width': this.width(),
       'height': this.height(),
@@ -1000,12 +997,6 @@ class ResidueSelectorWidget {
     this.div = $(selector)
     this.divTag = '#residue-select'
     this.selector = $('<select id="residue-select">')
-      // .addClass(
-      //   'jolecule-residue-selector')
-      .css({
-        'outline': 'none',
-        '-moz-appearance': 'none'
-      })
     this.div.append(this.selector)
     this.display.addObserver(this)
   }
@@ -1034,9 +1025,11 @@ class ResidueSelectorWidget {
   }
 
   draw () {
-    let iAtom = this.soupView.currentView.iAtom
-    let iRes = this.soupView.soup.getAtomProxy(iAtom).iRes
-    this.$elem.val(`${iRes}`).trigger('change')
+    if (this.$elem) {
+      let iAtom = this.soupView.currentView.iAtom
+      let iRes = this.soupView.soup.getAtomProxy(iAtom).iRes
+      this.$elem.val(`${iRes}`).trigger('change')
+    }
   }
 }
 

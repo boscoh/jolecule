@@ -78034,7 +78034,6 @@ var EmbedJolecule = function () {
 
     this.divTag = this.params.divTag;
     this.div = (0, _jquery2.default)(this.params.divTag);
-
     // disable right mouse click
     this.div[0].oncontextmenu = _lodash2.default.noop;
 
@@ -78046,17 +78045,7 @@ var EmbedJolecule = function () {
     this.controller = new _soup.Controller(this.soupView);
 
     this.createProteinDiv();
-    this.display = new _display.Display(this.soupView, '#jolecule-soup-display', this.controller, params.isGrid, params.backgroundColor);
-
     this.createStatusDiv();
-    this.sequenceWidget = new _widgets2.default.SequenceWidget(this.display);
-    this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.display, '#zslab');
-    this.gridControlWidget = new _widgets2.default.GridControlWidget(this.display);
-    this.residueSelectorWidget = new _widgets2.default.ResidueSelectorWidget(this.display, '#res-selector');
-    this.sidechainWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#sidechain', 'sidechain');
-    this.ligandWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#ligand', 'ligands');
-
-    this.isViewTextShown = this.params.isViewTextShown;
 
     (0, _jquery2.default)(window).resize(function () {
       return _this.resize();
@@ -78319,6 +78308,7 @@ var EmbedJolecule = function () {
       var height = this.div.outerHeight() - this.hAnnotationView;
       this.proteinDiv = (0, _jquery2.default)('<div>').attr('id', 'jolecule-soup-display').addClass('jolecule-embed-body').css('overflow', 'hidden').css('width', this.div.outerWidth()).css('height', height);
       this.div.append(this.proteinDiv);
+      this.display = new _display.Display(this.soupView, '#jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
     }
   }, {
     key: 'createStatusDiv',
@@ -78329,8 +78319,13 @@ var EmbedJolecule = function () {
         _this4.controller.toggleResidueNeighbors();
       })).append((0, _jquery2.default)('<div id="ligand"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: flex-end;">').append('<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 120px; height: 20px;"></div>'));
       this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append(this.viewBarDiv);
-
       this.div.append(this.statusDiv);
+      this.sequenceWidget = new _widgets2.default.SequenceWidget(this.display);
+      this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.display, '#zslab');
+      this.gridControlWidget = new _widgets2.default.GridControlWidget(this.display);
+      this.residueSelectorWidget = new _widgets2.default.ResidueSelectorWidget(this.display, '#res-selector');
+      this.sidechainWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#sidechain', 'sidechain');
+      this.ligandWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#ligand', 'ligands');
     }
   }, {
     key: 'resize',
@@ -79815,7 +79810,11 @@ var Soup = function () {
   }, {
     key: 'clearSelectedResidues',
     value: function clearSelectedResidues() {
-      this.residueSelect.clearBits();
+      var residue = this.getResidueProxy();
+      for (var jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
+        residue.load(jRes).selected = false;
+      }
+      // this.residueSelect.clearBits()
     }
   }, {
     key: 'selectResidues',
@@ -80515,9 +80514,13 @@ var Controller = function () {
   }, {
     key: 'setCurrentView',
     value: function setCurrentView(view) {
+      var oldViewSelected = this.soupView.currentView.selected;
       this.soupView.currentView = view.clone();
-      this.soupView.soup.clearSelectedResidues();
-      this.soupView.soup.selectResidues(view.selected, true);
+      if (oldViewSelected !== view.selected) {
+        this.soupView.soup.clearSelectedResidues();
+        this.soupView.soup.selectResidues(view.selected, true);
+        this.soupView.updateResidueSelection = true;
+      }
       this.soupView.changed = true;
     }
   }]);
@@ -81848,6 +81851,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * this.resize - called after every resize of window
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       */
 
+// eslint-disable-line no-alert
+
 var _jquery = __webpack_require__(32);
 
 var _jquery2 = _interopRequireDefault(_jquery);
@@ -82695,8 +82700,6 @@ var ZSlabWidget = function (_CanvasWidget2) {
 
     _this5.soupView = display.soupView;
     display.addObserver(_this5);
-
-    console.log('ZSlabWidget.init', _this5.parentDiv.width(), _this5.parentDiv.innerHeight());
     _this5.maxZLength = 0.0;
     _this5.div.css('box-sizing', 'border-box');
     _this5.backColor = 'rgb(150, 150, 150)';
@@ -82708,8 +82711,6 @@ var ZSlabWidget = function (_CanvasWidget2) {
   _createClass(ZSlabWidget, [{
     key: 'resize',
     value: function resize() {
-      console.log('ZSlabWidget.resize', this.width(), this.height());
-      console.log('ZSlabWidget.resize', this.parentDiv.width(), this.parentDiv.parent().width(), this.parentDiv.css('width'), this.parentDiv.attr('id'));
       this.div.css({
         'width': this.width(),
         'height': this.height()
@@ -83044,13 +83045,7 @@ var ResidueSelectorWidget = function () {
     this.display = display;
     this.div = (0, _jquery2.default)(selector);
     this.divTag = '#residue-select';
-    this.selector = (0, _jquery2.default)('<select id="residue-select">')
-    // .addClass(
-    //   'jolecule-residue-selector')
-    .css({
-      'outline': 'none',
-      '-moz-appearance': 'none'
-    });
+    this.selector = (0, _jquery2.default)('<select id="residue-select">');
     this.div.append(this.selector);
     this.display.addObserver(this);
   }
@@ -83108,9 +83103,11 @@ var ResidueSelectorWidget = function () {
   }, {
     key: 'draw',
     value: function draw() {
-      var iAtom = this.soupView.currentView.iAtom;
-      var iRes = this.soupView.soup.getAtomProxy(iAtom).iRes;
-      this.$elem.val('' + iRes).trigger('change');
+      if (this.$elem) {
+        var iAtom = this.soupView.currentView.iAtom;
+        var iRes = this.soupView.soup.getAtomProxy(iAtom).iRes;
+        this.$elem.val('' + iRes).trigger('change');
+      }
     }
   }]);
 
@@ -89910,7 +89907,6 @@ var Display = function () {
     this.resized = new _signals2.default();
 
     // WebGL related properties
-
     // div to instantiate WebGL renderer
     this.webglDivId = this.div.attr('id') + '-canvas-wrapper';
     this.webglDiv = (0, _jquery2.default)('<div>').attr('id', this.webglDivId).css('overflow', 'hidden').css('z-index', '0').css('background-color', '#CCC').css('position', 'absolute');
@@ -89976,8 +89972,6 @@ var Display = function () {
     this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
     this.setMesssage('Loading data...');
 
-    // Widgets that decorate the display
-
     // popup hover box over the mouse position
     this.hover = new _widgets2.default.PopupText(this.divTag, 'lightblue');
     this.iHoverResidue = null;
@@ -89987,12 +89981,11 @@ var Display = function () {
     // Docking display control
     this.isGrid = isGrid;
 
+    // Widgets that decorate the display
     // display distance measures between atoms
-    this.distanceWidget = new _widgets2.default.DistanceMeasuresWidget(this);
-
+    this.distanceMeasuresWidget = new _widgets2.default.DistanceMeasuresWidget(this);
     // display atom labels
-    this.labelWidget = new _widgets2.default.AtomLabelsWidget(this);
-
+    this.atomLabelsWidget = new _widgets2.default.AtomLabelsWidget(this);
     // draw onscreen line for mouse dragging between atoms
     this.lineElement = new _widgets2.default.LineElement(this, '#FF7777');
   }
@@ -91455,7 +91448,8 @@ var Display = function () {
       this.rotateCameraToCurrentView();
 
       // needs to be drawn before render
-      this.distanceWidget.draw();
+      // as lines must be placed in THREE.js scene
+      this.distanceMeasuresWidget.draw();
 
       // leave this to the very last moment
       // to avoid the dreaded black canvas
@@ -91472,7 +91466,7 @@ var Display = function () {
       }
 
       // needs to be drawn after render
-      this.labelWidget.draw();
+      this.atomLabelsWidget.draw();
 
       this.soupView.changed = false;
     }
@@ -98184,10 +98178,6 @@ var ViewPiece = function () {
       var isEditable = this.params.isEditable && !view.lock && view.id !== 'view:000000';
 
       if (isEditable) {
-        // this.showDiv
-        //   .append(embedButton)
-        //   .append(' ');
-
         this.showDiv.append(editButton);
 
         if ((0, _util.exists)(this.params.swapUp) && this.params.swapUp) {
@@ -98221,11 +98211,11 @@ var ViewPiece = function () {
  * ViewPieceList keeps track of the views
  */
 
-var ViewPieceList = function () {
-  function ViewPieceList(divTag, controller, proteinDisplay, dataServer, isEditable) {
+var ViewListPanel = function () {
+  function ViewListPanel(divTag, controller, proteinDisplay, dataServer, isEditable) {
     var _this3 = this;
 
-    _classCallCheck(this, ViewPieceList);
+    _classCallCheck(this, ViewListPanel);
 
     this.divTag = divTag;
     this.display = proteinDisplay;
@@ -98245,7 +98235,7 @@ var ViewPieceList = function () {
     })).append('<br>')).append((0, _jquery2.default)('<div>').attr('id', 'jolecule-views'));
   }
 
-  _createClass(ViewPieceList, [{
+  _createClass(ViewListPanel, [{
     key: 'saveViewsToDataServer',
     value: function saveViewsToDataServer(success) {
       console.log('ViewPieceList.saveViewsToDataServer');
@@ -98418,7 +98408,6 @@ var ViewPieceList = function () {
     key: 'insertNewViewDiv',
     value: function insertNewViewDiv(newId) {
       var div = this.makeViewDiv(newId);
-
       if (this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1) {
         (0, _jquery2.default)('#jolecule-views').append(div);
       } else {
@@ -98442,13 +98431,12 @@ var ViewPieceList = function () {
       this.saveViewsToDataServer(function () {
         console.log('ViewPieceList.makeNewView success');
         _this7.viewPiece[newId].div.css('background-color', '');
-        (0, _jquery2.default)('#jolecule-views').stop();
-        (0, _jquery2.default)('#jolecule-views').scrollTo(_this7.viewPiece[newId].div, 1000, { offset: { top: -80 } });
+        (0, _jquery2.default)('#jolecule-views').stop().scrollTo(_this7.viewPiece[newId].div, 1000, { offset: { top: -80 } });
       });
     }
   }]);
 
-  return ViewPieceList;
+  return ViewListPanel;
 }();
 
 /**
@@ -98489,11 +98477,9 @@ var FullPageJolecule = function () {
     document.onkeydown = function (e) {
       return _this8.onkeydown(e);
     };
-    var resizeFn = function resizeFn() {
-      _this8.resize();
-    };
-    (0, _jquery2.default)(window).resize(resizeFn);
-    window.onorientationchange = resizeFn;
+    // let resizeFn = () => { this.resize() }
+    // $(window).resize(resizeFn)
+    // window.onorientationchange = resizeFn
 
     this.noData = true;
   }
@@ -98537,16 +98523,16 @@ var FullPageJolecule = function () {
         this.controller = this.embedJolecule.controller;
         this.display = this.embedJolecule.display;
 
-        this.viewsDisplay = new ViewPieceList(this.viewsDisplayTag, this.controller, this.display, dataServer, this.params.isEditable);
+        this.viewListPanel = new ViewListPanel(this.viewsDisplayTag, this.controller, this.display, dataServer, this.params.isEditable);
 
-        this.viewsDisplay.makeAllViews();
+        this.viewListPanel.makeAllViews();
         var hashTag = (0, _util.getWindowUrl)().split('#')[1];
         if (hashTag in this.soupView.savedViewsByViewId) {
-          this.viewsDisplay.setTargetByViewId(hashTag);
+          this.viewListPanel.setTargetByViewId(hashTag);
         } else {
-          this.viewsDisplay.setTargetByViewId('view:000000');
+          this.viewListPanel.setTargetByViewId('view:000000');
         }
-        this.viewsDisplay.updateViews();
+        this.viewListPanel.updateViews();
       }
 
       this.resize();
@@ -98563,7 +98549,7 @@ var FullPageJolecule = function () {
     key: 'draw',
     value: function draw() {
       if (this.soupView.changed) {
-        this.viewsDisplay.updateViews();
+        this.viewListPanel.updateViews();
         this.embedJolecule.draw();
         this.soupView.changed = false;
       }
@@ -98601,16 +98587,16 @@ var FullPageJolecule = function () {
       if (!window.keyboard_lock) {
         var c = String.fromCharCode(event.keyCode).toUpperCase();
         if (c === 'V') {
-          this.viewsDisplay.makeNewView();
+          this.viewListPanel.makeNewView();
           return;
         } else if (c === 'K' || event.keyCode === 37) {
           this.gotoPrevResidue();
         } else if (c === 'J' || event.keyCode === 39) {
           this.gotoNextResidue();
         } else if (event.keyCode === 38) {
-          this.viewsDisplay.gotoPrevView();
+          this.viewListPanel.gotoPrevView();
         } else if (c === ' ' || event.keyCode === 40) {
-          this.viewsDisplay.gotoNextView();
+          this.viewListPanel.gotoNextView();
         } else if (c === 'B') {
           if (this.soupView.currentView.show.backboneAtom) {
             this.controller.setBackboneOption('ribbon');
@@ -98631,7 +98617,7 @@ var FullPageJolecule = function () {
           var iView = this.display.soupView.iLastViewSelected;
           if (iView > 0) {
             var viewId = this.display.soupView.savedViews[iView].id;
-            this.viewsDisplay.div[viewId].edit_fn();
+            this.viewListPanel.div[viewId].edit_fn();
           }
         } else if (c === 'N') {
           this.display.controller.toggleResidueNeighbors();
@@ -98641,7 +98627,7 @@ var FullPageJolecule = function () {
           var i = parseInt(c) - 1;
           if ((i || i === 0) && i < this.soupView.savedViews.length) {
             var id = this.soupView.savedViews[i].id;
-            this.viewsDisplay.setTargetByViewId(id);
+            this.viewListPanel.setTargetByViewId(id);
           }
         }
         this.display.soupView.changed = true;

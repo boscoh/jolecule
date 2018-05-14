@@ -53,7 +53,6 @@ class Display {
     this.resized = new Signal()
 
     // WebGL related properties
-
     // div to instantiate WebGL renderer
     this.webglDivId = this.div.attr('id') + '-canvas-wrapper'
     this.webglDiv = $('<div>')
@@ -128,7 +127,6 @@ class Display {
       .addClass('jolecule-loading-message')
     this.setMesssage('Loading data...')
 
-    // Widgets that decorate the display
 
     // popup hover box over the mouse position
     this.hover = new widgets.PopupText(this.divTag, 'lightblue')
@@ -139,12 +137,11 @@ class Display {
     // Docking display control
     this.isGrid = isGrid
 
+    // Widgets that decorate the display
     // display distance measures between atoms
-    this.distanceWidget = new widgets.DistanceMeasuresWidget(this)
-
+    this.distanceMeasuresWidget = new widgets.DistanceMeasuresWidget(this)
     // display atom labels
-    this.labelWidget = new widgets.AtomLabelsWidget(this)
-
+    this.atomLabelsWidget = new widgets.AtomLabelsWidget(this)
     // draw onscreen line for mouse dragging between atoms
     this.lineElement = new widgets.LineElement(this, '#FF7777')
   }
@@ -1021,7 +1018,8 @@ class Display {
     this.rotateCameraToCurrentView()
 
     // needs to be drawn before render
-    this.distanceWidget.draw()
+    // as lines must be placed in THREE.js scene
+    this.distanceMeasuresWidget.draw()
 
     // leave this to the very last moment
     // to avoid the dreaded black canvas
@@ -1030,8 +1028,7 @@ class Display {
     }
 
     // renders visible meshes to the gpu
-    this.renderer.render(
-      this.displayScene, this.camera)
+    this.renderer.render(this.displayScene, this.camera)
 
     if (this.soupView.updateView) {
       this.drawn.dispatch()
@@ -1039,7 +1036,7 @@ class Display {
     }
 
     // needs to be drawn after render
-    this.labelWidget.draw()
+    this.atomLabelsWidget.draw()
 
     this.soupView.changed = false
   }

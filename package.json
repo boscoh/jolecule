@@ -10,7 +10,9 @@
     "mustache": "^2.3.0",
     "nopt": "^3.0.6",
     "opener": "^1.4.2",
+    "ramda": "^0.25.0",
     "requirejs": "^2.3.2",
+    "select2": "^4.0.6-rc.1",
     "signals": "^1.0.0",
     "three": "^0.92.0",
     "webpack": "^3.10.0"

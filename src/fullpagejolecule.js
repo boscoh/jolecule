@@ -120,10 +120,6 @@ class ViewPiece {
       (view.id !== 'view:000000')
 
     if (isEditable) {
-      // this.showDiv
-      //   .append(embedButton)
-      //   .append(' ');
-
       this.showDiv
         .append(editButton)
 
@@ -168,7 +164,7 @@ class ViewPiece {
  * ViewPieceList keeps track of the views
  */
 
-class ViewPieceList {
+class ViewListPanel {
   constructor (divTag, controller, proteinDisplay, dataServer, isEditable) {
     this.divTag = divTag
     this.display = proteinDisplay
@@ -374,7 +370,6 @@ class ViewPieceList {
 
   insertNewViewDiv (newId) {
     let div = this.makeViewDiv(newId)
-
     if (this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1) {
       $('#jolecule-views').append(div)
     } else {
@@ -395,9 +390,9 @@ class ViewPieceList {
     this.saveViewsToDataServer(() => {
       console.log('ViewPieceList.makeNewView success')
       this.viewPiece[newId].div.css('background-color', '')
-      $('#jolecule-views').stop()
-      $('#jolecule-views').scrollTo(
-        this.viewPiece[newId].div, 1000, {offset: {top: -80}})
+      $('#jolecule-views')
+        .stop()
+        .scrollTo(this.viewPiece[newId].div, 1000, {offset: {top: -80}})
     })
   }
 }
@@ -438,9 +433,9 @@ class FullPageJolecule {
 
     document.oncontextmenu = _.noop
     document.onkeydown = (e) => this.onkeydown(e)
-    let resizeFn = () => { this.resize() }
-    $(window).resize(resizeFn)
-    window.onorientationchange = resizeFn
+    // let resizeFn = () => { this.resize() }
+    // $(window).resize(resizeFn)
+    // window.onorientationchange = resizeFn
 
     this.noData = true
   }
@@ -459,21 +454,21 @@ class FullPageJolecule {
       this.controller = this.embedJolecule.controller
       this.display = this.embedJolecule.display
 
-      this.viewsDisplay = new ViewPieceList(
+      this.viewListPanel = new ViewListPanel(
         this.viewsDisplayTag,
         this.controller,
         this.display,
         dataServer,
         this.params.isEditable)
 
-      this.viewsDisplay.makeAllViews()
+      this.viewListPanel.makeAllViews()
       let hashTag = getWindowUrl().split('#')[1]
       if (hashTag in this.soupView.savedViewsByViewId) {
-        this.viewsDisplay.setTargetByViewId(hashTag)
+        this.viewListPanel.setTargetByViewId(hashTag)
       } else {
-        this.viewsDisplay.setTargetByViewId('view:000000')
+        this.viewListPanel.setTargetByViewId('view:000000')
       }
-      this.viewsDisplay.updateViews()
+      this.viewListPanel.updateViews()
     }
 
     this.resize()
@@ -488,7 +483,7 @@ class FullPageJolecule {
 
   draw () {
     if (this.soupView.changed) {
-      this.viewsDisplay.updateViews()
+      this.viewListPanel.updateViews()
       this.embedJolecule.draw()
       this.soupView.changed = false
     }
@@ -521,16 +516,16 @@ class FullPageJolecule {
     if (!window.keyboard_lock) {
       let c = String.fromCharCode(event.keyCode).toUpperCase()
       if (c === 'V') {
-        this.viewsDisplay.makeNewView()
+        this.viewListPanel.makeNewView()
         return
       } else if ((c === 'K') || (event.keyCode === 37)) {
         this.gotoPrevResidue()
       } else if ((c === 'J') || (event.keyCode === 39)) {
         this.gotoNextResidue()
       } else if (event.keyCode === 38) {
-        this.viewsDisplay.gotoPrevView()
+        this.viewListPanel.gotoPrevView()
       } else if (c === ' ' || event.keyCode === 40) {
-        this.viewsDisplay.gotoNextView()
+        this.viewListPanel.gotoNextView()
       } else if (c === 'B') {
         if (this.soupView.currentView.show.backboneAtom) {
           this.controller.setBackboneOption('ribbon')
@@ -551,7 +546,7 @@ class FullPageJolecule {
         let iView = this.display.soupView.iLastViewSelected
         if (iView > 0) {
           let viewId = this.display.soupView.savedViews[iView].id
-          this.viewsDisplay.div[viewId].edit_fn()
+          this.viewListPanel.div[viewId].edit_fn()
         }
       } else if (c === 'N') {
         this.display.controller.toggleResidueNeighbors()
@@ -561,7 +556,7 @@ class FullPageJolecule {
         let i = parseInt(c) - 1
         if ((i || i === 0) && (i < this.soupView.savedViews.length)) {
           let id = this.soupView.savedViews[i].id
-          this.viewsDisplay.setTargetByViewId(id)
+          this.viewListPanel.setTargetByViewId(id)
         }
       }
       this.display.soupView.changed = true

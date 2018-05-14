@@ -28,7 +28,6 @@ class EmbedJolecule {
 
     this.divTag = this.params.divTag
     this.div = $(this.params.divTag)
-
     // disable right mouse click
     this.div[0].oncontextmenu = _.noop
 
@@ -40,22 +39,7 @@ class EmbedJolecule {
     this.controller = new Controller(this.soupView)
 
     this.createProteinDiv()
-    this.display = new Display(
-      this.soupView,
-      '#jolecule-soup-display',
-      this.controller,
-      params.isGrid,
-      params.backgroundColor)
-
     this.createStatusDiv()
-    this.sequenceWidget = new widgets.SequenceWidget(this.display)
-    this.zSlabWidget = new widgets.ZSlabWidget(this.display, '#zslab')
-    this.gridControlWidget = new widgets.GridControlWidget(this.display)
-    this.residueSelectorWidget = new widgets.ResidueSelectorWidget(this.display, '#res-selector')
-    this.sidechainWidget = new widgets.ToggleButtonWidget(this.display, '#sidechain', 'sidechain')
-    this.ligandWidget = new widgets.ToggleButtonWidget(this.display, '#ligand', 'ligands')
-
-    this.isViewTextShown = this.params.isViewTextShown
 
     $(window).resize(() => this.resize())
     this.resize()
@@ -184,6 +168,12 @@ class EmbedJolecule {
         .css('width', this.div.outerWidth())
         .css('height', height)
     this.div.append(this.proteinDiv)
+    this.display = new Display(
+      this.soupView,
+      '#jolecule-soup-display',
+      this.controller,
+      this.params.isGrid,
+      this.params.backgroundColor)
   }
 
   createStatusDiv () {
@@ -206,8 +196,13 @@ class EmbedJolecule {
     this.statusDiv = $('<div style="display: flex; flex-direction: column">')
       .addClass('jolecule-embed-view-bar')
       .append(this.viewBarDiv)
-
     this.div.append(this.statusDiv)
+    this.sequenceWidget = new widgets.SequenceWidget(this.display)
+    this.zSlabWidget = new widgets.ZSlabWidget(this.display, '#zslab')
+    this.gridControlWidget = new widgets.GridControlWidget(this.display)
+    this.residueSelectorWidget = new widgets.ResidueSelectorWidget(this.display, '#res-selector')
+    this.sidechainWidget = new widgets.ToggleButtonWidget(this.display, '#sidechain', 'sidechain')
+    this.ligandWidget = new widgets.ToggleButtonWidget(this.display, '#ligand', 'ligands')
   }
 
   resize () {

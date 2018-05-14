@@ -1046,7 +1046,11 @@ class Soup {
   }
 
   clearSelectedResidues () {
-    this.residueSelect.clearBits()
+    let residue = this.getResidueProxy()
+    for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
+      residue.load(jRes).selected = false
+    }
+    // this.residueSelect.clearBits()
   }
 
   selectResidues (residueIndices, select) {
@@ -1687,9 +1691,13 @@ class Controller {
   }
 
   setCurrentView (view) {
+    let oldViewSelected = this.soupView.currentView.selected
     this.soupView.currentView = view.clone()
-    this.soupView.soup.clearSelectedResidues()
-    this.soupView.soup.selectResidues(view.selected, true)
+    if (oldViewSelected !== view.selected) {
+      this.soupView.soup.clearSelectedResidues()
+      this.soupView.soup.selectResidues(view.selected, true)
+      this.soupView.updateResidueSelection = true
+    }
     this.soupView.changed = true
   }
 }
