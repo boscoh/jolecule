@@ -55,7 +55,7 @@ for (let [k, v] of _.toPairs(ElementColors)) {
 }
 
 function getIndexColor (i) {
-  return new THREE.Color().setHex(i)
+  return new THREE.Color().setHex(i + 1)
 }
 
 function getSsColor (ss) {

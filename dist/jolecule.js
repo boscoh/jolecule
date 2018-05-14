@@ -76857,7 +76857,7 @@ try {
 }
 
 function getIndexColor(i) {
-  return new THREE.Color().setHex(i);
+  return new THREE.Color().setHex(i + 1);
 }
 
 function getSsColor(ss) {
@@ -89868,28 +89868,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-/**
- * Display is the main window for drawing the soup
- * in a WebGL HTML5 canvas, includes various widgets that
- * are described in widgets.js.
- *
- * Display takes a soup, and builds three.js from
- * it. Display also handles mouse input and
- * uses controller to make changes to the underlying soup
- * and their associated views
- */
-var Display = function () {
-  /**
-   * @param soupView - SoupView object that holds a soup and views
-   * @param divTag - a selector tag for a DOM element
-   * @param controller - the controller for the soupView
-   * @param isGrid - flat to show autodock 3D grid control panel
-   * @param backgroundColor - the background color of canvas and webgl
-   */
-  function Display(soupView, divTag, controller, isGrid, backgroundColor) {
-    _classCallCheck(this, Display);
+var WebglWidget = function () {
+  function WebglWidget(divTag, backgroundColor) {
+    _classCallCheck(this, WebglWidget);
 
     this.divTag = divTag;
     this.div = (0, _jquery2.default)(this.divTag);
@@ -89897,22 +89884,6 @@ var Display = function () {
 
     this.backgroundColor = backgroundColor;
     this.div.css('background-color', this.backgroundColor);
-
-    // input control parameters
-    this.saveMouseX = null;
-    this.saveMouseY = null;
-    this.saveMouseR = null;
-    this.saveMouseT = null;
-    this.mouseX = null;
-    this.mouseY = null;
-    this.mouseR = null;
-    this.mouseT = null;
-    this.mousePressed = false;
-
-    // js-signals observer hooks
-    this.reset = new _signals2.default();
-    this.drawn = new _signals2.default();
-    this.resized = new _signals2.default();
 
     // WebGL related properties
     // div to instantiate WebGL renderer
@@ -89959,65 +89930,20 @@ var Display = function () {
     this.pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: THREE.VertexColors });
 
     this.lights = [];
-    this.buildLights();
 
-    // Hooks to protein data
-    this.soupView = soupView;
-    this.soup = soupView.soup;
-    this.controller = controller;
-    this.nDataServer = 0;
-
-    // stores trace of protein/nucleotide backbones for ribbons
-    this.traces = [];
-
-    // screen atom radius
-    this.atomRadius = 0.35;
-
-    // Cross-hairs to identify centered atom
-    this.buildCrossHairs();
-
-    // div to display processing messages
-    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
-    this.setMesssage('Loading data...');
-
-    // popup hover box over the mouse position
-    this.hover = new _widgets2.default.PopupText(this.divTag, 'lightblue');
-    this.iHoverResidue = null;
-    this.hoverResidueColor = null;
-    this.iHoverAtom = null;
-
-    // Docking display control
-    this.isGrid = isGrid;
-
-    // Widgets that decorate the display
-    // display distance measures between atoms
-    this.distanceMeasuresWidget = new _widgets2.default.DistanceMeasuresWidget(this);
-    // display atom labels
-    this.atomLabelsWidget = new _widgets2.default.AtomLabelsWidget(this);
-    // draw onscreen line for mouse dragging between atoms
-    this.lineElement = new _widgets2.default.LineElement(this, '#FF7777');
+    // input control parameters
+    this.saveMouseX = null;
+    this.saveMouseY = null;
+    this.saveMouseR = null;
+    this.saveMouseT = null;
+    this.mouseX = null;
+    this.mouseY = null;
+    this.mouseR = null;
+    this.mouseT = null;
+    this.mousePressed = false;
   }
 
-  _createClass(Display, [{
-    key: 'addObserver',
-    value: function addObserver(observer) {
-      if ('draw' in observer) {
-        this.drawn.add(function () {
-          observer.draw();
-        });
-      }
-      if ('reset' in observer) {
-        this.reset.add(function () {
-          observer.reset();
-        });
-      }
-      if ('resize' in observer) {
-        this.resized.add(function () {
-          observer.resize();
-        });
-      }
-    }
-  }, {
+  _createClass(WebglWidget, [{
     key: 'initWebglRenderer',
     value: function initWebglRenderer() {
       var _this = this;
@@ -90070,6 +89996,167 @@ var Display = function () {
       });
     }
   }, {
+    key: 'displayRender',
+    value: function displayRender() {
+      // leave this to the very last moment
+      // to avoid the dreaded black canvas
+      if (!util.exists(this.renderer)) {
+        this.initWebglRenderer();
+      }
+
+      // renders visible meshes to the gpu
+      this.renderer.render(this.displayScene, this.camera);
+    }
+  }, {
+    key: 'getPickColorFromMouse',
+    value: function getPickColorFromMouse() {
+      var x = this.mouseX;
+      var y = this.mouseY;
+
+      if (x === null || y === null) {
+        return null;
+      }
+
+      // create buffer for reading single pixel
+      var pixelBuffer = new Uint8Array(4);
+
+      // render the picking soupView off-screen
+      this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
+
+      // read the pixel under the mouse from the texture
+      this.renderer.readRenderTargetPixels(this.pickingTexture, this.mouseX, this.pickingTexture.height - y, 1, 1, pixelBuffer);
+
+      // interpret the pixel as an ID
+      var i = pixelBuffer[0] << 16 | pixelBuffer[1] << 8 | pixelBuffer[2];
+      return i;
+    }
+  }, {
+    key: 'setCameraParams',
+    value: function setCameraParams(cameraParams) {
+      // rotate lights to soupView orientation
+      var cameraDirection = this.cameraParams.position.clone().sub(this.cameraParams.focus).normalize();
+      var viewCameraDirection = cameraParams.position.clone().sub(cameraParams.focus);
+      viewCameraDirection.normalize();
+      var rotation = glgeom.getUnitVectorRotation(cameraDirection, viewCameraDirection);
+      for (var i = 0; i < this.lights.length; i += 1) {
+        this.lights[i].position.applyQuaternion(rotation);
+      }
+
+      this.cameraParams = cameraParams;
+
+      var far = this.cameraParams.zoom + this.cameraParams.zBack;
+      var near = this.cameraParams.zoom + this.cameraParams.zFront;
+      if (near < 1) {
+        near = 1;
+      }
+
+      this.camera.position.copy(this.cameraParams.position);
+      this.camera.up.copy(this.cameraParams.up);
+      this.camera.lookAt(this.cameraParams.focus);
+      this.camera.near = near;
+      this.camera.far = far;
+      this.camera.updateProjectionMatrix();
+
+      this.displayScene.fog.near = near;
+      this.displayScene.fog.far = far;
+    }
+  }]);
+
+  return WebglWidget;
+}();
+
+/**
+ * Display is the main window for drawing the soup
+ * in a WebGL HTML5 canvas, includes various widgets that
+ * are described in widgets.js.
+ *
+ * Display takes a soup, and builds three.js from
+ * it. Display also handles mouse input and
+ * uses controller to make changes to the underlying soup
+ * and their associated views
+ */
+
+
+var Display = function (_WebglWidget) {
+  _inherits(Display, _WebglWidget);
+
+  /**
+   * @param soupView - SoupView object that holds a soup and views
+   * @param divTag - a selector tag for a DOM element
+   * @param controller - the controller for the soupView
+   * @param isGrid - flat to show autodock 3D grid control panel
+   * @param backgroundColor - the background color of canvas and webgl
+   */
+  function Display(soupView, divTag, controller, isGrid, backgroundColor) {
+    _classCallCheck(this, Display);
+
+    // js-signals observer hooks
+    var _this2 = _possibleConstructorReturn(this, (Display.__proto__ || Object.getPrototypeOf(Display)).call(this, divTag, backgroundColor));
+
+    _this2.reset = new _signals2.default();
+    _this2.drawn = new _signals2.default();
+    _this2.resized = new _signals2.default();
+
+    // Hooks to protein data
+    _this2.soupView = soupView;
+    _this2.soup = soupView.soup;
+    _this2.controller = controller;
+    _this2.nDataServer = 0;
+
+    _this2.buildLights();
+
+    // stores trace of protein/nucleotide backbones for ribbons
+    _this2.traces = [];
+
+    // screen atom radius
+    _this2.atomRadius = 0.35;
+
+    // Cross-hairs to identify centered atom
+    _this2.buildCrossHairs();
+
+    // div to display processing messages
+    _this2.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
+    _this2.setMesssage('Loading data...');
+
+    // popup hover box over the mouse position
+    _this2.hover = new _widgets2.default.PopupText(_this2.divTag, 'lightblue');
+    _this2.iHoverResidue = null;
+    _this2.hoverResidueColor = null;
+    _this2.iHoverAtom = null;
+
+    // Docking display control
+    _this2.isGrid = isGrid;
+
+    // Widgets that decorate the display
+    // display distance measures between atoms
+    _this2.distanceMeasuresWidget = new _widgets2.default.DistanceMeasuresWidget(_this2);
+    // display atom labels
+    _this2.atomLabelsWidget = new _widgets2.default.AtomLabelsWidget(_this2);
+    // draw onscreen line for mouse dragging between atoms
+    _this2.lineElement = new _widgets2.default.LineElement(_this2, '#FF7777');
+    return _this2;
+  }
+
+  _createClass(Display, [{
+    key: 'addObserver',
+    value: function addObserver(observer) {
+      if ('draw' in observer) {
+        this.drawn.add(function () {
+          observer.draw();
+        });
+      }
+      if ('reset' in observer) {
+        this.reset.add(function () {
+          observer.reset();
+        });
+      }
+      if ('resize' in observer) {
+        this.resized.add(function () {
+          observer.resize();
+        });
+      }
+    }
+  }, {
     key: 'setMesssage',
     value: function setMesssage(message) {
       console.log('Display.setProcessingMessage:', message);
@@ -90110,7 +90197,7 @@ var Display = function () {
   }, {
     key: 'calculateTracesForRibbons',
     value: function calculateTracesForRibbons() {
-      var _this2 = this;
+      var _this3 = this;
 
       this.traces.length = 0;
 
@@ -90129,7 +90216,7 @@ var Display = function () {
                 residue.iRes = newTrace.indices[i];
                 return residue;
               };
-              _this2.traces.push(newTrace);
+              _this3.traces.push(newTrace);
               lastTrace = newTrace;
             })();
           }
@@ -91102,34 +91189,7 @@ var Display = function () {
   }, {
     key: 'rotateCameraToCurrentView',
     value: function rotateCameraToCurrentView() {
-      var viewCamera = this.soupView.currentView.cameraParams;
-
-      // rotate lights to soupView orientation
-      var cameraDirection = this.cameraParams.position.clone().sub(this.cameraParams.focus).normalize();
-      var viewCameraDirection = viewCamera.position.clone().sub(viewCamera.focus);
-      viewCameraDirection.normalize();
-      var rotation = glgeom.getUnitVectorRotation(cameraDirection, viewCameraDirection);
-      for (var i = 0; i < this.lights.length; i += 1) {
-        this.lights[i].position.applyQuaternion(rotation);
-      }
-
-      this.cameraParams = viewCamera;
-
-      var far = this.cameraParams.zoom + this.cameraParams.zBack;
-      var near = this.cameraParams.zoom + this.cameraParams.zFront;
-      if (near < 1) {
-        near = 1;
-      }
-
-      this.camera.position.copy(this.cameraParams.position);
-      this.camera.up.copy(this.cameraParams.up);
-      this.camera.lookAt(this.cameraParams.focus);
-      this.camera.near = near;
-      this.camera.far = far;
-      this.camera.updateProjectionMatrix();
-
-      this.displayScene.fog.near = near;
-      this.displayScene.fog.far = far;
+      this.setCameraParams(this.soupView.currentView.cameraParams);
     }
   }, {
     key: 'adjustCamera',
@@ -91227,14 +91287,14 @@ var Display = function () {
   }, {
     key: 'atomLabelDialog',
     value: function atomLabelDialog() {
-      var _this3 = this;
+      var _this4 = this;
 
       var iAtom = this.soupView.currentView.iAtom;
       if (iAtom >= 0) {
         var atom = this.soup.getAtomProxy(iAtom);
         var label = 'Label atom : ' + atom.label;
         var success = function success(text) {
-          _this3.controller.makeAtomLabel(iAtom, text);
+          _this4.controller.makeAtomLabel(iAtom, text);
         };
         util.textEntryDialog(this.div, label, success);
       }
@@ -91242,29 +91302,10 @@ var Display = function () {
   }, {
     key: 'getIAtomHover',
     value: function getIAtomHover() {
-      var x = this.mouseX;
-      var y = this.mouseY;
-
-      if (x === null || y === null) {
-        return null;
+      var i = this.getPickColorFromMouse();
+      if (i > 0 && i < this.soup.getAtomCount() + 1) {
+        return i - 1;
       }
-
-      // create buffer for reading single pixel
-      var pixelBuffer = new Uint8Array(4);
-
-      // render the picking soupView off-screen
-      this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
-
-      // read the pixel under the mouse from the texture
-      this.renderer.readRenderTargetPixels(this.pickingTexture, this.mouseX, this.pickingTexture.height - y, 1, 1, pixelBuffer);
-
-      // interpret the pixel as an ID
-      var i = pixelBuffer[0] << 16 | pixelBuffer[1] << 8 | pixelBuffer[2];
-
-      if (i < this.soup.getAtomCount()) {
-        return i;
-      }
-
       return null;
     }
   }, {
@@ -91459,14 +91500,7 @@ var Display = function () {
       // as lines must be placed in THREE.js scene
       this.distanceMeasuresWidget.draw();
 
-      // leave this to the very last moment
-      // to avoid the dreaded black canvas
-      if (!util.exists(this.renderer)) {
-        this.initWebglRenderer();
-      }
-
-      // renders visible meshes to the gpu
-      this.renderer.render(this.displayScene, this.camera);
+      this.displayRender();
 
       if (this.soupView.updateView) {
         this.drawn.dispatch();
@@ -91520,12 +91554,12 @@ var Display = function () {
 
       this.pickingTexture.setSize(this.width(), this.height());
 
-      this.soupView.updateView = true;
-      this.controller.setChangeFlag();
-
       if (util.exists(this.renderer)) {
         this.renderer.setSize(this.width(), this.height());
       }
+
+      this.soupView.updateView = true;
+      this.controller.setChangeFlag();
     }
   }, {
     key: 'x',
@@ -91742,7 +91776,7 @@ var Display = function () {
   }]);
 
   return Display;
-}();
+}(WebglWidget);
 
 exports.Display = Display;
 

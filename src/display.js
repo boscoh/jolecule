@@ -10,47 +10,14 @@ import widgets from './widgets'
 import * as data from './data'
 import { interpolateCameras } from './soup'
 
-/**
- * Display is the main window for drawing the soup
- * in a WebGL HTML5 canvas, includes various widgets that
- * are described in widgets.js.
- *
- * Display takes a soup, and builds three.js from
- * it. Display also handles mouse input and
- * uses controller to make changes to the underlying soup
- * and their associated views
- */
-class Display {
-  /**
-   * @param soupView - SoupView object that holds a soup and views
-   * @param divTag - a selector tag for a DOM element
-   * @param controller - the controller for the soupView
-   * @param isGrid - flat to show autodock 3D grid control panel
-   * @param backgroundColor - the background color of canvas and webgl
-   */
-  constructor (soupView, divTag, controller, isGrid, backgroundColor) {
+class WebglWidget {
+  constructor (divTag, backgroundColor) {
     this.divTag = divTag
     this.div = $(this.divTag)
     this.div.css('overflow', 'hidden')
 
     this.backgroundColor = backgroundColor
     this.div.css('background-color', this.backgroundColor)
-
-    // input control parameters
-    this.saveMouseX = null
-    this.saveMouseY = null
-    this.saveMouseR = null
-    this.saveMouseT = null
-    this.mouseX = null
-    this.mouseY = null
-    this.mouseR = null
-    this.mouseT = null
-    this.mousePressed = false
-
-    // js-signals observer hooks
-    this.reset = new Signal()
-    this.drawn = new Signal()
-    this.resized = new Signal()
 
     // WebGL related properties
     // div to instantiate WebGL renderer
@@ -106,56 +73,22 @@ class Display {
     this.lights = []
     this.buildLights()
 
-    // Hooks to protein data
-    this.soupView = soupView
-    this.soup = soupView.soup
-    this.controller = controller
-    this.nDataServer = 0
-
-    // stores trace of protein/nucleotide backbones for ribbons
-    this.traces = []
-
-    // screen atom radius
-    this.atomRadius = 0.35
-
-    // Cross-hairs to identify centered atom
-    this.buildCrossHairs()
-
     // div to display processing messages
     this.messageDiv = $('<div>')
       .attr('id', 'loading-message')
       .addClass('jolecule-loading-message')
     this.setMesssage('Loading data...')
 
-
-    // popup hover box over the mouse position
-    this.hover = new widgets.PopupText(this.divTag, 'lightblue')
-    this.iHoverResidue = null
-    this.hoverResidueColor = null
-    this.iHoverAtom = null
-
-    // Docking display control
-    this.isGrid = isGrid
-
-    // Widgets that decorate the display
-    // display distance measures between atoms
-    this.distanceMeasuresWidget = new widgets.DistanceMeasuresWidget(this)
-    // display atom labels
-    this.atomLabelsWidget = new widgets.AtomLabelsWidget(this)
-    // draw onscreen line for mouse dragging between atoms
-    this.lineElement = new widgets.LineElement(this, '#FF7777')
-  }
-
-  addObserver (observer) {
-    if ('draw' in observer) {
-      this.drawn.add(() => { observer.draw() })
-    }
-    if ('reset' in observer) {
-      this.reset.add(() => { observer.reset() })
-    }
-    if ('resize' in observer) {
-      this.resized.add(() => { observer.resize() })
-    }
+    // input control parameters
+    this.saveMouseX = null
+    this.saveMouseY = null
+    this.saveMouseR = null
+    this.saveMouseT = null
+    this.mouseX = null
+    this.mouseY = null
+    this.mouseR = null
+    this.mouseT = null
+    this.mousePressed = false
   }
 
   initWebglRenderer () {
@@ -181,59 +114,78 @@ class Display {
     bind('gestureend', e => this.gestureend(e))
   }
 
-  setMesssage (message) {
-    console.log('Display.setProcessingMessage:', message)
-    this.messageDiv.html(message).show()
-    util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 100, 90)
-  };
-
-  async asyncSetMesssage (message) {
-    this.setMesssage(message)
-    await util.delay(0)
-  };
-
-  cleanupMessage () {
-    this.messageDiv.hide()
-  };
-
-  calculateTracesForRibbons () {
-    this.traces.length = 0
-
-    let lastTrace
-
-    let residue = this.soup.getResidueProxy()
-    let atom = this.soup.getAtomProxy()
-
-    for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
-      residue.iRes = iRes
-      if (residue.isPolymer) {
-        if ((iRes === 0) || !residue.isConnectedToPrev()) {
-          let newTrace = new glgeom.Trace()
-          newTrace.getReference = i => {
-            residue.iRes = newTrace.indices[i]
-            return residue
-          }
-          this.traces.push(newTrace)
-          lastTrace = newTrace
-        }
-        lastTrace.indices.push(iRes)
-
-        atom.iAtom = residue.iAtom
-        lastTrace.refIndices.push(residue.iRes)
-        lastTrace.points.push(atom.pos.clone())
-        lastTrace.colors.push(new THREE.Color(residue.color))
-        lastTrace.indexColors.push(data.getIndexColor(residue.iAtom))
-        lastTrace.segmentTypes.push(residue.ss)
-        lastTrace.normals.push(residue.normal)
-      }
+  displayRender () {
+    // leave this to the very last moment
+    // to avoid the dreaded black canvas
+    if (!util.exists(this.renderer)) {
+      this.initWebglRenderer()
     }
 
-    for (let trace of this.traces) {
-      trace.calcTangents()
-      trace.calcNormals()
-      trace.calcBinormals()
-      trace.expand()
+    // renders visible meshes to the gpu
+    this.renderer.render(this.displayScene, this.camera)
+  }
+
+  getPickColorFromMouse () {
+    let x = this.mouseX
+    let y = this.mouseY
+
+    if ((x === null) || (y === null)) {
+      return null
     }
+
+    // create buffer for reading single pixel
+    let pixelBuffer = new Uint8Array(4)
+
+    // render the picking soupView off-screen
+    this.renderer.render(
+      this.pickingScene, this.camera, this.pickingTexture)
+
+    // read the pixel under the mouse from the texture
+    this.renderer.readRenderTargetPixels(
+      this.pickingTexture,
+      this.mouseX, this.pickingTexture.height - y,
+      1, 1,
+      pixelBuffer)
+
+    // interpret the pixel as an ID
+    let i =
+      (pixelBuffer[0] << 16) |
+      (pixelBuffer[1] << 8) |
+      (pixelBuffer[2])
+    return i
+  }
+
+  setCameraParams (cameraParams) {
+    // rotate lights to soupView orientation
+    let cameraDirection = this.cameraParams.position.clone()
+      .sub(this.cameraParams.focus)
+      .normalize()
+    let viewCameraDirection = cameraParams.position.clone()
+      .sub(cameraParams.focus)
+    viewCameraDirection.normalize()
+    let rotation = glgeom.getUnitVectorRotation(
+      cameraDirection, viewCameraDirection)
+    for (let i = 0; i < this.lights.length; i += 1) {
+      this.lights[i].position.applyQuaternion(rotation)
+    }
+
+    this.cameraParams = cameraParams
+
+    let far = this.cameraParams.zoom + this.cameraParams.zBack
+    let near = this.cameraParams.zoom + this.cameraParams.zFront
+    if (near < 1) {
+      near = 1
+    }
+
+    this.camera.position.copy(this.cameraParams.position)
+    this.camera.up.copy(this.cameraParams.up)
+    this.camera.lookAt(this.cameraParams.focus)
+    this.camera.near = near
+    this.camera.far = far
+    this.camera.updateProjectionMatrix()
+
+    this.displayScene.fog.near = near
+    this.displayScene.fog.far = far
   }
 
   buildLights () {
@@ -252,42 +204,35 @@ class Display {
     }
   }
 
-  /**
-   **********************************************************
-   * Mesh-building methods
-   *
-   * Routines to build meshes that will be incorporated into
-   * scenes, and to be used for gpu-picking.
-   *
-   * Meshes are stored in a dictionary: this.displayMeshes &
-   * this.pickingMeshes
-   **********************************************************
-   */
+  resize () {
+    let position = this.div.position()
+    this.webglDiv.css('left', this.x() + position.left)
+    this.webglDiv.css('top', this.y() + position.top)
 
-  buildScene () {
-    this.soupView.initViewsAfterSoupLoad()
+    this.camera.aspect = this.width() / this.height()
+    this.camera.updateProjectionMatrix()
 
-    // pre-calculations needed before building meshes
-    let residue = this.soup.getResidueProxy()
-    for (let iRes of _.range(this.soup.getResidueCount())) {
-      residue.iRes = iRes
-      residue.color = data.getSsColor(residue.ss)
+    this.pickingTexture.setSize(this.width(), this.height())
+
+    if (util.exists(this.renderer)) {
+      this.renderer.setSize(this.width(), this.height())
     }
-    this.soup.findGridLimits()
-    this.calculateTracesForRibbons()
-
-    this.buildMeshOfTube()
-    this.buildMeshOfGrid()
-    this.buildMeshOfLigands()
-    this.buildMeshOfNucleotides()
-    this.buildMeshOfArrows()
-
-    this.rebuildSceneWithMeshes()
-
-    this.reset.dispatch()
-
-    this.soupView.updateView = true
   }
+
+  setMesssage (message) {
+    console.log('Display.setProcessingMessage:', message)
+    this.messageDiv.html(message).show()
+    util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 100, 90)
+  };
+
+  async asyncSetMesssage (message) {
+    this.setMesssage(message)
+    await util.delay(0)
+  };
+
+  cleanupMessage () {
+    this.messageDiv.hide()
+  };
 
   /**
    * Clears/creates a mesh entry in the mesh collection
@@ -372,6 +317,209 @@ class Display {
       mesh.i = i
     }
     this.pickingMeshes[meshName].add(mesh)
+  }
+
+  x () {
+    return 0
+  }
+
+  y () {
+    return 0
+  }
+
+  width () {
+    let width = this.div.width() - this.x()
+    return width
+  }
+
+  height () {
+    let height = this.div.height() - this.y()
+    return height
+  }
+
+  getMouse (event) {
+    if (util.exists(event.touches) && (event.touches.length > 0)) {
+      this.eventX = event.touches[0].clientX
+      this.eventY = event.touches[0].clientY
+    } else {
+      this.eventX = event.clientX
+      this.eventY = event.clientY
+    }
+
+    let rect = event.target.getBoundingClientRect()
+    this.mouseX = this.eventX - rect.left
+    this.mouseY = this.eventY - rect.top
+
+    let x = this.mouseX - this.width() / 2
+    let y = this.mouseY - this.height() / 2
+
+    this.mouseR = Math.sqrt(x * x + y * y)
+
+    this.mouseT = Math.atan(y / x)
+    if (x < 0) {
+      if (y > 0) {
+        this.mouseT += Math.PI
+      } else {
+        this.mouseT -= Math.PI
+      }
+    }
+  }
+
+  saveMouse () {
+    this.saveMouseX = this.mouseX
+    this.saveMouseY = this.mouseY
+    this.saveMouseR = this.mouseR
+    this.saveMouseT = this.mouseT
+  }
+}
+
+
+/**
+ * Display is the main window for drawing the soup
+ * in a WebGL HTML5 canvas, includes various widgets that
+ * are described in widgets.js.
+ *
+ * Display takes a soup, and builds three.js from
+ * it. Display also handles mouse input and
+ * uses controller to make changes to the underlying soup
+ * and their associated views
+ */
+class Display extends WebglWidget {
+  /**
+   * @param soupView - SoupView object that holds a soup and views
+   * @param divTag - a selector tag for a DOM element
+   * @param controller - the controller for the soupView
+   * @param isGrid - flat to show autodock 3D grid control panel
+   * @param backgroundColor - the background color of canvas and webgl
+   */
+  constructor (soupView, divTag, controller, isGrid, backgroundColor) {
+    super(divTag, backgroundColor)
+
+    // js-signals observer hooks
+    this.reset = new Signal()
+    this.drawn = new Signal()
+    this.resized = new Signal()
+
+    // Hooks to protein data
+    this.soupView = soupView
+    this.soup = soupView.soup
+    this.controller = controller
+    this.nDataServer = 0
+
+    // stores trace of protein/nucleotide backbones for ribbons
+    this.traces = []
+
+    // screen atom radius
+    this.atomRadius = 0.35
+
+    // Cross-hairs to identify centered atom
+    this.buildCrossHairs()
+
+    // popup hover box over the mouse position
+    this.hover = new widgets.PopupText(this.divTag, 'lightblue')
+    this.iHoverResidue = null
+    this.hoverResidueColor = null
+    this.iHoverAtom = null
+
+    // Docking display control
+    this.isGrid = isGrid
+
+    // Widgets that decorate the display
+    // display distance measures between atoms
+    this.distanceMeasuresWidget = new widgets.DistanceMeasuresWidget(this)
+    // display atom labels
+    this.atomLabelsWidget = new widgets.AtomLabelsWidget(this)
+    // draw onscreen line for mouse dragging between atoms
+    this.lineElement = new widgets.LineElement(this, '#FF7777')
+  }
+
+  addObserver (observer) {
+    if ('draw' in observer) {
+      this.drawn.add(() => { observer.draw() })
+    }
+    if ('reset' in observer) {
+      this.reset.add(() => { observer.reset() })
+    }
+    if ('resize' in observer) {
+      this.resized.add(() => { observer.resize() })
+    }
+  }
+
+  calculateTracesForRibbons () {
+    this.traces.length = 0
+
+    let lastTrace
+
+    let residue = this.soup.getResidueProxy()
+    let atom = this.soup.getAtomProxy()
+
+    for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+      residue.iRes = iRes
+      if (residue.isPolymer) {
+        if ((iRes === 0) || !residue.isConnectedToPrev()) {
+          let newTrace = new glgeom.Trace()
+          newTrace.getReference = i => {
+            residue.iRes = newTrace.indices[i]
+            return residue
+          }
+          this.traces.push(newTrace)
+          lastTrace = newTrace
+        }
+        lastTrace.indices.push(iRes)
+
+        atom.iAtom = residue.iAtom
+        lastTrace.refIndices.push(residue.iRes)
+        lastTrace.points.push(atom.pos.clone())
+        lastTrace.colors.push(new THREE.Color(residue.color))
+        lastTrace.indexColors.push(data.getIndexColor(residue.iAtom))
+        lastTrace.segmentTypes.push(residue.ss)
+        lastTrace.normals.push(residue.normal)
+      }
+    }
+
+    for (let trace of this.traces) {
+      trace.calcTangents()
+      trace.calcNormals()
+      trace.calcBinormals()
+      trace.expand()
+    }
+  }
+
+  /**
+   **********************************************************
+   * Mesh-building methods
+   *
+   * Routines to build meshes that will be incorporated into
+   * scenes, and to be used for gpu-picking.
+   *
+   * Meshes are stored in a dictionary: this.displayMeshes &
+   * this.pickingMeshes
+   **********************************************************
+   */
+
+  buildScene () {
+    this.soupView.initViewsAfterSoupLoad()
+
+    // pre-calculations needed before building meshes
+    let residue = this.soup.getResidueProxy()
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      residue.iRes = iRes
+      residue.color = data.getSsColor(residue.ss)
+    }
+    this.soup.findGridLimits()
+    this.calculateTracesForRibbons()
+
+    this.buildMeshOfTube()
+    this.buildMeshOfGrid()
+    this.buildMeshOfLigands()
+    this.buildMeshOfNucleotides()
+    this.buildMeshOfArrows()
+
+    this.rebuildSceneWithMeshes()
+
+    this.reset.dispatch()
+
+    this.soupView.updateView = true
   }
 
   buildMeshOfTube () {
@@ -484,9 +632,7 @@ class Display {
     let residue = this.soup.getResidueProxy()
 
     for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
-      let iBond = bondIndices[iCopy]
-
-      bond.iBond = iBond
+      bond.iBond = bondIndices[iCopy]
       atom1.iAtom = bond.iAtom1
       atom2.iAtom = bond.iAtom2
       residue.iRes = atom1.iRes
@@ -728,51 +874,20 @@ class Display {
    ******************************************
    */
 
-  setTargetViewFromAtom (iAtom) {
+  setTargetViewByIAtom (iAtom) {
     this.controller.setTargetViewByAtom(iAtom)
   }
 
-  getCurrentViewCamera () {
+  getCurrentViewCameraParams () {
     return this.soupView.currentView.cameraParams
   }
-
-  rotateCameraToCurrentView () {
-    let viewCamera = this.soupView.currentView.cameraParams
-
-    // rotate lights to soupView orientation
-    let cameraDirection = this.cameraParams.position.clone()
-      .sub(this.cameraParams.focus)
-      .normalize()
-    let viewCameraDirection = viewCamera.position.clone()
-      .sub(viewCamera.focus)
-    viewCameraDirection.normalize()
-    let rotation = glgeom.getUnitVectorRotation(
-      cameraDirection, viewCameraDirection)
-    for (let i = 0; i < this.lights.length; i += 1) {
-      this.lights[i].position.applyQuaternion(rotation)
-    }
-
-    this.cameraParams = viewCamera
-
-    let far = this.cameraParams.zoom + this.cameraParams.zBack
-    let near = this.cameraParams.zoom + this.cameraParams.zFront
-    if (near < 1) {
-      near = 1
-    }
-
-    this.camera.position.copy(this.cameraParams.position)
-    this.camera.up.copy(this.cameraParams.up)
-    this.camera.lookAt(this.cameraParams.focus)
-    this.camera.near = near
-    this.camera.far = far
-    this.camera.updateProjectionMatrix()
-
-    this.displayScene.fog.near = near
-    this.displayScene.fog.far = far
+  
+  rotateCameraParamsToCurrentView () {
+    this.setCameraParams(this.getCurrentViewCameraParams())
   }
 
   adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-    let cameraParams = this.getCurrentViewCamera()
+    let cameraParams = this.getCurrentViewCameraParams()
 
     let y = cameraParams.up
     let z = cameraParams.position.clone()
@@ -819,7 +934,7 @@ class Display {
   }
 
   getZ (pos) {
-    let cameraParams = this.getCurrentViewCamera()
+    let cameraParams = this.getCurrentViewCameraParams()
     let cameraDir = cameraParams.focus.clone()
       .sub(cameraParams.position)
       .normalize()
@@ -830,14 +945,14 @@ class Display {
 
   inZlab (pos) {
     let z = this.getZ(pos)
-    let cameraParams = this.getCurrentViewCamera()
+    let cameraParams = this.getCurrentViewCameraParams()
     return ((z >= cameraParams.zFront) && (z <= cameraParams.zBack))
   }
 
   opacity (pos) {
     let z = this.getZ(pos)
 
-    let cameraParams = this.getCurrentViewCamera()
+    let cameraParams = this.getCurrentViewCameraParams()
 
     if (z < cameraParams.zFront) {
       return 1.0
@@ -869,7 +984,7 @@ class Display {
    */
 
   updateCrossHairs () {
-    let cameraParams = this.getCurrentViewCamera()
+    let cameraParams = this.getCurrentViewCameraParams()
     this.crossHairs.position.copy(cameraParams.focus)
     this.crossHairs.lookAt(cameraParams.position)
     this.crossHairs.updateMatrix()
@@ -886,37 +1001,10 @@ class Display {
   }
 
   getIAtomHover () {
-    let x = this.mouseX
-    let y = this.mouseY
-
-    if ((x === null) || (y === null)) {
-      return null
+    let i = this.getPickColorFromMouse()
+    if ((i > 0) && (i < this.soup.getAtomCount() + 1)) {
+      return i - 1
     }
-
-    // create buffer for reading single pixel
-    let pixelBuffer = new Uint8Array(4)
-
-    // render the picking soupView off-screen
-    this.renderer.render(
-      this.pickingScene, this.camera, this.pickingTexture)
-
-    // read the pixel under the mouse from the texture
-    this.renderer.readRenderTargetPixels(
-      this.pickingTexture,
-      this.mouseX, this.pickingTexture.height - y,
-      1, 1,
-      pixelBuffer)
-
-    // interpret the pixel as an ID
-    let i =
-      (pixelBuffer[0] << 16) |
-      (pixelBuffer[1] << 8) |
-      (pixelBuffer[2])
-
-    if (i < this.soup.getAtomCount()) {
-      return i
-    }
-
     return null
   }
 
@@ -1015,20 +1103,13 @@ class Display {
 
     this.updateCrossHairs()
 
-    this.rotateCameraToCurrentView()
+    this.rotateCameraParamsToCurrentView()
 
     // needs to be drawn before render
     // as lines must be placed in THREE.js scene
     this.distanceMeasuresWidget.draw()
 
-    // leave this to the very last moment
-    // to avoid the dreaded black canvas
-    if (!util.exists(this.renderer)) {
-      this.initWebglRenderer()
-    }
-
-    // renders visible meshes to the gpu
-    this.renderer.render(this.displayScene, this.camera)
+    this.displayRender()
 
     if (this.soupView.updateView) {
       this.drawn.dispatch()
@@ -1073,74 +1154,10 @@ class Display {
   resize () {
     this.resized.dispatch()
 
-    let position = this.div.position()
-    this.webglDiv.css('left', this.x() + position.left)
-    this.webglDiv.css('top', this.y() + position.top)
-
-    this.camera.aspect = this.width() / this.height()
-    this.camera.updateProjectionMatrix()
-
-    this.pickingTexture.setSize(this.width(), this.height())
+    super.resize()
 
     this.soupView.updateView = true
     this.controller.setChangeFlag()
-
-    if (util.exists(this.renderer)) {
-      this.renderer.setSize(this.width(), this.height())
-    }
-  }
-
-  x () {
-    return 0
-  }
-
-  y () {
-    return 0
-  }
-
-  width () {
-    let width = this.div.width() - this.x()
-    return width
-  }
-
-  height () {
-    let height = this.div.height() - this.y()
-    return height
-  }
-
-  getMouse (event) {
-    if (util.exists(event.touches) && (event.touches.length > 0)) {
-      this.eventX = event.touches[0].clientX
-      this.eventY = event.touches[0].clientY
-    } else {
-      this.eventX = event.clientX
-      this.eventY = event.clientY
-    }
-
-    let rect = event.target.getBoundingClientRect()
-    this.mouseX = this.eventX - rect.left
-    this.mouseY = this.eventY - rect.top
-
-    let x = this.mouseX - this.width() / 2
-    let y = this.mouseY - this.height() / 2
-
-    this.mouseR = Math.sqrt(x * x + y * y)
-
-    this.mouseT = Math.atan(y / x)
-    if (x < 0) {
-      if (y > 0) {
-        this.mouseT += Math.PI
-      } else {
-        this.mouseT -= Math.PI
-      }
-    }
-  }
-
-  saveMouse () {
-    this.saveMouseX = this.mouseX
-    this.saveMouseY = this.mouseY
-    this.saveMouseR = this.mouseR
-    this.saveMouseT = this.mouseT
   }
 
   doubleclick () {
@@ -1148,7 +1165,7 @@ class Display {
       if (this.iHoverAtom === this.soupView.getCenteredAtom().iAtom) {
         this.atomLabelDialog()
       } else {
-        this.setTargetViewFromAtom(this.iHoverAtom)
+        this.setTargetViewByIAtom(this.iHoverAtom)
       }
       this.isDraggingCentralAtom = false
     }
