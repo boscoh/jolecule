@@ -75104,7 +75104,7 @@ function LensFlare() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.delay = exports.textEntryDialog = exports.getCurrentDateStr = exports.randomId = exports.inArray = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.toggleButton = exports.linkButton = exports.getWindowUrl = exports.extendArray = exports.exists = undefined;
+exports.delay = exports.textEntryDialog = exports.getCurrentDateStr = exports.randomId = exports.inArray = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.linkButton = exports.getWindowUrl = exports.exists = undefined;
 
 var _jquery = __webpack_require__(32);
 
@@ -75127,33 +75127,6 @@ function exists(x) {
   return !_lodash2.default.isUndefined(x) && x !== null;
 }
 
-function extendArray(array, extension) {
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    for (var _iterator = extension[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var elem = _step.value;
-
-      array.push(elem);
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
-}
-
 function getWindowUrl() {
   return '' + window.location;
 }
@@ -75171,43 +75144,6 @@ function linkButton(idTag, text, classTag, callback) {
       callback();
     });
   }
-
-  return item;
-}
-
-function toggleButton(idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
-  var item = (0, _jquery2.default)('<a>').attr('id', idTag).attr('href', '').html(text);
-
-  function color() {
-    if (getToggleFn()) {
-      if (onColor) {
-        item.css('background-color', onColor);
-      } else {
-        item.addClass('jolecule-button-toggle-on');
-      }
-    } else {
-      if (onColor) {
-        item.css('background-color', '');
-      } else {
-        item.removeClass('jolecule-button-toggle-on');
-      }
-    }
-  }
-
-  if (classTag) {
-    item.addClass(classTag);
-  }
-
-  item.click(function (e) {
-    e.preventDefault();
-    setToggleFn(!getToggleFn());
-    color();
-    return false;
-  });
-
-  item.redraw = color;
-
-  color();
 
   return item;
 }
@@ -75322,10 +75258,8 @@ function delay(timeMs) {
 }
 
 exports.exists = exists;
-exports.extendArray = extendArray;
 exports.getWindowUrl = getWindowUrl;
 exports.linkButton = linkButton;
-exports.toggleButton = toggleButton;
 exports.stickJqueryDivInCenter = stickJqueryDivInCenter;
 exports.stickJqueryDivInTopLeft = stickJqueryDivInTopLeft;
 exports.inArray = inArray;
@@ -78047,10 +77981,12 @@ var EmbedJolecule = function () {
     this.createProteinDiv();
     this.createStatusDiv();
 
-    (0, _jquery2.default)(window).resize(function () {
+    var resizeFn = function resizeFn() {
       return _this.resize();
-    });
-    this.resize();
+    };
+    (0, _jquery2.default)(window).resize(resizeFn);
+    window.onorientationchange = resizeFn;
+    resizeFn();
 
     this.isProcessing = { flag: false };
   }
@@ -78245,9 +78181,11 @@ var EmbedJolecule = function () {
 
                 this.display.cleanupMessage();
 
+                this.display.soupView.changed = true;
+
                 this.isProcessing.flag = false;
 
-              case 16:
+              case 17:
               case 'end':
                 return _context4.stop();
             }
@@ -82815,6 +82753,97 @@ var ZSlabWidget = function (_CanvasWidget2) {
   return ZSlabWidget;
 }(CanvasWidget);
 
+function toggleButton(idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
+  var item = (0, _jquery2.default)('<a>').attr('id', idTag).attr('href', '').html(text);
+
+  function color() {
+    var item = (0, _jquery2.default)('#' + idTag);
+    if (getToggleFn()) {
+      if (onColor) {
+        item.css('background-color', '#' + onColor);
+        console.log('toggleButton', onColor, item.css('background-color'), onColor);
+      } else {
+        item.addClass('jolecule-button-toggle-on');
+      }
+    } else {
+      if (onColor) {
+        item.css('background-color', '');
+      } else {
+        item.removeClass('jolecule-button-toggle-on');
+      }
+    }
+  }
+
+  if (classTag) {
+    item.addClass(classTag);
+  }
+
+  item.click(function (e) {
+    e.preventDefault();
+    setToggleFn(!getToggleFn());
+    color();
+    return false;
+  });
+
+  item.redraw = color;
+
+  color();
+
+  return item;
+}
+
+var GridToggleButtonWidget = function () {
+  function GridToggleButtonWidget(display, selector, elem, y, color) {
+    var _this6 = this;
+
+    _classCallCheck(this, GridToggleButtonWidget);
+
+    this.soupView = display.soupView;
+    this.elem = elem;
+    this.color = color;
+    this.div = (0, _jquery2.default)(selector).text(elem).addClass('jolecule-button').css('position', 'absolute').css('top', y + 'px').css('left', '40px').css('height', '15px').css('width', '20px').on('click touch', function (e) {
+      e.preventDefault();
+      _this6.toggle();
+    });
+    this.draw();
+    display.addObserver(this);
+  }
+
+  _createClass(GridToggleButtonWidget, [{
+    key: 'getToggle',
+    value: function getToggle() {
+      return this.soupView.soup.grid.isElem[this.elem];
+    }
+  }, {
+    key: 'toggle',
+    value: function toggle() {
+      this.soupView.soup.grid.isElem[this.elem] = !this.getToggle();
+      this.soupView.soup.grid.changed = true;
+      this.soupView.changed = true;
+      this.draw();
+    }
+  }, {
+    key: 'draw',
+    value: function draw() {
+      if (this.getToggle()) {
+        if (this.color) {
+          this.div.css('background-color', this.color);
+        } else {
+          this.div.addClass('jolecule-button-toggle-on');
+        }
+      } else {
+        if (this.color) {
+          this.div.css('background-color', '');
+        } else {
+          this.div.removeClass('jolecule-button-toggle-on');
+        }
+      }
+    }
+  }]);
+
+  return GridToggleButtonWidget;
+}();
+
 /**
  * GridControlWidget
  */
@@ -82826,22 +82855,25 @@ var GridControlWidget = function (_CanvasWidget3) {
   function GridControlWidget(display) {
     _classCallCheck(this, GridControlWidget);
 
-    var _this6 = _possibleConstructorReturn(this, (GridControlWidget.__proto__ || Object.getPrototypeOf(GridControlWidget)).call(this, display.divTag));
+    var _this7 = _possibleConstructorReturn(this, (GridControlWidget.__proto__ || Object.getPrototypeOf(GridControlWidget)).call(this, display.divTag));
 
-    _this6.isGrid = display.isGrid;
-    _this6.soupView = display.soupView;
-    display.addObserver(_this6);
-    _this6.buttonHeight = 40;
-    _this6.sliderHeight = _this6.buttonHeight * 6 - 50;
-    _this6.div.attr('id', 'grid-control');
-    if (!_this6.isGrid) {
-      _this6.div.css('display', 'none');
+    _this7.display = display;
+    _this7.soupView = display.soupView;
+    display.addObserver(_this7);
+
+    _this7.backgroundColor = '#AAA';
+    _this7.buttonHeight = 40;
+    _this7.sliderHeight = _this7.buttonHeight * 6 - 50;
+    _this7.isGrid = display.isGrid;
+
+    if (!_this7.isGrid) {
+      _this7.div.css('display', 'none');
     }
-    _this6.div.css('height', _this6.height());
-    _this6.backgroundColor = '#AAA';
-    _this6.buttonsDiv = (0, _jquery2.default)('<div id="grid-control-buttons">');
-    _this6.div.append(_this6.buttonsDiv);
-    return _this6;
+    _this7.div.attr('id', 'grid-control');
+    _this7.div.css('height', _this7.height());
+    _this7.buttonsDiv = (0, _jquery2.default)('<div id="grid-control-buttons">');
+    _this7.div.append(_this7.buttonsDiv);
+    return _this7;
   }
 
   _createClass(GridControlWidget, [{
@@ -82862,7 +82894,7 @@ var GridControlWidget = function (_CanvasWidget3) {
         for (var _iterator3 = _lodash2.default.keys(this.soupView.soup.grid.isElem)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
           var elem = _step3.value;
 
-          this.buttonsDiv.append(this.makeElemButton(elem, y));
+          this.makeElemButton(elem, y);
           y += this.buttonHeight;
         }
       } catch (err) {
@@ -82889,22 +82921,12 @@ var GridControlWidget = function (_CanvasWidget3) {
   }, {
     key: 'makeElemButton',
     value: function makeElemButton(elem, y) {
-      var _this7 = this;
-
       var color = data.ElementColors[elem];
-      var colorHexStr = color.getHexString();
-      var textButton = util.toggleButton('toggle_text', elem, 'jolecule-button', function () {
-        return _this7.soupView.soup.grid.isElem[elem];
-      }, function (b) {
-        _this7.soupView.soup.grid.isElem[elem] = b;
-        _this7.soupView.soup.grid.changed = true;
-        _this7.soupView.changed = true;
-      }, colorHexStr);
-      textButton.css('position', 'absolute');
-      textButton.css('top', y + 'px');
-      textButton.css('left', '40px');
-      textButton.css('width', '20px');
-      return textButton;
+      var colorHexStr = '#' + color.getHexString();
+      var id = 'grid-button-' + elem.toLowerCase();
+      var selector = '#' + id;
+      this.buttonsDiv.append((0, _jquery2.default)('<div id="' + id + '">'));
+      new GridToggleButtonWidget(this.display, selector, elem, y, colorHexStr);
     }
   }, {
     key: 'resize',
@@ -98100,13 +98122,11 @@ var ViewPiece = function () {
 
     this.params = params;
     this.div = (0, _jquery2.default)('<div>').addClass('jolecule-view');
-
     if ((0, _util.exists)(params.goto)) {
       this.div.append((0, _util.linkButton)('', this.params.goto, 'jolecule-button', this.params.pick)).append('<div style="width: 10px">');
     }
     this.params = params;
     this.makeEditDiv();
-
     this.makeShowDiv();
   }
 
@@ -98440,7 +98460,7 @@ var ViewListPanel = function () {
 }();
 
 /**
- * FullPageJolecule - full page wrapper around an embedd EmbedJolecule
+ * FullPageJolecule - full page wrapper around an embedded EmbedJolecule
  * widget. Handles keypresses and urls and adds a better views annotation
  * list tool
  */
@@ -98453,7 +98473,6 @@ var FullPageJolecule = function () {
 
     this.viewsDisplayTag = viewsDisplayTag;
     this.sequenceDisplayTag = sequenceDisplayTag;
-
     this.params = {
       divTag: proteinDisplayTag,
       viewId: '',
@@ -98464,23 +98483,15 @@ var FullPageJolecule = function () {
       isGrid: true,
       backgroundColor: 0xCCCCCC
     };
-
     console.log('FullPageJolecule.constructor params', params);
-
     if ((0, _util.exists)(params)) {
       this.params = _lodash2.default.assign(this.params, params);
     }
-
     this.embedJolecule = new _embedjolecule.EmbedJolecule(this.params);
-
     document.oncontextmenu = _lodash2.default.noop;
     document.onkeydown = function (e) {
-      return _this8.onkeydown(e);
+      _this8.onkeydown(e);
     };
-    // let resizeFn = () => { this.resize() }
-    // $(window).resize(resizeFn)
-    // window.onorientationchange = resizeFn
-
     this.noData = true;
   }
 
@@ -98497,7 +98508,7 @@ var FullPageJolecule = function () {
 
               case 2:
                 this.initViewsDisplay(dataServer);
-                console.log('FullPageJolecule.asyncAddDataServer finished adding views');
+                console.log('FullPageJolecule.asyncAddDataServer added dataserver');
 
               case 4:
               case 'end':

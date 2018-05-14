@@ -41,8 +41,10 @@ class EmbedJolecule {
     this.createProteinDiv()
     this.createStatusDiv()
 
-    $(window).resize(() => this.resize())
-    this.resize()
+    let resizeFn = () => this.resize()
+    $(window).resize(resizeFn)
+    window.onorientationchange = resizeFn
+    resizeFn()
 
     this.isProcessing = {flag: false}
   };
@@ -117,6 +119,8 @@ class EmbedJolecule {
 
     this.display.cleanupMessage()
 
+    this.display.soupView.changed = true
+    
     this.isProcessing.flag = false
   }
 

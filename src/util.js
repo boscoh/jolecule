@@ -12,12 +12,6 @@ function exists (x) {
   return !(_.isUndefined(x)) && (x !== null)
 }
 
-function extendArray (array, extension) {
-  for (let elem of extension) {
-    array.push(elem)
-  }
-}
-
 function getWindowUrl () {
   return '' + window.location
 }
@@ -41,49 +35,6 @@ function linkButton (idTag, text, classTag, callback) {
       }
     )
   }
-
-  return item
-}
-
-function toggleButton (idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
-  let item =
-    $('<a>')
-      .attr('id', idTag)
-      .attr('href', '')
-      .html(text)
-
-  function color () {
-    if (getToggleFn()) {
-      if (onColor) {
-        item.css('background-color', onColor)
-      } else {
-        item.addClass('jolecule-button-toggle-on')
-      }
-    } else {
-      if (onColor) {
-        item.css('background-color', '')
-      } else {
-        item.removeClass('jolecule-button-toggle-on')
-      }
-    }
-  }
-
-  if (classTag) {
-    item.addClass(classTag)
-  }
-
-  item.click(
-    function (e) {
-      e.preventDefault()
-      setToggleFn(!getToggleFn())
-      color()
-      return false
-    }
-  )
-
-  item.redraw = color
-
-  color()
 
   return item
 }
@@ -215,10 +166,8 @@ function delay (timeMs) {
 
 export {
   exists,
-  extendArray,
   getWindowUrl,
   linkButton,
-  toggleButton,
   stickJqueryDivInCenter,
   stickJqueryDivInTopLeft,
   inArray,

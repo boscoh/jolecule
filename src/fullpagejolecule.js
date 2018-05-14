@@ -19,7 +19,6 @@ class ViewPiece {
   constructor (params) {
     this.params = params
     this.div = $('<div>').addClass('jolecule-view')
-
     if (exists(params.goto)) {
       this.div
         .append(
@@ -35,7 +34,6 @@ class ViewPiece {
     }
     this.params = params
     this.makeEditDiv()
-
     this.makeShowDiv()
   }
 
@@ -398,7 +396,7 @@ class ViewListPanel {
 }
 
 /**
- * FullPageJolecule - full page wrapper around an embedd EmbedJolecule
+ * FullPageJolecule - full page wrapper around an embedded EmbedJolecule
  * widget. Handles keypresses and urls and adds a better views annotation
  * list tool
  */
@@ -411,7 +409,6 @@ class FullPageJolecule {
     params) {
     this.viewsDisplayTag = viewsDisplayTag
     this.sequenceDisplayTag = sequenceDisplayTag
-
     this.params = {
       divTag: proteinDisplayTag,
       viewId: '',
@@ -422,28 +419,20 @@ class FullPageJolecule {
       isGrid: true,
       backgroundColor: 0xCCCCCC
     }
-
     console.log('FullPageJolecule.constructor params', params)
-
     if (exists(params)) {
       this.params = _.assign(this.params, params)
     }
-
     this.embedJolecule = new EmbedJolecule(this.params)
-
     document.oncontextmenu = _.noop
-    document.onkeydown = (e) => this.onkeydown(e)
-    // let resizeFn = () => { this.resize() }
-    // $(window).resize(resizeFn)
-    // window.onorientationchange = resizeFn
-
+    document.onkeydown = (e) => { this.onkeydown(e) }
     this.noData = true
   }
 
   async asyncAddDataServer (dataServer) {
     await this.embedJolecule.asyncAddDataServer(dataServer)
     this.initViewsDisplay(dataServer)
-    console.log('FullPageJolecule.asyncAddDataServer finished adding views')
+    console.log('FullPageJolecule.asyncAddDataServer added dataserver')
   }
 
   initViewsDisplay (dataServer) {

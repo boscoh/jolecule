@@ -813,23 +813,122 @@ class ZSlabWidget extends CanvasWidget {
   }
 }
 
+function toggleButton (idTag, text, classTag, getToggleFn, setToggleFn, onColor) {
+  let item =
+    $('<a>')
+      .attr('id', idTag)
+      .attr('href', '')
+      .html(text)
+
+  function color () {
+    let item = $('#' + idTag)
+    if (getToggleFn()) {
+      if (onColor) {
+        item.css('background-color', '#' + onColor)
+        console.log('toggleButton', onColor, item.css('background-color'), onColor)
+      } else {
+        item.addClass('jolecule-button-toggle-on')
+      }
+    } else {
+      if (onColor) {
+        item.css('background-color', '')
+      } else {
+        item.removeClass('jolecule-button-toggle-on')
+      }
+    }
+  }
+
+  if (classTag) {
+    item.addClass(classTag)
+  }
+
+  item.click(
+    function (e) {
+      e.preventDefault()
+      setToggleFn(!getToggleFn())
+      color()
+      return false
+    }
+  )
+
+  item.redraw = color
+
+  color()
+
+  return item
+}
+
+class GridToggleButtonWidget {
+  constructor (display, selector, elem, y, color) {
+    this.soupView = display.soupView
+    this.elem = elem
+    this.color = color
+    this.div = $(selector)
+      .text(elem)
+      .addClass('jolecule-button')
+      .css('position', 'absolute')
+      .css('top', y + 'px')
+      .css('left', '40px')
+      .css('height', '15px')
+      .css('width', '20px')
+      .on('click touch', (e) => {
+        e.preventDefault()
+        this.toggle()
+      })
+    this.draw()
+    display.addObserver(this)
+  }
+
+  getToggle () {
+    return this.soupView.soup.grid.isElem[this.elem]
+  }
+
+  toggle () {
+    this.soupView.soup.grid.isElem[this.elem] = !this.getToggle()
+    this.soupView.soup.grid.changed = true
+    this.soupView.changed = true
+    this.draw()
+  }
+
+  draw () {
+    if (this.getToggle()) {
+      if (this.color) {
+        this.div.css('background-color', this.color)
+      } else {
+        this.div.addClass('jolecule-button-toggle-on')
+      }
+    } else {
+      if (this.color) {
+        this.div.css('background-color', '')
+      } else {
+        this.div.removeClass('jolecule-button-toggle-on')
+      }
+    }
+  }
+}
+
+
 /**
  * GridControlWidget
  */
 class GridControlWidget extends CanvasWidget {
   constructor (display) {
     super(display.divTag)
-    this.isGrid = display.isGrid
+
+    this.display = display
     this.soupView = display.soupView
     display.addObserver(this)
+
+    this.backgroundColor = '#AAA'
     this.buttonHeight = 40
     this.sliderHeight = this.buttonHeight * 6 - 50
-    this.div.attr('id', 'grid-control')
+    this.isGrid = display.isGrid
+
     if (!this.isGrid) {
       this.div.css('display', 'none')
     }
+    this.div.attr('id', 'grid-control')
     this.div.css('height', this.height())
-    this.backgroundColor = '#AAA'
     this.buttonsDiv = $('<div id="grid-control-buttons">')
     this.div.append(this.buttonsDiv)
   }
@@ -843,7 +942,7 @@ class GridControlWidget extends CanvasWidget {
 
     let y = 10
     for (let elem of _.keys(this.soupView.soup.grid.isElem)) {
-      this.buttonsDiv.append(this.makeElemButton(elem, y))
+      this.makeElemButton(elem, y)
       y += this.buttonHeight
     }
 
@@ -856,23 +955,11 @@ class GridControlWidget extends CanvasWidget {
 
   makeElemButton (elem, y) {
     let color = data.ElementColors[elem]
-    let colorHexStr = color.getHexString()
-    let textButton = util.toggleButton(
-      'toggle_text',
-      elem,
-      'jolecule-button',
-      () => this.soupView.soup.grid.isElem[elem],
-      (b) => {
-        this.soupView.soup.grid.isElem[elem] = b
-        this.soupView.soup.grid.changed = true
-        this.soupView.changed = true
-      },
-      colorHexStr)
-    textButton.css('position', 'absolute')
-    textButton.css('top', y + 'px')
-    textButton.css('left', '40px')
-    textButton.css('width', '20px')
-    return textButton
+    let colorHexStr = '#' + color.getHexString()
+    let id = 'grid-button-' + elem.toLowerCase()
+    let selector = `#${id}`
+    this.buttonsDiv.append($(`<div id="${id}">`))
+    new GridToggleButtonWidget(this.display, selector, elem, y, colorHexStr)
   }
 
   resize () {
