@@ -1099,7 +1099,7 @@ class ToggleButtonWidget {
     let newOptionVal = !this.controller.getShowOption(this.option)
     this.controller.setShowOption(this.option, newOptionVal)
     if ((this.option === 'sidechains') && (newOptionVal === false)) {
-      this.controller.clearSelectedResidues()
+      this.controller.clearSidechainResidues()
     }
     this.draw()
   }

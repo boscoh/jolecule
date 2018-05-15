@@ -21,13 +21,7 @@ const yellow = new THREE.Color(0xFFC900)
 const purple = new THREE.Color(0x9578AA)
 const grey = new THREE.Color(0xBBBBBB)
 const red = new THREE.Color(0x993333)
-
-const darkGreen = new THREE.Color(0x2E471E)
-const darkBlue = new THREE.Color(0x406786)
-const darkYellow = new THREE.Color(0xC39900)
-const darkPurple = new THREE.Color(0x5E4C6B)
 const darkGrey = new THREE.Color(0x555555)
-const darkRed = new THREE.Color(0x662222)
 
 let ElementColors = {
   'H': 0xCCCCCC,
@@ -67,21 +61,6 @@ function getSsColor (ss) {
     return red
   }
   return grey
-}
-
-function getDarkSsColor (ss) {
-  if (ss === 'E') {
-    return darkYellow
-  } else if (ss === 'H') {
-    return darkBlue
-  } else if (ss === 'D') {
-    return darkPurple
-  } else if (ss === 'C') {
-    return darkGreen
-  } else if (ss === 'W') {
-    return darkRed
-  }
-  return darkGrey
 }
 
 const resToAa = {
@@ -172,12 +151,7 @@ export {
   purple,
   grey,
   red,
-  darkGreen,
-  darkBlue,
-  darkYellow,
-  darkPurple,
   darkGrey,
-  darkRed,
   ElementColors,
   proteinResTypes,
   dnaResTypes,

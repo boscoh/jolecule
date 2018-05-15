@@ -239,6 +239,18 @@ class ResidueProxy {
     }
   }
 
+  get sidechain () {
+    return this.soup.residueSidechain.get(this.iRes)
+  }
+
+  set sidechain (v) {
+    if (v) {
+      this.soup.residueSidechain.set(this.iRes)
+    } else {
+      this.soup.residueSidechain.clear(this.iRes)
+    }
+  }
+
   get resType () {
     let iResType = this.soup.residueStore.iResType[this.iRes]
     return this.soup.resTypeTable[iResType]
@@ -412,6 +424,7 @@ class Soup {
 
     this.atomSelect = new BitArray(0)
     this.residueSelect = new BitArray(0)
+    this.residueSidechain = new BitArray(0)
     this.bondSelect = new BitArray(0)
 
     this.elemTable = []
@@ -619,6 +632,7 @@ class Soup {
     }
     this.atomSelect = new BitArray(this.getAtomCount())
     this.residueSelect = new BitArray(this.getResidueCount())
+    this.residueSidechain = new BitArray(this.getResidueCount())
   }
 
   getIAtomClosest (pos, atomIndices) {
@@ -1046,28 +1060,28 @@ class Soup {
   }
 
   clearSelectedResidues () {
-    let residue = this.getResidueProxy()
-    for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
-      residue.load(jRes).selected = false
-    }
-    // this.residueSelect.clearBits()
+    this.residueSelect.clearBits()
   }
 
-  selectResidues (residueIndices, select) {
+  clearSidechainResidues () {
+    this.residueSidechain.clearBits()
+  }
+
+  setSidechainOfResidues (residueIndices, isSidechain) {
     let residue = this.getResidueProxy()
     for (let iRes of residueIndices) {
-      residue.load(iRes).selected = select
+      residue.load(iRes).sidechain = isSidechain
     }
   }
 
-  selectNeighbourResidues (iRes, selected) {
+  selectNeighbourResidues (iRes, isSidechain) {
     let indices = [iRes]
     for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
       if (this.areCloseResidues(jRes, iRes)) {
         indices.push(jRes)
       }
     }
-    this.selectResidues(indices, selected)
+    this.setSidechainOfResidues(indices, isSidechain)
   }
 
   /**
@@ -1580,21 +1594,21 @@ class Controller {
     let result = []
     let residue = this.soup.getResidueProxy()
     for (let i = 0; i < this.soup.getResidueCount(); i += 1) {
-      if (residue.load(i).selected) {
+      if (residue.load(i).sidechain) {
         result.push(i)
       }
     }
     return result
   }
 
-  clearSelectedResidues () {
-    this.soup.clearSelectedResidues()
+  clearSidechainResidues () {
+    this.soup.clearSidechainResidues()
     this.soupView.currentView.selected = this.makeSelectedResidueList()
     this.soupView.changed = true
   }
 
   selectResidue (iRes, select) {
-    this.soup.getResidueProxy(iRes).selected = select
+    this.soup.getResidueProxy(iRes).sidechain = select
     this.soupView.currentView.selected = this.makeSelectedResidueList()
     this.soupView.changed = true
   }
@@ -1613,7 +1627,7 @@ class Controller {
     this.soup.selectNeighbourResidues(iRes, b)
     this.soupView.currentView.selected = this.makeSelectedResidueList()
     this.soupView.changed = true
-    this.soupView.updateResidueSelection = true
+    this.soupView.updateSidechain = true
   }
 
   saveCurrentView (newViewId) {
@@ -1672,7 +1686,7 @@ class Controller {
     console.log('Controller.setShowOption', option, bool)
     this.soupView.currentView.show[option] = bool
     if (option === 'sidechain') {
-      this.soupView.updateResidueSelection = true
+      this.soupView.updateSidechain = true
     }
     this.soupView.changed = true
   }
@@ -1694,9 +1708,9 @@ class Controller {
     let oldViewSelected = this.soupView.currentView.selected
     this.soupView.currentView = view.clone()
     if (oldViewSelected !== view.selected) {
-      this.soupView.soup.clearSelectedResidues()
-      this.soupView.soup.selectResidues(view.selected, true)
-      this.soupView.updateResidueSelection = true
+      this.soupView.soup.clearSidechainResidues()
+      this.soupView.soup.setSidechainOfResidues(view.selected, true)
+      this.soupView.updateSidechain = true
     }
     this.soupView.changed = true
   }

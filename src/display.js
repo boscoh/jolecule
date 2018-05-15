@@ -293,7 +293,7 @@ class WebglWidget {
    * Rebuild soupView from meshes in this.displayMeshes &
    * this.pickingMeshes
    */
-  rebuildSceneWithMeshes () {
+  rebuildSceneFromMeshes () {
     glgeom.clearObject3D(this.displayScene)
     glgeom.clearObject3D(this.pickingScene)
     for (let mesh of _.values(this.displayMeshes)) {
@@ -447,10 +447,11 @@ class Display extends WebglWidget {
 
     // stores trace of protein/nucleotide backbones for ribbons
     this.traces = []
+    this.saveColors = {}
 
     // screen atom radius
     this.atomRadius = 0.35
-    this.gridAtomRadius = 1.00
+    this.gridAtomRadius = 1.0
 
     // Cross-hairs to identify centered atom
     this.buildCrossHairs()
@@ -555,7 +556,7 @@ class Display extends WebglWidget {
     this.buildMeshOfNucleotides()
     this.buildMeshOfArrows()
 
-    this.rebuildSceneWithMeshes()
+    this.rebuildSceneFromMeshes()
 
     this.observers.reset.dispatch()
 
@@ -699,7 +700,7 @@ class Display extends WebglWidget {
     this.displayMeshes[meshName].add(displayMesh)
   }
 
-  buildMeshOfSelectedResidues () {
+  buildMeshOfResidueSidechains () {
     let showAllResidues = this.soupView.currentView.show.sidechain
     this.createOrClearMesh('sidechains')
 
@@ -714,7 +715,7 @@ class Display extends WebglWidget {
       if (!residue.isPolymer) {
         continue
       }
-      let residueShow = showAllResidues || residue.selected
+      let residueShow = showAllResidues || residue.sidechain
       if (!residueShow) {
         continue
       }
@@ -1119,14 +1120,31 @@ class Display extends WebglWidget {
       this.updateMeshesInScene = true
     }
 
-    if (this.soupView.updateResidueSelection) {
-      this.buildMeshOfSelectedResidues()
-      this.soupView.updateResidueSelection = false
+    if (this.soupView.updateSidechain) {
+      this.buildMeshOfResidueSidechains()
+      this.soupView.updateSidechain = false
+      this.updateMeshesInScene = true
+    }
+
+    if (this.soupView.updateSelection) {
+      let res = this.soup.getResidueProxy()
+      for (let trace of this.traces) {
+        for (let iTrace of _.range(trace.points.length)) {
+          res.load(trace.refIndices[iTrace])
+          trace.colors[iTrace] = res.color.clone()
+          if (res.selected) {
+            trace.colors[iTrace].offsetHSL(0, 0, +0.2)
+          }
+        }
+      }
+      this.buildMeshOfTube()
+      this.buildMeshOfResidueSidechains()
+      this.soupView.updateSelection = false
       this.updateMeshesInScene = true
     }
 
     if (this.updateMeshesInScene) {
-      this.rebuildSceneWithMeshes()
+      this.rebuildSceneFromMeshes()
     }
 
     this.updateCrossHairs()
@@ -1271,25 +1289,20 @@ class Display extends WebglWidget {
     }
   }
 
-  mousewheel (event) {
-    event.preventDefault()
-
-    let wheel
-    if (util.exists(event.wheelDelta)) {
-      wheel = event.wheelDelta / 120
-    } else {
-      // for Firefox
-      wheel = -event.detail / 12
-    }
-    let zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1)
-
-    this.adjustCamera(0, 0, 0, zoom)
-  }
-
   mouseup (event) {
     this.getMouse(event)
 
     event.preventDefault()
+
+    if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
+      let atom = this.soup.getAtomProxy(this.iHoverAtom)
+      let res = this.soup.getResidueProxy(atom.iRes)
+      res.selected = !res.selected
+      console.log('mouseup select', res.resType, res.iRes, res.selected)
+      this.iDownAtom = null
+      this.soupView.updateSelection = true
+      this.soupView.changed = true
+    }
 
     if (this.isDraggingCentralAtom) {
       if (this.iHoverAtom !== null) {
@@ -1312,6 +1325,21 @@ class Display extends WebglWidget {
     this.iDownAtom = null
 
     this.mousePressed = false
+  }
+
+  mousewheel (event) {
+    event.preventDefault()
+
+    let wheel
+    if (util.exists(event.wheelDelta)) {
+      wheel = event.wheelDelta / 120
+    } else {
+      // for Firefox
+      wheel = -event.detail / 12
+    }
+    let zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1)
+
+    this.adjustCamera(0, 0, 0, zoom)
   }
 
   gesturestart (event) {
