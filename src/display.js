@@ -1133,7 +1133,7 @@ class Display extends WebglWidget {
           residue.load(trace.refIndices[iTrace])
           trace.colors[iTrace] = residue.color.clone()
           if (residue.selected) {
-            trace.colors[iTrace].offsetHSL(0, 0, +0.2)
+            trace.colors[iTrace].offsetHSL(0, 0, +0.3)
           }
         }
       }
@@ -1221,30 +1221,17 @@ class Display extends WebglWidget {
 
     event.preventDefault()
 
-    let now = (new Date()).getTime()
-
-    let isDoubleClick = (now - this.timePressed) < 500
-
     this.updateHover()
 
     this.iDownAtom = this.getIAtomHover()
     let iCenterAtom = this.soupView.getCenteredAtom().iAtom
 
+    let now = (new Date()).getTime()
+    let isDoubleClick = (now - this.timePressed) < 500
     if (isDoubleClick) {
       this.doubleclick()
     } else if (this.iDownAtom === iCenterAtom) {
       this.isDraggingCentralAtom = this.iDownAtom !== null
-
-    }
-
-    if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
-      this.soup.clearSelectedResidues()
-      let atom = this.soup.getAtomProxy(this.iHoverAtom)
-      let res = this.soup.getResidueProxy(atom.iRes)
-      res.selected = !res.selected
-      this.iDownAtom = null
-      this.soupView.updateSelection = true
-      this.soupView.changed = true
     }
 
     this.timePressed = now
@@ -1312,10 +1299,18 @@ class Display extends WebglWidget {
           this.controller.makeDistance(this.iHoverAtom, this.iDownAtom)
         }
       }
-
       this.lineElement.hide()
-
       this.isDraggingCentralAtom = false
+    }
+
+    if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
+      this.soup.clearSelectedResidues()
+      let atom = this.soup.getAtomProxy(this.iHoverAtom)
+      let res = this.soup.getResidueProxy(atom.iRes)
+      res.selected = !res.selected
+      this.iDownAtom = null
+      this.soupView.updateSelection = true
+      this.soupView.changed = true
     }
 
     if (util.exists(event.touches)) {

@@ -1060,7 +1060,10 @@ class Soup {
   }
 
   clearSelectedResidues () {
-    this.residueSelect.clearBits()
+    let residue = this.getResidueProxy()
+    for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
+      residue.load(jRes).selected = false
+    }
   }
 
   clearSidechainResidues () {

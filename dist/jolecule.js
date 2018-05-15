@@ -79731,7 +79731,10 @@ var Soup = function () {
   }, {
     key: 'clearSelectedResidues',
     value: function clearSelectedResidues() {
-      this.residueSelect.clearBits();
+      var residue = this.getResidueProxy();
+      for (var jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
+        residue.load(jRes).selected = false;
+      }
     }
   }, {
     key: 'clearSidechainResidues',
@@ -91626,7 +91629,7 @@ var Display = function (_WebglWidget) {
                 residue.load(trace.refIndices[iTrace]);
                 trace.colors[iTrace] = residue.color.clone();
                 if (residue.selected) {
-                  trace.colors[iTrace].offsetHSL(0, 0, +0.2);
+                  trace.colors[iTrace].offsetHSL(0, 0, +0.3);
                 }
               }
             } catch (err) {
@@ -91745,29 +91748,17 @@ var Display = function (_WebglWidget) {
 
       event.preventDefault();
 
-      var now = new Date().getTime();
-
-      var isDoubleClick = now - this.timePressed < 500;
-
       this.updateHover();
 
       this.iDownAtom = this.getIAtomHover();
       var iCenterAtom = this.soupView.getCenteredAtom().iAtom;
 
+      var now = new Date().getTime();
+      var isDoubleClick = now - this.timePressed < 500;
       if (isDoubleClick) {
         this.doubleclick();
       } else if (this.iDownAtom === iCenterAtom) {
         this.isDraggingCentralAtom = this.iDownAtom !== null;
-      }
-
-      if (this.iHoverAtom !== null && this.iHoverAtom === this.iDownAtom) {
-        this.soup.clearSelectedResidues();
-        var atom = this.soup.getAtomProxy(this.iHoverAtom);
-        var res = this.soup.getResidueProxy(atom.iRes);
-        res.selected = !res.selected;
-        this.iDownAtom = null;
-        this.soupView.updateSelection = true;
-        this.soupView.changed = true;
       }
 
       this.timePressed = now;
@@ -91832,10 +91823,18 @@ var Display = function (_WebglWidget) {
             this.controller.makeDistance(this.iHoverAtom, this.iDownAtom);
           }
         }
-
         this.lineElement.hide();
-
         this.isDraggingCentralAtom = false;
+      }
+
+      if (this.iHoverAtom !== null && this.iHoverAtom === this.iDownAtom) {
+        this.soup.clearSelectedResidues();
+        var atom = this.soup.getAtomProxy(this.iHoverAtom);
+        var res = this.soup.getResidueProxy(atom.iRes);
+        res.selected = !res.selected;
+        this.iDownAtom = null;
+        this.soupView.updateSelection = true;
+        this.soupView.changed = true;
       }
 
       if (util.exists(event.touches)) {
