@@ -79768,8 +79768,8 @@ var Soup = function () {
       }
     }
   }, {
-    key: 'selectNeighbourResidues',
-    value: function selectNeighbourResidues(iRes, isSidechain) {
+    key: 'setSidechainOfNeighborResidues',
+    value: function setSidechainOfNeighborResidues(iRes, isSidechain) {
       var indices = [iRes];
       for (var jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
         if (this.areCloseResidues(jRes, iRes)) {
@@ -80345,7 +80345,7 @@ var Controller = function () {
         b = true;
         this.lastNeighborIRes = iRes;
       }
-      this.soup.selectNeighbourResidues(iRes, b);
+      this.soup.setSidechainOfNeighborResidues(iRes, b);
       this.soupView.currentView.selected = this.makeSelectedResidueList();
       this.soupView.changed = true;
       this.soupView.updateSidechain = true;
@@ -91607,7 +91607,7 @@ var Display = function (_WebglWidget) {
       }
 
       if (this.soupView.updateSelection) {
-        var res = this.soup.getResidueProxy();
+        var residue = this.soup.getResidueProxy();
         var _iteratorNormalCompletion25 = true;
         var _didIteratorError25 = false;
         var _iteratorError25 = undefined;
@@ -91623,9 +91623,9 @@ var Display = function (_WebglWidget) {
               for (var _iterator26 = _lodash2.default.range(trace.points.length)[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
                 var iTrace = _step26.value;
 
-                res.load(trace.refIndices[iTrace]);
-                trace.colors[iTrace] = res.color.clone();
-                if (res.selected) {
+                residue.load(trace.refIndices[iTrace]);
+                trace.colors[iTrace] = residue.color.clone();
+                if (residue.selected) {
                   trace.colors[iTrace].offsetHSL(0, 0, +0.2);
                 }
               }
@@ -91660,6 +91660,7 @@ var Display = function (_WebglWidget) {
         }
 
         this.buildMeshOfTube();
+        this.buildMeshOfArrows();
         this.buildMeshOfResidueSidechains();
         this.soupView.updateSelection = false;
         this.updateMeshesInScene = true;
@@ -91759,6 +91760,16 @@ var Display = function (_WebglWidget) {
         this.isDraggingCentralAtom = this.iDownAtom !== null;
       }
 
+      if (this.iHoverAtom !== null && this.iHoverAtom === this.iDownAtom) {
+        this.soup.clearSelectedResidues();
+        var atom = this.soup.getAtomProxy(this.iHoverAtom);
+        var res = this.soup.getResidueProxy(atom.iRes);
+        res.selected = !res.selected;
+        this.iDownAtom = null;
+        this.soupView.updateSelection = true;
+        this.soupView.changed = true;
+      }
+
       this.timePressed = now;
 
       this.saveMouse();
@@ -91814,16 +91825,6 @@ var Display = function (_WebglWidget) {
       this.getMouse(event);
 
       event.preventDefault();
-
-      if (this.iHoverAtom !== null && this.iHoverAtom === this.iDownAtom) {
-        var atom = this.soup.getAtomProxy(this.iHoverAtom);
-        var res = this.soup.getResidueProxy(atom.iRes);
-        res.selected = !res.selected;
-        console.log('mouseup select', res.resType, res.iRes, res.selected);
-        this.iDownAtom = null;
-        this.soupView.updateSelection = true;
-        this.soupView.changed = true;
-      }
 
       if (this.isDraggingCentralAtom) {
         if (this.iHoverAtom !== null) {

@@ -1074,7 +1074,7 @@ class Soup {
     }
   }
 
-  selectNeighbourResidues (iRes, isSidechain) {
+  setSidechainOfNeighborResidues (iRes, isSidechain) {
     let indices = [iRes]
     for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
       if (this.areCloseResidues(jRes, iRes)) {
@@ -1624,7 +1624,7 @@ class Controller {
       b = true
       this.lastNeighborIRes = iRes
     }
-    this.soup.selectNeighbourResidues(iRes, b)
+    this.soup.setSidechainOfNeighborResidues(iRes, b)
     this.soupView.currentView.selected = this.makeSelectedResidueList()
     this.soupView.changed = true
     this.soupView.updateSidechain = true

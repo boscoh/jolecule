@@ -1127,17 +1127,18 @@ class Display extends WebglWidget {
     }
 
     if (this.soupView.updateSelection) {
-      let res = this.soup.getResidueProxy()
+      let residue = this.soup.getResidueProxy()
       for (let trace of this.traces) {
         for (let iTrace of _.range(trace.points.length)) {
-          res.load(trace.refIndices[iTrace])
-          trace.colors[iTrace] = res.color.clone()
-          if (res.selected) {
+          residue.load(trace.refIndices[iTrace])
+          trace.colors[iTrace] = residue.color.clone()
+          if (residue.selected) {
             trace.colors[iTrace].offsetHSL(0, 0, +0.2)
           }
         }
       }
       this.buildMeshOfTube()
+      this.buildMeshOfArrows()
       this.buildMeshOfResidueSidechains()
       this.soupView.updateSelection = false
       this.updateMeshesInScene = true
@@ -1233,6 +1234,17 @@ class Display extends WebglWidget {
       this.doubleclick()
     } else if (this.iDownAtom === iCenterAtom) {
       this.isDraggingCentralAtom = this.iDownAtom !== null
+
+    }
+
+    if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
+      this.soup.clearSelectedResidues()
+      let atom = this.soup.getAtomProxy(this.iHoverAtom)
+      let res = this.soup.getResidueProxy(atom.iRes)
+      res.selected = !res.selected
+      this.iDownAtom = null
+      this.soupView.updateSelection = true
+      this.soupView.changed = true
     }
 
     this.timePressed = now
@@ -1293,16 +1305,6 @@ class Display extends WebglWidget {
     this.getMouse(event)
 
     event.preventDefault()
-
-    if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
-      let atom = this.soup.getAtomProxy(this.iHoverAtom)
-      let res = this.soup.getResidueProxy(atom.iRes)
-      res.selected = !res.selected
-      console.log('mouseup select', res.resType, res.iRes, res.selected)
-      this.iDownAtom = null
-      this.soupView.updateSelection = true
-      this.soupView.changed = true
-    }
 
     if (this.isDraggingCentralAtom) {
       if (this.iHoverAtom !== null) {
