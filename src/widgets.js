@@ -1060,6 +1060,9 @@ class ResidueSelectorWidget {
     let residue = this.soup.getResidueProxy()
     for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
+      if (_.includes(['HOH', 'XXX'], residue.resType)) {
+        continue
+      }
       let text = residue.resId + '-' + residue.resType
       this.$elem.append(new Option(text, `${iRes}`))
     }

@@ -83104,6 +83104,9 @@ var ResidueSelectorWidget = function () {
           var iRes = _step4.value;
 
           residue.iRes = iRes;
+          if (_lodash2.default.includes(['HOH', 'XXX'], residue.resType)) {
+            continue;
+          }
           var text = residue.resId + '-' + residue.resType;
           this.$elem.append(new Option(text, '' + iRes));
         }
