@@ -1507,7 +1507,7 @@ class Controller {
     this.setTargetView(view)
   }
 
-  setTargetViewByAtom (iAtom) {
+  setTargetViewByIAtom (iAtom) {
     let atom = this.soup.getAtomProxy(iAtom)
     let view = this.soupView.currentView.getViewTranslatedTo(atom.pos)
     view.iAtom = iAtom
@@ -1523,7 +1523,7 @@ class Controller {
       iRes -= 1
     }
     iAtom = this.soup.getResidueProxy(iRes).iAtom
-    this.setTargetViewByAtom(iAtom)
+    this.setTargetViewByIAtom(iAtom)
   }
 
   setTargetToNextResidue () {
@@ -1535,7 +1535,7 @@ class Controller {
       iRes += 1
     }
     iAtom = this.soup.getResidueProxy(iRes).iAtom
-    this.setTargetViewByAtom(iAtom)
+    this.setTargetViewByIAtom(iAtom)
   }
 
   setTargetToPrevView () {

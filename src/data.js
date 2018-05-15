@@ -160,10 +160,8 @@ function getSsFace (ss) {
 }
 
 export {
-  getIndexColor,
   getSsColor,
   resToAa,
-  getDarkSsColor,
   backboneAtomTypes,
   getSsFace,
   coilFace,

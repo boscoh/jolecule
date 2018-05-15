@@ -195,7 +195,6 @@ class CanvasWidget {
 
   mouseup (event) {
     event.preventDefault()
-
     this.mousePressed = false
   }
 
@@ -697,11 +696,11 @@ class SequenceWidget extends CanvasWidget {
       this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar)
       this.iStartChar = parseInt(this.iStartChar)
 
-      this.controller.setTargetViewByAtom(this.getCurrIAtom())
+      this.controller.setTargetViewByIAtom(this.getCurrIAtom())
       this.draw()
     } else {
       this.iRes = this.xToIChar(this.pointerX)
-      this.controller.setTargetViewByAtom(this.getCurrIAtom())
+      this.controller.setTargetViewByIAtom(this.getCurrIAtom())
       this.draw()
     }
   }
@@ -1047,7 +1046,7 @@ class ResidueSelectorWidget {
   change () {
     let iRes = parseInt(this.$elem.select2('val'))
     let residue = this.soupView.soup.getResidueProxy(iRes)
-    this.controller.setTargetViewByAtom(residue.iAtom)
+    this.controller.setTargetViewByIAtom(residue.iAtom)
   }
 
   reset () {

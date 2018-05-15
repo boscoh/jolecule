@@ -23,7 +23,7 @@ class Model {
    * To be overriden
    */
   update (iStep) {
-    // update this.vars[key], access this.lastVars[key]
+    // draw this.vars[key], access this.lastVars[key]
   }
 
   resetSoln () {

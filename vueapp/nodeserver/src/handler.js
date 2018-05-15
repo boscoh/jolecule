@@ -72,7 +72,7 @@ async function loginUpdateUser (user) {
     }
   }
   if (!values) {
-    throw 'No values to update'
+    throw 'No values to draw'
   }
   if (!values.id) {
     throw 'No user.id to identify user'
@@ -83,7 +83,7 @@ async function loginUpdateUser (user) {
     await dbmodel.updateUser(values)
     return {success: true}
   } catch (err) {
-    throw 'Couldn\'t update user - ' + err.toString()
+    throw 'Couldn\'t draw user - ' + err.toString()
   }
 }
 

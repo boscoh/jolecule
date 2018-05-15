@@ -10,6 +10,16 @@ import widgets from './widgets'
 import * as data from './data'
 import { interpolateCameras } from './soup'
 
+/**
+ * Utility class to handle a three.js HTML object with
+ * a standard set of features:
+ *  - instantiate a <div> and <canvas> element
+ *  - camera object
+ *  - display scene
+ *  - picking scene, with helpful picking functions
+ *  - a status messaging in the div
+ *  - input handlers for mouse
+ */
 class WebglWidget {
   constructor (divTag, backgroundColor) {
     this.divTag = divTag
@@ -411,10 +421,12 @@ class Display extends WebglWidget {
   constructor (soupView, divTag, controller, isGrid, backgroundColor) {
     super(divTag, backgroundColor)
 
-    // js-signals observer hooks
-    this.observerReset = new Signal()
-    this.observerDrawn = new Signal()
-    this.observerResized = new Signal()
+    // js-signals observers hooks
+    this.observers = {
+      reset: new Signal(),
+      drawn: new Signal(),
+      resized: new Signal()
+    }
 
     // Hooks to protein data
     this.soupView = soupView
@@ -451,13 +463,13 @@ class Display extends WebglWidget {
 
   addObserver (observer) {
     if ('draw' in observer) {
-      this.observerDrawn.add(() => { observer.draw() })
+      this.observers.drawn.add(() => { observer.draw() })
     }
     if ('reset' in observer) {
-      this.observerReset.add(() => { observer.reset() })
+      this.observers.reset.add(() => { observer.reset() })
     }
     if ('resize' in observer) {
-      this.observerResized.add(() => { observer.resize() })
+      this.observers.resized.add(() => { observer.resize() })
     }
   }
 
@@ -533,7 +545,7 @@ class Display extends WebglWidget {
 
     this.rebuildSceneWithMeshes()
 
-    this.observerReset.dispatch()
+    this.observers.reset.dispatch()
 
     this.soupView.updateView = true
   }
@@ -891,7 +903,7 @@ class Display extends WebglWidget {
    */
 
   setTargetViewByIAtom (iAtom) {
-    this.controller.setTargetViewByAtom(iAtom)
+    this.controller.setTargetViewByIAtom(iAtom)
   }
 
   getCameraOfCurrentView () {
@@ -1109,18 +1121,18 @@ class Display extends WebglWidget {
 
     this.rotateCameraParamsToCurrentView()
 
-    // needs to be observerDrawn before render
+    // needs to be observers.drawn before render
     // as lines must be placed in THREE.js scene
     this.distanceMeasuresWidget.draw()
 
     this.displayRender()
 
     if (this.soupView.updateView) {
-      this.observerDrawn.dispatch()
+      this.observers.drawn.dispatch()
       this.soupView.updateView = false
     }
 
-    // needs to be observerDrawn after render
+    // needs to be observers.drawn after render
     this.atomLabelsWidget.draw()
 
     this.soupView.changed = false
@@ -1156,7 +1168,7 @@ class Display extends WebglWidget {
    */
 
   resize () {
-    this.observerResized.dispatch()
+    this.observers.resized.dispatch()
     super.resize()
     this.soupView.updateView = true
     this.controller.setChangeFlag()
@@ -1211,7 +1223,6 @@ class Display extends WebglWidget {
 
     if (this.isDraggingCentralAtom) {
       let v = this.getPosXY(this.soup.getAtomProxy(this.iDownAtom).pos)
-
       this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y)
     } else {
       let shiftDown = (event.shiftKey === 1)

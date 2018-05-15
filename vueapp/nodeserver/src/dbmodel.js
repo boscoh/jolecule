@@ -20,7 +20,7 @@ let db = conn.db
  * flexibility, sequelize-json is used to map JSON in
  * sequelize as sequelize-json works with Sqlite, Postgres, and MySQL.
  * For the sequelize-json JSON fields, be sure to use updateAttributes,
- * and not update
+ * and not draw
  *
  * The database is not meant to be accessed directly by the web-handlers.
  * These are meant to be accessed directly by the access functions
@@ -31,7 +31,7 @@ let db = conn.db
  * Accessor functions are prefaced with:
  *  - fetch* returns a JSON-literal of the Sequelize instance
  *  - create* creates a database entry from a JSON-literal
- *  - update* updates values in the instance
+ *  - draw* updates values in the instance
  *  - [optional] find* returns the actual Sequelize instance
  */
 

@@ -4,7 +4,7 @@ import _ from 'lodash'
 import { EmbedJolecule } from './embedjolecule'
 import { getWindowUrl, linkButton, randomId, exists } from './util'
 
-class ViewPiece {
+class ViewPanel {
   /**
    * @param {Object} params {
    *    goto,
@@ -159,15 +159,14 @@ class ViewPiece {
 }
 
 /**
- * ViewPieceList keeps track of the views
+ * ViewPanelList keeps track of the ViewPanel's
  */
-
-class ViewListPanel {
-  constructor (divTag, controller, proteinDisplay, dataServer, isEditable) {
+class ViewPanelList {
+  constructor (divTag, soupDisplay, dataServer, isEditable) {
     this.divTag = divTag
-    this.display = proteinDisplay
-    this.soupView = controller.soupView
-    this.controller = controller
+    this.display = soupDisplay
+    this.soupView = soupDisplay.soupView
+    this.controller = soupDisplay.controller
     this.isEditable = isEditable
     this.dataServer = dataServer
     this.viewPiece = {}
@@ -217,7 +216,7 @@ class ViewListPanel {
       this.controller.getViewDicts(), success)
   }
 
-  updateViews () {
+  draw () {
     for (let id in this.viewPiece) {
       if (!(id in this.soupView.savedViewsByViewId)) {
         this.viewPiece[id].div.remove()
@@ -254,11 +253,14 @@ class ViewListPanel {
   }
 
   redrawSelectedViewId (id) {
-    this.updateViews()
+    this.draw()
     $('#jolecule-views')
       .stop()
       .scrollTo(
-        this.viewPiece[id].div, 1000, {offset: {top: -80}})
+        this.viewPiece[id].div,
+        1000,
+        {offset: {top: -80}}
+      )
   }
 
   setTargetByViewId (id) {
@@ -286,7 +288,7 @@ class ViewListPanel {
       this.controller.deleteView(id)
       this.viewPiece[id].div.remove()
       delete this.viewPiece[id]
-      this.updateViews()
+      this.draw()
     })
   }
 
@@ -303,7 +305,7 @@ class ViewListPanel {
 
     this.saveViewsToDataServer(() => {
       jDiv.insertBefore(iDiv)
-      this.updateViews()
+      this.draw()
       iDiv.css('background-color', '')
       jDiv.css('background-color', '')
     })
@@ -327,7 +329,7 @@ class ViewListPanel {
 
   makeViewDiv (id) {
     let view = this.soupView.savedViewsByViewId[id]
-    this.viewPiece[id] = new ViewPiece({
+    this.viewPiece[id] = new ViewPanel({
       view: view,
       isEditable: this.isEditable,
       delete_view: () => {
@@ -351,9 +353,6 @@ class ViewListPanel {
       swapDown: () => {
         this.swapDown(id)
       },
-      embed_view: () => {
-        window.location.href = '/embed/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id
-      }
     })
     return this.viewPiece[id].div
   }
@@ -383,7 +382,7 @@ class ViewListPanel {
     let newId = randomId()
     this.controller.saveCurrentView(newId)
     this.insertNewViewDiv(newId)
-    this.updateViews()
+    this.draw()
     this.viewPiece[newId].div.css('background-color', 'lightgray')
     this.saveViewsToDataServer(() => {
       console.log('ViewPieceList.makeNewView success')
@@ -442,21 +441,20 @@ class FullPageJolecule {
       this.controller = this.embedJolecule.controller
       this.display = this.embedJolecule.display
 
-      this.viewListPanel = new ViewListPanel(
+      this.viewPanelList = new ViewPanelList(
         this.viewsDisplayTag,
-        this.controller,
         this.display,
         dataServer,
         this.params.isEditable)
 
-      this.viewListPanel.makeAllViews()
+      this.viewPanelList.makeAllViews()
       let hashTag = getWindowUrl().split('#')[1]
       if (hashTag in this.soupView.savedViewsByViewId) {
-        this.viewListPanel.setTargetByViewId(hashTag)
+        this.viewPanelList.setTargetByViewId(hashTag)
       } else {
-        this.viewListPanel.setTargetByViewId('view:000000')
+        this.viewPanelList.setTargetByViewId('view:000000')
       }
-      this.viewListPanel.updateViews()
+      this.viewPanelList.draw()
     }
 
     this.resize()
@@ -471,7 +469,7 @@ class FullPageJolecule {
 
   draw () {
     if (this.soupView.changed) {
-      this.viewListPanel.updateViews()
+      this.viewPanelList.draw()
       this.embedJolecule.draw()
       this.soupView.changed = false
     }
@@ -504,16 +502,16 @@ class FullPageJolecule {
     if (!window.keyboard_lock) {
       let c = String.fromCharCode(event.keyCode).toUpperCase()
       if (c === 'V') {
-        this.viewListPanel.makeNewView()
+        this.viewPanelList.makeNewView()
         return
       } else if ((c === 'K') || (event.keyCode === 37)) {
         this.gotoPrevResidue()
       } else if ((c === 'J') || (event.keyCode === 39)) {
         this.gotoNextResidue()
       } else if (event.keyCode === 38) {
-        this.viewListPanel.gotoPrevView()
+        this.viewPanelList.gotoPrevView()
       } else if (c === ' ' || event.keyCode === 40) {
-        this.viewListPanel.gotoNextView()
+        this.viewPanelList.gotoNextView()
       } else if (c === 'B') {
         if (this.soupView.currentView.show.backboneAtom) {
           this.controller.setBackboneOption('ribbon')
@@ -528,13 +526,11 @@ class FullPageJolecule {
         this.controller.toggleShowOption('sidechain')
       } else if (c === 'W') {
         this.controller.toggleShowOption('water')
-      } else if (c === 'C') {
-        this.display.controller.clearSelectedResidues()
       } else if (c === 'E') {
         let iView = this.display.soupView.iLastViewSelected
         if (iView > 0) {
           let viewId = this.display.soupView.savedViews[iView].id
-          this.viewListPanel.div[viewId].edit_fn()
+          this.viewPanelList.div[viewId].edit_fn()
         }
       } else if (c === 'N') {
         this.display.controller.toggleResidueNeighbors()
@@ -544,7 +540,7 @@ class FullPageJolecule {
         let i = parseInt(c) - 1
         if ((i || i === 0) && (i < this.soupView.savedViews.length)) {
           let id = this.soupView.savedViews[i].id
-          this.viewListPanel.setTargetByViewId(id)
+          this.viewPanelList.setTargetByViewId(id)
         }
       }
       this.display.soupView.changed = true

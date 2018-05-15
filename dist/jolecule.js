@@ -76769,7 +76769,7 @@ exports.default = {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.darkRed = exports.darkGrey = exports.darkPurple = exports.darkYellow = exports.darkBlue = exports.darkGreen = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.fatCoilFace = exports.coilFace = exports.getSsFace = exports.backboneAtomTypes = exports.getDarkSsColor = exports.resToAa = exports.getSsColor = exports.getIndexColor = undefined;
+exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.darkRed = exports.darkGrey = exports.darkPurple = exports.darkYellow = exports.darkBlue = exports.darkGreen = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.fatCoilFace = exports.coilFace = exports.getSsFace = exports.backboneAtomTypes = exports.resToAa = exports.getSsColor = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }(); /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * Central place to store constants and color
@@ -76856,10 +76856,6 @@ try {
   }
 }
 
-function getIndexColor(i) {
-  return new THREE.Color().setHex(i + 1);
-}
-
 function getSsColor(ss) {
   if (ss === 'E') {
     return yellow;
@@ -76943,10 +76939,8 @@ function getSsFace(ss) {
   return ribbonFace;
 }
 
-exports.getIndexColor = getIndexColor;
 exports.getSsColor = getSsColor;
 exports.resToAa = resToAa;
-exports.getDarkSsColor = getDarkSsColor;
 exports.backboneAtomTypes = backboneAtomTypes;
 exports.getSsFace = getSsFace;
 exports.coilFace = coilFace;
@@ -80247,8 +80241,8 @@ var Controller = function () {
       this.setTargetView(view);
     }
   }, {
-    key: 'setTargetViewByAtom',
-    value: function setTargetViewByAtom(iAtom) {
+    key: 'setTargetViewByIAtom',
+    value: function setTargetViewByIAtom(iAtom) {
       var atom = this.soup.getAtomProxy(iAtom);
       var view = this.soupView.currentView.getViewTranslatedTo(atom.pos);
       view.iAtom = iAtom;
@@ -80265,7 +80259,7 @@ var Controller = function () {
         iRes -= 1;
       }
       iAtom = this.soup.getResidueProxy(iRes).iAtom;
-      this.setTargetViewByAtom(iAtom);
+      this.setTargetViewByIAtom(iAtom);
     }
   }, {
     key: 'setTargetToNextResidue',
@@ -80278,7 +80272,7 @@ var Controller = function () {
         iRes += 1;
       }
       iAtom = this.soup.getResidueProxy(iRes).iAtom;
-      this.setTargetViewByAtom(iAtom);
+      this.setTargetViewByIAtom(iAtom);
     }
   }, {
     key: 'setTargetToPrevView',
@@ -81807,7 +81801,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * of HTML DOM elements and WebGL elements such as lines, atom labels,
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * distance measures, sequence bars, z-slab control, grid controls
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       *
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * this.reset - called after model rebuild
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * this.observerReset - called after model rebuild
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * this.draw - called at every draw event
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * this.resize - called after every resize of window
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       */
@@ -82057,7 +82051,6 @@ var CanvasWidget = function () {
     key: 'mouseup',
     value: function mouseup(event) {
       event.preventDefault();
-
       this.mousePressed = false;
     }
   }, {
@@ -82230,7 +82223,7 @@ var AtomLabelsWidget = function () {
         this.popups[_i2].div.css('opacity', opacity);
         this.popups[_i2].arrow.css('opacity', opacity);
 
-        var v = this.display.posXY(atom.pos);
+        var v = this.display.getPosXY(atom.pos);
         this.popups[_i2].move(v.x, v.y);
 
         if (!this.display.inZlab(atom.pos)) {
@@ -82342,7 +82335,7 @@ var DistanceMeasuresWidget = function () {
         var m = p1.clone().add(p2).multiplyScalar(0.5);
         var opacity = 0.7 * this.display.opacity(m) + 0.3;
 
-        var v = this.display.posXY(m);
+        var v = this.display.getPosXY(m);
         var x = v.x;
         var y = v.y;
 
@@ -82629,16 +82622,16 @@ var SequenceWidget = function (_CanvasWidget) {
       if (this.pointerY < this.heightBar + this.spacingY * 2) {
         this.iRes = this.xToI(this.pointerX);
 
-        // reset sequence window
+        // observerReset sequence window
         this.iStartChar = Math.max(this.iRes - 0.5 * this.nChar, 0);
         this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar);
         this.iStartChar = parseInt(this.iStartChar);
 
-        this.controller.setTargetViewByAtom(this.getCurrIAtom());
+        this.controller.setTargetViewByIAtom(this.getCurrIAtom());
         this.draw();
       } else {
         this.iRes = this.xToIChar(this.pointerX);
-        this.controller.setTargetViewByAtom(this.getCurrIAtom());
+        this.controller.setTargetViewByIAtom(this.getCurrIAtom());
         this.draw();
       }
     }
@@ -83061,7 +83054,7 @@ var ResidueSelectorWidget = function () {
     value: function change() {
       var iRes = parseInt(this.$elem.select2('val'));
       var residue = this.soupView.soup.getResidueProxy(iRes);
-      this.controller.setTargetViewByAtom(residue.iAtom);
+      this.controller.setTargetViewByIAtom(residue.iAtom);
     }
   }, {
     key: 'reset',
@@ -83088,7 +83081,7 @@ var ResidueSelectorWidget = function () {
           this.$elem.append(new Option(text, '' + iRes));
         }
 
-        // reset using select2
+        // observerReset using select2
       } catch (err) {
         _didIteratorError4 = true;
         _iteratorError4 = err;
@@ -89822,6 +89815,8 @@ exports.Display = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _jquery = __webpack_require__(32);
@@ -89866,14 +89861,24 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+/**
+ * Utility class to handle a three.js HTML object with
+ * a standard set of features:
+ *  - instantiate a <div> and <canvas> element
+ *  - camera object
+ *  - display scene
+ *  - picking scene, with helpful picking functions
+ *  - a status messaging in the div
+ *  - input handlers for mouse
+ */
 var WebglWidget = function () {
   function WebglWidget(divTag, backgroundColor) {
     _classCallCheck(this, WebglWidget);
@@ -89930,6 +89935,11 @@ var WebglWidget = function () {
     this.pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: THREE.VertexColors });
 
     this.lights = [];
+    this.buildLights();
+
+    // div to display processing messages
+    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
+    this.setMesssage('Loading data...');
 
     // input control parameters
     this.saveMouseX = null;
@@ -90008,6 +90018,24 @@ var WebglWidget = function () {
       this.renderer.render(this.displayScene, this.camera);
     }
   }, {
+    key: 'getPosXY',
+    value: function getPosXY(pos) {
+      var widthHalf = 0.5 * this.width();
+      var heightHalf = 0.5 * this.height();
+
+      var vector = pos.clone().project(this.camera);
+
+      return {
+        x: vector.x * widthHalf + widthHalf + this.x(),
+        y: -(vector.y * heightHalf) + heightHalf + this.y()
+      };
+    }
+  }, {
+    key: 'getIndexColor',
+    value: function getIndexColor(i) {
+      return new THREE.Color().setHex(i + 1);
+    }
+  }, {
     key: 'getPickColorFromMouse',
     value: function getPickColorFromMouse() {
       var x = this.mouseX;
@@ -90026,9 +90054,8 @@ var WebglWidget = function () {
       // read the pixel under the mouse from the texture
       this.renderer.readRenderTargetPixels(this.pickingTexture, this.mouseX, this.pickingTexture.height - y, 1, 1, pixelBuffer);
 
-      // interpret the pixel as an ID
-      var i = pixelBuffer[0] << 16 | pixelBuffer[1] << 8 | pixelBuffer[2];
-      return i;
+      // interpret the color as an Uint8 integer
+      return pixelBuffer[0] << 16 | pixelBuffer[1] << 8 | pixelBuffer[2];
     }
   }, {
     key: 'setCameraParams',
@@ -90060,100 +90087,36 @@ var WebglWidget = function () {
       this.displayScene.fog.near = near;
       this.displayScene.fog.far = far;
     }
-  }]);
+  }, {
+    key: 'buildLights',
+    value: function buildLights() {
+      var directedLight = new THREE.DirectionalLight(0xFFFFFF);
+      directedLight.position.copy(_v2.default.create(0.2, 0.2, -100).normalize());
+      directedLight.dontDelete = true;
+      this.lights.push(directedLight);
 
-  return WebglWidget;
-}();
+      var ambientLight = new THREE.AmbientLight(0x202020);
+      ambientLight.dontDelete = true;
+      this.lights.push(ambientLight);
 
-/**
- * Display is the main window for drawing the soup
- * in a WebGL HTML5 canvas, includes various widgets that
- * are described in widgets.js.
- *
- * Display takes a soup, and builds three.js from
- * it. Display also handles mouse input and
- * uses controller to make changes to the underlying soup
- * and their associated views
- */
-
-
-var Display = function (_WebglWidget) {
-  _inherits(Display, _WebglWidget);
-
-  /**
-   * @param soupView - SoupView object that holds a soup and views
-   * @param divTag - a selector tag for a DOM element
-   * @param controller - the controller for the soupView
-   * @param isGrid - flat to show autodock 3D grid control panel
-   * @param backgroundColor - the background color of canvas and webgl
-   */
-  function Display(soupView, divTag, controller, isGrid, backgroundColor) {
-    _classCallCheck(this, Display);
-
-    // js-signals observer hooks
-    var _this2 = _possibleConstructorReturn(this, (Display.__proto__ || Object.getPrototypeOf(Display)).call(this, divTag, backgroundColor));
-
-    _this2.reset = new _signals2.default();
-    _this2.drawn = new _signals2.default();
-    _this2.resized = new _signals2.default();
-
-    // Hooks to protein data
-    _this2.soupView = soupView;
-    _this2.soup = soupView.soup;
-    _this2.controller = controller;
-    _this2.nDataServer = 0;
-
-    _this2.buildLights();
-
-    // stores trace of protein/nucleotide backbones for ribbons
-    _this2.traces = [];
-
-    // screen atom radius
-    _this2.atomRadius = 0.35;
-
-    // Cross-hairs to identify centered atom
-    _this2.buildCrossHairs();
-
-    // div to display processing messages
-    _this2.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
-    _this2.setMesssage('Loading data...');
-
-    // popup hover box over the mouse position
-    _this2.hover = new _widgets2.default.PopupText(_this2.divTag, 'lightblue');
-    _this2.iHoverResidue = null;
-    _this2.hoverResidueColor = null;
-    _this2.iHoverAtom = null;
-
-    // Docking display control
-    _this2.isGrid = isGrid;
-
-    // Widgets that decorate the display
-    // display distance measures between atoms
-    _this2.distanceMeasuresWidget = new _widgets2.default.DistanceMeasuresWidget(_this2);
-    // display atom labels
-    _this2.atomLabelsWidget = new _widgets2.default.AtomLabelsWidget(_this2);
-    // draw onscreen line for mouse dragging between atoms
-    _this2.lineElement = new _widgets2.default.LineElement(_this2, '#FF7777');
-    return _this2;
-  }
-
-  _createClass(Display, [{
-    key: 'addObserver',
-    value: function addObserver(observer) {
-      if ('draw' in observer) {
-        this.drawn.add(function () {
-          observer.draw();
-        });
+      for (var i = 0; i < this.lights.length; i += 1) {
+        this.displayScene.add(this.lights[i]);
       }
-      if ('reset' in observer) {
-        this.reset.add(function () {
-          observer.reset();
-        });
-      }
-      if ('resize' in observer) {
-        this.resized.add(function () {
-          observer.resize();
-        });
+    }
+  }, {
+    key: 'resize',
+    value: function resize() {
+      var position = this.div.position();
+      this.webglDiv.css('left', this.x() + position.left);
+      this.webglDiv.css('top', this.y() + position.top);
+
+      this.camera.aspect = this.width() / this.height();
+      this.camera.updateProjectionMatrix();
+
+      this.pickingTexture.setSize(this.width(), this.height());
+
+      if (util.exists(this.renderer)) {
+        this.renderer.setSize(this.width(), this.height());
       }
     }
   }, {
@@ -90195,156 +90158,13 @@ var Display = function (_WebglWidget) {
       this.messageDiv.hide();
     }
   }, {
-    key: 'calculateTracesForRibbons',
-    value: function calculateTracesForRibbons() {
-      var _this3 = this;
+    key: 'createOrClearMesh',
 
-      this.traces.length = 0;
-
-      var lastTrace = void 0;
-
-      var residue = this.soup.getResidueProxy();
-      var atom = this.soup.getAtomProxy();
-
-      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
-        residue.iRes = iRes;
-        if (residue.isPolymer) {
-          if (iRes === 0 || !residue.isConnectedToPrev()) {
-            (function () {
-              var newTrace = new glgeom.Trace();
-              newTrace.getReference = function (i) {
-                residue.iRes = newTrace.indices[i];
-                return residue;
-              };
-              _this3.traces.push(newTrace);
-              lastTrace = newTrace;
-            })();
-          }
-          lastTrace.indices.push(iRes);
-
-          atom.iAtom = residue.iAtom;
-          lastTrace.refIndices.push(residue.iRes);
-          lastTrace.points.push(atom.pos.clone());
-          lastTrace.colors.push(new THREE.Color(residue.color));
-          lastTrace.indexColors.push(data.getIndexColor(residue.iAtom));
-          lastTrace.segmentTypes.push(residue.ss);
-          lastTrace.normals.push(residue.normal);
-        }
-      }
-
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = this.traces[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var trace = _step.value;
-
-          trace.calcTangents();
-          trace.calcNormals();
-          trace.calcBinormals();
-          trace.expand();
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-      }
-    }
-  }, {
-    key: 'buildLights',
-    value: function buildLights() {
-      var directedLight = new THREE.DirectionalLight(0xFFFFFF);
-      directedLight.position.copy(_v2.default.create(0.2, 0.2, -100).normalize());
-      directedLight.dontDelete = true;
-      this.lights.push(directedLight);
-
-      var ambientLight = new THREE.AmbientLight(0x202020);
-      ambientLight.dontDelete = true;
-      this.lights.push(ambientLight);
-
-      for (var i = 0; i < this.lights.length; i += 1) {
-        this.displayScene.add(this.lights[i]);
-      }
-    }
-
-    /**
-     **********************************************************
-     * Mesh-building methods
-     *
-     * Routines to build meshes that will be incorporated into
-     * scenes, and to be used for gpu-picking.
-     *
-     * Meshes are stored in a dictionary: this.displayMeshes &
-     * this.pickingMeshes
-     **********************************************************
-     */
-
-  }, {
-    key: 'buildScene',
-    value: function buildScene() {
-      this.soupView.initViewsAfterSoupLoad();
-
-      // pre-calculations needed before building meshes
-      var residue = this.soup.getResidueProxy();
-      var _iteratorNormalCompletion2 = true;
-      var _didIteratorError2 = false;
-      var _iteratorError2 = undefined;
-
-      try {
-        for (var _iterator2 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-          var iRes = _step2.value;
-
-          residue.iRes = iRes;
-          residue.color = data.getSsColor(residue.ss);
-        }
-      } catch (err) {
-        _didIteratorError2 = true;
-        _iteratorError2 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-            _iterator2.return();
-          }
-        } finally {
-          if (_didIteratorError2) {
-            throw _iteratorError2;
-          }
-        }
-      }
-
-      this.soup.findGridLimits();
-      this.calculateTracesForRibbons();
-
-      this.buildMeshOfTube();
-      this.buildMeshOfGrid();
-      this.buildMeshOfLigands();
-      this.buildMeshOfNucleotides();
-      this.buildMeshOfArrows();
-
-      this.rebuildSceneWithMeshes();
-
-      this.reset.dispatch();
-
-      this.soupView.updateView = true;
-    }
 
     /**
      * Clears/creates a mesh entry in the mesh collection
      * @param meshName - the name for a mesh collection
      */
-
-  }, {
-    key: 'createOrClearMesh',
     value: function createOrClearMesh(meshName) {
       if (!(meshName in this.displayMeshes)) {
         this.displayMeshes[meshName] = new THREE.Object3D();
@@ -90368,56 +90188,56 @@ var Display = function (_WebglWidget) {
     value: function rebuildSceneWithMeshes() {
       glgeom.clearObject3D(this.displayScene);
       glgeom.clearObject3D(this.pickingScene);
-      var _iteratorNormalCompletion3 = true;
-      var _didIteratorError3 = false;
-      var _iteratorError3 = undefined;
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
 
       try {
-        for (var _iterator3 = _lodash2.default.values(this.displayMeshes)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-          var mesh = _step3.value;
+        for (var _iterator = _lodash2.default.values(this.displayMeshes)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var mesh = _step.value;
 
           if (mesh.children.length > 0) {
             this.displayScene.add(mesh);
           }
         }
       } catch (err) {
-        _didIteratorError3 = true;
-        _iteratorError3 = err;
+        _didIteratorError = true;
+        _iteratorError = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion3 && _iterator3.return) {
-            _iterator3.return();
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
           }
         } finally {
-          if (_didIteratorError3) {
-            throw _iteratorError3;
+          if (_didIteratorError) {
+            throw _iteratorError;
           }
         }
       }
 
-      var _iteratorNormalCompletion4 = true;
-      var _didIteratorError4 = false;
-      var _iteratorError4 = undefined;
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
 
       try {
-        for (var _iterator4 = _lodash2.default.values(this.pickingMeshes)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-          var _mesh = _step4.value;
+        for (var _iterator2 = _lodash2.default.values(this.pickingMeshes)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var _mesh = _step2.value;
 
           if (_mesh.children.length > 0) {
             this.pickingScene.add(_mesh);
           }
         }
       } catch (err) {
-        _didIteratorError4 = true;
-        _iteratorError4 = err;
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-            _iterator4.return();
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
           }
         } finally {
-          if (_didIteratorError4) {
-            throw _iteratorError4;
+          if (_didIteratorError2) {
+            throw _iteratorError2;
           }
         }
       }
@@ -90475,6 +90295,283 @@ var Display = function (_WebglWidget) {
         mesh.i = i;
       }
       this.pickingMeshes[meshName].add(mesh);
+    }
+  }, {
+    key: 'x',
+    value: function x() {
+      return 0;
+    }
+  }, {
+    key: 'y',
+    value: function y() {
+      return 0;
+    }
+  }, {
+    key: 'width',
+    value: function width() {
+      var width = this.div.width() - this.x();
+      return width;
+    }
+  }, {
+    key: 'height',
+    value: function height() {
+      var height = this.div.height() - this.y();
+      return height;
+    }
+  }, {
+    key: 'getMouse',
+    value: function getMouse(event) {
+      if (util.exists(event.touches) && event.touches.length > 0) {
+        this.eventX = event.touches[0].clientX;
+        this.eventY = event.touches[0].clientY;
+      } else {
+        this.eventX = event.clientX;
+        this.eventY = event.clientY;
+      }
+
+      var rect = event.target.getBoundingClientRect();
+      this.mouseX = this.eventX - rect.left;
+      this.mouseY = this.eventY - rect.top;
+
+      var x = this.mouseX - this.width() / 2;
+      var y = this.mouseY - this.height() / 2;
+
+      this.mouseR = Math.sqrt(x * x + y * y);
+
+      this.mouseT = Math.atan(y / x);
+      if (x < 0) {
+        if (y > 0) {
+          this.mouseT += Math.PI;
+        } else {
+          this.mouseT -= Math.PI;
+        }
+      }
+    }
+  }, {
+    key: 'saveMouse',
+    value: function saveMouse() {
+      this.saveMouseX = this.mouseX;
+      this.saveMouseY = this.mouseY;
+      this.saveMouseR = this.mouseR;
+      this.saveMouseT = this.mouseT;
+    }
+  }]);
+
+  return WebglWidget;
+}();
+
+/**
+ * Display is the main window for drawing the soup
+ * in a WebGL HTML5 canvas, includes various widgets that
+ * are described in widgets.js.
+ *
+ * Display takes a soup, and builds three.js from
+ * it. Display also handles mouse input and
+ * uses controller to make changes to the underlying soup
+ * and their associated views
+ */
+
+
+var Display = function (_WebglWidget) {
+  _inherits(Display, _WebglWidget);
+
+  /**
+   * @param soupView - SoupView object that holds a soup and views
+   * @param divTag - a selector tag for a DOM element
+   * @param controller - the controller for the soupView
+   * @param isGrid - flat to show autodock 3D grid control panel
+   * @param backgroundColor - the background color of canvas and webgl
+   */
+  function Display(soupView, divTag, controller, isGrid, backgroundColor) {
+    _classCallCheck(this, Display);
+
+    // js-signals observers hooks
+    var _this2 = _possibleConstructorReturn(this, (Display.__proto__ || Object.getPrototypeOf(Display)).call(this, divTag, backgroundColor));
+
+    _this2.observers = {
+      reset: new _signals2.default(),
+      drawn: new _signals2.default(),
+      resized: new _signals2.default()
+
+      // Hooks to protein data
+    };_this2.soupView = soupView;
+    _this2.soup = soupView.soup;
+    _this2.controller = controller;
+    _this2.nDataServer = 0;
+
+    // stores trace of protein/nucleotide backbones for ribbons
+    _this2.traces = [];
+
+    // screen atom radius
+    _this2.atomRadius = 0.35;
+
+    // Cross-hairs to identify centered atom
+    _this2.buildCrossHairs();
+
+    // popup hover box over the mouse position
+    _this2.hover = new _widgets2.default.PopupText(_this2.divTag, 'lightblue');
+    _this2.iHoverResidue = null;
+    _this2.hoverResidueColor = null;
+    _this2.iHoverAtom = null;
+
+    // Docking display control
+    _this2.isGrid = isGrid;
+
+    // Widgets that decorate the display
+    // display distance measures between atoms
+    _this2.distanceMeasuresWidget = new _widgets2.default.DistanceMeasuresWidget(_this2);
+    // display atom labels
+    _this2.atomLabelsWidget = new _widgets2.default.AtomLabelsWidget(_this2);
+    // draw onscreen line for mouse dragging between atoms
+    _this2.lineElement = new _widgets2.default.LineElement(_this2, '#FF7777');
+    return _this2;
+  }
+
+  _createClass(Display, [{
+    key: 'addObserver',
+    value: function addObserver(observer) {
+      if ('draw' in observer) {
+        this.observers.drawn.add(function () {
+          observer.draw();
+        });
+      }
+      if ('reset' in observer) {
+        this.observers.reset.add(function () {
+          observer.reset();
+        });
+      }
+      if ('resize' in observer) {
+        this.observers.resized.add(function () {
+          observer.resize();
+        });
+      }
+    }
+  }, {
+    key: 'calculateTracesForRibbons',
+    value: function calculateTracesForRibbons() {
+      var _this3 = this;
+
+      this.traces.length = 0;
+
+      var lastTrace = void 0;
+
+      var residue = this.soup.getResidueProxy();
+      var atom = this.soup.getAtomProxy();
+
+      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+        residue.iRes = iRes;
+        if (residue.isPolymer) {
+          if (iRes === 0 || !residue.isConnectedToPrev()) {
+            (function () {
+              var newTrace = new glgeom.Trace();
+              newTrace.getReference = function (i) {
+                residue.iRes = newTrace.indices[i];
+                return residue;
+              };
+              _this3.traces.push(newTrace);
+              lastTrace = newTrace;
+            })();
+          }
+          lastTrace.indices.push(iRes);
+
+          atom.iAtom = residue.iAtom;
+          lastTrace.refIndices.push(residue.iRes);
+          lastTrace.points.push(atom.pos.clone());
+          lastTrace.colors.push(new THREE.Color(residue.color));
+          lastTrace.indexColors.push(this.getIndexColor(residue.iAtom));
+          lastTrace.segmentTypes.push(residue.ss);
+          lastTrace.normals.push(residue.normal);
+        }
+      }
+
+      var _iteratorNormalCompletion3 = true;
+      var _didIteratorError3 = false;
+      var _iteratorError3 = undefined;
+
+      try {
+        for (var _iterator3 = this.traces[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          var trace = _step3.value;
+
+          trace.calcTangents();
+          trace.calcNormals();
+          trace.calcBinormals();
+          trace.expand();
+        }
+      } catch (err) {
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion3 && _iterator3.return) {
+            _iterator3.return();
+          }
+        } finally {
+          if (_didIteratorError3) {
+            throw _iteratorError3;
+          }
+        }
+      }
+    }
+
+    /**
+     **********************************************************
+     * Mesh-building methods
+     *
+     * Routines to build meshes that will be incorporated into
+     * scenes, and to be used for gpu-picking.
+     *
+     * Meshes are stored in a dictionary: this.displayMeshes &
+     * this.pickingMeshes
+     **********************************************************
+     */
+
+  }, {
+    key: 'buildScene',
+    value: function buildScene() {
+      this.soupView.initViewsAfterSoupLoad();
+
+      // pre-calculations needed before building meshes
+      var residue = this.soup.getResidueProxy();
+      var _iteratorNormalCompletion4 = true;
+      var _didIteratorError4 = false;
+      var _iteratorError4 = undefined;
+
+      try {
+        for (var _iterator4 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+          var iRes = _step4.value;
+
+          residue.iRes = iRes;
+          residue.color = data.getSsColor(residue.ss);
+        }
+      } catch (err) {
+        _didIteratorError4 = true;
+        _iteratorError4 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion4 && _iterator4.return) {
+            _iterator4.return();
+          }
+        } finally {
+          if (_didIteratorError4) {
+            throw _iteratorError4;
+          }
+        }
+      }
+
+      this.soup.findGridLimits();
+      this.calculateTracesForRibbons();
+
+      this.buildMeshOfTube();
+      this.buildMeshOfGrid();
+      this.buildMeshOfLigands();
+      this.buildMeshOfNucleotides();
+      this.buildMeshOfArrows();
+
+      this.rebuildSceneWithMeshes();
+
+      this.observers.reset.dispatch();
+
+      this.soupView.updateView = true;
     }
   }, {
     key: 'buildMeshOfTube',
@@ -90621,7 +90718,7 @@ var Display = function (_WebglWidget) {
         displayGeom.applyMatrixToCopy(matrix, iCopy);
         pickingGeom.applyMatrixToCopy(matrix, iCopy);
         displayGeom.applyColorToCopy(atom.color, iCopy);
-        pickingGeom.applyColorToCopy(data.getIndexColor(iAtom), iCopy);
+        pickingGeom.applyColorToCopy(this.getIndexColor(iAtom), iCopy);
       }
 
       var displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial);
@@ -90649,9 +90746,7 @@ var Display = function (_WebglWidget) {
       var residue = this.soup.getResidueProxy();
 
       for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
-        var iBond = bondIndices[iCopy];
-
-        bond.iBond = iBond;
+        bond.iBond = bondIndices[iCopy];
         atom1.iAtom = bond.iAtom1;
         atom2.iAtom = bond.iAtom2;
         residue.iRes = atom1.iRes;
@@ -91133,7 +91228,7 @@ var Display = function (_WebglWidget) {
           glgeom.setGeometryVerticesColor(basepairGeom, residue.color);
           displayGeom.merge(basepairGeom);
 
-          glgeom.setGeometryVerticesColor(basepairGeom, data.getIndexColor(residue.iAtom));
+          glgeom.setGeometryVerticesColor(basepairGeom, this.getIndexColor(residue.iAtom));
           pickingGeom.merge(basepairGeom);
         }
       } catch (err) {
@@ -91177,24 +91272,24 @@ var Display = function (_WebglWidget) {
      */
 
   }, {
-    key: 'setTargetViewFromAtom',
-    value: function setTargetViewFromAtom(iAtom) {
-      this.controller.setTargetViewByAtom(iAtom);
+    key: 'setTargetViewByIAtom',
+    value: function setTargetViewByIAtom(iAtom) {
+      this.controller.setTargetViewByIAtom(iAtom);
     }
   }, {
-    key: 'getCurrentViewCamera',
-    value: function getCurrentViewCamera() {
+    key: 'getCameraOfCurrentView',
+    value: function getCameraOfCurrentView() {
       return this.soupView.currentView.cameraParams;
     }
   }, {
-    key: 'rotateCameraToCurrentView',
-    value: function rotateCameraToCurrentView() {
-      this.setCameraParams(this.soupView.currentView.cameraParams);
+    key: 'rotateCameraParamsToCurrentView',
+    value: function rotateCameraParamsToCurrentView() {
+      this.setCameraParams(this.getCameraOfCurrentView());
     }
   }, {
     key: 'adjustCamera',
     value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-      var cameraParams = this.getCurrentViewCamera();
+      var cameraParams = this.getCameraOfCurrentView();
 
       var y = cameraParams.up;
       var z = cameraParams.position.clone().sub(cameraParams.focus).normalize();
@@ -91227,7 +91322,7 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'getZ',
     value: function getZ(pos) {
-      var cameraParams = this.getCurrentViewCamera();
+      var cameraParams = this.getCameraOfCurrentView();
       var cameraDir = cameraParams.focus.clone().sub(cameraParams.position).normalize();
       var posRelativeToOrigin = pos.clone().sub(cameraParams.focus);
       return posRelativeToOrigin.dot(cameraDir);
@@ -91236,7 +91331,7 @@ var Display = function (_WebglWidget) {
     key: 'inZlab',
     value: function inZlab(pos) {
       var z = this.getZ(pos);
-      var cameraParams = this.getCurrentViewCamera();
+      var cameraParams = this.getCameraOfCurrentView();
       return z >= cameraParams.zFront && z <= cameraParams.zBack;
     }
   }, {
@@ -91244,7 +91339,7 @@ var Display = function (_WebglWidget) {
     value: function opacity(pos) {
       var z = this.getZ(pos);
 
-      var cameraParams = this.getCurrentViewCamera();
+      var cameraParams = this.getCameraOfCurrentView();
 
       if (z < cameraParams.zFront) {
         return 1.0;
@@ -91256,19 +91351,6 @@ var Display = function (_WebglWidget) {
 
       return 1 - (z - cameraParams.zFront) / (cameraParams.zBack - cameraParams.zFront);
     }
-  }, {
-    key: 'posXY',
-    value: function posXY(pos) {
-      var widthHalf = 0.5 * this.width();
-      var heightHalf = 0.5 * this.height();
-
-      var vector = pos.clone().project(this.camera);
-
-      return {
-        x: vector.x * widthHalf + widthHalf + this.x(),
-        y: -(vector.y * heightHalf) + heightHalf + this.y()
-      };
-    }
 
     /**
      ******************************************
@@ -91279,7 +91361,7 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'updateCrossHairs',
     value: function updateCrossHairs() {
-      var cameraParams = this.getCurrentViewCamera();
+      var cameraParams = this.getCameraOfCurrentView();
       this.crossHairs.position.copy(cameraParams.focus);
       this.crossHairs.lookAt(cameraParams.position);
       this.crossHairs.updateMatrix();
@@ -91332,7 +91414,7 @@ var Display = function (_WebglWidget) {
           text += '</div>';
         }
         this.hover.html(text);
-        var vector = this.posXY(pos);
+        var vector = this.getPosXY(pos);
         this.hover.move(vector.x, vector.y);
       } else {
         this.hover.hide();
@@ -91494,20 +91576,20 @@ var Display = function (_WebglWidget) {
 
       this.updateCrossHairs();
 
-      this.rotateCameraToCurrentView();
+      this.rotateCameraParamsToCurrentView();
 
-      // needs to be drawn before render
+      // needs to be observers.drawn before render
       // as lines must be placed in THREE.js scene
       this.distanceMeasuresWidget.draw();
 
       this.displayRender();
 
       if (this.soupView.updateView) {
-        this.drawn.dispatch();
+        this.observers.drawn.dispatch();
         this.soupView.updateView = false;
       }
 
-      // needs to be drawn after render
+      // needs to be observers.drawn after render
       this.atomLabelsWidget.draw();
 
       this.soupView.changed = false;
@@ -91543,82 +91625,10 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'resize',
     value: function resize() {
-      this.resized.dispatch();
-
-      var position = this.div.position();
-      this.webglDiv.css('left', this.x() + position.left);
-      this.webglDiv.css('top', this.y() + position.top);
-
-      this.camera.aspect = this.width() / this.height();
-      this.camera.updateProjectionMatrix();
-
-      this.pickingTexture.setSize(this.width(), this.height());
-
-      if (util.exists(this.renderer)) {
-        this.renderer.setSize(this.width(), this.height());
-      }
-
+      this.observers.resized.dispatch();
+      _get(Display.prototype.__proto__ || Object.getPrototypeOf(Display.prototype), 'resize', this).call(this);
       this.soupView.updateView = true;
       this.controller.setChangeFlag();
-    }
-  }, {
-    key: 'x',
-    value: function x() {
-      return 0;
-    }
-  }, {
-    key: 'y',
-    value: function y() {
-      return 0;
-    }
-  }, {
-    key: 'width',
-    value: function width() {
-      var width = this.div.width() - this.x();
-      return width;
-    }
-  }, {
-    key: 'height',
-    value: function height() {
-      var height = this.div.height() - this.y();
-      return height;
-    }
-  }, {
-    key: 'getMouse',
-    value: function getMouse(event) {
-      if (util.exists(event.touches) && event.touches.length > 0) {
-        this.eventX = event.touches[0].clientX;
-        this.eventY = event.touches[0].clientY;
-      } else {
-        this.eventX = event.clientX;
-        this.eventY = event.clientY;
-      }
-
-      var rect = event.target.getBoundingClientRect();
-      this.mouseX = this.eventX - rect.left;
-      this.mouseY = this.eventY - rect.top;
-
-      var x = this.mouseX - this.width() / 2;
-      var y = this.mouseY - this.height() / 2;
-
-      this.mouseR = Math.sqrt(x * x + y * y);
-
-      this.mouseT = Math.atan(y / x);
-      if (x < 0) {
-        if (y > 0) {
-          this.mouseT += Math.PI;
-        } else {
-          this.mouseT -= Math.PI;
-        }
-      }
-    }
-  }, {
-    key: 'saveMouse',
-    value: function saveMouse() {
-      this.saveMouseX = this.mouseX;
-      this.saveMouseY = this.mouseY;
-      this.saveMouseR = this.mouseR;
-      this.saveMouseT = this.mouseT;
     }
   }, {
     key: 'doubleclick',
@@ -91627,7 +91637,7 @@ var Display = function (_WebglWidget) {
         if (this.iHoverAtom === this.soupView.getCenteredAtom().iAtom) {
           this.atomLabelDialog();
         } else {
-          this.setTargetViewFromAtom(this.iHoverAtom);
+          this.setTargetViewByIAtom(this.iHoverAtom);
         }
         this.isDraggingCentralAtom = false;
       }
@@ -91672,8 +91682,7 @@ var Display = function (_WebglWidget) {
       this.updateHover();
 
       if (this.isDraggingCentralAtom) {
-        var v = this.posXY(this.soup.getAtomProxy(this.iDownAtom).pos);
-
+        var v = this.getPosXY(this.soup.getAtomProxy(this.iDownAtom).pos);
         this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y);
       } else {
         var shiftDown = event.shiftKey === 1;
@@ -98125,7 +98134,7 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var ViewPiece = function () {
+var ViewPanel = function () {
   /**
    * @param {Object} params {
    *    goto,
@@ -98137,8 +98146,8 @@ var ViewPiece = function () {
    *    swapUp
    * }
    */
-  function ViewPiece(params) {
-    _classCallCheck(this, ViewPiece);
+  function ViewPanel(params) {
+    _classCallCheck(this, ViewPanel);
 
     this.params = params;
     this.div = (0, _jquery2.default)('<div>').addClass('jolecule-view');
@@ -98150,7 +98159,7 @@ var ViewPiece = function () {
     this.makeShowDiv();
   }
 
-  _createClass(ViewPiece, [{
+  _createClass(ViewPanel, [{
     key: 'saveChange',
     value: function saveChange() {
       console.log('ViewPiece.saveChange');
@@ -98244,23 +98253,24 @@ var ViewPiece = function () {
     }
   }]);
 
-  return ViewPiece;
+  return ViewPanel;
 }();
 
 /**
- * ViewPieceList keeps track of the views
+ * ViewPanelList keeps track of the ViewPanel's
  */
 
-var ViewListPanel = function () {
-  function ViewListPanel(divTag, controller, proteinDisplay, dataServer, isEditable) {
+
+var ViewPanelList = function () {
+  function ViewPanelList(divTag, soupDisplay, dataServer, isEditable) {
     var _this3 = this;
 
-    _classCallCheck(this, ViewListPanel);
+    _classCallCheck(this, ViewPanelList);
 
     this.divTag = divTag;
-    this.display = proteinDisplay;
-    this.soupView = controller.soupView;
-    this.controller = controller;
+    this.display = soupDisplay;
+    this.soupView = soupDisplay.soupView;
+    this.controller = soupDisplay.controller;
     this.isEditable = isEditable;
     this.dataServer = dataServer;
     this.viewPiece = {};
@@ -98275,15 +98285,15 @@ var ViewListPanel = function () {
     })).append('<br>')).append((0, _jquery2.default)('<div>').attr('id', 'jolecule-views'));
   }
 
-  _createClass(ViewListPanel, [{
+  _createClass(ViewPanelList, [{
     key: 'saveViewsToDataServer',
     value: function saveViewsToDataServer(success) {
       console.log('ViewPieceList.saveViewsToDataServer');
       this.dataServer.save_views(this.controller.getViewDicts(), success);
     }
   }, {
-    key: 'updateViews',
-    value: function updateViews() {
+    key: 'draw',
+    value: function draw() {
       for (var id in this.viewPiece) {
         if (!(id in this.soupView.savedViewsByViewId)) {
           this.viewPiece[id].div.remove();
@@ -98321,7 +98331,7 @@ var ViewListPanel = function () {
   }, {
     key: 'redrawSelectedViewId',
     value: function redrawSelectedViewId(id) {
-      this.updateViews();
+      this.draw();
       (0, _jquery2.default)('#jolecule-views').stop().scrollTo(this.viewPiece[id].div, 1000, { offset: { top: -80 } });
     }
   }, {
@@ -98356,7 +98366,7 @@ var ViewListPanel = function () {
         _this4.controller.deleteView(id);
         _this4.viewPiece[id].div.remove();
         delete _this4.viewPiece[id];
-        _this4.updateViews();
+        _this4.draw();
       });
     }
   }, {
@@ -98376,7 +98386,7 @@ var ViewListPanel = function () {
 
       this.saveViewsToDataServer(function () {
         jDiv.insertBefore(iDiv);
-        _this5.updateViews();
+        _this5.draw();
         iDiv.css('background-color', '');
         jDiv.css('background-color', '');
       });
@@ -98405,7 +98415,7 @@ var ViewListPanel = function () {
       var _this6 = this;
 
       var view = this.soupView.savedViewsByViewId[id];
-      this.viewPiece[id] = new ViewPiece({
+      this.viewPiece[id] = new ViewPanel({
         view: view,
         isEditable: this.isEditable,
         delete_view: function delete_view() {
@@ -98428,9 +98438,6 @@ var ViewListPanel = function () {
         },
         swapDown: function swapDown() {
           _this6.swapDown(id);
-        },
-        embed_view: function embed_view() {
-          window.location.href = '/embed/pdb?pdb_id=' + view.pdb_id + '&view=' + view.id;
         }
       });
       return this.viewPiece[id].div;
@@ -98466,7 +98473,7 @@ var ViewListPanel = function () {
       var newId = (0, _util.randomId)();
       this.controller.saveCurrentView(newId);
       this.insertNewViewDiv(newId);
-      this.updateViews();
+      this.draw();
       this.viewPiece[newId].div.css('background-color', 'lightgray');
       this.saveViewsToDataServer(function () {
         console.log('ViewPieceList.makeNewView success');
@@ -98476,7 +98483,7 @@ var ViewListPanel = function () {
     }
   }]);
 
-  return ViewListPanel;
+  return ViewPanelList;
 }();
 
 /**
@@ -98555,16 +98562,16 @@ var FullPageJolecule = function () {
         this.controller = this.embedJolecule.controller;
         this.display = this.embedJolecule.display;
 
-        this.viewListPanel = new ViewListPanel(this.viewsDisplayTag, this.controller, this.display, dataServer, this.params.isEditable);
+        this.viewPanelList = new ViewPanelList(this.viewsDisplayTag, this.display, dataServer, this.params.isEditable);
 
-        this.viewListPanel.makeAllViews();
+        this.viewPanelList.makeAllViews();
         var hashTag = (0, _util.getWindowUrl)().split('#')[1];
         if (hashTag in this.soupView.savedViewsByViewId) {
-          this.viewListPanel.setTargetByViewId(hashTag);
+          this.viewPanelList.setTargetByViewId(hashTag);
         } else {
-          this.viewListPanel.setTargetByViewId('view:000000');
+          this.viewPanelList.setTargetByViewId('view:000000');
         }
-        this.viewListPanel.updateViews();
+        this.viewPanelList.draw();
       }
 
       this.resize();
@@ -98581,7 +98588,7 @@ var FullPageJolecule = function () {
     key: 'draw',
     value: function draw() {
       if (this.soupView.changed) {
-        this.viewListPanel.updateViews();
+        this.viewPanelList.draw();
         this.embedJolecule.draw();
         this.soupView.changed = false;
       }
@@ -98619,16 +98626,16 @@ var FullPageJolecule = function () {
       if (!window.keyboard_lock) {
         var c = String.fromCharCode(event.keyCode).toUpperCase();
         if (c === 'V') {
-          this.viewListPanel.makeNewView();
+          this.viewPanelList.makeNewView();
           return;
         } else if (c === 'K' || event.keyCode === 37) {
           this.gotoPrevResidue();
         } else if (c === 'J' || event.keyCode === 39) {
           this.gotoNextResidue();
         } else if (event.keyCode === 38) {
-          this.viewListPanel.gotoPrevView();
+          this.viewPanelList.gotoPrevView();
         } else if (c === ' ' || event.keyCode === 40) {
-          this.viewListPanel.gotoNextView();
+          this.viewPanelList.gotoNextView();
         } else if (c === 'B') {
           if (this.soupView.currentView.show.backboneAtom) {
             this.controller.setBackboneOption('ribbon');
@@ -98643,13 +98650,11 @@ var FullPageJolecule = function () {
           this.controller.toggleShowOption('sidechain');
         } else if (c === 'W') {
           this.controller.toggleShowOption('water');
-        } else if (c === 'C') {
-          this.display.controller.clearSelectedResidues();
         } else if (c === 'E') {
           var iView = this.display.soupView.iLastViewSelected;
           if (iView > 0) {
             var viewId = this.display.soupView.savedViews[iView].id;
-            this.viewListPanel.div[viewId].edit_fn();
+            this.viewPanelList.div[viewId].edit_fn();
           }
         } else if (c === 'N') {
           this.display.controller.toggleResidueNeighbors();
@@ -98659,7 +98664,7 @@ var FullPageJolecule = function () {
           var i = parseInt(c) - 1;
           if ((i || i === 0) && i < this.soupView.savedViews.length) {
             var id = this.soupView.savedViews[i].id;
-            this.viewListPanel.setTargetByViewId(id);
+            this.viewPanelList.setTargetByViewId(id);
           }
         }
         this.display.soupView.changed = true;

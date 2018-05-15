@@ -285,6 +285,7 @@ export default {
       this.model.resetSoln()
       this.model.integrate(nStep)
       let yValues = this.model.soln.y
+      console.log(xValues, yValues)
       this.chartWidget.updateDataset(0, xValues, yValues)
     },
     randomizeGraph () {
