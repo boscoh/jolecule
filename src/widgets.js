@@ -740,7 +740,8 @@ class ZSlabWidget extends CanvasWidget {
   }
 
   width () {
-    return this.parentDiv.width()
+    let box = this.parentDiv[0].getBoundingClientRect()
+    return box.width - 20
   }
 
   height () {

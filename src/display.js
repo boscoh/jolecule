@@ -1303,15 +1303,15 @@ class Display extends WebglWidget {
       this.isDraggingCentralAtom = false
     }
 
-    if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
-      this.soup.clearSelectedResidues()
-      let atom = this.soup.getAtomProxy(this.iHoverAtom)
-      let res = this.soup.getResidueProxy(atom.iRes)
-      res.selected = !res.selected
-      this.iDownAtom = null
-      this.soupView.updateSelection = true
-      this.soupView.changed = true
-    }
+    // if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
+    //   this.soup.clearSelectedResidues()
+    //   let atom = this.soup.getAtomProxy(this.iHoverAtom)
+    //   let res = this.soup.getResidueProxy(atom.iRes)
+    //   res.selected = !res.selected
+    //   this.iDownAtom = null
+    //   this.soupView.updateSelection = true
+    //   this.soupView.changed = true
+    // }
 
     if (util.exists(event.touches)) {
       this.hover.hide()

@@ -45,7 +45,6 @@ class EmbedJolecule {
     let resizeFn = () => this.resize()
     $(window).resize(resizeFn)
     window.onorientationchange = resizeFn
-    resizeFn()
 
     this.isProcessing = {flag: false}
   };
@@ -98,6 +97,7 @@ class EmbedJolecule {
           await this.display.asyncSetMesssage(`Error parsing soup: ${err}`)
         } else {
           this.display.buildScene()
+          $(window).trigger('resize')
         }
 
         resolve()
@@ -185,18 +185,21 @@ class EmbedJolecule {
     this.viewBarDiv =
       $('<div style="width: 100%; display: flex; flex-direction: row">')
         .append(
-          $('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">')
+          $('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">')
             .append($('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))
+        )
+        .append(
+          $('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">')
+            .append(`<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>`)
+        )
+        .append(
+          $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
             .append($('<div id="sidechain"></div>'))
             .append(linkButton(
               '', 'Neighbors', 'jolecule-button',
               () => { this.controller.toggleResidueNeighbors() })
             )
             .append($('<div id="ligand"></div>'))
-        )
-        .append(
-          $('<div style="flex: 1; display: flex; flex-direction: row; justify-content: flex-end;">')
-            .append(`<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 120px; height: 20px;"></div>`)
         )
     this.statusDiv = $('<div style="display: flex; flex-direction: column">')
       .addClass('jolecule-embed-view-bar')

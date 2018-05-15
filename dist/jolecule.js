@@ -77955,7 +77955,6 @@ var EmbedJolecule = function () {
     };
     (0, _jquery2.default)(window).resize(resizeFn);
     window.onorientationchange = resizeFn;
-    resizeFn();
 
     this.isProcessing = { flag: false };
   }
@@ -78068,17 +78067,18 @@ var EmbedJolecule = function () {
                               return _this3.display.asyncSetMesssage('Error parsing soup: ' + err);
 
                             case 29:
-                              _context2.next = 32;
+                              _context2.next = 33;
                               break;
 
                             case 31:
                               _this3.display.buildScene();
+                              (0, _jquery2.default)(window).trigger('resize');
 
-                            case 32:
+                            case 33:
 
                               resolve();
 
-                            case 33:
+                            case 34:
                             case 'end':
                               return _context2.stop();
                           }
@@ -78222,9 +78222,9 @@ var EmbedJolecule = function () {
     value: function createStatusDiv() {
       var _this4 = this;
 
-      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>')).append((0, _jquery2.default)('<div id="sidechain"></div>')).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
+      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _jquery2.default)('<div id="sidechain"></div>')).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
         _this4.controller.toggleResidueNeighbors();
-      })).append((0, _jquery2.default)('<div id="ligand"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: flex-end;">').append('<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 120px; height: 20px;"></div>'));
+      })).append((0, _jquery2.default)('<div id="ligand"></div>')));
       this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append(this.viewBarDiv);
       this.div.append(this.statusDiv);
       this.sequenceWidget = new _widgets2.default.SequenceWidget(this.display);
@@ -82713,7 +82713,8 @@ var ZSlabWidget = function (_CanvasWidget2) {
   }, {
     key: 'width',
     value: function width() {
-      return this.parentDiv.width();
+      var box = this.parentDiv[0].getBoundingClientRect();
+      return box.width - 20;
     }
   }, {
     key: 'height',
@@ -91827,15 +91828,15 @@ var Display = function (_WebglWidget) {
         this.isDraggingCentralAtom = false;
       }
 
-      if (this.iHoverAtom !== null && this.iHoverAtom === this.iDownAtom) {
-        this.soup.clearSelectedResidues();
-        var atom = this.soup.getAtomProxy(this.iHoverAtom);
-        var res = this.soup.getResidueProxy(atom.iRes);
-        res.selected = !res.selected;
-        this.iDownAtom = null;
-        this.soupView.updateSelection = true;
-        this.soupView.changed = true;
-      }
+      // if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
+      //   this.soup.clearSelectedResidues()
+      //   let atom = this.soup.getAtomProxy(this.iHoverAtom)
+      //   let res = this.soup.getResidueProxy(atom.iRes)
+      //   res.selected = !res.selected
+      //   this.iDownAtom = null
+      //   this.soupView.updateSelection = true
+      //   this.soupView.changed = true
+      // }
 
       if (util.exists(event.touches)) {
         this.hover.hide();
