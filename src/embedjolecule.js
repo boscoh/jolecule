@@ -28,6 +28,7 @@ class EmbedJolecule {
 
     this.divTag = this.params.divTag
     this.div = $(this.params.divTag)
+
     // disable right mouse click
     this.div[0].oncontextmenu = _.noop
 
@@ -188,7 +189,7 @@ class EmbedJolecule {
             .append($('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))
             .append($('<div id="sidechain"></div>'))
             .append(linkButton(
-              '', 'neighbors', 'jolecule-button',
+              '', 'Neighbors', 'jolecule-button',
               () => { this.controller.toggleResidueNeighbors() })
             )
             .append($('<div id="ligand"></div>'))

@@ -1086,7 +1086,7 @@ class ToggleButtonWidget {
     }
     this.div = $(selector)
       .attr('href', '')
-      .html(option)
+      .html(_.capitalize(option))
       .addClass('jolecule-button')
       .on('click touch', (e) => {
         e.preventDefault()

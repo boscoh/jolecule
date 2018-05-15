@@ -691,6 +691,30 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
 
         let iVertexOffset = iVertexOffsetOfPathPoint[iPathPoint - 1]
 
+        function getShapeNormals (iPathPoint) {
+          let nVertex = shapePoints.length
+          let shapeNormals = []
+          let x, y
+          let diffPrev = new THREE.Vector2()
+          let diffNext = new THREE.Vector2()
+          let shapeNormal = new THREE.Vector2()
+          for (let i = 0; i < nVertex; i += 1) {
+            let iPrev = i > 0 ? i - 1 : nVertex - 1
+            let iNext = i + 1 < nVertex ? i + 1 : 0
+            let v = shapePoints[i]
+            diffPrev.subVectors(v, shapePoints[iPrev]).normalize()
+            diffNext.subVectors(v, shapePoints[iNext]).normalize()
+            shapeNormal.addVectors(diffPrev, diffNext).normalize()
+            x = path.normals[iPathPoint].clone().multiplyScalar(shapeNormal.x)
+            y = path.binormals[iPathPoint].clone().multiplyScalar(shapeNormal.y)
+            shapeNormals.push(x.add(y))
+          }
+          return shapeNormals
+        }
+
+        let shapeNormals = getShapeNormals(iPathPoint)
+        let lastShapeNormals = getShapeNormals(iPathPoint - 1)
+
         // Smoothed normals to give a rounded look
         for (let iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
           let iLastShapePoint
@@ -705,14 +729,22 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
           let iVertex10 = iVertex00 + this.nShape
           let iVertex11 = iVertex01 + this.nShape
 
-          this.pushFace(iVertex00, iVertex10, iVertex11)
-          this.pushFace(iVertex01, iVertex00, iVertex11)
+          this.pushFaceAndNormals(
+            iVertex00, iVertex10, iVertex11,
+            lastShapeNormals[iLastShapePoint],
+            shapeNormals[iLastShapePoint],
+            shapeNormals[iShapePoint])
+          this.pushFaceAndNormals(
+            iVertex01, iVertex00, iVertex11,
+            lastShapeNormals[iShapePoint],
+            lastShapeNormals[iLastShapePoint],
+            shapeNormals[iShapePoint])
         }
       }
     }
 
     // need to calculate own normals to be smoother
-    this.computeVertexNormals()
+    // this.computeVertexNormals()
   }
 
   setAttributes () {

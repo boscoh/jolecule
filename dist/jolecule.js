@@ -77962,6 +77962,7 @@ var EmbedJolecule = function () {
 
     this.divTag = this.params.divTag;
     this.div = (0, _jquery2.default)(this.params.divTag);
+
     // disable right mouse click
     this.div[0].oncontextmenu = _lodash2.default.noop;
 
@@ -78247,7 +78248,7 @@ var EmbedJolecule = function () {
     value: function createStatusDiv() {
       var _this4 = this;
 
-      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>')).append((0, _jquery2.default)('<div id="sidechain"></div>')).append((0, _util.linkButton)('', 'neighbors', 'jolecule-button', function () {
+      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>')).append((0, _jquery2.default)('<div id="sidechain"></div>')).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
         _this4.controller.toggleResidueNeighbors();
       })).append((0, _jquery2.default)('<div id="ligand"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: flex-end;">').append('<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 120px; height: 20px;"></div>'));
       this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append(this.viewBarDiv);
@@ -81141,6 +81142,8 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
   _createClass(BufferRibbonGeometry, [{
     key: 'setPath',
     value: function setPath(iPath, front, back) {
+      var _this4 = this;
+
       var path = this.paths[iPath];
       var trace = this.parameters.traces[iPath];
 
@@ -81168,11 +81171,11 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
           iPathEnd = path.points.length;
         }
 
-        for (var iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
-          iVertexOffsetOfPathPoint[iPathPoint] = this.vertexCount;
+        var _loop = function _loop(iPathPoint) {
+          iVertexOffsetOfPathPoint[iPathPoint] = _this4.vertexCount;
 
           var color = void 0;
-          if (this.parameters.isIndexColor) {
+          if (_this4.parameters.isIndexColor) {
             color = trace.indexColors[iTracePoint];
           } else {
             color = trace.colors[iTracePoint].clone();
@@ -81198,13 +81201,13 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
           var normal = path.normals[iPathPoint];
           var binormal = path.binormals[iPathPoint];
 
-          var _shapePoints = _lodash2.default.cloneDeep(this.shapePoints);
+          var shapePoints = _lodash2.default.cloneDeep(_this4.shapePoints);
           var _iteratorNormalCompletion2 = true;
           var _didIteratorError2 = false;
           var _iteratorError2 = undefined;
 
           try {
-            for (var _iterator2 = _shapePoints[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            for (var _iterator2 = shapePoints[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
               var shapePoint = _step2.value;
 
               shapePoint.x = shapePoint.x * width;
@@ -81230,12 +81233,12 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
           var _iteratorError3 = undefined;
 
           try {
-            for (var _iterator3 = _shapePoints[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+            for (var _iterator3 = shapePoints[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
               var _shapePoint = _step3.value;
 
               var x = normal.clone().multiplyScalar(_shapePoint.x);
               var y = binormal.clone().multiplyScalar(_shapePoint.y);
-              this.pushVertex(point.clone().add(x).add(y), color);
+              _this4.pushVertex(point.clone().add(x).add(y), color);
             }
           } catch (err) {
             _didIteratorError3 = true;
@@ -81253,33 +81256,64 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
           }
 
           if (iPathPoint === 0) {
-            continue;
+            return 'continue';
           }
 
           var iVertexOffset = iVertexOffsetOfPathPoint[iPathPoint - 1];
 
+          function getShapeNormals(iPathPoint) {
+            var nVertex = shapePoints.length;
+            var shapeNormals = [];
+            var x = void 0,
+                y = void 0;
+            var diffPrev = new THREE.Vector2();
+            var diffNext = new THREE.Vector2();
+            var shapeNormal = new THREE.Vector2();
+            for (var i = 0; i < nVertex; i += 1) {
+              var iPrev = i > 0 ? i - 1 : nVertex - 1;
+              var iNext = i + 1 < nVertex ? i + 1 : 0;
+              var v = shapePoints[i];
+              diffPrev.subVectors(v, shapePoints[iPrev]).normalize();
+              diffNext.subVectors(v, shapePoints[iNext]).normalize();
+              shapeNormal.addVectors(diffPrev, diffNext).normalize();
+              x = path.normals[iPathPoint].clone().multiplyScalar(shapeNormal.x);
+              y = path.binormals[iPathPoint].clone().multiplyScalar(shapeNormal.y);
+              shapeNormals.push(x.add(y));
+            }
+            return shapeNormals;
+          }
+
+          var shapeNormals = getShapeNormals(iPathPoint);
+          var lastShapeNormals = getShapeNormals(iPathPoint - 1);
+
           // Smoothed normals to give a rounded look
-          for (var iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
+          for (var iShapePoint = 0; iShapePoint < _this4.nShape; iShapePoint += 1) {
             var iLastShapePoint = void 0;
             if (iShapePoint === 0) {
-              iLastShapePoint = this.nShape - 1;
+              iLastShapePoint = _this4.nShape - 1;
             } else {
               iLastShapePoint = iShapePoint - 1;
             }
 
             var iVertex00 = iVertexOffset + iLastShapePoint;
             var iVertex01 = iVertexOffset + iShapePoint;
-            var iVertex10 = iVertex00 + this.nShape;
-            var iVertex11 = iVertex01 + this.nShape;
+            var iVertex10 = iVertex00 + _this4.nShape;
+            var iVertex11 = iVertex01 + _this4.nShape;
 
-            this.pushFace(iVertex00, iVertex10, iVertex11);
-            this.pushFace(iVertex01, iVertex00, iVertex11);
+            _this4.pushFaceAndNormals(iVertex00, iVertex10, iVertex11, lastShapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
+            _this4.pushFaceAndNormals(iVertex01, iVertex00, iVertex11, lastShapeNormals[iShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
           }
+        };
+
+        for (var iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
+          var _ret = _loop(iPathPoint);
+
+          if (_ret === 'continue') continue;
         }
       }
 
       // need to calculate own normals to be smoother
-      this.computeVertexNormals();
+      // this.computeVertexNormals()
     }
   }, {
     key: 'setAttributes',
@@ -81408,16 +81442,16 @@ var BlockArrowGeometry = function (_THREE$ExtrudeGeometr) {
 
     var path = new THREE.CatmullRomCurve3([_v2.default.create(0, -0.3, 0), _v2.default.create(0, 0.3, 0)]);
 
-    var _this4 = _possibleConstructorReturn(this, (BlockArrowGeometry.__proto__ || Object.getPrototypeOf(BlockArrowGeometry)).call(this, shape, {
+    var _this5 = _possibleConstructorReturn(this, (BlockArrowGeometry.__proto__ || Object.getPrototypeOf(BlockArrowGeometry)).call(this, shape, {
       steps: 2,
       bevelEnabled: false,
       extrudePath: path
     }));
 
-    _this4.type = 'BlockArrowGeometry';
+    _this5.type = 'BlockArrowGeometry';
 
-    _this4.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, 0)));
-    return _this4;
+    _this5.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, 0)));
+    return _this5;
   }
 
   return BlockArrowGeometry;
@@ -81435,12 +81469,12 @@ var UnitCylinderGeometry = function (_THREE$CylinderGeomet) {
   function UnitCylinderGeometry() {
     _classCallCheck(this, UnitCylinderGeometry);
 
-    var _this5 = _possibleConstructorReturn(this, (UnitCylinderGeometry.__proto__ || Object.getPrototypeOf(UnitCylinderGeometry)).call(this, 1, 1, 1, 4, 1, false));
+    var _this6 = _possibleConstructorReturn(this, (UnitCylinderGeometry.__proto__ || Object.getPrototypeOf(UnitCylinderGeometry)).call(this, 1, 1, 1, 4, 1, false));
 
-    _this5.type = 'UnitCylinderGeometry';
+    _this6.type = 'UnitCylinderGeometry';
 
-    _this5.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
-    return _this5;
+    _this6.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
+    return _this6;
   }
 
   return UnitCylinderGeometry;
@@ -81458,11 +81492,11 @@ var RaisedShapeGeometry = function (_THREE$Geometry2) {
   function RaisedShapeGeometry(vertices, thickness) {
     _classCallCheck(this, RaisedShapeGeometry);
 
-    var _this6 = _possibleConstructorReturn(this, (RaisedShapeGeometry.__proto__ || Object.getPrototypeOf(RaisedShapeGeometry)).call(this));
+    var _this7 = _possibleConstructorReturn(this, (RaisedShapeGeometry.__proto__ || Object.getPrototypeOf(RaisedShapeGeometry)).call(this));
 
-    _this6.type = 'RaisedShapeGeometry';
+    _this7.type = 'RaisedShapeGeometry';
 
-    _this6.parameters = {
+    _this7.parameters = {
       vertices: vertices,
       thickness: thickness
     };
@@ -81476,20 +81510,20 @@ var RaisedShapeGeometry = function (_THREE$Geometry2) {
     var offset = nVertex;
 
     for (var i = 0; i < vertices.length; i += 1) {
-      _this6.vertices.push(vertices[i].clone().add(displacement));
+      _this7.vertices.push(vertices[i].clone().add(displacement));
     }
     for (var _i9 = 0; _i9 < vertices.length; _i9 += 1) {
-      _this6.vertices.push(vertices[_i9].clone().sub(displacement));
+      _this7.vertices.push(vertices[_i9].clone().sub(displacement));
     }
 
     for (var _i10 = 0; _i10 < nVertex - 2; _i10 += 1) {
       var face = new THREE.Face3(_i10, _i10 + 1, iLast);
-      _this6.faces.push(face);
+      _this7.faces.push(face);
     }
 
     for (var _i11 = 0; _i11 < nVertex - 2; _i11 += 1) {
       var _face4 = new THREE.Face3(offset + _i11, offset + iLast, offset + _i11 + 1);
-      _this6.faces.push(_face4);
+      _this7.faces.push(_face4);
     }
 
     for (var _i12 = 0; _i12 < nVertex; _i12 += 1) {
@@ -81500,12 +81534,12 @@ var RaisedShapeGeometry = function (_THREE$Geometry2) {
         j = _i12 + 1;
       }
 
-      _this6.faces.push(new THREE.Face3(_i12, _i12 + offset, j + offset));
-      _this6.faces.push(new THREE.Face3(_i12, j + offset, j));
+      _this7.faces.push(new THREE.Face3(_i12, _i12 + offset, j + offset));
+      _this7.faces.push(new THREE.Face3(_i12, j + offset, j));
     }
 
-    _this6.computeFaceNormals();
-    return _this6;
+    _this7.computeFaceNormals();
+    return _this7;
   }
 
   return RaisedShapeGeometry;
@@ -81704,36 +81738,36 @@ var CopyBufferGeometry = function (_THREE$BufferGeometry2) {
   function CopyBufferGeometry(copyBufferGeometry, nCopy) {
     _classCallCheck(this, CopyBufferGeometry);
 
-    var _this7 = _possibleConstructorReturn(this, (CopyBufferGeometry.__proto__ || Object.getPrototypeOf(CopyBufferGeometry)).call(this));
+    var _this8 = _possibleConstructorReturn(this, (CopyBufferGeometry.__proto__ || Object.getPrototypeOf(CopyBufferGeometry)).call(this));
 
-    _this7.type = 'CopyBufferGeometry';
-    _this7.parameters = {
+    _this8.type = 'CopyBufferGeometry';
+    _this8.parameters = {
       nCopy: nCopy
     };
 
-    _this7.refBufferGeometry = copyBufferGeometry;
+    _this8.refBufferGeometry = copyBufferGeometry;
 
     var positions = expandFloatArray(copyBufferGeometry.attributes.position.array, nCopy);
-    _this7.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    _this8.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
 
     var normals = expandFloatArray(copyBufferGeometry.attributes.normal.array, nCopy);
-    _this7.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    _this8.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
 
     var uvs = expandFloatArray(copyBufferGeometry.attributes.uv.array, nCopy);
-    _this7.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    _this8.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
 
     var nVertexInCopy = copyBufferGeometry.attributes.position.count;
 
     if ('index' in copyBufferGeometry) {
       if (copyBufferGeometry.index) {
         var indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy);
-        _this7.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
+        _this8.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
       }
     }
 
     var colors = new Float32Array(nVertexInCopy * 3 * nCopy);
-    _this7.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    return _this7;
+    _this8.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    return _this8;
   }
 
   _createClass(CopyBufferGeometry, [{
@@ -83127,7 +83161,7 @@ var ToggleButtonWidget = function () {
     if (option) {
       this.option = option;
     }
-    this.div = (0, _jquery2.default)(selector).attr('href', '').html(option).addClass('jolecule-button').on('click touch', function (e) {
+    this.div = (0, _jquery2.default)(selector).attr('href', '').html(_lodash2.default.capitalize(option)).addClass('jolecule-button').on('click touch', function (e) {
       e.preventDefault();
       _this9.callback();
     });
@@ -90162,6 +90196,18 @@ var WebglWidget = function () {
 
 
     /**
+     **********************************************************
+     * Mesh-building methods
+     *
+     * Routines to build meshes that will be incorporated into
+     * scenes, and to be used for gpu-picking.
+     *
+     * Meshes are stored in a dictionary: this.displayMeshes &
+     * this.pickingMeshes
+     **********************************************************
+     */
+
+    /**
      * Clears/creates a mesh entry in the mesh collection
      * @param meshName - the name for a mesh collection
      */
@@ -90385,7 +90431,6 @@ var Display = function (_WebglWidget) {
   function Display(soupView, divTag, controller, isGrid, backgroundColor) {
     _classCallCheck(this, Display);
 
-    // js-signals observers hooks
     var _this2 = _possibleConstructorReturn(this, (Display.__proto__ || Object.getPrototypeOf(Display)).call(this, divTag, backgroundColor));
 
     _this2.observers = {
@@ -90404,6 +90449,7 @@ var Display = function (_WebglWidget) {
 
     // screen atom radius
     _this2.atomRadius = 0.35;
+    _this2.gridAtomRadius = 1.00;
 
     // Cross-hairs to identify centered atom
     _this2.buildCrossHairs();
@@ -90701,7 +90747,7 @@ var Display = function (_WebglWidget) {
     }
   }, {
     key: 'buildAtomMeshes',
-    value: function buildAtomMeshes(atomIndices, meshName) {
+    value: function buildAtomMeshes(atomIndices, meshName, atomRadius) {
       if (atomIndices.length === 0) {
         return;
       }
@@ -90714,7 +90760,7 @@ var Display = function (_WebglWidget) {
       for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
         var iAtom = atomIndices[iCopy];
         atom.iAtom = iAtom;
-        var matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius);
+        var matrix = glgeom.getSphereMatrix(atom.pos, atomRadius);
         displayGeom.applyMatrixToCopy(matrix, iCopy);
         pickingGeom.applyMatrixToCopy(matrix, iCopy);
         displayGeom.applyColorToCopy(atom.color, iCopy);
@@ -90867,7 +90913,7 @@ var Display = function (_WebglWidget) {
         }
       }
 
-      this.buildAtomMeshes(atomIndices, 'sidechains');
+      this.buildAtomMeshes(atomIndices, 'sidechains', this.atomRadius);
       this.buildBondMeshes(bondIndices, 'sidechains');
     }
   }, {
@@ -90960,7 +91006,7 @@ var Display = function (_WebglWidget) {
         }
       }
 
-      this.buildAtomMeshes(atomIndices, 'backbone');
+      this.buildAtomMeshes(atomIndices, 'backbone', this.atomRadius);
       this.buildBondMeshes(bondIndices, 'backbone');
     }
   }, {
@@ -91050,7 +91096,7 @@ var Display = function (_WebglWidget) {
         }
       }
 
-      this.buildAtomMeshes(atomIndices, 'ligands');
+      this.buildAtomMeshes(atomIndices, 'ligands', this.atomRadius);
       this.buildBondMeshes(bondIndices, 'ligands');
     }
   }, {
@@ -91087,7 +91133,7 @@ var Display = function (_WebglWidget) {
         }
       }
 
-      this.buildAtomMeshes(atomIndices, 'water');
+      this.buildAtomMeshes(atomIndices, 'water', this.atomRadius);
     }
   }, {
     key: 'buildMeshOfGrid',
@@ -91133,7 +91179,7 @@ var Display = function (_WebglWidget) {
         }
       }
 
-      this.buildAtomMeshes(atomIndices, 'grid');
+      this.buildAtomMeshes(atomIndices, 'grid', this.gridAtomRadius);
     }
   }, {
     key: 'buildMeshOfNucleotides',
@@ -91656,10 +91702,11 @@ var Display = function (_WebglWidget) {
       this.updateHover();
 
       this.iDownAtom = this.getIAtomHover();
+      var iCenterAtom = this.soupView.getCenteredAtom().iAtom;
 
       if (isDoubleClick) {
         this.doubleclick();
-      } else {
+      } else if (this.iDownAtom === iCenterAtom) {
         this.isDraggingCentralAtom = this.iDownAtom !== null;
       }
 

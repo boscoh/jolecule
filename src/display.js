@@ -261,6 +261,18 @@ class WebglWidget {
   };
 
   /**
+   **********************************************************
+   * Mesh-building methods
+   *
+   * Routines to build meshes that will be incorporated into
+   * scenes, and to be used for gpu-picking.
+   *
+   * Meshes are stored in a dictionary: this.displayMeshes &
+   * this.pickingMeshes
+   **********************************************************
+   */
+
+  /**
    * Clears/creates a mesh entry in the mesh collection
    * @param meshName - the name for a mesh collection
    */
@@ -421,7 +433,6 @@ class Display extends WebglWidget {
   constructor (soupView, divTag, controller, isGrid, backgroundColor) {
     super(divTag, backgroundColor)
 
-    // js-signals observers hooks
     this.observers = {
       reset: new Signal(),
       drawn: new Signal(),
@@ -439,6 +450,7 @@ class Display extends WebglWidget {
 
     // screen atom radius
     this.atomRadius = 0.35
+    this.gridAtomRadius = 1.00
 
     // Cross-hairs to identify centered atom
     this.buildCrossHairs()
@@ -613,7 +625,7 @@ class Display extends WebglWidget {
     this.pickingMeshes['arrows'].add(pickingMesh)
   }
 
-  buildAtomMeshes (atomIndices, meshName) {
+  buildAtomMeshes (atomIndices, meshName, atomRadius) {
     if (atomIndices.length === 0) {
       return
     }
@@ -626,7 +638,7 @@ class Display extends WebglWidget {
     for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
       let iAtom = atomIndices[iCopy]
       atom.iAtom = iAtom
-      let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
+      let matrix = glgeom.getSphereMatrix(atom.pos, atomRadius)
       displayGeom.applyMatrixToCopy(matrix, iCopy)
       pickingGeom.applyMatrixToCopy(matrix, iCopy)
       displayGeom.applyColorToCopy(atom.color, iCopy)
@@ -716,7 +728,7 @@ class Display extends WebglWidget {
         }
       }
     }
-    this.buildAtomMeshes(atomIndices, 'sidechains')
+    this.buildAtomMeshes(atomIndices, 'sidechains', this.atomRadius)
     this.buildBondMeshes(bondIndices, 'sidechains')
   }
 
@@ -744,7 +756,7 @@ class Display extends WebglWidget {
         }
       }
     }
-    this.buildAtomMeshes(atomIndices, 'backbone')
+    this.buildAtomMeshes(atomIndices, 'backbone', this.atomRadius)
     this.buildBondMeshes(bondIndices, 'backbone')
   }
 
@@ -769,7 +781,7 @@ class Display extends WebglWidget {
         }
       }
     }
-    this.buildAtomMeshes(atomIndices, 'ligands')
+    this.buildAtomMeshes(atomIndices, 'ligands', this.atomRadius)
     this.buildBondMeshes(bondIndices, 'ligands')
   }
 
@@ -783,7 +795,7 @@ class Display extends WebglWidget {
         atomIndices.push(residue.iAtom)
       }
     }
-    this.buildAtomMeshes(atomIndices, 'water')
+    this.buildAtomMeshes(atomIndices, 'water', this.atomRadius)
   }
 
   buildMeshOfGrid () {
@@ -806,7 +818,7 @@ class Display extends WebglWidget {
         }
       }
     }
-    this.buildAtomMeshes(atomIndices, 'grid')
+    this.buildAtomMeshes(atomIndices, 'grid', this.gridAtomRadius)
   }
 
   buildMeshOfNucleotides () {
@@ -1197,10 +1209,11 @@ class Display extends WebglWidget {
     this.updateHover()
 
     this.iDownAtom = this.getIAtomHover()
+    let iCenterAtom = this.soupView.getCenteredAtom().iAtom
 
     if (isDoubleClick) {
       this.doubleclick()
-    } else {
+    } else if (this.iDownAtom === iCenterAtom) {
       this.isDraggingCentralAtom = this.iDownAtom !== null
     }
 
