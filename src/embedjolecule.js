@@ -75,6 +75,14 @@ class EmbedJolecule {
 
         await this.display.asyncSetMesssage(`Parsing '${pdbId}'`)
         this.soup.parsePdbData(pdbText, pdbId)
+
+        if (this.soup.parsingError) {
+          let err = this.soup.parsingError
+          await this.display.asyncSetMesssage(`Error parsing soup: ${err}`)
+          resolve()
+          return
+        }
+
         this.soup.assignResidueSsAndCentralAtoms()
         this.soup.calcMaxLength()
 
@@ -92,13 +100,8 @@ class EmbedJolecule {
 
         this.soupView.changed = true
 
-        if (this.soup.parsingError) {
-          let err = this.soup.parsingError
-          await this.display.asyncSetMesssage(`Error parsing soup: ${err}`)
-        } else {
-          this.display.buildScene()
-          $(window).trigger('resize')
-        }
+        this.display.buildScene()
+        this.resize()
 
         resolve()
       })
@@ -123,44 +126,6 @@ class EmbedJolecule {
     this.display.cleanupMessage()
 
     this.isProcessing.flag = false
-  }
-
-  saveViewsToDataServer (success) {
-    this.dataServer.save_views(
-      this.controller.getViewDicts(), success)
-    this.soupView.changed = true
-  }
-
-  isChanged () {
-    if (!exists(this.display)) {
-      return false
-    }
-    return this.display.isChanged()
-  }
-
-  animate () {
-    if (exists(this.display)) {
-      this.display.animate()
-      if (this.isLoop) {
-        if (this.soupView.nUpdateStep <= 0) {
-          // loop started
-          this.soupView.nUpdateStep -= 1
-          if (this.soupView.nUpdateStep < -100) {
-            this.controller.setTargetToNextView()
-            this.soupView.changed = true
-          }
-        }
-      }
-    }
-  };
-
-  draw () {
-    if (exists(this.display)) {
-      if (this.soupView.changed) {
-        this.display.draw()
-        this.soupView.changed = false
-      }
-    }
   }
 
   createProteinDiv () {

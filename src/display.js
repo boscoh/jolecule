@@ -9,6 +9,7 @@ import * as glgeom from './glgeom'
 import widgets from './widgets'
 import * as data from './data'
 import { interpolateCameras } from './soup'
+import { registerGlobalAnimationLoop } from './animation'
 
 /**
  * Utility class to handle a three.js HTML object with
@@ -472,6 +473,8 @@ class Display extends WebglWidget {
     this.atomLabelsWidget = new widgets.AtomLabelsWidget(this)
     // draw onscreen line for mouse dragging between atoms
     this.lineElement = new widgets.LineElement(this, '#FF7777')
+
+    registerGlobalAnimationLoop(this)
   }
 
   addObserver (observer) {

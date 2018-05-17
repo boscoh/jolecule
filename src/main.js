@@ -20,10 +20,7 @@ import $ from 'jquery'
  */
 
 function initEmbedJolecule (userArgs) {
-  let args = _.merge(defaultArgs, userArgs)
-  let widget = new EmbedJolecule(args)
-  registerGlobalAnimationLoop(widget)
-  return widget
+  return new EmbedJolecule(_.merge(defaultArgs, userArgs))
 }
 
 /**
@@ -33,9 +30,7 @@ function initEmbedJolecule (userArgs) {
  * @returns {FullPageJolecule}
  */
 function initFullPageJolecule (...args) {
-  var widget = new FullPageJolecule(...args)
-  registerGlobalAnimationLoop(widget)
-  return widget
+  return new FullPageJolecule(...args)
 }
 
 function remoteDataServer (pdbId) {

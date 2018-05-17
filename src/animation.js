@@ -14,7 +14,7 @@
  * - window.lastTime
  */
 
-var MS_PER_STEP = 25
+const MS_PER_STEP = 25
 
 function loop () {
   requestAnimationFrame(loop)
@@ -22,9 +22,9 @@ function loop () {
   if (window.globalWidgets === []) {
     return
   }
-  var currTime = (new Date()).getTime()
-  var elapsedTime = currTime - window.lastTime
-  var nStep = (elapsedTime) / MS_PER_STEP
+  let currTime = (new Date()).getTime()
+  let elapsedTime = currTime - window.lastTime
+  let nStep = (elapsedTime) / MS_PER_STEP
   if (nStep < 1) {
     nStep = 1
   }

@@ -3,6 +3,7 @@ import scrollTo from 'jquery.scrollto' // eslint-disable-line
 import _ from 'lodash'
 import { EmbedJolecule } from './embedjolecule'
 import { getWindowUrl, linkButton, randomId, exists } from './util'
+import { registerGlobalAnimationLoop } from './animation'
 
 class ViewPanel {
   /**
@@ -422,6 +423,7 @@ class FullPageJolecule {
       this.params = _.assign(this.params, params)
     }
     this.embedJolecule = new EmbedJolecule(this.params)
+    this.embedJolecule.display.addObserver(this)
     document.oncontextmenu = _.noop
     document.onkeydown = (e) => { this.onkeydown(e) }
     this.noData = true
@@ -455,38 +457,14 @@ class FullPageJolecule {
         this.viewPanelList.setTargetByViewId('view:000000')
       }
       this.viewPanelList.draw()
-    }
 
-    this.resize()
+      this.embedJolecule.resize()
+    }
   }
-
-  isChanged () {
-    if (typeof this.soupView !== 'undefined') {
-      return this.soupView.changed
-    }
-    return false
-  };
 
   draw () {
-    if (this.soupView.changed) {
+    if (!_.isUndefined(this.viewPanelList)) {
       this.viewPanelList.draw()
-      this.embedJolecule.draw()
-      this.soupView.changed = false
-    }
-  }
-
-  animate () {
-    if (typeof this.embedJolecule !== 'undefined') {
-      this.embedJolecule.animate()
-    }
-  }
-
-  resize (event) {
-    if (typeof this.soupView !== 'undefined') {
-      this.soupView.changed = true
-    }
-    if (typeof this.embedJolecule !== 'undefined') {
-      this.embedJolecule.resize()
     }
   }
 
