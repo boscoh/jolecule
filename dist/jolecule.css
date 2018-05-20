@@ -53,6 +53,7 @@ a.jolecule-small-button:visited {
     font-size: 10px;
     letter-spacing: 0.1em;
     line-height: 15px;
+    cursor: pointer;
 }
 .jolecule-button:active,
 a.jolecule-button:active,

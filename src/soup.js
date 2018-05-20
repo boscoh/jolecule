@@ -120,7 +120,7 @@ class AtomProxy {
   }
 
   get resType () {
-    let iResType = this.soup.residueStore[this.iRes]
+    let iResType = this.soup.residueStore.iResType[this.iRes]
     return this.soup.resTypeTable[iResType]
   }
 
@@ -439,7 +439,8 @@ class Soup {
       bMax: 2,
       bMin: 0.4,
       changed: true,
-      isElem: {}
+      isElem: {},
+      convertB: b => -b.toFixed(2)
     }
   }
 

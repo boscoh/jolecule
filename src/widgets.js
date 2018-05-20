@@ -863,7 +863,6 @@ class GridToggleButtonWidget {
   }
 }
 
-
 /**
  * GridControlWidget
  */
@@ -986,15 +985,11 @@ class GridControlWidget extends CanvasWidget {
     this.line(xm, yTop, xm, yBottom, 1, dark)
     this.line(5, yTop, 35, yTop, 1, dark)
 
-    function getValueFromBFactor (b) {
-      return -b.toFixed(2)
-    }
-
     let font = '12px sans-serif'
     let textColor = '#666'
     let y = this.zToY(this.soupView.soup.grid.bCutoff)
     this.fillRect(5, y, 30, 5, textColor)
-    let text = getValueFromBFactor(this.soupView.soup.grid.bCutoff)
+    let text = this.soupView.soup.grid.convertB(this.soupView.soup.grid.bCutoff)
     this.text(text, xm, y + 15, font, textColor, 'center')
   }
 

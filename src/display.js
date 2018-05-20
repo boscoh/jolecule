@@ -553,7 +553,7 @@ class Display extends WebglWidget {
     this.soup.findGridLimits()
     this.calculateTracesForRibbons()
 
-    this.buildMeshOfTube()
+    this.buildMeshOfRibbons()
     this.buildMeshOfGrid()
     this.buildMeshOfLigands()
     this.buildMeshOfNucleotides()
@@ -566,7 +566,7 @@ class Display extends WebglWidget {
     this.soupView.updateView = true
   }
 
-  buildMeshOfTube () {
+  buildMeshOfRibbons () {
     this.createOrClearMesh('tube')
     let isFront = false
     let isBack = false
@@ -1024,51 +1024,32 @@ class Display extends WebglWidget {
       this.hover.hide()
       return
     }
-
     this.iHoverAtom = this.getIAtomHover()
-    let iNewHoverResidue = null
+    this.iHoverResidue = null
     if (this.iHoverAtom) {
       let atom = this.soup.getAtomProxy(this.iHoverAtom)
-      iNewHoverResidue = atom.iRes
-      let text = atom.label
+      this.iHoverResidue = atom.iRes
+      let label = atom.label
       let iAtom = atom.iAtom
       let pos = atom.pos.clone()
+      if (atom.resType === 'XXX') {
+        label += ':' + 'E=' + this.soup.grid.convertB(atom.bfactor)
+      }
+      let text = ''
       if (iAtom === this.soupView.getCenteredAtom().iAtom) {
         text = '<div style="text-align: center">'
-        text += atom.label
+        text += label
         text += '<br>[drag distances]<br>'
         text += '[double-click labels]'
         text += '</div>'
+      } else {
+        text = label
       }
       this.hover.html(text)
       let vector = this.getPosXY(pos)
       this.hover.move(vector.x, vector.y)
     } else {
       this.hover.hide()
-    }
-
-    if (iNewHoverResidue !== this.iHoverResidue) {
-      if (this.iHoverResidue !== null) {
-        for (let trace of this.traces) {
-          for (let [i, iRes] of trace.refIndices.entries()) {
-            if (iRes === this.iHoverResidue) {
-              trace.colors[i].copy(this.hoverResidueColor)
-            }
-          }
-        }
-      }
-      for (let trace of this.traces) {
-        for (let [i, iRes] of trace.refIndices.entries()) {
-          if (iRes === iNewHoverResidue) {
-            this.hoverResidueColor = trace.colors[i].clone()
-            trace.colors[i].offsetHSL(0, 0, +0.2)
-            // this.buildMeshOfTube()
-            // this.buildMeshOfArrows()
-            // this.soupView.changed = true
-            this.iHoverResidue = iNewHoverResidue
-          }
-        }
-      }
     }
   }
 
@@ -1090,7 +1071,7 @@ class Display extends WebglWidget {
     this.updateMeshesInScene = false
 
     let show = this.soupView.currentView.show
-    this.setMeshVisible('tube', show.ribbon)
+    this.setMeshVisible('ribbons', show.ribbon)
     this.setMeshVisible('arrows', !show.backboneAtoms)
     this.setMeshVisible('water', show.water)
     this.setMeshVisible('backbone', show.backboneAtom)
@@ -1119,7 +1100,7 @@ class Display extends WebglWidget {
           }
         }
       }
-      this.buildMeshOfTube()
+      this.buildMeshOfRibbons()
       this.buildMeshOfArrows()
       this.buildMeshOfResidueSidechains()
       this.soupView.updateSelection = false
