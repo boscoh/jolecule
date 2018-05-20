@@ -80558,7 +80558,7 @@ exports.SoupView = SoupView;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.applyColorToVector3array = exports.applyRotationOfMatrix4toVector3array = exports.applyMatrix4toVector3array = exports.CopyBufferGeometry = exports.getCylinderMatrix = exports.getSphereMatrix = exports.mergeUnitGeom = exports.Trace = exports.clearObject3D = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.BufferRaisedShapesGeometry = exports.BufferRibbonGeometry = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.setVisible = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = undefined;
+exports.applyColorToVector3array = exports.applyRotationOfMatrix4toVector3array = exports.applyMatrix4toVector3array = exports.CopyBufferGeometry = exports.getCylinderMatrix = exports.getSphereMatrix = exports.Trace = exports.clearObject3D = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.BufferRaisedShapesGeometry = exports.BufferRibbonGeometry = exports.setVisible = exports.BlockArrowGeometry = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -80864,40 +80864,6 @@ var Trace = function (_PathAndFrenetFrames) {
     value: function expand() {
       this.detailedPath = expandPath(this, 2 * this.detail, 0, this.points.length);
     }
-
-    /**
-     * A path is generated with 2*detail. If a
-     * residue is not at the end of a piece,
-     * will be extended to detail beyond that is
-     * half-way between the residue and the neighboring
-     * residue in a different piece.
-     */
-
-  }, {
-    key: 'getSegmentGeometry',
-    value: function getSegmentGeometry(iRes, face, isRound, isFront, isBack, color) {
-      var path = this.detailedPath;
-
-      // works out start on expanded path, including overhang
-      var iPathStart = iRes * 2 * this.detail - this.detail;
-      if (iPathStart < 0) {
-        iPathStart = 0;
-      }
-
-      // works out end of expanded path, including overhang
-      var iPathEnd = (iRes + 1) * 2 * this.detail - this.detail + 1;
-      if (iPathEnd >= path.points.length) {
-        iPathEnd = path.points.length - 1;
-      }
-
-      var segmentPath = path.slice(iPathStart, iPathEnd);
-
-      var geom = new RibbonGeometry(face, segmentPath, isRound, isFront, isBack);
-
-      setGeometryVerticesColor(geom, color);
-
-      return geom;
-    }
   }, {
     key: 'getGeometry',
     value: function getGeometry(face, isRound, isFront, isBack, color) {
@@ -80945,196 +80911,6 @@ var Trace = function (_PathAndFrenetFrames) {
  */
 
 
-var RibbonGeometry = function (_THREE$Geometry) {
-  _inherits(RibbonGeometry, _THREE$Geometry);
-
-  /**
-   * @param {THREE.Shape} shape - collection of 2D points for cross section
-   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
-   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
-   * @param {boolean} front - draw front cross-section
-   * @param {boolean} back - draw back cross-section
-   */
-  function RibbonGeometry(shape, path, round, front, back) {
-    _classCallCheck(this, RibbonGeometry);
-
-    var _this2 = _possibleConstructorReturn(this, (RibbonGeometry.__proto__ || Object.getPrototypeOf(RibbonGeometry)).call(this));
-
-    _this2.type = 'RibbonGeometry';
-
-    _this2.parameters = {
-      shape: shape,
-      path: path,
-      round: round
-    };
-
-    if (path.points.length < 2) {
-      return _possibleConstructorReturn(_this2);
-    }
-
-    var shapePoints = shape.extractPoints(4).shape;
-    var nVertex = shapePoints.length;
-
-    if (_lodash2.default.isUndefined(round)) {
-      round = false;
-    }
-
-    var shapeEdgeNormals = [];
-
-    if (!round) {
-      for (var j = 0; j < nVertex; j += 1) {
-        var i = j - 1;
-        if (i === -1) {
-          i = nVertex - 1;
-        }
-        var v0 = shapePoints[i];
-        var v1 = shapePoints[j];
-        var x = -(v1.y - v0.y);
-        var y = v1.x - v0.x;
-        shapeEdgeNormals.push(new THREE.Vector2(x, y));
-      }
-    }
-
-    for (var iPoint = 0; iPoint < path.points.length; iPoint += 1) {
-      var point = path.points[iPoint];
-      var normal = path.normals[iPoint];
-      var binormal = path.binormals[iPoint];
-
-      for (var iShapePoint = 0; iShapePoint < nVertex; iShapePoint += 1) {
-        var shapePoint = shapePoints[iShapePoint];
-
-        var _x = normal.clone().multiplyScalar(shapePoint.x);
-        var _y = binormal.clone().multiplyScalar(shapePoint.y);
-
-        var vertex = point.clone().add(_x).add(_y);
-
-        _this2.vertices.push(vertex);
-      }
-
-      var topOffset = _this2.vertices.length - 2 * nVertex;
-      if (topOffset < 0) {
-        continue;
-      }
-
-      if (round) {
-        // Smoothed normals to give a rounded look
-        for (var _j2 = 0; _j2 < nVertex; _j2 += 1) {
-          var _i5 = void 0;
-          if (_j2 === 0) {
-            _i5 = nVertex - 1;
-          } else {
-            _i5 = _j2 - 1;
-          }
-          var k = topOffset + _i5;
-          var l = topOffset + _j2;
-
-          var _x2 = void 0,
-              _y2 = void 0;
-
-          _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_i5].x);
-          _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_i5].y);
-          var normal00 = _x2.add(_y2);
-
-          _x2 = path.normals[iPoint - 1].clone().multiplyScalar(shapePoints[_j2].x);
-          _y2 = path.binormals[iPoint - 1].clone().multiplyScalar(shapePoints[_j2].y);
-          var normal01 = _x2.add(_y2);
-
-          _x2 = path.normals[iPoint].clone().multiplyScalar(shapePoints[_j2].x);
-          _y2 = path.binormals[iPoint].clone().multiplyScalar(shapePoints[_j2].y);
-          var normal11 = _x2.add(_y2);
-
-          _x2 = path.normals[iPoint].clone().multiplyScalar(shapePoints[_i5].x);
-          _y2 = path.binormals[iPoint].clone().multiplyScalar(shapePoints[_i5].y);
-          var normal10 = _x2.add(_y2);
-
-          var face = new THREE.Face3(k, k + nVertex, l + nVertex);
-          face.vertexNormals = [normal00, normal10, normal11];
-          _this2.faces.push(face);
-
-          face = new THREE.Face3(k, l + nVertex, l);
-          face.vertexNormals = [normal00, normal11, normal01];
-          _this2.faces.push(face);
-        }
-      } else {
-        // Continuous normals but keep faces distinct
-        // along ribbon
-        for (var _j3 = 0; _j3 < nVertex; _j3 += 1) {
-          var _i6 = void 0;
-          if (_j3 === 0) {
-            _i6 = nVertex - 1;
-          } else {
-            _i6 = _j3 - 1;
-          }
-          var _k = topOffset + _i6;
-          var _l = topOffset + _j3;
-
-          var _x3 = void 0,
-              _y3 = void 0;
-
-          _x3 = path.normals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[_j3].x);
-          _y3 = path.binormals[iPoint - 1].clone().multiplyScalar(shapeEdgeNormals[_j3].y);
-          var normal0 = _x3.add(_y3);
-
-          _x3 = path.normals[iPoint].clone().multiplyScalar(shapeEdgeNormals[_j3].x);
-          _y3 = path.binormals[iPoint].clone().multiplyScalar(shapeEdgeNormals[_j3].y);
-          var normal1 = _x3.add(_y3);
-
-          var _face = new THREE.Face3(_k, _k + nVertex, _l + nVertex);
-          _face.vertexNormals = [normal0, normal1, normal1];
-          _this2.faces.push(_face);
-
-          _face = new THREE.Face3(_k, _l + nVertex, _l);
-          _face.vertexNormals = [normal0, normal1, normal0];
-          _this2.faces.push(_face);
-        }
-      }
-    }
-
-    if (front) {
-      // Draw front face
-      var _normal = threePointNormal([_this2.vertices[0], _this2.vertices[1], _this2.vertices[2]]);
-      for (var _i7 = 0; _i7 < nVertex - 2; _i7 += 1) {
-        var _face2 = new THREE.Face3(_i7, _i7 + 1, nVertex - 1);
-        _face2.normal.copy(_normal);
-        _this2.faces.push(_face2);
-      }
-    }
-
-    if (back) {
-      // draw back face
-      var offset = _this2.vertices.length - 1 - nVertex;
-
-      var _normal2 = threePointNormal([_this2.vertices[offset], _this2.vertices[offset + nVertex - 1], _this2.vertices[offset + 1]]);
-
-      for (var _i8 = 0; _i8 < nVertex - 2; _i8 += 1) {
-        var _face3 = new THREE.Face3(offset + _i8, offset + nVertex - 1, offset + _i8 + 1);
-        _face3.normal.copy(_normal2);
-        _this2.faces.push(_face3);
-      }
-    }
-    return _this2;
-  }
-
-  return RibbonGeometry;
-}(THREE.Geometry);
-
-/**
- * Extrusion along a path that aligns a 2D shape as cross-section, with
- * orientation along the normal for the cross-section.
- *
- * Accepts a cross-section shape, which is a collection of 2D points around
- * the origin, and a path, which contains points, normals and binormals
- * and builds a oriented extrusion out of it.
- *
- * If round is set, then the vertex normals are set to orient along the
- * normal/binormal axis from the origin, otherwise, face normals are defined
- * perpedicular to the face.
- *
- * For a segment between two path points and a repetition of the cross-section,
- * two triangles are defined.
- */
-
-
 var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
   _inherits(BufferRibbonGeometry, _THREE$BufferGeometry);
 
@@ -81150,11 +80926,11 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
 
     _classCallCheck(this, BufferRibbonGeometry);
 
-    var _this3 = _possibleConstructorReturn(this, (BufferRibbonGeometry.__proto__ || Object.getPrototypeOf(BufferRibbonGeometry)).call(this));
+    var _this2 = _possibleConstructorReturn(this, (BufferRibbonGeometry.__proto__ || Object.getPrototypeOf(BufferRibbonGeometry)).call(this));
 
-    _this3.type = 'BufferRibbonGeometry';
+    _this2.type = 'BufferRibbonGeometry';
 
-    _this3.parameters = {
+    _this2.parameters = {
       shape: shape,
       traces: traces,
       front: front,
@@ -81162,25 +80938,25 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
       isIndexColor: isIndexColor
     };
 
-    _this3.shapePoints = shape.extractPoints(4).shape;
-    _this3.nShape = _this3.shapePoints.length;
+    _this2.shapePoints = shape.extractPoints(4).shape;
+    _this2.nShape = _this2.shapePoints.length;
 
-    _this3.nVertex = 0;
-    _this3.nFace = 0;
+    _this2.nVertex = 0;
+    _this2.nFace = 0;
 
-    _this3.countVertexAndFacesOfPath(front, back);
+    _this2.countVertexAndFacesOfPath(front, back);
 
-    _this3.setAttributes();
+    _this2.setAttributes();
 
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
     var _iteratorError = undefined;
 
     try {
-      for (var _iterator = _lodash2.default.range(_this3.paths.length)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      for (var _iterator = _lodash2.default.range(_this2.paths.length)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
         var iPath = _step.value;
 
-        _this3.setPath(iPath, front, back);
+        _this2.setPath(iPath, front, back);
       }
     } catch (err) {
       _didIteratorError = true;
@@ -81197,13 +80973,13 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
       }
     }
 
-    return _this3;
+    return _this2;
   }
 
   _createClass(BufferRibbonGeometry, [{
     key: 'setPath',
     value: function setPath(iPath, front, back) {
-      var _this4 = this;
+      var _this3 = this;
 
       var path = this.paths[iPath];
       var trace = this.parameters.traces[iPath];
@@ -81233,10 +81009,10 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
         }
 
         var _loop = function _loop(iPathPoint) {
-          iVertexOffsetOfPathPoint[iPathPoint] = _this4.vertexCount;
+          iVertexOffsetOfPathPoint[iPathPoint] = _this3.vertexCount;
 
           var color = void 0;
-          if (_this4.parameters.isIndexColor) {
+          if (_this3.parameters.isIndexColor) {
             color = trace.indexColors[iTracePoint];
           } else {
             color = trace.colors[iTracePoint].clone();
@@ -81261,7 +81037,7 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
           var normal = path.normals[iPathPoint];
           var binormal = path.binormals[iPathPoint];
 
-          var shapePoints = _lodash2.default.cloneDeep(_this4.shapePoints);
+          var shapePoints = _lodash2.default.cloneDeep(_this3.shapePoints);
           var _iteratorNormalCompletion2 = true;
           var _didIteratorError2 = false;
           var _iteratorError2 = undefined;
@@ -81298,7 +81074,7 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
 
               var x = normal.clone().multiplyScalar(_shapePoint.x);
               var y = binormal.clone().multiplyScalar(_shapePoint.y);
-              _this4.pushVertex(point.clone().add(x).add(y), color);
+              _this3.pushVertex(point.clone().add(x).add(y), color);
             }
           } catch (err) {
             _didIteratorError3 = true;
@@ -81347,21 +81123,21 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
           var lastShapeNormals = getShapeNormals(iPathPoint - 1);
 
           // Smoothed normals to give a rounded look
-          for (var iShapePoint = 0; iShapePoint < _this4.nShape; iShapePoint += 1) {
+          for (var iShapePoint = 0; iShapePoint < _this3.nShape; iShapePoint += 1) {
             var iLastShapePoint = void 0;
             if (iShapePoint === 0) {
-              iLastShapePoint = _this4.nShape - 1;
+              iLastShapePoint = _this3.nShape - 1;
             } else {
               iLastShapePoint = iShapePoint - 1;
             }
 
             var iVertex00 = iVertexOffset + iLastShapePoint;
             var iVertex01 = iVertexOffset + iShapePoint;
-            var iVertex10 = iVertex00 + _this4.nShape;
-            var iVertex11 = iVertex01 + _this4.nShape;
+            var iVertex10 = iVertex00 + _this3.nShape;
+            var iVertex11 = iVertex01 + _this3.nShape;
 
-            _this4.pushFaceAndNormals(iVertex00, iVertex10, iVertex11, lastShapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
-            _this4.pushFaceAndNormals(iVertex01, iVertex00, iVertex11, lastShapeNormals[iShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
+            _this3.pushFaceAndNormals(iVertex00, iVertex10, iVertex11, lastShapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
+            _this3.pushFaceAndNormals(iVertex01, iVertex00, iVertex11, lastShapeNormals[iShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
           }
         };
 
@@ -81498,21 +81274,21 @@ var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
   function BufferRaisedShapesGeometry(verticesList, colorList, thickness) {
     _classCallCheck(this, BufferRaisedShapesGeometry);
 
-    var _this5 = _possibleConstructorReturn(this, (BufferRaisedShapesGeometry.__proto__ || Object.getPrototypeOf(BufferRaisedShapesGeometry)).call(this));
+    var _this4 = _possibleConstructorReturn(this, (BufferRaisedShapesGeometry.__proto__ || Object.getPrototypeOf(BufferRaisedShapesGeometry)).call(this));
 
-    _this5.type = 'BufferRaisedShapesGeometry';
+    _this4.type = 'BufferRaisedShapesGeometry';
 
-    _this5.parameters = { verticesList: verticesList, thickness: thickness, colorList: colorList };
+    _this4.parameters = { verticesList: verticesList, thickness: thickness, colorList: colorList };
 
-    _this5.nVertex = 0;
-    _this5.nFace = 0;
+    _this4.nVertex = 0;
+    _this4.nFace = 0;
 
-    _this5.countVertexAndFacesOfPath();
+    _this4.countVertexAndFacesOfPath();
 
-    _this5.setAttributes();
+    _this4.setAttributes();
 
-    _this5.setPath();
-    return _this5;
+    _this4.setPath();
+    return _this4;
   }
 
   _createClass(BufferRaisedShapesGeometry, [{
@@ -81529,13 +81305,13 @@ var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
         for (var _iterator5 = this.parameters.verticesList[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
           var vertices = _step5.value;
 
-          var _nVertex = vertices.length;
+          var nVertex = vertices.length;
           // top layer
-          this.nFace += _nVertex - 2;
+          this.nFace += nVertex - 2;
           // bottom layer
-          this.nFace += _nVertex - 2;
+          this.nFace += nVertex - 2;
           // side layers
-          this.nFace += 2 * _nVertex;
+          this.nFace += 2 * nVertex;
         }
       } catch (err) {
         _didIteratorError5 = true;
@@ -81567,35 +81343,35 @@ var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
               i = _step6$value[0],
               vertices = _step6$value[1];
 
-          var _normal3 = threePointNormal(vertices.slice(0, 3));
-          var displacement = _normal3.clone().multiplyScalar(this.parameters.thickness / 2);
+          var _normal = threePointNormal(vertices.slice(0, 3));
+          var displacement = _normal.clone().multiplyScalar(this.parameters.thickness / 2);
           var _color = this.parameters.colorList[i];
 
-          var _nVertex2 = vertices.length;
-          var iLast = _nVertex2 - 1;
+          var nVertex = vertices.length;
+          var iLast = nVertex - 1;
 
           var topVertices = [];
-          for (var _i9 = 0; _i9 < vertices.length; _i9 += 1) {
-            topVertices.push(vertices[_i9].clone().add(displacement));
+          for (var _i5 = 0; _i5 < vertices.length; _i5 += 1) {
+            topVertices.push(vertices[_i5].clone().add(displacement));
           }
 
           var bottomVertices = [];
-          for (var _i10 = 0; _i10 < vertices.length; _i10 += 1) {
-            bottomVertices.push(vertices[_i10].clone().sub(displacement));
+          for (var _i6 = 0; _i6 < vertices.length; _i6 += 1) {
+            bottomVertices.push(vertices[_i6].clone().sub(displacement));
           }
 
-          for (var _i11 = 0; _i11 < _nVertex2 - 2; _i11 += 1) {
-            this.pushVerticesOfFace(topVertices[_i11], topVertices[_i11 + 1], topVertices[iLast], _color);
+          for (var _i7 = 0; _i7 < nVertex - 2; _i7 += 1) {
+            this.pushVerticesOfFace(topVertices[_i7], topVertices[_i7 + 1], topVertices[iLast], _color);
           }
 
-          for (var _i12 = 0; _i12 < _nVertex2 - 2; _i12 += 1) {
-            this.pushVerticesOfFace(bottomVertices[_i12], bottomVertices[iLast], bottomVertices[_i12 + 1], _color);
+          for (var _i8 = 0; _i8 < nVertex - 2; _i8 += 1) {
+            this.pushVerticesOfFace(bottomVertices[_i8], bottomVertices[iLast], bottomVertices[_i8 + 1], _color);
           }
 
-          for (var _i13 = 0; _i13 < _nVertex2; _i13 += 1) {
-            var j = _i13 === _nVertex2 - 1 ? 0 : _i13 + 1;
-            this.pushVerticesOfFace(topVertices[_i13], bottomVertices[_i13], bottomVertices[j], _color);
-            this.pushVerticesOfFace(topVertices[_i13], bottomVertices[j], topVertices[j], _color);
+          for (var _i9 = 0; _i9 < nVertex; _i9 += 1) {
+            var j = _i9 === nVertex - 1 ? 0 : _i9 + 1;
+            this.pushVerticesOfFace(topVertices[_i9], bottomVertices[_i9], bottomVertices[j], _color);
+            this.pushVerticesOfFace(topVertices[_i9], bottomVertices[j], topVertices[j], _color);
           }
         }
       } catch (err) {
@@ -81691,108 +81467,20 @@ var BlockArrowGeometry = function (_THREE$ExtrudeGeometr) {
 
     var path = new THREE.CatmullRomCurve3([_v2.default.create(0, -0.2, 0), _v2.default.create(0, 0.2, 0)]);
 
-    var _this6 = _possibleConstructorReturn(this, (BlockArrowGeometry.__proto__ || Object.getPrototypeOf(BlockArrowGeometry)).call(this, shape, {
+    var _this5 = _possibleConstructorReturn(this, (BlockArrowGeometry.__proto__ || Object.getPrototypeOf(BlockArrowGeometry)).call(this, shape, {
       steps: 2,
       bevelEnabled: false,
       extrudePath: path
     }));
 
-    _this6.type = 'BlockArrowGeometry';
+    _this5.type = 'BlockArrowGeometry';
 
-    _this6.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, 0)));
-    return _this6;
+    _this5.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, 0)));
+    return _this5;
   }
 
   return BlockArrowGeometry;
 }(THREE.ExtrudeGeometry);
-
-/**
- * Creates a cylinder that is orientated along
- * the z-direction. Use lookAt to reorientate
- */
-
-
-var UnitCylinderGeometry = function (_THREE$CylinderGeomet) {
-  _inherits(UnitCylinderGeometry, _THREE$CylinderGeomet);
-
-  function UnitCylinderGeometry() {
-    _classCallCheck(this, UnitCylinderGeometry);
-
-    var _this7 = _possibleConstructorReturn(this, (UnitCylinderGeometry.__proto__ || Object.getPrototypeOf(UnitCylinderGeometry)).call(this, 1, 1, 1, 4, 1, false));
-
-    _this7.type = 'UnitCylinderGeometry';
-
-    _this7.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
-    return _this7;
-  }
-
-  return UnitCylinderGeometry;
-}(THREE.CylinderGeometry);
-
-/**
- * Takes a bunch of points and treats it as defining
- * a polygon, and raises it to a certain thickness.
- */
-
-
-var RaisedShapeGeometry = function (_THREE$Geometry2) {
-  _inherits(RaisedShapeGeometry, _THREE$Geometry2);
-
-  function RaisedShapeGeometry(vertices, thickness) {
-    _classCallCheck(this, RaisedShapeGeometry);
-
-    var _this8 = _possibleConstructorReturn(this, (RaisedShapeGeometry.__proto__ || Object.getPrototypeOf(RaisedShapeGeometry)).call(this));
-
-    _this8.type = 'RaisedShapeGeometry';
-
-    _this8.parameters = {
-      vertices: vertices,
-      thickness: thickness
-    };
-
-    var normal = threePointNormal(vertices.slice(0, 3));
-
-    var displacement = normal.clone().multiplyScalar(thickness / 2);
-
-    var nVertex = vertices.length;
-    var iLast = nVertex - 1;
-    var offset = nVertex;
-
-    for (var i = 0; i < vertices.length; i += 1) {
-      _this8.vertices.push(vertices[i].clone().add(displacement));
-    }
-    for (var _i14 = 0; _i14 < vertices.length; _i14 += 1) {
-      _this8.vertices.push(vertices[_i14].clone().sub(displacement));
-    }
-
-    for (var _i15 = 0; _i15 < nVertex - 2; _i15 += 1) {
-      var face = new THREE.Face3(_i15, _i15 + 1, iLast);
-      _this8.faces.push(face);
-    }
-
-    for (var _i16 = 0; _i16 < nVertex - 2; _i16 += 1) {
-      var _face4 = new THREE.Face3(offset + _i16, offset + iLast, offset + _i16 + 1);
-      _this8.faces.push(_face4);
-    }
-
-    for (var _i17 = 0; _i17 < nVertex; _i17 += 1) {
-      var j = void 0;
-      if (_i17 === nVertex - 1) {
-        j = 0;
-      } else {
-        j = _i17 + 1;
-      }
-
-      _this8.faces.push(new THREE.Face3(_i17, _i17 + offset, j + offset));
-      _this8.faces.push(new THREE.Face3(_i17, j + offset, j));
-    }
-
-    _this8.computeFaceNormals();
-    return _this8;
-  }
-
-  return RaisedShapeGeometry;
-}(THREE.Geometry);
 
 /**
  * Convenience function to set the visibility of a THREE
@@ -81876,11 +81564,6 @@ function setGeometryVerticesColor(geom, color) {
     face.vertexColors[1] = color;
     face.vertexColors[2] = color;
   }
-}
-
-function mergeUnitGeom(totalGeom, unitGeom, color, matrix) {
-  setGeometryVerticesColor(unitGeom, color);
-  totalGeom.merge(unitGeom, matrix);
 }
 
 /**
@@ -81987,36 +81670,36 @@ var CopyBufferGeometry = function (_THREE$BufferGeometry3) {
   function CopyBufferGeometry(copyBufferGeometry, nCopy) {
     _classCallCheck(this, CopyBufferGeometry);
 
-    var _this9 = _possibleConstructorReturn(this, (CopyBufferGeometry.__proto__ || Object.getPrototypeOf(CopyBufferGeometry)).call(this));
+    var _this6 = _possibleConstructorReturn(this, (CopyBufferGeometry.__proto__ || Object.getPrototypeOf(CopyBufferGeometry)).call(this));
 
-    _this9.type = 'CopyBufferGeometry';
-    _this9.parameters = {
+    _this6.type = 'CopyBufferGeometry';
+    _this6.parameters = {
       nCopy: nCopy
     };
 
-    _this9.refBufferGeometry = copyBufferGeometry;
+    _this6.refBufferGeometry = copyBufferGeometry;
 
     var positions = expandFloatArray(copyBufferGeometry.attributes.position.array, nCopy);
-    _this9.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    _this6.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
 
     var normals = expandFloatArray(copyBufferGeometry.attributes.normal.array, nCopy);
-    _this9.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    _this6.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
 
     var uvs = expandFloatArray(copyBufferGeometry.attributes.uv.array, nCopy);
-    _this9.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    _this6.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
 
     var nVertexInCopy = copyBufferGeometry.attributes.position.count;
 
     if ('index' in copyBufferGeometry) {
       if (copyBufferGeometry.index) {
         var indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy);
-        _this9.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
+        _this6.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
       }
     }
 
     var colors = new Float32Array(nVertexInCopy * 3 * nCopy);
-    _this9.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    return _this9;
+    _this6.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    return _this6;
   }
 
   _createClass(CopyBufferGeometry, [{
@@ -82045,10 +81728,7 @@ var CopyBufferGeometry = function (_THREE$BufferGeometry3) {
 }(THREE.BufferGeometry);
 
 exports.BlockArrowGeometry = BlockArrowGeometry;
-exports.UnitCylinderGeometry = UnitCylinderGeometry;
 exports.setVisible = setVisible;
-exports.RaisedShapeGeometry = RaisedShapeGeometry;
-exports.RibbonGeometry = RibbonGeometry;
 exports.BufferRibbonGeometry = BufferRibbonGeometry;
 exports.BufferRaisedShapesGeometry = BufferRaisedShapesGeometry;
 exports.getUnitVectorRotation = getUnitVectorRotation;
@@ -82057,7 +81737,6 @@ exports.fraction = fraction;
 exports.setGeometryVerticesColor = setGeometryVerticesColor;
 exports.clearObject3D = clearObject3D;
 exports.Trace = Trace;
-exports.mergeUnitGeom = mergeUnitGeom;
 exports.getSphereMatrix = getSphereMatrix;
 exports.getCylinderMatrix = getCylinderMatrix;
 exports.CopyBufferGeometry = CopyBufferGeometry;
@@ -91327,22 +91006,34 @@ var Display = function (_WebglWidget) {
       this.buildAtomMeshes(atomIndices, 'grid', this.gridAtomRadius);
     }
   }, {
-    key: 'getNucleotideBaseVertices',
-    value: function getNucleotideBaseVertices(residue) {
+    key: 'getNucleotideBaseAtomTypes',
+    value: function getNucleotideBaseAtomTypes(resType) {
       var atomTypes = [];
-      if (residue.resType === 'DA' || residue.resType === 'A') {
+      if (resType === 'DA' || resType === 'A') {
         atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
-      } else if (residue.resType === 'DG' || residue.resType === 'G') {
+      } else if (resType === 'DG' || resType === 'G') {
         atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
-      } else if (residue.resType === 'DT' || residue.resType === 'U') {
+      } else if (resType === 'DT' || resType === 'U') {
         atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
-      } else if (residue.resType === 'DC' || residue.resType === 'C') {
+      } else if (resType === 'DC' || resType === 'C') {
         atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
       }
-      var atom = this.soup.getAtomProxy();
-      return _lodash2.default.map(atomTypes, function (a) {
-        return atom.load(residue.getIAtom(a)).pos.clone();
-      });
+      return atomTypes;
+    }
+  }, {
+    key: 'getNucleotideConnectorBondAtomTypes',
+    value: function getNucleotideConnectorBondAtomTypes(resType) {
+      var bondTypes = [];
+      if (resType === 'DA' || resType === 'A') {
+        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']];
+      } else if (resType === 'DG' || resType === 'G') {
+        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']];
+      } else if (resType === 'DT' || resType === 'U') {
+        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']];
+      } else if (resType === 'DC' || resType === 'C') {
+        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']];
+      }
+      return bondTypes;
     }
   }, {
     key: 'buildMeshOfNucleotides',
@@ -91351,9 +91042,14 @@ var Display = function (_WebglWidget) {
 
       var residue = this.soup.getResidueProxy();
       var atom = this.soup.getAtomProxy();
+      var getVecFromAtomType = function getVecFromAtomType(a) {
+        return atom.load(residue.getIAtom(a)).pos.clone();
+      };
 
       var verticesList = [];
       var colorList = [];
+      var indexColorList = [];
+      var bondList = [];
       var _iteratorNormalCompletion19 = true;
       var _didIteratorError19 = false;
       var _iteratorError19 = undefined;
@@ -91365,7 +91061,34 @@ var Display = function (_WebglWidget) {
           residue.iRes = iRes;
           if (residue.ss === 'D' && residue.isPolymer) {
             colorList.push(residue.color);
-            verticesList.push(this.getNucleotideBaseVertices(residue));
+            indexColorList.push(this.getIndexColor(residue.iAtom));
+            var atomTypes = this.getNucleotideBaseAtomTypes(residue.resType);
+            verticesList.push(_lodash2.default.map(atomTypes, getVecFromAtomType));
+            var bondTypes = this.getNucleotideConnectorBondAtomTypes(residue.resType);
+            var _iteratorNormalCompletion20 = true;
+            var _didIteratorError20 = false;
+            var _iteratorError20 = undefined;
+
+            try {
+              for (var _iterator20 = bondTypes[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+                var bond = _step20.value;
+
+                bondList.push([getVecFromAtomType(bond[0]), getVecFromAtomType(bond[1]), residue.color]);
+              }
+            } catch (err) {
+              _didIteratorError20 = true;
+              _iteratorError20 = err;
+            } finally {
+              try {
+                if (!_iteratorNormalCompletion20 && _iterator20.return) {
+                  _iterator20.return();
+                }
+              } finally {
+                if (_didIteratorError20) {
+                  throw _iteratorError20;
+                }
+              }
+            }
           }
         }
       } catch (err) {
@@ -91383,103 +91106,33 @@ var Display = function (_WebglWidget) {
         }
       }
 
-      console.log('Display.buildMeshOfNucleotides nBasepair', verticesList.length);
       var displayGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, colorList, 0.2);
       var displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial);
       this.displayMeshes['basepairs'].add(displayMesh);
-    }
-  }, {
-    key: 'buildMeshOfOldNucleotides',
-    value: function buildMeshOfOldNucleotides() {
-      this.createOrClearMesh('basepairs');
 
-      var displayGeom = new THREE.Geometry();
-      var pickingGeom = new THREE.Geometry();
+      var pickingGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, indexColorList, 0.2);
+      var pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial);
+      this.pickingMeshes['basepairs'].add(pickingMesh);
 
-      var cylinderGeom = new glgeom.UnitCylinderGeometry();
+      var nBond = bondList.length;
 
-      var residue = this.soup.getResidueProxy();
-      var atom = this.soup.getAtomProxy();
+      var cylinderBufferGeometry = new THREE.CylinderBufferGeometry(0.4, 0.4, 1, 4, 1, false);
+      cylinderBufferGeometry.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
+      displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nBond);
 
-      var _iteratorNormalCompletion20 = true;
-      var _didIteratorError20 = false;
-      var _iteratorError20 = undefined;
+      for (var iBond = 0; iBond < nBond; iBond += 1) {
+        var _bondList$iBond = _slicedToArray(bondList[iBond], 3),
+            p1 = _bondList$iBond[0],
+            p2 = _bondList$iBond[1],
+            color = _bondList$iBond[2];
 
-      try {
-        for (var _iterator20 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-          var iRes = _step20.value;
-
-          residue.iRes = iRes;
-          if (residue.ss !== 'D' || !residue.isPolymer) {
-            continue;
-          }
-
-          var basepairGeom = new THREE.Geometry();
-
-          var atomTypes = void 0,
-              bondTypes = void 0;
-          if (residue.resType === 'DA' || residue.resType === 'A') {
-            atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
-            bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']];
-          } else if (residue.resType === 'DG' || residue.resType === 'G') {
-            atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
-            bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']];
-          } else if (residue.resType === 'DT' || residue.resType === 'U') {
-            atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
-            bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']];
-          } else if (residue.resType === 'DC' || residue.resType === 'C') {
-            atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
-            bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']];
-          } else {
-            continue;
-          }
-
-          var getVerticesFromAtomDict = function getVerticesFromAtomDict(iRes, atomTypes) {
-            residue.iRes = iRes;
-            return _lodash2.default.map(atomTypes, function (a) {
-              atom.iAtom = residue.getIAtom(a);
-              return atom.pos.clone();
-            });
-          };
-
-          var vertices = getVerticesFromAtomDict(iRes, atomTypes);
-          var faceGeom = new glgeom.RaisedShapeGeometry(vertices, 0.2);
-          basepairGeom.merge(faceGeom);
-
-          // for (let bond of bondTypes) {
-          //   let vertices = getVerticesFromAtomDict(iRes, [bond[0], bond[1]])
-          //   basepairGeom.merge(
-          //     cylinderGeom, glgeom.getCylinderMatrix(vertices[0], vertices[1], 0.2))
-          // }
-
-          // explicitly set to zero-length array as RaisedShapeGeometry
-          // sets no uv but cylinder does, and the merged geometry causes
-          // warnings in THREE.js v0.79
-          basepairGeom.faceVertexUvs = [[]];
-
-          glgeom.setGeometryVerticesColor(basepairGeom, residue.color);
-          displayGeom.merge(basepairGeom);
-
-          glgeom.setGeometryVerticesColor(basepairGeom, this.getIndexColor(residue.iAtom));
-          pickingGeom.merge(basepairGeom);
-        }
-      } catch (err) {
-        _didIteratorError20 = true;
-        _iteratorError20 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion20 && _iterator20.return) {
-            _iterator20.return();
-          }
-        } finally {
-          if (_didIteratorError20) {
-            throw _iteratorError20;
-          }
-        }
+        var matrix = glgeom.getCylinderMatrix(p1, p2, 0.2);
+        displayGeom.applyMatrixToCopy(matrix, iBond);
+        displayGeom.applyColorToCopy(color, iBond);
       }
 
-      this.addGeomToDisplayMesh('basepairs', displayGeom);
-      this.addGeomToPickingMesh('basepairs', pickingGeom);
+      displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial);
+      this.displayMeshes['basepairs'].add(displayMesh);
     }
   }, {
     key: 'buildCrossHairs',

@@ -863,6 +863,7 @@ class Display extends WebglWidget {
     let verticesList = []
     let colorList = []
     let indexColorList = []
+    let bondList = []
     for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
       if (residue.ss === 'D' && residue.isPolymer) {
@@ -870,6 +871,13 @@ class Display extends WebglWidget {
         indexColorList.push(this.getIndexColor(residue.iAtom))
         let atomTypes = this.getNucleotideBaseAtomTypes(residue.resType)
         verticesList.push(_.map(atomTypes, getVecFromAtomType))
+        let bondTypes = this.getNucleotideConnectorBondAtomTypes(residue.resType)
+        for (let bond of bondTypes) {
+          bondList.push([
+            getVecFromAtomType(bond[0]),
+            getVecFromAtomType(bond[1]),
+            residue.color])
+        }
       }
     }
 
@@ -880,78 +888,25 @@ class Display extends WebglWidget {
     let pickingGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, indexColorList, 0.2)
     let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
     this.pickingMeshes['basepairs'].add(pickingMesh)
-  }
 
-  buildMeshOfOldNucleotides () {
-    this.createOrClearMesh('basepairs')
+    let nBond = bondList.length
 
-    let displayGeom = new THREE.Geometry()
-    let pickingGeom = new THREE.Geometry()
+    let cylinderBufferGeometry = new THREE.CylinderBufferGeometry(0.4, 0.4, 1, 4, 1, false)
+    cylinderBufferGeometry.applyMatrix(
+      new THREE.Matrix4()
+        .makeRotationFromEuler(
+          new THREE.Euler(Math.PI / 2, Math.PI, 0)))
+    displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nBond)
 
-    let cylinderGeom = new glgeom.UnitCylinderGeometry()
-
-    let residue = this.soup.getResidueProxy()
-    let atom = this.soup.getAtomProxy()
-
-    for (let iRes of _.range(this.soup.getResidueCount())) {
-      residue.iRes = iRes
-      if (residue.ss !== 'D' || !residue.isPolymer) {
-        continue
-      }
-
-      let basepairGeom = new THREE.Geometry()
-
-      let atomTypes, bondTypes
-      if (residue.resType === 'DA' || residue.resType === 'A') {
-        atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
-        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
-      } else if (residue.resType === 'DG' || residue.resType === 'G') {
-        atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
-        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
-      } else if (residue.resType === 'DT' || residue.resType === 'U') {
-        atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
-        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
-      } else if (residue.resType === 'DC' || residue.resType === 'C') {
-        atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
-        bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
-      } else {
-        continue
-      }
-
-      let getVerticesFromAtomDict = (iRes, atomTypes) => {
-        residue.iRes = iRes
-        return _.map(atomTypes, a => {
-          atom.iAtom = residue.getIAtom(a)
-          return atom.pos.clone()
-        })
-      }
-
-      let vertices = getVerticesFromAtomDict(iRes, atomTypes)
-      let faceGeom = new glgeom.RaisedShapeGeometry(vertices, 0.2)
-      basepairGeom.merge(faceGeom)
-
-      // for (let bond of bondTypes) {
-      //   let vertices = getVerticesFromAtomDict(iRes, [bond[0], bond[1]])
-      //   basepairGeom.merge(
-      //     cylinderGeom, glgeom.getCylinderMatrix(vertices[0], vertices[1], 0.2))
-      // }
-
-      // explicitly set to zero-length array as RaisedShapeGeometry
-      // sets no uv but cylinder does, and the merged geometry causes
-      // warnings in THREE.js v0.79
-      basepairGeom.faceVertexUvs = [[]]
-
-      glgeom.setGeometryVerticesColor(
-        basepairGeom, residue.color)
-      displayGeom.merge(basepairGeom)
-
-      glgeom.setGeometryVerticesColor(
-        basepairGeom, this.getIndexColor(residue.iAtom))
-      pickingGeom.merge(basepairGeom)
+    for (let iBond = 0; iBond < nBond; iBond += 1) {
+      let [p1, p2, color] = bondList[iBond]
+      let matrix = glgeom.getCylinderMatrix(p1, p2, 0.2)
+      displayGeom.applyMatrixToCopy(matrix, iBond)
+      displayGeom.applyColorToCopy(color, iBond)
     }
 
-    this.addGeomToDisplayMesh('basepairs', displayGeom)
-    this.addGeomToPickingMesh('basepairs', pickingGeom)
+    displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
+    this.displayMeshes['basepairs'].add(displayMesh)
   }
 
   buildCrossHairs () {

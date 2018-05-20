@@ -302,38 +302,6 @@ class Trace extends PathAndFrenetFrames {
       this, 2 * this.detail, 0, this.points.length)
   }
 
-  /**
-   * A path is generated with 2*detail. If a
-   * residue is not at the end of a piece,
-   * will be extended to detail beyond that is
-   * half-way between the residue and the neighboring
-   * residue in a different piece.
-   */
-  getSegmentGeometry (iRes, face, isRound, isFront, isBack, color) {
-    let path = this.detailedPath
-
-    // works out start on expanded path, including overhang
-    let iPathStart = (iRes * 2 * this.detail) - this.detail
-    if (iPathStart < 0) {
-      iPathStart = 0
-    }
-
-    // works out end of expanded path, including overhang
-    let iPathEnd = ((iRes + 1) * 2 * this.detail) - this.detail + 1
-    if (iPathEnd >= path.points.length) {
-      iPathEnd = path.points.length - 1
-    }
-
-    let segmentPath = path.slice(iPathStart, iPathEnd)
-
-    let geom = new RibbonGeometry(
-      face, segmentPath, isRound, isFront, isBack)
-
-    setGeometryVerticesColor(geom, color)
-
-    return geom
-  }
-
   getGeometry (face, isRound, isFront, isBack, color) {
     let path = this.detailedPath
     let iResStart = 0
@@ -357,207 +325,6 @@ class Trace extends PathAndFrenetFrames {
       this, segmentPath, isRound, isFront, isBack, color)
 
     return geom
-  }
-}
-
-/**
- * Extrusion along a path that aligns a 2D shape as cross-section, with
- * orientation along the normal for the cross-section.
- *
- * Accepts a cross-section shape, which is a collection of 2D points around
- * the origin, and a path, which contains points, normals and binormals
- * and builds a oriented extrusion out of it.
- *
- * If round is set, then the vertex normals are set to orient along the
- * normal/binormal axis from the origin, otherwise, face normals are defined
- * perpedicular to the face.
- *
- * For a segment between two path points and a repetition of the cross-section,
- * two triangles are defined.
- */
-class RibbonGeometry extends THREE.Geometry {
-  /**
-   * @param {THREE.Shape} shape - collection of 2D points for cross section
-   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
-   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
-   * @param {boolean} front - draw front cross-section
-   * @param {boolean} back - draw back cross-section
-   */
-  constructor (shape, path, round, front, back) {
-    super()
-
-    this.type = 'RibbonGeometry'
-
-    this.parameters = {
-      shape: shape,
-      path: path,
-      round: round
-    }
-
-    if (path.points.length < 2) {
-      return
-    }
-
-    let shapePoints = shape.extractPoints(4).shape
-    let nVertex = shapePoints.length
-
-    if (_.isUndefined(round)) {
-      round = false
-    }
-
-    let shapeEdgeNormals = []
-
-    if (!round) {
-      for (let j = 0; j < nVertex; j += 1) {
-        let i = j - 1
-        if (i === -1) {
-          i = nVertex - 1
-        }
-        let v0 = shapePoints[i]
-        let v1 = shapePoints[j]
-        let x = -(v1.y - v0.y)
-        let y = v1.x - v0.x
-        shapeEdgeNormals.push(new THREE.Vector2(x, y))
-      }
-    }
-
-    for (let iPoint = 0; iPoint < path.points.length; iPoint += 1) {
-      let point = path.points[iPoint]
-      let normal = path.normals[iPoint]
-      let binormal = path.binormals[iPoint]
-
-      for (let iShapePoint = 0; iShapePoint < nVertex; iShapePoint += 1) {
-        let shapePoint = shapePoints[iShapePoint]
-
-        let x = normal.clone().multiplyScalar(shapePoint.x)
-        let y = binormal.clone().multiplyScalar(shapePoint.y)
-
-        let vertex = point.clone().add(x).add(y)
-
-        this.vertices.push(vertex)
-      }
-
-      let topOffset = this.vertices.length - 2 * nVertex
-      if (topOffset < 0) {
-        continue
-      }
-
-      if (round) {
-        // Smoothed normals to give a rounded look
-        for (let j = 0; j < nVertex; j += 1) {
-          let i
-          if (j === 0) {
-            i = nVertex - 1
-          } else {
-            i = j - 1
-          }
-          let k = topOffset + i
-          let l = topOffset + j
-
-          let x, y
-
-          x = path.normals[iPoint - 1].clone()
-            .multiplyScalar(shapePoints[i].x)
-          y = path.binormals[iPoint - 1].clone()
-            .multiplyScalar(shapePoints[i].y)
-          let normal00 = x.add(y)
-
-          x = path.normals[iPoint - 1].clone()
-            .multiplyScalar(shapePoints[j].x)
-          y = path.binormals[iPoint - 1].clone()
-            .multiplyScalar(shapePoints[j].y)
-          let normal01 = x.add(y)
-
-          x = path.normals[iPoint].clone()
-            .multiplyScalar(shapePoints[j].x)
-          y = path.binormals[iPoint].clone()
-            .multiplyScalar(shapePoints[j].y)
-          let normal11 = x.add(y)
-
-          x = path.normals[iPoint].clone()
-            .multiplyScalar(shapePoints[i].x)
-          y = path.binormals[iPoint].clone()
-            .multiplyScalar(shapePoints[i].y)
-          let normal10 = x.add(y)
-
-          let face = new THREE.Face3(k, k + nVertex, l + nVertex)
-          face.vertexNormals = [normal00, normal10, normal11]
-          this.faces.push(face)
-
-          face = new THREE.Face3(k, l + nVertex, l)
-          face.vertexNormals = [normal00, normal11, normal01]
-          this.faces.push(face)
-        }
-      } else {
-        // Continuous normals but keep faces distinct
-        // along ribbon
-        for (let j = 0; j < nVertex; j += 1) {
-          let i
-          if (j === 0) {
-            i = nVertex - 1
-          } else {
-            i = j - 1
-          }
-          let k = topOffset + i
-          let l = topOffset + j
-
-          let x, y
-
-          x = path.normals[iPoint - 1].clone()
-            .multiplyScalar(shapeEdgeNormals[j].x)
-          y = path.binormals[iPoint - 1].clone()
-            .multiplyScalar(shapeEdgeNormals[j].y)
-          let normal0 = x.add(y)
-
-          x = path.normals[iPoint].clone()
-            .multiplyScalar(shapeEdgeNormals[j].x)
-          y = path.binormals[iPoint].clone()
-            .multiplyScalar(shapeEdgeNormals[j].y)
-          let normal1 = x.add(y)
-
-          let face = new THREE.Face3(k, k + nVertex, l +
-            nVertex)
-          face.vertexNormals = [normal0, normal1, normal1]
-          this.faces.push(face)
-
-          face = new THREE.Face3(k, l + nVertex, l)
-          face.vertexNormals = [normal0, normal1, normal0]
-          this.faces.push(face)
-        }
-      }
-    }
-
-    if (front) {
-      // Draw front face
-      let normal = threePointNormal([
-        this.vertices[0],
-        this.vertices[1],
-        this.vertices[2]
-      ])
-      for (let i = 0; i < nVertex - 2; i += 1) {
-        let face = new THREE.Face3(i, i + 1, nVertex - 1)
-        face.normal.copy(normal)
-        this.faces.push(face)
-      }
-    }
-
-    if (back) {
-      // draw back face
-      let offset = this.vertices.length - 1 - nVertex
-
-      let normal = threePointNormal([
-        this.vertices[offset],
-        this.vertices[offset + nVertex - 1],
-        this.vertices[offset + 1]
-      ])
-
-      for (let i = 0; i < nVertex - 2; i += 1) {
-        let face = new THREE.Face3(
-          offset + i, offset + nVertex - 1, offset + i + 1)
-        face.normal.copy(normal)
-        this.faces.push(face)
-      }
-    }
   }
 }
 
@@ -604,7 +371,6 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.nFace = 0
 
     this.countVertexAndFacesOfPath(front, back)
-
 
     this.setAttributes()
 
@@ -829,7 +595,6 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
   }
 }
 
-
 /**
  * Takes a bunch of points and treats it as defining
  * a polygon, and raises it to a certain thickness.
@@ -964,10 +729,7 @@ class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
       this.positions[iVertex * 3 + 1],
       this.positions[iVertex * 3 + 2])
   }
-
 }
-
-
 
 /**
  * Creates a unit-based block arrow pointing in the -Z direction.
@@ -1001,83 +763,6 @@ class BlockArrowGeometry extends THREE.ExtrudeGeometry {
       new THREE.Matrix4()
         .makeRotationFromEuler(
           new THREE.Euler(0, Math.PI / 2, 0)))
-  }
-}
-
-/**
- * Creates a cylinder that is orientated along
- * the z-direction. Use lookAt to reorientate
- */
-class UnitCylinderGeometry extends THREE.CylinderGeometry {
-  constructor () {
-    super(1, 1, 1, 4, 1, false)
-
-    this.type = 'UnitCylinderGeometry'
-
-    this.applyMatrix(
-      new THREE.Matrix4()
-        .makeRotationFromEuler(
-          new THREE.Euler(Math.PI / 2, Math.PI, 0)))
-  }
-}
-
-/**
- * Takes a bunch of points and treats it as defining
- * a polygon, and raises it to a certain thickness.
- */
-class RaisedShapeGeometry extends THREE.Geometry {
-  constructor (vertices, thickness) {
-    super()
-
-    this.type = 'RaisedShapeGeometry'
-
-    this.parameters = {
-      vertices: vertices,
-      thickness: thickness
-    }
-
-    let normal = threePointNormal(vertices.slice(0, 3))
-
-    let displacement = normal.clone()
-      .multiplyScalar(thickness / 2)
-
-    let nVertex = vertices.length
-    let iLast = nVertex - 1
-    let offset = nVertex
-
-    for (let i = 0; i < vertices.length; i += 1) {
-      this.vertices.push(
-        vertices[i].clone().add(displacement))
-    }
-    for (let i = 0; i < vertices.length; i += 1) {
-      this.vertices.push(
-        vertices[i].clone().sub(displacement))
-    }
-
-    for (let i = 0; i < nVertex - 2; i += 1) {
-      let face = new THREE.Face3(i, i + 1, iLast)
-      this.faces.push(face)
-    }
-
-    for (let i = 0; i < nVertex - 2; i += 1) {
-      let face = new THREE.Face3(
-        offset + i, offset + iLast, offset + i + 1)
-      this.faces.push(face)
-    }
-
-    for (let i = 0; i < nVertex; i += 1) {
-      let j
-      if (i === nVertex - 1) {
-        j = 0
-      } else {
-        j = i + 1
-      }
-
-      this.faces.push(new THREE.Face3(i, i + offset, j + offset))
-      this.faces.push(new THREE.Face3(i, j + offset, j))
-    }
-
-    this.computeFaceNormals()
   }
 }
 
@@ -1163,11 +848,6 @@ function setGeometryVerticesColor (geom, color) {
     face.vertexColors[1] = color
     face.vertexColors[2] = color
   }
-}
-
-function mergeUnitGeom (totalGeom, unitGeom, color, matrix) {
-  setGeometryVerticesColor(unitGeom, color)
-  totalGeom.merge(unitGeom, matrix)
 }
 
 /**
@@ -1325,10 +1005,7 @@ class CopyBufferGeometry extends THREE.BufferGeometry {
 
 export {
   BlockArrowGeometry,
-  UnitCylinderGeometry,
   setVisible,
-  RaisedShapeGeometry,
-  RibbonGeometry,
   BufferRibbonGeometry,
   BufferRaisedShapesGeometry,
   getUnitVectorRotation,
@@ -1337,7 +1014,6 @@ export {
   setGeometryVerticesColor,
   clearObject3D,
   Trace,
-  mergeUnitGeom,
   getSphereMatrix,
   getCylinderMatrix,
   CopyBufferGeometry,
