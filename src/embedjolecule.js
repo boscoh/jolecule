@@ -4,6 +4,7 @@ import { Soup, Controller, SoupView } from './soup'
 import { Display } from './display'
 import { exists, linkButton, delay } from './util.js'
 import widgets from './widgets'
+import v3 from './v3'
 
 /**
  * EmbedJolecule - the widget that shows proteins and
@@ -114,7 +115,19 @@ class EmbedJolecule {
       await this.asyncLoadViews(dataServer)
     }
     this.display.cleanupMessage()
+    this.moveOutToSeeAll()
     this.isProcessing.flag = false
+  }
+
+  moveOutToSeeAll () {
+    let newView = this.soupView.currentView.clone()
+    newView.cameraParams.zFront = -this.soup.maxLength / 2
+    newView.cameraParams.zBack = this.soup.maxLength / 2
+    newView.cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75
+    let atom = this.soup.getAtomProxyOfCenter()
+    newView.iAtom = atom.iAtom
+    newView.cameraParams.focus.copy(atom.pos)
+    this.controller.setTargetView(newView)
   }
 
   createProteinDiv () {

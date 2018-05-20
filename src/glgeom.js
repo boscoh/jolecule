@@ -867,6 +867,19 @@ function getSphereMatrix (pos, radius) {
   return obj.matrix
 }
 
+function makeBufferZCylinderGeometry (radius, radialSegments) {
+  if (_.isUndefined(radialSegments)) {
+    radialSegments = 4
+  }
+  let cylinderBufferGeometry = new THREE.CylinderBufferGeometry(
+    radius, radius, 1, radialSegments, 1, false)
+  cylinderBufferGeometry.applyMatrix(
+    new THREE.Matrix4()
+      .makeRotationFromEuler(
+        new THREE.Euler(Math.PI / 2, Math.PI, 0)))
+  return cylinderBufferGeometry
+}
+
 /**
  * Calculates the transform matrix for a UnitCylinderGeometry
  * to orientate along the axis between the 'from' and 'to' vector
@@ -1012,6 +1025,7 @@ export {
   getFractionRotation,
   fraction,
   setGeometryVerticesColor,
+  makeBufferZCylinderGeometry,
   clearObject3D,
   Trace,
   getSphereMatrix,

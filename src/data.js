@@ -138,6 +138,35 @@ function getSsFace (ss) {
   return ribbonFace
 }
 
+function getNucleotideBaseAtomTypes (resType) {
+  let atomTypes = []
+  if (resType === 'DA' || resType === 'A') {
+    atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
+  } else if (resType === 'DG' || resType === 'G') {
+    atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
+  } else if (resType === 'DT' || resType === 'U') {
+    atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
+  } else if (resType === 'DC' || resType === 'C') {
+    atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
+  }
+  return atomTypes
+}
+
+function getNucleotideConnectorBondAtomTypes (resType) {
+  let bondTypes = []
+  if (resType === 'DA' || resType === 'A') {
+    bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
+  } else if (resType === 'DG' || resType === 'G') {
+    bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
+  } else if (resType === 'DT' || resType === 'U') {
+    bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
+  } else if (resType === 'DC' || resType === 'C') {
+    bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
+  }
+  return bondTypes
+}
+
+
 export {
   getSsColor,
   resToAa,
@@ -155,5 +184,7 @@ export {
   ElementColors,
   proteinResTypes,
   dnaResTypes,
-  rnaResTypes
+  rnaResTypes,
+  getNucleotideBaseAtomTypes,
+  getNucleotideConnectorBondAtomTypes
 }

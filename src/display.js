@@ -825,34 +825,6 @@ class Display extends WebglWidget {
     this.buildAtomMeshes(atomIndices, 'grid', this.gridAtomRadius)
   }
 
-  getNucleotideBaseAtomTypes (resType) {
-    let atomTypes = []
-    if (resType === 'DA' || resType === 'A') {
-      atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
-    } else if (resType === 'DG' || resType === 'G') {
-      atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
-    } else if (resType === 'DT' || resType === 'U') {
-      atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
-    } else if (resType === 'DC' || resType === 'C') {
-      atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
-    }
-    return atomTypes
-  }
-
-  getNucleotideConnectorBondAtomTypes (resType) {
-    let bondTypes = []
-    if (resType === 'DA' || resType === 'A') {
-      bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
-    } else if (resType === 'DG' || resType === 'G') {
-      bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
-    } else if (resType === 'DT' || resType === 'U') {
-      bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
-    } else if (resType === 'DC' || resType === 'C') {
-      bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
-    }
-    return bondTypes
-  }
-
   buildMeshOfNucleotides () {
     this.createOrClearMesh('basepairs')
 
@@ -869,10 +841,11 @@ class Display extends WebglWidget {
       if (residue.ss === 'D' && residue.isPolymer) {
         colorList.push(residue.color)
         indexColorList.push(this.getIndexColor(residue.iAtom))
-        let atomTypes = this.getNucleotideBaseAtomTypes(residue.resType)
+
+        let atomTypes = data.getNucleotideBaseAtomTypes(residue.resType)
         verticesList.push(_.map(atomTypes, getVecFromAtomType))
-        let bondTypes = this.getNucleotideConnectorBondAtomTypes(residue.resType)
-        for (let bond of bondTypes) {
+
+        for (let bond of data.getNucleotideConnectorBondAtomTypes(residue.resType)) {
           bondList.push([
             getVecFromAtomType(bond[0]),
             getVecFromAtomType(bond[1]),
@@ -890,18 +863,12 @@ class Display extends WebglWidget {
     this.pickingMeshes['basepairs'].add(pickingMesh)
 
     let nBond = bondList.length
-
-    let cylinderBufferGeometry = new THREE.CylinderBufferGeometry(0.4, 0.4, 1, 4, 1, false)
-    cylinderBufferGeometry.applyMatrix(
-      new THREE.Matrix4()
-        .makeRotationFromEuler(
-          new THREE.Euler(Math.PI / 2, Math.PI, 0)))
+    let cylinderBufferGeometry = glgeom.makeBufferZCylinderGeometry(0.4)
     displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nBond)
-
     for (let iBond = 0; iBond < nBond; iBond += 1) {
       let [p1, p2, color] = bondList[iBond]
-      let matrix = glgeom.getCylinderMatrix(p1, p2, 0.2)
-      displayGeom.applyMatrixToCopy(matrix, iBond)
+      displayGeom.applyMatrixToCopy(
+        glgeom.getCylinderMatrix(p1, p2, 0.2), iBond)
       displayGeom.applyColorToCopy(color, iBond)
     }
 
