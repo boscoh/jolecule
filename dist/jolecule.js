@@ -78046,16 +78046,11 @@ var EmbedJolecule = function () {
     _classCallCheck(this, EmbedJolecule);
 
     this.params = params;
-    this.isLoop = this.params.isLoop;
+    this.isProcessing = { flag: false };
 
     this.divTag = this.params.divTag;
     this.div = (0, _jquery2.default)(this.params.divTag);
-
-    // disable right mouse click
     this.div[0].oncontextmenu = _lodash2.default.noop;
-
-    this.initViewId = this.params.viewId;
-    this.hAnnotationView = this.params.viewHeight;
 
     this.soup = new _soup.Soup();
     this.soupView = new _soup.SoupView(this.soup);
@@ -78069,8 +78064,7 @@ var EmbedJolecule = function () {
     };
     (0, _jquery2.default)(window).resize(resizeFn);
     window.onorientationchange = resizeFn;
-
-    this.isProcessing = { flag: false };
+    resizeFn();
   }
 
   _createClass(EmbedJolecule, [{
@@ -78242,12 +78236,10 @@ var EmbedJolecule = function () {
 
               case 5:
                 this.isProcessing.flag = true;
-
                 _context4.next = 8;
                 return this.asyncLoadSoup(dataServer);
 
               case 8:
-
                 this.display.nDataServer += 1;
 
                 if (!(this.display.nDataServer === 1)) {
@@ -78263,9 +78255,7 @@ var EmbedJolecule = function () {
                 return this.asyncLoadViews(dataServer);
 
               case 14:
-
                 this.display.cleanupMessage();
-
                 this.isProcessing.flag = false;
 
               case 16:
@@ -78285,7 +78275,7 @@ var EmbedJolecule = function () {
   }, {
     key: 'createProteinDiv',
     value: function createProteinDiv() {
-      var height = this.div.outerHeight() - this.hAnnotationView;
+      var height = this.div.outerHeight();
       this.proteinDiv = (0, _jquery2.default)('<div>').attr('id', 'jolecule-soup-display').addClass('jolecule-embed-body').css('overflow', 'hidden').css('width', this.div.outerWidth()).css('height', height);
       this.div.append(this.proteinDiv);
       this.display = new _display.Display(this.soupView, '#jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
@@ -78885,6 +78875,8 @@ var Soup = function () {
     this.parsingError = '';
     this.title = '';
 
+    this.pdbIds = [];
+    this.pdbId = null;
     this.chains = [];
     this.atomStore = new _store2.default(atomStoreFields);
     this.residueStore = new _store2.default(residueStoreFields);
@@ -78938,9 +78930,8 @@ var Soup = function () {
   }, {
     key: 'parsePdbData',
     value: function parsePdbData(pdbText, pdbId) {
-      if (!this.pdbId) {
-        this.pdbId = pdbId;
-      }
+      this.pdbId = pdbId;
+      this.pdbIds.push(pdbId);
 
       if (!this.title) {
         var title = parsetTitleFromPdbText(pdbText);
@@ -80157,6 +80148,9 @@ var SoupView = function () {
     this.soup = soup;
 
     this.changed = true;
+    this.updateView = false;
+    this.updateSidechain = false;
+    this.updateSelection = false;
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -80564,7 +80558,9 @@ exports.SoupView = SoupView;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.applyColorToVector3array = exports.applyRotationOfMatrix4toVector3array = exports.applyMatrix4toVector3array = exports.CopyBufferGeometry = exports.getCylinderMatrix = exports.getSphereMatrix = exports.mergeUnitGeom = exports.Trace = exports.clearObject3D = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.BufferRibbonGeometry = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.setVisible = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = undefined;
+exports.applyColorToVector3array = exports.applyRotationOfMatrix4toVector3array = exports.applyMatrix4toVector3array = exports.CopyBufferGeometry = exports.getCylinderMatrix = exports.getSphereMatrix = exports.mergeUnitGeom = exports.Trace = exports.clearObject3D = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.BufferRaisedShapesGeometry = exports.BufferRibbonGeometry = exports.RibbonGeometry = exports.RaisedShapeGeometry = exports.setVisible = exports.UnitCylinderGeometry = exports.BlockArrowGeometry = undefined;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * Custom geometry and mesh generators based on the
@@ -80765,7 +80761,7 @@ var Trace = function (_PathAndFrenetFrames) {
     var _this = _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this));
 
     _this.indices = [];
-    _this.detail = 2;
+    _this.detail = 4;
     return _this;
   }
 
@@ -81218,7 +81214,7 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
       var iTraceEnd = trace.points.length;
 
       function getWidth(iTracePoint) {
-        return trace.segmentTypes[iTracePoint] === 'C' ? 0.5 : 8;
+        return trace.segmentTypes[iTracePoint] === 'C' ? 0.7 : 8;
       }
 
       for (var iTracePoint = iTraceStart; iTracePoint < iTraceEnd; iTracePoint += 1) {
@@ -81247,8 +81243,7 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
           }
 
           var width = getWidth(iTracePoint);
-
-          var height = 1.0;
+          var height = 0.7;
 
           if (iPathPoint === iPathStart && iPathPoint > 0) {
             if (trace.segmentTypes[iTracePoint - 1] === 'C' && trace.segmentTypes[iTracePoint] !== 'C') {
@@ -81492,6 +81487,195 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
 }(THREE.BufferGeometry);
 
 /**
+ * Takes a bunch of points and treats it as defining
+ * a polygon, and raises it to a certain thickness.
+ */
+
+
+var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
+  _inherits(BufferRaisedShapesGeometry, _THREE$BufferGeometry2);
+
+  function BufferRaisedShapesGeometry(verticesList, colorList, thickness) {
+    _classCallCheck(this, BufferRaisedShapesGeometry);
+
+    var _this5 = _possibleConstructorReturn(this, (BufferRaisedShapesGeometry.__proto__ || Object.getPrototypeOf(BufferRaisedShapesGeometry)).call(this));
+
+    _this5.type = 'BufferRaisedShapesGeometry';
+
+    _this5.parameters = { verticesList: verticesList, thickness: thickness, colorList: colorList };
+
+    _this5.nVertex = 0;
+    _this5.nFace = 0;
+
+    _this5.countVertexAndFacesOfPath();
+
+    _this5.setAttributes();
+
+    _this5.setPath();
+    return _this5;
+  }
+
+  _createClass(BufferRaisedShapesGeometry, [{
+    key: 'countVertexAndFacesOfPath',
+    value: function countVertexAndFacesOfPath(front, back) {
+      this.nVertex = 0;
+      this.nFace = 0;
+
+      var _iteratorNormalCompletion5 = true;
+      var _didIteratorError5 = false;
+      var _iteratorError5 = undefined;
+
+      try {
+        for (var _iterator5 = this.parameters.verticesList[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+          var vertices = _step5.value;
+
+          var _nVertex = vertices.length;
+          // top layer
+          this.nFace += _nVertex - 2;
+          // bottom layer
+          this.nFace += _nVertex - 2;
+          // side layers
+          this.nFace += 2 * _nVertex;
+        }
+      } catch (err) {
+        _didIteratorError5 = true;
+        _iteratorError5 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+            _iterator5.return();
+          }
+        } finally {
+          if (_didIteratorError5) {
+            throw _iteratorError5;
+          }
+        }
+      }
+
+      this.nVertex = 3 * this.nFace;
+    }
+  }, {
+    key: 'setPath',
+    value: function setPath() {
+      var _iteratorNormalCompletion6 = true;
+      var _didIteratorError6 = false;
+      var _iteratorError6 = undefined;
+
+      try {
+        for (var _iterator6 = this.parameters.verticesList.entries()[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+          var _step6$value = _slicedToArray(_step6.value, 2),
+              i = _step6$value[0],
+              vertices = _step6$value[1];
+
+          var _normal3 = threePointNormal(vertices.slice(0, 3));
+          var displacement = _normal3.clone().multiplyScalar(this.parameters.thickness / 2);
+          var _color = this.parameters.colorList[i];
+
+          var _nVertex2 = vertices.length;
+          var iLast = _nVertex2 - 1;
+
+          var topVertices = [];
+          for (var _i9 = 0; _i9 < vertices.length; _i9 += 1) {
+            topVertices.push(vertices[_i9].clone().add(displacement));
+          }
+
+          var bottomVertices = [];
+          for (var _i10 = 0; _i10 < vertices.length; _i10 += 1) {
+            bottomVertices.push(vertices[_i10].clone().sub(displacement));
+          }
+
+          for (var _i11 = 0; _i11 < _nVertex2 - 2; _i11 += 1) {
+            this.pushVerticesOfFace(topVertices[_i11], topVertices[_i11 + 1], topVertices[iLast], _color);
+          }
+
+          for (var _i12 = 0; _i12 < _nVertex2 - 2; _i12 += 1) {
+            this.pushVerticesOfFace(bottomVertices[_i12], bottomVertices[iLast], bottomVertices[_i12 + 1], _color);
+          }
+
+          for (var _i13 = 0; _i13 < _nVertex2; _i13 += 1) {
+            var j = _i13 === _nVertex2 - 1 ? 0 : _i13 + 1;
+            this.pushVerticesOfFace(topVertices[_i13], bottomVertices[_i13], bottomVertices[j], _color);
+            this.pushVerticesOfFace(topVertices[_i13], bottomVertices[j], topVertices[j], _color);
+          }
+        }
+      } catch (err) {
+        _didIteratorError6 = true;
+        _iteratorError6 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion6 && _iterator6.return) {
+            _iterator6.return();
+          }
+        } finally {
+          if (_didIteratorError6) {
+            throw _iteratorError6;
+          }
+        }
+      }
+
+      this.computeVertexNormals();
+    }
+  }, {
+    key: 'setAttributes',
+    value: function setAttributes() {
+      var positions = new Float32Array(this.nVertex * 3);
+      var normals = new Float32Array(this.nVertex * 3);
+      var indices = new Int32Array(this.nFace * 3);
+      var colors = new Float32Array(this.nVertex * 3);
+
+      this.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      this.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+      this.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      this.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
+
+      this.positions = this.attributes.position.array;
+      this.normals = this.attributes.normal.array;
+      this.indices = this.index.array;
+      this.colors = this.attributes.color.array;
+
+      this.positionCount = 0;
+      this.indexCount = 0;
+      this.vertexCount = 0;
+    }
+  }, {
+    key: 'pushVertex',
+    value: function pushVertex(vertex, color) {
+      this.positions[this.positionCount] = vertex.x;
+      this.positions[this.positionCount + 1] = vertex.y;
+      this.positions[this.positionCount + 2] = vertex.z;
+
+      this.colors[this.positionCount] = color.r;
+      this.colors[this.positionCount + 1] = color.g;
+      this.colors[this.positionCount + 2] = color.b;
+
+      this.positionCount += 3;
+      this.vertexCount += 1;
+    }
+  }, {
+    key: 'pushVerticesOfFace',
+    value: function pushVerticesOfFace(v0, v1, v2, color) {
+      this.pushVertex(v0, color);
+      this.pushVertex(v1, color);
+      this.pushVertex(v2, color);
+
+      var i = this.indexCount;
+      this.indices[this.indexCount] = i;
+      this.indices[this.indexCount + 1] = i + 1;
+      this.indices[this.indexCount + 2] = i + 2;
+
+      this.indexCount += 3;
+    }
+  }, {
+    key: 'getVertex',
+    value: function getVertex(iVertex) {
+      return _v2.default.create(this.positions[iVertex * 3], this.positions[iVertex * 3 + 1], this.positions[iVertex * 3 + 2]);
+    }
+  }]);
+
+  return BufferRaisedShapesGeometry;
+}(THREE.BufferGeometry);
+
+/**
  * Creates a unit-based block arrow pointing in the -Z direction.
  * It can be reorientated using a lookAt() call
  */
@@ -81505,18 +81689,18 @@ var BlockArrowGeometry = function (_THREE$ExtrudeGeometr) {
 
     var shape = new THREE.Shape([new THREE.Vector2(-0.4, -0.5), new THREE.Vector2(0.0, +0.5), new THREE.Vector2(+0.4, -0.5)]);
 
-    var path = new THREE.CatmullRomCurve3([_v2.default.create(0, -0.3, 0), _v2.default.create(0, 0.3, 0)]);
+    var path = new THREE.CatmullRomCurve3([_v2.default.create(0, -0.2, 0), _v2.default.create(0, 0.2, 0)]);
 
-    var _this5 = _possibleConstructorReturn(this, (BlockArrowGeometry.__proto__ || Object.getPrototypeOf(BlockArrowGeometry)).call(this, shape, {
+    var _this6 = _possibleConstructorReturn(this, (BlockArrowGeometry.__proto__ || Object.getPrototypeOf(BlockArrowGeometry)).call(this, shape, {
       steps: 2,
       bevelEnabled: false,
       extrudePath: path
     }));
 
-    _this5.type = 'BlockArrowGeometry';
+    _this6.type = 'BlockArrowGeometry';
 
-    _this5.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, 0)));
-    return _this5;
+    _this6.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, 0)));
+    return _this6;
   }
 
   return BlockArrowGeometry;
@@ -81534,12 +81718,12 @@ var UnitCylinderGeometry = function (_THREE$CylinderGeomet) {
   function UnitCylinderGeometry() {
     _classCallCheck(this, UnitCylinderGeometry);
 
-    var _this6 = _possibleConstructorReturn(this, (UnitCylinderGeometry.__proto__ || Object.getPrototypeOf(UnitCylinderGeometry)).call(this, 1, 1, 1, 4, 1, false));
+    var _this7 = _possibleConstructorReturn(this, (UnitCylinderGeometry.__proto__ || Object.getPrototypeOf(UnitCylinderGeometry)).call(this, 1, 1, 1, 4, 1, false));
 
-    _this6.type = 'UnitCylinderGeometry';
+    _this7.type = 'UnitCylinderGeometry';
 
-    _this6.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
-    return _this6;
+    _this7.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
+    return _this7;
   }
 
   return UnitCylinderGeometry;
@@ -81557,11 +81741,11 @@ var RaisedShapeGeometry = function (_THREE$Geometry2) {
   function RaisedShapeGeometry(vertices, thickness) {
     _classCallCheck(this, RaisedShapeGeometry);
 
-    var _this7 = _possibleConstructorReturn(this, (RaisedShapeGeometry.__proto__ || Object.getPrototypeOf(RaisedShapeGeometry)).call(this));
+    var _this8 = _possibleConstructorReturn(this, (RaisedShapeGeometry.__proto__ || Object.getPrototypeOf(RaisedShapeGeometry)).call(this));
 
-    _this7.type = 'RaisedShapeGeometry';
+    _this8.type = 'RaisedShapeGeometry';
 
-    _this7.parameters = {
+    _this8.parameters = {
       vertices: vertices,
       thickness: thickness
     };
@@ -81575,36 +81759,36 @@ var RaisedShapeGeometry = function (_THREE$Geometry2) {
     var offset = nVertex;
 
     for (var i = 0; i < vertices.length; i += 1) {
-      _this7.vertices.push(vertices[i].clone().add(displacement));
+      _this8.vertices.push(vertices[i].clone().add(displacement));
     }
-    for (var _i9 = 0; _i9 < vertices.length; _i9 += 1) {
-      _this7.vertices.push(vertices[_i9].clone().sub(displacement));
-    }
-
-    for (var _i10 = 0; _i10 < nVertex - 2; _i10 += 1) {
-      var face = new THREE.Face3(_i10, _i10 + 1, iLast);
-      _this7.faces.push(face);
+    for (var _i14 = 0; _i14 < vertices.length; _i14 += 1) {
+      _this8.vertices.push(vertices[_i14].clone().sub(displacement));
     }
 
-    for (var _i11 = 0; _i11 < nVertex - 2; _i11 += 1) {
-      var _face4 = new THREE.Face3(offset + _i11, offset + iLast, offset + _i11 + 1);
-      _this7.faces.push(_face4);
+    for (var _i15 = 0; _i15 < nVertex - 2; _i15 += 1) {
+      var face = new THREE.Face3(_i15, _i15 + 1, iLast);
+      _this8.faces.push(face);
     }
 
-    for (var _i12 = 0; _i12 < nVertex; _i12 += 1) {
+    for (var _i16 = 0; _i16 < nVertex - 2; _i16 += 1) {
+      var _face4 = new THREE.Face3(offset + _i16, offset + iLast, offset + _i16 + 1);
+      _this8.faces.push(_face4);
+    }
+
+    for (var _i17 = 0; _i17 < nVertex; _i17 += 1) {
       var j = void 0;
-      if (_i12 === nVertex - 1) {
+      if (_i17 === nVertex - 1) {
         j = 0;
       } else {
-        j = _i12 + 1;
+        j = _i17 + 1;
       }
 
-      _this7.faces.push(new THREE.Face3(_i12, _i12 + offset, j + offset));
-      _this7.faces.push(new THREE.Face3(_i12, j + offset, j));
+      _this8.faces.push(new THREE.Face3(_i17, _i17 + offset, j + offset));
+      _this8.faces.push(new THREE.Face3(_i17, j + offset, j));
     }
 
-    _this7.computeFaceNormals();
-    return _this7;
+    _this8.computeFaceNormals();
+    return _this8;
   }
 
   return RaisedShapeGeometry;
@@ -81797,42 +81981,42 @@ function expandIndices(refArray, nCopy, nIndexInCopy) {
  * efficiently creating a large dataset
  */
 
-var CopyBufferGeometry = function (_THREE$BufferGeometry2) {
-  _inherits(CopyBufferGeometry, _THREE$BufferGeometry2);
+var CopyBufferGeometry = function (_THREE$BufferGeometry3) {
+  _inherits(CopyBufferGeometry, _THREE$BufferGeometry3);
 
   function CopyBufferGeometry(copyBufferGeometry, nCopy) {
     _classCallCheck(this, CopyBufferGeometry);
 
-    var _this8 = _possibleConstructorReturn(this, (CopyBufferGeometry.__proto__ || Object.getPrototypeOf(CopyBufferGeometry)).call(this));
+    var _this9 = _possibleConstructorReturn(this, (CopyBufferGeometry.__proto__ || Object.getPrototypeOf(CopyBufferGeometry)).call(this));
 
-    _this8.type = 'CopyBufferGeometry';
-    _this8.parameters = {
+    _this9.type = 'CopyBufferGeometry';
+    _this9.parameters = {
       nCopy: nCopy
     };
 
-    _this8.refBufferGeometry = copyBufferGeometry;
+    _this9.refBufferGeometry = copyBufferGeometry;
 
     var positions = expandFloatArray(copyBufferGeometry.attributes.position.array, nCopy);
-    _this8.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    _this9.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
 
     var normals = expandFloatArray(copyBufferGeometry.attributes.normal.array, nCopy);
-    _this8.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    _this9.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
 
     var uvs = expandFloatArray(copyBufferGeometry.attributes.uv.array, nCopy);
-    _this8.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    _this9.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
 
     var nVertexInCopy = copyBufferGeometry.attributes.position.count;
 
     if ('index' in copyBufferGeometry) {
       if (copyBufferGeometry.index) {
         var indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy);
-        _this8.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
+        _this9.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
       }
     }
 
     var colors = new Float32Array(nVertexInCopy * 3 * nCopy);
-    _this8.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    return _this8;
+    _this9.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    return _this9;
   }
 
   _createClass(CopyBufferGeometry, [{
@@ -81866,6 +82050,7 @@ exports.setVisible = setVisible;
 exports.RaisedShapeGeometry = RaisedShapeGeometry;
 exports.RibbonGeometry = RibbonGeometry;
 exports.BufferRibbonGeometry = BufferRibbonGeometry;
+exports.BufferRaisedShapesGeometry = BufferRaisedShapesGeometry;
 exports.getUnitVectorRotation = getUnitVectorRotation;
 exports.getFractionRotation = getFractionRotation;
 exports.fraction = fraction;
@@ -83083,11 +83268,16 @@ var GridControlWidget = function (_CanvasWidget3) {
       this.line(xm, yTop, xm, yBottom, 1, dark);
       this.line(5, yTop, 35, yTop, 1, dark);
 
+      function getValueFromBFactor(b) {
+        return -b.toFixed(2);
+      }
+
       var font = '12px sans-serif';
       var textColor = '#666';
       var y = this.zToY(this.soupView.soup.grid.bCutoff);
       this.fillRect(5, y, 30, 5, textColor);
-      this.text(-this.soupView.soup.grid.bCutoff.toFixed(2), xm, y + 15, font, textColor, 'center');
+      var text = getValueFromBFactor(this.soupView.soup.grid.bCutoff);
+      this.text(text, xm, y + 15, font, textColor, 'center');
     }
   }, {
     key: 'getZ',
@@ -91137,8 +91327,70 @@ var Display = function (_WebglWidget) {
       this.buildAtomMeshes(atomIndices, 'grid', this.gridAtomRadius);
     }
   }, {
+    key: 'getNucleotideBaseVertices',
+    value: function getNucleotideBaseVertices(residue) {
+      var atomTypes = [];
+      if (residue.resType === 'DA' || residue.resType === 'A') {
+        atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
+      } else if (residue.resType === 'DG' || residue.resType === 'G') {
+        atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
+      } else if (residue.resType === 'DT' || residue.resType === 'U') {
+        atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
+      } else if (residue.resType === 'DC' || residue.resType === 'C') {
+        atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
+      }
+      var atom = this.soup.getAtomProxy();
+      return _lodash2.default.map(atomTypes, function (a) {
+        return atom.load(residue.getIAtom(a)).pos.clone();
+      });
+    }
+  }, {
     key: 'buildMeshOfNucleotides',
     value: function buildMeshOfNucleotides() {
+      this.createOrClearMesh('basepairs');
+
+      var residue = this.soup.getResidueProxy();
+      var atom = this.soup.getAtomProxy();
+
+      var verticesList = [];
+      var colorList = [];
+      var _iteratorNormalCompletion19 = true;
+      var _didIteratorError19 = false;
+      var _iteratorError19 = undefined;
+
+      try {
+        for (var _iterator19 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+          var iRes = _step19.value;
+
+          residue.iRes = iRes;
+          if (residue.ss === 'D' && residue.isPolymer) {
+            colorList.push(residue.color);
+            verticesList.push(this.getNucleotideBaseVertices(residue));
+          }
+        }
+      } catch (err) {
+        _didIteratorError19 = true;
+        _iteratorError19 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion19 && _iterator19.return) {
+            _iterator19.return();
+          }
+        } finally {
+          if (_didIteratorError19) {
+            throw _iteratorError19;
+          }
+        }
+      }
+
+      console.log('Display.buildMeshOfNucleotides nBasepair', verticesList.length);
+      var displayGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, colorList, 0.2);
+      var displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial);
+      this.displayMeshes['basepairs'].add(displayMesh);
+    }
+  }, {
+    key: 'buildMeshOfOldNucleotides',
+    value: function buildMeshOfOldNucleotides() {
       this.createOrClearMesh('basepairs');
 
       var displayGeom = new THREE.Geometry();
@@ -91149,13 +91401,13 @@ var Display = function (_WebglWidget) {
       var residue = this.soup.getResidueProxy();
       var atom = this.soup.getAtomProxy();
 
-      var _iteratorNormalCompletion19 = true;
-      var _didIteratorError19 = false;
-      var _iteratorError19 = undefined;
+      var _iteratorNormalCompletion20 = true;
+      var _didIteratorError20 = false;
+      var _iteratorError20 = undefined;
 
       try {
-        for (var _iterator19 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-          var iRes = _step19.value;
+        for (var _iterator20 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+          var iRes = _step20.value;
 
           residue.iRes = iRes;
           if (residue.ss !== 'D' || !residue.isPolymer) {
@@ -91194,36 +91446,15 @@ var Display = function (_WebglWidget) {
           var faceGeom = new glgeom.RaisedShapeGeometry(vertices, 0.2);
           basepairGeom.merge(faceGeom);
 
-          var _iteratorNormalCompletion20 = true;
-          var _didIteratorError20 = false;
-          var _iteratorError20 = undefined;
+          // for (let bond of bondTypes) {
+          //   let vertices = getVerticesFromAtomDict(iRes, [bond[0], bond[1]])
+          //   basepairGeom.merge(
+          //     cylinderGeom, glgeom.getCylinderMatrix(vertices[0], vertices[1], 0.2))
+          // }
 
-          try {
-            for (var _iterator20 = bondTypes[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-              var bond = _step20.value;
-
-              var _vertices = getVerticesFromAtomDict(iRes, [bond[0], bond[1]]);
-              basepairGeom.merge(cylinderGeom, glgeom.getCylinderMatrix(_vertices[0], _vertices[1], 0.2));
-            }
-
-            // explicitly set to zero-length array as RaisedShapeGeometry
-            // sets no uv but cylinder does, and the merged geometry causes
-            // warnings in THREE.js v0.79
-          } catch (err) {
-            _didIteratorError20 = true;
-            _iteratorError20 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion20 && _iterator20.return) {
-                _iterator20.return();
-              }
-            } finally {
-              if (_didIteratorError20) {
-                throw _iteratorError20;
-              }
-            }
-          }
-
+          // explicitly set to zero-length array as RaisedShapeGeometry
+          // sets no uv but cylinder does, and the merged geometry causes
+          // warnings in THREE.js v0.79
           basepairGeom.faceVertexUvs = [[]];
 
           glgeom.setGeometryVerticesColor(basepairGeom, residue.color);
@@ -91233,16 +91464,16 @@ var Display = function (_WebglWidget) {
           pickingGeom.merge(basepairGeom);
         }
       } catch (err) {
-        _didIteratorError19 = true;
-        _iteratorError19 = err;
+        _didIteratorError20 = true;
+        _iteratorError20 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion19 && _iterator19.return) {
-            _iterator19.return();
+          if (!_iteratorNormalCompletion20 && _iterator20.return) {
+            _iterator20.return();
           }
         } finally {
-          if (_didIteratorError19) {
-            throw _iteratorError19;
+          if (_didIteratorError20) {
+            throw _iteratorError20;
           }
         }
       }
@@ -98195,8 +98426,6 @@ var _lodash2 = _interopRequireDefault(_lodash);
 var _embedjolecule = __webpack_require__(132);
 
 var _util = __webpack_require__(52);
-
-var _animation = __webpack_require__(131);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 

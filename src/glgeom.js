@@ -196,7 +196,7 @@ class Trace extends PathAndFrenetFrames {
   constructor () {
     super()
     this.indices = []
-    this.detail = 2
+    this.detail = 4
   }
 
   getReference (i) {
@@ -623,7 +623,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     let iTraceEnd = trace.points.length
 
     function getWidth (iTracePoint) {
-      return trace.segmentTypes[iTracePoint] === 'C' ? 0.5 : 8
+      return trace.segmentTypes[iTracePoint] === 'C' ? 0.7 : 8
     }
 
     for (let iTracePoint = iTraceStart; iTracePoint < iTraceEnd; iTracePoint += 1) {
@@ -652,8 +652,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
         }
 
         let width = getWidth(iTracePoint)
-
-        let height = 1.0
+        let height = 0.7
 
         if ((iPathPoint === iPathStart) && (iPathPoint > 0)) {
           if ((trace.segmentTypes[iTracePoint - 1] === 'C') &&
@@ -830,6 +829,146 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
   }
 }
 
+
+/**
+ * Takes a bunch of points and treats it as defining
+ * a polygon, and raises it to a certain thickness.
+ */
+class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
+  constructor (verticesList, colorList, thickness) {
+    super()
+
+    this.type = 'BufferRaisedShapesGeometry'
+
+    this.parameters = {verticesList, thickness, colorList}
+
+    this.nVertex = 0
+    this.nFace = 0
+
+    this.countVertexAndFacesOfPath()
+
+    this.setAttributes()
+
+    this.setPath()
+  }
+
+  countVertexAndFacesOfPath (front, back) {
+    this.nVertex = 0
+    this.nFace = 0
+
+    for (let vertices of this.parameters.verticesList) {
+      let nVertex = vertices.length
+      // top layer
+      this.nFace += nVertex - 2
+      // bottom layer
+      this.nFace += nVertex - 2
+      // side layers
+      this.nFace += 2 * nVertex
+    }
+
+    this.nVertex = 3 * this.nFace
+  }
+
+  setPath () {
+    for (let [i, vertices] of this.parameters.verticesList.entries()) {
+      let normal = threePointNormal(vertices.slice(0, 3))
+      let displacement = normal.clone()
+        .multiplyScalar(this.parameters.thickness / 2)
+      let color = this.parameters.colorList[i]
+
+      let nVertex = vertices.length
+      let iLast = nVertex - 1
+
+      let topVertices = []
+      for (let i = 0; i < vertices.length; i += 1) {
+        topVertices.push(vertices[i].clone().add(displacement))
+      }
+
+      let bottomVertices = []
+      for (let i = 0; i < vertices.length; i += 1) {
+        bottomVertices.push(vertices[i].clone().sub(displacement))
+      }
+
+      for (let i = 0; i < nVertex - 2; i += 1) {
+        this.pushVerticesOfFace(
+          topVertices[i], topVertices[i + 1], topVertices[iLast], color)
+      }
+
+      for (let i = 0; i < nVertex - 2; i += 1) {
+        this.pushVerticesOfFace(
+          bottomVertices[i], bottomVertices[iLast], bottomVertices[i + 1], color)
+      }
+
+      for (let i = 0; i < nVertex; i += 1) {
+        let j = i === nVertex - 1 ? 0 : i + 1
+        this.pushVerticesOfFace(
+          topVertices[i], bottomVertices[i], bottomVertices[j], color)
+        this.pushVerticesOfFace(
+          topVertices[i], bottomVertices[j], topVertices[j], color)
+      }
+    }
+
+    this.computeVertexNormals()
+  }
+
+  setAttributes () {
+    let positions = new Float32Array(this.nVertex * 3)
+    let normals = new Float32Array(this.nVertex * 3)
+    let indices = new Int32Array(this.nFace * 3)
+    let colors = new Float32Array(this.nVertex * 3)
+
+    this.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+    this.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
+    this.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
+    this.setIndex(new THREE.Uint32BufferAttribute(indices, 1))
+
+    this.positions = this.attributes.position.array
+    this.normals = this.attributes.normal.array
+    this.indices = this.index.array
+    this.colors = this.attributes.color.array
+
+    this.positionCount = 0
+    this.indexCount = 0
+    this.vertexCount = 0
+  }
+
+  pushVertex (vertex, color) {
+    this.positions[this.positionCount] = vertex.x
+    this.positions[this.positionCount + 1] = vertex.y
+    this.positions[this.positionCount + 2] = vertex.z
+
+    this.colors[this.positionCount] = color.r
+    this.colors[this.positionCount + 1] = color.g
+    this.colors[this.positionCount + 2] = color.b
+
+    this.positionCount += 3
+    this.vertexCount += 1
+  }
+
+  pushVerticesOfFace (v0, v1, v2, color) {
+    this.pushVertex(v0, color)
+    this.pushVertex(v1, color)
+    this.pushVertex(v2, color)
+
+    let i = this.indexCount
+    this.indices[this.indexCount] = i
+    this.indices[this.indexCount + 1] = i + 1
+    this.indices[this.indexCount + 2] = i + 2
+
+    this.indexCount += 3
+  }
+
+  getVertex (iVertex) {
+    return v3.create(
+      this.positions[iVertex * 3],
+      this.positions[iVertex * 3 + 1],
+      this.positions[iVertex * 3 + 2])
+  }
+
+}
+
+
+
 /**
  * Creates a unit-based block arrow pointing in the -Z direction.
  * It can be reorientated using a lookAt() call
@@ -843,8 +982,8 @@ class BlockArrowGeometry extends THREE.ExtrudeGeometry {
     ])
 
     let path = new THREE.CatmullRomCurve3([
-      v3.create(0, -0.3, 0),
-      v3.create(0, 0.3, 0)
+      v3.create(0, -0.2, 0),
+      v3.create(0, 0.2, 0)
     ])
 
     super(
@@ -1191,6 +1330,7 @@ export {
   RaisedShapeGeometry,
   RibbonGeometry,
   BufferRibbonGeometry,
+  BufferRaisedShapesGeometry,
   getUnitVectorRotation,
   getFractionRotation,
   fraction,

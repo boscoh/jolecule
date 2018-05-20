@@ -412,6 +412,8 @@ class Soup {
     this.parsingError = ''
     this.title = ''
 
+    this.pdbIds = []
+    this.pdbId = null
     this.chains = []
     this.atomStore = new Store(atomStoreFields)
     this.residueStore = new Store(residueStoreFields)
@@ -464,9 +466,8 @@ class Soup {
   }
 
   parsePdbData (pdbText, pdbId) {
-    if (!this.pdbId) {
-      this.pdbId = pdbId
-    }
+    this.pdbId = pdbId
+    this.pdbIds.push(pdbId)
 
     if (!this.title) {
       let title = parsetTitleFromPdbText(pdbText)
@@ -1396,6 +1397,9 @@ class SoupView {
     this.soup = soup
 
     this.changed = true
+    this.updateView = false
+    this.updateSidechain = false
+    this.updateSelection = false
 
     // stores the current cameraParams, display
     // options, distances, labels, selected

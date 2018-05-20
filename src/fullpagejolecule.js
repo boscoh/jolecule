@@ -3,7 +3,6 @@ import scrollTo from 'jquery.scrollto' // eslint-disable-line
 import _ from 'lodash'
 import { EmbedJolecule } from './embedjolecule'
 import { getWindowUrl, linkButton, randomId, exists } from './util'
-import { registerGlobalAnimationLoop } from './animation'
 
 class ViewPanel {
   /**

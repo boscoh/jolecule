@@ -24,16 +24,11 @@ let defaultArgs = {
 class EmbedJolecule {
   constructor (params) {
     this.params = params
-    this.isLoop = this.params.isLoop
+    this.isProcessing = {flag: false}
 
     this.divTag = this.params.divTag
     this.div = $(this.params.divTag)
-
-    // disable right mouse click
     this.div[0].oncontextmenu = _.noop
-
-    this.initViewId = this.params.viewId
-    this.hAnnotationView = this.params.viewHeight
 
     this.soup = new Soup()
     this.soupView = new SoupView(this.soup)
@@ -45,8 +40,7 @@ class EmbedJolecule {
     let resizeFn = () => this.resize()
     $(window).resize(resizeFn)
     window.onorientationchange = resizeFn
-
-    this.isProcessing = {flag: false}
+    resizeFn()
   };
 
   async asyncLoadViews (dataServer) {
@@ -113,23 +107,18 @@ class EmbedJolecule {
       await delay(100)
     }
     this.isProcessing.flag = true
-
     await this.asyncLoadSoup(dataServer)
-
     this.display.nDataServer += 1
-
     if (this.display.nDataServer === 1) {
       await this.display.asyncSetMesssage('Loading views...')
       await this.asyncLoadViews(dataServer)
     }
-
     this.display.cleanupMessage()
-
     this.isProcessing.flag = false
   }
 
   createProteinDiv () {
-    let height = this.div.outerHeight() - this.hAnnotationView
+    let height = this.div.outerHeight()
     this.proteinDiv =
       $('<div>')
         .attr('id', 'jolecule-soup-display')

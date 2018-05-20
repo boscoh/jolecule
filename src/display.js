@@ -825,7 +825,64 @@ class Display extends WebglWidget {
     this.buildAtomMeshes(atomIndices, 'grid', this.gridAtomRadius)
   }
 
+  getNucleotideBaseAtomTypes (resType) {
+    let atomTypes = []
+    if (resType === 'DA' || resType === 'A') {
+      atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
+    } else if (resType === 'DG' || resType === 'G') {
+      atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
+    } else if (resType === 'DT' || resType === 'U') {
+      atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
+    } else if (resType === 'DC' || resType === 'C') {
+      atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5']
+    }
+    return atomTypes
+  }
+
+  getNucleotideConnectorBondAtomTypes (resType) {
+    let bondTypes = []
+    if (resType === 'DA' || resType === 'A') {
+      bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
+    } else if (resType === 'DG' || resType === 'G') {
+      bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
+    } else if (resType === 'DT' || resType === 'U') {
+      bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
+    } else if (resType === 'DC' || resType === 'C') {
+      bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
+    }
+    return bondTypes
+  }
+
   buildMeshOfNucleotides () {
+    this.createOrClearMesh('basepairs')
+
+    let residue = this.soup.getResidueProxy()
+    let atom = this.soup.getAtomProxy()
+    let getVecFromAtomType = a => atom.load(residue.getIAtom(a)).pos.clone()
+
+    let verticesList = []
+    let colorList = []
+    let indexColorList = []
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      residue.iRes = iRes
+      if (residue.ss === 'D' && residue.isPolymer) {
+        colorList.push(residue.color)
+        indexColorList.push(this.getIndexColor(residue.iAtom))
+        let atomTypes = this.getNucleotideBaseAtomTypes(residue.resType)
+        verticesList.push(_.map(atomTypes, getVecFromAtomType))
+      }
+    }
+
+    let displayGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, colorList, 0.2)
+    let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
+    this.displayMeshes['basepairs'].add(displayMesh)
+
+    let pickingGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, indexColorList, 0.2)
+    let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
+    this.pickingMeshes['basepairs'].add(pickingMesh)
+  }
+
+  buildMeshOfOldNucleotides () {
     this.createOrClearMesh('basepairs')
 
     let displayGeom = new THREE.Geometry()
@@ -873,11 +930,11 @@ class Display extends WebglWidget {
       let faceGeom = new glgeom.RaisedShapeGeometry(vertices, 0.2)
       basepairGeom.merge(faceGeom)
 
-      for (let bond of bondTypes) {
-        let vertices = getVerticesFromAtomDict(iRes, [bond[0], bond[1]])
-        basepairGeom.merge(
-          cylinderGeom, glgeom.getCylinderMatrix(vertices[0], vertices[1], 0.2))
-      }
+      // for (let bond of bondTypes) {
+      //   let vertices = getVerticesFromAtomDict(iRes, [bond[0], bond[1]])
+      //   basepairGeom.merge(
+      //     cylinderGeom, glgeom.getCylinderMatrix(vertices[0], vertices[1], 0.2))
+      // }
 
       // explicitly set to zero-length array as RaisedShapeGeometry
       // sets no uv but cylinder does, and the merged geometry causes

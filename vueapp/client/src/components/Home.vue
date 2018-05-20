@@ -22,65 +22,30 @@
 
       <md-layout md-flex="33">
         <md-whiteframe>
-          <h3 class="md-title">File Download</h3>
-          <div>
-            <md-button
-              md-flex=true
-              class="md-raised"
-              @click="getReadme()">
-              Download Readme.md
-            </md-button>
-          </div>
+          <md-layout md-row>
+            <md-input-container
+              style="width: 100px">
+              <label>
+                PDB Id
+              </label>
+              <md-input
+                v-model="pdbId">
+              </md-input>
+            </md-input-container>
+            <div>
+              <md-button
+                md-flex=true
+                class="md-raised"
+                @click="loadFromPdbId()">
+                Load
+              </md-button>
+            </div>
+            {{pdbText}}
+          </md-layout>
         </md-whiteframe>
       </md-layout>
 
-      <md-layout md-flex="33">
-        <md-whiteframe
-          style="overflow: auto">
-          <h3 class="md-title">File Upload</h3>
-
-          <div>
-            <md-layout
-              md-row
-              md-vertical-align="center">
-              <md-input-container style="">
-                <md-file
-                  id="file-input"
-                  multiple
-                  @selected="selectFiles">
-                </md-file>
-                <label
-                  for="file-input"
-                  class="button">
-                  Upload files
-                </label>
-              </md-input-container>
-
-              <div>
-                <md-button
-                  md-flex=true
-                  class="md-raised"
-                  @click="upload()">
-                  Upload
-                </md-button>
-              </div>
-            </md-layout>
-          </div>
-
-          <ul v-if="uploadFiles">
-            <li v-for="(file, i) in uploadFiles" :key="i">
-              <a :href="file">{{file}}</a>
-            </li>
-          </ul>
-
-          <div v-if="error" style="color: red">
-            {{ error }}
-          </div>
-
-        </md-whiteframe>
-      </md-layout>
-
-      <md-layout md-flex="33">
+      <md-layout md-flex="66">
         <md-whiteframe>
           <h3 class="md-title">Live graphs</h3>
 
@@ -146,6 +111,7 @@
 
 <script>
 import _ from 'lodash'
+import $ from 'jquery'
 
 import rpc from '../modules/rpc'
 import vueSlider from 'vue-slider-component'
@@ -154,21 +120,13 @@ import ChartWidget from '../modules/chart-widget'
 import Model from '../modules/model'
 import {initEmbedJolecule} from '../../../../src/main'
 
-function getRandomColor () {
-  let letters = '0123456789ABCDEF'
-  let color = '#'
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)]
-  }
-  return color
-}
-
 export default {
   name: 'experiments',
   components: {vueSlider},
   data () {
     return {
       text: '',
+      pdbId: '',
       error: '',
       pointerX: 0,
       pointerY: 0,
@@ -192,7 +150,8 @@ export default {
           max: 10,
           interval: 0.1
         }
-      ]
+      ],
+      pdbText: ''
     }
   },
   async mounted () {
@@ -202,27 +161,21 @@ export default {
     }
 
     this.model = new Model(params)
-    this.model.initializeVars = function () {
-      this.vars.y = 0
-    }
-    this.model.update = function (iStep) {
+    this.model.initializeVars = () => { this.model.vars.y = 0 }
+    this.model.update = function (i) {
       this.vars.y =
-        this.params.alpha *
-        Math.sin(this.params.beta * iStep + this.params.gamma)
+        this.params.alpha * Math.sin(this.params.beta * i + this.params.gamma)
     }
 
     this.chartWidget = new ChartWidget('#charts')
-    this.chartWidget.setTitle('title')
-    this.chartWidget.setXLabel('xLabel')
-    this.chartWidget.setYLabel('yLabel')
-    this.chartWidget.addDataset('sample')
     this.randomizeGraph()
 
     this.joleculeWidget = initEmbedJolecule({
       divTag: '#jolecule',
       isGrid: true,
       isEditable: true,
-      backgroundColor: 0xCCCCCC})
+      backgroundColor: 0xCCCCCC
+    })
 
     // const dataServer0 = require('../../../dataservers/1mbo-data-server')
     // await this.joleculeWidget.asyncAddDataServer(dataServer0)
@@ -236,27 +189,29 @@ export default {
     const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer3)
 
-    let response = await rpc.rpcRun('publicGetText')
-    if (response.result) {
-      this.text = response.result.text
-    } else {
-      this.error = response.error.message
-    }
+    // this.pdbId = '1ssx'
+    // this.loadFromPdbId()
   },
   methods: {
-    async getReadme () {
-      let response = await rpc.rpcDownload('publicDownloadGetReadme')
-      if (response.error) {
-        this.error = response.error.message
-      }
+    async loadFromPdbId () {
+      let dataServer0 = this.makeDataServer(this.pdbId)
+      await this.joleculeWidget.asyncAddDataServer(dataServer0)
     },
-    drawCanvas () {
-      for (let i = 0; i < 10; i += 1) {
-        let x1 = Math.random() * this.canvasWidget.drawWidth
-        let y1 = Math.random() * this.canvasWidget.drawHeight
-        let x2 = Math.random() * (this.canvasWidget.drawWidth - x1)
-        let y2 = Math.random() * (this.canvasWidget.drawHeight - y1)
-        this.canvasWidget.fillRect(x1, y1, (x2 - x1), (y2 - y1), getRandomColor())
+    makeDataServer (pdbId) {
+      let _this = this
+      return {
+        pdb_id: pdbId,
+        get_protein_data: function (parsePdb) {
+          let url = `https://files.rcsb.org/download/${pdbId}.pdb1`
+          console.log('remoteDataServer.get_protein_data', url)
+          $.get(url, (pdbText) => {
+            _this.pdbText = pdbText.substring(0, 500) + '...'
+            parsePdb({pdb_id: pdbId, pdb_text: pdbText})
+          })
+        },
+        get_views: function (processViews) { processViews({}) },
+        save_views: function (views, success) { success() },
+        delete_protein_view: function (viewId, success) { success() }
       }
     },
     selectFiles (filelist) {
@@ -285,6 +240,10 @@ export default {
       this.model.resetSoln()
       this.model.integrate(nStep)
       let yValues = this.model.soln.y
+      this.chartWidget.setTitle('title')
+      this.chartWidget.setXLabel('xLabel')
+      this.chartWidget.setYLabel('yLabel')
+      this.chartWidget.addDataset('sample')
       this.chartWidget.updateDataset(0, xValues, yValues)
     },
     randomizeGraph () {
