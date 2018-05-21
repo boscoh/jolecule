@@ -78325,7 +78325,7 @@ var EmbedJolecule = function () {
     value: function createStatusDiv() {
       var _this4 = this;
 
-      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
+      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="loop">')).append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
         _this4.controller.clear();
       })).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _util.linkButton)('', 'Sidechains', 'jolecule-button', function () {
         _this4.controller.showSelectedSidechains();
@@ -78334,6 +78334,7 @@ var EmbedJolecule = function () {
       })).append((0, _jquery2.default)('<div id="ligand"></div>')));
       this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append(this.viewBarDiv);
       this.div.append(this.statusDiv);
+      this.loopToggleWidget = new _widgets2.default.TogglePlayButtonWidget(this.display, '#loop');
       this.sequenceWidget = new _widgets2.default.SequenceWidget(this.display);
       this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.display, '#zslab');
       this.gridControlWidget = new _widgets2.default.GridControlWidget(this.display);
@@ -80197,11 +80198,13 @@ var SoupView = function () {
     this.soup = soup;
 
     this.changed = true;
-    this.updateView = false;
+    this.updateWidgets = false;
     this.updateSidechain = false;
     this.updateSelection = false;
-    this.startUpdateAfterRender = false;
-    this.updateView = true;
+    this.startTargetAfterRender = false;
+    this.updateWidgets = true;
+
+    this.isLoop = false;
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -80236,17 +80239,15 @@ var SoupView = function () {
   }, {
     key: 'setTargetView',
     value: function setTargetView(view) {
-      console.log('SoupView.setTargetView');
-      this.startUpdateAfterRender = true;
+      this.startTargetAfterRender = true;
       this.saveTargetView = view.clone();
     }
   }, {
     key: 'startTargetView',
     value: function startTargetView() {
-      this.nUpdateStep = this.maxUpdateStep;
       this.targetView = this.saveTargetView;
-      this.updateView = true;
-      this.startUpdateAfterRender = false;
+      this.updateWidgets = true;
+      this.startTargetAfterRender = false;
       this.changed = true;
     }
   }, {
@@ -80681,6 +80682,18 @@ var Controller = function () {
         }
       }
       this.soupView.updateSidechain = true;
+      this.soupView.changed = true;
+    }
+  }, {
+    key: 'getLoop',
+    value: function getLoop() {
+      return this.soupView.isLoop;
+    }
+  }, {
+    key: 'setLoop',
+    value: function setLoop(v) {
+      this.soupView.isLoop = v;
+      this.soupView.updateObservers = true;
       this.soupView.changed = true;
     }
   }]);
@@ -83285,6 +83298,44 @@ var ToggleButtonWidget = function () {
   return ToggleButtonWidget;
 }();
 
+var TogglePlayButtonWidget = function () {
+  function TogglePlayButtonWidget(display, selector) {
+    var _this10 = this;
+
+    _classCallCheck(this, TogglePlayButtonWidget);
+
+    this.controller = display.controller;
+    this.display = display;
+    this.div = (0, _jquery2.default)(selector).attr('href', '').html('Play').addClass('jolecule-button').on('click touch', function (e) {
+      _this10.callback(e);
+    });
+    this.display.addObserver(this);
+  }
+
+  _createClass(TogglePlayButtonWidget, [{
+    key: 'callback',
+    value: function callback(e) {
+      e.preventDefault();
+      this.controller.setLoop(!this.controller.getLoop());
+    }
+  }, {
+    key: 'draw',
+    value: function draw() {
+      if (this.controller.getLoop()) {
+        if (!this.div.hasClass('jolecule-button-toggle-on')) {
+          this.div.addClass('jolecule-button-toggle-on');
+        }
+      } else {
+        if (this.div.hasClass('jolecule-button-toggle-on')) {
+          this.div.removeClass('jolecule-button-toggle-on');
+        }
+      }
+    }
+  }]);
+
+  return TogglePlayButtonWidget;
+}();
+
 exports.default = {
   LineElement: LineElement,
   PopupText: PopupText,
@@ -83294,7 +83345,8 @@ exports.default = {
   ZSlabWidget: ZSlabWidget,
   GridControlWidget: GridControlWidget,
   ResidueSelectorWidget: ResidueSelectorWidget,
-  ToggleButtonWidget: ToggleButtonWidget
+  ToggleButtonWidget: ToggleButtonWidget,
+  TogglePlayButtonWidget: TogglePlayButtonWidget
 };
 
 /***/ }),
@@ -90590,7 +90642,7 @@ var Display = function (_WebglWidget) {
 
       this.observers.reset.dispatch();
 
-      this.soupView.updateView = true;
+      this.soupView.updateObservers = true;
     }
   }, {
     key: 'buildMeshOfRibbons',
@@ -91442,12 +91494,14 @@ var Display = function (_WebglWidget) {
       if (!this.isChanged()) {
         return;
       }
-
       this.updateMeshesInScene = false;
 
-      if (this.soupView.startUpdateAfterRender) {
+      if (this.soupView.startTargetAfterRender) {
+        // call here as the tick AFTER the new stuff
+        // has been rebuilt and rendered
         if (!this.soupView.soup.grid.changed && !this.soupView.updateSidechain && !this.soupView.updateSelection) {
           this.soupView.startTargetView();
+          this.soupView.nUpdateStep = this.soupView.maxUpdateStep;
         }
       }
 
@@ -91466,14 +91520,12 @@ var Display = function (_WebglWidget) {
       }
 
       if (this.soupView.updateSidechain) {
-        console.log('Display.draw rebuild sidechains');
         this.buildMeshOfResidueSidechains();
         this.soupView.updateSidechain = false;
         this.updateMeshesInScene = true;
       }
 
       if (this.soupView.updateSelection) {
-        console.log('Display.draw rebuild selection');
         var residue = this.soup.getResidueProxy();
         var _iteratorNormalCompletion21 = true;
         var _didIteratorError21 = false;
@@ -91547,35 +91599,40 @@ var Display = function (_WebglWidget) {
 
       this.displayRender();
 
-      if (this.soupView.updateView) {
+      if (this.soupView.updateObservers) {
         this.observers.drawn.dispatch();
-        this.soupView.updateView = false;
+        this.soupView.updateObservers = false;
       }
 
       // needs to be observers.drawn after render
       this.atomLabelsWidget.draw();
 
       this.soupView.changed = false;
-
-      if (this.soupView.startUpdateAfterRender) {
-        this.soupView.changed = true;
-      }
     }
   }, {
     key: 'animate',
     value: function animate(elapsedTime) {
       var MS_PER_STEP = 17;
       this.soupView.nUpdateStep -= elapsedTime / MS_PER_STEP;
-      if (this.soupView.targetView === null) {
-        return;
-      }
       if (this.soupView.nUpdateStep < 0) {
-        this.controller.setCurrentView(this.soupView.targetView);
-        this.soupView.targetView = null;
+        if (this.soupView.targetView !== null) {
+          this.controller.setCurrentView(this.soupView.targetView);
+          this.soupView.updateObservers = true;
+          this.soupView.targetView = null;
+          this.soupView.nUpdateStep = 70;
+        } else {
+          if (this.soupView.startTargetAfterRender) {
+            this.soupView.changed = true;
+          } else if (this.soupView.isLoop) {
+            this.controller.setTargetToNextView();
+          }
+        }
       } else if (this.soupView.nUpdateStep >= 1) {
-        var view = this.soupView.currentView.clone();
-        view.setCamera((0, _soup.interpolateCameras)(this.soupView.currentView.cameraParams, this.soupView.targetView.cameraParams, 1.0 / this.soupView.nUpdateStep));
-        this.controller.setCurrentView(view);
+        if (this.soupView.targetView != null) {
+          var view = this.soupView.currentView.clone();
+          view.setCamera((0, _soup.interpolateCameras)(this.soupView.currentView.cameraParams, this.soupView.targetView.cameraParams, 1.0 / this.soupView.nUpdateStep));
+          this.controller.setCurrentView(view);
+        }
       }
       this.updateHover();
     }
@@ -91591,7 +91648,7 @@ var Display = function (_WebglWidget) {
     value: function resize() {
       this.observers.resized.dispatch();
       _get(Display.prototype.__proto__ || Object.getPrototypeOf(Display.prototype), 'resize', this).call(this);
-      this.soupView.updateView = true;
+      this.soupView.updateObservers = true;
       this.controller.setChangeFlag();
     }
   }, {

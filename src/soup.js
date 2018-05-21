@@ -1401,11 +1401,13 @@ class SoupView {
     this.soup = soup
 
     this.changed = true
-    this.updateView = false
+    this.updateWidgets = false
     this.updateSidechain = false
     this.updateSelection = false
-    this.startUpdateAfterRender = false
-    this.updateView = true
+    this.startTargetAfterRender = false
+    this.updateWidgets = true
+
+    this.isLoop = false
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -1437,16 +1439,14 @@ class SoupView {
   }
 
   setTargetView (view) {
-    console.log('SoupView.setTargetView')
-    this.startUpdateAfterRender = true
+    this.startTargetAfterRender = true
     this.saveTargetView = view.clone()
   }
 
   startTargetView () {
-    this.nUpdateStep = this.maxUpdateStep
     this.targetView = this.saveTargetView
-    this.updateView = true
-    this.startUpdateAfterRender = false
+    this.updateWidgets = true
+    this.startTargetAfterRender = false
     this.changed = true
   }
 
@@ -1791,6 +1791,16 @@ class Controller {
       }
     }
     this.soupView.updateSidechain = true
+    this.soupView.changed = true
+  }
+
+  getLoop () {
+    return this.soupView.isLoop
+  }
+
+  setLoop (v) {
+    this.soupView.isLoop = v
+    this.soupView.updateObservers = true
     this.soupView.changed = true
   }
 }

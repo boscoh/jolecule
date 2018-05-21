@@ -153,6 +153,7 @@ class EmbedJolecule {
       $('<div style="width: 100%; display: flex; flex-direction: row">')
         .append(
           $('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">')
+            .append($('<div id="loop">'))
             .append($('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))
         )
         .append(
@@ -179,6 +180,7 @@ class EmbedJolecule {
       .addClass('jolecule-embed-view-bar')
       .append(this.viewBarDiv)
     this.div.append(this.statusDiv)
+    this.loopToggleWidget = new widgets.TogglePlayButtonWidget(this.display, '#loop')
     this.sequenceWidget = new widgets.SequenceWidget(this.display)
     this.zSlabWidget = new widgets.ZSlabWidget(this.display, '#zslab')
     this.gridControlWidget = new widgets.GridControlWidget(this.display)

@@ -562,7 +562,7 @@ class Display extends WebglWidget {
 
     this.observers.reset.dispatch()
 
-    this.soupView.updateView = true
+    this.soupView.updateObservers = true
   }
 
   buildMeshOfRibbons () {
@@ -1064,15 +1064,18 @@ class Display extends WebglWidget {
     if (!this.isChanged()) {
       return
     }
-
     this.updateMeshesInScene = false
 
-    if (this.soupView.startUpdateAfterRender) {
+    if (this.soupView.startTargetAfterRender) {
+      // call here as the tick AFTER the new stuff
+      // has been rebuilt and rendered
       if (
         !this.soupView.soup.grid.changed &&
         !this.soupView.updateSidechain &&
         !this.soupView.updateSelection) {
         this.soupView.startTargetView()
+        this.soupView.nUpdateStep = this.soupView.maxUpdateStep
+
       }
     }
 
@@ -1091,14 +1094,12 @@ class Display extends WebglWidget {
     }
 
     if (this.soupView.updateSidechain) {
-      console.log('Display.draw rebuild sidechains')
       this.buildMeshOfResidueSidechains()
       this.soupView.updateSidechain = false
       this.updateMeshesInScene = true
     }
 
     if (this.soupView.updateSelection) {
-      console.log('Display.draw rebuild selection')
       let residue = this.soup.getResidueProxy()
       for (let trace of this.traces) {
         for (let iTrace of _.range(trace.points.length)) {
@@ -1130,37 +1131,42 @@ class Display extends WebglWidget {
 
     this.displayRender()
 
-    if (this.soupView.updateView) {
+    if (this.soupView.updateObservers) {
       this.observers.drawn.dispatch()
-      this.soupView.updateView = false
+      this.soupView.updateObservers = false
     }
 
     // needs to be observers.drawn after render
     this.atomLabelsWidget.draw()
 
     this.soupView.changed = false
-
-    if (this.soupView.startUpdateAfterRender) {
-      this.soupView.changed = true
-    }
   }
 
   animate (elapsedTime) {
     const MS_PER_STEP = 17
     this.soupView.nUpdateStep -= elapsedTime / MS_PER_STEP
-    if (this.soupView.targetView === null) {
-      return
-    }
     if (this.soupView.nUpdateStep < 0) {
-      this.controller.setCurrentView(this.soupView.targetView)
-      this.soupView.targetView = null
+      if (this.soupView.targetView !== null) {
+        this.controller.setCurrentView(this.soupView.targetView)
+        this.soupView.updateObservers = true
+        this.soupView.targetView = null
+        this.soupView.nUpdateStep = 70
+      } else {
+        if (this.soupView.startTargetAfterRender) {
+          this.soupView.changed = true
+        } else if (this.soupView.isLoop) {
+          this.controller.setTargetToNextView()
+        }
+      }
     } else if (this.soupView.nUpdateStep >= 1) {
-      let view = this.soupView.currentView.clone()
-      view.setCamera(interpolateCameras(
-        this.soupView.currentView.cameraParams,
-        this.soupView.targetView.cameraParams,
-        1.0 / this.soupView.nUpdateStep))
-      this.controller.setCurrentView(view)
+      if (this.soupView.targetView != null) {
+        let view = this.soupView.currentView.clone()
+        view.setCamera(interpolateCameras(
+          this.soupView.currentView.cameraParams,
+          this.soupView.targetView.cameraParams,
+          1.0 / this.soupView.nUpdateStep))
+        this.controller.setCurrentView(view)
+      }
     }
     this.updateHover()
   }
@@ -1174,7 +1180,7 @@ class Display extends WebglWidget {
   resize () {
     this.observers.resized.dispatch()
     super.resize()
-    this.soupView.updateView = true
+    this.soupView.updateObservers = true
     this.controller.setChangeFlag()
   }
 

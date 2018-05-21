@@ -1121,6 +1121,37 @@ class ToggleButtonWidget {
   }
 }
 
+
+class TogglePlayButtonWidget {
+  constructor (display, selector) {
+    this.controller = display.controller
+    this.display = display
+    this.div = $(selector)
+      .attr('href', '')
+      .html('Play')
+      .addClass('jolecule-button')
+      .on('click touch', (e) => { this.callback(e) })
+    this.display.addObserver(this)
+  }
+
+  callback (e) {
+    e.preventDefault()
+    this.controller.setLoop(!this.controller.getLoop())
+  }
+
+  draw () {
+    if (this.controller.getLoop()) {
+      if (!this.div.hasClass('jolecule-button-toggle-on')) {
+        this.div.addClass('jolecule-button-toggle-on')
+      }
+    } else {
+      if (this.div.hasClass('jolecule-button-toggle-on')) {
+        this.div.removeClass('jolecule-button-toggle-on')
+      }
+    }
+  }
+}
+
 export default {
   LineElement,
   PopupText,
@@ -1130,5 +1161,6 @@ export default {
   ZSlabWidget,
   GridControlWidget,
   ResidueSelectorWidget,
-  ToggleButtonWidget
+  ToggleButtonWidget,
+  TogglePlayButtonWidget
 }
