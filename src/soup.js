@@ -1069,7 +1069,10 @@ class Soup {
   }
 
   clearSidechainResidues () {
-    this.residueSidechain.clearBits()
+    let residue = this.getResidueProxy()
+    for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
+      residue.load(jRes).sidechain = false
+    }
   }
 
   setSidechainOfResidues (residueIndices, isSidechain) {
@@ -1612,6 +1615,7 @@ class Controller {
   clearSidechainResidues () {
     this.soup.clearSidechainResidues()
     this.soupView.currentView.selected = this.makeSelectedResidueList()
+    this.soupView.updateSidechain = true
     this.soupView.changed = true
   }
 
@@ -1741,6 +1745,18 @@ class Controller {
     this.soupView.soup.grid.bCutoff = cutoff
     this.soupView.soup.grid.changed = true
     this.soupView.changed = true
+  }
+
+  clear () {
+    let distances = this.soupView.currentView.distances
+    for (let i of _.reverse(_.range(distances.length))) {
+      this.deleteDistance(i)
+    }
+    let labels = this.soupView.currentView.labels
+    for (let i of _.reverse(_.range(labels.length))) {
+      this.deleteAtomLabel(i)
+    }
+    this.clearSidechainResidues()
   }
 }
 

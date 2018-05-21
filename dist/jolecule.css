@@ -64,7 +64,7 @@ a.jolecule-large-button:active {
 .jolecule-author {
     padding-top: 0em;
     font-size: 10px;
-    letter-spacing: 0.1em;
+    letter-spacing: 0em;
     color: #776;
     padding-left: 15px;
     font-weight: normal;
@@ -92,7 +92,7 @@ a.jolecule-large-button:active {
     color: #666;
     font-family: helvetica;
     font-size: 12px;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.05em;
     overflow: hidden;
 }
 .jolecule-embed-view-bar {
@@ -118,7 +118,7 @@ a.jolecule-large-button:active {
     -webkit-flex: 1;
     font-size: 12px;
     font-family: helvetica;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.05em;
     line-height: 1.2em;
     color: #666;
 }
@@ -127,7 +127,7 @@ a.jolecule-large-button:active {
     color: #777;
     font-size: 12px;
     font-family: Helvetica, sans-serif;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.05em;
     line-height: 1em;
 }
 .jolecule-view {
@@ -145,7 +145,7 @@ a.jolecule-large-button:active {
 .jolecule-view-text {
     font-size: 12px;
     font-family: Helvetica, sans-serif;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.05em;
     line-height: 1.5em;
     background-color: #BBB;
     color: #333;
@@ -153,7 +153,7 @@ a.jolecule-large-button:active {
 textarea.jolecule-view-text,
 .jolecule-edit-textarea {
     font-size: 12px;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.05em;
     font-family: Helvetica, sans-serif;
     color: #333;
     background-color: #888;
@@ -165,7 +165,7 @@ textarea.jolecule-view-text,
     background-color: rgba(180, 180, 180, 0.9);
     font-family: Helvetica, Arial, sans-serif;
     font-size: 12px;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.05em;
     padding: 5px 15px;
     color: #666
 }

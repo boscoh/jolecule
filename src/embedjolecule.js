@@ -159,6 +159,10 @@ class EmbedJolecule {
           $('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">')
             .append(`<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>`)
         )
+        .append(linkButton(
+          '', 'Clear', 'jolecule-button',
+          () => { this.controller.clear() })
+        )
         .append(
           $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
             .append($('<div id="sidechain"></div>'))

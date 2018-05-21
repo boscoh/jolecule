@@ -205,7 +205,6 @@ if (remain.length < 1) {
   let htmlText
   if (isFullPage) {
     let user_nickname = 'anonymous'
-    console.log('Full page')
     htmlText = mustache.render(
       fullPageIndexHtmlMustache, {
         dataServerLoadStr,
@@ -213,7 +212,6 @@ if (remain.length < 1) {
         user_nickname
       })
   } else {
-    console.log('Embedded')
     htmlText = mustache.render(
       embedIndexHtmlMustache, {
         dataServerLoadStr,

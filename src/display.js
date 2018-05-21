@@ -567,17 +567,17 @@ class Display extends WebglWidget {
   }
 
   buildMeshOfRibbons () {
-    this.createOrClearMesh('tube')
+    this.createOrClearMesh('ribbons')
     let isFront = false
     let isBack = false
     let displayGeom = new glgeom.BufferRibbonGeometry(
       this.traces, data.coilFace, isFront, isBack)
     let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
-    this.displayMeshes['tube'].add(displayMesh)
+    this.displayMeshes['ribbons'].add(displayMesh)
     let pickingGeom = new glgeom.BufferRibbonGeometry(
       this.traces, data.coilFace, isFront, isBack, true)
     let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
-    this.pickingMeshes['tube'].add(pickingMesh)
+    this.pickingMeshes['ribbons'].add(pickingMesh)
   }
 
   buildMeshOfArrows () {
@@ -1078,18 +1078,21 @@ class Display extends WebglWidget {
     this.setMeshVisible('ligands', show.ligands)
 
     if (this.soupView.soup.grid.changed) {
+      console.log('Display.draw rebuild grid')
       this.buildMeshOfGrid()
       this.soupView.soup.grid.changed = false
       this.updateMeshesInScene = true
     }
 
     if (this.soupView.updateSidechain) {
+      console.log('Display.draw rebuild sidechains')
       this.buildMeshOfResidueSidechains()
       this.soupView.updateSidechain = false
       this.updateMeshesInScene = true
     }
 
     if (this.soupView.updateSelection) {
+      console.log('Display.draw rebuild selection')
       let residue = this.soup.getResidueProxy()
       for (let trace of this.traces) {
         for (let iTrace of _.range(trace.points.length)) {
@@ -1132,26 +1135,23 @@ class Display extends WebglWidget {
     this.soupView.changed = false
   }
 
-  animate () {
+  animate (elapsedTime) {
+    const MS_PER_STEP = 17
     if (this.soupView.targetView === null) {
       return
     }
-
-    this.soupView.nUpdateStep -= 1
-    let nStep = this.soupView.nUpdateStep
-    if (nStep <= 0) {
-      return
+    this.soupView.nUpdateStep -= elapsedTime / MS_PER_STEP
+    if (this.soupView.nUpdateStep < 0) {
+      this.controller.setCurrentView(this.soupView.targetView)
+      this.soupView.targetView = null
+    } else if (this.soupView.nUpdateStep >= 1) {
+      let view = this.soupView.currentView.clone()
+      view.setCamera(interpolateCameras(
+        this.soupView.currentView.cameraParams,
+        this.soupView.targetView.cameraParams,
+        1.0 / this.soupView.nUpdateStep))
+      this.controller.setCurrentView(view)
     }
-
-    let newCamera = interpolateCameras(
-      this.soupView.currentView.cameraParams,
-      this.soupView.targetView.cameraParams,
-      1.0 / nStep)
-
-    let view = this.soupView.targetView.clone()
-    view.setCamera(newCamera)
-    this.controller.setCurrentView(view)
-
     this.updateHover()
   }
 

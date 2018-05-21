@@ -77927,7 +77927,7 @@ Object.defineProperty(exports, "__esModule", {
  * - window.lastTime
  */
 
-var MS_PER_STEP = 25;
+var MS_PER_STEP = 17;
 
 function loop() {
   requestAnimationFrame(loop);
@@ -77937,35 +77937,28 @@ function loop() {
   }
   var currTime = new Date().getTime();
   var elapsedTime = currTime - window.lastTime;
-  var nStep = elapsedTime / MS_PER_STEP;
-  if (nStep < 1) {
-    nStep = 1;
-  }
-  nStep = Math.floor(nStep);
 
-  for (var i = 0; i < nStep; i++) {
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
 
+  try {
+    for (var _iterator = window.globalWidgets[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var widget = _step.value;
+
+      widget.animate(elapsedTime);
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
     try {
-      for (var _iterator = window.globalWidgets[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var widget = _step.value;
-
-        widget.animate();
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
       }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
     } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
+      if (_didIteratorError) {
+        throw _iteratorError;
       }
     }
   }
@@ -78332,7 +78325,9 @@ var EmbedJolecule = function () {
     value: function createStatusDiv() {
       var _this4 = this;
 
-      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _jquery2.default)('<div id="sidechain"></div>')).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
+      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
+        _this4.controller.clear();
+      })).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _jquery2.default)('<div id="sidechain"></div>')).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
         _this4.controller.toggleResidueNeighbors();
       })).append((0, _jquery2.default)('<div id="ligand"></div>')));
       this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append(this.viewBarDiv);
@@ -79853,7 +79848,10 @@ var Soup = function () {
   }, {
     key: 'clearSidechainResidues',
     value: function clearSidechainResidues() {
-      this.residueSidechain.clearBits();
+      var residue = this.getResidueProxy();
+      for (var jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
+        residue.load(jRes).sidechain = false;
+      }
     }
   }, {
     key: 'setSidechainOfResidues',
@@ -80443,6 +80441,7 @@ var Controller = function () {
     value: function clearSidechainResidues() {
       this.soup.clearSidechainResidues();
       this.soupView.currentView.selected = this.makeSelectedResidueList();
+      this.soupView.updateSidechain = true;
       this.soupView.changed = true;
     }
   }, {
@@ -80587,6 +80586,63 @@ var Controller = function () {
       this.soupView.soup.grid.bCutoff = cutoff;
       this.soupView.soup.grid.changed = true;
       this.soupView.changed = true;
+    }
+  }, {
+    key: 'clear',
+    value: function clear() {
+      var distances = this.soupView.currentView.distances;
+      var _iteratorNormalCompletion17 = true;
+      var _didIteratorError17 = false;
+      var _iteratorError17 = undefined;
+
+      try {
+        for (var _iterator17 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+          var i = _step17.value;
+
+          this.deleteDistance(i);
+        }
+      } catch (err) {
+        _didIteratorError17 = true;
+        _iteratorError17 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion17 && _iterator17.return) {
+            _iterator17.return();
+          }
+        } finally {
+          if (_didIteratorError17) {
+            throw _iteratorError17;
+          }
+        }
+      }
+
+      var labels = this.soupView.currentView.labels;
+      var _iteratorNormalCompletion18 = true;
+      var _didIteratorError18 = false;
+      var _iteratorError18 = undefined;
+
+      try {
+        for (var _iterator18 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+          var _i2 = _step18.value;
+
+          this.deleteAtomLabel(_i2);
+        }
+      } catch (err) {
+        _didIteratorError18 = true;
+        _iteratorError18 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion18 && _iterator18.return) {
+            _iterator18.return();
+          }
+        } finally {
+          if (_didIteratorError18) {
+            throw _iteratorError18;
+          }
+        }
+      }
+
+      this.clearSidechainResidues();
     }
   }]);
 
@@ -90502,15 +90558,15 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'buildMeshOfRibbons',
     value: function buildMeshOfRibbons() {
-      this.createOrClearMesh('tube');
+      this.createOrClearMesh('ribbons');
       var isFront = false;
       var isBack = false;
       var displayGeom = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace, isFront, isBack);
       var displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial);
-      this.displayMeshes['tube'].add(displayMesh);
+      this.displayMeshes['ribbons'].add(displayMesh);
       var pickingGeom = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace, isFront, isBack, true);
       var pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial);
-      this.pickingMeshes['tube'].add(pickingMesh);
+      this.pickingMeshes['ribbons'].add(pickingMesh);
     }
   }, {
     key: 'buildMeshOfArrows',
@@ -91362,18 +91418,21 @@ var Display = function (_WebglWidget) {
       this.setMeshVisible('ligands', show.ligands);
 
       if (this.soupView.soup.grid.changed) {
+        console.log('Display.draw rebuild grid');
         this.buildMeshOfGrid();
         this.soupView.soup.grid.changed = false;
         this.updateMeshesInScene = true;
       }
 
       if (this.soupView.updateSidechain) {
+        console.log('Display.draw rebuild sidechains');
         this.buildMeshOfResidueSidechains();
         this.soupView.updateSidechain = false;
         this.updateMeshesInScene = true;
       }
 
       if (this.soupView.updateSelection) {
+        console.log('Display.draw rebuild selection');
         var residue = this.soup.getResidueProxy();
         var _iteratorNormalCompletion21 = true;
         var _didIteratorError21 = false;
@@ -91459,23 +91518,20 @@ var Display = function (_WebglWidget) {
     }
   }, {
     key: 'animate',
-    value: function animate() {
+    value: function animate(elapsedTime) {
+      var MS_PER_STEP = 17;
       if (this.soupView.targetView === null) {
         return;
       }
-
-      this.soupView.nUpdateStep -= 1;
-      var nStep = this.soupView.nUpdateStep;
-      if (nStep <= 0) {
-        return;
+      this.soupView.nUpdateStep -= elapsedTime / MS_PER_STEP;
+      if (this.soupView.nUpdateStep < 0) {
+        this.controller.setCurrentView(this.soupView.targetView);
+        this.soupView.targetView = null;
+      } else if (this.soupView.nUpdateStep >= 1) {
+        var view = this.soupView.currentView.clone();
+        view.setCamera((0, _soup.interpolateCameras)(this.soupView.currentView.cameraParams, this.soupView.targetView.cameraParams, 1.0 / this.soupView.nUpdateStep));
+        this.controller.setCurrentView(view);
       }
-
-      var newCamera = (0, _soup.interpolateCameras)(this.soupView.currentView.cameraParams, this.soupView.targetView.cameraParams, 1.0 / nStep);
-
-      var view = this.soupView.targetView.clone();
-      view.setCamera(newCamera);
-      this.controller.setCurrentView(view);
-
       this.updateHover();
     }
 
