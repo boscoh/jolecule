@@ -19,7 +19,7 @@ let defaultArgs = {
   isEditable: true,
   isLoop: false,
   isGrid: false,
-  backgroundColor: 0xCCCCCC
+  backgroundColor: 0x000000
 }
 
 class EmbedJolecule {
@@ -165,7 +165,10 @@ class EmbedJolecule {
         )
         .append(
           $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
-            .append($('<div id="sidechain"></div>'))
+            .append(linkButton(
+              '', 'Sidechains', 'jolecule-button',
+              () => { this.controller.showSelectedSidechains() })
+            )
             .append(linkButton(
               '', 'Neighbors', 'jolecule-button',
               () => { this.controller.toggleResidueNeighbors() })
@@ -180,7 +183,6 @@ class EmbedJolecule {
     this.zSlabWidget = new widgets.ZSlabWidget(this.display, '#zslab')
     this.gridControlWidget = new widgets.GridControlWidget(this.display)
     this.residueSelectorWidget = new widgets.ResidueSelectorWidget(this.display, '#res-selector')
-    this.sidechainWidget = new widgets.ToggleButtonWidget(this.display, '#sidechain', 'sidechain')
     this.ligandWidget = new widgets.ToggleButtonWidget(this.display, '#ligand', 'ligands')
   }
 

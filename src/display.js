@@ -410,6 +410,7 @@ class WebglWidget {
     this.saveMouseR = this.mouseR
     this.saveMouseT = this.mouseT
   }
+
 }
 
 
@@ -459,8 +460,6 @@ class Display extends WebglWidget {
 
     // popup hover box over the mouse position
     this.hover = new widgets.PopupText(this.divTag, 'lightblue')
-    this.iHoverResidue = null
-    this.hoverResidueColor = null
     this.iHoverAtom = null
 
     // Docking display control
@@ -1025,10 +1024,8 @@ class Display extends WebglWidget {
       return
     }
     this.iHoverAtom = this.getIAtomHover()
-    this.iHoverResidue = null
     if (this.iHoverAtom) {
       let atom = this.soup.getAtomProxy(this.iHoverAtom)
-      this.iHoverResidue = atom.iRes
       let label = atom.label
       let iAtom = atom.iAtom
       let pos = atom.pos.clone()
@@ -1069,6 +1066,15 @@ class Display extends WebglWidget {
     }
 
     this.updateMeshesInScene = false
+
+    if (this.soupView.startUpdateAfterRender) {
+      if (
+        !this.soupView.soup.grid.changed &&
+        !this.soupView.updateSidechain &&
+        !this.soupView.updateSelection) {
+        this.soupView.startTargetView()
+      }
+    }
 
     let show = this.soupView.currentView.show
     this.setMeshVisible('ribbons', show.ribbon)
@@ -1133,14 +1139,18 @@ class Display extends WebglWidget {
     this.atomLabelsWidget.draw()
 
     this.soupView.changed = false
+
+    if (this.soupView.startUpdateAfterRender) {
+      this.soupView.changed = true
+    }
   }
 
   animate (elapsedTime) {
     const MS_PER_STEP = 17
+    this.soupView.nUpdateStep -= elapsedTime / MS_PER_STEP
     if (this.soupView.targetView === null) {
       return
     }
-    this.soupView.nUpdateStep -= elapsedTime / MS_PER_STEP
     if (this.soupView.nUpdateStep < 0) {
       this.controller.setCurrentView(this.soupView.targetView)
       this.soupView.targetView = null
@@ -1190,7 +1200,7 @@ class Display extends WebglWidget {
     let iCenterAtom = this.soupView.getCenteredAtom().iAtom
 
     let now = (new Date()).getTime()
-    let isDoubleClick = (now - this.timePressed) < 500
+    let isDoubleClick = (now - this.timePressed) < 700
     if (isDoubleClick) {
       this.doubleclick()
     } else if (this.iDownAtom === iCenterAtom) {
@@ -1266,15 +1276,14 @@ class Display extends WebglWidget {
       this.isDraggingCentralAtom = false
     }
 
-    // if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
-    //   this.soup.clearSelectedResidues()
-    //   let atom = this.soup.getAtomProxy(this.iHoverAtom)
-    //   let res = this.soup.getResidueProxy(atom.iRes)
-    //   res.selected = !res.selected
-    //   this.iDownAtom = null
-    //   this.soupView.updateSelection = true
-    //   this.soupView.changed = true
-    // }
+    if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
+      if (!event.metaKey) {
+        this.controller.clearSelectedResidues()
+      }
+      let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
+      this.controller.selectResidue(iRes)
+      this.iDownAtom = null
+    }
 
     if (util.exists(event.touches)) {
       this.hover.hide()

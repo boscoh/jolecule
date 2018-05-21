@@ -78063,7 +78063,7 @@ var defaultArgs = {
   isEditable: true,
   isLoop: false,
   isGrid: false,
-  backgroundColor: 0xCCCCCC
+  backgroundColor: 0x000000
 };
 
 var EmbedJolecule = function () {
@@ -78327,7 +78327,9 @@ var EmbedJolecule = function () {
 
       this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
         _this4.controller.clear();
-      })).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _jquery2.default)('<div id="sidechain"></div>')).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
+      })).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _util.linkButton)('', 'Sidechains', 'jolecule-button', function () {
+        _this4.controller.showSelectedSidechains();
+      })).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
         _this4.controller.toggleResidueNeighbors();
       })).append((0, _jquery2.default)('<div id="ligand"></div>')));
       this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append(this.viewBarDiv);
@@ -78336,7 +78338,6 @@ var EmbedJolecule = function () {
       this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.display, '#zslab');
       this.gridControlWidget = new _widgets2.default.GridControlWidget(this.display);
       this.residueSelectorWidget = new _widgets2.default.ResidueSelectorWidget(this.display, '#res-selector');
-      this.sidechainWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#sidechain', 'sidechain');
       this.ligandWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#ligand', 'ligands');
     }
   }, {
@@ -80199,6 +80200,8 @@ var SoupView = function () {
     this.updateView = false;
     this.updateSidechain = false;
     this.updateSelection = false;
+    this.startUpdateAfterRender = false;
+    this.updateView = true;
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -80219,9 +80222,6 @@ var SoupView = function () {
 
     // this is to set the time between transitions of views
     this.maxUpdateStep = 20;
-
-    this.updateResidueSelection = false;
-    this.updateView = true;
   }
 
   _createClass(SoupView, [{
@@ -80236,9 +80236,18 @@ var SoupView = function () {
   }, {
     key: 'setTargetView',
     value: function setTargetView(view) {
+      console.log('SoupView.setTargetView');
+      this.startUpdateAfterRender = true;
+      this.saveTargetView = view.clone();
+    }
+  }, {
+    key: 'startTargetView',
+    value: function startTargetView() {
       this.nUpdateStep = this.maxUpdateStep;
-      this.targetView = view.clone();
+      this.targetView = this.saveTargetView;
       this.updateView = true;
+      this.startUpdateAfterRender = false;
+      this.changed = true;
     }
   }, {
     key: 'getCenteredAtom',
@@ -80452,6 +80461,14 @@ var Controller = function () {
       this.soupView.changed = true;
     }
   }, {
+    key: 'clearSelectedResidues',
+    value: function clearSelectedResidues() {
+      this.soup.clearSelectedResidues();
+      this.soupView.currentView.selected = this.makeSelectedResidueList();
+      this.soupView.updateSelection = true;
+      this.soupView.changed = true;
+    }
+  }, {
     key: 'toggleResidueNeighbors',
     value: function toggleResidueNeighbors() {
       var iAtom = this.soupView.currentView.iAtom;
@@ -80557,7 +80574,7 @@ var Controller = function () {
     value: function setCurrentView(view) {
       var oldViewSelected = this.soupView.currentView.selected;
       this.soupView.currentView = view.clone();
-      if (oldViewSelected !== view.selected) {
+      if (!_lodash2.default.isEqual(oldViewSelected.sort(), view.selected.sort())) {
         this.soupView.soup.clearSidechainResidues();
         this.soupView.soup.setSidechainOfResidues(view.selected, true);
         this.soupView.updateSidechain = true;
@@ -80643,6 +80660,28 @@ var Controller = function () {
       }
 
       this.clearSidechainResidues();
+      this.clearSelectedResidues();
+    }
+  }, {
+    key: 'selectResidue',
+    value: function selectResidue(iRes) {
+      var res = this.soup.getResidueProxy(iRes);
+      res.selected = !res.selected;
+      this.soupView.updateSelection = true;
+      this.soupView.changed = true;
+    }
+  }, {
+    key: 'showSelectedSidechains',
+    value: function showSelectedSidechains() {
+      var residue = this.soup.getResidueProxy();
+      for (var jRes = 0; jRes < this.soup.getResidueCount(); jRes += 1) {
+        residue.load(jRes);
+        if (residue.selected) {
+          residue.sidechain = true;
+        }
+      }
+      this.soupView.updateSidechain = true;
+      this.soupView.changed = true;
     }
   }]);
 
@@ -90390,8 +90429,6 @@ var Display = function (_WebglWidget) {
 
     // popup hover box over the mouse position
     _this2.hover = new _widgets2.default.PopupText(_this2.divTag, 'lightblue');
-    _this2.iHoverResidue = null;
-    _this2.hoverResidueColor = null;
     _this2.iHoverAtom = null;
 
     // Docking display control
@@ -91362,10 +91399,8 @@ var Display = function (_WebglWidget) {
         return;
       }
       this.iHoverAtom = this.getIAtomHover();
-      this.iHoverResidue = null;
       if (this.iHoverAtom) {
         var atom = this.soup.getAtomProxy(this.iHoverAtom);
-        this.iHoverResidue = atom.iRes;
         var label = atom.label;
         var iAtom = atom.iAtom;
         var pos = atom.pos.clone();
@@ -91409,6 +91444,12 @@ var Display = function (_WebglWidget) {
       }
 
       this.updateMeshesInScene = false;
+
+      if (this.soupView.startUpdateAfterRender) {
+        if (!this.soupView.soup.grid.changed && !this.soupView.updateSidechain && !this.soupView.updateSelection) {
+          this.soupView.startTargetView();
+        }
+      }
 
       var show = this.soupView.currentView.show;
       this.setMeshVisible('ribbons', show.ribbon);
@@ -91515,15 +91556,19 @@ var Display = function (_WebglWidget) {
       this.atomLabelsWidget.draw();
 
       this.soupView.changed = false;
+
+      if (this.soupView.startUpdateAfterRender) {
+        this.soupView.changed = true;
+      }
     }
   }, {
     key: 'animate',
     value: function animate(elapsedTime) {
       var MS_PER_STEP = 17;
+      this.soupView.nUpdateStep -= elapsedTime / MS_PER_STEP;
       if (this.soupView.targetView === null) {
         return;
       }
-      this.soupView.nUpdateStep -= elapsedTime / MS_PER_STEP;
       if (this.soupView.nUpdateStep < 0) {
         this.controller.setCurrentView(this.soupView.targetView);
         this.soupView.targetView = null;
@@ -91574,7 +91619,7 @@ var Display = function (_WebglWidget) {
       var iCenterAtom = this.soupView.getCenteredAtom().iAtom;
 
       var now = new Date().getTime();
-      var isDoubleClick = now - this.timePressed < 500;
+      var isDoubleClick = now - this.timePressed < 700;
       if (isDoubleClick) {
         this.doubleclick();
       } else if (this.iDownAtom === iCenterAtom) {
@@ -91647,15 +91692,14 @@ var Display = function (_WebglWidget) {
         this.isDraggingCentralAtom = false;
       }
 
-      // if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
-      //   this.soup.clearSelectedResidues()
-      //   let atom = this.soup.getAtomProxy(this.iHoverAtom)
-      //   let res = this.soup.getResidueProxy(atom.iRes)
-      //   res.selected = !res.selected
-      //   this.iDownAtom = null
-      //   this.soupView.updateSelection = true
-      //   this.soupView.changed = true
-      // }
+      if (this.iHoverAtom !== null && this.iHoverAtom === this.iDownAtom) {
+        if (!event.metaKey) {
+          this.controller.clearSelectedResidues();
+        }
+        var iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes;
+        this.controller.selectResidue(iRes);
+        this.iDownAtom = null;
+      }
 
       if (util.exists(event.touches)) {
         this.hover.hide();

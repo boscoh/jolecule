@@ -1404,6 +1404,8 @@ class SoupView {
     this.updateView = false
     this.updateSidechain = false
     this.updateSelection = false
+    this.startUpdateAfterRender = false
+    this.updateView = true
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -1424,9 +1426,6 @@ class SoupView {
 
     // this is to set the time between transitions of views
     this.maxUpdateStep = 20
-
-    this.updateResidueSelection = false
-    this.updateView = true
   }
 
   initViewsAfterSoupLoad () {
@@ -1438,10 +1437,19 @@ class SoupView {
   }
 
   setTargetView (view) {
-    this.nUpdateStep = this.maxUpdateStep
-    this.targetView = view.clone()
-    this.updateView = true
+    console.log('SoupView.setTargetView')
+    this.startUpdateAfterRender = true
+    this.saveTargetView = view.clone()
   }
+
+  startTargetView () {
+    this.nUpdateStep = this.maxUpdateStep
+    this.targetView = this.saveTargetView
+    this.updateView = true
+    this.startUpdateAfterRender = false
+    this.changed = true
+  }
+
 
   getCenteredAtom () {
     let iAtom = this.currentView.iAtom
@@ -1625,6 +1633,13 @@ class Controller {
     this.soupView.changed = true
   }
 
+  clearSelectedResidues () {
+    this.soup.clearSelectedResidues()
+    this.soupView.currentView.selected = this.makeSelectedResidueList()
+    this.soupView.updateSelection = true
+    this.soupView.changed = true
+  }
+
   toggleResidueNeighbors () {
     let iAtom = this.soupView.currentView.iAtom
     let iRes = this.soup.getAtomProxy(iAtom).iRes
@@ -1719,7 +1734,7 @@ class Controller {
   setCurrentView (view) {
     let oldViewSelected = this.soupView.currentView.selected
     this.soupView.currentView = view.clone()
-    if (oldViewSelected !== view.selected) {
+    if (!_.isEqual(oldViewSelected.sort(), view.selected.sort())) {
       this.soupView.soup.clearSidechainResidues()
       this.soupView.soup.setSidechainOfResidues(view.selected, true)
       this.soupView.updateSidechain = true
@@ -1757,6 +1772,26 @@ class Controller {
       this.deleteAtomLabel(i)
     }
     this.clearSidechainResidues()
+    this.clearSelectedResidues()
+  }
+
+  selectResidue (iRes) {
+    let res = this.soup.getResidueProxy(iRes)
+    res.selected = !res.selected
+    this.soupView.updateSelection = true
+    this.soupView.changed = true
+  }
+
+  showSelectedSidechains () {
+    let residue = this.soup.getResidueProxy()
+    for (let jRes = 0; jRes < this.soup.getResidueCount(); jRes += 1) {
+      residue.load(jRes)
+      if (residue.selected) {
+        residue.sidechain = true
+      }
+    }
+    this.soupView.updateSidechain = true
+    this.soupView.changed = true
   }
 }
 

@@ -22,7 +22,9 @@
 
       <md-layout md-flex="33">
         <md-whiteframe>
-          <md-layout md-row>
+          <md-layout
+            md-row
+            md-vertical-align="center">
             <md-input-container
               style="width: 100px">
               <label>
@@ -40,6 +42,10 @@
                 Load
               </md-button>
             </div>
+            <md-spinner
+              :md-size="25"
+              md-indeterminate
+              v-if="isLoading"/>
             {{pdbText}}
           </md-layout>
         </md-whiteframe>
@@ -151,7 +157,8 @@ export default {
           interval: 0.1
         }
       ],
-      pdbText: ''
+      pdbText: '',
+      isLoading: false
     }
   },
   async mounted () {
@@ -177,17 +184,17 @@ export default {
       backgroundColor: 0xCCCCCC
     })
 
-    // const dataServer0 = require('../../../dataservers/1mbo-data-server')
-    // await this.joleculeWidget.asyncAddDataServer(dataServer0)
-
-    const dataServer0 = require('../../../dataservers/1a0a-data-server')
+    const dataServer0 = require('../../../dataservers/1mbo-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer0)
-    const dataServer1 = require('../../../dataservers/1a0a-Ar-data-server')
-    await this.joleculeWidget.asyncAddDataServer(dataServer1)
-    const dataServer2 = require('../../../dataservers/1a0a-Kr-data-server')
-    await this.joleculeWidget.asyncAddDataServer(dataServer2)
-    const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
-    await this.joleculeWidget.asyncAddDataServer(dataServer3)
+
+    // const dataServer0 = require('../../../dataservers/1a0a-data-server')
+    // await this.joleculeWidget.asyncAddDataServer(dataServer0)
+    // const dataServer1 = require('../../../dataservers/1a0a-Ar-data-server')
+    // await this.joleculeWidget.asyncAddDataServer(dataServer1)
+    // const dataServer2 = require('../../../dataservers/1a0a-Kr-data-server')
+    // await this.joleculeWidget.asyncAddDataServer(dataServer2)
+    // const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
+    // await this.joleculeWidget.asyncAddDataServer(dataServer3)
 
     // this.pdbId = '1ssx'
     // this.loadFromPdbId()
@@ -195,6 +202,7 @@ export default {
   methods: {
     async loadFromPdbId () {
       let dataServer0 = this.makeDataServer(this.pdbId)
+      this.isLoading = true
       await this.joleculeWidget.asyncAddDataServer(dataServer0)
     },
     makeDataServer (pdbId) {
@@ -205,8 +213,11 @@ export default {
           let url = `https://files.rcsb.org/download/${pdbId}.pdb1`
           console.log('remoteDataServer.get_protein_data', url)
           $.get(url, (pdbText) => {
-            _this.pdbText = pdbText.substring(0, 500) + '...'
             parsePdb({pdb_id: pdbId, pdb_text: pdbText})
+            _this.isLoading = false
+          }).fail(() => {
+            _this.isLoading = false
+            _this.pdbText = 'Error: failed to load'
           })
         },
         get_views: function (processViews) { processViews({}) },
