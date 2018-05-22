@@ -70,7 +70,7 @@ class WebglWidget {
     // as the default. This assumes vertexColors are used, allowing multiple
     // colors within the same geometry.
     this.displayMeshes = {}
-    this.displayMaterial = new THREE.MeshLambertMaterial(
+    this.displayMaterial = new THREE.MeshPhongMaterial(
       {vertexColors: THREE.VertexColors})
 
     this.pickingScene = new THREE.Scene()
@@ -568,9 +568,9 @@ class Display extends WebglWidget {
     this.createOrClearMesh('ribbons')
     let isFront = false
     let isBack = false
-    let displayGeom = new glgeom.BufferRibbonGeometry(
+    this.ribbonBufferGeometry = new glgeom.BufferRibbonGeometry(
       this.traces, data.coilFace, isFront, isBack)
-    let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
+    let displayMesh = new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial)
     this.displayMeshes['ribbons'].add(displayMesh)
     let pickingGeom = new glgeom.BufferRibbonGeometry(
       this.traces, data.coilFace, isFront, isBack, true)
@@ -1018,10 +1018,10 @@ class Display extends WebglWidget {
   }
 
   updateHover () {
-    if (this.soupView.nUpdateStep > 1) {
-      this.hover.hide()
-      return
-    }
+    // if (this.soupView.nUpdateStep > 1) {
+    //   this.hover.hide()
+    //   return
+    // }
     this.iHoverAtom = this.getIAtomHover()
     if (this.iHoverAtom) {
       let atom = this.soup.getAtomProxy(this.iHoverAtom)
@@ -1107,7 +1107,11 @@ class Display extends WebglWidget {
           }
         }
       }
-      this.buildMeshOfRibbons()
+      glgeom.clearObject3D(this.displayMeshes['ribbons'])
+      this.ribbonBufferGeometry.setColors()
+      let displayMesh = new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial)
+      this.displayMeshes['ribbons'].add(displayMesh)
+
       this.buildMeshOfArrows()
       this.buildMeshOfResidueSidechains()
       this.soupView.updateSelection = false

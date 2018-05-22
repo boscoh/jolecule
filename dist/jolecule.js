@@ -340,7 +340,7 @@ module.exports = function (NAME, exec) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // to indexed object, toObject with fallback for non-array-like ES3 strings
-var IObject = __webpack_require__(48);
+var IObject = __webpack_require__(49);
 var defined = __webpack_require__(23);
 module.exports = function (it) {
   return IObject(defined(it));
@@ -351,7 +351,7 @@ module.exports = function (it) {
 /* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var pIE = __webpack_require__(49);
+var pIE = __webpack_require__(50);
 var createDesc = __webpack_require__(33);
 var toIObject = __webpack_require__(15);
 var toPrimitive = __webpack_require__(22);
@@ -518,7 +518,7 @@ module.exports = function (KEY, exec) {
 // 5 -> Array#find
 // 6 -> Array#findIndex
 var ctx = __webpack_require__(18);
-var IObject = __webpack_require__(48);
+var IObject = __webpack_require__(49);
 var toObject = __webpack_require__(9);
 var toLength = __webpack_require__(8);
 var asc = __webpack_require__(88);
@@ -580,7 +580,7 @@ if (__webpack_require__(6)) {
   var toAbsoluteIndex = __webpack_require__(37);
   var toPrimitive = __webpack_require__(22);
   var has = __webpack_require__(11);
-  var classof = __webpack_require__(50);
+  var classof = __webpack_require__(51);
   var isObject = __webpack_require__(4);
   var toObject = __webpack_require__(9);
   var isArrayIter = __webpack_require__(85);
@@ -28786,6 +28786,185 @@ module.exports = function (it, TYPE) {
 /* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.delay = exports.textEntryDialog = exports.getCurrentDateStr = exports.randomId = exports.inArray = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.linkButton = exports.getWindowUrl = exports.exists = exports.jstr = undefined;
+
+var _jquery = __webpack_require__(32);
+
+var _jquery2 = _interopRequireDefault(_jquery);
+
+var _lodash = __webpack_require__(29);
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ *
+ * Utility functions mainly to do with HTML elements
+ * that can be deferred to functions
+ *
+ */
+
+function jstr(s) {
+  return JSON.stringify(s, null, 2);
+}
+
+function exists(x) {
+  return !_lodash2.default.isUndefined(x) && x !== null;
+}
+
+function getWindowUrl() {
+  return '' + window.location;
+}
+
+function linkButton(idTag, text, classTag, callback) {
+  var item = (0, _jquery2.default)('<span>').attr('id', idTag).attr('href', '').html(text);
+
+  if (classTag) {
+    item.addClass(classTag);
+  }
+
+  if (callback) {
+    item.on(' click touch ', function (e) {
+      e.preventDefault();
+      callback();
+    });
+  }
+
+  return item;
+}
+
+function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
+  target.css({
+    'position': 'absolute',
+    'z-index': '9000'
+  });
+  var top = parent.position().top;
+  var left = parent.position().left;
+  parent.append(target);
+  target.css({
+    'top': top + yOffset,
+    'left': left + xOffset
+  });
+}
+
+function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
+  target.css({
+    'position': 'absolute',
+    'z-index': '9000'
+  });
+  var top = parent.position().top;
+  var left = parent.position().left;
+  var widthParent = parent.outerWidth();
+  var heightParent = parent.outerHeight();
+  parent.prepend(target);
+  var widthTarget = target.outerWidth();
+  var heightTarget = target.outerHeight();
+  target.css({
+    'top': top + heightParent / 2 - heightTarget / 2 - yOffset,
+    'left': left + widthParent / 2 - widthTarget / 2 - xOffset
+  });
+}
+
+function inArray(v, aList) {
+  return aList.indexOf(v) >= 0;
+}
+
+function randomString(nChar) {
+  var chars = '0123456789abcdefghiklmnopqrstuvwxyz';
+  var s = '';
+  for (var i = 0; i < nChar; i++) {
+    var j = Math.floor(Math.random() * chars.length);
+    s += chars.substring(j, j + 1);
+  }
+  return s;
+}
+
+function randomId() {
+  return 'view:' + randomString(6);
+}
+
+function getCurrentDateStr() {
+  var now = new Date();
+  var month = now.getMonth() + 1;
+  var day = now.getDate();
+  var year = now.getFullYear();
+  return day + '/' + month + '/' + year;
+}
+
+function textEntryDialog(parentDiv, label, callback) {
+  if (!label) {
+    label = '';
+  }
+
+  window.keyboard_lock = true;
+
+  function cleanup() {
+    dialog.remove();
+    window.keyboard_lock = false;
+  }
+
+  function accept() {
+    callback(textarea.val());
+    cleanup();
+    window.keyboard_lock = false;
+  }
+
+  function discard() {
+    cleanup();
+    window.keyboard_lock = false;
+  }
+
+  var saveButton = linkButton('okay', 'okay', 'jolecule-small-button', accept);
+
+  var discardButton = linkButton('discard', 'discard', 'jolecule-small-button', discard);
+
+  var textarea = (0, _jquery2.default)('<textarea>').css('width', '100%').addClass('jolecule-view-text').keydown(function (e) {
+    if (e.keyCode === 27) {
+      discard();
+      return true;
+    }
+  });
+
+  var editbox = (0, _jquery2.default)('<div>').css('width', '100%').append(label).append(textarea).append(saveButton).append(' ').append(discardButton);
+
+  var dialog = (0, _jquery2.default)('<div>').addClass('jolecule-dialog').css('display', 'block').css('z-index', '2000').css('width', Math.min(400, parentDiv.width() - 100)).append(editbox);
+
+  stickJqueryDivInCenter(parentDiv, dialog, 0, 70);
+
+  setTimeout(function () {
+    editbox.find('textarea').focus();
+  }, 100);
+}
+
+function delay(timeMs) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, timeMs);
+  });
+}
+
+exports.jstr = jstr;
+exports.exists = exists;
+exports.getWindowUrl = getWindowUrl;
+exports.linkButton = linkButton;
+exports.stickJqueryDivInCenter = stickJqueryDivInCenter;
+exports.stickJqueryDivInTopLeft = stickJqueryDivInTopLeft;
+exports.inArray = inArray;
+exports.randomId = randomId;
+exports.getCurrentDateStr = getCurrentDateStr;
+exports.textEntryDialog = textEntryDialog;
+exports.delay = delay;
+
+/***/ }),
+/* 49 */
+/***/ (function(module, exports, __webpack_require__) {
+
 // fallback for non-array-like ES3 and non-enumerable old V8 strings
 var cof = __webpack_require__(19);
 // eslint-disable-next-line no-prototype-builtins
@@ -28795,14 +28974,14 @@ module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
 
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ (function(module, exports) {
 
 exports.f = {}.propertyIsEnumerable;
 
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // getting tag from 19.1.3.6 Object.prototype.toString()
@@ -28831,7 +29010,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -75095,180 +75274,6 @@ function LensFlare() {
 
 
 /***/ }),
-/* 52 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.delay = exports.textEntryDialog = exports.getCurrentDateStr = exports.randomId = exports.inArray = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.linkButton = exports.getWindowUrl = exports.exists = undefined;
-
-var _jquery = __webpack_require__(32);
-
-var _jquery2 = _interopRequireDefault(_jquery);
-
-var _lodash = __webpack_require__(29);
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- *
- * Utility functions mainly to do with HTML elements
- * that can be deferred to functions
- *
- */
-
-function exists(x) {
-  return !_lodash2.default.isUndefined(x) && x !== null;
-}
-
-function getWindowUrl() {
-  return '' + window.location;
-}
-
-function linkButton(idTag, text, classTag, callback) {
-  var item = (0, _jquery2.default)('<span>').attr('id', idTag).attr('href', '').html(text);
-
-  if (classTag) {
-    item.addClass(classTag);
-  }
-
-  if (callback) {
-    item.on(' click touch ', function (e) {
-      e.preventDefault();
-      callback();
-    });
-  }
-
-  return item;
-}
-
-function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
-  target.css({
-    'position': 'absolute',
-    'z-index': '9000'
-  });
-  var top = parent.position().top;
-  var left = parent.position().left;
-  parent.append(target);
-  target.css({
-    'top': top + yOffset,
-    'left': left + xOffset
-  });
-}
-
-function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
-  target.css({
-    'position': 'absolute',
-    'z-index': '9000'
-  });
-  var top = parent.position().top;
-  var left = parent.position().left;
-  var widthParent = parent.outerWidth();
-  var heightParent = parent.outerHeight();
-  parent.prepend(target);
-  var widthTarget = target.outerWidth();
-  var heightTarget = target.outerHeight();
-  target.css({
-    'top': top + heightParent / 2 - heightTarget / 2 - yOffset,
-    'left': left + widthParent / 2 - widthTarget / 2 - xOffset
-  });
-}
-
-function inArray(v, aList) {
-  return aList.indexOf(v) >= 0;
-}
-
-function randomString(nChar) {
-  var chars = '0123456789abcdefghiklmnopqrstuvwxyz';
-  var s = '';
-  for (var i = 0; i < nChar; i++) {
-    var j = Math.floor(Math.random() * chars.length);
-    s += chars.substring(j, j + 1);
-  }
-  return s;
-}
-
-function randomId() {
-  return 'view:' + randomString(6);
-}
-
-function getCurrentDateStr() {
-  var now = new Date();
-  var month = now.getMonth() + 1;
-  var day = now.getDate();
-  var year = now.getFullYear();
-  return day + '/' + month + '/' + year;
-}
-
-function textEntryDialog(parentDiv, label, callback) {
-  if (!label) {
-    label = '';
-  }
-
-  window.keyboard_lock = true;
-
-  function cleanup() {
-    dialog.remove();
-    window.keyboard_lock = false;
-  }
-
-  function accept() {
-    callback(textarea.val());
-    cleanup();
-    window.keyboard_lock = false;
-  }
-
-  function discard() {
-    cleanup();
-    window.keyboard_lock = false;
-  }
-
-  var saveButton = linkButton('okay', 'okay', 'jolecule-small-button', accept);
-
-  var discardButton = linkButton('discard', 'discard', 'jolecule-small-button', discard);
-
-  var textarea = (0, _jquery2.default)('<textarea>').css('width', '100%').addClass('jolecule-view-text').keydown(function (e) {
-    if (e.keyCode === 27) {
-      discard();
-      return true;
-    }
-  });
-
-  var editbox = (0, _jquery2.default)('<div>').css('width', '100%').append(label).append(textarea).append(saveButton).append(' ').append(discardButton);
-
-  var dialog = (0, _jquery2.default)('<div>').addClass('jolecule-dialog').css('display', 'block').css('z-index', '2000').css('width', Math.min(400, parentDiv.width() - 100)).append(editbox);
-
-  stickJqueryDivInCenter(parentDiv, dialog, 0, 70);
-
-  setTimeout(function () {
-    editbox.find('textarea').focus();
-  }, 100);
-}
-
-function delay(timeMs) {
-  return new Promise(function (resolve) {
-    setTimeout(resolve, timeMs);
-  });
-}
-
-exports.exists = exists;
-exports.getWindowUrl = getWindowUrl;
-exports.linkButton = linkButton;
-exports.stickJqueryDivInCenter = stickJqueryDivInCenter;
-exports.stickJqueryDivInTopLeft = stickJqueryDivInTopLeft;
-exports.inArray = inArray;
-exports.randomId = randomId;
-exports.getCurrentDateStr = getCurrentDateStr;
-exports.textEntryDialog = textEntryDialog;
-exports.delay = delay;
-
-/***/ }),
 /* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -75646,7 +75651,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _three = __webpack_require__(51);
+var _three = __webpack_require__(52);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -76192,7 +76197,7 @@ module.exports = function (object, index, value) {
 /* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var classof = __webpack_require__(50);
+var classof = __webpack_require__(51);
 var ITERATOR = __webpack_require__(5)('iterator');
 var Iterators = __webpack_require__(46);
 module.exports = __webpack_require__(21).getIteratorMethod = function (it) {
@@ -76780,7 +76785,7 @@ var _lodash = __webpack_require__(29);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _three = __webpack_require__(51);
+var _three = __webpack_require__(52);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -77058,9 +77063,9 @@ module.exports.f = function getOwnPropertyNames(it) {
 // 19.1.2.1 Object.assign(target, source, ...)
 var getKeys = __webpack_require__(36);
 var gOPS = __webpack_require__(55);
-var pIE = __webpack_require__(49);
+var pIE = __webpack_require__(50);
 var toObject = __webpack_require__(9);
-var IObject = __webpack_require__(48);
+var IObject = __webpack_require__(49);
 var $assign = Object.assign;
 
 // should work with symbols and should have deterministic property order (V8 bug)
@@ -77259,7 +77264,7 @@ module.exports = function (iterator, fn, value, entries) {
 
 var aFunction = __webpack_require__(10);
 var toObject = __webpack_require__(9);
-var IObject = __webpack_require__(48);
+var IObject = __webpack_require__(49);
 var toLength = __webpack_require__(8);
 
 module.exports = function (that, callbackfn, aLen, memo, isRight) {
@@ -77833,7 +77838,7 @@ module.exports = function (that, maxLength, fillString, left) {
 
 var getKeys = __webpack_require__(36);
 var toIObject = __webpack_require__(15);
-var isEnum = __webpack_require__(49).f;
+var isEnum = __webpack_require__(50).f;
 module.exports = function (isEntries) {
   return function (it) {
     var O = toIObject(it);
@@ -77854,7 +77859,7 @@ module.exports = function (isEntries) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/DavidBruant/Map-Set.prototype.toJSON
-var classof = __webpack_require__(50);
+var classof = __webpack_require__(51);
 var from = __webpack_require__(129);
 module.exports = function (NAME) {
   return function toJSON() {
@@ -78034,7 +78039,7 @@ var _soup = __webpack_require__(133);
 
 var _display = __webpack_require__(344);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(48);
 
 var _widgets = __webpack_require__(135);
 
@@ -78282,8 +78287,8 @@ var EmbedJolecule = function () {
                 return this.asyncLoadViews(dataServer);
 
               case 14:
-                this.display.cleanupMessage();
                 this.moveOutToSeeAll();
+                this.display.cleanupMessage();
                 this.isProcessing.flag = false;
 
               case 17:
@@ -78303,14 +78308,20 @@ var EmbedJolecule = function () {
   }, {
     key: 'moveOutToSeeAll',
     value: function moveOutToSeeAll() {
+      this.soup.calcMaxLength();
       var newView = this.soupView.currentView.clone();
-      newView.cameraParams.zFront = -this.soup.maxLength / 2;
-      newView.cameraParams.zBack = this.soup.maxLength / 2;
-      newView.cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75;
+      var cameraParams = newView.cameraParams;
+      cameraParams.zFront = -this.soup.maxLength / 2;
+      cameraParams.zBack = this.soup.maxLength / 2;
+      cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75;
+      var look = cameraParams.position.clone().sub(cameraParams.focus);
+      look.normalize();
       var atom = this.soup.getAtomProxyOfCenter();
-      newView.iAtom = atom.iAtom;
-      newView.cameraParams.focus.copy(atom.pos);
+      var iAtom = atom.iAtom;
+      cameraParams.focus.copy(atom.pos);
+      cameraParams.position = cameraParams.focus.clone().add(look.multiplyScalar(cameraParams.zoom));
       this.soupView.changed = true;
+      this.display.observers.reset.dispatch();
       this.controller.setTargetView(newView);
     }
   }, {
@@ -78382,7 +78393,7 @@ var _v = __webpack_require__(67);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(48);
 
 var _glgeom = __webpack_require__(134);
 
@@ -78401,6 +78412,10 @@ var _bitarray2 = _interopRequireDefault(_bitarray);
 var _data = __webpack_require__(96);
 
 var data = _interopRequireWildcard(_data);
+
+var _util2 = __webpack_require__(48);
+
+var util = _interopRequireWildcard(_util2);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -78928,9 +78943,9 @@ var Soup = function () {
     this.parsingError = '';
     this.title = '';
 
-    this.pdbIds = [];
-    this.pdbId = null;
-    this.iPdb = -1;
+    this.structureIds = [];
+    this.structureId = null;
+    this.iStructure = -1;
     this.chains = [];
     this.atomStore = new _store2.default(atomStoreFields);
     this.residueStore = new _store2.default(residueStoreFields);
@@ -78966,9 +78981,9 @@ var Soup = function () {
   _createClass(Soup, [{
     key: 'load',
     value: function load(pdbData) {
-      console.log('Soup.load parse ' + this.pdbId + '...');
+      console.log('Soup.load parse ' + this.structureId + '...');
 
-      this.parsePdbData(pdbData.pdb_text, this.pdbId);
+      this.parsePdbData(pdbData.pdb_text, this.structureId);
 
       this.assignResidueSsAndCentralAtoms();
 
@@ -78987,13 +79002,13 @@ var Soup = function () {
   }, {
     key: 'parsePdbData',
     value: function parsePdbData(pdbText, pdbId) {
-      this.pdbId = pdbId;
-      this.pdbIds.push(pdbId);
-      this.iPdb = this.pdbIds.length - 1;
+      this.structureId = pdbId;
+      this.structureIds.push(pdbId);
+      this.iStructure = this.structureIds.length - 1;
 
       if (!this.title) {
         var title = parsetTitleFromPdbText(pdbText);
-        this.title = this.pdbId + ': ' + title;
+        this.title = this.structureId + ': ' + title;
       }
 
       var pdbLines = pdbText.split(/\r?\n/);
@@ -79123,7 +79138,7 @@ var Soup = function () {
       var iRes = this.getResidueCount();
       this.residueStore.increment();
 
-      var resId = this.pdbId + ':';
+      var resId = this.structureId + ':';
       if (chain) {
         resId += chain + ':';
       }
@@ -79142,7 +79157,7 @@ var Soup = function () {
       this.residueStore.atomOffset[iRes] = iFirstAtomInRes;
       this.residueStore.atomCount[iRes] = 0;
 
-      this.residueStore.iStructure[iRes] = this.iPdb;
+      this.residueStore.iStructure[iRes] = this.iStructure;
     }
   }, {
     key: 'getAtomProxyOfCenter',
@@ -79461,7 +79476,7 @@ var Soup = function () {
       var result = [];
       var cutoff = 3.5;
 
-      for (var iStructure = 0; iStructure < this.pdbIds.length; iStructure += 1) {
+      for (var iStructure = 0; iStructure < this.structureIds.length; iStructure += 1) {
         // Collect backbone O and N atoms
         var vertices = [];
         var atomIndices = [];
@@ -80041,7 +80056,7 @@ var View = function () {
 
       this.order = 0;
       this.text = soup.title;
-      this.pdb_id = soup.pdbId;
+      this.pdb_id = soup.structureId;
     }
   }, {
     key: 'getViewTranslatedTo',
@@ -80749,7 +80764,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       *
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       */
 
-var _three = __webpack_require__(51);
+var _three = __webpack_require__(52);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -81126,208 +81141,281 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
 
     _this2.setAttributes();
 
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = _lodash2.default.range(_this2.paths.length)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var iPath = _step.value;
-
-        _this2.setPath(iPath, front, back);
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
-
+    _this2.build();
+    _this2.setColors();
     return _this2;
   }
 
   _createClass(BufferRibbonGeometry, [{
-    key: 'setPath',
-    value: function setPath(iPath, front, back) {
+    key: 'build',
+    value: function build() {
       var _this3 = this;
 
-      var path = this.paths[iPath];
-      var trace = this.parameters.traces[iPath];
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
 
-      var iVertexOffsetOfPathPoint = [];
+      try {
+        var _loop = function _loop() {
+          var iPath = _step.value;
 
-      var iTraceStart = 0;
-      var iTraceEnd = trace.points.length;
+          var front = _this3.parameters.front;
+          var back = _this3.parameters.back;
+          var path = _this3.paths[iPath];
+          var trace = _this3.parameters.traces[iPath];
 
-      function getWidth(iTracePoint) {
-        return trace.segmentTypes[iTracePoint] === 'C' ? 0.7 : 8;
-      }
+          var iVertexOffsetOfPathPoint = [];
 
-      for (var iTracePoint = iTraceStart; iTracePoint < iTraceEnd; iTracePoint += 1) {
-        // iPathStart, iPathEnd on the expanded path for a given tracePoint
-        // assumes an overhang between neighbouring pieces to allow for disjoint
-        // coloring
-        var iPathStart = iTracePoint * 2 * trace.detail - trace.detail;
-        if (iPathStart < 0) {
-          iPathStart = 0;
-        }
+          var iTraceStart = 0;
+          var iTraceEnd = trace.points.length;
 
-        // works out end of expanded path, including overhang
-        var iPathEnd = (iTracePoint + 1) * 2 * trace.detail - trace.detail + 1;
-        if (iPathEnd >= path.points.length) {
-          iPathEnd = path.points.length;
-        }
-
-        var _loop = function _loop(iPathPoint) {
-          iVertexOffsetOfPathPoint[iPathPoint] = _this3.vertexCount;
-
-          var color = void 0;
-          if (_this3.parameters.isIndexColor) {
-            color = trace.indexColors[iTracePoint];
-          } else {
-            color = trace.colors[iTracePoint].clone();
+          function getWidth(iTracePoint) {
+            return trace.segmentTypes[iTracePoint] === 'C' ? 0.7 : 8;
           }
 
-          var width = getWidth(iTracePoint);
-          var height = 0.7;
-
-          if (iPathPoint === iPathStart && iPathPoint > 0) {
-            if (trace.segmentTypes[iTracePoint - 1] === 'C' && trace.segmentTypes[iTracePoint] !== 'C') {
-              width = getWidth(iTracePoint - 1);
+          for (var iTracePoint = iTraceStart; iTracePoint < iTraceEnd; iTracePoint += 1) {
+            // iPathStart, iPathEnd on the expanded path for a given tracePoint
+            // assumes an overhang between neighbouring pieces to allow for disjoint
+            // coloring
+            var iPathStart = iTracePoint * 2 * trace.detail - trace.detail;
+            if (iPathStart < 0) {
+              iPathStart = 0;
             }
-          }
-          if (iPathPoint === iPathEnd - 1 && iTracePoint < trace.points.length - 1) {
-            var iNextTracePoint = iTracePoint + 1;
-            if (trace.segmentTypes[iNextTracePoint] === 'C' && trace.segmentTypes[iTracePoint] !== 'C') {
-              width = getWidth(iNextTracePoint);
+
+            // works out end of expanded path, including overhang
+            var iPathEnd = (iTracePoint + 1) * 2 * trace.detail - trace.detail + 1;
+            if (iPathEnd >= path.points.length) {
+              iPathEnd = path.points.length;
             }
-          }
 
-          var point = path.points[iPathPoint];
-          var normal = path.normals[iPathPoint];
-          var binormal = path.binormals[iPathPoint];
+            var _loop2 = function _loop2(iPathPoint) {
+              iVertexOffsetOfPathPoint[iPathPoint] = _this3.vertexCount;
 
-          var shapePoints = _lodash2.default.cloneDeep(_this3.shapePoints);
-          var _iteratorNormalCompletion2 = true;
-          var _didIteratorError2 = false;
-          var _iteratorError2 = undefined;
-
-          try {
-            for (var _iterator2 = shapePoints[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-              var shapePoint = _step2.value;
-
-              shapePoint.x = shapePoint.x * width;
-              shapePoint.y = shapePoint.y * height;
-            }
-          } catch (err) {
-            _didIteratorError2 = true;
-            _iteratorError2 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                _iterator2.return();
+              var color = void 0;
+              if (_this3.parameters.isIndexColor) {
+                color = trace.indexColors[iTracePoint];
+              } else {
+                color = trace.colors[iTracePoint].clone();
               }
-            } finally {
-              if (_didIteratorError2) {
-                throw _iteratorError2;
+
+              var width = getWidth(iTracePoint);
+              var height = 0.7;
+
+              if (iPathPoint === iPathStart && iPathPoint > 0) {
+                if (trace.segmentTypes[iTracePoint - 1] === 'C' && trace.segmentTypes[iTracePoint] !== 'C') {
+                  width = getWidth(iTracePoint - 1);
+                }
               }
-            }
-          }
-
-          var _iteratorNormalCompletion3 = true;
-          var _didIteratorError3 = false;
-          var _iteratorError3 = undefined;
-
-          try {
-            for (var _iterator3 = shapePoints[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-              var _shapePoint = _step3.value;
-
-              var x = normal.clone().multiplyScalar(_shapePoint.x);
-              var y = binormal.clone().multiplyScalar(_shapePoint.y);
-              _this3.pushVertex(point.clone().add(x).add(y), color);
-            }
-          } catch (err) {
-            _didIteratorError3 = true;
-            _iteratorError3 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                _iterator3.return();
+              if (iPathPoint === iPathEnd - 1 && iTracePoint < trace.points.length - 1) {
+                var iNextTracePoint = iTracePoint + 1;
+                if (trace.segmentTypes[iNextTracePoint] === 'C' && trace.segmentTypes[iTracePoint] !== 'C') {
+                  width = getWidth(iNextTracePoint);
+                }
               }
-            } finally {
-              if (_didIteratorError3) {
-                throw _iteratorError3;
+
+              var point = path.points[iPathPoint];
+              var normal = path.normals[iPathPoint];
+              var binormal = path.binormals[iPathPoint];
+
+              var shapePoints = _lodash2.default.cloneDeep(_this3.shapePoints);
+              var _iteratorNormalCompletion2 = true;
+              var _didIteratorError2 = false;
+              var _iteratorError2 = undefined;
+
+              try {
+                for (var _iterator2 = shapePoints[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                  var shapePoint = _step2.value;
+
+                  shapePoint.x = shapePoint.x * width;
+                  shapePoint.y = shapePoint.y * height;
+                }
+              } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+              } finally {
+                try {
+                  if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                    _iterator2.return();
+                  }
+                } finally {
+                  if (_didIteratorError2) {
+                    throw _iteratorError2;
+                  }
+                }
               }
+
+              var _iteratorNormalCompletion3 = true;
+              var _didIteratorError3 = false;
+              var _iteratorError3 = undefined;
+
+              try {
+                for (var _iterator3 = shapePoints[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                  var _shapePoint = _step3.value;
+
+                  var x = normal.clone().multiplyScalar(_shapePoint.x);
+                  var y = binormal.clone().multiplyScalar(_shapePoint.y);
+                  _this3.pushVertex(point.clone().add(x).add(y));
+                  // this.pushVertexAndColor(point.clone().add(x).add(y), color)
+                }
+              } catch (err) {
+                _didIteratorError3 = true;
+                _iteratorError3 = err;
+              } finally {
+                try {
+                  if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                    _iterator3.return();
+                  }
+                } finally {
+                  if (_didIteratorError3) {
+                    throw _iteratorError3;
+                  }
+                }
+              }
+
+              if (iPathPoint === 0) {
+                return 'continue';
+              }
+
+              var iVertexOffset = iVertexOffsetOfPathPoint[iPathPoint - 1];
+
+              function getShapeNormals(iPathPoint) {
+                var nVertex = shapePoints.length;
+                var shapeNormals = [];
+                var x = void 0,
+                    y = void 0;
+                var diffPrev = new THREE.Vector2();
+                var diffNext = new THREE.Vector2();
+                var shapeNormal = new THREE.Vector2();
+                for (var i = 0; i < nVertex; i += 1) {
+                  var iPrev = i > 0 ? i - 1 : nVertex - 1;
+                  var iNext = i + 1 < nVertex ? i + 1 : 0;
+                  var v = shapePoints[i];
+                  diffPrev.subVectors(v, shapePoints[iPrev]).normalize();
+                  diffNext.subVectors(v, shapePoints[iNext]).normalize();
+                  shapeNormal.addVectors(diffPrev, diffNext).normalize();
+                  x = path.normals[iPathPoint].clone().multiplyScalar(shapeNormal.x);
+                  y = path.binormals[iPathPoint].clone().multiplyScalar(shapeNormal.y);
+                  shapeNormals.push(x.add(y));
+                }
+                return shapeNormals;
+              }
+
+              var shapeNormals = getShapeNormals(iPathPoint);
+              var lastShapeNormals = getShapeNormals(iPathPoint - 1);
+
+              // Smoothed normals to give a rounded look
+              for (var iShapePoint = 0; iShapePoint < _this3.nShape; iShapePoint += 1) {
+                var iLastShapePoint = void 0;
+                if (iShapePoint === 0) {
+                  iLastShapePoint = _this3.nShape - 1;
+                } else {
+                  iLastShapePoint = iShapePoint - 1;
+                }
+
+                var iVertex00 = iVertexOffset + iLastShapePoint;
+                var iVertex01 = iVertexOffset + iShapePoint;
+                var iVertex10 = iVertex00 + _this3.nShape;
+                var iVertex11 = iVertex01 + _this3.nShape;
+
+                _this3.pushFaceAndNormals(iVertex00, iVertex10, iVertex11, lastShapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
+                _this3.pushFaceAndNormals(iVertex01, iVertex00, iVertex11, lastShapeNormals[iShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
+              }
+            };
+
+            for (var iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
+              var _ret2 = _loop2(iPathPoint);
+
+              if (_ret2 === 'continue') continue;
             }
-          }
-
-          if (iPathPoint === 0) {
-            return 'continue';
-          }
-
-          var iVertexOffset = iVertexOffsetOfPathPoint[iPathPoint - 1];
-
-          function getShapeNormals(iPathPoint) {
-            var nVertex = shapePoints.length;
-            var shapeNormals = [];
-            var x = void 0,
-                y = void 0;
-            var diffPrev = new THREE.Vector2();
-            var diffNext = new THREE.Vector2();
-            var shapeNormal = new THREE.Vector2();
-            for (var i = 0; i < nVertex; i += 1) {
-              var iPrev = i > 0 ? i - 1 : nVertex - 1;
-              var iNext = i + 1 < nVertex ? i + 1 : 0;
-              var v = shapePoints[i];
-              diffPrev.subVectors(v, shapePoints[iPrev]).normalize();
-              diffNext.subVectors(v, shapePoints[iNext]).normalize();
-              shapeNormal.addVectors(diffPrev, diffNext).normalize();
-              x = path.normals[iPathPoint].clone().multiplyScalar(shapeNormal.x);
-              y = path.binormals[iPathPoint].clone().multiplyScalar(shapeNormal.y);
-              shapeNormals.push(x.add(y));
-            }
-            return shapeNormals;
-          }
-
-          var shapeNormals = getShapeNormals(iPathPoint);
-          var lastShapeNormals = getShapeNormals(iPathPoint - 1);
-
-          // Smoothed normals to give a rounded look
-          for (var iShapePoint = 0; iShapePoint < _this3.nShape; iShapePoint += 1) {
-            var iLastShapePoint = void 0;
-            if (iShapePoint === 0) {
-              iLastShapePoint = _this3.nShape - 1;
-            } else {
-              iLastShapePoint = iShapePoint - 1;
-            }
-
-            var iVertex00 = iVertexOffset + iLastShapePoint;
-            var iVertex01 = iVertexOffset + iShapePoint;
-            var iVertex10 = iVertex00 + _this3.nShape;
-            var iVertex11 = iVertex01 + _this3.nShape;
-
-            _this3.pushFaceAndNormals(iVertex00, iVertex10, iVertex11, lastShapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
-            _this3.pushFaceAndNormals(iVertex01, iVertex00, iVertex11, lastShapeNormals[iShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
           }
         };
 
-        for (var iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
-          var _ret = _loop(iPathPoint);
-
-          if (_ret === 'continue') continue;
+        for (var _iterator = _lodash2.default.range(this.paths.length)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          _loop();
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
         }
       }
+    }
+  }, {
+    key: 'setColors',
+    value: function setColors() {
+      var vertexCount = 0;
+      var _iteratorNormalCompletion4 = true;
+      var _didIteratorError4 = false;
+      var _iteratorError4 = undefined;
 
-      // need to calculate own normals to be smoother
-      // this.computeVertexNormals()
+      try {
+        for (var _iterator4 = _lodash2.default.range(this.paths.length)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+          var iPath = _step4.value;
+
+          var _path = this.paths[iPath];
+          var _trace = this.parameters.traces[iPath];
+
+          var _iVertexOffsetOfPathPoint = [];
+
+          var _iTraceStart = 0;
+          var _iTraceEnd = _trace.points.length;
+
+          for (var iTracePoint = _iTraceStart; iTracePoint < _iTraceEnd; iTracePoint += 1) {
+            // iPathStart, iPathEnd on the expanded path for a given tracePoint
+            // assumes an overhang between neighbouring pieces to allow for disjoint
+            // coloring
+            var iPathStart = iTracePoint * 2 * _trace.detail - _trace.detail;
+            if (iPathStart < 0) {
+              iPathStart = 0;
+            }
+
+            // works out end of expanded path, including overhang
+            var iPathEnd = (iTracePoint + 1) * 2 * _trace.detail - _trace.detail + 1;
+            if (iPathEnd >= _path.points.length) {
+              iPathEnd = _path.points.length;
+            }
+
+            for (var iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
+              _iVertexOffsetOfPathPoint[iPathPoint] = vertexCount;
+
+              var _color = void 0;
+              if (this.parameters.isIndexColor) {
+                _color = _trace.indexColors[iTracePoint];
+              } else {
+                _color = _trace.colors[iTracePoint].clone();
+              }
+
+              var nShapePoint = this.shapePoints.length;
+
+              for (var i = 0; i < nShapePoint; i += 1) {
+                this.setColor(vertexCount, _color);
+                vertexCount += 1;
+              }
+            }
+          }
+        }
+      } catch (err) {
+        _didIteratorError4 = true;
+        _iteratorError4 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion4 && _iterator4.return) {
+            _iterator4.return();
+          }
+        } finally {
+          if (_didIteratorError4) {
+            throw _iteratorError4;
+          }
+        }
+      }
     }
   }, {
     key: 'setAttributes',
@@ -81352,8 +81440,26 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
       this.vertexCount = 0;
     }
   }, {
+    key: 'setColor',
+    value: function setColor(iVertex, color) {
+      var iPosition = 3 * iVertex;
+      this.colors[iPosition] = color.r;
+      this.colors[iPosition + 1] = color.g;
+      this.colors[iPosition + 2] = color.b;
+    }
+  }, {
     key: 'pushVertex',
-    value: function pushVertex(vertex, color) {
+    value: function pushVertex(vertex) {
+      this.positions[this.positionCount] = vertex.x;
+      this.positions[this.positionCount + 1] = vertex.y;
+      this.positions[this.positionCount + 2] = vertex.z;
+
+      this.positionCount += 3;
+      this.vertexCount += 1;
+    }
+  }, {
+    key: 'pushVertexAndColor',
+    value: function pushVertexAndColor(vertex, color) {
       this.positions[this.positionCount] = vertex.x;
       this.positions[this.positionCount + 1] = vertex.y;
       this.positions[this.positionCount + 2] = vertex.z;
@@ -81403,34 +81509,34 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
       this.nFace = 0;
 
       this.paths = [];
-      var _iteratorNormalCompletion4 = true;
-      var _didIteratorError4 = false;
-      var _iteratorError4 = undefined;
+      var _iteratorNormalCompletion5 = true;
+      var _didIteratorError5 = false;
+      var _iteratorError5 = undefined;
 
       try {
-        for (var _iterator4 = this.parameters.traces[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-          var trace = _step4.value;
+        for (var _iterator5 = this.parameters.traces[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+          var _trace2 = _step5.value;
 
-          var path = trace.detailedPath;
-          this.paths.push(path);
+          var _path2 = _trace2.detailedPath;
+          this.paths.push(_path2);
 
-          var nPath = path.points.length;
-          this.nVertex += (nPath + trace.points.length - 1) * this.nShape;
+          var nPath = _path2.points.length;
+          this.nVertex += (nPath + _trace2.points.length - 1) * this.nShape;
 
-          var nTrace = trace.points.length;
-          this.nFace += (nTrace - 1) * 2 * this.nShape * (2 * trace.detail + 1);
+          var nTrace = _trace2.points.length;
+          this.nFace += (nTrace - 1) * 2 * this.nShape * (2 * _trace2.detail + 1);
         }
       } catch (err) {
-        _didIteratorError4 = true;
-        _iteratorError4 = err;
+        _didIteratorError5 = true;
+        _iteratorError5 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-            _iterator4.return();
+          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+            _iterator5.return();
           }
         } finally {
-          if (_didIteratorError4) {
-            throw _iteratorError4;
+          if (_didIteratorError5) {
+            throw _iteratorError5;
           }
         }
       }
@@ -81475,13 +81581,13 @@ var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
       this.nVertex = 0;
       this.nFace = 0;
 
-      var _iteratorNormalCompletion5 = true;
-      var _didIteratorError5 = false;
-      var _iteratorError5 = undefined;
+      var _iteratorNormalCompletion6 = true;
+      var _didIteratorError6 = false;
+      var _iteratorError6 = undefined;
 
       try {
-        for (var _iterator5 = this.parameters.verticesList[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-          var vertices = _step5.value;
+        for (var _iterator6 = this.parameters.verticesList[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+          var vertices = _step6.value;
 
           var nVertex = vertices.length;
           // top layer
@@ -81492,16 +81598,16 @@ var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
           this.nFace += 2 * nVertex;
         }
       } catch (err) {
-        _didIteratorError5 = true;
-        _iteratorError5 = err;
+        _didIteratorError6 = true;
+        _iteratorError6 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion5 && _iterator5.return) {
-            _iterator5.return();
+          if (!_iteratorNormalCompletion6 && _iterator6.return) {
+            _iterator6.return();
           }
         } finally {
-          if (_didIteratorError5) {
-            throw _iteratorError5;
+          if (_didIteratorError6) {
+            throw _iteratorError6;
           }
         }
       }
@@ -81511,19 +81617,19 @@ var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
   }, {
     key: 'setPath',
     value: function setPath() {
-      var _iteratorNormalCompletion6 = true;
-      var _didIteratorError6 = false;
-      var _iteratorError6 = undefined;
+      var _iteratorNormalCompletion7 = true;
+      var _didIteratorError7 = false;
+      var _iteratorError7 = undefined;
 
       try {
-        for (var _iterator6 = this.parameters.verticesList.entries()[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-          var _step6$value = _slicedToArray(_step6.value, 2),
-              i = _step6$value[0],
-              vertices = _step6$value[1];
+        for (var _iterator7 = this.parameters.verticesList.entries()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          var _step7$value = _slicedToArray(_step7.value, 2),
+              i = _step7$value[0],
+              vertices = _step7$value[1];
 
           var _normal = threePointNormal(vertices.slice(0, 3));
           var displacement = _normal.clone().multiplyScalar(this.parameters.thickness / 2);
-          var _color = this.parameters.colorList[i];
+          var _color2 = this.parameters.colorList[i];
 
           var nVertex = vertices.length;
           var iLast = nVertex - 1;
@@ -81539,30 +81645,30 @@ var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
           }
 
           for (var _i7 = 0; _i7 < nVertex - 2; _i7 += 1) {
-            this.pushVerticesOfFace(topVertices[_i7], topVertices[_i7 + 1], topVertices[iLast], _color);
+            this.pushVerticesOfFace(topVertices[_i7], topVertices[_i7 + 1], topVertices[iLast], _color2);
           }
 
           for (var _i8 = 0; _i8 < nVertex - 2; _i8 += 1) {
-            this.pushVerticesOfFace(bottomVertices[_i8], bottomVertices[iLast], bottomVertices[_i8 + 1], _color);
+            this.pushVerticesOfFace(bottomVertices[_i8], bottomVertices[iLast], bottomVertices[_i8 + 1], _color2);
           }
 
           for (var _i9 = 0; _i9 < nVertex; _i9 += 1) {
             var j = _i9 === nVertex - 1 ? 0 : _i9 + 1;
-            this.pushVerticesOfFace(topVertices[_i9], bottomVertices[_i9], bottomVertices[j], _color);
-            this.pushVerticesOfFace(topVertices[_i9], bottomVertices[j], topVertices[j], _color);
+            this.pushVerticesOfFace(topVertices[_i9], bottomVertices[_i9], bottomVertices[j], _color2);
+            this.pushVerticesOfFace(topVertices[_i9], bottomVertices[j], topVertices[j], _color2);
           }
         }
       } catch (err) {
-        _didIteratorError6 = true;
-        _iteratorError6 = err;
+        _didIteratorError7 = true;
+        _iteratorError7 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion6 && _iterator6.return) {
-            _iterator6.return();
+          if (!_iteratorNormalCompletion7 && _iterator7.return) {
+            _iterator7.return();
           }
         } finally {
-          if (_didIteratorError6) {
-            throw _iteratorError6;
+          if (_didIteratorError7) {
+            throw _iteratorError7;
           }
         }
       }
@@ -81963,7 +82069,7 @@ var _jquery = __webpack_require__(32);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _three = __webpack_require__(51);
+var _three = __webpack_require__(52);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -81979,7 +82085,7 @@ var _data = __webpack_require__(96);
 
 var data = _interopRequireWildcard(_data);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(48);
 
 var util = _interopRequireWildcard(_util);
 
@@ -82861,9 +82967,9 @@ var ZSlabWidget = function (_CanvasWidget2) {
   }, {
     key: 'draw',
     value: function draw() {
-      var protein = this.soupView.soup;
+      var soup = this.soupView.soup;
       var cameraParams = this.soupView.currentView.cameraParams;
-      this.maxZLength = 1.1 * protein.maxLength;
+      this.maxZLength = 2 * soup.maxLength;
 
       var xBack = this.zToX(cameraParams.zBack);
       var xFront = this.zToX(cameraParams.zFront);
@@ -83770,7 +83876,7 @@ if (!USE_NATIVE) {
   $GOPD.f = $getOwnPropertyDescriptor;
   $DP.f = $defineProperty;
   __webpack_require__(39).f = gOPNExt.f = $getOwnPropertyNames;
-  __webpack_require__(49).f = $propertyIsEnumerable;
+  __webpack_require__(50).f = $propertyIsEnumerable;
   __webpack_require__(55).f = $getOwnPropertySymbols;
 
   if (DESCRIPTORS && !__webpack_require__(35)) {
@@ -83863,7 +83969,7 @@ setToStringTag(global.JSON, 'JSON', true);
 // all enumerable object keys, includes symbols
 var getKeys = __webpack_require__(36);
 var gOPS = __webpack_require__(55);
-var pIE = __webpack_require__(49);
+var pIE = __webpack_require__(50);
 module.exports = function (it) {
   var result = getKeys(it);
   var getSymbols = gOPS.f;
@@ -84092,7 +84198,7 @@ $export($export.S, 'Object', { setPrototypeOf: __webpack_require__(74).set });
 "use strict";
 
 // 19.1.3.6 Object.prototype.toString()
-var classof = __webpack_require__(50);
+var classof = __webpack_require__(51);
 var test = {};
 test[__webpack_require__(5)('toStringTag')] = 'z';
 if (test + '' != '[object z]') {
@@ -85366,7 +85472,7 @@ var toIObject = __webpack_require__(15);
 var arrayJoin = [].join;
 
 // fallback for not array-like strings
-$export($export.P + $export.F * (__webpack_require__(48) != Object || !__webpack_require__(20)(arrayJoin)), 'Array', {
+$export($export.P + $export.F * (__webpack_require__(49) != Object || !__webpack_require__(20)(arrayJoin)), 'Array', {
   join: function join(separator) {
     return arrayJoin.call(toIObject(this), separator === undefined ? ',' : separator);
   }
@@ -85921,7 +86027,7 @@ __webpack_require__(60)('split', 2, function (defined, SPLIT, $split) {
 var LIBRARY = __webpack_require__(35);
 var global = __webpack_require__(2);
 var ctx = __webpack_require__(18);
-var classof = __webpack_require__(50);
+var classof = __webpack_require__(51);
 var $export = __webpack_require__(0);
 var isObject = __webpack_require__(4);
 var aFunction = __webpack_require__(10);
@@ -89903,7 +90009,7 @@ var _lodash = __webpack_require__(29);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _three = __webpack_require__(51);
+var _three = __webpack_require__(52);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -89915,7 +90021,7 @@ var _v = __webpack_require__(67);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(48);
 
 var util = _interopRequireWildcard(_util);
 
@@ -90003,7 +90109,7 @@ var WebglWidget = function () {
     // as the default. This assumes vertexColors are used, allowing multiple
     // colors within the same geometry.
     this.displayMeshes = {};
-    this.displayMaterial = new THREE.MeshLambertMaterial({ vertexColors: THREE.VertexColors });
+    this.displayMaterial = new THREE.MeshPhongMaterial({ vertexColors: THREE.VertexColors });
 
     this.pickingScene = new THREE.Scene();
     this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height());
@@ -90545,10 +90651,8 @@ var Display = function (_WebglWidget) {
       this.traces.length = 0;
 
       var lastTrace = void 0;
-
       var residue = this.soup.getResidueProxy();
       var atom = this.soup.getAtomProxy();
-
       for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
         residue.iRes = iRes;
         if (residue.isPolymer) {
@@ -90662,6 +90766,7 @@ var Display = function (_WebglWidget) {
 
       this.observers.reset.dispatch();
 
+      this.soupView.changed = true;
       this.soupView.updateObservers = true;
     }
   }, {
@@ -90670,8 +90775,8 @@ var Display = function (_WebglWidget) {
       this.createOrClearMesh('ribbons');
       var isFront = false;
       var isBack = false;
-      var displayGeom = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace, isFront, isBack);
-      var displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial);
+      this.ribbonBufferGeometry = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace, isFront, isBack);
+      var displayMesh = new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial);
       this.displayMeshes['ribbons'].add(displayMesh);
       var pickingGeom = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace, isFront, isBack, true);
       var pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial);
@@ -91466,10 +91571,10 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'updateHover',
     value: function updateHover() {
-      if (this.soupView.nUpdateStep > 1) {
-        this.hover.hide();
-        return;
-      }
+      // if (this.soupView.nUpdateStep > 1) {
+      //   this.hover.hide()
+      //   return
+      // }
       this.iHoverAtom = this.getIAtomHover();
       if (this.iHoverAtom) {
         var atom = this.soup.getAtomProxy(this.iHoverAtom);
@@ -91533,7 +91638,6 @@ var Display = function (_WebglWidget) {
       this.setMeshVisible('ligands', show.ligands);
 
       if (this.soupView.soup.grid.changed) {
-        console.log('Display.draw rebuild grid');
         this.buildMeshOfGrid();
         this.soupView.soup.grid.changed = false;
         this.updateMeshesInScene = true;
@@ -91598,7 +91702,11 @@ var Display = function (_WebglWidget) {
           }
         }
 
-        this.buildMeshOfRibbons();
+        glgeom.clearObject3D(this.displayMeshes['ribbons']);
+        this.ribbonBufferGeometry.setColors();
+        var displayMesh = new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial);
+        this.displayMeshes['ribbons'].add(displayMesh);
+
         this.buildMeshOfArrows();
         this.buildMeshOfResidueSidechains();
         this.soupView.updateSelection = false;
@@ -98174,7 +98282,7 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var _embedjolecule = __webpack_require__(132);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(48);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 

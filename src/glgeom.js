@@ -374,142 +374,190 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
 
     this.setAttributes()
 
+    this.build()
+    this.setColors()
+  }
+
+  build () {
     for (let iPath of _.range(this.paths.length)) {
-      this.setPath(iPath, front, back)
+      let front = this.parameters.front
+      let back = this.parameters.back
+      let path = this.paths[iPath]
+      let trace = this.parameters.traces[iPath]
+
+      let iVertexOffsetOfPathPoint = []
+
+      let iTraceStart = 0
+      let iTraceEnd = trace.points.length
+
+      function getWidth (iTracePoint) {
+        return trace.segmentTypes[iTracePoint] === 'C' ? 0.7 : 8
+      }
+
+      for (let iTracePoint = iTraceStart; iTracePoint < iTraceEnd; iTracePoint += 1) {
+        // iPathStart, iPathEnd on the expanded path for a given tracePoint
+        // assumes an overhang between neighbouring pieces to allow for disjoint
+        // coloring
+        let iPathStart = (iTracePoint * 2 * trace.detail) - trace.detail
+        if (iPathStart < 0) {
+          iPathStart = 0
+        }
+
+        // works out end of expanded path, including overhang
+        let iPathEnd = ((iTracePoint + 1) * 2 * trace.detail) - trace.detail + 1
+        if (iPathEnd >= path.points.length) {
+          iPathEnd = path.points.length
+        }
+
+        for (let iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
+          iVertexOffsetOfPathPoint[iPathPoint] = this.vertexCount
+
+          let color
+          if (this.parameters.isIndexColor) {
+            color = trace.indexColors[iTracePoint]
+          } else {
+            color = trace.colors[iTracePoint].clone()
+          }
+
+          let width = getWidth(iTracePoint)
+          let height = 0.7
+
+          if ((iPathPoint === iPathStart) && (iPathPoint > 0)) {
+            if ((trace.segmentTypes[iTracePoint - 1] === 'C') &&
+              (trace.segmentTypes[iTracePoint] !== 'C')) {
+              width = getWidth(iTracePoint - 1)
+            }
+          }
+          if ((iPathPoint === (iPathEnd - 1)) && (iTracePoint < trace.points.length - 1)) {
+            let iNextTracePoint = iTracePoint + 1
+            if ((trace.segmentTypes[iNextTracePoint] === 'C') &&
+              (trace.segmentTypes[iTracePoint] !== 'C')) {
+              width = getWidth(iNextTracePoint)
+            }
+          }
+
+          let point = path.points[iPathPoint]
+          let normal = path.normals[iPathPoint]
+          let binormal = path.binormals[iPathPoint]
+
+          let shapePoints = _.cloneDeep(this.shapePoints)
+          for (let shapePoint of shapePoints) {
+            shapePoint.x = shapePoint.x * width
+            shapePoint.y = shapePoint.y * height
+          }
+
+          for (let shapePoint of shapePoints) {
+            let x = normal.clone().multiplyScalar(shapePoint.x)
+            let y = binormal.clone().multiplyScalar(shapePoint.y)
+            this.pushVertex(point.clone().add(x).add(y))
+            // this.pushVertexAndColor(point.clone().add(x).add(y), color)
+          }
+
+          if (iPathPoint === 0) {
+            continue
+          }
+
+          let iVertexOffset = iVertexOffsetOfPathPoint[iPathPoint - 1]
+
+          function getShapeNormals (iPathPoint) {
+            let nVertex = shapePoints.length
+            let shapeNormals = []
+            let x, y
+            let diffPrev = new THREE.Vector2()
+            let diffNext = new THREE.Vector2()
+            let shapeNormal = new THREE.Vector2()
+            for (let i = 0; i < nVertex; i += 1) {
+              let iPrev = i > 0 ? i - 1 : nVertex - 1
+              let iNext = i + 1 < nVertex ? i + 1 : 0
+              let v = shapePoints[i]
+              diffPrev.subVectors(v, shapePoints[iPrev]).normalize()
+              diffNext.subVectors(v, shapePoints[iNext]).normalize()
+              shapeNormal.addVectors(diffPrev, diffNext).normalize()
+              x = path.normals[iPathPoint].clone().multiplyScalar(shapeNormal.x)
+              y = path.binormals[iPathPoint].clone().multiplyScalar(shapeNormal.y)
+              shapeNormals.push(x.add(y))
+            }
+            return shapeNormals
+          }
+
+          let shapeNormals = getShapeNormals(iPathPoint)
+          let lastShapeNormals = getShapeNormals(iPathPoint - 1)
+
+          // Smoothed normals to give a rounded look
+          for (let iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
+            let iLastShapePoint
+            if (iShapePoint === 0) {
+              iLastShapePoint = this.nShape - 1
+            } else {
+              iLastShapePoint = iShapePoint - 1
+            }
+
+            let iVertex00 = iVertexOffset + iLastShapePoint
+            let iVertex01 = iVertexOffset + iShapePoint
+            let iVertex10 = iVertex00 + this.nShape
+            let iVertex11 = iVertex01 + this.nShape
+
+            this.pushFaceAndNormals(
+              iVertex00, iVertex10, iVertex11,
+              lastShapeNormals[iLastShapePoint],
+              shapeNormals[iLastShapePoint],
+              shapeNormals[iShapePoint])
+            this.pushFaceAndNormals(
+              iVertex01, iVertex00, iVertex11,
+              lastShapeNormals[iShapePoint],
+              lastShapeNormals[iLastShapePoint],
+              shapeNormals[iShapePoint])
+          }
+        }
+      }
     }
   }
 
-  setPath (iPath, front, back) {
-    let path = this.paths[iPath]
-    let trace = this.parameters.traces[iPath]
+  setColors () {
+    let vertexCount = 0
+    for (let iPath of _.range(this.paths.length)) {
+      let path = this.paths[iPath]
+      let trace = this.parameters.traces[iPath]
 
-    let iVertexOffsetOfPathPoint = []
+      let iVertexOffsetOfPathPoint = []
 
-    let iTraceStart = 0
-    let iTraceEnd = trace.points.length
+      let iTraceStart = 0
+      let iTraceEnd = trace.points.length
 
-    function getWidth (iTracePoint) {
-      return trace.segmentTypes[iTracePoint] === 'C' ? 0.7 : 8
-    }
-
-    for (let iTracePoint = iTraceStart; iTracePoint < iTraceEnd; iTracePoint += 1) {
-      // iPathStart, iPathEnd on the expanded path for a given tracePoint
-      // assumes an overhang between neighbouring pieces to allow for disjoint
-      // coloring
-      let iPathStart = (iTracePoint * 2 * trace.detail) - trace.detail
-      if (iPathStart < 0) {
-        iPathStart = 0
-      }
-
-      // works out end of expanded path, including overhang
-      let iPathEnd = ((iTracePoint + 1) * 2 * trace.detail) - trace.detail + 1
-      if (iPathEnd >= path.points.length) {
-        iPathEnd = path.points.length
-      }
-
-      for (let iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
-        iVertexOffsetOfPathPoint[iPathPoint] = this.vertexCount
-
-        let color
-        if (this.parameters.isIndexColor) {
-          color = trace.indexColors[iTracePoint]
-        } else {
-          color = trace.colors[iTracePoint].clone()
+      for (let iTracePoint = iTraceStart; iTracePoint < iTraceEnd; iTracePoint += 1) {
+        // iPathStart, iPathEnd on the expanded path for a given tracePoint
+        // assumes an overhang between neighbouring pieces to allow for disjoint
+        // coloring
+        let iPathStart = (iTracePoint * 2 * trace.detail) - trace.detail
+        if (iPathStart < 0) {
+          iPathStart = 0
         }
 
-        let width = getWidth(iTracePoint)
-        let height = 0.7
-
-        if ((iPathPoint === iPathStart) && (iPathPoint > 0)) {
-          if ((trace.segmentTypes[iTracePoint - 1] === 'C') &&
-              (trace.segmentTypes[iTracePoint] !== 'C')) {
-            width = getWidth(iTracePoint - 1)
-          }
-        }
-        if ((iPathPoint === (iPathEnd - 1)) && (iTracePoint < trace.points.length - 1)) {
-          let iNextTracePoint = iTracePoint + 1
-          if ((trace.segmentTypes[iNextTracePoint] === 'C') &&
-              (trace.segmentTypes[iTracePoint] !== 'C')) {
-            width = getWidth(iNextTracePoint)
-          }
+        // works out end of expanded path, including overhang
+        let iPathEnd = ((iTracePoint + 1) * 2 * trace.detail) - trace.detail + 1
+        if (iPathEnd >= path.points.length) {
+          iPathEnd = path.points.length
         }
 
-        let point = path.points[iPathPoint]
-        let normal = path.normals[iPathPoint]
-        let binormal = path.binormals[iPathPoint]
+        for (let iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
+          iVertexOffsetOfPathPoint[iPathPoint] = vertexCount
 
-        let shapePoints = _.cloneDeep(this.shapePoints)
-        for (let shapePoint of shapePoints) {
-          shapePoint.x = shapePoint.x * width
-          shapePoint.y = shapePoint.y * height
-        }
-
-        for (let shapePoint of shapePoints) {
-          let x = normal.clone().multiplyScalar(shapePoint.x)
-          let y = binormal.clone().multiplyScalar(shapePoint.y)
-          this.pushVertex(point.clone().add(x).add(y), color)
-        }
-
-        if (iPathPoint === 0) {
-          continue
-        }
-
-        let iVertexOffset = iVertexOffsetOfPathPoint[iPathPoint - 1]
-
-        function getShapeNormals (iPathPoint) {
-          let nVertex = shapePoints.length
-          let shapeNormals = []
-          let x, y
-          let diffPrev = new THREE.Vector2()
-          let diffNext = new THREE.Vector2()
-          let shapeNormal = new THREE.Vector2()
-          for (let i = 0; i < nVertex; i += 1) {
-            let iPrev = i > 0 ? i - 1 : nVertex - 1
-            let iNext = i + 1 < nVertex ? i + 1 : 0
-            let v = shapePoints[i]
-            diffPrev.subVectors(v, shapePoints[iPrev]).normalize()
-            diffNext.subVectors(v, shapePoints[iNext]).normalize()
-            shapeNormal.addVectors(diffPrev, diffNext).normalize()
-            x = path.normals[iPathPoint].clone().multiplyScalar(shapeNormal.x)
-            y = path.binormals[iPathPoint].clone().multiplyScalar(shapeNormal.y)
-            shapeNormals.push(x.add(y))
-          }
-          return shapeNormals
-        }
-
-        let shapeNormals = getShapeNormals(iPathPoint)
-        let lastShapeNormals = getShapeNormals(iPathPoint - 1)
-
-        // Smoothed normals to give a rounded look
-        for (let iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
-          let iLastShapePoint
-          if (iShapePoint === 0) {
-            iLastShapePoint = this.nShape - 1
+          let color
+          if (this.parameters.isIndexColor) {
+            color = trace.indexColors[iTracePoint]
           } else {
-            iLastShapePoint = iShapePoint - 1
+            color = trace.colors[iTracePoint].clone()
           }
 
-          let iVertex00 = iVertexOffset + iLastShapePoint
-          let iVertex01 = iVertexOffset + iShapePoint
-          let iVertex10 = iVertex00 + this.nShape
-          let iVertex11 = iVertex01 + this.nShape
+          let nShapePoint = this.shapePoints.length
 
-          this.pushFaceAndNormals(
-            iVertex00, iVertex10, iVertex11,
-            lastShapeNormals[iLastShapePoint],
-            shapeNormals[iLastShapePoint],
-            shapeNormals[iShapePoint])
-          this.pushFaceAndNormals(
-            iVertex01, iVertex00, iVertex11,
-            lastShapeNormals[iShapePoint],
-            lastShapeNormals[iLastShapePoint],
-            shapeNormals[iShapePoint])
+          for (let i = 0; i < nShapePoint; i+=1) {
+            this.setColor(vertexCount, color)
+            vertexCount += 1
+          }
         }
       }
     }
-
-    // need to calculate own normals to be smoother
-    // this.computeVertexNormals()
   }
 
   setAttributes () {
@@ -533,7 +581,23 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.vertexCount = 0
   }
 
-  pushVertex (vertex, color) {
+  setColor (iVertex, color) {
+    let iPosition = 3 * iVertex
+    this.colors[iPosition] = color.r
+    this.colors[iPosition + 1] = color.g
+    this.colors[iPosition + 2] = color.b
+  }
+
+  pushVertex (vertex) {
+    this.positions[this.positionCount] = vertex.x
+    this.positions[this.positionCount + 1] = vertex.y
+    this.positions[this.positionCount + 2] = vertex.z
+
+    this.positionCount += 3
+    this.vertexCount += 1
+  }
+
+  pushVertexAndColor (vertex, color) {
     this.positions[this.positionCount] = vertex.x
     this.positions[this.positionCount + 1] = vertex.y
     this.positions[this.positionCount + 2] = vertex.z
