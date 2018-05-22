@@ -166,14 +166,15 @@ export default {
     changeGraph () {
       let soup = this.joleculeWidget.soup
       let atom = soup.getAtomProxy()
-      let n = soup.getAtomCount()
+      let res = soup.getResidueProxy()
+      let n = soup.getResidueCount()
       let bfactors = []
       for (let i = 0; i < n; i+=1) {
-        atom.load(i)
-        bfactors.push(atom.bfactor)
+        res.load(i)
+        bfactors.push(atom.load(res.iAtom).bfactor)
       }
       this.chartWidget.setTitle('')
-      this.chartWidget.setXLabel('atom number')
+      this.chartWidget.setXLabel('residue')
       this.chartWidget.setYLabel('b-factor')
       this.chartWidget.addDataset('sample')
       this.chartWidget.updateDataset(0, _.range(1, n + 1), bfactors)

@@ -80490,18 +80490,32 @@ var Controller = function () {
       this.soupView.changed = true;
     }
   }, {
-    key: 'selectResidue',
-    value: function selectResidue(iRes, select) {
-      this.soup.getResidueProxy(iRes).sidechain = select;
-      this.soupView.currentView.selected = this.makeSelectedResidueList();
-      this.soupView.changed = true;
-    }
-  }, {
     key: 'clearSelectedResidues',
     value: function clearSelectedResidues() {
       this.soup.clearSelectedResidues();
       this.soupView.currentView.selected = this.makeSelectedResidueList();
       this.soupView.updateSelection = true;
+      this.soupView.changed = true;
+    }
+  }, {
+    key: 'selectResidue',
+    value: function selectResidue(iRes, val) {
+      var res = this.soup.getResidueProxy(iRes);
+      res.selected = val;
+      this.soupView.updateSelection = true;
+      this.soupView.changed = true;
+    }
+  }, {
+    key: 'showSelectedSidechains',
+    value: function showSelectedSidechains() {
+      var residue = this.soup.getResidueProxy();
+      for (var jRes = 0; jRes < this.soup.getResidueCount(); jRes += 1) {
+        residue.load(jRes);
+        if (residue.selected) {
+          residue.sidechain = true;
+        }
+      }
+      this.soupView.updateSidechain = true;
       this.soupView.changed = true;
     }
   }, {
@@ -80697,27 +80711,6 @@ var Controller = function () {
 
       this.clearSidechainResidues();
       this.clearSelectedResidues();
-    }
-  }, {
-    key: 'selectResidue',
-    value: function selectResidue(iRes) {
-      var res = this.soup.getResidueProxy(iRes);
-      res.selected = !res.selected;
-      this.soupView.updateSelection = true;
-      this.soupView.changed = true;
-    }
-  }, {
-    key: 'showSelectedSidechains',
-    value: function showSelectedSidechains() {
-      var residue = this.soup.getResidueProxy();
-      for (var jRes = 0; jRes < this.soup.getResidueCount(); jRes += 1) {
-        residue.load(jRes);
-        if (residue.selected) {
-          residue.sidechain = true;
-        }
-      }
-      this.soupView.updateSidechain = true;
-      this.soupView.changed = true;
     }
   }, {
     key: 'getLoop',
@@ -91704,8 +91697,7 @@ var Display = function (_WebglWidget) {
 
         glgeom.clearObject3D(this.displayMeshes['ribbons']);
         this.ribbonBufferGeometry.setColors();
-        var displayMesh = new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial);
-        this.displayMeshes['ribbons'].add(displayMesh);
+        this.displayMeshes['ribbons'].add(new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial));
 
         this.buildMeshOfArrows();
         this.buildMeshOfResidueSidechains();
@@ -91805,12 +91797,16 @@ var Display = function (_WebglWidget) {
       var iCenterAtom = this.soupView.getCenteredAtom().iAtom;
 
       var now = new Date().getTime();
-      var isDoubleClick = now - this.timePressed < 700;
+      var isDoubleClick = now - this.timePressed < 500;
       if (isDoubleClick) {
-        this.doubleclick();
+        if (this.iDoubleClickDownAtom === this.iDownAtom) {
+          this.doubleclick();
+        }
       } else if (this.iDownAtom === iCenterAtom) {
         this.isDraggingCentralAtom = this.iDownAtom !== null;
       }
+
+      this.iDoubleClickDownAtom = this.iDownAtom;
 
       this.timePressed = now;
 
@@ -91879,11 +91875,13 @@ var Display = function (_WebglWidget) {
       }
 
       if (this.iHoverAtom !== null && this.iHoverAtom === this.iDownAtom) {
+        var iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes;
+        var res = this.soup.getResidueProxy(iRes);
+        var val = !res.selected;
         if (!event.metaKey) {
           this.controller.clearSelectedResidues();
         }
-        var iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes;
-        this.controller.selectResidue(iRes);
+        this.controller.selectResidue(iRes, val);
         this.iDownAtom = null;
       }
 

@@ -1107,10 +1107,11 @@ class Display extends WebglWidget {
           }
         }
       }
+
       glgeom.clearObject3D(this.displayMeshes['ribbons'])
       this.ribbonBufferGeometry.setColors()
-      let displayMesh = new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial)
-      this.displayMeshes['ribbons'].add(displayMesh)
+      this.displayMeshes['ribbons'].add(new THREE.Mesh(
+        this.ribbonBufferGeometry, this.displayMaterial))
 
       this.buildMeshOfArrows()
       this.buildMeshOfResidueSidechains()
@@ -1208,12 +1209,16 @@ class Display extends WebglWidget {
     let iCenterAtom = this.soupView.getCenteredAtom().iAtom
 
     let now = (new Date()).getTime()
-    let isDoubleClick = (now - this.timePressed) < 700
+    let isDoubleClick = (now - this.timePressed) < 500
     if (isDoubleClick) {
-      this.doubleclick()
+      if (this.iDoubleClickDownAtom === this.iDownAtom) {
+        this.doubleclick()
+      }
     } else if (this.iDownAtom === iCenterAtom) {
       this.isDraggingCentralAtom = this.iDownAtom !== null
     }
+
+    this.iDoubleClickDownAtom = this.iDownAtom
 
     this.timePressed = now
 
@@ -1285,11 +1290,13 @@ class Display extends WebglWidget {
     }
 
     if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
+      let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
+      let res = this.soup.getResidueProxy(iRes)
+      let val = !res.selected
       if (!event.metaKey) {
         this.controller.clearSelectedResidues()
       }
-      let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
-      this.controller.selectResidue(iRes)
+      this.controller.selectResidue(iRes, val)
       this.iDownAtom = null
     }
 

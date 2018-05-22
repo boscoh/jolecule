@@ -1648,16 +1648,29 @@ class Controller {
     this.soupView.changed = true
   }
 
-  selectResidue (iRes, select) {
-    this.soup.getResidueProxy(iRes).sidechain = select
-    this.soupView.currentView.selected = this.makeSelectedResidueList()
-    this.soupView.changed = true
-  }
-
   clearSelectedResidues () {
     this.soup.clearSelectedResidues()
     this.soupView.currentView.selected = this.makeSelectedResidueList()
     this.soupView.updateSelection = true
+    this.soupView.changed = true
+  }
+
+  selectResidue (iRes, val) {
+    let res = this.soup.getResidueProxy(iRes)
+    res.selected = val
+    this.soupView.updateSelection = true
+    this.soupView.changed = true
+  }
+
+  showSelectedSidechains () {
+    let residue = this.soup.getResidueProxy()
+    for (let jRes = 0; jRes < this.soup.getResidueCount(); jRes += 1) {
+      residue.load(jRes)
+      if (residue.selected) {
+        residue.sidechain = true
+      }
+    }
+    this.soupView.updateSidechain = true
     this.soupView.changed = true
   }
 
@@ -1794,25 +1807,6 @@ class Controller {
     }
     this.clearSidechainResidues()
     this.clearSelectedResidues()
-  }
-
-  selectResidue (iRes) {
-    let res = this.soup.getResidueProxy(iRes)
-    res.selected = !res.selected
-    this.soupView.updateSelection = true
-    this.soupView.changed = true
-  }
-
-  showSelectedSidechains () {
-    let residue = this.soup.getResidueProxy()
-    for (let jRes = 0; jRes < this.soup.getResidueCount(); jRes += 1) {
-      residue.load(jRes)
-      if (residue.selected) {
-        residue.sidechain = true
-      }
-    }
-    this.soupView.updateSidechain = true
-    this.soupView.changed = true
   }
 
   getLoop () {
