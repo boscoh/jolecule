@@ -694,7 +694,14 @@ class Display extends WebglWidget {
       let matrix = glgeom.getCylinderMatrix(p1, p2, 0.2)
 
       displayGeom.applyMatrixToCopy(matrix, iCopy)
-      displayGeom.applyColorToCopy(residue.color, iCopy)
+
+      let color
+      if (residue.selected) {
+        color = residue.color.clone().offsetHSL(0, 0, 0.3)
+      } else {
+        color = residue.color
+      }
+      displayGeom.applyColorToCopy(color, iCopy)
     }
 
     let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
@@ -1192,6 +1199,9 @@ class Display extends WebglWidget {
       if (this.iHoverAtom === this.soupView.getCenteredAtom().iAtom) {
         this.atomLabelDialog()
       } else {
+        let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
+        // trick to ensure that the double-clicked atom is selected
+        this.controller.selectResidue(iRes, false)
         this.setTargetViewByIAtom(this.iHoverAtom)
       }
       this.isDraggingCentralAtom = false

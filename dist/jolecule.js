@@ -91779,6 +91779,9 @@ var Display = function (_WebglWidget) {
         if (this.iHoverAtom === this.soupView.getCenteredAtom().iAtom) {
           this.atomLabelDialog();
         } else {
+          var iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes;
+          // trick to ensure that the double-clicked atom is selected
+          this.controller.selectResidue(iRes, false);
           this.setTargetViewByIAtom(this.iHoverAtom);
         }
         this.isDraggingCentralAtom = false;
