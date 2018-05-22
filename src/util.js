@@ -8,6 +8,10 @@
 import $ from 'jquery'
 import _ from 'lodash'
 
+function jstr (s) {
+  return JSON.stringify(s, null, 2)
+}
+
 function exists (x) {
   return !(_.isUndefined(x)) && (x !== null)
 }
@@ -165,6 +169,7 @@ function delay (timeMs) {
 }
 
 export {
+  jstr,
   exists,
   getWindowUrl,
   linkButton,

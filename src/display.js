@@ -492,10 +492,8 @@ class Display extends WebglWidget {
     this.traces.length = 0
 
     let lastTrace
-
     let residue = this.soup.getResidueProxy()
     let atom = this.soup.getAtomProxy()
-
     for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
       residue.iRes = iRes
       if (residue.isPolymer) {
@@ -562,6 +560,7 @@ class Display extends WebglWidget {
 
     this.observers.reset.dispatch()
 
+    this.soupView.changed = true
     this.soupView.updateObservers = true
   }
 
@@ -1075,7 +1074,6 @@ class Display extends WebglWidget {
         !this.soupView.updateSelection) {
         this.soupView.startTargetView()
         this.soupView.nUpdateStep = this.soupView.maxUpdateStep
-
       }
     }
 
@@ -1087,7 +1085,6 @@ class Display extends WebglWidget {
     this.setMeshVisible('ligands', show.ligands)
 
     if (this.soupView.soup.grid.changed) {
-      console.log('Display.draw rebuild grid')
       this.buildMeshOfGrid()
       this.soupView.soup.grid.changed = false
       this.updateMeshesInScene = true
@@ -1149,6 +1146,7 @@ class Display extends WebglWidget {
       if (this.soupView.targetView !== null) {
         this.controller.setCurrentView(this.soupView.targetView)
         this.soupView.updateObservers = true
+        this.soupView.changed = true
         this.soupView.targetView = null
         this.soupView.nUpdateStep = 70
       } else {

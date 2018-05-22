@@ -759,9 +759,9 @@ class ZSlabWidget extends CanvasWidget {
   }
 
   draw () {
-    let protein = this.soupView.soup
+    let soup = this.soupView.soup
     let cameraParams = this.soupView.currentView.cameraParams
-    this.maxZLength = 1.1 * protein.maxLength
+    this.maxZLength = 2 * soup.maxLength
 
     let xBack = this.zToX(cameraParams.zBack)
     let xFront = this.zToX(cameraParams.zFront)

@@ -114,19 +114,27 @@ class EmbedJolecule {
       await this.display.asyncSetMesssage('Loading views...')
       await this.asyncLoadViews(dataServer)
     }
-    this.display.cleanupMessage()
     this.moveOutToSeeAll()
+    this.display.cleanupMessage()
     this.isProcessing.flag = false
   }
 
   moveOutToSeeAll () {
+    this.soup.calcMaxLength()
     let newView = this.soupView.currentView.clone()
-    newView.cameraParams.zFront = -this.soup.maxLength / 2
-    newView.cameraParams.zBack = this.soup.maxLength / 2
-    newView.cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75
+    let cameraParams = newView.cameraParams
+    cameraParams.zFront = -this.soup.maxLength / 2
+    cameraParams.zBack = this.soup.maxLength / 2
+    cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75
+    let look = cameraParams.position.clone().sub(cameraParams.focus)
+    look.normalize()
     let atom = this.soup.getAtomProxyOfCenter()
-    newView.iAtom = atom.iAtom
-    newView.cameraParams.focus.copy(atom.pos)
+    let iAtom = atom.iAtom
+    cameraParams.focus.copy(atom.pos)
+    cameraParams.position = cameraParams.focus.clone()
+      .add(look.multiplyScalar(cameraParams.zoom))
+    this.soupView.changed = true
+    this.display.observers.reset.dispatch()
     this.controller.setTargetView(newView)
   }
 

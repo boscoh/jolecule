@@ -22,6 +22,14 @@
 
       <md-layout md-flex="33">
         <md-whiteframe>
+          <div>
+            <md-button
+              md-flex=true
+              class="md-raised"
+              @click="loadStoredProtein()">
+              Load
+            </md-button>
+          </div>
           <md-layout
             md-row
             md-vertical-align="center">
@@ -39,13 +47,13 @@
                 md-flex=true
                 class="md-raised"
                 @click="loadFromPdbId()">
-                Load
+                DownLoad
               </md-button>
             </div>
             <md-spinner
               :md-size="25"
               md-indeterminate
-              v-if="isLoading"/>
+              v-if="isDownloading"/>
             {{pdbText}}
           </md-layout>
         </md-whiteframe>
@@ -53,36 +61,6 @@
 
       <md-layout md-flex="66">
         <md-whiteframe>
-          <h3 class="md-title">Live graphs</h3>
-
-          <div
-            v-for="(param, i) of sliders"
-            :key="i"
-            style="height: 2em">
-            <md-layout
-              md-row
-              md-vertical-align="center">
-              {{param.key}} = {{param.value.toFixed(1)}}
-              <div style="flex: 1">
-                <vue-slider
-                  ref="slider"
-                  tooltip="none"
-                  :interval="param.interval"
-                  @callback="changeGraph()"
-                  :max="param.max"
-                  v-model="param.value"/>
-              </div>
-            </md-layout>
-          </div>
-
-          <div style="margin-top: 1em">
-            <md-button
-              class="md-raised"
-              @click="randomizeGraph()">
-              random
-            </md-button>
-          </div>
-
           <md-layout>
             <div
               id="charts"
@@ -118,64 +96,20 @@
 <script>
 import _ from 'lodash'
 import $ from 'jquery'
-
-import rpc from '../modules/rpc'
-import vueSlider from 'vue-slider-component'
-import config from '../config'
 import ChartWidget from '../modules/chart-widget'
-import Model from '../modules/model'
 import {initEmbedJolecule} from '../../../../src/main'
 
 export default {
   name: 'experiments',
-  components: {vueSlider},
   data () {
     return {
-      text: '',
       pdbId: '',
-      error: '',
-      pointerX: 0,
-      pointerY: 0,
-      uploadFiles: [],
-      sliders: [
-        {
-          key: 'alpha',
-          value: 1,
-          max: 10,
-          interval: 0.1
-        },
-        {
-          key: 'beta',
-          value: 1,
-          max: 7,
-          interval: 0.1
-        },
-        {
-          key: 'gamma',
-          value: 0.5,
-          max: 10,
-          interval: 0.1
-        }
-      ],
       pdbText: '',
-      isLoading: false
+      isDownloading: false
     }
   },
   async mounted () {
-    let params = {}
-    for (let slider of this.sliders) {
-      params[slider.key] = slider.value
-    }
-
-    this.model = new Model(params)
-    this.model.initializeVars = () => { this.model.vars.y = 0 }
-    this.model.update = function (i) {
-      this.vars.y =
-        this.params.alpha * Math.sin(this.params.beta * i + this.params.gamma)
-    }
-
     this.chartWidget = new ChartWidget('#charts')
-    this.randomizeGraph()
 
     this.joleculeWidget = initEmbedJolecule({
       divTag: '#jolecule',
@@ -196,14 +130,19 @@ export default {
     // const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
     // await this.joleculeWidget.asyncAddDataServer(dataServer3)
 
-    // this.pdbId = '1ssx'
-    // this.loadFromPdbId()
+    this.changeGraph()
   },
   methods: {
+    async loadStoredProtein () {
+      const dataServer0 = require('../../../dataservers/1be9-data-server')
+      await this.joleculeWidget.asyncAddDataServer(dataServer0)
+      this.changeGraph()
+    },
     async loadFromPdbId () {
       let dataServer0 = this.makeDataServer(this.pdbId)
-      this.isLoading = true
+      this.isDownloading = true
       await this.joleculeWidget.asyncAddDataServer(dataServer0)
+      this.changeGraph()
     },
     makeDataServer (pdbId) {
       let _this = this
@@ -211,12 +150,11 @@ export default {
         pdb_id: pdbId,
         get_protein_data: function (parsePdb) {
           let url = `https://files.rcsb.org/download/${pdbId}.pdb1`
-          console.log('remoteDataServer.get_protein_data', url)
           $.get(url, (pdbText) => {
             parsePdb({pdb_id: pdbId, pdb_text: pdbText})
-            _this.isLoading = false
+            _this.isDownloading = false
           }).fail(() => {
-            _this.isLoading = false
+            _this.isDownloading = false
             _this.pdbText = 'Error: failed to load'
           })
         },
@@ -225,37 +163,20 @@ export default {
         delete_protein_view: function (viewId, success) { success() }
       }
     },
-    selectFiles (filelist) {
-      this.filelist = filelist
-    },
-    async upload () {
-      this.uploadFiles = []
-      if (this.filelist) {
-        this.error = ''
-        let response = await rpc.rpcUpload('publicUploadFiles', this.filelist)
-        if (response.result) {
-          this.uploadFiles = _.map(response.result.files, f => config.apiUrl + f)
-        } else {
-          this.error = response.error.message
-        }
-      } else {
-        this.error = 'No files selected'
-      }
-    },
     changeGraph () {
-      for (let slider of this.sliders) {
-        this.model.params[slider.key] = slider.value
+      let soup = this.joleculeWidget.soup
+      let atom = soup.getAtomProxy()
+      let n = soup.getAtomCount()
+      let bfactors = []
+      for (let i = 0; i < n; i+=1) {
+        atom.load(i)
+        bfactors.push(atom.bfactor)
       }
-      let nStep = 100
-      let xValues = _.range(0, nStep)
-      this.model.resetSoln()
-      this.model.integrate(nStep)
-      let yValues = this.model.soln.y
-      this.chartWidget.setTitle('title')
-      this.chartWidget.setXLabel('xLabel')
-      this.chartWidget.setYLabel('yLabel')
+      this.chartWidget.setTitle('')
+      this.chartWidget.setXLabel('atom number')
+      this.chartWidget.setYLabel('b-factor')
       this.chartWidget.addDataset('sample')
-      this.chartWidget.updateDataset(0, xValues, yValues)
+      this.chartWidget.updateDataset(0, _.range(1, n + 1), bfactors)
     },
     randomizeGraph () {
       for (let slider of this.sliders) {

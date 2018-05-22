@@ -78310,6 +78310,7 @@ var EmbedJolecule = function () {
       var atom = this.soup.getAtomProxyOfCenter();
       newView.iAtom = atom.iAtom;
       newView.cameraParams.focus.copy(atom.pos);
+      this.soupView.changed = true;
       this.controller.setTargetView(newView);
     }
   }, {
@@ -78580,7 +78581,7 @@ var AtomProxy = function () {
   return AtomProxy;
 }();
 
-var residueStoreFields = [['atomOffset', 1, 'uint32'], ['atomCount', 1, 'uint16'], ['iCentralAtom', 1, 'uint32'], ['iResType', 1, 'uint16'], ['iChain', 1, 'uint8'], ['resNum', 1, 'int32'], ['insCode', 1, 'uint8'], ['sstruc', 1, 'uint8'], ['iColor', 1, 'uint8'], ['isPolymer', 1, 'uint8']];
+var residueStoreFields = [['atomOffset', 1, 'uint32'], ['atomCount', 1, 'uint16'], ['iCentralAtom', 1, 'uint32'], ['iResType', 1, 'uint16'], ['iChain', 1, 'uint8'], ['iStructure', 1, 'uint8'], ['resNum', 1, 'int32'], ['insCode', 1, 'uint8'], ['sstruc', 1, 'uint8'], ['iColor', 1, 'uint8'], ['isPolymer', 1, 'uint8']];
 
 var ResidueProxy = function () {
   function ResidueProxy(soup, iRes) {
@@ -78777,6 +78778,14 @@ var ResidueProxy = function () {
       return this.soup.residueStore.iChain[this.iRes];
     }
   }, {
+    key: 'iStructure',
+    get: function get() {
+      return this.soup.residueStore.iStructure[this.iRes];
+    },
+    set: function set(iStructure) {
+      this.soup.residueStore.iStructure[this.iRes] = iStructure;
+    }
+  }, {
     key: 'resId',
     get: function get() {
       return this.soup.resIds[this.iRes];
@@ -78921,6 +78930,7 @@ var Soup = function () {
 
     this.pdbIds = [];
     this.pdbId = null;
+    this.iPdb = -1;
     this.chains = [];
     this.atomStore = new _store2.default(atomStoreFields);
     this.residueStore = new _store2.default(residueStoreFields);
@@ -78979,6 +78989,7 @@ var Soup = function () {
     value: function parsePdbData(pdbText, pdbId) {
       this.pdbId = pdbId;
       this.pdbIds.push(pdbId);
+      this.iPdb = this.pdbIds.length - 1;
 
       if (!this.title) {
         var title = parsetTitleFromPdbText(pdbText);
@@ -79130,6 +79141,8 @@ var Soup = function () {
 
       this.residueStore.atomOffset[iRes] = iFirstAtomInRes;
       this.residueStore.atomCount[iRes] = 0;
+
+      this.residueStore.iStructure[iRes] = this.iPdb;
     }
   }, {
     key: 'getAtomProxyOfCenter',
@@ -79445,67 +79458,74 @@ var Soup = function () {
       var atom0 = this.getAtomProxy();
       var atom1 = this.getAtomProxy();
 
-      // Collect backbone O and N atoms
-      var vertices = [];
-      var atomIndices = [];
-      for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-        residue.iRes = iRes;
-        if (residue.isPolymer) {
-          var _arr = ['O', 'N'];
+      var result = [];
+      var cutoff = 3.5;
 
-          for (var _i = 0; _i < _arr.length; _i++) {
-            var aTypeName = _arr[_i];
-            var iAtom = residue.getIAtom(aTypeName);
-            if (iAtom !== null) {
-              atom0.iAtom = iAtom;
-              vertices.push([atom0.pos.x, atom0.pos.y, atom0.pos.z]);
-              atomIndices.push(iAtom);
+      for (var iStructure = 0; iStructure < this.pdbIds.length; iStructure += 1) {
+        // Collect backbone O and N atoms
+        var vertices = [];
+        var atomIndices = [];
+        for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
+          residue.iRes = iRes;
+          if (residue.iStructure !== iStructure) {
+            // ensure only backbone H-bonds of a single structure are calculated
+            continue;
+          }
+          if (residue.isPolymer) {
+            var _arr = ['O', 'N'];
+
+            for (var _i = 0; _i < _arr.length; _i++) {
+              var aTypeName = _arr[_i];
+              var iAtom = residue.getIAtom(aTypeName);
+              if (iAtom !== null) {
+                atom0.iAtom = iAtom;
+                vertices.push([atom0.pos.x, atom0.pos.y, atom0.pos.z]);
+                atomIndices.push(iAtom);
+              }
             }
           }
         }
-      }
 
-      var result = [];
-      var cutoff = 3.5;
-      var spaceHash = new _pairs.SpaceHash(vertices);
-      var _iteratorNormalCompletion10 = true;
-      var _didIteratorError10 = false;
-      var _iteratorError10 = undefined;
+        var spaceHash = new _pairs.SpaceHash(vertices);
+        var _iteratorNormalCompletion10 = true;
+        var _didIteratorError10 = false;
+        var _iteratorError10 = undefined;
 
-      try {
-        for (var _iterator10 = spaceHash.getClosePairs()[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-          var pair = _step10.value;
-
-          atom0.iAtom = atomIndices[pair[0]];
-          atom1.iAtom = atomIndices[pair[1]];
-          if (atom0.elem === 'O' && atom1.elem === 'N') {
-            var _ref = [atom1, atom0];
-            atom0 = _ref[0];
-            atom1 = _ref[1];
-          }
-          if (!(atom0.elem === 'N' && atom1.elem === 'O')) {
-            continue;
-          }
-          var iRes0 = atom0.iRes;
-          var iRes1 = atom1.iRes;
-          if (iRes0 === iRes1) {
-            continue;
-          }
-          if (_v2.default.distance(atom0.pos, atom1.pos) <= cutoff) {
-            pushToListInDict(result, iRes0, iRes1);
-          }
-        }
-      } catch (err) {
-        _didIteratorError10 = true;
-        _iteratorError10 = err;
-      } finally {
         try {
-          if (!_iteratorNormalCompletion10 && _iterator10.return) {
-            _iterator10.return();
+          for (var _iterator10 = spaceHash.getClosePairs()[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+            var pair = _step10.value;
+
+            atom0.iAtom = atomIndices[pair[0]];
+            atom1.iAtom = atomIndices[pair[1]];
+            if (atom0.elem === 'O' && atom1.elem === 'N') {
+              var _ref = [atom1, atom0];
+              atom0 = _ref[0];
+              atom1 = _ref[1];
+            }
+            if (!(atom0.elem === 'N' && atom1.elem === 'O')) {
+              continue;
+            }
+            var iRes0 = atom0.iRes;
+            var iRes1 = atom1.iRes;
+            if (iRes0 === iRes1) {
+              continue;
+            }
+            if (_v2.default.distance(atom0.pos, atom1.pos) <= cutoff) {
+              pushToListInDict(result, iRes0, iRes1);
+            }
           }
+        } catch (err) {
+          _didIteratorError10 = true;
+          _iteratorError10 = err;
         } finally {
-          if (_didIteratorError10) {
-            throw _iteratorError10;
+          try {
+            if (!_iteratorNormalCompletion10 && _iterator10.return) {
+              _iterator10.return();
+            }
+          } finally {
+            if (_didIteratorError10) {
+              throw _iteratorError10;
+            }
           }
         }
       }
@@ -91618,6 +91638,7 @@ var Display = function (_WebglWidget) {
         if (this.soupView.targetView !== null) {
           this.controller.setCurrentView(this.soupView.targetView);
           this.soupView.updateObservers = true;
+          this.soupView.changed = true;
           this.soupView.targetView = null;
           this.soupView.nUpdateStep = 70;
         } else {

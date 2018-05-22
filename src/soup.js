@@ -6,6 +6,7 @@ import { SpaceHash } from './pairs.js'
 import Store from './store.js'
 import BitArray from './bitarray.js'
 import * as data from './data'
+import * as util from './util'
 
 let user = 'public' // will be overriden by server
 
@@ -161,6 +162,7 @@ const residueStoreFields = [
   ['iCentralAtom', 1, 'uint32'],
   ['iResType', 1, 'uint16'],
   ['iChain', 1, 'uint8'],
+  ['iStructure', 1, 'uint8'],
   ['resNum', 1, 'int32'],
   ['insCode', 1, 'uint8'],
   ['sstruc', 1, 'uint8'],
@@ -191,6 +193,14 @@ class ResidueProxy {
 
   get iChain () {
     return this.soup.residueStore.iChain[this.iRes]
+  }
+
+  get iStructure () {
+    return this.soup.residueStore.iStructure[this.iRes]
+  }
+
+  set iStructure (iStructure) {
+    this.soup.residueStore.iStructure[this.iRes] = iStructure
   }
 
   get resId () {
@@ -412,8 +422,9 @@ class Soup {
     this.parsingError = ''
     this.title = ''
 
-    this.pdbIds = []
-    this.pdbId = null
+    this.structureIds = []
+    this.structureId = null
+    this.iStructure = -1
     this.chains = []
     this.atomStore = new Store(atomStoreFields)
     this.residueStore = new Store(residueStoreFields)
@@ -445,9 +456,9 @@ class Soup {
   }
 
   load (pdbData) {
-    console.log(`Soup.load parse ${this.pdbId}...`)
+    console.log(`Soup.load parse ${this.structureId}...`)
 
-    this.parsePdbData(pdbData.pdb_text, this.pdbId)
+    this.parsePdbData(pdbData.pdb_text, this.structureId)
 
     this.assignResidueSsAndCentralAtoms()
 
@@ -467,12 +478,13 @@ class Soup {
   }
 
   parsePdbData (pdbText, pdbId) {
-    this.pdbId = pdbId
-    this.pdbIds.push(pdbId)
+    this.structureId = pdbId
+    this.structureIds.push(pdbId)
+    this.iStructure = this.structureIds.length - 1
 
     if (!this.title) {
       let title = parsetTitleFromPdbText(pdbText)
-      this.title = this.pdbId + ': ' + title
+      this.title = this.structureId + ': ' + title
     }
 
     const pdbLines = pdbText.split(/\r?\n/)
@@ -575,7 +587,7 @@ class Soup {
     let iRes = this.getResidueCount()
     this.residueStore.increment()
 
-    let resId = this.pdbId + ':'
+    let resId = this.structureId + ':'
     if (chain) {
       resId += chain + ':'
     }
@@ -594,6 +606,8 @@ class Soup {
 
     this.residueStore.atomOffset[iRes] = iFirstAtomInRes
     this.residueStore.atomCount[iRes] = 0
+
+    this.residueStore.iStructure[iRes] = this.iStructure
   }
 
   getAtomProxyOfCenter () {
@@ -812,42 +826,49 @@ class Soup {
     let atom0 = this.getAtomProxy()
     let atom1 = this.getAtomProxy()
 
-    // Collect backbone O and N atoms
-    let vertices = []
-    let atomIndices = []
-    for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-      residue.iRes = iRes
-      if (residue.isPolymer) {
-        for (let aTypeName of ['O', 'N']) {
-          let iAtom = residue.getIAtom(aTypeName)
-          if (iAtom !== null) {
-            atom0.iAtom = iAtom
-            vertices.push([atom0.pos.x, atom0.pos.y, atom0.pos.z])
-            atomIndices.push(iAtom)
+    let result = []
+    let cutoff = 3.5
+
+    for (let iStructure = 0; iStructure < this.structureIds.length; iStructure += 1) {
+      // Collect backbone O and N atoms
+      let vertices = []
+      let atomIndices = []
+      for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
+        residue.iRes = iRes
+        if (residue.iStructure !== iStructure) {
+          // ensure only backbone H-bonds of a single structure are calculated
+          continue
+        }
+        if (residue.isPolymer) {
+          for (let aTypeName of ['O', 'N']) {
+            let iAtom = residue.getIAtom(aTypeName)
+            if (iAtom !== null) {
+              atom0.iAtom = iAtom
+              vertices.push([atom0.pos.x, atom0.pos.y, atom0.pos.z])
+              atomIndices.push(iAtom)
+            }
           }
         }
       }
-    }
 
-    let result = []
-    let cutoff = 3.5
-    let spaceHash = new SpaceHash(vertices)
-    for (let pair of spaceHash.getClosePairs()) {
-      atom0.iAtom = atomIndices[pair[0]]
-      atom1.iAtom = atomIndices[pair[1]]
-      if ((atom0.elem === 'O') && (atom1.elem === 'N')) {
-        [atom0, atom1] = [atom1, atom0]
-      }
-      if (!((atom0.elem === 'N') && (atom1.elem === 'O'))) {
-        continue
-      }
-      let iRes0 = atom0.iRes
-      let iRes1 = atom1.iRes
-      if (iRes0 === iRes1) {
-        continue
-      }
-      if (v3.distance(atom0.pos, atom1.pos) <= cutoff) {
-        pushToListInDict(result, iRes0, iRes1)
+      let spaceHash = new SpaceHash(vertices)
+      for (let pair of spaceHash.getClosePairs()) {
+        atom0.iAtom = atomIndices[pair[0]]
+        atom1.iAtom = atomIndices[pair[1]]
+        if ((atom0.elem === 'O') && (atom1.elem === 'N')) {
+          [atom0, atom1] = [atom1, atom0]
+        }
+        if (!((atom0.elem === 'N') && (atom1.elem === 'O'))) {
+          continue
+        }
+        let iRes0 = atom0.iRes
+        let iRes1 = atom1.iRes
+        if (iRes0 === iRes1) {
+          continue
+        }
+        if (v3.distance(atom0.pos, atom1.pos) <= cutoff) {
+          pushToListInDict(result, iRes0, iRes1)
+        }
       }
     }
 
@@ -1205,7 +1226,7 @@ class View {
 
     this.order = 0
     this.text = soup.title
-    this.pdb_id = soup.pdbId
+    this.pdb_id = soup.structureId
   }
 
   getViewTranslatedTo (pos) {
