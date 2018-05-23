@@ -169,7 +169,7 @@ export default {
       let res = soup.getResidueProxy()
       let n = soup.getResidueCount()
       let bfactors = []
-      for (let i = 0; i < n; i+=1) {
+      for (let i = 0; i < n; i += 1) {
         res.load(i)
         bfactors.push(atom.load(res.iAtom).bfactor)
       }

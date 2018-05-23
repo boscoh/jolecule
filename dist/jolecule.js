@@ -82976,10 +82976,10 @@ var ZSlabWidget = function (_CanvasWidget2) {
       this.fillRect(0, yMid - 3, this.width(), 6, '#AAB');
 
       this.fillRect(xMid, yMid - 3, xBack - xMid, 6, this.zFrontColor);
-      this.fillRect(xBack - 2, 0, 4, this.height(), '#333');
+      this.fillRect(xBack - 5, 0, 4, this.height(), '#333');
 
       this.fillRect(xFront, yMid - 3, xMid - xFront, 6, this.zFrontColor);
-      this.fillRect(xFront - 2, 0, 4, this.height(), '#333');
+      this.fillRect(xFront + 1, 0, 4, this.height(), '#333');
 
       // halfway marker
       this.line(xMid, 0, xMid, this.height(), 1, '#444');
@@ -83240,15 +83240,22 @@ var GridControlWidget = function (_CanvasWidget3) {
       var dark = 'rgb(100, 100, 100)';
       var yTop = this.zToY(this.soupView.soup.grid.bMin);
       var yBottom = this.zToY(this.soupView.soup.grid.bMax);
-      this.line(xm, yTop, xm, yBottom, 1, dark);
-      this.line(5, yTop, 35, yTop, 1, dark);
 
-      var font = '12px sans-serif';
-      var textColor = '#666';
+      // middle track
+      this.fillRect(xm - 3, yTop, 6, yBottom - yTop, '#CCD');
+
+      var font = '10px sans-serif';
+      var textColor = '#333';
       var y = this.zToY(this.soupView.soup.grid.bCutoff);
+      var text = this.soupView.soup.grid.convertB(this.soupView.soup.grid.bCutoff).toFixed(2);
+
+      // middle track
+      this.fillRect(xm - 3, y, 6, yBottom - y, 'rgb(150, 90, 90)');
       this.fillRect(5, y, 30, 5, textColor);
-      var text = this.soupView.soup.grid.convertB(this.soupView.soup.grid.bCutoff);
-      this.text(text, xm, y + 15, font, textColor, 'center');
+      this.text(text, xm, y - 8, font, textColor, 'center');
+
+      // bottom marker
+      this.line(5, yBottom, 35, yBottom, 1, '#666');
     }
   }, {
     key: 'getZ',
