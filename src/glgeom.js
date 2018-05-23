@@ -378,6 +378,27 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.setColors()
   }
 
+  countVertexAndFacesOfPath (front, back) {
+    this.nVertex = 0
+    this.nFace = 0
+
+    this.paths = []
+    for (let trace of this.parameters.traces) {
+      let path = trace.detailedPath
+      this.paths.push(path)
+
+      let nPath = path.points.length
+      this.nVertex += (nPath + trace.points.length - 1) * this.nShape
+      this.nVertex += this.nShape
+      this.nVertex += this.nShape
+
+      let nTrace = trace.points.length
+      this.nFace += ((nTrace - 1) * 2 * this.nShape * (2 * trace.detail + 1))
+      this.nFace += this.nShape - 2
+      this.nFace += this.nShape - 2
+    }
+  }
+
   build () {
     for (let iPath of _.range(this.paths.length)) {
       let front = this.parameters.front
@@ -410,15 +431,6 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
         }
 
         for (let iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
-          iVertexOffsetOfPathPoint[iPathPoint] = this.vertexCount
-
-          let color
-          if (this.parameters.isIndexColor) {
-            color = trace.indexColors[iTracePoint]
-          } else {
-            color = trace.colors[iTracePoint].clone()
-          }
-
           let width = getWidth(iTracePoint)
           let height = 0.7
 
@@ -446,11 +458,36 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
             shapePoint.y = shapePoint.y * height
           }
 
+          // draw cap of ribbon
+          let isFront = (iPathPoint === 0) && (iTracePoint === iTraceStart)
+          if (isFront) {
+            let iVertexOffset = this.vertexCount
+            let nVertex = shapePoints.length
+            let iLastVertex = nVertex - 1
+            for (let shapePoint of shapePoints) {
+              let x = normal.clone().multiplyScalar(shapePoint.x)
+              let y = binormal.clone().multiplyScalar(shapePoint.y)
+              this.pushVertex(point.clone().add(x).add(y))
+            }
+            let faceNormal = threePointNormal([
+              this.getVertex(iVertexOffset),
+              this.getVertex(iVertexOffset + 1),
+              this.getVertex(iVertexOffset + 2)])
+            for (let iVertex = 0; iVertex < nVertex - 2; iVertex += 1) {
+              this.pushFaceAndNormals(
+                iVertexOffset + iVertex,
+                iVertexOffset + iVertex + 1,
+                iVertexOffset + iLastVertex,
+                faceNormal, faceNormal, faceNormal)
+            }
+          }
+
+          iVertexOffsetOfPathPoint[iPathPoint] = this.vertexCount
+
           for (let shapePoint of shapePoints) {
             let x = normal.clone().multiplyScalar(shapePoint.x)
             let y = binormal.clone().multiplyScalar(shapePoint.y)
             this.pushVertex(point.clone().add(x).add(y))
-            // this.pushVertexAndColor(point.clone().add(x).add(y), color)
           }
 
           if (iPathPoint === 0) {
@@ -508,6 +545,29 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
               lastShapeNormals[iLastShapePoint],
               shapeNormals[iShapePoint])
           }
+
+          let isBack = (iPathPoint === iPathEnd - 1) && (iTracePoint === iTraceEnd - 1)
+          if (isBack) {
+            let iVertexOffset = this.vertexCount
+            let nVertex = shapePoints.length
+            let iLastVertex = nVertex - 1
+            for (let shapePoint of shapePoints) {
+              let x = normal.clone().multiplyScalar(shapePoint.x)
+              let y = binormal.clone().multiplyScalar(shapePoint.y)
+              this.pushVertex(point.clone().add(x).add(y))
+            }
+            let faceNormal = threePointNormal([
+              this.getVertex(iVertexOffset + 2),
+              this.getVertex(iVertexOffset + 1),
+              this.getVertex(iVertexOffset)])
+            for (let iVertex = 0; iVertex < nVertex - 2; iVertex += 1) {
+              this.pushFaceAndNormals(
+                iVertexOffset + iLastVertex,
+                iVertexOffset + iVertex + 1,
+                iVertexOffset + iVertex,
+                faceNormal, faceNormal, faceNormal)
+            }
+          }
         }
       }
     }
@@ -540,7 +600,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
         }
 
         for (let iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
-          iVertexOffsetOfPathPoint[iPathPoint] = vertexCount
+          let nShapePoint = this.shapePoints.length
 
           let color
           if (this.parameters.isIndexColor) {
@@ -549,11 +609,28 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
             color = trace.colors[iTracePoint].clone()
           }
 
-          let nShapePoint = this.shapePoints.length
+          // draw front-cap
+          let isFront = (iPathPoint === 0) && (iTracePoint === iTraceStart)
+          if (isFront) {
+            for (let i = 0; i < nShapePoint; i += 1) {
+              this.setColor(vertexCount, color)
+              vertexCount += 1
+            }
+          }
+
+          iVertexOffsetOfPathPoint[iPathPoint] = vertexCount
 
           for (let i = 0; i < nShapePoint; i+=1) {
             this.setColor(vertexCount, color)
             vertexCount += 1
+          }
+
+          let isBack = (iPathPoint === iPathEnd - 1) && (iTracePoint === iTraceEnd - 1)
+          if (isBack) {
+            for (let i = 0; i < nShapePoint; i += 1) {
+              this.setColor(vertexCount, color)
+              vertexCount += 1
+            }
           }
         }
       }
@@ -639,23 +716,6 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
       this.positions[iVertex * 3],
       this.positions[iVertex * 3 + 1],
       this.positions[iVertex * 3 + 2])
-  }
-
-  countVertexAndFacesOfPath (front, back) {
-    this.nVertex = 0
-    this.nFace = 0
-
-    this.paths = []
-    for (let trace of this.parameters.traces) {
-      let path = trace.detailedPath
-      this.paths.push(path)
-
-      let nPath = path.points.length
-      this.nVertex += (nPath + trace.points.length - 1) * this.nShape
-
-      let nTrace = trace.points.length
-      this.nFace += ((nTrace - 1) * 2 * this.nShape * (2 * trace.detail + 1))
-    }
   }
 }
 

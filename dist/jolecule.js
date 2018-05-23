@@ -78337,7 +78337,7 @@ var EmbedJolecule = function () {
     value: function createStatusDiv() {
       var _this4 = this;
 
-      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="loop">')).append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
+      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="loop">')).append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-residue-selector" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
         _this4.controller.clear();
       })).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _util.linkButton)('', 'Sidechains', 'jolecule-button', function () {
         _this4.controller.showSelectedSidechains();
@@ -83032,7 +83032,7 @@ var ZSlabWidget = function (_CanvasWidget2) {
 }(CanvasWidget);
 
 var GridToggleButtonWidget = function () {
-  function GridToggleButtonWidget(display, selector, elem, y, color) {
+  function GridToggleButtonWidget(display, selector, elem, x, y, color) {
     var _this6 = this;
 
     _classCallCheck(this, GridToggleButtonWidget);
@@ -83041,7 +83041,7 @@ var GridToggleButtonWidget = function () {
     this.controller = display.controller;
     this.elem = elem;
     this.color = color;
-    this.div = (0, _jquery2.default)(selector).text(elem).addClass('jolecule-button').css('position', 'absolute').css('top', y + 'px').css('left', '40px').css('height', '15px').css('width', '20px').on('click touch', function (e) {
+    this.div = (0, _jquery2.default)(selector).text(elem).addClass('jolecule-button').css('position', 'absolute').css('top', y + 'px').css('left', x + 'px').css('height', '15px').css('width', '20px').on('click touch', function (e) {
       e.preventDefault();
       _this6.toggle();
     });
@@ -83100,9 +83100,9 @@ var GridControlWidget = function (_CanvasWidget3) {
     _this7.controller = display.controller;
     display.addObserver(_this7);
 
-    _this7.backgroundColor = '#AAA';
+    _this7.backgroundColor = '#999';
     _this7.buttonHeight = 40;
-    _this7.sliderHeight = _this7.buttonHeight * 6 - 50;
+    _this7.sliderHeight = _this7.buttonHeight * 6 - 30;
     _this7.isGrid = display.isGrid;
 
     if (!_this7.isGrid) {
@@ -83110,6 +83110,7 @@ var GridControlWidget = function (_CanvasWidget3) {
     }
     _this7.div.attr('id', 'grid-control');
     _this7.div.css('height', _this7.height());
+    _this7.div.addClass('jolecule-residue-selector');
     _this7.buttonsDiv = (0, _jquery2.default)('<div id="grid-control-buttons">');
     _this7.div.append(_this7.buttonsDiv);
     return _this7;
@@ -83165,7 +83166,7 @@ var GridControlWidget = function (_CanvasWidget3) {
       var id = 'grid-button-' + elem.toLowerCase();
       var selector = '#' + id;
       this.buttonsDiv.append((0, _jquery2.default)('<div id="' + id + '">'));
-      new GridToggleButtonWidget(this.display, selector, elem, y, colorHexStr);
+      new GridToggleButtonWidget(this.display, selector, elem, 50, y, colorHexStr);
     }
   }, {
     key: 'resize',
@@ -83196,13 +83197,13 @@ var GridControlWidget = function (_CanvasWidget3) {
     key: 'x',
     value: function x() {
       var parentDivPos = this.parentDiv.position();
-      return parentDivPos.left;
+      return parentDivPos.left + 5;
     }
   }, {
     key: 'y',
     value: function y() {
       var parentDivPos = this.parentDiv.position();
-      return parentDivPos.top + 60;
+      return parentDivPos.top + 65;
     }
   }, {
     key: 'yToZ',
@@ -83242,7 +83243,7 @@ var GridControlWidget = function (_CanvasWidget3) {
       var yBottom = this.zToY(this.soupView.soup.grid.bMax);
 
       // middle track
-      this.fillRect(xm - 3, yTop, 6, yBottom - yTop, '#CCD');
+      this.fillRect(xm - 3, yTop, 6, yBottom - yTop, '#AAB');
 
       var font = '10px sans-serif';
       var textColor = '#333';

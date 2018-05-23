@@ -166,7 +166,7 @@ class EmbedJolecule {
         )
         .append(
           $('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">')
-            .append(`<div id="zslab" class="jolecule-button" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>`)
+            .append(`<div id="zslab" class="jolecule-residue-selector" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>`)
         )
         .append(linkButton(
           '', 'Clear', 'jolecule-button',

@@ -825,7 +825,7 @@ class ZSlabWidget extends CanvasWidget {
 }
 
 class GridToggleButtonWidget {
-  constructor (display, selector, elem, y, color) {
+  constructor (display, selector, elem, x, y, color) {
     this.soupView = display.soupView
     this.controller = display.controller
     this.elem = elem
@@ -835,7 +835,7 @@ class GridToggleButtonWidget {
       .addClass('jolecule-button')
       .css('position', 'absolute')
       .css('top', y + 'px')
-      .css('left', '40px')
+      .css('left', x + 'px')
       .css('height', '15px')
       .css('width', '20px')
       .on('click touch', (e) => {
@@ -884,9 +884,9 @@ class GridControlWidget extends CanvasWidget {
     this.controller = display.controller
     display.addObserver(this)
 
-    this.backgroundColor = '#AAA'
+    this.backgroundColor = '#999'
     this.buttonHeight = 40
-    this.sliderHeight = this.buttonHeight * 6 - 50
+    this.sliderHeight = this.buttonHeight * 6 - 30
     this.isGrid = display.isGrid
 
     if (!this.isGrid) {
@@ -894,6 +894,7 @@ class GridControlWidget extends CanvasWidget {
     }
     this.div.attr('id', 'grid-control')
     this.div.css('height', this.height())
+    this.div.addClass('jolecule-residue-selector')
     this.buttonsDiv = $('<div id="grid-control-buttons">')
     this.div.append(this.buttonsDiv)
   }
@@ -924,7 +925,8 @@ class GridControlWidget extends CanvasWidget {
     let id = 'grid-button-' + elem.toLowerCase()
     let selector = `#${id}`
     this.buttonsDiv.append($(`<div id="${id}">`))
-    new GridToggleButtonWidget(this.display, selector, elem, y, colorHexStr)
+    new GridToggleButtonWidget(
+      this.display, selector, elem, 50, y, colorHexStr)
   }
 
   resize () {
@@ -951,12 +953,12 @@ class GridControlWidget extends CanvasWidget {
 
   x () {
     let parentDivPos = this.parentDiv.position()
-    return parentDivPos.left
+    return parentDivPos.left + 5
   }
 
   y () {
     let parentDivPos = this.parentDiv.position()
-    return parentDivPos.top + 60
+    return parentDivPos.top + 65
   }
 
   yToZ (y) {
@@ -993,7 +995,7 @@ class GridControlWidget extends CanvasWidget {
     let yBottom = this.zToY(this.soupView.soup.grid.bMax)
 
     // middle track
-    this.fillRect(xm - 3, yTop, 6, yBottom - yTop, '#CCD')
+    this.fillRect(xm - 3, yTop, 6, yBottom - yTop, '#AAB')
 
 
     let font = '10px sans-serif'
