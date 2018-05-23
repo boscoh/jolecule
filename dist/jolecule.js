@@ -81140,17 +81140,60 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
   }
 
   _createClass(BufferRibbonGeometry, [{
-    key: 'build',
-    value: function build() {
-      var _this3 = this;
+    key: 'countVertexAndFacesOfPath',
+    value: function countVertexAndFacesOfPath(front, back) {
+      this.nVertex = 0;
+      this.nFace = 0;
 
+      this.paths = [];
       var _iteratorNormalCompletion = true;
       var _didIteratorError = false;
       var _iteratorError = undefined;
 
       try {
+        for (var _iterator = this.parameters.traces[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var trace = _step.value;
+
+          var path = trace.detailedPath;
+          this.paths.push(path);
+
+          var nPath = path.points.length;
+          this.nVertex += (nPath + trace.points.length - 1) * this.nShape;
+          this.nVertex += this.nShape;
+          this.nVertex += this.nShape;
+
+          var nTrace = trace.points.length;
+          this.nFace += (nTrace - 1) * 2 * this.nShape * (2 * trace.detail + 1);
+          this.nFace += this.nShape - 2;
+          this.nFace += this.nShape - 2;
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+    }
+  }, {
+    key: 'build',
+    value: function build() {
+      var _this3 = this;
+
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
         var _loop = function _loop() {
-          var iPath = _step.value;
+          var iPath = _step2.value;
 
           var front = _this3.parameters.front;
           var back = _this3.parameters.back;
@@ -81182,15 +81225,6 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
             }
 
             var _loop2 = function _loop2(iPathPoint) {
-              iVertexOffsetOfPathPoint[iPathPoint] = _this3.vertexCount;
-
-              var color = void 0;
-              if (_this3.parameters.isIndexColor) {
-                color = trace.indexColors[iTracePoint];
-              } else {
-                color = trace.colors[iTracePoint].clone();
-              }
-
               var width = getWidth(iTracePoint);
               var height = 0.7;
 
@@ -81211,45 +81245,19 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
               var binormal = path.binormals[iPathPoint];
 
               var shapePoints = _lodash2.default.cloneDeep(_this3.shapePoints);
-              var _iteratorNormalCompletion2 = true;
-              var _didIteratorError2 = false;
-              var _iteratorError2 = undefined;
-
-              try {
-                for (var _iterator2 = shapePoints[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                  var shapePoint = _step2.value;
-
-                  shapePoint.x = shapePoint.x * width;
-                  shapePoint.y = shapePoint.y * height;
-                }
-              } catch (err) {
-                _didIteratorError2 = true;
-                _iteratorError2 = err;
-              } finally {
-                try {
-                  if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                    _iterator2.return();
-                  }
-                } finally {
-                  if (_didIteratorError2) {
-                    throw _iteratorError2;
-                  }
-                }
-              }
-
               var _iteratorNormalCompletion3 = true;
               var _didIteratorError3 = false;
               var _iteratorError3 = undefined;
 
               try {
                 for (var _iterator3 = shapePoints[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                  var _shapePoint = _step3.value;
+                  var _shapePoint2 = _step3.value;
 
-                  var x = normal.clone().multiplyScalar(_shapePoint.x);
-                  var y = binormal.clone().multiplyScalar(_shapePoint.y);
-                  _this3.pushVertex(point.clone().add(x).add(y));
-                  // this.pushVertexAndColor(point.clone().add(x).add(y), color)
+                  _shapePoint2.x = _shapePoint2.x * width;
+                  _shapePoint2.y = _shapePoint2.y * height;
                 }
+
+                // draw cap of ribbon
               } catch (err) {
                 _didIteratorError3 = true;
                 _iteratorError3 = err;
@@ -81261,6 +81269,73 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
                 } finally {
                   if (_didIteratorError3) {
                     throw _iteratorError3;
+                  }
+                }
+              }
+
+              var isFront = iPathPoint === 0 && iTracePoint === iTraceStart;
+              if (isFront) {
+                var _iVertexOffset = _this3.vertexCount;
+                var nVertex = shapePoints.length;
+                var iLastVertex = nVertex - 1;
+                var _iteratorNormalCompletion4 = true;
+                var _didIteratorError4 = false;
+                var _iteratorError4 = undefined;
+
+                try {
+                  for (var _iterator4 = shapePoints[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                    var shapePoint = _step4.value;
+
+                    var x = normal.clone().multiplyScalar(shapePoint.x);
+                    var y = binormal.clone().multiplyScalar(shapePoint.y);
+                    _this3.pushVertex(point.clone().add(x).add(y));
+                  }
+                } catch (err) {
+                  _didIteratorError4 = true;
+                  _iteratorError4 = err;
+                } finally {
+                  try {
+                    if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                      _iterator4.return();
+                    }
+                  } finally {
+                    if (_didIteratorError4) {
+                      throw _iteratorError4;
+                    }
+                  }
+                }
+
+                var faceNormal = threePointNormal([_this3.getVertex(_iVertexOffset), _this3.getVertex(_iVertexOffset + 1), _this3.getVertex(_iVertexOffset + 2)]);
+                for (var iVertex = 0; iVertex < nVertex - 2; iVertex += 1) {
+                  _this3.pushFaceAndNormals(_iVertexOffset + iVertex, _iVertexOffset + iVertex + 1, _iVertexOffset + iLastVertex, faceNormal, faceNormal, faceNormal);
+                }
+              }
+
+              iVertexOffsetOfPathPoint[iPathPoint] = _this3.vertexCount;
+
+              var _iteratorNormalCompletion5 = true;
+              var _didIteratorError5 = false;
+              var _iteratorError5 = undefined;
+
+              try {
+                for (var _iterator5 = shapePoints[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                  var _shapePoint3 = _step5.value;
+
+                  var _x3 = normal.clone().multiplyScalar(_shapePoint3.x);
+                  var _y2 = binormal.clone().multiplyScalar(_shapePoint3.y);
+                  _this3.pushVertex(point.clone().add(_x3).add(_y2));
+                }
+              } catch (err) {
+                _didIteratorError5 = true;
+                _iteratorError5 = err;
+              } finally {
+                try {
+                  if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                    _iterator5.return();
+                  }
+                } finally {
+                  if (_didIteratorError5) {
+                    throw _iteratorError5;
                   }
                 }
               }
@@ -81313,6 +81388,44 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
                 _this3.pushFaceAndNormals(iVertex00, iVertex10, iVertex11, lastShapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
                 _this3.pushFaceAndNormals(iVertex01, iVertex00, iVertex11, lastShapeNormals[iShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
               }
+
+              var isBack = iPathPoint === iPathEnd - 1 && iTracePoint === iTraceEnd - 1;
+              if (isBack) {
+                var _iVertexOffset2 = _this3.vertexCount;
+                var _nVertex = shapePoints.length;
+                var _iLastVertex = _nVertex - 1;
+                var _iteratorNormalCompletion6 = true;
+                var _didIteratorError6 = false;
+                var _iteratorError6 = undefined;
+
+                try {
+                  for (var _iterator6 = shapePoints[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                    var _shapePoint = _step6.value;
+
+                    var _x2 = normal.clone().multiplyScalar(_shapePoint.x);
+                    var _y = binormal.clone().multiplyScalar(_shapePoint.y);
+                    _this3.pushVertex(point.clone().add(_x2).add(_y));
+                  }
+                } catch (err) {
+                  _didIteratorError6 = true;
+                  _iteratorError6 = err;
+                } finally {
+                  try {
+                    if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                      _iterator6.return();
+                    }
+                  } finally {
+                    if (_didIteratorError6) {
+                      throw _iteratorError6;
+                    }
+                  }
+                }
+
+                var _faceNormal = threePointNormal([_this3.getVertex(_iVertexOffset2 + 2), _this3.getVertex(_iVertexOffset2 + 1), _this3.getVertex(_iVertexOffset2)]);
+                for (var _iVertex = 0; _iVertex < _nVertex - 2; _iVertex += 1) {
+                  _this3.pushFaceAndNormals(_iVertexOffset2 + _iLastVertex, _iVertexOffset2 + _iVertex + 1, _iVertexOffset2 + _iVertex, _faceNormal, _faceNormal, _faceNormal);
+                }
+              }
             };
 
             for (var iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
@@ -81323,20 +81436,20 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
           }
         };
 
-        for (var _iterator = _lodash2.default.range(this.paths.length)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        for (var _iterator2 = _lodash2.default.range(this.paths.length)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
           _loop();
         }
       } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
           }
         } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
+          if (_didIteratorError2) {
+            throw _iteratorError2;
           }
         }
       }
@@ -81345,13 +81458,13 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
     key: 'setColors',
     value: function setColors() {
       var vertexCount = 0;
-      var _iteratorNormalCompletion4 = true;
-      var _didIteratorError4 = false;
-      var _iteratorError4 = undefined;
+      var _iteratorNormalCompletion7 = true;
+      var _didIteratorError7 = false;
+      var _iteratorError7 = undefined;
 
       try {
-        for (var _iterator4 = _lodash2.default.range(this.paths.length)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-          var iPath = _step4.value;
+        for (var _iterator7 = _lodash2.default.range(this.paths.length)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          var iPath = _step7.value;
 
           var _path = this.paths[iPath];
           var _trace = this.parameters.traces[iPath];
@@ -81377,35 +81490,52 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
             }
 
             for (var iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
-              _iVertexOffsetOfPathPoint[iPathPoint] = vertexCount;
-
-              var _color = void 0;
-              if (this.parameters.isIndexColor) {
-                _color = _trace.indexColors[iTracePoint];
-              } else {
-                _color = _trace.colors[iTracePoint].clone();
-              }
-
               var nShapePoint = this.shapePoints.length;
 
-              for (var i = 0; i < nShapePoint; i += 1) {
-                this.setColor(vertexCount, _color);
+              var color = void 0;
+              if (this.parameters.isIndexColor) {
+                color = _trace.indexColors[iTracePoint];
+              } else {
+                color = _trace.colors[iTracePoint].clone();
+              }
+
+              // draw front-cap
+              var isFront = iPathPoint === 0 && iTracePoint === _iTraceStart;
+              if (isFront) {
+                for (var i = 0; i < nShapePoint; i += 1) {
+                  this.setColor(vertexCount, color);
+                  vertexCount += 1;
+                }
+              }
+
+              _iVertexOffsetOfPathPoint[iPathPoint] = vertexCount;
+
+              for (var _i5 = 0; _i5 < nShapePoint; _i5 += 1) {
+                this.setColor(vertexCount, color);
                 vertexCount += 1;
+              }
+
+              var isBack = iPathPoint === iPathEnd - 1 && iTracePoint === _iTraceEnd - 1;
+              if (isBack) {
+                for (var _i6 = 0; _i6 < nShapePoint; _i6 += 1) {
+                  this.setColor(vertexCount, color);
+                  vertexCount += 1;
+                }
               }
             }
           }
         }
       } catch (err) {
-        _didIteratorError4 = true;
-        _iteratorError4 = err;
+        _didIteratorError7 = true;
+        _iteratorError7 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-            _iterator4.return();
+          if (!_iteratorNormalCompletion7 && _iterator7.return) {
+            _iterator7.return();
           }
         } finally {
-          if (_didIteratorError4) {
-            throw _iteratorError4;
+          if (_didIteratorError7) {
+            throw _iteratorError7;
           }
         }
       }
@@ -81495,45 +81625,6 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
     value: function getVertex(iVertex) {
       return _v2.default.create(this.positions[iVertex * 3], this.positions[iVertex * 3 + 1], this.positions[iVertex * 3 + 2]);
     }
-  }, {
-    key: 'countVertexAndFacesOfPath',
-    value: function countVertexAndFacesOfPath(front, back) {
-      this.nVertex = 0;
-      this.nFace = 0;
-
-      this.paths = [];
-      var _iteratorNormalCompletion5 = true;
-      var _didIteratorError5 = false;
-      var _iteratorError5 = undefined;
-
-      try {
-        for (var _iterator5 = this.parameters.traces[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-          var _trace2 = _step5.value;
-
-          var _path2 = _trace2.detailedPath;
-          this.paths.push(_path2);
-
-          var nPath = _path2.points.length;
-          this.nVertex += (nPath + _trace2.points.length - 1) * this.nShape;
-
-          var nTrace = _trace2.points.length;
-          this.nFace += (nTrace - 1) * 2 * this.nShape * (2 * _trace2.detail + 1);
-        }
-      } catch (err) {
-        _didIteratorError5 = true;
-        _iteratorError5 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion5 && _iterator5.return) {
-            _iterator5.return();
-          }
-        } finally {
-          if (_didIteratorError5) {
-            throw _iteratorError5;
-          }
-        }
-      }
-    }
   }]);
 
   return BufferRibbonGeometry;
@@ -81574,13 +81665,13 @@ var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
       this.nVertex = 0;
       this.nFace = 0;
 
-      var _iteratorNormalCompletion6 = true;
-      var _didIteratorError6 = false;
-      var _iteratorError6 = undefined;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
 
       try {
-        for (var _iterator6 = this.parameters.verticesList[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-          var vertices = _step6.value;
+        for (var _iterator8 = this.parameters.verticesList[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var vertices = _step8.value;
 
           var nVertex = vertices.length;
           // top layer
@@ -81591,16 +81682,16 @@ var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
           this.nFace += 2 * nVertex;
         }
       } catch (err) {
-        _didIteratorError6 = true;
-        _iteratorError6 = err;
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion6 && _iterator6.return) {
-            _iterator6.return();
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
           }
         } finally {
-          if (_didIteratorError6) {
-            throw _iteratorError6;
+          if (_didIteratorError8) {
+            throw _iteratorError8;
           }
         }
       }
@@ -81610,58 +81701,58 @@ var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
   }, {
     key: 'setPath',
     value: function setPath() {
-      var _iteratorNormalCompletion7 = true;
-      var _didIteratorError7 = false;
-      var _iteratorError7 = undefined;
+      var _iteratorNormalCompletion9 = true;
+      var _didIteratorError9 = false;
+      var _iteratorError9 = undefined;
 
       try {
-        for (var _iterator7 = this.parameters.verticesList.entries()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-          var _step7$value = _slicedToArray(_step7.value, 2),
-              i = _step7$value[0],
-              vertices = _step7$value[1];
+        for (var _iterator9 = this.parameters.verticesList.entries()[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+          var _step9$value = _slicedToArray(_step9.value, 2),
+              i = _step9$value[0],
+              vertices = _step9$value[1];
 
           var _normal = threePointNormal(vertices.slice(0, 3));
           var displacement = _normal.clone().multiplyScalar(this.parameters.thickness / 2);
-          var _color2 = this.parameters.colorList[i];
+          var color = this.parameters.colorList[i];
 
           var nVertex = vertices.length;
           var iLast = nVertex - 1;
 
           var topVertices = [];
-          for (var _i5 = 0; _i5 < vertices.length; _i5 += 1) {
-            topVertices.push(vertices[_i5].clone().add(displacement));
+          for (var _i7 = 0; _i7 < vertices.length; _i7 += 1) {
+            topVertices.push(vertices[_i7].clone().add(displacement));
           }
 
           var bottomVertices = [];
-          for (var _i6 = 0; _i6 < vertices.length; _i6 += 1) {
-            bottomVertices.push(vertices[_i6].clone().sub(displacement));
+          for (var _i8 = 0; _i8 < vertices.length; _i8 += 1) {
+            bottomVertices.push(vertices[_i8].clone().sub(displacement));
           }
 
-          for (var _i7 = 0; _i7 < nVertex - 2; _i7 += 1) {
-            this.pushVerticesOfFace(topVertices[_i7], topVertices[_i7 + 1], topVertices[iLast], _color2);
+          for (var _i9 = 0; _i9 < nVertex - 2; _i9 += 1) {
+            this.pushVerticesOfFace(topVertices[_i9], topVertices[_i9 + 1], topVertices[iLast], color);
           }
 
-          for (var _i8 = 0; _i8 < nVertex - 2; _i8 += 1) {
-            this.pushVerticesOfFace(bottomVertices[_i8], bottomVertices[iLast], bottomVertices[_i8 + 1], _color2);
+          for (var _i10 = 0; _i10 < nVertex - 2; _i10 += 1) {
+            this.pushVerticesOfFace(bottomVertices[_i10], bottomVertices[iLast], bottomVertices[_i10 + 1], color);
           }
 
-          for (var _i9 = 0; _i9 < nVertex; _i9 += 1) {
-            var j = _i9 === nVertex - 1 ? 0 : _i9 + 1;
-            this.pushVerticesOfFace(topVertices[_i9], bottomVertices[_i9], bottomVertices[j], _color2);
-            this.pushVerticesOfFace(topVertices[_i9], bottomVertices[j], topVertices[j], _color2);
+          for (var _i11 = 0; _i11 < nVertex; _i11 += 1) {
+            var j = _i11 === nVertex - 1 ? 0 : _i11 + 1;
+            this.pushVerticesOfFace(topVertices[_i11], bottomVertices[_i11], bottomVertices[j], color);
+            this.pushVerticesOfFace(topVertices[_i11], bottomVertices[j], topVertices[j], color);
           }
         }
       } catch (err) {
-        _didIteratorError7 = true;
-        _iteratorError7 = err;
+        _didIteratorError9 = true;
+        _iteratorError9 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion7 && _iterator7.return) {
-            _iterator7.return();
+          if (!_iteratorNormalCompletion9 && _iterator9.return) {
+            _iterator9.return();
           }
         } finally {
-          if (_didIteratorError7) {
-            throw _iteratorError7;
+          if (_didIteratorError9) {
+            throw _iteratorError9;
           }
         }
       }
@@ -90324,7 +90415,7 @@ var WebglWidget = function () {
     value: function setMesssage(message) {
       console.log('Display.setProcessingMessage:', message);
       this.messageDiv.html(message).show();
-      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 100, 90);
+      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 90);
     }
   }, {
     key: 'asyncSetMesssage',
@@ -90978,14 +91069,7 @@ var Display = function (_WebglWidget) {
         var matrix = glgeom.getCylinderMatrix(p1, p2, 0.2);
 
         displayGeom.applyMatrixToCopy(matrix, iCopy);
-
-        var color = void 0;
-        if (residue.selected) {
-          color = residue.color.clone().offsetHSL(0, 0, 0.3);
-        } else {
-          color = residue.color;
-        }
-        displayGeom.applyColorToCopy(color, iCopy);
+        displayGeom.applyColorToCopy(residue.color, iCopy);
       }
 
       var displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial);

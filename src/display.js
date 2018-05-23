@@ -249,7 +249,7 @@ class WebglWidget {
   setMesssage (message) {
     console.log('Display.setProcessingMessage:', message)
     this.messageDiv.html(message).show()
-    util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 100, 90)
+    util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 90)
   };
 
   async asyncSetMesssage (message) {
@@ -694,14 +694,7 @@ class Display extends WebglWidget {
       let matrix = glgeom.getCylinderMatrix(p1, p2, 0.2)
 
       displayGeom.applyMatrixToCopy(matrix, iCopy)
-
-      let color
-      if (residue.selected) {
-        color = residue.color.clone().offsetHSL(0, 0, 0.3)
-      } else {
-        color = residue.color
-      }
-      displayGeom.applyColorToCopy(color, iCopy)
+      displayGeom.applyColorToCopy(residue.color, iCopy)
     }
 
     let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
@@ -1303,10 +1296,28 @@ class Display extends WebglWidget {
       let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
       let res = this.soup.getResidueProxy(iRes)
       let val = !res.selected
-      if (!event.metaKey) {
+      if (!event.metaKey && !event.shiftKey) {
         this.controller.clearSelectedResidues()
       }
-      this.controller.selectResidue(iRes, val)
+      if (event.shiftKey) {
+        if (this.iResLastSelected !== null) {
+          let lastRes = this.soup.getResidueProxy(this.iResLastSelected)
+          if (res.iStructure === lastRes.iStructure) {
+            let iFirstRes = Math.min(this.iResLastSelected, iRes)
+            let iLastRes = Math.max(this.iResLastSelected, iRes)
+            for (let i = iFirstRes; i < iLastRes + 1; i += 1) {
+              this.controller.selectResidue(i, true)
+            }
+          }
+        }
+      } else {
+        this.controller.selectResidue(iRes, val)
+      }
+      if (val) {
+        this.iResLastSelected = iRes
+      } else {
+        this.iResLastSelected = null
+      }
       this.iDownAtom = null
     }
 
@@ -1331,6 +1342,13 @@ class Display extends WebglWidget {
       // for Firefox
       wheel = -event.detail / 12
     }
+
+    // converted from pinch-zoom on mac
+    if (event.ctrlKey) {
+      wheel /= 10
+      wheel *= -1
+    }
+
     let zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1)
 
     this.adjustCamera(0, 0, 0, zoom)
@@ -1353,6 +1371,7 @@ class Display extends WebglWidget {
 
     this.lastPinchRotation = event.rotation * 2
     this.lastScale = event.scale * event.scale
+    console.log('Display.gesturechange')
   }
 
   gestureend (event) {
