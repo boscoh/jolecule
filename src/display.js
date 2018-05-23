@@ -877,14 +877,13 @@ class Display extends WebglWidget {
   buildCrossHairs () {
     let radius = 1.2
     let segments = 60
-    let material = new THREE.LineDashedMaterial(
-      {color: 0xFF7777, linewidth: 2})
+    let material = new THREE.LineBasicMaterial({color: 0xFF3333})
     let geometry = new THREE.CircleGeometry(radius, segments)
 
     // Remove center vertex
     geometry.vertices.shift()
 
-    this.crossHairs = new THREE.Line(geometry, material)
+    this.crossHairs = new THREE.LineLoop(geometry, material)
     this.crossHairs.dontDelete = true
     this.displayScene.add(this.crossHairs)
   }
