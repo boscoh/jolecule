@@ -998,16 +998,23 @@ class GridControlWidget extends CanvasWidget {
 
     let font = '10px sans-serif'
     let textColor = '#333'
+
     let y = this.zToY(this.soupView.soup.grid.bCutoff)
     let text = this.soupView.soup.grid.convertB(this.soupView.soup.grid.bCutoff).toFixed(2)
 
-    // middle track
+    // fill to bottom
     this.fillRect(xm - 3, y, 6, yBottom - y, 'rgb(150, 90, 90)')
+
+    // slider
     this.fillRect(5, y, 30, 5, textColor)
     this.text(text, xm, y - 8, font, textColor, 'center')
 
     // bottom marker
     this.line(5, yBottom, 35, yBottom, 1, '#666')
+
+    text = this.soupView.soup.grid.convertB(this.soupView.soup.grid.bMax).toFixed(2)
+    this.text(text, xm, yBottom + 6, font, textColor, 'center')
+
   }
 
   getZ (event) {

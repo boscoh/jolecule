@@ -83246,16 +83246,22 @@ var GridControlWidget = function (_CanvasWidget3) {
 
       var font = '10px sans-serif';
       var textColor = '#333';
+
       var y = this.zToY(this.soupView.soup.grid.bCutoff);
       var text = this.soupView.soup.grid.convertB(this.soupView.soup.grid.bCutoff).toFixed(2);
 
-      // middle track
+      // fill to bottom
       this.fillRect(xm - 3, y, 6, yBottom - y, 'rgb(150, 90, 90)');
+
+      // slider
       this.fillRect(5, y, 30, 5, textColor);
       this.text(text, xm, y - 8, font, textColor, 'center');
 
       // bottom marker
       this.line(5, yBottom, 35, yBottom, 1, '#666');
+
+      text = this.soupView.soup.grid.convertB(this.soupView.soup.grid.bMax).toFixed(2);
+      this.text(text, xm, yBottom + 6, font, textColor, 'center');
     }
   }, {
     key: 'getZ',
