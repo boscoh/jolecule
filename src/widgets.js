@@ -768,11 +768,20 @@ class ZSlabWidget extends CanvasWidget {
     let xMid = this.zToX(0)
     let yMid = this.height() / 2
 
-    this.fillRect(0, 0, this.width(), this.height(), '#AAB')
-    this.strokeRect(0, 0, this.width(), this.height(), this.backColor)
-    this.fillRect(xMid, 1, xBack - xMid, this.height() - 2, this.zBackColor)
-    this.fillRect(xFront, 1, xMid - xFront, this.height() - 2, this.zFrontColor)
-    this.line(xMid, 1, xMid, this.height() - 2, 1, '#AAB')
+    // background
+    this.fillRect(0, 0, this.width(), this.height(), '#999')
+
+    // middle track
+    this.fillRect(0, yMid - 3, this.width(), 6, '#AAB')
+
+    this.fillRect(xMid, yMid - 3, xBack - xMid, 6, this.zFrontColor)
+    this.fillRect(xBack - 2, 0, 4, this.height(), '#333')
+
+    this.fillRect(xFront, yMid - 3, xMid - xFront, 6, this.zFrontColor)
+    this.fillRect(xFront - 2, 0, 4, this.height(), '#333')
+
+    // halfway marker
+    this.line(xMid, 0, xMid, this.height(), 1, '#444')
   }
 
   getZ (event) {
@@ -1120,7 +1129,6 @@ class ToggleButtonWidget {
     }
   }
 }
-
 
 class TogglePlayButtonWidget {
   constructor (display, selector) {
