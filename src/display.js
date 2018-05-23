@@ -211,7 +211,7 @@ class WebglWidget {
     this.camera.far = far
     this.camera.updateProjectionMatrix()
 
-    this.displayScene.fog.near = near
+    this.displayScene.fog.near = this.cameraParams.zoom
     this.displayScene.fog.far = far
   }
 
