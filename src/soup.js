@@ -120,6 +120,10 @@ class AtomProxy {
     return this.soup.atomStore.iRes[this.iAtom]
   }
 
+  set iRes (iRes) {
+    this.soup.atomStore.iRes[this.iAtom] = iRes
+  }
+
   get resType () {
     let iResType = this.soup.residueStore.iResType[this.iRes]
     return this.soup.resTypeTable[iResType]
@@ -425,10 +429,13 @@ class Soup {
     this.structureIds = []
     this.structureId = null
     this.iStructure = -1
+
     this.chains = []
+
     this.atomStore = new Store(atomStoreFields)
     this.residueStore = new Store(residueStoreFields)
     this.bondStore = new Store(bondStoreFields)
+
     this.resIds = []
     this.residueNormal = {}
 

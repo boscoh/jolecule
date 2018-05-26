@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 136);
+/******/ 	return __webpack_require__(__webpack_require__.s = 137);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -18190,7 +18190,7 @@ module.exports = {
   }
 }.call(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(68), __webpack_require__(340)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(68), __webpack_require__(341)(module)))
 
 /***/ }),
 /* 30 */
@@ -76212,7 +76212,7 @@ module.exports = __webpack_require__(21).getIteratorMethod = function (it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 9.4.2.3 ArraySpeciesCreate(originalArray, length)
-var speciesConstructor = __webpack_require__(229);
+var speciesConstructor = __webpack_require__(230);
 
 module.exports = function (original, length) {
   return new (speciesConstructor(original))(length);
@@ -78041,7 +78041,7 @@ var _display = __webpack_require__(344);
 
 var _util = __webpack_require__(48);
 
-var _widgets = __webpack_require__(135);
+var _widgets = __webpack_require__(136);
 
 var _widgets2 = _interopRequireDefault(_widgets);
 
@@ -78399,13 +78399,13 @@ var _glgeom = __webpack_require__(134);
 
 var glgeom = _interopRequireWildcard(_glgeom);
 
-var _pairs = __webpack_require__(341);
+var _pairs = __webpack_require__(342);
 
-var _store = __webpack_require__(342);
+var _store = __webpack_require__(343);
 
 var _store2 = _interopRequireDefault(_store);
 
-var _bitarray = __webpack_require__(343);
+var _bitarray = __webpack_require__(135);
 
 var _bitarray2 = _interopRequireDefault(_bitarray);
 
@@ -78561,6 +78561,9 @@ var AtomProxy = function () {
     key: 'iRes',
     get: function get() {
       return this.soup.atomStore.iRes[this.iAtom];
+    },
+    set: function set(iRes) {
+      this.soup.atomStore.iRes[this.iAtom] = iRes;
     }
   }, {
     key: 'resType',
@@ -78946,10 +78949,13 @@ var Soup = function () {
     this.structureIds = [];
     this.structureId = null;
     this.iStructure = -1;
+
     this.chains = [];
+
     this.atomStore = new _store2.default(atomStoreFields);
     this.residueStore = new _store2.default(residueStoreFields);
     this.bondStore = new _store2.default(bondStoreFields);
+
     this.resIds = [];
     this.residueNormal = {};
 
@@ -82133,6 +82139,611 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * @file Bit array
+ * @author Alexander Rose <alexander.rose@weirdbyte.de>
+ * @author Paul Pillot <paulpillot@gmail.com>
+ * @private
+ */
+
+/**
+ * Compute the Hamming weight of a 32-bit unsigned integer
+ * @param  {Integer} v - a 32-bit unsigned integer
+ * @return {Integer} the Hamming weight
+ */
+function hammingWeight(v) {
+  // works with signed or unsigned shifts
+  v -= v >>> 1 & 0x55555555;
+  v = (v & 0x33333333) + (v >>> 2 & 0x33333333);
+  return (v + (v >>> 4) & 0xF0F0F0F) * 0x1010101 >>> 24;
+}
+
+/**
+ * Bit array
+ *
+ * Based heavily on https://github.com/lemire/FastBitSet.js
+ * which is licensed under the Apache License, Version 2.0.
+ */
+
+var BitArray = function () {
+  /**
+   * @param  {Integer} length - array length
+   * @param  {Boolean} [setAll] - initialize with true
+   */
+  function BitArray(length, setAll) {
+    _classCallCheck(this, BitArray);
+
+    this.length = length;
+    this._words = new Uint32Array(length + 32 >>> 5);
+    if (setAll === true) {
+      this.setAll();
+    }
+  }
+
+  /**
+   * Get value at index
+   * @param  {Integer} index - the index
+   * @return {Boolean} value
+   */
+
+
+  _createClass(BitArray, [{
+    key: 'get',
+    value: function get(index) {
+      return (this._words[index >>> 5] & 1 << index) !== 0;
+    }
+
+    /**
+     * Set value at index to true
+     * @param  {Integer} index - the index
+     * @return {undefined}
+     */
+
+  }, {
+    key: 'set',
+    value: function set(index) {
+      this._words[index >>> 5] |= 1 << index;
+    }
+
+    /**
+     * Set value at index to false
+     * @param  {Integer} index - the index
+     * @return {undefined}
+     */
+
+  }, {
+    key: 'clear',
+    value: function clear(index) {
+      this._words[index >>> 5] &= ~(1 << index);
+    }
+
+    /**
+     * Flip value at index
+     * @param  {Integer} index - the index
+     * @return {undefined}
+     */
+
+  }, {
+    key: 'flip',
+    value: function flip(index) {
+      this._words[index >>> 5] ^= 1 << index;
+    }
+  }, {
+    key: '_assignRange',
+    value: function _assignRange(start, end, value) {
+      var words = this._words;
+      var wordValue = value === true ? 0xFFFFFFFF : 0;
+      var wordStart = start >>> 5;
+      var wordEnd = end >>> 5;
+      // set complete words when applicable
+      for (var k = wordStart; k < wordEnd; ++k) {
+        words[k] = wordValue;
+      }
+      // set parts of the range not spanning complete words
+      var startWord = wordStart << 5;
+      var endWord = wordEnd << 5;
+      if (value === true) {
+        if (end - start < 32) {
+          for (var i = start, n = end + 1; i < n; ++i) {
+            words[i >>> 5] |= 1 << i;
+          }
+        } else {
+          for (var _i = start, _n = startWord; _i < _n; ++_i) {
+            words[_i >>> 5] |= 1 << _i;
+          }
+          for (var _i2 = endWord, _n2 = end + 1; _i2 < _n2; ++_i2) {
+            words[_i2 >>> 5] |= 1 << _i2;
+          }
+        }
+      } else {
+        if (end - start < 32) {
+          for (var _i3 = start, _n3 = end + 1; _i3 < _n3; ++_i3) {
+            words[_i3 >>> 5] &= ~(1 << _i3);
+          }
+        } else {
+          for (var _i4 = start, _n4 = startWord; _i4 < _n4; ++_i4) {
+            words[_i4 >>> 5] &= ~(1 << _i4);
+          }
+          for (var _i5 = endWord, _n5 = end + 1; _i5 < _n5; ++_i5) {
+            words[_i5 >>> 5] &= ~(1 << _i5);
+          }
+        }
+      }
+      return this;
+    }
+
+    /**
+     * Set bits of the given range
+     * @param {Integer} start - start index
+     * @param {Integer} end - end index
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'setRange',
+    value: function setRange(start, end) {
+      return this._assignRange(start, end, true);
+    }
+
+    /**
+     * Clear bits of the given range
+     * @param {Integer} start - start index
+     * @param {Integer} end - end index
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'clearRange',
+    value: function clearRange(start, end) {
+      return this._assignRange(start, end, false);
+    }
+
+    /**
+     * Set bits at all given indices
+     * @param {...Integer} arguments - indices
+     * @return {Boolean} this object
+     */
+
+  }, {
+    key: 'setBits',
+    value: function setBits() {
+      var words = this._words;
+      var n = arguments.length;
+      for (var i = 0; i < n; ++i) {
+        var index = arguments[i];
+        words[index >>> 5] |= 1 << index;
+      }
+      return this;
+    }
+
+    /**
+     * Clear bits at all given indices
+     * @param {...Integer} arguments - indices
+     * @return {Boolean} this object
+     */
+
+  }, {
+    key: 'clearBits',
+    value: function clearBits() {
+      var words = this._words;
+      var n = arguments.length;
+      for (var i = 0; i < n; ++i) {
+        var index = arguments[i];
+        words[index >>> 5] &= ~(1 << index);
+      }
+      return this;
+    }
+
+    /**
+     * Set all bits of the array
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'setAll',
+    value: function setAll() {
+      return this._assignRange(0, this.length - 1, true);
+    }
+
+    /**
+     * Clear all bits of the array
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'clearAll',
+    value: function clearAll() {
+      return this._assignRange(0, this.length - 1, false);
+    }
+
+    /**
+     * Flip all the values in the array
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'flipAll',
+    value: function flipAll() {
+      var count = this._words.length;
+      var words = this._words;
+      var bs = 32 - this.length % 32;
+      for (var k = 0; k < count - 1; ++k) {
+        words[k] = ~words[k];
+      }
+      words[count - 1] = ~(words[count - 1] << bs) >>> bs;
+      return this;
+    }
+  }, {
+    key: '_isRangeValue',
+    value: function _isRangeValue(start, end, value) {
+      var words = this._words;
+      var wordValue = value === true ? 0xFFFFFFFF : 0;
+      var wordStart = start >>> 5;
+      var wordEnd = end >>> 5;
+      // set complete words when applicable
+      for (var k = wordStart; k < wordEnd; ++k) {
+        if (words[k] !== wordValue) return false;
+      }
+      // set parts of the range not spanning complete words
+      if (end - start < 32) {
+        for (var i = start, n = end + 1; i < n; ++i) {
+          if (!!(words[i >>> 5] & 1 << i) !== value) return false;
+        }
+      } else {
+        var startWord = wordStart << 5;
+        var endWord = wordEnd << 5;
+        for (var _i6 = start, _n6 = startWord << 5; _i6 < _n6; ++_i6) {
+          if (!!(words[_i6 >>> 5] & 1 << _i6) !== value) return false;
+        }
+        for (var _i7 = endWord, _n7 = end + 1; _i7 < _n7; ++_i7) {
+          if (!!(words[_i7 >>> 5] & 1 << _i7) !== value) return false;
+        }
+      }
+      return true;
+    }
+
+    /**
+     * Test if bits in given range are set
+     * @param {Integer} start - start index
+     * @param {Integer} end - end index
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'isRangeSet',
+    value: function isRangeSet(start, end) {
+      return this._isRangeValue(start, end, true);
+    }
+
+    /**
+     * Test if bits in given range are clear
+     * @param {Integer} start - start index
+     * @param {Integer} end - end index
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'isRangeClear',
+    value: function isRangeClear(start, end) {
+      return this._isRangeValue(start, end, false);
+    }
+
+    /**
+     * Test if all bits in the array are set
+     * @return {Boolean} test result
+     */
+
+  }, {
+    key: 'isAllSet',
+    value: function isAllSet() {
+      return this._isRangeValue(0, this.length - 1, true);
+    }
+
+    /**
+     * Test if all bits in the array are clear
+     * @return {Boolean} test result
+     */
+
+  }, {
+    key: 'isAllClear',
+    value: function isAllClear() {
+      return this._isRangeValue(0, this.length - 1, false);
+    }
+
+    /**
+     * Test if bits at all given indices are set
+     * @param {...Integer} arguments - indices
+     * @return {Boolean} test result
+     */
+
+  }, {
+    key: 'isSet',
+    value: function isSet() {
+      var words = this._words;
+      var n = arguments.length;
+      for (var i = 0; i < n; ++i) {
+        var index = arguments[i];
+        if ((words[index >>> 5] & 1 << index) === 0) return false;
+      }
+      return true;
+    }
+
+    /**
+     * Test if bits at all given indices are clear
+     * @param {...Integer} arguments - indices
+     * @return {Boolean} test result
+     */
+
+  }, {
+    key: 'isClear',
+    value: function isClear() {
+      var words = this._words;
+      var n = arguments.length;
+      for (var i = 0; i < n; ++i) {
+        var index = arguments[i];
+        if ((words[index >>> 5] & 1 << index) !== 0) return false;
+      }
+      return true;
+    }
+
+    /**
+     * Test if two BitArrays are identical in all their values
+     * @param {BitArray} otherBitarray - the other BitArray
+     * @return {Boolean} test result
+     */
+
+  }, {
+    key: 'isEqualTo',
+    value: function isEqualTo(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      for (var k = 0; k < count; ++k) {
+        if (words1[k] !== words2[k]) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /**
+     * How many set bits?
+     * @return {Integer} number of set bits
+     */
+
+  }, {
+    key: 'getSize',
+    value: function getSize() {
+      var count = this._words.length;
+      var words = this._words;
+      var size = 0;
+      for (var i = 0; i < count; ++i) {
+        size += hammingWeight(words[i]);
+      }
+      return size;
+    }
+
+    /**
+     * Calculate difference betwen this and another bit array.
+     * Store result in this object.
+     * @param  {BitArray} otherBitarray - the other bit array
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'difference',
+    value: function difference(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      for (var k = 0; k < count; ++k) {
+        words1[k] = words1[k] & ~words2[k];
+      }
+      for (var _k = words1.length; _k < count; ++_k) {
+        words1[_k] = 0;
+      }
+      return this;
+    }
+
+    /**
+     * Calculate union betwen this and another bit array.
+     * Store result in this object.
+     * @param  {BitArray} otherBitarray - the other bit array
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'union',
+    value: function union(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      for (var k = 0; k < count; ++k) {
+        words1[k] |= words2[k];
+      }
+      for (var _k2 = words1.length; _k2 < count; ++_k2) {
+        words1[_k2] = 0;
+      }
+      return this;
+    }
+
+    /**
+     * Calculate intersection betwen this and another bit array.
+     * Store result in this object.
+     * @param  {BitArray} otherBitarray - the other bit array
+     * @return {BitArray} this object
+     */
+
+  }, {
+    key: 'intersection',
+    value: function intersection(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      for (var k = 0; k < count; ++k) {
+        words1[k] &= words2[k];
+      }
+      for (var _k3 = words1.length; _k3 < count; ++_k3) {
+        words1[_k3] = 0;
+      }
+      return this;
+    }
+
+    /**
+     * Test if there is any intersection betwen this and another bit array.
+     * @param  {BitArray} otherBitarray - the other bit array
+     * @return {Boolean} test result
+     */
+
+  }, {
+    key: 'intersects',
+    value: function intersects(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      for (var k = 0; k < count; ++k) {
+        if ((words1[k] & words2[k]) !== 0) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Calculate the number of bits in common betwen this and another bit array.
+     * @param  {BitArray} otherBitarray - the other bit array
+     * @return {Integer} size
+     */
+
+  }, {
+    key: 'getIntersectionSize',
+    value: function getIntersectionSize(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      var size = 0;
+      for (var k = 0; k < count; ++k) {
+        size += hammingWeight(words1[k] & words2[k]);
+      }
+      return size;
+    }
+
+    /**
+     * Calculate intersection betwen this and another bit array.
+     * Store result in a new bit array.
+     * @param  {BitArray} otherBitarray - the other bit array
+     * @return {BitArray} the new bit array
+     */
+
+  }, {
+    key: 'makeIntersection',
+    value: function makeIntersection(otherBitarray) {
+      var words1 = this._words;
+      var words2 = otherBitarray._words;
+      var count = Math.min(words1.length, words2.length);
+      var wordsA = new Uint32Array(count);
+      var intersection = Object.create(BitArray.prototype);
+      intersection._words = wordsA;
+      intersection.length = Math.min(this.length, otherBitarray.length);
+      for (var k = 0; k < count; ++k) {
+        wordsA[k] = words1[k] & words2[k];
+      }
+      return intersection;
+    }
+
+    /**
+     * Iterate over all set bits in the array
+     * @param  {function( index: Integer, i: Integer )} callback - the callback
+     * @return {undefined}
+     */
+
+  }, {
+    key: 'forEach',
+    value: function forEach(callback) {
+      var count = this._words.length;
+      var words = this._words;
+      var i = 0;
+      for (var k = 0; k < count; ++k) {
+        var w = words[k];
+        while (w !== 0) {
+          var t = w & -w;
+          var index = (k << 5) + hammingWeight(t - 1);
+          callback(index, i);
+          w ^= t;
+          ++i;
+        }
+      }
+    }
+
+    /**
+     * Get an array with the set bits
+     * @return {Array} bit indices
+     */
+
+  }, {
+    key: 'toArray',
+    value: function toArray() {
+      var words = this._words;
+      var answer = new Array(this.getSize());
+      var count = this._words.length;
+      var pos = 0;
+      for (var k = 0; k < count; ++k) {
+        var w = words[k];
+        while (w !== 0) {
+          var t = w & -w;
+          answer[pos++] = (k << 5) + hammingWeight(t - 1);
+          w ^= t;
+        }
+      }
+      return answer;
+    }
+  }, {
+    key: 'toString',
+    value: function toString() {
+      return '{' + this.toArray().join(',') + '}';
+    }
+  }, {
+    key: 'toSeleString',
+    value: function toSeleString() {
+      var sele = this.toArray().join(',');
+      return sele ? '@' + sele : 'NONE';
+    }
+
+    /**
+     * Clone this object
+     * @return {BitArray} the cloned object
+     */
+
+  }, {
+    key: 'clone',
+    value: function clone() {
+      var clone = Object.create(BitArray.prototype);
+      clone.length = this.length;
+      clone._words = new Uint32Array(this._words);
+      return clone;
+    }
+  }]);
+
+  return BitArray;
+}();
+
+exports.default = BitArray;
+
+/***/ }),
+/* 136 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
@@ -83583,25 +84194,25 @@ exports.default = {
 };
 
 /***/ }),
-/* 136 */
+/* 137 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(137);
-module.exports = __webpack_require__(339);
+__webpack_require__(138);
+module.exports = __webpack_require__(340);
 
 
 /***/ }),
-/* 137 */
+/* 138 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
-__webpack_require__(138);
-
-__webpack_require__(335);
+__webpack_require__(139);
 
 __webpack_require__(336);
+
+__webpack_require__(337);
 
 if (global._babelPolyfill) {
   throw new Error("only one instance of babel-polyfill is allowed");
@@ -83626,11 +84237,10 @@ define(String.prototype, "padRight", "".padEnd);
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(68)))
 
 /***/ }),
-/* 138 */
+/* 139 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(139);
-__webpack_require__(141);
+__webpack_require__(140);
 __webpack_require__(142);
 __webpack_require__(143);
 __webpack_require__(144);
@@ -83645,7 +84255,7 @@ __webpack_require__(152);
 __webpack_require__(153);
 __webpack_require__(154);
 __webpack_require__(155);
-__webpack_require__(157);
+__webpack_require__(156);
 __webpack_require__(158);
 __webpack_require__(159);
 __webpack_require__(160);
@@ -83706,16 +84316,16 @@ __webpack_require__(214);
 __webpack_require__(215);
 __webpack_require__(216);
 __webpack_require__(217);
-__webpack_require__(219);
+__webpack_require__(218);
 __webpack_require__(220);
-__webpack_require__(222);
+__webpack_require__(221);
 __webpack_require__(223);
 __webpack_require__(224);
 __webpack_require__(225);
 __webpack_require__(226);
 __webpack_require__(227);
 __webpack_require__(228);
-__webpack_require__(230);
+__webpack_require__(229);
 __webpack_require__(231);
 __webpack_require__(232);
 __webpack_require__(233);
@@ -83728,19 +84338,19 @@ __webpack_require__(239);
 __webpack_require__(240);
 __webpack_require__(241);
 __webpack_require__(242);
-__webpack_require__(90);
 __webpack_require__(243);
+__webpack_require__(90);
 __webpack_require__(244);
-__webpack_require__(115);
 __webpack_require__(245);
+__webpack_require__(115);
 __webpack_require__(246);
 __webpack_require__(247);
 __webpack_require__(248);
 __webpack_require__(249);
+__webpack_require__(250);
 __webpack_require__(118);
 __webpack_require__(120);
 __webpack_require__(121);
-__webpack_require__(250);
 __webpack_require__(251);
 __webpack_require__(252);
 __webpack_require__(253);
@@ -83825,11 +84435,12 @@ __webpack_require__(331);
 __webpack_require__(332);
 __webpack_require__(333);
 __webpack_require__(334);
+__webpack_require__(335);
 module.exports = __webpack_require__(21);
 
 
 /***/ }),
-/* 139 */
+/* 140 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -83848,7 +84459,7 @@ var uid = __webpack_require__(34);
 var wks = __webpack_require__(5);
 var wksExt = __webpack_require__(98);
 var wksDefine = __webpack_require__(70);
-var enumKeys = __webpack_require__(140);
+var enumKeys = __webpack_require__(141);
 var isArray = __webpack_require__(56);
 var anObject = __webpack_require__(1);
 var isObject = __webpack_require__(4);
@@ -84070,7 +84681,7 @@ setToStringTag(global.JSON, 'JSON', true);
 
 
 /***/ }),
-/* 140 */
+/* 141 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // all enumerable object keys, includes symbols
@@ -84091,7 +84702,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 141 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -84100,7 +84711,7 @@ $export($export.S, 'Object', { create: __webpack_require__(38) });
 
 
 /***/ }),
-/* 142 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -84109,7 +84720,7 @@ $export($export.S + $export.F * !__webpack_require__(6), 'Object', { definePrope
 
 
 /***/ }),
-/* 143 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -84118,7 +84729,7 @@ $export($export.S + $export.F * !__webpack_require__(6), 'Object', { definePrope
 
 
 /***/ }),
-/* 144 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
@@ -84133,7 +84744,7 @@ __webpack_require__(25)('getOwnPropertyDescriptor', function () {
 
 
 /***/ }),
-/* 145 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.9 Object.getPrototypeOf(O)
@@ -84148,7 +84759,7 @@ __webpack_require__(25)('getPrototypeOf', function () {
 
 
 /***/ }),
-/* 146 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.14 Object.keys(O)
@@ -84163,7 +84774,7 @@ __webpack_require__(25)('keys', function () {
 
 
 /***/ }),
-/* 147 */
+/* 148 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.7 Object.getOwnPropertyNames(O)
@@ -84173,7 +84784,7 @@ __webpack_require__(25)('getOwnPropertyNames', function () {
 
 
 /***/ }),
-/* 148 */
+/* 149 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.5 Object.freeze(O)
@@ -84188,7 +84799,7 @@ __webpack_require__(25)('freeze', function ($freeze) {
 
 
 /***/ }),
-/* 149 */
+/* 150 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.17 Object.seal(O)
@@ -84203,7 +84814,7 @@ __webpack_require__(25)('seal', function ($seal) {
 
 
 /***/ }),
-/* 150 */
+/* 151 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.15 Object.preventExtensions(O)
@@ -84218,7 +84829,7 @@ __webpack_require__(25)('preventExtensions', function ($preventExtensions) {
 
 
 /***/ }),
-/* 151 */
+/* 152 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.12 Object.isFrozen(O)
@@ -84232,7 +84843,7 @@ __webpack_require__(25)('isFrozen', function ($isFrozen) {
 
 
 /***/ }),
-/* 152 */
+/* 153 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.13 Object.isSealed(O)
@@ -84246,7 +84857,7 @@ __webpack_require__(25)('isSealed', function ($isSealed) {
 
 
 /***/ }),
-/* 153 */
+/* 154 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.11 Object.isExtensible(O)
@@ -84260,7 +84871,7 @@ __webpack_require__(25)('isExtensible', function ($isExtensible) {
 
 
 /***/ }),
-/* 154 */
+/* 155 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.3.1 Object.assign(target, source)
@@ -84270,16 +84881,16 @@ $export($export.S + $export.F, 'Object', { assign: __webpack_require__(102) });
 
 
 /***/ }),
-/* 155 */
+/* 156 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.3.10 Object.is(value1, value2)
 var $export = __webpack_require__(0);
-$export($export.S, 'Object', { is: __webpack_require__(156) });
+$export($export.S, 'Object', { is: __webpack_require__(157) });
 
 
 /***/ }),
-/* 156 */
+/* 157 */
 /***/ (function(module, exports) {
 
 // 7.2.9 SameValue(x, y)
@@ -84290,7 +84901,7 @@ module.exports = Object.is || function is(x, y) {
 
 
 /***/ }),
-/* 157 */
+/* 158 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.3.19 Object.setPrototypeOf(O, proto)
@@ -84299,7 +84910,7 @@ $export($export.S, 'Object', { setPrototypeOf: __webpack_require__(74).set });
 
 
 /***/ }),
-/* 158 */
+/* 159 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84316,7 +84927,7 @@ if (test + '' != '[object z]') {
 
 
 /***/ }),
-/* 159 */
+/* 160 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.2.3.2 / 15.3.4.5 Function.prototype.bind(thisArg, args...)
@@ -84326,7 +84937,7 @@ $export($export.P, 'Function', { bind: __webpack_require__(103) });
 
 
 /***/ }),
-/* 160 */
+/* 161 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP = __webpack_require__(7).f;
@@ -84348,7 +84959,7 @@ NAME in FProto || __webpack_require__(6) && dP(FProto, NAME, {
 
 
 /***/ }),
-/* 161 */
+/* 162 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84368,7 +84979,7 @@ if (!(HAS_INSTANCE in FunctionProto)) __webpack_require__(7).f(FunctionProto, HA
 
 
 /***/ }),
-/* 162 */
+/* 163 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -84378,7 +84989,7 @@ $export($export.G + $export.F * (parseInt != $parseInt), { parseInt: $parseInt }
 
 
 /***/ }),
-/* 163 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -84388,7 +84999,7 @@ $export($export.G + $export.F * (parseFloat != $parseFloat), { parseFloat: $pars
 
 
 /***/ }),
-/* 164 */
+/* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84464,7 +85075,7 @@ if (!$Number(' 0o1') || !$Number('0b1') || $Number('+0x1')) {
 
 
 /***/ }),
-/* 165 */
+/* 166 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84585,7 +85196,7 @@ $export($export.P + $export.F * (!!$toFixed && (
 
 
 /***/ }),
-/* 166 */
+/* 167 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84610,7 +85221,7 @@ $export($export.P + $export.F * ($fails(function () {
 
 
 /***/ }),
-/* 167 */
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.1 Number.EPSILON
@@ -84620,7 +85231,7 @@ $export($export.S, 'Number', { EPSILON: Math.pow(2, -52) });
 
 
 /***/ }),
-/* 168 */
+/* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.2 Number.isFinite(number)
@@ -84635,7 +85246,7 @@ $export($export.S, 'Number', {
 
 
 /***/ }),
-/* 169 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.3 Number.isInteger(number)
@@ -84645,7 +85256,7 @@ $export($export.S, 'Number', { isInteger: __webpack_require__(108) });
 
 
 /***/ }),
-/* 170 */
+/* 171 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.4 Number.isNaN(number)
@@ -84660,7 +85271,7 @@ $export($export.S, 'Number', {
 
 
 /***/ }),
-/* 171 */
+/* 172 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.5 Number.isSafeInteger(number)
@@ -84676,7 +85287,7 @@ $export($export.S, 'Number', {
 
 
 /***/ }),
-/* 172 */
+/* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.6 Number.MAX_SAFE_INTEGER
@@ -84686,7 +85297,7 @@ $export($export.S, 'Number', { MAX_SAFE_INTEGER: 0x1fffffffffffff });
 
 
 /***/ }),
-/* 173 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.10 Number.MIN_SAFE_INTEGER
@@ -84696,7 +85307,7 @@ $export($export.S, 'Number', { MIN_SAFE_INTEGER: -0x1fffffffffffff });
 
 
 /***/ }),
-/* 174 */
+/* 175 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -84706,7 +85317,7 @@ $export($export.S + $export.F * (Number.parseFloat != $parseFloat), 'Number', { 
 
 
 /***/ }),
-/* 175 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -84716,7 +85327,7 @@ $export($export.S + $export.F * (Number.parseInt != $parseInt), 'Number', { pars
 
 
 /***/ }),
-/* 176 */
+/* 177 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.3 Math.acosh(x)
@@ -84740,7 +85351,7 @@ $export($export.S + $export.F * !($acosh
 
 
 /***/ }),
-/* 177 */
+/* 178 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.5 Math.asinh(x)
@@ -84756,7 +85367,7 @@ $export($export.S + $export.F * !($asinh && 1 / $asinh(0) > 0), 'Math', { asinh:
 
 
 /***/ }),
-/* 178 */
+/* 179 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.7 Math.atanh(x)
@@ -84772,7 +85383,7 @@ $export($export.S + $export.F * !($atanh && 1 / $atanh(-0) < 0), 'Math', {
 
 
 /***/ }),
-/* 179 */
+/* 180 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.9 Math.cbrt(x)
@@ -84787,7 +85398,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 180 */
+/* 181 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.11 Math.clz32(x)
@@ -84801,7 +85412,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 181 */
+/* 182 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.12 Math.cosh(x)
@@ -84816,7 +85427,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 182 */
+/* 183 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.14 Math.expm1(x)
@@ -84827,7 +85438,7 @@ $export($export.S + $export.F * ($expm1 != Math.expm1), 'Math', { expm1: $expm1 
 
 
 /***/ }),
-/* 183 */
+/* 184 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.16 Math.fround(x)
@@ -84837,7 +85448,7 @@ $export($export.S, 'Math', { fround: __webpack_require__(110) });
 
 
 /***/ }),
-/* 184 */
+/* 185 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.17 Math.hypot([value1[, value2[, … ]]])
@@ -84868,7 +85479,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 185 */
+/* 186 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.18 Math.imul(x, y)
@@ -84891,7 +85502,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 186 */
+/* 187 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.21 Math.log10(x)
@@ -84905,7 +85516,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 187 */
+/* 188 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.20 Math.log1p(x)
@@ -84915,7 +85526,7 @@ $export($export.S, 'Math', { log1p: __webpack_require__(109) });
 
 
 /***/ }),
-/* 188 */
+/* 189 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.22 Math.log2(x)
@@ -84929,7 +85540,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 189 */
+/* 190 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.28 Math.sign(x)
@@ -84939,7 +85550,7 @@ $export($export.S, 'Math', { sign: __webpack_require__(78) });
 
 
 /***/ }),
-/* 190 */
+/* 191 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.30 Math.sinh(x)
@@ -84960,7 +85571,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 191 */
+/* 192 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.33 Math.tanh(x)
@@ -84978,7 +85589,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 192 */
+/* 193 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.34 Math.trunc(x)
@@ -84992,7 +85603,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 193 */
+/* 194 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -85021,7 +85632,7 @@ $export($export.S + $export.F * (!!$fromCodePoint && $fromCodePoint.length != 1)
 
 
 /***/ }),
-/* 194 */
+/* 195 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -85045,7 +85656,7 @@ $export($export.S, 'String', {
 
 
 /***/ }),
-/* 195 */
+/* 196 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85059,7 +85670,7 @@ __webpack_require__(45)('trim', function ($trim) {
 
 
 /***/ }),
-/* 196 */
+/* 197 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85083,7 +85694,7 @@ __webpack_require__(81)(String, 'String', function (iterated) {
 
 
 /***/ }),
-/* 197 */
+/* 198 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85099,7 +85710,7 @@ $export($export.P, 'String', {
 
 
 /***/ }),
-/* 198 */
+/* 199 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85126,7 +85737,7 @@ $export($export.P + $export.F * __webpack_require__(84)(ENDS_WITH), 'String', {
 
 
 /***/ }),
-/* 199 */
+/* 200 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85145,7 +85756,7 @@ $export($export.P + $export.F * __webpack_require__(84)(INCLUDES), 'String', {
 
 
 /***/ }),
-/* 200 */
+/* 201 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -85157,7 +85768,7 @@ $export($export.P, 'String', {
 
 
 /***/ }),
-/* 201 */
+/* 202 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85182,7 +85793,7 @@ $export($export.P + $export.F * __webpack_require__(84)(STARTS_WITH), 'String', 
 
 
 /***/ }),
-/* 202 */
+/* 203 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85196,7 +85807,7 @@ __webpack_require__(14)('anchor', function (createHTML) {
 
 
 /***/ }),
-/* 203 */
+/* 204 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85210,7 +85821,7 @@ __webpack_require__(14)('big', function (createHTML) {
 
 
 /***/ }),
-/* 204 */
+/* 205 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85224,7 +85835,7 @@ __webpack_require__(14)('blink', function (createHTML) {
 
 
 /***/ }),
-/* 205 */
+/* 206 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85238,7 +85849,7 @@ __webpack_require__(14)('bold', function (createHTML) {
 
 
 /***/ }),
-/* 206 */
+/* 207 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85252,7 +85863,7 @@ __webpack_require__(14)('fixed', function (createHTML) {
 
 
 /***/ }),
-/* 207 */
+/* 208 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85266,7 +85877,7 @@ __webpack_require__(14)('fontcolor', function (createHTML) {
 
 
 /***/ }),
-/* 208 */
+/* 209 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85280,7 +85891,7 @@ __webpack_require__(14)('fontsize', function (createHTML) {
 
 
 /***/ }),
-/* 209 */
+/* 210 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85294,7 +85905,7 @@ __webpack_require__(14)('italics', function (createHTML) {
 
 
 /***/ }),
-/* 210 */
+/* 211 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85308,7 +85919,7 @@ __webpack_require__(14)('link', function (createHTML) {
 
 
 /***/ }),
-/* 211 */
+/* 212 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85322,7 +85933,7 @@ __webpack_require__(14)('small', function (createHTML) {
 
 
 /***/ }),
-/* 212 */
+/* 213 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85336,7 +85947,7 @@ __webpack_require__(14)('strike', function (createHTML) {
 
 
 /***/ }),
-/* 213 */
+/* 214 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85350,7 +85961,7 @@ __webpack_require__(14)('sub', function (createHTML) {
 
 
 /***/ }),
-/* 214 */
+/* 215 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85364,7 +85975,7 @@ __webpack_require__(14)('sup', function (createHTML) {
 
 
 /***/ }),
-/* 215 */
+/* 216 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.3.3.1 / 15.9.4.4 Date.now()
@@ -85374,7 +85985,7 @@ $export($export.S, 'Date', { now: function () { return new Date().getTime(); } }
 
 
 /***/ }),
-/* 216 */
+/* 217 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85397,12 +86008,12 @@ $export($export.P + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 217 */
+/* 218 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.3.4.36 / 15.9.5.43 Date.prototype.toISOString()
 var $export = __webpack_require__(0);
-var toISOString = __webpack_require__(218);
+var toISOString = __webpack_require__(219);
 
 // PhantomJS / old WebKit has a broken implementations
 $export($export.P + $export.F * (Date.prototype.toISOString !== toISOString), 'Date', {
@@ -85411,7 +86022,7 @@ $export($export.P + $export.F * (Date.prototype.toISOString !== toISOString), 'D
 
 
 /***/ }),
-/* 218 */
+/* 219 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85444,7 +86055,7 @@ module.exports = (fails(function () {
 
 
 /***/ }),
-/* 219 */
+/* 220 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var DateProto = Date.prototype;
@@ -85462,17 +86073,17 @@ if (new Date(NaN) + '' != INVALID_DATE) {
 
 
 /***/ }),
-/* 220 */
+/* 221 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var TO_PRIMITIVE = __webpack_require__(5)('toPrimitive');
 var proto = Date.prototype;
 
-if (!(TO_PRIMITIVE in proto)) __webpack_require__(12)(proto, TO_PRIMITIVE, __webpack_require__(221));
+if (!(TO_PRIMITIVE in proto)) __webpack_require__(12)(proto, TO_PRIMITIVE, __webpack_require__(222));
 
 
 /***/ }),
-/* 221 */
+/* 222 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85488,7 +86099,7 @@ module.exports = function (hint) {
 
 
 /***/ }),
-/* 222 */
+/* 223 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.2.2 / 15.4.3.2 Array.isArray(arg)
@@ -85498,7 +86109,7 @@ $export($export.S, 'Array', { isArray: __webpack_require__(56) });
 
 
 /***/ }),
-/* 223 */
+/* 224 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85542,7 +86153,7 @@ $export($export.S + $export.F * !__webpack_require__(58)(function (iter) { Array
 
 
 /***/ }),
-/* 224 */
+/* 225 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85568,7 +86179,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 225 */
+/* 226 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85587,7 +86198,7 @@ $export($export.P + $export.F * (__webpack_require__(49) != Object || !__webpack
 
 
 /***/ }),
-/* 226 */
+/* 227 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85622,7 +86233,7 @@ $export($export.P + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 227 */
+/* 228 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85652,7 +86263,7 @@ $export($export.P + $export.F * (fails(function () {
 
 
 /***/ }),
-/* 228 */
+/* 229 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85670,7 +86281,7 @@ $export($export.P + $export.F * !STRICT, 'Array', {
 
 
 /***/ }),
-/* 229 */
+/* 230 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(4);
@@ -85692,7 +86303,7 @@ module.exports = function (original) {
 
 
 /***/ }),
-/* 230 */
+/* 231 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85709,7 +86320,7 @@ $export($export.P + $export.F * !__webpack_require__(20)([].map, true), 'Array',
 
 
 /***/ }),
-/* 231 */
+/* 232 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85726,7 +86337,7 @@ $export($export.P + $export.F * !__webpack_require__(20)([].filter, true), 'Arra
 
 
 /***/ }),
-/* 232 */
+/* 233 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85743,7 +86354,7 @@ $export($export.P + $export.F * !__webpack_require__(20)([].some, true), 'Array'
 
 
 /***/ }),
-/* 233 */
+/* 234 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85760,7 +86371,7 @@ $export($export.P + $export.F * !__webpack_require__(20)([].every, true), 'Array
 
 
 /***/ }),
-/* 234 */
+/* 235 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85777,7 +86388,7 @@ $export($export.P + $export.F * !__webpack_require__(20)([].reduce, true), 'Arra
 
 
 /***/ }),
-/* 235 */
+/* 236 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85794,7 +86405,7 @@ $export($export.P + $export.F * !__webpack_require__(20)([].reduceRight, true), 
 
 
 /***/ }),
-/* 236 */
+/* 237 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85816,7 +86427,7 @@ $export($export.P + $export.F * (NEGATIVE_ZERO || !__webpack_require__(20)($nati
 
 
 /***/ }),
-/* 237 */
+/* 238 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85845,7 +86456,7 @@ $export($export.P + $export.F * (NEGATIVE_ZERO || !__webpack_require__(20)($nati
 
 
 /***/ }),
-/* 238 */
+/* 239 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
@@ -85857,7 +86468,7 @@ __webpack_require__(31)('copyWithin');
 
 
 /***/ }),
-/* 239 */
+/* 240 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
@@ -85869,7 +86480,7 @@ __webpack_require__(31)('fill');
 
 
 /***/ }),
-/* 240 */
+/* 241 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85890,7 +86501,7 @@ __webpack_require__(31)(KEY);
 
 
 /***/ }),
-/* 241 */
+/* 242 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85911,14 +86522,14 @@ __webpack_require__(31)(KEY);
 
 
 /***/ }),
-/* 242 */
+/* 243 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(40)('Array');
 
 
 /***/ }),
-/* 243 */
+/* 244 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(2);
@@ -85967,7 +86578,7 @@ __webpack_require__(40)('RegExp');
 
 
 /***/ }),
-/* 244 */
+/* 245 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85999,7 +86610,7 @@ if (__webpack_require__(3)(function () { return $toString.call({ source: 'a', fl
 
 
 /***/ }),
-/* 245 */
+/* 246 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // @@match logic
@@ -86015,7 +86626,7 @@ __webpack_require__(60)('match', 1, function (defined, MATCH, $match) {
 
 
 /***/ }),
-/* 246 */
+/* 247 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // @@replace logic
@@ -86033,7 +86644,7 @@ __webpack_require__(60)('replace', 2, function (defined, REPLACE, $replace) {
 
 
 /***/ }),
-/* 247 */
+/* 248 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // @@search logic
@@ -86049,7 +86660,7 @@ __webpack_require__(60)('search', 1, function (defined, SEARCH, $search) {
 
 
 /***/ }),
-/* 248 */
+/* 249 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // @@split logic
@@ -86126,7 +86737,7 @@ __webpack_require__(60)('split', 2, function (defined, SPLIT, $split) {
 
 
 /***/ }),
-/* 249 */
+/* 250 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86406,7 +87017,7 @@ $export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(58)(function
 
 
 /***/ }),
-/* 250 */
+/* 251 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86427,7 +87038,7 @@ __webpack_require__(62)(WEAK_SET, function (get) {
 
 
 /***/ }),
-/* 251 */
+/* 252 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86480,7 +87091,7 @@ __webpack_require__(40)(ARRAY_BUFFER);
 
 
 /***/ }),
-/* 252 */
+/* 253 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -86490,7 +87101,7 @@ $export($export.G + $export.W + $export.F * !__webpack_require__(63).ABV, {
 
 
 /***/ }),
-/* 253 */
+/* 254 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Int8', 1, function (init) {
@@ -86501,7 +87112,7 @@ __webpack_require__(27)('Int8', 1, function (init) {
 
 
 /***/ }),
-/* 254 */
+/* 255 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Uint8', 1, function (init) {
@@ -86512,7 +87123,7 @@ __webpack_require__(27)('Uint8', 1, function (init) {
 
 
 /***/ }),
-/* 255 */
+/* 256 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Uint8', 1, function (init) {
@@ -86523,7 +87134,7 @@ __webpack_require__(27)('Uint8', 1, function (init) {
 
 
 /***/ }),
-/* 256 */
+/* 257 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Int16', 2, function (init) {
@@ -86534,7 +87145,7 @@ __webpack_require__(27)('Int16', 2, function (init) {
 
 
 /***/ }),
-/* 257 */
+/* 258 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Uint16', 2, function (init) {
@@ -86545,7 +87156,7 @@ __webpack_require__(27)('Uint16', 2, function (init) {
 
 
 /***/ }),
-/* 258 */
+/* 259 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Int32', 4, function (init) {
@@ -86556,7 +87167,7 @@ __webpack_require__(27)('Int32', 4, function (init) {
 
 
 /***/ }),
-/* 259 */
+/* 260 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Uint32', 4, function (init) {
@@ -86567,7 +87178,7 @@ __webpack_require__(27)('Uint32', 4, function (init) {
 
 
 /***/ }),
-/* 260 */
+/* 261 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Float32', 4, function (init) {
@@ -86578,7 +87189,7 @@ __webpack_require__(27)('Float32', 4, function (init) {
 
 
 /***/ }),
-/* 261 */
+/* 262 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(27)('Float64', 8, function (init) {
@@ -86589,7 +87200,7 @@ __webpack_require__(27)('Float64', 8, function (init) {
 
 
 /***/ }),
-/* 262 */
+/* 263 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.1 Reflect.apply(target, thisArgument, argumentsList)
@@ -86611,7 +87222,7 @@ $export($export.S + $export.F * !__webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 263 */
+/* 264 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.2 Reflect.construct(target, argumentsList [, newTarget])
@@ -86664,7 +87275,7 @@ $export($export.S + $export.F * (NEW_TARGET_BUG || ARGS_BUG), 'Reflect', {
 
 
 /***/ }),
-/* 264 */
+/* 265 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.3 Reflect.defineProperty(target, propertyKey, attributes)
@@ -86693,7 +87304,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 265 */
+/* 266 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.4 Reflect.deleteProperty(target, propertyKey)
@@ -86710,7 +87321,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 266 */
+/* 267 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86743,7 +87354,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 267 */
+/* 268 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.6 Reflect.get(target, propertyKey [, receiver])
@@ -86770,7 +87381,7 @@ $export($export.S, 'Reflect', { get: get });
 
 
 /***/ }),
-/* 268 */
+/* 269 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.7 Reflect.getOwnPropertyDescriptor(target, propertyKey)
@@ -86786,7 +87397,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 269 */
+/* 270 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.8 Reflect.getPrototypeOf(target)
@@ -86802,7 +87413,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 270 */
+/* 271 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.9 Reflect.has(target, propertyKey)
@@ -86816,7 +87427,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 271 */
+/* 272 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.10 Reflect.isExtensible(target)
@@ -86833,7 +87444,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 272 */
+/* 273 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.11 Reflect.ownKeys(target)
@@ -86843,7 +87454,7 @@ $export($export.S, 'Reflect', { ownKeys: __webpack_require__(124) });
 
 
 /***/ }),
-/* 273 */
+/* 274 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.12 Reflect.preventExtensions(target)
@@ -86865,7 +87476,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 274 */
+/* 275 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.13 Reflect.set(target, propertyKey, V [, receiver])
@@ -86902,7 +87513,7 @@ $export($export.S, 'Reflect', { set: set });
 
 
 /***/ }),
-/* 275 */
+/* 276 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.14 Reflect.setPrototypeOf(target, proto)
@@ -86923,7 +87534,7 @@ if (setProto) $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 276 */
+/* 277 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86942,7 +87553,7 @@ __webpack_require__(31)('includes');
 
 
 /***/ }),
-/* 277 */
+/* 278 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86971,7 +87582,7 @@ __webpack_require__(31)('flatMap');
 
 
 /***/ }),
-/* 278 */
+/* 279 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86999,7 +87610,7 @@ __webpack_require__(31)('flatten');
 
 
 /***/ }),
-/* 279 */
+/* 280 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87016,7 +87627,7 @@ $export($export.P, 'String', {
 
 
 /***/ }),
-/* 280 */
+/* 281 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87035,7 +87646,7 @@ $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAge
 
 
 /***/ }),
-/* 281 */
+/* 282 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87054,7 +87665,7 @@ $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAge
 
 
 /***/ }),
-/* 282 */
+/* 283 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87068,7 +87679,7 @@ __webpack_require__(45)('trimLeft', function ($trim) {
 
 
 /***/ }),
-/* 283 */
+/* 284 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87082,7 +87693,7 @@ __webpack_require__(45)('trimRight', function ($trim) {
 
 
 /***/ }),
-/* 284 */
+/* 285 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87119,21 +87730,21 @@ $export($export.P, 'String', {
 
 
 /***/ }),
-/* 285 */
+/* 286 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(70)('asyncIterator');
 
 
 /***/ }),
-/* 286 */
+/* 287 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(70)('observable');
 
 
 /***/ }),
-/* 287 */
+/* 288 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-getownpropertydescriptors
@@ -87161,7 +87772,7 @@ $export($export.S, 'Object', {
 
 
 /***/ }),
-/* 288 */
+/* 289 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-values-entries
@@ -87176,7 +87787,7 @@ $export($export.S, 'Object', {
 
 
 /***/ }),
-/* 289 */
+/* 290 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-values-entries
@@ -87191,7 +87802,7 @@ $export($export.S, 'Object', {
 
 
 /***/ }),
-/* 290 */
+/* 291 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87210,7 +87821,7 @@ __webpack_require__(6) && $export($export.P + __webpack_require__(64), 'Object',
 
 
 /***/ }),
-/* 291 */
+/* 292 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87229,7 +87840,7 @@ __webpack_require__(6) && $export($export.P + __webpack_require__(64), 'Object',
 
 
 /***/ }),
-/* 292 */
+/* 293 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87254,7 +87865,7 @@ __webpack_require__(6) && $export($export.P + __webpack_require__(64), 'Object',
 
 
 /***/ }),
-/* 293 */
+/* 294 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87279,7 +87890,7 @@ __webpack_require__(6) && $export($export.P + __webpack_require__(64), 'Object',
 
 
 /***/ }),
-/* 294 */
+/* 295 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/DavidBruant/Map-Set.prototype.toJSON
@@ -87289,7 +87900,7 @@ $export($export.P + $export.R, 'Map', { toJSON: __webpack_require__(128)('Map') 
 
 
 /***/ }),
-/* 295 */
+/* 296 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/DavidBruant/Map-Set.prototype.toJSON
@@ -87299,7 +87910,7 @@ $export($export.P + $export.R, 'Set', { toJSON: __webpack_require__(128)('Set') 
 
 
 /***/ }),
-/* 296 */
+/* 297 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-map.of
@@ -87307,7 +87918,7 @@ __webpack_require__(65)('Map');
 
 
 /***/ }),
-/* 297 */
+/* 298 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-set.of
@@ -87315,7 +87926,7 @@ __webpack_require__(65)('Set');
 
 
 /***/ }),
-/* 298 */
+/* 299 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-weakmap.of
@@ -87323,7 +87934,7 @@ __webpack_require__(65)('WeakMap');
 
 
 /***/ }),
-/* 299 */
+/* 300 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-weakset.of
@@ -87331,7 +87942,7 @@ __webpack_require__(65)('WeakSet');
 
 
 /***/ }),
-/* 300 */
+/* 301 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-map.from
@@ -87339,7 +87950,7 @@ __webpack_require__(66)('Map');
 
 
 /***/ }),
-/* 301 */
+/* 302 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-set.from
@@ -87347,7 +87958,7 @@ __webpack_require__(66)('Set');
 
 
 /***/ }),
-/* 302 */
+/* 303 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-weakmap.from
@@ -87355,21 +87966,11 @@ __webpack_require__(66)('WeakMap');
 
 
 /***/ }),
-/* 303 */
+/* 304 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-weakset.from
 __webpack_require__(66)('WeakSet');
-
-
-/***/ }),
-/* 304 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// https://github.com/tc39/proposal-global
-var $export = __webpack_require__(0);
-
-$export($export.G, { global: __webpack_require__(2) });
 
 
 /***/ }),
@@ -87379,11 +87980,21 @@ $export($export.G, { global: __webpack_require__(2) });
 // https://github.com/tc39/proposal-global
 var $export = __webpack_require__(0);
 
-$export($export.S, 'System', { global: __webpack_require__(2) });
+$export($export.G, { global: __webpack_require__(2) });
 
 
 /***/ }),
 /* 306 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// https://github.com/tc39/proposal-global
+var $export = __webpack_require__(0);
+
+$export($export.S, 'System', { global: __webpack_require__(2) });
+
+
+/***/ }),
+/* 307 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/ljharb/proposal-is-error
@@ -87398,7 +88009,7 @@ $export($export.S, 'Error', {
 
 
 /***/ }),
-/* 307 */
+/* 308 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -87412,7 +88023,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 308 */
+/* 309 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -87422,7 +88033,7 @@ $export($export.S, 'Math', { DEG_PER_RAD: Math.PI / 180 });
 
 
 /***/ }),
-/* 309 */
+/* 310 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -87437,7 +88048,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 310 */
+/* 311 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -87453,7 +88064,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 311 */
+/* 312 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
@@ -87470,7 +88081,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 312 */
+/* 313 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
@@ -87487,7 +88098,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 313 */
+/* 314 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
@@ -87509,7 +88120,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 314 */
+/* 315 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -87519,7 +88130,7 @@ $export($export.S, 'Math', { RAD_PER_DEG: 180 / Math.PI });
 
 
 /***/ }),
-/* 315 */
+/* 316 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -87534,7 +88145,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 316 */
+/* 317 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -87544,7 +88155,7 @@ $export($export.S, 'Math', { scale: __webpack_require__(130) });
 
 
 /***/ }),
-/* 317 */
+/* 318 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
@@ -87566,7 +88177,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 318 */
+/* 319 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // http://jfbastien.github.io/papers/Math.signbit.html
@@ -87579,7 +88190,7 @@ $export($export.S, 'Math', { signbit: function signbit(x) {
 
 
 /***/ }),
-/* 319 */
+/* 320 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87606,7 +88217,7 @@ $export($export.P + $export.R, 'Promise', { 'finally': function (onFinally) {
 
 
 /***/ }),
-/* 320 */
+/* 321 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87625,7 +88236,7 @@ $export($export.S, 'Promise', { 'try': function (callbackfn) {
 
 
 /***/ }),
-/* 321 */
+/* 322 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -87639,7 +88250,7 @@ metadata.exp({ defineMetadata: function defineMetadata(metadataKey, metadataValu
 
 
 /***/ }),
-/* 322 */
+/* 323 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -87660,7 +88271,7 @@ metadata.exp({ deleteMetadata: function deleteMetadata(metadataKey, target /* , 
 
 
 /***/ }),
-/* 323 */
+/* 324 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -87683,7 +88294,7 @@ metadata.exp({ getMetadata: function getMetadata(metadataKey, target /* , target
 
 
 /***/ }),
-/* 324 */
+/* 325 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Set = __webpack_require__(120);
@@ -87708,7 +88319,7 @@ metadata.exp({ getMetadataKeys: function getMetadataKeys(target /* , targetKey *
 
 
 /***/ }),
-/* 325 */
+/* 326 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -87723,7 +88334,7 @@ metadata.exp({ getOwnMetadata: function getOwnMetadata(metadataKey, target /* , 
 
 
 /***/ }),
-/* 326 */
+/* 327 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -87737,7 +88348,7 @@ metadata.exp({ getOwnMetadataKeys: function getOwnMetadataKeys(target /* , targe
 
 
 /***/ }),
-/* 327 */
+/* 328 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -87759,7 +88370,7 @@ metadata.exp({ hasMetadata: function hasMetadata(metadataKey, target /* , target
 
 
 /***/ }),
-/* 328 */
+/* 329 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(28);
@@ -87774,7 +88385,7 @@ metadata.exp({ hasOwnMetadata: function hasOwnMetadata(metadataKey, target /* , 
 
 
 /***/ }),
-/* 329 */
+/* 330 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $metadata = __webpack_require__(28);
@@ -87795,7 +88406,7 @@ $metadata.exp({ metadata: function metadata(metadataKey, metadataValue) {
 
 
 /***/ }),
-/* 330 */
+/* 331 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/rwaldron/tc39-notes/blob/master/es6/2014-09/sept-25.md#510-globalasap-for-enqueuing-a-microtask
@@ -87813,7 +88424,7 @@ $export($export.G, {
 
 
 /***/ }),
-/* 331 */
+/* 332 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88019,7 +88630,7 @@ __webpack_require__(40)('Observable');
 
 
 /***/ }),
-/* 332 */
+/* 333 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // ie9- setTimeout & setInterval additional parameters fix
@@ -88045,7 +88656,7 @@ $export($export.G + $export.B + $export.F * MSIE, {
 
 
 /***/ }),
-/* 333 */
+/* 334 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -88057,7 +88668,7 @@ $export($export.G + $export.B, {
 
 
 /***/ }),
-/* 334 */
+/* 335 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $iterators = __webpack_require__(90);
@@ -88121,7 +88732,7 @@ for (var collections = getKeys(DOMIterables), i = 0; i < collections.length; i++
 
 
 /***/ }),
-/* 335 */
+/* 336 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -88864,26 +89475,26 @@ for (var collections = getKeys(DOMIterables), i = 0; i < collections.length; i++
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(68)))
 
 /***/ }),
-/* 336 */
+/* 337 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(337);
+__webpack_require__(338);
 module.exports = __webpack_require__(21).RegExp.escape;
 
 
 /***/ }),
-/* 337 */
+/* 338 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/benjamingr/RexExp.escape
 var $export = __webpack_require__(0);
-var $re = __webpack_require__(338)(/[\\^$*+?.()|[\]{}]/g, '\\$&');
+var $re = __webpack_require__(339)(/[\\^$*+?.()|[\]{}]/g, '\\$&');
 
 $export($export.S, 'RegExp', { escape: function escape(it) { return $re(it); } });
 
 
 /***/ }),
-/* 338 */
+/* 339 */
 /***/ (function(module, exports) {
 
 module.exports = function (regExp, replace) {
@@ -88897,7 +89508,7 @@ module.exports = function (regExp, replace) {
 
 
 /***/ }),
-/* 339 */
+/* 340 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88992,7 +89603,7 @@ exports.initFullPageJolecule = initFullPageJolecule;
 exports.remoteDataServer = remoteDataServer;
 
 /***/ }),
-/* 340 */
+/* 341 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -89020,7 +89631,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 341 */
+/* 342 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -89158,7 +89769,7 @@ var SpaceHash = function () {
 exports.SpaceHash = SpaceHash;
 
 /***/ }),
-/* 342 */
+/* 343 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -89486,611 +90097,6 @@ var Store = function () {
 exports.default = Store;
 
 /***/ }),
-/* 343 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * @file Bit array
- * @author Alexander Rose <alexander.rose@weirdbyte.de>
- * @author Paul Pillot <paulpillot@gmail.com>
- * @private
- */
-
-/**
- * Compute the Hamming weight of a 32-bit unsigned integer
- * @param  {Integer} v - a 32-bit unsigned integer
- * @return {Integer} the Hamming weight
- */
-function hammingWeight(v) {
-  // works with signed or unsigned shifts
-  v -= v >>> 1 & 0x55555555;
-  v = (v & 0x33333333) + (v >>> 2 & 0x33333333);
-  return (v + (v >>> 4) & 0xF0F0F0F) * 0x1010101 >>> 24;
-}
-
-/**
- * Bit array
- *
- * Based heavily on https://github.com/lemire/FastBitSet.js
- * which is licensed under the Apache License, Version 2.0.
- */
-
-var BitArray = function () {
-  /**
-   * @param  {Integer} length - array length
-   * @param  {Boolean} [setAll] - initialize with true
-   */
-  function BitArray(length, setAll) {
-    _classCallCheck(this, BitArray);
-
-    this.length = length;
-    this._words = new Uint32Array(length + 32 >>> 5);
-    if (setAll === true) {
-      this.setAll();
-    }
-  }
-
-  /**
-   * Get value at index
-   * @param  {Integer} index - the index
-   * @return {Boolean} value
-   */
-
-
-  _createClass(BitArray, [{
-    key: 'get',
-    value: function get(index) {
-      return (this._words[index >>> 5] & 1 << index) !== 0;
-    }
-
-    /**
-     * Set value at index to true
-     * @param  {Integer} index - the index
-     * @return {undefined}
-     */
-
-  }, {
-    key: 'set',
-    value: function set(index) {
-      this._words[index >>> 5] |= 1 << index;
-    }
-
-    /**
-     * Set value at index to false
-     * @param  {Integer} index - the index
-     * @return {undefined}
-     */
-
-  }, {
-    key: 'clear',
-    value: function clear(index) {
-      this._words[index >>> 5] &= ~(1 << index);
-    }
-
-    /**
-     * Flip value at index
-     * @param  {Integer} index - the index
-     * @return {undefined}
-     */
-
-  }, {
-    key: 'flip',
-    value: function flip(index) {
-      this._words[index >>> 5] ^= 1 << index;
-    }
-  }, {
-    key: '_assignRange',
-    value: function _assignRange(start, end, value) {
-      var words = this._words;
-      var wordValue = value === true ? 0xFFFFFFFF : 0;
-      var wordStart = start >>> 5;
-      var wordEnd = end >>> 5;
-      // set complete words when applicable
-      for (var k = wordStart; k < wordEnd; ++k) {
-        words[k] = wordValue;
-      }
-      // set parts of the range not spanning complete words
-      var startWord = wordStart << 5;
-      var endWord = wordEnd << 5;
-      if (value === true) {
-        if (end - start < 32) {
-          for (var i = start, n = end + 1; i < n; ++i) {
-            words[i >>> 5] |= 1 << i;
-          }
-        } else {
-          for (var _i = start, _n = startWord; _i < _n; ++_i) {
-            words[_i >>> 5] |= 1 << _i;
-          }
-          for (var _i2 = endWord, _n2 = end + 1; _i2 < _n2; ++_i2) {
-            words[_i2 >>> 5] |= 1 << _i2;
-          }
-        }
-      } else {
-        if (end - start < 32) {
-          for (var _i3 = start, _n3 = end + 1; _i3 < _n3; ++_i3) {
-            words[_i3 >>> 5] &= ~(1 << _i3);
-          }
-        } else {
-          for (var _i4 = start, _n4 = startWord; _i4 < _n4; ++_i4) {
-            words[_i4 >>> 5] &= ~(1 << _i4);
-          }
-          for (var _i5 = endWord, _n5 = end + 1; _i5 < _n5; ++_i5) {
-            words[_i5 >>> 5] &= ~(1 << _i5);
-          }
-        }
-      }
-      return this;
-    }
-
-    /**
-     * Set bits of the given range
-     * @param {Integer} start - start index
-     * @param {Integer} end - end index
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'setRange',
-    value: function setRange(start, end) {
-      return this._assignRange(start, end, true);
-    }
-
-    /**
-     * Clear bits of the given range
-     * @param {Integer} start - start index
-     * @param {Integer} end - end index
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'clearRange',
-    value: function clearRange(start, end) {
-      return this._assignRange(start, end, false);
-    }
-
-    /**
-     * Set bits at all given indices
-     * @param {...Integer} arguments - indices
-     * @return {Boolean} this object
-     */
-
-  }, {
-    key: 'setBits',
-    value: function setBits() {
-      var words = this._words;
-      var n = arguments.length;
-      for (var i = 0; i < n; ++i) {
-        var index = arguments[i];
-        words[index >>> 5] |= 1 << index;
-      }
-      return this;
-    }
-
-    /**
-     * Clear bits at all given indices
-     * @param {...Integer} arguments - indices
-     * @return {Boolean} this object
-     */
-
-  }, {
-    key: 'clearBits',
-    value: function clearBits() {
-      var words = this._words;
-      var n = arguments.length;
-      for (var i = 0; i < n; ++i) {
-        var index = arguments[i];
-        words[index >>> 5] &= ~(1 << index);
-      }
-      return this;
-    }
-
-    /**
-     * Set all bits of the array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'setAll',
-    value: function setAll() {
-      return this._assignRange(0, this.length - 1, true);
-    }
-
-    /**
-     * Clear all bits of the array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'clearAll',
-    value: function clearAll() {
-      return this._assignRange(0, this.length - 1, false);
-    }
-
-    /**
-     * Flip all the values in the array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'flipAll',
-    value: function flipAll() {
-      var count = this._words.length;
-      var words = this._words;
-      var bs = 32 - this.length % 32;
-      for (var k = 0; k < count - 1; ++k) {
-        words[k] = ~words[k];
-      }
-      words[count - 1] = ~(words[count - 1] << bs) >>> bs;
-      return this;
-    }
-  }, {
-    key: '_isRangeValue',
-    value: function _isRangeValue(start, end, value) {
-      var words = this._words;
-      var wordValue = value === true ? 0xFFFFFFFF : 0;
-      var wordStart = start >>> 5;
-      var wordEnd = end >>> 5;
-      // set complete words when applicable
-      for (var k = wordStart; k < wordEnd; ++k) {
-        if (words[k] !== wordValue) return false;
-      }
-      // set parts of the range not spanning complete words
-      if (end - start < 32) {
-        for (var i = start, n = end + 1; i < n; ++i) {
-          if (!!(words[i >>> 5] & 1 << i) !== value) return false;
-        }
-      } else {
-        var startWord = wordStart << 5;
-        var endWord = wordEnd << 5;
-        for (var _i6 = start, _n6 = startWord << 5; _i6 < _n6; ++_i6) {
-          if (!!(words[_i6 >>> 5] & 1 << _i6) !== value) return false;
-        }
-        for (var _i7 = endWord, _n7 = end + 1; _i7 < _n7; ++_i7) {
-          if (!!(words[_i7 >>> 5] & 1 << _i7) !== value) return false;
-        }
-      }
-      return true;
-    }
-
-    /**
-     * Test if bits in given range are set
-     * @param {Integer} start - start index
-     * @param {Integer} end - end index
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'isRangeSet',
-    value: function isRangeSet(start, end) {
-      return this._isRangeValue(start, end, true);
-    }
-
-    /**
-     * Test if bits in given range are clear
-     * @param {Integer} start - start index
-     * @param {Integer} end - end index
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'isRangeClear',
-    value: function isRangeClear(start, end) {
-      return this._isRangeValue(start, end, false);
-    }
-
-    /**
-     * Test if all bits in the array are set
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isAllSet',
-    value: function isAllSet() {
-      return this._isRangeValue(0, this.length - 1, true);
-    }
-
-    /**
-     * Test if all bits in the array are clear
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isAllClear',
-    value: function isAllClear() {
-      return this._isRangeValue(0, this.length - 1, false);
-    }
-
-    /**
-     * Test if bits at all given indices are set
-     * @param {...Integer} arguments - indices
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isSet',
-    value: function isSet() {
-      var words = this._words;
-      var n = arguments.length;
-      for (var i = 0; i < n; ++i) {
-        var index = arguments[i];
-        if ((words[index >>> 5] & 1 << index) === 0) return false;
-      }
-      return true;
-    }
-
-    /**
-     * Test if bits at all given indices are clear
-     * @param {...Integer} arguments - indices
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isClear',
-    value: function isClear() {
-      var words = this._words;
-      var n = arguments.length;
-      for (var i = 0; i < n; ++i) {
-        var index = arguments[i];
-        if ((words[index >>> 5] & 1 << index) !== 0) return false;
-      }
-      return true;
-    }
-
-    /**
-     * Test if two BitArrays are identical in all their values
-     * @param {BitArray} otherBitarray - the other BitArray
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isEqualTo',
-    value: function isEqualTo(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        if (words1[k] !== words2[k]) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    /**
-     * How many set bits?
-     * @return {Integer} number of set bits
-     */
-
-  }, {
-    key: 'getSize',
-    value: function getSize() {
-      var count = this._words.length;
-      var words = this._words;
-      var size = 0;
-      for (var i = 0; i < count; ++i) {
-        size += hammingWeight(words[i]);
-      }
-      return size;
-    }
-
-    /**
-     * Calculate difference betwen this and another bit array.
-     * Store result in this object.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'difference',
-    value: function difference(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        words1[k] = words1[k] & ~words2[k];
-      }
-      for (var _k = words1.length; _k < count; ++_k) {
-        words1[_k] = 0;
-      }
-      return this;
-    }
-
-    /**
-     * Calculate union betwen this and another bit array.
-     * Store result in this object.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'union',
-    value: function union(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        words1[k] |= words2[k];
-      }
-      for (var _k2 = words1.length; _k2 < count; ++_k2) {
-        words1[_k2] = 0;
-      }
-      return this;
-    }
-
-    /**
-     * Calculate intersection betwen this and another bit array.
-     * Store result in this object.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'intersection',
-    value: function intersection(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        words1[k] &= words2[k];
-      }
-      for (var _k3 = words1.length; _k3 < count; ++_k3) {
-        words1[_k3] = 0;
-      }
-      return this;
-    }
-
-    /**
-     * Test if there is any intersection betwen this and another bit array.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'intersects',
-    value: function intersects(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        if ((words1[k] & words2[k]) !== 0) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    /**
-     * Calculate the number of bits in common betwen this and another bit array.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {Integer} size
-     */
-
-  }, {
-    key: 'getIntersectionSize',
-    value: function getIntersectionSize(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      var size = 0;
-      for (var k = 0; k < count; ++k) {
-        size += hammingWeight(words1[k] & words2[k]);
-      }
-      return size;
-    }
-
-    /**
-     * Calculate intersection betwen this and another bit array.
-     * Store result in a new bit array.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {BitArray} the new bit array
-     */
-
-  }, {
-    key: 'makeIntersection',
-    value: function makeIntersection(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      var wordsA = new Uint32Array(count);
-      var intersection = Object.create(BitArray.prototype);
-      intersection._words = wordsA;
-      intersection.length = Math.min(this.length, otherBitarray.length);
-      for (var k = 0; k < count; ++k) {
-        wordsA[k] = words1[k] & words2[k];
-      }
-      return intersection;
-    }
-
-    /**
-     * Iterate over all set bits in the array
-     * @param  {function( index: Integer, i: Integer )} callback - the callback
-     * @return {undefined}
-     */
-
-  }, {
-    key: 'forEach',
-    value: function forEach(callback) {
-      var count = this._words.length;
-      var words = this._words;
-      var i = 0;
-      for (var k = 0; k < count; ++k) {
-        var w = words[k];
-        while (w !== 0) {
-          var t = w & -w;
-          var index = (k << 5) + hammingWeight(t - 1);
-          callback(index, i);
-          w ^= t;
-          ++i;
-        }
-      }
-    }
-
-    /**
-     * Get an array with the set bits
-     * @return {Array} bit indices
-     */
-
-  }, {
-    key: 'toArray',
-    value: function toArray() {
-      var words = this._words;
-      var answer = new Array(this.getSize());
-      var count = this._words.length;
-      var pos = 0;
-      for (var k = 0; k < count; ++k) {
-        var w = words[k];
-        while (w !== 0) {
-          var t = w & -w;
-          answer[pos++] = (k << 5) + hammingWeight(t - 1);
-          w ^= t;
-        }
-      }
-      return answer;
-    }
-  }, {
-    key: 'toString',
-    value: function toString() {
-      return '{' + this.toArray().join(',') + '}';
-    }
-  }, {
-    key: 'toSeleString',
-    value: function toSeleString() {
-      var sele = this.toArray().join(',');
-      return sele ? '@' + sele : 'NONE';
-    }
-
-    /**
-     * Clone this object
-     * @return {BitArray} the cloned object
-     */
-
-  }, {
-    key: 'clone',
-    value: function clone() {
-      var clone = Object.create(BitArray.prototype);
-      clone.length = this.length;
-      clone._words = new Uint32Array(this._words);
-      return clone;
-    }
-  }]);
-
-  return BitArray;
-}();
-
-exports.default = BitArray;
-
-/***/ }),
 /* 344 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -90136,7 +90142,7 @@ var _glgeom = __webpack_require__(134);
 
 var glgeom = _interopRequireWildcard(_glgeom);
 
-var _widgets = __webpack_require__(135);
+var _widgets = __webpack_require__(136);
 
 var _widgets2 = _interopRequireDefault(_widgets);
 
@@ -90147,6 +90153,10 @@ var data = _interopRequireWildcard(_data);
 var _soup = __webpack_require__(133);
 
 var _animation = __webpack_require__(131);
+
+var _bitarray = __webpack_require__(135);
+
+var _bitarray2 = _interopRequireDefault(_bitarray);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -91535,17 +91545,121 @@ var Display = function (_WebglWidget) {
       this.displayMeshes['basepairs'].add(displayMesh);
     }
   }, {
+    key: 'deleteStructure',
+    value: function deleteStructure(iStructure) {
+      var atom = this.soup.getAtomProxy();
+      var res = this.soup.getResidueProxy();
+
+      var iAtomStart = null;
+      var iAtomEnd = null;
+      var iResStart = null;
+      var iResEnd = null;
+
+      for (var iAtom = 0; iAtom < this.soup.getAtomCount(); iAtom += 1) {
+        atom.iAtom = iAtom;
+        res.iRes = atom.iRes;
+        if (res.iStructure === iStructure) {
+          if (iAtomStart === null) {
+            iAtomStart = iAtom;
+          }
+          iAtomEnd = iAtom + 1;
+          if (iResStart === null) {
+            iResStart = atom.iRes;
+          }
+          iResEnd = atom.iRes + 1;
+        }
+      }
+
+      var nAtomOffset = iAtomEnd - iAtomStart;
+      var nAtom = this.soup.getAtomCount();
+      var nAtomNew = nAtom - nAtomOffset;
+      var nAtomCopy = nAtom - iAtomEnd;
+
+      var nResOffset = iResEnd - iResStart;
+      var nRes = this.soup.getResidueCount();
+      var nResNew = nRes - nResOffset;
+      var nResCopy = nRes - iResEnd;
+
+      this.soup.atomStore.copyWithin(iAtomStart, iAtomEnd, nAtomCopy);
+      this.soup.atomStore.count -= nAtomOffset;
+
+      for (var _iAtom = 0; _iAtom < nAtomNew; _iAtom += 1) {
+        atom.iAtom = _iAtom;
+        if (atom.iRes >= iResStart) {
+          atom.iRes -= nResOffset;
+        }
+      }
+
+      var newResidueSelect = new _bitarray2.default(nResNew);
+      var newResidueSidechain = new _bitarray2.default(nResNew);
+
+      for (var iRes = 0; iRes < nResNew; iRes += 1) {
+        if (iRes >= iResStart) {
+          var iResOld = iRes + nResOffset;
+          if (iRes in this.soup.residueNormal) {
+            this.soup.residueNormal[iRes] = this.soup.residueNormal[iResOld];
+            delete this.soup.residueNormal[iRes];
+          }
+          if (this.soup.residueSelect.get(iResOld)) {
+            newResidueSelect.set(iRes);
+          }
+          if (this.soup.residueSidechain.get(iResOld)) {
+            newResidueSidechain.set(iRes);
+          }
+        } else {
+          if (this.soup.residueSelect.get(iRes)) {
+            newResidueSelect.set(iRes);
+          }
+          if (this.soup.residueSidechain.get(iRes)) {
+            newResidueSidechain.set(iRes);
+          }
+        }
+      }
+      this.soup.residueSelect = newResidueSelect;
+      this.soup.residueSidechain = newResidueSidechain;
+
+      this.soup.residueStore.copyWithin(iResStart, iResEnd, nResCopy);
+      this.soup.residueStore.count -= nResOffset;
+      this.soup.resIds.splice(iResStart, nResOffset);
+
+      for (var _iRes = 0; _iRes < nResNew; _iRes += 1) {
+        res.iRes = _iRes;
+        if (res.iAtom >= iAtomStart) {
+          res.iAtom -= nAtomOffset;
+          atom.iAtom = res.iAtom;
+        }
+        if (this.soup.residueStore.atomOffset[_iRes] >= iAtomStart) {
+          this.soup.residueStore.atomOffset[_iRes] -= nAtomOffset;
+        }
+        if (res.iStructure >= iStructure) {
+          res.iStructure -= 1;
+        }
+      }
+
+      this.soup.structureIds.splice(iStructure, 1);
+
+      this.soup.calcBondsStrategic();
+      this.soup.calcMaxLength();
+
+      this.soupView.updateSidechain = true;
+      this.soupView.updateSelection = true;
+
+      this.observers.reset.dispatch();
+
+      this.buildScene();
+    }
+  }, {
     key: 'buildCrossHairs',
     value: function buildCrossHairs() {
       var radius = 1.2;
       var segments = 60;
-      var material = new THREE.LineDashedMaterial({ color: 0xFF7777, linewidth: 2 });
+      var material = new THREE.LineBasicMaterial({ color: 0xFF5555 });
       var geometry = new THREE.CircleGeometry(radius, segments);
 
       // Remove center vertex
       geometry.vertices.shift();
 
-      this.crossHairs = new THREE.Line(geometry, material);
+      this.crossHairs = new THREE.LineLoop(geometry, material);
       this.crossHairs.dontDelete = true;
       this.displayScene.add(this.crossHairs);
     }
@@ -91995,10 +92109,28 @@ var Display = function (_WebglWidget) {
         var iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes;
         var res = this.soup.getResidueProxy(iRes);
         var val = !res.selected;
-        if (!event.metaKey) {
+        if (!event.metaKey && !event.shiftKey) {
           this.controller.clearSelectedResidues();
         }
-        this.controller.selectResidue(iRes, val);
+        if (event.shiftKey) {
+          if (this.iResLastSelected !== null) {
+            var lastRes = this.soup.getResidueProxy(this.iResLastSelected);
+            if (res.iStructure === lastRes.iStructure) {
+              var iFirstRes = Math.min(this.iResLastSelected, iRes);
+              var iLastRes = Math.max(this.iResLastSelected, iRes);
+              for (var i = iFirstRes; i < iLastRes + 1; i += 1) {
+                this.controller.selectResidue(i, true);
+              }
+            }
+          }
+        } else {
+          this.controller.selectResidue(iRes, val);
+        }
+        if (val) {
+          this.iResLastSelected = iRes;
+        } else {
+          this.iResLastSelected = null;
+        }
         this.iDownAtom = null;
       }
 
@@ -92024,6 +92156,13 @@ var Display = function (_WebglWidget) {
         // for Firefox
         wheel = -event.detail / 12;
       }
+
+      // converted from pinch-zoom on mac
+      if (event.ctrlKey) {
+        wheel /= 10;
+        wheel *= -1;
+      }
+
       var zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1);
 
       this.adjustCamera(0, 0, 0, zoom);
@@ -92044,6 +92183,7 @@ var Display = function (_WebglWidget) {
 
       this.lastPinchRotation = event.rotation * 2;
       this.lastScale = event.scale * event.scale;
+      console.log('Display.gesturechange');
     }
   }, {
     key: 'gestureend',

@@ -26,8 +26,8 @@
             <md-button
               md-flex=true
               class="md-raised"
-              @click="loadStoredProtein()">
-              Load
+              @click="deleteProtein()">
+              Delete
             </md-button>
           </div>
           <md-layout
@@ -118,24 +118,29 @@ export default {
       backgroundColor: 0xCCCCCC
     })
 
-    // const dataServer0 = require('../../../dataservers/1be9-data-server')
-    // await this.joleculeWidget.asyncAddDataServer(dataServer0)
-
-    const dataServer0 = require('../../../dataservers/1a0a-data-server')
+    const dataServer0 = require('../../../dataservers/1be9-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer0)
-    const dataServer1 = require('../../../dataservers/1a0a-Ar-data-server')
-    await this.joleculeWidget.asyncAddDataServer(dataServer1)
-    const dataServer2 = require('../../../dataservers/1a0a-Kr-data-server')
+
+    const dataServer2 = require('../../../dataservers/1ubq-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer2)
-    const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
-    await this.joleculeWidget.asyncAddDataServer(dataServer3)
+
+    const dataServer1 = require('../../../dataservers/1mbo-data-server')
+    await this.joleculeWidget.asyncAddDataServer(dataServer1)
+
+    // const dataServer0 = require('../../../dataservers/1a0a-data-server')
+    // await this.joleculeWidget.asyncAddDataServer(dataServer0)
+    // const dataServer1 = require('../../../dataservers/1a0a-Ar-data-server')
+    // await this.joleculeWidget.asyncAddDataServer(dataServer1)
+    // const dataServer2 = require('../../../dataservers/1a0a-Kr-data-server')
+    // await this.joleculeWidget.asyncAddDataServer(dataServer2)
+    // const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
+    // await this.joleculeWidget.asyncAddDataServer(dataServer3)
 
     this.changeGraph()
   },
   methods: {
-    async loadStoredProtein () {
-      const dataServer0 = require('../../../dataservers/1be9-data-server')
-      await this.joleculeWidget.asyncAddDataServer(dataServer0)
+    async deleteProtein () {
+      this.joleculeWidget.display.deleteStructure(1)
       this.changeGraph()
     },
     async loadFromPdbId () {
