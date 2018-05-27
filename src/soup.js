@@ -1090,17 +1090,11 @@ class Soup {
   }
 
   clearSelectedResidues () {
-    let residue = this.getResidueProxy()
-    for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
-      residue.load(jRes).selected = false
-    }
+    this.residueSelect.clearAll()
   }
 
   clearSidechainResidues () {
-    let residue = this.getResidueProxy()
-    for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
-      residue.load(jRes).sidechain = false
-    }
+    this.residueSidechain.clearAll()
   }
 
   setSidechainOfResidues (residueIndices, isSidechain) {
