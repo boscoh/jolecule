@@ -50,7 +50,7 @@ export default {
     let tokenId = this.$route.params.tokenId
     console.log(`> ResetPassword tokenId=${tokenId}`)
     return {
-      title: 'Reset Password',
+      title: 'rebuilt Password',
       tokenId,
       rawPassword: '',
       rawPasswordConfirm: '',

@@ -29,8 +29,8 @@
                 isEditable: false,
                 isGrid: true,
               });
-            require(["data-server0", "data-server1", "data-server2", "data-server3", "data-server4", "data-server5"], function(dataServer0, dataServer1, dataServer2, dataServer3, dataServer4, dataServer5) {
-              var dataServers = [dataServer0, dataServer1, dataServer2, dataServer3, dataServer4, dataServer5];
+            require(["data-server0"], function(dataServer0) {
+              var dataServers = [dataServer0];
               for (var dataServer of dataServers) {
                 j.asyncAddDataServer(dataServer);
               }

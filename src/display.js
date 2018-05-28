@@ -437,8 +437,8 @@ class Display extends WebglWidget {
     super(divTag, backgroundColor)
 
     this.observers = {
-      reset: new Signal(),
-      drawn: new Signal(),
+      rebuilt: new Signal(),
+      updated: new Signal(),
       resized: new Signal()
     }
 
@@ -478,11 +478,11 @@ class Display extends WebglWidget {
   }
 
   addObserver (observer) {
-    if ('draw' in observer) {
-      this.observers.drawn.add(() => { observer.draw() })
+    if ('update' in observer) {
+      this.observers.updated.add(() => { observer.update() })
     }
-    if ('reset' in observer) {
-      this.observers.reset.add(() => { observer.reset() })
+    if ('rebuild' in observer) {
+      this.observers.rebuilt.add(() => { observer.rebuild() })
     }
     if ('resize' in observer) {
       this.observers.resized.add(() => { observer.resize() })
@@ -559,7 +559,7 @@ class Display extends WebglWidget {
 
     this.rebuildSceneFromMeshes()
 
-    this.observers.reset.dispatch()
+    this.observers.rebuilt.dispatch()
 
     this.soupView.changed = true
     this.soupView.updateObservers = true
@@ -876,105 +876,8 @@ class Display extends WebglWidget {
   }
 
   deleteStructure (iStructure) {
-    let atom = this.soup.getAtomProxy()
-    let res = this.soup.getResidueProxy()
-
-    let iAtomStart = null
-    let iAtomEnd = null
-    let iResStart = null
-    let iResEnd = null
-
-    for (let iAtom = 0; iAtom < this.soup.getAtomCount(); iAtom += 1) {
-      atom.iAtom = iAtom
-      res.iRes = atom.iRes
-      if (res.iStructure === iStructure) {
-        if (iAtomStart === null) {
-          iAtomStart = iAtom
-        }
-        iAtomEnd = iAtom + 1
-        if (iResStart === null) {
-          iResStart = atom.iRes
-        }
-        iResEnd = atom.iRes + 1
-      }
-    }
-
-    let nAtomOffset = iAtomEnd - iAtomStart
-    let nAtom = this.soup.getAtomCount()
-    let nAtomNew = nAtom - nAtomOffset
-    let nAtomCopy = nAtom - iAtomEnd
-
-    let nResOffset = iResEnd - iResStart
-    let nRes = this.soup.getResidueCount()
-    let nResNew = nRes - nResOffset
-    let nResCopy = nRes - iResEnd
-
-    this.soup.atomStore.copyWithin(iAtomStart, iAtomEnd, nAtomCopy)
-    this.soup.atomStore.count -= nAtomOffset
-
-    for (let iAtom = 0; iAtom < nAtomNew; iAtom += 1) {
-      atom.iAtom = iAtom
-      if (atom.iRes >= iResStart) {
-        atom.iRes -= nResOffset
-      }
-    }
-
-    let newResidueSelect = new BitArray(nResNew)
-    let newResidueSidechain = new BitArray(nResNew)
-
-    for (let iRes = 0; iRes < nResNew; iRes += 1) {
-      if (iRes >= iResStart) {
-        let iResOld = iRes + nResOffset
-        if (iResOld in this.soup.residueNormal) {
-          this.soup.residueNormal[iRes] = this.soup.residueNormal[iResOld].clone()
-          delete this.soup.residueNormal[iResOld]
-        }
-        if (this.soup.residueSelect.get(iResOld)) {
-          newResidueSelect.set(iRes)
-        }
-        if (this.soup.residueSidechain.get(iResOld)) {
-          newResidueSidechain.set(iRes)
-        }
-      } else {
-        if (this.soup.residueSelect.get(iRes)) {
-          newResidueSelect.set(iRes)
-        }
-        if (this.soup.residueSidechain.get(iRes)) {
-          newResidueSidechain.set(iRes)
-        }
-      }
-    }
-    this.soup.residueSelect = newResidueSelect
-    this.soup.residueSidechain = newResidueSidechain
-
-    this.soup.residueStore.copyWithin(iResStart, iResEnd, nResCopy)
-    this.soup.residueStore.count -= nResOffset
-    this.soup.resIds.splice(iResStart, nResOffset)
-
-    for (let iRes = 0; iRes < nResNew; iRes += 1) {
-      res.iRes = iRes
-      if (res.iAtom >= iAtomStart) {
-        res.iAtom -= nAtomOffset
-        atom.iAtom = res.iAtom
-      }
-      if (this.soup.residueStore.atomOffset[iRes] >= iAtomStart) {
-        this.soup.residueStore.atomOffset[iRes] -= nAtomOffset
-      }
-      if (res.iStructure >= iStructure) {
-        res.iStructure -= 1
-      }
-    }
-
-    this.soup.structureIds.splice(iStructure, 1)
-
-    this.soup.calcBondsStrategic()
-    this.soup.calcMaxLength()
-
-    this.soupView.updateSidechain = true
-    this.soupView.updateSelection = true
-
-    this.observers.reset.dispatch()
-
+    this.controller.deleteStructure(iStructure)
+    this.observers.rebuilt.dispatch()
     this.buildScene()
   }
 
@@ -1162,7 +1065,7 @@ class Display extends WebglWidget {
     return this.soupView.changed
   }
 
-  draw () {
+  drawFrame () {
     if (!this.isChanged()) {
       return
     }
@@ -1230,19 +1133,19 @@ class Display extends WebglWidget {
 
     this.rotateCameraParamsToCurrentView()
 
-    // needs to be observers.drawn before render
+    // needs to be observers.updated before render
     // as lines must be placed in THREE.js scene
-    this.distanceMeasuresWidget.draw()
+    this.distanceMeasuresWidget.drawFrame()
 
     this.displayRender()
 
     if (this.soupView.updateObservers) {
-      this.observers.drawn.dispatch()
+      this.observers.updated.dispatch()
       this.soupView.updateObservers = false
     }
 
-    // needs to be observers.drawn after render
-    this.atomLabelsWidget.draw()
+    // needs to be observers.updated after render
+    this.atomLabelsWidget.drawFrame()
 
     this.soupView.changed = false
   }

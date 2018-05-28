@@ -31,7 +31,7 @@ function loop () {
 
   for (let widget of window.globalWidgets) {
     if (widget.isChanged()) {
-      widget.draw()
+      widget.drawFrame()
     }
   }
 

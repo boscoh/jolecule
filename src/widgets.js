@@ -140,7 +140,7 @@ class CanvasWidget {
       (y <= this.y() + this.height()))
   }
 
-  draw () {
+  update () {
   }
 
   resize () {
@@ -318,7 +318,7 @@ class AtomLabelsWidget {
     return popup
   }
 
-  draw () {
+  drawFrame () {
     let labels = this.soupView.currentView.labels
 
     if (labels.length > this.popups.length) {
@@ -409,7 +409,7 @@ class DistanceMeasuresWidget {
     return { line, div }
   }
 
-  draw () {
+  drawFrame () {
     let distances = this.soupView.currentView.distances
 
     if (distances.length > this.distanceMeasures.length) {
@@ -559,7 +559,7 @@ class SequenceWidget extends CanvasWidget {
       this.textXOffset)
   }
 
-  reset () {
+  rebuild () {
     this.residues.length = 0
     for (let trace of this.traces) {
       for (let i of _.range(trace.points.length)) {
@@ -590,7 +590,7 @@ class SequenceWidget extends CanvasWidget {
     this.iStartChar = 0
   }
 
-  draw () {
+  update () {
     if (!util.exists(this.soupView)) {
       return
     }
@@ -697,11 +697,11 @@ class SequenceWidget extends CanvasWidget {
       this.iStartChar = parseInt(this.iStartChar)
 
       this.controller.setTargetViewByIAtom(this.getCurrIAtom())
-      this.draw()
+      this.update()
     } else {
       this.iRes = this.xToIChar(this.pointerX)
       this.controller.setTargetViewByIAtom(this.getCurrIAtom())
-      this.draw()
+      this.update()
     }
   }
 }
@@ -728,7 +728,7 @@ class ZSlabWidget extends CanvasWidget {
       'height': this.height(),
     })
     super.resize()
-    this.draw()
+    this.update()
   }
 
   x () {
@@ -758,7 +758,7 @@ class ZSlabWidget extends CanvasWidget {
     return (0.5 - fraction) * this.width()
   }
 
-  draw () {
+  update () {
     let soup = this.soupView.soup
     let cameraParams = this.soupView.currentView.cameraParams
     this.maxZLength = 2 * soup.maxLength
@@ -820,7 +820,7 @@ class ZSlabWidget extends CanvasWidget {
     } else if (this.front) {
       this.controller.setZoom(zBack, Math.min(-2, this.z))
     }
-    this.draw()
+    this.update()
   }
 }
 
@@ -842,7 +842,7 @@ class GridToggleButtonWidget {
         e.preventDefault()
         this.toggle()
       })
-    this.draw()
+    this.update()
     display.addObserver(this)
   }
 
@@ -852,10 +852,10 @@ class GridToggleButtonWidget {
 
   toggle () {
     this.controller.toggleGridElem(this.elem)
-    this.draw()
+    this.update()
   }
 
-  draw () {
+  update () {
     if (this.getToggle()) {
       if (this.color) {
         this.div.css('background-color', this.color)
@@ -899,7 +899,7 @@ class GridControlWidget extends CanvasWidget {
     this.div.append(this.buttonsDiv)
   }
 
-  reset () {
+  rebuild () {
     if (!this.isGrid) {
       return
     }
@@ -981,7 +981,7 @@ class GridControlWidget extends CanvasWidget {
     return (z - grid.bMin) / diff * this.sliderHeight + 20
   }
 
-  draw () {
+  update () {
     if (!this.isGrid) {
       return
     }
@@ -1044,7 +1044,7 @@ class GridControlWidget extends CanvasWidget {
 
     this.getZ(event)
     this.controller.setGridCutoff(this.z)
-    this.draw()
+    this.update()
 
   }
 
@@ -1076,7 +1076,7 @@ class ResidueSelectorWidget {
     this.controller.setTargetViewByIAtom(residue.iAtom)
   }
 
-  reset () {
+  rebuild () {
     // clear selector
     this.$elem = $(this.divTag)
     this.$elem.empty()
@@ -1098,7 +1098,7 @@ class ResidueSelectorWidget {
     this.$elem.on('select2:select', () => { this.change() })
   }
 
-  draw () {
+  update () {
     if (this.$elem) {
       let iAtom = this.soupView.currentView.iAtom
       let iRes = this.soupView.soup.getAtomProxy(iAtom).iRes
@@ -1131,10 +1131,10 @@ class ToggleButtonWidget {
     if ((this.option === 'sidechains') && (newOptionVal === false)) {
       this.controller.clearSidechainResidues()
     }
-    this.draw()
+    this.update()
   }
 
-  draw () {
+  update () {
     if (this.controller.getShowOption(this.option)) {
       if (!this.div.hasClass('jolecule-button-toggle-on')) {
         this.div.addClass('jolecule-button-toggle-on')
@@ -1164,7 +1164,7 @@ class TogglePlayButtonWidget {
     this.controller.setLoop(!this.controller.getLoop())
   }
 
-  draw () {
+  update () {
     if (this.controller.getLoop()) {
       if (!this.div.hasClass('jolecule-button-toggle-on')) {
         this.div.addClass('jolecule-button-toggle-on')

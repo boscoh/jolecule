@@ -114,28 +114,10 @@ class EmbedJolecule {
       await this.display.asyncSetMesssage('Loading views...')
       await this.asyncLoadViews(dataServer)
     }
-    this.moveOutToSeeAll()
+    this.controller.zoomOut()
+    this.display.observers.rebuilt.dispatch()
     this.display.cleanupMessage()
     this.isProcessing.flag = false
-  }
-
-  moveOutToSeeAll () {
-    this.soup.calcMaxLength()
-    let newView = this.soupView.currentView.clone()
-    let cameraParams = newView.cameraParams
-    cameraParams.zFront = -this.soup.maxLength / 2
-    cameraParams.zBack = this.soup.maxLength / 2
-    cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75
-    let look = cameraParams.position.clone().sub(cameraParams.focus)
-    look.normalize()
-    let atom = this.soup.getAtomProxyOfCenter()
-    let iAtom = atom.iAtom
-    cameraParams.focus.copy(atom.pos)
-    cameraParams.position = cameraParams.focus.clone()
-      .add(look.multiplyScalar(cameraParams.zoom))
-    this.soupView.changed = true
-    this.display.observers.reset.dispatch()
-    this.controller.setTargetView(newView)
   }
 
   createProteinDiv () {

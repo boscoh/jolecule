@@ -216,7 +216,7 @@ class ViewPanelList {
       this.controller.getViewDicts(), success)
   }
 
-  draw () {
+  update () {
     for (let id in this.viewPiece) {
       if (!(id in this.soupView.savedViewsByViewId)) {
         this.viewPiece[id].div.remove()
@@ -253,7 +253,7 @@ class ViewPanelList {
   }
 
   redrawSelectedViewId (id) {
-    this.draw()
+    this.update()
     $('#jolecule-views')
       .stop()
       .scrollTo(
@@ -288,7 +288,7 @@ class ViewPanelList {
       this.controller.deleteView(id)
       this.viewPiece[id].div.remove()
       delete this.viewPiece[id]
-      this.draw()
+      this.update()
     })
   }
 
@@ -305,7 +305,7 @@ class ViewPanelList {
 
     this.saveViewsToDataServer(() => {
       jDiv.insertBefore(iDiv)
-      this.draw()
+      this.update()
       iDiv.css('background-color', '')
       jDiv.css('background-color', '')
     })
@@ -382,7 +382,7 @@ class ViewPanelList {
     let newId = randomId()
     this.controller.saveCurrentView(newId)
     this.insertNewViewDiv(newId)
-    this.draw()
+    this.update()
     this.viewPiece[newId].div.css('background-color', 'lightgray')
     this.saveViewsToDataServer(() => {
       console.log('ViewPieceList.makeNewView success')
@@ -455,15 +455,15 @@ class FullPageJolecule {
       } else {
         this.viewPanelList.setTargetByViewId('view:000000')
       }
-      this.viewPanelList.draw()
+      this.viewPanelList.update()
 
       this.embedJolecule.resize()
     }
   }
 
-  draw () {
+  update () {
     if (!_.isUndefined(this.viewPanelList)) {
-      this.viewPanelList.draw()
+      this.viewPanelList.update()
     }
   }
 

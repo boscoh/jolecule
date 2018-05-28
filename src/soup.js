@@ -6,7 +6,6 @@ import { SpaceHash } from './pairs.js'
 import Store from './store.js'
 import BitArray from './bitarray.js'
 import * as data from './data'
-import * as util from './util'
 
 let user = 'public' // will be overriden by server
 
@@ -1149,6 +1148,106 @@ class Soup {
     }
     this.grid.bCutoff = this.grid.bMin
   }
+
+  deleteStructure (iStructure) {
+    let atom = this.getAtomProxy()
+    let res = this.getResidueProxy()
+
+    let iAtomStart = null
+    let iAtomEnd = null
+    let iResStart = null
+    let iResEnd = null
+
+    for (let iAtom = 0; iAtom < this.getAtomCount(); iAtom += 1) {
+      atom.iAtom = iAtom
+      res.iRes = atom.iRes
+      if (res.iStructure === iStructure) {
+        if (iAtomStart === null) {
+          iAtomStart = iAtom
+        }
+        iAtomEnd = iAtom + 1
+        if (iResStart === null) {
+          iResStart = atom.iRes
+        }
+        iResEnd = atom.iRes + 1
+      }
+    }
+
+    let nAtomOffset = iAtomEnd - iAtomStart
+    let nAtom = this.getAtomCount()
+    let nAtomNew = nAtom - nAtomOffset
+    let nAtomCopy = nAtom - iAtomEnd
+
+    let nResOffset = iResEnd - iResStart
+    let nRes = this.getResidueCount()
+    let nResNew = nRes - nResOffset
+    let nResCopy = nRes - iResEnd
+
+    this.atomStore.copyWithin(iAtomStart, iAtomEnd, nAtomCopy)
+    this.atomStore.count -= nAtomOffset
+
+    for (let iAtom = 0; iAtom < nAtomNew; iAtom += 1) {
+      atom.iAtom = iAtom
+      if (atom.iRes >= iResStart) {
+        atom.iRes -= nResOffset
+      }
+    }
+
+    let newResidueSelect = new BitArray(nResNew)
+    let newResidueSidechain = new BitArray(nResNew)
+
+    for (let iRes = 0; iRes < nResNew; iRes += 1) {
+      if (iRes >= iResStart) {
+        let iResOld = iRes + nResOffset
+        if (iResOld in this.residueNormal) {
+          this.residueNormal[iRes] = this.residueNormal[iResOld].clone()
+        }
+        if (this.residueSelect.get(iResOld)) {
+          newResidueSelect.set(iRes)
+        }
+        if (this.residueSidechain.get(iResOld)) {
+          newResidueSidechain.set(iRes)
+        }
+      } else {
+        if (this.residueSelect.get(iRes)) {
+          newResidueSelect.set(iRes)
+        }
+        if (this.residueSidechain.get(iRes)) {
+          newResidueSidechain.set(iRes)
+        }
+      }
+    }
+
+    for (let iRes = nResNew; iRes < nRes; iRes += 1) {
+      delete this.residueNormal[iRes]
+    }
+
+    this.residueSelect = newResidueSelect
+    this.residueSidechain = newResidueSidechain
+
+    this.residueStore.copyWithin(iResStart, iResEnd, nResCopy)
+    this.residueStore.count -= nResOffset
+    this.resIds.splice(iResStart, nResOffset)
+
+    for (let iRes = 0; iRes < nResNew; iRes += 1) {
+      res.iRes = iRes
+      if (res.iAtom >= iAtomStart) {
+        res.iAtom -= nAtomOffset
+        atom.iAtom = res.iAtom
+      }
+      if (this.residueStore.atomOffset[iRes] >= iAtomStart) {
+        this.residueStore.atomOffset[iRes] -= nAtomOffset
+      }
+      if (res.iStructure >= iStructure) {
+        res.iStructure -= 1
+      }
+    }
+
+    this.structureIds.splice(iStructure, 1)
+
+    this.calcBondsStrategic()
+    this.calcMaxLength()
+  }
 }
 
 /**
@@ -1449,7 +1548,7 @@ class SoupView {
     this.nUpdateStep = -1
 
     // this is to set the time between transitions of views
-    this.maxUpdateStep = 20
+    this.maxUpdateStep = 30
   }
 
   initViewsAfterSoupLoad () {
@@ -1519,6 +1618,23 @@ class SoupView {
   saveView (view) {
     this.savedViewsByViewId[view.id] = view
     this.savedViews.push(view)
+  }
+
+  getZoomedOutView () {
+    this.soup.calcMaxLength()
+    let newView = this.currentView.clone()
+    let cameraParams = newView.cameraParams
+    cameraParams.zFront = -this.soup.maxLength / 2
+    cameraParams.zBack = this.soup.maxLength / 2
+    cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75
+    let look = cameraParams.position.clone().sub(cameraParams.focus)
+    look.normalize()
+    let atom = this.soup.getAtomProxyOfCenter()
+    let iAtom = atom.iAtom
+    cameraParams.focus.copy(atom.pos)
+    cameraParams.position = cameraParams.focus.clone()
+      .add(look.multiplyScalar(cameraParams.zoom))
+    return newView
   }
 }
 
@@ -1817,6 +1933,18 @@ class Controller {
   setLoop (v) {
     this.soupView.isLoop = v
     this.soupView.updateObservers = true
+    this.soupView.changed = true
+  }
+
+  deleteStructure (iStructure) {
+    this.soup.deleteStructure(iStructure)
+    this.soupView.updateSidechain = true
+    this.soupView.updateSelection = true
+    this.soupView.changed = true
+  }
+
+  zoomOut () {
+    this.setTargetView(this.soupView.getZoomedOutView())
     this.soupView.changed = true
   }
 }
