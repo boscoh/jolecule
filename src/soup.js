@@ -676,6 +676,30 @@ class Soup {
     return iAtomClosest
   }
 
+  getIAtomAtPosition (pos) {
+    let atomIndices = _.range(this.getAtomCount())
+    let iAtomClosest = null
+    let minD = 1E6
+    let atom = this.getAtomProxy()
+    for (let iAtom of atomIndices) {
+      if (iAtomClosest === null) {
+        iAtomClosest = iAtom
+      } else {
+        atom.iAtom = iAtom
+        let d = v3.distance(pos, atom.pos)
+        if (d < minD) {
+          iAtomClosest = iAtom
+          minD = d
+        }
+      }
+    }
+    if (minD < 0.1) {
+      return iAtomClosest
+    } else {
+      return -1
+    }
+  }
+
   getCenter (atomIndices) {
     let result = v3.create(0, 0, 0)
     let atom = this.getAtomProxy()
@@ -1311,25 +1335,6 @@ class View {
     this.cameraParams = cameraParams
   }
 
-  makeDefaultOfSoup (soup) {
-    let atom = soup.getAtomProxyOfCenter()
-    this.iAtom = atom.iAtom
-
-    this.show.sidechain = false
-
-    this.cameraParams.zFront = -soup.maxLength / 2
-    this.cameraParams.zBack = soup.maxLength / 2
-    this.cameraParams.zoom = Math.abs(soup.maxLength) * 1.75
-    this.cameraParams.up = v3.create(0, 1, 0)
-    this.cameraParams.focus.copy(atom.pos)
-    this.cameraParams.position = v3
-      .create(0, 0, -this.cameraParams.zoom).add(atom.pos)
-
-    this.order = 0
-    this.text = soup.title
-    this.pdb_id = soup.structureId
-  }
-
   getViewTranslatedTo (pos) {
     let view = this.clone()
     let disp = pos.clone().sub(view.cameraParams.focus)
@@ -1552,17 +1557,20 @@ class SoupView {
     this.maxUpdateStep = 30
   }
 
-  initViewsAfterSoupLoad () {
-    if (this.savedViews.length === 0) {
-      this.currentView.makeDefaultOfSoup(this.soup)
-      this.saveView(this.currentView)
-      this.changed = true
-    }
+  setCurrentViewToDefault () {
+    this.currentView.show.sidechain = false
+    this.currentView.order = 0
+    this.currentView.text = this.soup.title
+    this.currentView.pdb_id = this.soup.structureId
+    this.currentView = this.getZoomedOutViewOfCurrentView()
+    this.saveView(this.currentView)
+    this.changed = true
   }
 
   setTargetView (view) {
     this.startTargetAfterRender = true
     this.saveTargetView = view.clone()
+    this.saveTargetView.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus)
   }
 
   startTargetView () {
@@ -1571,7 +1579,6 @@ class SoupView {
     this.startTargetAfterRender = false
     this.changed = true
   }
-
 
   getCenteredAtom () {
     let iAtom = this.currentView.iAtom
@@ -1621,20 +1628,26 @@ class SoupView {
     this.savedViews.push(view)
   }
 
-  getZoomedOutView () {
+  getZoomedOutViewOfCurrentView () {
     this.soup.calcMaxLength()
+    let atomIndices = _.range(this.soup.getAtomCount())
+    let center = this.soup.getCenter(atomIndices)
+
     let newView = this.currentView.clone()
     let cameraParams = newView.cameraParams
+
     cameraParams.zFront = -this.soup.maxLength / 2
     cameraParams.zBack = this.soup.maxLength / 2
     cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75
-    let look = cameraParams.position.clone().sub(cameraParams.focus)
-    look.normalize()
-    let atom = this.soup.getAtomProxyOfCenter()
-    let iAtom = atom.iAtom
-    cameraParams.focus.copy(atom.pos)
+
+    let look = cameraParams.position.clone()
+      .sub(cameraParams.focus)
+      .normalize()
+    cameraParams.focus.copy(center)
     cameraParams.position = cameraParams.focus.clone()
       .add(look.multiplyScalar(cameraParams.zoom))
+
+    newView.iAtom = this.soup.getIAtomAtPosition(center)
     return newView
   }
 }
@@ -1945,7 +1958,7 @@ class Controller {
   }
 
   zoomOut () {
-    this.setTargetView(this.soupView.getZoomedOutView())
+    this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView())
     this.soupView.changed = true
   }
 }

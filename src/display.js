@@ -540,7 +540,9 @@ class Display extends WebglWidget {
    */
 
   buildScene () {
-    this.soupView.initViewsAfterSoupLoad()
+    if (this.soupView.savedViews.length === 0) {
+      this.soupView.setCurrentViewToDefault()
+    }
 
     // pre-calculations needed before building meshes
     let residue = this.soup.getResidueProxy()
@@ -1110,10 +1112,10 @@ class Display extends WebglWidget {
         }
       }
 
-      // glgeom.clearObject3D(this.displayMeshes['ribbons'])
+      glgeom.clearObject3D(this.displayMeshes['ribbons'])
       this.ribbonBufferGeometry.setColors()
-      // this.displayMeshes['ribbons'].add(new THREE.Mesh(
-      //   this.ribbonBufferGeometry, this.displayMaterial))
+      this.displayMeshes['ribbons'].add(new THREE.Mesh(
+        this.ribbonBufferGeometry, this.displayMaterial))
 
       this.buildMeshOfArrows()
       this.buildMeshOfResidueSidechains()

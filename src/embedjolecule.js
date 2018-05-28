@@ -69,11 +69,13 @@ class EmbedJolecule {
     let nRes = this.soup.getResidueCount()
     await this.display.asyncSetMesssage(
       `Calculating bonds for ${nAtom} atoms, ${nRes} residues...`)
+
     this.soup.calcBondsStrategic()
 
     let nBond = this.soup.getBondCount()
     await this.display.asyncSetMesssage(`Calculated ${nBond} bonds.`)
     await this.display.asyncSetMesssage(`Assigning secondary structure...`)
+
     this.soup.findSecondaryStructure()
 
     this.soupView.changed = true
