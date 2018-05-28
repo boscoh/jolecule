@@ -118,14 +118,14 @@ export default {
       backgroundColor: 0xCCCCCC
     })
 
+    const dataServer1 = require('../../../dataservers/1mbo-data-server')
+    await this.joleculeWidget.asyncAddDataServer(dataServer1)
+
     const dataServer0 = require('../../../dataservers/1be9-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer0)
 
     const dataServer2 = require('../../../dataservers/1ubq-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer2)
-
-    const dataServer1 = require('../../../dataservers/1mbo-data-server')
-    await this.joleculeWidget.asyncAddDataServer(dataServer1)
 
     // const dataServer0 = require('../../../dataservers/1a0a-data-server')
     // await this.joleculeWidget.asyncAddDataServer(dataServer0)

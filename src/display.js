@@ -126,7 +126,7 @@ class WebglWidget {
     bind('gestureend', e => this.gestureend(e))
   }
 
-  displayRender () {
+  render () {
     // leave this to the very last moment
     // to avoid the dreaded black canvas
     if (!util.exists(this.renderer)) {
@@ -1024,10 +1024,6 @@ class Display extends WebglWidget {
   }
 
   updateHover () {
-    // if (this.soupView.nUpdateStep > 1) {
-    //   this.hover.hide()
-    //   return
-    // }
     this.iHoverAtom = this.getIAtomHover()
     if (this.iHoverAtom) {
       let atom = this.soup.getAtomProxy(this.iHoverAtom)
@@ -1114,10 +1110,10 @@ class Display extends WebglWidget {
         }
       }
 
-      glgeom.clearObject3D(this.displayMeshes['ribbons'])
+      // glgeom.clearObject3D(this.displayMeshes['ribbons'])
       this.ribbonBufferGeometry.setColors()
-      this.displayMeshes['ribbons'].add(new THREE.Mesh(
-        this.ribbonBufferGeometry, this.displayMaterial))
+      // this.displayMeshes['ribbons'].add(new THREE.Mesh(
+      //   this.ribbonBufferGeometry, this.displayMaterial))
 
       this.buildMeshOfArrows()
       this.buildMeshOfResidueSidechains()
@@ -1137,7 +1133,7 @@ class Display extends WebglWidget {
     // as lines must be placed in THREE.js scene
     this.distanceMeasuresWidget.drawFrame()
 
-    this.displayRender()
+    this.render()
 
     if (this.soupView.updateObservers) {
       this.observers.updated.dispatch()

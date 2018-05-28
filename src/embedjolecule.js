@@ -44,79 +44,79 @@ class EmbedJolecule {
     resizeFn()
   };
 
-  async asyncLoadViews (dataServer) {
-    return new Promise(resolve => {
-      dataServer.get_views(viewDicts => {
-        this.controller.loadViewsFromViewDicts(viewDicts)
-        if (this.params.viewId in this.soupView.savedViewsByViewId) {
-          this.controller.setTargetViewByViewId(this.params.viewId)
-        }
-        resolve()
-      })
-    })
+  async asyncLoadProteinData (proteinData) {
+    let pdbText = proteinData.pdb_text
+    let pdbId = proteinData.pdb_id
+
+    if (proteinData.pdb_text.length === 0) {
+      await this.display.asyncSetMesssage('Error: no soup data')
+      return
+    }
+
+    await this.display.asyncSetMesssage(`Parsing '${pdbId}'`)
+    this.soup.parsePdbData(pdbText, pdbId)
+
+    if (this.soup.parsingError) {
+      let err = this.soup.parsingError
+      await this.display.asyncSetMesssage(`Error parsing soup: ${err}`)
+      return
+    }
+
+    this.soup.assignResidueSsAndCentralAtoms()
+    this.soup.calcMaxLength()
+
+    let nAtom = this.soup.getAtomCount()
+    let nRes = this.soup.getResidueCount()
+    await this.display.asyncSetMesssage(
+      `Calculating bonds for ${nAtom} atoms, ${nRes} residues...`)
+    this.soup.calcBondsStrategic()
+
+    let nBond = this.soup.getBondCount()
+    await this.display.asyncSetMesssage(`Calculated ${nBond} bonds.`)
+    await this.display.asyncSetMesssage(`Assigning secondary structure...`)
+    this.soup.findBackboneHbonds()
+    this.soup.findSecondaryStructure()
+
+    this.soupView.changed = true
+
+    this.display.buildScene()
+    this.resize()
   }
 
-  async asyncLoadSoup (dataServer) {
-    return new Promise(resolve => {
-      dataServer.get_protein_data(async (proteinData) => {
-        let pdbText = proteinData.pdb_text
-        let pdbId = proteinData.pdb_id
-
-        if (proteinData.pdb_text.length === 0) {
-          await this.display.asyncSetMesssage('Error: no soup data')
-          resolve()
-          return
-        }
-
-        await this.display.asyncSetMesssage(`Parsing '${pdbId}'`)
-        this.soup.parsePdbData(pdbText, pdbId)
-
-        if (this.soup.parsingError) {
-          let err = this.soup.parsingError
-          await this.display.asyncSetMesssage(`Error parsing soup: ${err}`)
-          resolve()
-          return
-        }
-
-        this.soup.assignResidueSsAndCentralAtoms()
-        this.soup.calcMaxLength()
-
-        let nAtom = this.soup.getAtomCount()
-        let nRes = this.soup.getResidueCount()
-        await this.display.asyncSetMesssage(
-          `Calculating bonds for ${nAtom} atoms, ${nRes} residues...`)
-        this.soup.calcBondsStrategic()
-
-        let nBond = this.soup.getBondCount()
-        await this.display.asyncSetMesssage(`Calculated ${nBond} bonds.`)
-        await this.display.asyncSetMesssage(`Assigning secondary structure...`)
-        this.soup.findBackboneHbonds()
-        this.soup.findSecondaryStructure()
-
-        this.soupView.changed = true
-
-        this.display.buildScene()
-        this.resize()
-
-        resolve()
-      })
-    })
+  loadViewDicts (viewDicts) {
+    this.controller.loadViewsFromViewDicts(viewDicts)
+    if (this.params.viewId in this.soupView.savedViewsByViewId) {
+      this.controller.setTargetViewByViewId(this.params.viewId)
+    }
   }
 
   async asyncAddDataServer (dataServer) {
     while (this.isProcessing.flag) {
       await delay(100)
     }
+
     this.isProcessing.flag = true
-    await this.asyncLoadSoup(dataServer)
+
+    await this.display.asyncSetMesssage('Loading structure...')
+    await new Promise(resolve => {
+      dataServer.get_protein_data(async (proteinD) => {
+        await this.asyncLoadProteinData(proteinD)
+        resolve()
+      })
+    })
+
     this.display.nDataServer += 1
+
     if (this.display.nDataServer === 1) {
       await this.display.asyncSetMesssage('Loading views...')
-      await this.asyncLoadViews(dataServer)
+      dataServer.get_views(viewDicts => { this.loadViewDicts(viewDicts) })
     }
+
     this.controller.zoomOut()
+
     this.display.observers.rebuilt.dispatch()
     this.display.cleanupMessage()
+
     this.isProcessing.flag = false
   }
 
