@@ -62,7 +62,7 @@ class EmbedJolecule {
       return
     }
 
-    this.soup.assignResidueSsAndCentralAtoms()
+    this.soup.assignResidueProperties()
     this.soup.calcMaxLength()
 
     let nAtom = this.soup.getAtomCount()
@@ -74,7 +74,6 @@ class EmbedJolecule {
     let nBond = this.soup.getBondCount()
     await this.display.asyncSetMesssage(`Calculated ${nBond} bonds.`)
     await this.display.asyncSetMesssage(`Assigning secondary structure...`)
-    this.soup.findBackboneHbonds()
     this.soup.findSecondaryStructure()
 
     this.soupView.changed = true

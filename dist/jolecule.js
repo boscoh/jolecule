@@ -78112,7 +78112,7 @@ var EmbedJolecule = function () {
                 pdbId = proteinData.pdb_id;
 
                 if (!(proteinData.pdb_text.length === 0)) {
-                  _context.next = 7;
+                  _context.next = 6;
                   break;
                 }
 
@@ -78120,51 +78120,49 @@ var EmbedJolecule = function () {
                 return this.display.asyncSetMesssage('Error: no soup data');
 
               case 5:
-                resolve();
                 return _context.abrupt('return');
 
-              case 7:
-                _context.next = 9;
+              case 6:
+                _context.next = 8;
                 return this.display.asyncSetMesssage('Parsing \'' + pdbId + '\'');
 
-              case 9:
+              case 8:
                 this.soup.parsePdbData(pdbText, pdbId);
 
                 if (!this.soup.parsingError) {
-                  _context.next = 16;
+                  _context.next = 14;
                   break;
                 }
 
                 err = this.soup.parsingError;
-                _context.next = 14;
+                _context.next = 13;
                 return this.display.asyncSetMesssage('Error parsing soup: ' + err);
 
-              case 14:
-                resolve();
+              case 13:
                 return _context.abrupt('return');
 
-              case 16:
+              case 14:
 
                 this.soup.assignResidueSsAndCentralAtoms();
                 this.soup.calcMaxLength();
 
                 nAtom = this.soup.getAtomCount();
                 nRes = this.soup.getResidueCount();
-                _context.next = 22;
+                _context.next = 20;
                 return this.display.asyncSetMesssage('Calculating bonds for ' + nAtom + ' atoms, ' + nRes + ' residues...');
 
-              case 22:
+              case 20:
                 this.soup.calcBondsStrategic();
 
                 nBond = this.soup.getBondCount();
-                _context.next = 26;
+                _context.next = 24;
                 return this.display.asyncSetMesssage('Calculated ' + nBond + ' bonds.');
 
-              case 26:
-                _context.next = 28;
+              case 24:
+                _context.next = 26;
                 return this.display.asyncSetMesssage('Assigning secondary structure...');
 
-              case 28:
+              case 26:
                 this.soup.findBackboneHbonds();
                 this.soup.findSecondaryStructure();
 
@@ -78173,7 +78171,7 @@ var EmbedJolecule = function () {
                 this.display.buildScene();
                 this.resize();
 
-              case 33:
+              case 31:
               case 'end':
                 return _context.stop();
             }
@@ -78188,71 +78186,52 @@ var EmbedJolecule = function () {
       return asyncLoadProteinData;
     }()
   }, {
-    key: 'asyncLoadViewDicts',
-    value: function () {
-      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(viewDicts) {
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                this.controller.loadViewsFromViewDicts(viewDicts);
-                if (this.params.viewId in this.soupView.savedViewsByViewId) {
-                  this.controller.setTargetViewByViewId(this.params.viewId);
-                }
-
-              case 2:
-              case 'end':
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
-
-      function asyncLoadViewDicts(_x2) {
-        return _ref2.apply(this, arguments);
+    key: 'loadViewDicts',
+    value: function loadViewDicts(viewDicts) {
+      this.controller.loadViewsFromViewDicts(viewDicts);
+      if (this.params.viewId in this.soupView.savedViewsByViewId) {
+        this.controller.setTargetViewByViewId(this.params.viewId);
       }
-
-      return asyncLoadViewDicts;
-    }()
+    }
   }, {
     key: 'asyncAddDataServer',
     value: function () {
-      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(dataServer) {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(dataServer) {
         var _this2 = this;
 
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
                 if (!this.isProcessing.flag) {
-                  _context5.next = 5;
+                  _context3.next = 5;
                   break;
                 }
 
-                _context5.next = 3;
+                _context3.next = 3;
                 return (0, _util.delay)(100);
 
               case 3:
-                _context5.next = 0;
+                _context3.next = 0;
                 break;
 
               case 5:
 
                 this.isProcessing.flag = true;
 
-                _context5.next = 8;
+                _context3.next = 8;
                 return this.display.asyncSetMesssage('Loading structure...');
 
               case 8:
-                _context5.next = 10;
+                _context3.next = 10;
                 return new Promise(function (resolve) {
                   dataServer.get_protein_data(function () {
-                    var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(proteinD) {
-                      return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(proteinD) {
+                      return regeneratorRuntime.wrap(function _callee2$(_context2) {
                         while (1) {
-                          switch (_context3.prev = _context3.next) {
+                          switch (_context2.prev = _context2.next) {
                             case 0:
-                              _context3.next = 2;
+                              _context2.next = 2;
                               return _this2.asyncLoadProteinData(proteinD);
 
                             case 2:
@@ -78260,14 +78239,14 @@ var EmbedJolecule = function () {
 
                             case 3:
                             case 'end':
-                              return _context3.stop();
+                              return _context2.stop();
                           }
                         }
-                      }, _callee3, _this2);
+                      }, _callee2, _this2);
                     }));
 
-                    return function (_x4) {
-                      return _ref4.apply(this, arguments);
+                    return function (_x3) {
+                      return _ref3.apply(this, arguments);
                     };
                   }());
                 });
@@ -78277,60 +78256,37 @@ var EmbedJolecule = function () {
                 this.display.nDataServer += 1;
 
                 if (!(this.display.nDataServer === 1)) {
-                  _context5.next = 16;
+                  _context3.next = 15;
                   break;
                 }
 
-                _context5.next = 14;
+                _context3.next = 14;
                 return this.display.asyncSetMesssage('Loading views...');
 
               case 14:
-                _context5.next = 16;
-                return new Promise(function (resolve) {
-                  dataServer.get_views(function () {
-                    var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(viewDicts) {
-                      return regeneratorRuntime.wrap(function _callee4$(_context4) {
-                        while (1) {
-                          switch (_context4.prev = _context4.next) {
-                            case 0:
-                              _context4.next = 2;
-                              return _this2.asyncLoadViewDicts(viewDicts);
-
-                            case 2:
-                              resolve();
-
-                            case 3:
-                            case 'end':
-                              return _context4.stop();
-                          }
-                        }
-                      }, _callee4, _this2);
-                    }));
-
-                    return function (_x5) {
-                      return _ref5.apply(this, arguments);
-                    };
-                  }());
+                dataServer.get_views(function (viewDicts) {
+                  _this2.loadViewDicts(viewDicts);
                 });
 
-              case 16:
+              case 15:
 
                 this.controller.zoomOut();
+
                 this.display.observers.rebuilt.dispatch();
                 this.display.cleanupMessage();
 
                 this.isProcessing.flag = false;
 
-              case 20:
+              case 19:
               case 'end':
-                return _context5.stop();
+                return _context3.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee3, this);
       }));
 
-      function asyncAddDataServer(_x3) {
-        return _ref3.apply(this, arguments);
+      function asyncAddDataServer(_x2) {
+        return _ref2.apply(this, arguments);
       }
 
       return asyncAddDataServer;

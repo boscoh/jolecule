@@ -466,7 +466,7 @@ class Soup {
 
     this.parsePdbData(pdbData.pdb_text, this.structureId)
 
-    this.assignResidueSsAndCentralAtoms()
+    this.assignResidueProperties()
 
     console.log(
       `Soup.load processed ${this.getAtomCount()} atoms, ` +
@@ -623,7 +623,7 @@ class Soup {
     return this.getAtomProxy(iAtom)
   }
 
-  assignResidueSsAndCentralAtoms () {
+  assignResidueProperties () {
     let res = this.getResidueProxy()
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
       res.iRes = iRes
@@ -894,6 +894,7 @@ class Soup {
    * - R - non-standard nucleotide
    */
   findSecondaryStructure () {
+    this.findBackboneHbonds()
     let conhPartners = this.conhPartners
     let residueNormals = {}
 
