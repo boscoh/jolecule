@@ -223,7 +223,7 @@ class WebglWidget {
     directedLight.dontDelete = true
     this.lights.push(directedLight)
 
-    let ambientLight = new THREE.AmbientLight(0x202020)
+    let ambientLight = new THREE.AmbientLight(0x606060, 1)
     ambientLight.dontDelete = true
     this.lights.push(ambientLight)
 
@@ -446,11 +446,9 @@ class Display extends WebglWidget {
     this.soupView = soupView
     this.soup = soupView.soup
     this.controller = controller
-    this.nDataServer = 0
 
     // stores trace of protein/nucleotide backbones for ribbons
     this.traces = []
-    this.saveColors = {}
 
     // screen atom radius
     this.atomRadius = 0.35
@@ -550,6 +548,7 @@ class Display extends WebglWidget {
       residue.iRes = iRes
       residue.color = data.getSsColor(residue.ss)
     }
+
     this.soup.findGridLimits()
     this.calculateTracesForRibbons()
 
@@ -1036,7 +1035,7 @@ class Display extends WebglWidget {
         label += ':' + 'E=' + this.soup.grid.convertB(atom.bfactor)
       }
       let text = ''
-      if (iAtom === this.soupView.getCenteredAtom().iAtom) {
+      if (iAtom === this.soupView.getICenteredAtom()) {
         text = '<div style="text-align: center">'
         text += label
         text += '<br>[drag distances]<br>'
@@ -1193,7 +1192,7 @@ class Display extends WebglWidget {
 
   doubleclick () {
     if (this.iHoverAtom !== null) {
-      if (this.iHoverAtom === this.soupView.getCenteredAtom().iAtom) {
+      if (this.iHoverAtom === this.soupView.getICenteredAtom()) {
         this.atomLabelDialog()
       } else {
         let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
@@ -1202,6 +1201,8 @@ class Display extends WebglWidget {
         this.setTargetViewByIAtom(this.iHoverAtom)
       }
       this.isDraggingCentralAtom = false
+    } else {
+      this.controller.zoomOut()
     }
   }
 
@@ -1213,7 +1214,7 @@ class Display extends WebglWidget {
     this.updateHover()
 
     this.iDownAtom = this.getIAtomHover()
-    let iCenterAtom = this.soupView.getCenteredAtom().iAtom
+    let iCenterAtom = this.soupView.getICenteredAtom()
 
     let now = (new Date()).getTime()
     let isDoubleClick = (now - this.timePressed) < 500

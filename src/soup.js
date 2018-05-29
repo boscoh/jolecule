@@ -1580,9 +1580,8 @@ class SoupView {
     this.changed = true
   }
 
-  getCenteredAtom () {
-    let iAtom = this.currentView.iAtom
-    return this.soup.getAtomProxy(iAtom)
+  getICenteredAtom () {
+    return this.currentView.iAtom
   }
 
   getIViewFromViewId (viewId) {
@@ -1630,6 +1629,7 @@ class SoupView {
 
   getZoomedOutViewOfCurrentView () {
     this.soup.calcMaxLength()
+
     let atomIndices = _.range(this.soup.getAtomCount())
     let center = this.soup.getCenter(atomIndices)
 

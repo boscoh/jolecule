@@ -78143,7 +78143,7 @@ var EmbedJolecule = function () {
 
               case 14:
 
-                this.soup.assignResidueSsAndCentralAtoms();
+                this.soup.assignResidueProperties();
                 this.soup.calcMaxLength();
 
                 nAtom = this.soup.getAtomCount();
@@ -78152,6 +78152,7 @@ var EmbedJolecule = function () {
                 return this.display.asyncSetMesssage('Calculating bonds for ' + nAtom + ' atoms, ' + nRes + ' residues...');
 
               case 20:
+
                 this.soup.calcBondsStrategic();
 
                 nBond = this.soup.getBondCount();
@@ -78163,7 +78164,7 @@ var EmbedJolecule = function () {
                 return this.display.asyncSetMesssage('Assigning secondary structure...');
 
               case 26:
-                this.soup.findBackboneHbonds();
+
                 this.soup.findSecondaryStructure();
 
                 this.soupView.changed = true;
@@ -78171,7 +78172,7 @@ var EmbedJolecule = function () {
                 this.display.buildScene();
                 this.resize();
 
-              case 31:
+              case 30:
               case 'end':
                 return _context.stop();
             }
@@ -78954,7 +78955,7 @@ var Soup = function () {
 
       this.parsePdbData(pdbData.pdb_text, this.structureId);
 
-      this.assignResidueSsAndCentralAtoms();
+      this.assignResidueProperties();
 
       console.log('Soup.load processed ' + this.getAtomCount() + ' atoms, ' + (this.getResidueCount() + ' residues'));
 
@@ -79137,8 +79138,8 @@ var Soup = function () {
       return this.getAtomProxy(iAtom);
     }
   }, {
-    key: 'assignResidueSsAndCentralAtoms',
-    value: function assignResidueSsAndCentralAtoms() {
+    key: 'assignResidueProperties',
+    value: function assignResidueProperties() {
       var res = this.getResidueProxy();
       for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
         res.iRes = iRes;
@@ -79213,9 +79214,11 @@ var Soup = function () {
       return iAtomClosest;
     }
   }, {
-    key: 'getCenter',
-    value: function getCenter(atomIndices) {
-      var result = _v2.default.create(0, 0, 0);
+    key: 'getIAtomAtPosition',
+    value: function getIAtomAtPosition(pos) {
+      var atomIndices = _lodash2.default.range(this.getAtomCount());
+      var iAtomClosest = null;
+      var minD = 1E6;
       var atom = this.getAtomProxy();
       var _iteratorNormalCompletion7 = true;
       var _didIteratorError7 = false;
@@ -79225,7 +79228,16 @@ var Soup = function () {
         for (var _iterator7 = atomIndices[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
           var iAtom = _step7.value;
 
-          result = _v2.default.sum(result, atom.load(iAtom).pos);
+          if (iAtomClosest === null) {
+            iAtomClosest = iAtom;
+          } else {
+            atom.iAtom = iAtom;
+            var d = _v2.default.distance(pos, atom.pos);
+            if (d < minD) {
+              iAtomClosest = iAtom;
+              minD = d;
+            }
+          }
         }
       } catch (err) {
         _didIteratorError7 = true;
@@ -79238,6 +79250,42 @@ var Soup = function () {
         } finally {
           if (_didIteratorError7) {
             throw _iteratorError7;
+          }
+        }
+      }
+
+      if (minD < 0.1) {
+        return iAtomClosest;
+      } else {
+        return -1;
+      }
+    }
+  }, {
+    key: 'getCenter',
+    value: function getCenter(atomIndices) {
+      var result = _v2.default.create(0, 0, 0);
+      var atom = this.getAtomProxy();
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
+
+      try {
+        for (var _iterator8 = atomIndices[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var iAtom = _step8.value;
+
+          result = _v2.default.sum(result, atom.load(iAtom).pos);
+        }
+      } catch (err) {
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
+          }
+        } finally {
+          if (_didIteratorError8) {
+            throw _iteratorError8;
           }
         }
       }
@@ -79339,20 +79387,20 @@ var Soup = function () {
         residue2.iRes = iRes1;
 
         // cycle through all atoms within a residue
-        var _iteratorNormalCompletion8 = true;
-        var _didIteratorError8 = false;
-        var _iteratorError8 = undefined;
+        var _iteratorNormalCompletion9 = true;
+        var _didIteratorError9 = false;
+        var _iteratorError9 = undefined;
 
         try {
-          for (var _iterator8 = residue2.getAtomIndices()[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-            var _iAtom = _step8.value;
-            var _iteratorNormalCompletion9 = true;
-            var _didIteratorError9 = false;
-            var _iteratorError9 = undefined;
+          for (var _iterator9 = residue2.getAtomIndices()[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+            var _iAtom = _step9.value;
+            var _iteratorNormalCompletion10 = true;
+            var _didIteratorError10 = false;
+            var _iteratorError10 = undefined;
 
             try {
-              for (var _iterator9 = residue2.getAtomIndices()[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-                var iAtom2 = _step9.value;
+              for (var _iterator10 = residue2.getAtomIndices()[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                var iAtom2 = _step10.value;
 
                 atom1.iAtom = _iAtom;
                 atom2.iAtom = iAtom2;
@@ -79361,31 +79409,31 @@ var Soup = function () {
                 }
               }
             } catch (err) {
-              _didIteratorError9 = true;
-              _iteratorError9 = err;
+              _didIteratorError10 = true;
+              _iteratorError10 = err;
             } finally {
               try {
-                if (!_iteratorNormalCompletion9 && _iterator9.return) {
-                  _iterator9.return();
+                if (!_iteratorNormalCompletion10 && _iterator10.return) {
+                  _iterator10.return();
                 }
               } finally {
-                if (_didIteratorError9) {
-                  throw _iteratorError9;
+                if (_didIteratorError10) {
+                  throw _iteratorError10;
                 }
               }
             }
           }
         } catch (err) {
-          _didIteratorError8 = true;
-          _iteratorError8 = err;
+          _didIteratorError9 = true;
+          _iteratorError9 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion8 && _iterator8.return) {
-              _iterator8.return();
+            if (!_iteratorNormalCompletion9 && _iterator9.return) {
+              _iterator9.return();
             }
           } finally {
-            if (_didIteratorError8) {
-              throw _iteratorError8;
+            if (_didIteratorError9) {
+              throw _iteratorError9;
             }
           }
         }
@@ -79471,13 +79519,13 @@ var Soup = function () {
         }
 
         var spaceHash = new _pairs.SpaceHash(vertices);
-        var _iteratorNormalCompletion10 = true;
-        var _didIteratorError10 = false;
-        var _iteratorError10 = undefined;
+        var _iteratorNormalCompletion11 = true;
+        var _didIteratorError11 = false;
+        var _iteratorError11 = undefined;
 
         try {
-          for (var _iterator10 = spaceHash.getClosePairs()[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-            var pair = _step10.value;
+          for (var _iterator11 = spaceHash.getClosePairs()[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+            var pair = _step11.value;
 
             atom0.iAtom = atomIndices[pair[0]];
             atom1.iAtom = atomIndices[pair[1]];
@@ -79499,16 +79547,16 @@ var Soup = function () {
             }
           }
         } catch (err) {
-          _didIteratorError10 = true;
-          _iteratorError10 = err;
+          _didIteratorError11 = true;
+          _iteratorError11 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion10 && _iterator10.return) {
-              _iterator10.return();
+            if (!_iteratorNormalCompletion11 && _iterator11.return) {
+              _iterator11.return();
             }
           } finally {
-            if (_didIteratorError10) {
-              throw _iteratorError10;
+            if (_didIteratorError11) {
+              throw _iteratorError11;
             }
           }
         }
@@ -79533,6 +79581,7 @@ var Soup = function () {
   }, {
     key: 'findSecondaryStructure',
     value: function findSecondaryStructure() {
+      this.findBackboneHbonds();
       var conhPartners = this.conhPartners;
       var residueNormals = {};
 
@@ -79610,13 +79659,13 @@ var Soup = function () {
 
       var betaResidues = [];
       var spaceHash = new _pairs.SpaceHash(vertices);
-      var _iteratorNormalCompletion11 = true;
-      var _didIteratorError11 = false;
-      var _iteratorError11 = undefined;
+      var _iteratorNormalCompletion12 = true;
+      var _didIteratorError12 = false;
+      var _iteratorError12 = undefined;
 
       try {
-        for (var _iterator11 = spaceHash.getClosePairs()[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-          var pair = _step11.value;
+        for (var _iterator12 = spaceHash.getClosePairs()[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+          var pair = _step12.value;
 
           var _pair = _slicedToArray(pair, 2),
               iVertex0 = _pair[0],
@@ -79652,33 +79701,6 @@ var Soup = function () {
           }
         }
       } catch (err) {
-        _didIteratorError11 = true;
-        _iteratorError11 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion11 && _iterator11.return) {
-            _iterator11.return();
-          }
-        } finally {
-          if (_didIteratorError11) {
-            throw _iteratorError11;
-          }
-        }
-      }
-
-      var _iteratorNormalCompletion12 = true;
-      var _didIteratorError12 = false;
-      var _iteratorError12 = undefined;
-
-      try {
-        for (var _iterator12 = betaResidues[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-          var _iRes6 = _step12.value;
-
-          residue0.load(_iRes6).ss = 'E';
-        }
-
-        // average residueNormals to make a nice average
-      } catch (err) {
         _didIteratorError12 = true;
         _iteratorError12 = err;
       } finally {
@@ -79693,30 +79715,57 @@ var Soup = function () {
         }
       }
 
+      var _iteratorNormalCompletion13 = true;
+      var _didIteratorError13 = false;
+      var _iteratorError13 = undefined;
+
+      try {
+        for (var _iterator13 = betaResidues[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+          var _iRes6 = _step13.value;
+
+          residue0.load(_iRes6).ss = 'E';
+        }
+
+        // average residueNormals to make a nice average
+      } catch (err) {
+        _didIteratorError13 = true;
+        _iteratorError13 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion13 && _iterator13.return) {
+            _iterator13.return();
+          }
+        } finally {
+          if (_didIteratorError13) {
+            throw _iteratorError13;
+          }
+        }
+      }
+
       for (var _iRes2 = 0; _iRes2 < nRes; _iRes2 += 1) {
         if (_iRes2 in residueNormals && residueNormals[_iRes2].length > 0) {
           var normalSum = _v2.default.create(0, 0, 0);
-          var _iteratorNormalCompletion13 = true;
-          var _didIteratorError13 = false;
-          var _iteratorError13 = undefined;
+          var _iteratorNormalCompletion14 = true;
+          var _didIteratorError14 = false;
+          var _iteratorError14 = undefined;
 
           try {
-            for (var _iterator13 = residueNormals[_iRes2][Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-              var normal = _step13.value;
+            for (var _iterator14 = residueNormals[_iRes2][Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+              var normal = _step14.value;
 
               normalSum = _v2.default.sum(normalSum, normal);
             }
           } catch (err) {
-            _didIteratorError13 = true;
-            _iteratorError13 = err;
+            _didIteratorError14 = true;
+            _iteratorError14 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion13 && _iterator13.return) {
-                _iterator13.return();
+              if (!_iteratorNormalCompletion14 && _iterator14.return) {
+                _iterator14.return();
               }
             } finally {
-              if (_didIteratorError13) {
-                throw _iteratorError13;
+              if (_didIteratorError14) {
+                throw _iteratorError14;
               }
             }
           }
@@ -79792,51 +79841,51 @@ var Soup = function () {
         return false;
       }
 
-      var _iteratorNormalCompletion14 = true;
-      var _didIteratorError14 = false;
-      var _iteratorError14 = undefined;
+      var _iteratorNormalCompletion15 = true;
+      var _didIteratorError15 = false;
+      var _iteratorError15 = undefined;
 
       try {
-        for (var _iterator14 = atomIndices0[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-          var iAtom0 = _step14.value;
-          var _iteratorNormalCompletion15 = true;
-          var _didIteratorError15 = false;
-          var _iteratorError15 = undefined;
+        for (var _iterator15 = atomIndices0[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+          var iAtom0 = _step15.value;
+          var _iteratorNormalCompletion16 = true;
+          var _didIteratorError16 = false;
+          var _iteratorError16 = undefined;
 
           try {
-            for (var _iterator15 = atomIndices1[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-              var iAtom1 = _step15.value;
+            for (var _iterator16 = atomIndices1[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+              var iAtom1 = _step16.value;
 
               if (_v2.default.distance(atom0.load(iAtom0).pos, atom1.load(iAtom1).pos) < 4) {
                 return true;
               }
             }
           } catch (err) {
-            _didIteratorError15 = true;
-            _iteratorError15 = err;
+            _didIteratorError16 = true;
+            _iteratorError16 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion15 && _iterator15.return) {
-                _iterator15.return();
+              if (!_iteratorNormalCompletion16 && _iterator16.return) {
+                _iterator16.return();
               }
             } finally {
-              if (_didIteratorError15) {
-                throw _iteratorError15;
+              if (_didIteratorError16) {
+                throw _iteratorError16;
               }
             }
           }
         }
       } catch (err) {
-        _didIteratorError14 = true;
-        _iteratorError14 = err;
+        _didIteratorError15 = true;
+        _iteratorError15 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion14 && _iterator14.return) {
-            _iterator14.return();
+          if (!_iteratorNormalCompletion15 && _iterator15.return) {
+            _iterator15.return();
           }
         } finally {
-          if (_didIteratorError14) {
-            throw _iteratorError14;
+          if (_didIteratorError15) {
+            throw _iteratorError15;
           }
         }
       }
@@ -79857,27 +79906,27 @@ var Soup = function () {
     key: 'setSidechainOfResidues',
     value: function setSidechainOfResidues(residueIndices, isSidechain) {
       var residue = this.getResidueProxy();
-      var _iteratorNormalCompletion16 = true;
-      var _didIteratorError16 = false;
-      var _iteratorError16 = undefined;
+      var _iteratorNormalCompletion17 = true;
+      var _didIteratorError17 = false;
+      var _iteratorError17 = undefined;
 
       try {
-        for (var _iterator16 = residueIndices[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-          var iRes = _step16.value;
+        for (var _iterator17 = residueIndices[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+          var iRes = _step17.value;
 
           residue.load(iRes).sidechain = isSidechain;
         }
       } catch (err) {
-        _didIteratorError16 = true;
-        _iteratorError16 = err;
+        _didIteratorError17 = true;
+        _iteratorError17 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion16 && _iterator16.return) {
-            _iterator16.return();
+          if (!_iteratorNormalCompletion17 && _iterator17.return) {
+            _iterator17.return();
           }
         } finally {
-          if (_didIteratorError16) {
-            throw _iteratorError16;
+          if (_didIteratorError17) {
+            throw _iteratorError17;
           }
         }
       }
@@ -80104,25 +80153,6 @@ var View = function () {
       this.cameraParams = cameraParams;
     }
   }, {
-    key: 'makeDefaultOfSoup',
-    value: function makeDefaultOfSoup(soup) {
-      var atom = soup.getAtomProxyOfCenter();
-      this.iAtom = atom.iAtom;
-
-      this.show.sidechain = false;
-
-      this.cameraParams.zFront = -soup.maxLength / 2;
-      this.cameraParams.zBack = soup.maxLength / 2;
-      this.cameraParams.zoom = Math.abs(soup.maxLength) * 1.75;
-      this.cameraParams.up = _v2.default.create(0, 1, 0);
-      this.cameraParams.focus.copy(atom.pos);
-      this.cameraParams.position = _v2.default.create(0, 0, -this.cameraParams.zoom).add(atom.pos);
-
-      this.order = 0;
-      this.text = soup.title;
-      this.pdb_id = soup.structureId;
-    }
-  }, {
     key: 'getViewTranslatedTo',
     value: function getViewTranslatedTo(pos) {
       var view = this.clone();
@@ -80327,19 +80357,22 @@ var SoupView = function () {
   }
 
   _createClass(SoupView, [{
-    key: 'initViewsAfterSoupLoad',
-    value: function initViewsAfterSoupLoad() {
-      if (this.savedViews.length === 0) {
-        this.currentView.makeDefaultOfSoup(this.soup);
-        this.saveView(this.currentView);
-        this.changed = true;
-      }
+    key: 'setCurrentViewToDefault',
+    value: function setCurrentViewToDefault() {
+      this.currentView.show.sidechain = false;
+      this.currentView.order = 0;
+      this.currentView.text = this.soup.title;
+      this.currentView.pdb_id = this.soup.structureId;
+      this.currentView = this.getZoomedOutViewOfCurrentView();
+      this.saveView(this.currentView);
+      this.changed = true;
     }
   }, {
     key: 'setTargetView',
     value: function setTargetView(view) {
       this.startTargetAfterRender = true;
       this.saveTargetView = view.clone();
+      this.saveTargetView.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
     }
   }, {
     key: 'startTargetView',
@@ -80350,10 +80383,9 @@ var SoupView = function () {
       this.changed = true;
     }
   }, {
-    key: 'getCenteredAtom',
-    value: function getCenteredAtom() {
-      var iAtom = this.currentView.iAtom;
-      return this.soup.getAtomProxy(iAtom);
+    key: 'getICenteredAtom',
+    value: function getICenteredAtom() {
+      return this.currentView.iAtom;
     }
   }, {
     key: 'getIViewFromViewId',
@@ -80403,20 +80435,25 @@ var SoupView = function () {
       this.savedViews.push(view);
     }
   }, {
-    key: 'getZoomedOutView',
-    value: function getZoomedOutView() {
+    key: 'getZoomedOutViewOfCurrentView',
+    value: function getZoomedOutViewOfCurrentView() {
       this.soup.calcMaxLength();
+
+      var atomIndices = _lodash2.default.range(this.soup.getAtomCount());
+      var center = this.soup.getCenter(atomIndices);
+
       var newView = this.currentView.clone();
       var cameraParams = newView.cameraParams;
+
       cameraParams.zFront = -this.soup.maxLength / 2;
       cameraParams.zBack = this.soup.maxLength / 2;
       cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75;
-      var look = cameraParams.position.clone().sub(cameraParams.focus);
-      look.normalize();
-      var atom = this.soup.getAtomProxyOfCenter();
-      var iAtom = atom.iAtom;
-      cameraParams.focus.copy(atom.pos);
+
+      var look = cameraParams.position.clone().sub(cameraParams.focus).normalize();
+      cameraParams.focus.copy(center);
       cameraParams.position = cameraParams.focus.clone().add(look.multiplyScalar(cameraParams.zoom));
+
+      newView.iAtom = this.soup.getIAtomAtPosition(center);
       return newView;
     }
   }]);
@@ -80739,41 +80776,15 @@ var Controller = function () {
     key: 'clear',
     value: function clear() {
       var distances = this.soupView.currentView.distances;
-      var _iteratorNormalCompletion17 = true;
-      var _didIteratorError17 = false;
-      var _iteratorError17 = undefined;
-
-      try {
-        for (var _iterator17 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
-          var i = _step17.value;
-
-          this.deleteDistance(i);
-        }
-      } catch (err) {
-        _didIteratorError17 = true;
-        _iteratorError17 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion17 && _iterator17.return) {
-            _iterator17.return();
-          }
-        } finally {
-          if (_didIteratorError17) {
-            throw _iteratorError17;
-          }
-        }
-      }
-
-      var labels = this.soupView.currentView.labels;
       var _iteratorNormalCompletion18 = true;
       var _didIteratorError18 = false;
       var _iteratorError18 = undefined;
 
       try {
-        for (var _iterator18 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-          var _i2 = _step18.value;
+        for (var _iterator18 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+          var i = _step18.value;
 
-          this.deleteAtomLabel(_i2);
+          this.deleteDistance(i);
         }
       } catch (err) {
         _didIteratorError18 = true;
@@ -80786,6 +80797,32 @@ var Controller = function () {
         } finally {
           if (_didIteratorError18) {
             throw _iteratorError18;
+          }
+        }
+      }
+
+      var labels = this.soupView.currentView.labels;
+      var _iteratorNormalCompletion19 = true;
+      var _didIteratorError19 = false;
+      var _iteratorError19 = undefined;
+
+      try {
+        for (var _iterator19 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+          var _i2 = _step19.value;
+
+          this.deleteAtomLabel(_i2);
+        }
+      } catch (err) {
+        _didIteratorError19 = true;
+        _iteratorError19 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion19 && _iterator19.return) {
+            _iterator19.return();
+          }
+        } finally {
+          if (_didIteratorError19) {
+            throw _iteratorError19;
           }
         }
       }
@@ -80816,7 +80853,7 @@ var Controller = function () {
   }, {
     key: 'zoomOut',
     value: function zoomOut() {
-      this.setTargetView(this.soupView.getZoomedOutView());
+      this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView());
       this.soupView.changed = true;
     }
   }]);
@@ -90485,7 +90522,7 @@ var WebglWidget = function () {
       directedLight.dontDelete = true;
       this.lights.push(directedLight);
 
-      var ambientLight = new THREE.AmbientLight(0x202020);
+      var ambientLight = new THREE.AmbientLight(0x606060, 1);
       ambientLight.dontDelete = true;
       this.lights.push(ambientLight);
 
@@ -90929,7 +90966,9 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'buildScene',
     value: function buildScene() {
-      this.soupView.initViewsAfterSoupLoad();
+      if (this.soupView.savedViews.length === 0) {
+        this.soupView.setCurrentViewToDefault();
+      }
 
       // pre-calculations needed before building meshes
       var residue = this.soup.getResidueProxy();
@@ -91794,7 +91833,7 @@ var Display = function (_WebglWidget) {
           label += ':' + 'E=' + this.soup.grid.convertB(atom.bfactor);
         }
         var text = '';
-        if (iAtom === this.soupView.getCenteredAtom().iAtom) {
+        if (iAtom === this.soupView.getICenteredAtom()) {
           text = '<div style="text-align: center">';
           text += label;
           text += '<br>[drag distances]<br>';
@@ -91896,8 +91935,6 @@ var Display = function (_WebglWidget) {
               }
             }
           }
-
-          // glgeom.clearObject3D(this.displayMeshes['ribbons'])
         } catch (err) {
           _didIteratorError21 = true;
           _iteratorError21 = err;
@@ -91913,9 +91950,9 @@ var Display = function (_WebglWidget) {
           }
         }
 
+        glgeom.clearObject3D(this.displayMeshes['ribbons']);
         this.ribbonBufferGeometry.setColors();
-        // this.displayMeshes['ribbons'].add(new THREE.Mesh(
-        //   this.ribbonBufferGeometry, this.displayMaterial))
+        this.displayMeshes['ribbons'].add(new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial));
 
         this.buildMeshOfArrows();
         this.buildMeshOfResidueSidechains();
@@ -91994,7 +92031,7 @@ var Display = function (_WebglWidget) {
     key: 'doubleclick',
     value: function doubleclick() {
       if (this.iHoverAtom !== null) {
-        if (this.iHoverAtom === this.soupView.getCenteredAtom().iAtom) {
+        if (this.iHoverAtom === this.soupView.getICenteredAtom()) {
           this.atomLabelDialog();
         } else {
           var iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes;
@@ -92015,7 +92052,7 @@ var Display = function (_WebglWidget) {
       this.updateHover();
 
       this.iDownAtom = this.getIAtomHover();
-      var iCenterAtom = this.soupView.getCenteredAtom().iAtom;
+      var iCenterAtom = this.soupView.getICenteredAtom();
 
       var now = new Date().getTime();
       var isDoubleClick = now - this.timePressed < 500;

@@ -35,6 +35,8 @@ class EmbedJolecule {
     this.soupView = new SoupView(this.soup)
     this.controller = new Controller(this.soupView)
 
+    this.nDataServer = 0
+
     this.createProteinDiv()
     this.createStatusDiv()
 
@@ -106,9 +108,9 @@ class EmbedJolecule {
       })
     })
 
-    this.display.nDataServer += 1
+    this.nDataServer += 1
 
-    if (this.display.nDataServer === 1) {
+    if (this.nDataServer === 1) {
       await this.display.asyncSetMesssage('Loading views...')
       dataServer.get_views(viewDicts => { this.loadViewDicts(viewDicts) })
     }
