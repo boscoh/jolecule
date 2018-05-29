@@ -487,18 +487,18 @@ class SequenceWidget extends CanvasWidget {
 
     this.display = display
     this.soupView = display.soupView
+    this.soup = display.soup
     this.controller = display.controller
     this.traces = display.traces
     this.display.addObserver(this)
 
-    this.iRes = 0
-
     this.offsetY = 4
     this.heightBar = 16
-    this.spacingY = 4
+    this.spacingY = 13
     this.backColor = '#CCC'
     this.selectColor = '#FFF'
-    this.highlightColor = '#222'
+    this.highlightColor = 'red'
+    this.borderColor = '#888'
 
     this.div.attr('id', 'sequence-widget')
     this.div.css({
@@ -527,7 +527,7 @@ class SequenceWidget extends CanvasWidget {
   }
 
   height () {
-    return this.offsetY + this.heightBar + this.spacingY * 6 + this.charHeight
+    return this.offsetY + this.heightBar + this.spacingY * 6 - 5
   }
 
   resize () {
@@ -561,27 +561,43 @@ class SequenceWidget extends CanvasWidget {
 
   rebuild () {
     this.residues.length = 0
-    for (let trace of this.traces) {
-      for (let i of _.range(trace.points.length)) {
-        let iRes = trace.indices[i]
-        let residue = trace.getReference(i)
-
-        let entry = {
-          iRes,
-          ss: residue.ss,
-          resId: residue.resId,
-          iAtom: residue.iAtom
-        }
-
-        let resType = residue.resType
-        if (resType in data.resToAa) {
-          entry.c = data.resToAa[resType]
-        } else {
-          entry.c = '.'
-        }
-
-        this.residues.push(entry)
+    let residue = this.soup.getResidueProxy()
+    let iChain = -1
+    let iStructure = 0
+    let nRes = this.soup.getResidueCount()
+    let nPadRes = 0.02*nRes
+    for (let iRes of _.range(nRes)) {
+      residue.iRes = iRes
+      if (!residue.isPolymer) {
+        continue
       }
+      if ((iStructure !== residue.iStructure) || (iChain !== residue.iChain)) {
+        iChain = residue.iChain
+        iStructure = residue.iStructure
+        this.residues.push({iChain, iStructure, c: '', start: true, ss: ''})
+        for (let i of _.range(nPadRes)) {
+          this.residues.push({iChain, iStructure, c: '', start: false, ss: ''})
+        }
+      }
+
+      let entry = {
+        iStructure,
+        iChain,
+        iRes,
+        start: false,
+        ss: residue.ss,
+        resId: residue.resId,
+        iAtom: residue.iAtom,
+      }
+
+      let resType = residue.resType
+      if (resType in data.resToAa) {
+        entry.c = data.resToAa[resType]
+      } else {
+        entry.c = '.'
+      }
+
+      this.residues.push(entry)
     }
 
     this.nResidue = this.residues.length
@@ -613,21 +629,38 @@ class SequenceWidget extends CanvasWidget {
     this.fillRect(
       0, 0, this.width(), this.height(), this.backColor)
 
-    this.fillRect(
-      this.textXOffset, 0, this.textWidth(), this.heightBar + this.spacingY * 2, this.backColor)
+    let yTopMid = this.offsetY + this.spacingY + this.charHeight / 2
+    let x1 = this.iToX(this.iStartChar)
+    let x2 = this.iToX(this.iEndChar)
 
+    // draw sequence bar background
     this.fillRect(
       this.textXOffset, this.offsetY + this.heightBar + this.spacingY * 2,
       this.textWidth(), this.charHeight + this.spacingY * 2, this.selectColor)
 
-    let x1 = this.iToX(this.iStartChar)
-    let x2 = this.iToX(this.iEndChar)
+    // draw border around sequence bar
+    this.line(
+      this.textXOffset - 3,
+      this.offsetY + this.heightBar + this.spacingY * 2,
+      this.textXOffset - 3 + this.textWidth(),
+      this.offsetY + this.heightBar + this.spacingY * 2,
+      this.borderColor)
+    this.line(
+      this.textXOffset - 3,
+      this.offsetY + this.heightBar + this.spacingY * 2 + this.charHeight + this.spacingY * 2,
+      this.textXOffset - 3 + this.textWidth(),
+      this.offsetY + this.heightBar + this.spacingY * 2 + this.charHeight + this.spacingY * 2,
+      this.borderColor)
 
+    // draw selected part of structure bar
     this.fillRect(
-      x1, this.offsetY, x2 - x1, this.heightBar + this.spacingY * 2,
+      x1, this.offsetY, x2 - x1, this.heightBar + this.spacingY * 2 + 3,
       1, this.selectColor)
 
-    // draw secondary-structure color bars
+    // draw line through structure bar
+    this.line(0, yTopMid, this.width(), yTopMid, 1, '#999')
+
+    // draw structure color bars
     let ss = this.residues[0].ss
     let iStart = 0
     let iEnd = 0
@@ -636,14 +669,21 @@ class SequenceWidget extends CanvasWidget {
       if (iEnd === this.nResidue || this.residues[iEnd].ss !== ss) {
         let x1 = this.iToX(iStart)
         let x2 = this.iToX(iEnd)
-        let color = data.getSsColor(ss).getStyle()
-        this.fillRect(
-          x1,
-          this.offsetY + this.spacingY,
-          x2 - x1,
-          this.heightBar,
-          color)
-
+        let yTop = this.offsetY + this.spacingY
+        let h = this.heightBar
+        if (ss !== '') {
+          let color = data.getSsColor(ss).getStyle()
+          if (ss !== 'C') {
+            yTop -= 4
+            h += 2*4
+          }
+          this.fillRect(
+            x1,
+            yTop,
+            x2 - x1,
+            h,
+            color)
+        }
         if (iEnd <= this.nResidue - 1) {
           iStart = iEnd
           ss = this.residues[iEnd].ss
@@ -651,32 +691,82 @@ class SequenceWidget extends CanvasWidget {
       }
     }
 
+    let iAtom = this.soupView.currentView.iAtom
+    let iResSelect = this.soupView.soup.getAtomProxy(iAtom).iRes
+
     // draw characters for sequence
     let y = this.offsetY + this.heightBar + this.spacingY * 3
+    let yMid = y + this.charHeight / 2
+
+    // draw line through sequence bar
+    this.line(0, yMid, this.width(), yMid, 1, '#999')
     for (let iChar = this.iStartChar; iChar < this.iEndChar; iChar += 1) {
       let residue = this.residues[iChar]
+      if (residue.c === '') {
+        continue
+      }
       let x1 = this.iCharToX(iChar)
       let colorStyle = data.getSsColor(residue.ss).getStyle()
+      let yTop = y
+      let h = this.charHeight
+      if (residue.ss !== 'C') {
+        yTop -= 4
+        h += 2*4
+      }
       this.fillRect(
-        x1, y, this.charWidth, this.charHeight, colorStyle)
+        x1, yTop, this.charWidth, h, colorStyle)
       this.text(
         residue.c,
         x1 + this.charWidth / 2, y + this.charHeight / 2,
-        '8pt Monospace', 'black', 'center')
-    }
+        '8pt Monospace', 'white', 'center')
 
-    let atom = this.soupView.soup.getAtomProxy(this.soupView.currentView.iAtom)
-    for (let iRes = this.iStartChar; iRes < this.iEndChar; iRes++) {
-      if (iRes === atom.iRes) {
+      // draw highlight res box
+      if ((iResSelect >= 0) && (iResSelect === residue.iRes)) {
         this.strokeRect(
-          this.iCharToX(iRes),
-          this.offsetY + this.heightBar + this.spacingY * 2,
+          x1,
+          yTop - 3,
           this.charWidth,
-          this.charHeight + this.spacingY * 2,
+          h + 6,
           this.highlightColor)
-        break
       }
     }
+
+    // draw black box around selected region in structure bar
+    this.line(
+      x1,
+      this.offsetY,
+      x2,
+      this.offsetY,
+      1,
+      this.borderColor)
+    this.line(
+      x1,
+      this.offsetY,
+      x1,
+      this.offsetY + this.heightBar + this.spacingY * 2 + 1,
+      1,
+      this.borderColor)
+    this.line(
+      x2,
+      this.offsetY,
+      x2,
+      this.offsetY + this.heightBar + this.spacingY * 2 + 1,
+      1,
+      this.borderColor)
+
+    // draw structure names
+    let iChar = 0
+    while (iChar < this.nResidue) {
+      if (this.residues[iChar].start) {
+        let x1 = this.iToX(iChar)
+        let res = this.residues[iChar]
+        let text = this.soup.structureIds[res.iStructure]
+        text += '-' + this.soup.chains[res.iChain]
+        this.text(text, x1, 10, '8pt Monospace', '#666', 'left')
+      }
+      iChar += 1
+    }
+
   }
 
   getCurrIAtom () {
@@ -690,7 +780,9 @@ class SequenceWidget extends CanvasWidget {
     this.getPointer(event)
     if (this.pointerY < (this.heightBar + this.spacingY * 2)) {
       this.iRes = this.xToI(this.pointerX)
-
+      if (this.residues[this.iRes].c === '') {
+        return
+      }
       // observerReset sequence window
       this.iStartChar = Math.max(this.iRes - 0.5 * this.nChar, 0)
       this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar)
@@ -700,6 +792,9 @@ class SequenceWidget extends CanvasWidget {
       this.update()
     } else {
       this.iRes = this.xToIChar(this.pointerX)
+      if (this.residues[this.iRes].c === '') {
+        return
+      }
       this.controller.setTargetViewByIAtom(this.getCurrIAtom())
       this.update()
     }
