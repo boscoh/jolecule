@@ -1669,6 +1669,7 @@ class Controller {
   constructor (scene) {
     this.soup = scene.soup
     this.soupView = scene
+    this.iResLastSelected = null
   }
 
   deleteDistance (iDistance) {
@@ -1795,9 +1796,46 @@ class Controller {
     this.soupView.changed = true
   }
 
-  selectResidue (iRes, val) {
+  setResidueSelect (iRes, val) {
     let res = this.soup.getResidueProxy(iRes)
     res.selected = val
+    this.soupView.updateSelection = true
+    this.soupView.changed = true
+  }
+
+  selectResidue (iRes) {
+    let res = this.soup.getResidueProxy(iRes)
+    let val = !res.selected
+    this.clearSelectedResidues()
+    this.setResidueSelect(iRes, val)
+    this.iResLastSelected = val ? iRes : null
+    this.soupView.updateSelection = true
+    this.soupView.changed = true
+  }
+
+  selectAdditionalResidue (iRes) {
+    let res = this.soup.getResidueProxy(iRes)
+    let val = !res.selected
+    this.setResidueSelect(iRes, val)
+    this.iResLastSelected = val ? iRes : null
+    this.soupView.updateSelection = true
+    this.soupView.changed = true
+  }
+
+  selectAdditionalRangeToResidue (iRes) {
+    let res = this.soup.getResidueProxy(iRes)
+    let val = !res.selected
+    if (this.iResLastSelected !== null) {
+      let lastRes = this.soup.getResidueProxy(this.iResLastSelected)
+      if (res.iStructure === lastRes.iStructure) {
+        let iFirstRes = Math.min(this.iResLastSelected, iRes)
+        let iLastRes = Math.max(this.iResLastSelected, iRes)
+        for (let i = iFirstRes; i < iLastRes + 1; i += 1) {
+          this.setResidueSelect(i, true)
+        }
+      }
+    }
+    this.iResLastSelected = val ? iRes : null
     this.soupView.updateSelection = true
     this.soupView.changed = true
   }

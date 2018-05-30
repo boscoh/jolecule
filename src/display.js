@@ -1119,6 +1119,7 @@ class Display extends WebglWidget {
       this.buildMeshOfResidueSidechains()
       this.soupView.updateSelection = false
       this.updateMeshesInScene = true
+      this.soupView.updateObservers = true
     }
 
     if (this.updateMeshesInScene) {
@@ -1196,7 +1197,7 @@ class Display extends WebglWidget {
       } else {
         let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
         // trick to ensure that the double-clicked atom is selected
-        this.controller.selectResidue(iRes, false)
+        this.controller.setResidueSelect(iRes, false)
         this.setTargetViewByIAtom(this.iHoverAtom)
       }
       this.isDraggingCentralAtom = false
@@ -1298,29 +1299,12 @@ class Display extends WebglWidget {
 
     if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
       let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
-      let res = this.soup.getResidueProxy(iRes)
-      let val = !res.selected
       if (!event.metaKey && !event.shiftKey) {
-        this.controller.clearSelectedResidues()
-      }
-      if (event.shiftKey) {
-        if (this.iResLastSelected !== null) {
-          let lastRes = this.soup.getResidueProxy(this.iResLastSelected)
-          if (res.iStructure === lastRes.iStructure) {
-            let iFirstRes = Math.min(this.iResLastSelected, iRes)
-            let iLastRes = Math.max(this.iResLastSelected, iRes)
-            for (let i = iFirstRes; i < iLastRes + 1; i += 1) {
-              this.controller.selectResidue(i, true)
-            }
-          }
-        }
+        this.controller.selectResidue(iRes)
+      } else if (event.shiftKey) {
+        this.controller.selectAdditionalRangeToResidue(iRes)
       } else {
-        this.controller.selectResidue(iRes, val)
-      }
-      if (val) {
-        this.iResLastSelected = iRes
-      } else {
-        this.iResLastSelected = null
+        this.controller.selectAdditionalResidue(iRes)
       }
       this.iDownAtom = null
     }

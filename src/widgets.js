@@ -108,6 +108,7 @@ class CanvasWidget {
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
     bind('mouseout', e => this.mouseup(e))
+    bind('dblclick', e => this.doubleclick(e))
     bind('touchstart', e => this.mousedown(e))
     bind('touchmove', e => this.mousemove(e))
     bind('touchend', e => this.mouseup(e))
@@ -197,6 +198,9 @@ class CanvasWidget {
   mouseup (event) {
     event.preventDefault()
     this.mousePressed = false
+  }
+
+  doubleclick (event) {
   }
 
   getPointer (event) {
@@ -515,10 +519,12 @@ class SequenceWidget extends CanvasWidget {
       'background-color': '#CCC',
     })
 
-    this.residues = []
-    this.iRes = null
+    this.charEntries = []
+    this.iChar = null
     this.iStartChar = null
     this.iEndChar = null
+    this.nChar = null
+    this.nCharInSequenceBar = null
   }
 
   width () {
@@ -535,11 +541,11 @@ class SequenceWidget extends CanvasWidget {
   }
 
   xToI (x) {
-    return parseInt((x - this.textXOffset) * this.nResidue / this.textWidth())
+    return parseInt((x - this.textXOffset) * this.nChar / this.textWidth())
   }
 
   iToX (iRes) {
-    return parseInt(iRes / this.nResidue * this.textWidth()) + this.textXOffset
+    return parseInt(iRes / this.nChar * this.textWidth()) + this.textXOffset
   }
 
   textWidth () {
@@ -547,24 +553,24 @@ class SequenceWidget extends CanvasWidget {
   }
 
   xToIChar (x) {
-    return parseInt((x - this.textXOffset) * this.nChar / this.textWidth()) + this.iStartChar
+    return parseInt((x - this.textXOffset) * this.nCharInSequenceBar / this.textWidth()) + this.iStartChar
   }
 
   iCharToX (iRes) {
     return parseInt(
       (iRes - this.iStartChar) /
-      this.nChar *
+        this.nCharInSequenceBar *
       this.textWidth() +
       this.textXOffset)
   }
 
   rebuild () {
-    this.residues.length = 0
+    this.charEntries.length = 0
     let residue = this.soup.getResidueProxy()
     let iChain = -1
     let iStructure = 0
     let nRes = this.soup.getResidueCount()
-    let nPadRes = parseInt(0.02 * nRes)
+    let nPadChar = parseInt(0.02 * nRes)
     for (let iRes of _.range(nRes)) {
       residue.iRes = iRes
 
@@ -577,8 +583,8 @@ class SequenceWidget extends CanvasWidget {
         start = true
         iChain = residue.iChain
         iStructure = residue.iStructure
-        for (let i of _.range(nPadRes)) {
-          this.residues.push({
+        for (let i of _.range(nPadChar)) {
+          this.charEntries.push({
             iChain,
             iStructure,
             c: '',
@@ -606,13 +612,12 @@ class SequenceWidget extends CanvasWidget {
         entry.c = '.'
       }
 
-      this.residues.push(entry)
+      this.charEntries.push(entry)
     }
 
-    this.nResidue = this.residues.length
-
-    this.iRes = this.nChar / 2
-    this.iStartChar = nPadRes
+    this.nChar = this.charEntries.length
+    this.iChar = this.nCharInSequenceBar / 2
+    this.iStartChar = nPadChar
   }
 
   update () {
@@ -620,15 +625,15 @@ class SequenceWidget extends CanvasWidget {
       return
     }
 
-    if (this.residues.length === 0) {
+    if (this.charEntries.length === 0) {
       return
     }
 
-    this.nChar = Math.ceil(this.width() / this.charWidth)
+    this.nCharInSequenceBar = Math.ceil(this.width() / this.charWidth)
 
-    this.iEndChar = this.iStartChar + this.nChar
-    if (this.iEndChar > this.residues.length) {
-      this.iEndChar = this.residues.length
+    this.iEndChar = this.iStartChar + this.nCharInSequenceBar
+    if (this.iEndChar > this.charEntries.length) {
+      this.iEndChar = this.charEntries.length
     }
     if (this.iStartChar < 0) {
       this.iStartChar = 0
@@ -666,12 +671,12 @@ class SequenceWidget extends CanvasWidget {
     this.line(0, yMidStructure, this.width(), yMidStructure, 1, '#999')
 
     // draw structure color bars
-    let ss = this.residues[0].ss
+    let ss = this.charEntries[0].ss
     let iStart = 0
     let iEnd = 0
-    while (iEnd < this.nResidue) {
+    while (iEnd < this.nChar) {
       iEnd += 1
-      if (iEnd === this.nResidue || this.residues[iEnd].ss !== ss) {
+      if (iEnd === this.nChar || this.charEntries[iEnd].ss !== ss) {
         let x1 = this.iToX(iStart)
         let x2 = this.iToX(iEnd)
         let h = this.heightStructureBar
@@ -684,9 +689,9 @@ class SequenceWidget extends CanvasWidget {
           }
           this.fillRect(x1, yTop, x2 - x1, h, color)
         }
-        if (iEnd <= this.nResidue - 1) {
+        if (iEnd <= this.nChar - 1) {
           iStart = iEnd
-          ss = this.residues[iEnd].ss
+          ss = this.charEntries[iEnd].ss
         }
       }
     }
@@ -700,7 +705,7 @@ class SequenceWidget extends CanvasWidget {
     let r = this.soup.getResidueProxy()
     // draw characters for sequence
     for (let iChar = this.iStartChar; iChar < this.iEndChar; iChar += 1) {
-      let residue = this.residues[iChar]
+      let residue = this.charEntries[iChar]
       if (residue.c === '') {
         continue
       }
@@ -758,10 +763,10 @@ class SequenceWidget extends CanvasWidget {
 
     // draw structure names
     let iChar = 0
-    while (iChar < this.nResidue) {
-      if (this.residues[iChar].start && this.residues[iChar].c === '') {
+    while (iChar < this.nChar) {
+      if (this.charEntries[iChar].start && this.charEntries[iChar].c === '') {
         let x = this.iToX(iChar) + 12
-        let res = this.residues[iChar]
+        let res = this.charEntries[iChar]
         let text = this.soup.structureIds[res.iStructure]
         text += ':' + this.soup.chains[res.iChain]
         this.text(text, x, yStructureName, '8pt Monospace', '#666', 'left')
@@ -771,7 +776,21 @@ class SequenceWidget extends CanvasWidget {
   }
 
   getCurrIAtom () {
-    return this.residues[this.iRes].iAtom
+    return this.charEntries[this.iChar].iAtom
+  }
+
+  
+  doubleclick (event) {
+    this.getPointer(event)
+    if (this.pointerY >= this.yTopSequence) {
+      // mouse event in sequence bar
+      this.iChar = this.xToIChar(this.pointerX)
+      if (this.charEntries[this.iChar].c !== '') {
+        this.controller.selectResidue(this.charEntries[this.iChar].iRes)
+        this.controller.setTargetViewByIAtom(this.getCurrIAtom())
+        this.update()
+      }
+    }
   }
 
   mousemove (event) {
@@ -779,24 +798,32 @@ class SequenceWidget extends CanvasWidget {
       return
     }
     this.getPointer(event)
-
-    if (this.pointerY < (this.heightStructureBar + this.spacingY * 2)) {
+    if (this.pointerY < this.yTopSequence) {
       // mouse event in structure bar
-      this.iRes = this.xToI(this.pointerX)
-      this.iStartChar = Math.max(this.iRes - 0.5 * this.nChar, 0)
-      this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar)
+      this.iChar = this.xToI(this.pointerX)
+      this.iStartChar = Math.max(this.iChar - 0.5 * this.nCharInSequenceBar, 0)
+      this.iStartChar = Math.min(this.iStartChar, this.nChar - this.nCharInSequenceBar)
       this.iStartChar = parseInt(this.iStartChar)
       this.update()
-      if (this.residues[this.iRes].c !== '') {
+      if (this.charEntries[this.iChar].c !== '') {
         this.controller.setTargetViewByIAtom(this.getCurrIAtom())
       }
-    } else {
-      // mouse event in sequence bar
-      this.iRes = this.xToIChar(this.pointerX)
-      if (this.residues[this.iRes].c !== '') {
-        this.controller.setTargetViewByIAtom(this.getCurrIAtom())
-        this.update()
+    }
+  }
+
+  mousedown (event) {
+    super.mousedown(event)
+    if (this.pointerY >= this.yTopSequence) {
+      this.iChar = this.xToIChar(this.pointerX)
+      let iRes = this.charEntries[this.iChar].iRes
+      if (!event.metaKey && !event.shiftKey) {
+        this.controller.selectResidue(iRes)
+      } else if (event.shiftKey) {
+        this.controller.selectAdditionalRangeToResidue(iRes)
+      } else {
+        this.controller.selectAdditionalResidue(iRes)
       }
+      this.update()
     }
   }
 }
