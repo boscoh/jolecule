@@ -78090,8 +78090,7 @@ var EmbedJolecule = function () {
 
     this.nDataServer = 0;
 
-    this.createProteinDiv();
-    this.createStatusDiv();
+    this.createDivs();
 
     var resizeFn = function resizeFn() {
       return _this.resize();
@@ -78295,17 +78294,19 @@ var EmbedJolecule = function () {
       return asyncAddDataServer;
     }()
   }, {
-    key: 'createProteinDiv',
-    value: function createProteinDiv() {
-      var height = this.div.outerHeight();
-      this.proteinDiv = (0, _jquery2.default)('<div>').attr('id', 'jolecule-soup-display').addClass('jolecule-embed-body').css('overflow', 'hidden').css('width', this.div.outerWidth()).css('height', height);
-      this.div.append(this.proteinDiv);
-      this.display = new _display.Display(this.soupView, '#jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
-    }
-  }, {
-    key: 'createStatusDiv',
-    value: function createStatusDiv() {
+    key: 'createDivs',
+    value: function createDivs() {
       var _this3 = this;
+
+      this.sequenceDiv = (0, _jquery2.default)('<div>').attr('id', 'sequence-widget');
+
+      this.proteinDiv = (0, _jquery2.default)('<div>').attr('id', 'jolecule-soup-display').addClass('jolecule-embed-body').css('overflow', 'hidden').css('width', this.div.outerWidth());
+
+      this.div.append((0, _jquery2.default)('<div>').append(this.sequenceDiv).append(this.proteinDiv));
+
+      this.display = new _display.Display(this.soupView, '#jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
+
+      this.sequenceWidget = new _widgets2.default.SequenceWidget('#sequence-widget', this.display);
 
       this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="loop">')).append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-residue-selector" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
         _this3.controller.clear();
@@ -78314,10 +78315,12 @@ var EmbedJolecule = function () {
       })).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
         _this3.controller.toggleResidueNeighbors();
       })).append((0, _jquery2.default)('<div id="ligand"></div>')));
+
       this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append(this.viewBarDiv);
+
       this.div.append(this.statusDiv);
+
       this.loopToggleWidget = new _widgets2.default.TogglePlayButtonWidget(this.display, '#loop');
-      this.sequenceWidget = new _widgets2.default.SequenceWidget(this.display);
       this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.display, '#zslab');
       this.gridControlWidget = new _widgets2.default.GridControlWidget(this.display);
       this.residueSelectorWidget = new _widgets2.default.ResidueSelectorWidget(this.display, '#res-selector');
@@ -78327,8 +78330,11 @@ var EmbedJolecule = function () {
     key: 'resize',
     value: function resize() {
       this.proteinDiv.width(this.div.outerWidth());
-      var newHeight = this.div.outerHeight() - this.statusDiv.outerHeight();
-      this.proteinDiv.css('height', newHeight);
+      var statusHeight = this.statusDiv.outerHeight();
+      var sequenceHeight = this.sequenceWidget.height();
+      console.log(this.div.outerHeight(), statusHeight, sequenceHeight);
+      this.proteinDiv.css('top', sequenceHeight);
+      this.proteinDiv.css('height', this.div.outerHeight() - sequenceHeight - statusHeight);
       this.display.resize();
     }
   }]);
@@ -83085,18 +83091,19 @@ var CanvasWidget = function () {
   }, {
     key: 'fillRect',
     value: function fillRect(x, y, w, h, fillStyle) {
-      this.drawContext.beginPath();
       this.drawContext.fillStyle = fillStyle;
+      this.drawContext.strokeStyle = 'none';
       this.drawContext.fillRect(x, y, w, h);
     }
   }, {
     key: 'line',
     value: function line(x1, y1, x2, y2, lineWidth, color) {
+      this.drawContext.fillStyle = 'none';
+      this.drawContext.strokeStyle = color;
+      this.drawContext.lineWidth = lineWidth;
       this.drawContext.beginPath();
       this.drawContext.moveTo(x1, y1);
       this.drawContext.lineTo(x2, y2);
-      this.drawContext.lineWidth = lineWidth;
-      this.drawContext.strokeStyle = color;
       this.drawContext.stroke();
     }
   }, {
@@ -83460,10 +83467,10 @@ var DistanceMeasuresWidget = function () {
 var SequenceWidget = function (_CanvasWidget) {
   _inherits(SequenceWidget, _CanvasWidget);
 
-  function SequenceWidget(display) {
+  function SequenceWidget(selector, display) {
     _classCallCheck(this, SequenceWidget);
 
-    var _this4 = _possibleConstructorReturn(this, (SequenceWidget.__proto__ || Object.getPrototypeOf(SequenceWidget)).call(this, display.divTag));
+    var _this4 = _possibleConstructorReturn(this, (SequenceWidget.__proto__ || Object.getPrototypeOf(SequenceWidget)).call(this, selector));
 
     _this4.display = display;
     _this4.soupView = display.soupView;
@@ -83472,9 +83479,15 @@ var SequenceWidget = function (_CanvasWidget) {
     _this4.traces = display.traces;
     _this4.display.addObserver(_this4);
 
-    _this4.offsetY = 4;
-    _this4.heightBar = 16;
+    _this4.charWidth = 14;
+    _this4.charHeight = 14;
+    _this4.textXOffset = 0;
+    _this4.offsetY = 6;
+    _this4.heightStructureBar = 9;
     _this4.spacingY = 13;
+    _this4.yTopSequence = _this4.offsetY + _this4.heightStructureBar + _this4.spacingY * 2;
+    _this4.yBottom = _this4.yTopSequence + +_this4.spacingY * 3 + _this4.charHeight;
+
     _this4.backColor = '#CCC';
     _this4.selectColor = '#FFF';
     _this4.highlightColor = 'red';
@@ -83484,22 +83497,14 @@ var SequenceWidget = function (_CanvasWidget) {
     _this4.div.css({
       'width': _this4.parentDiv.width(),
       'height': _this4.height(),
-      'top': _this4.y(),
-      'background-color': '#CCC',
-      'border-bottom': '1px solid #AAA'
+      'position': 'relative',
+      'background-color': '#CCC'
     });
-
-    _this4.charWidth = 14;
-    _this4.charHeight = 16;
-
-    _this4.textXOffset = 0;
 
     _this4.residues = [];
     _this4.iRes = null;
     _this4.iStartChar = null;
     _this4.iEndChar = null;
-
-    _this4.resize();
     return _this4;
   }
 
@@ -83511,7 +83516,7 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'height',
     value: function height() {
-      return this.offsetY + this.heightBar + this.spacingY * 6 - 5;
+      return this.yBottom + 1;
     }
   }, {
     key: 'resize',
@@ -83550,9 +83555,9 @@ var SequenceWidget = function (_CanvasWidget) {
       this.residues.length = 0;
       var residue = this.soup.getResidueProxy();
       var iChain = -1;
-      var iStructure = -1;
+      var iStructure = 0;
       var nRes = this.soup.getResidueCount();
-      var nPadRes = 0.02 * nRes;
+      var nPadRes = parseInt(0.02 * nRes);
       var _iteratorNormalCompletion = true;
       var _didIteratorError = false;
       var _iteratorError = undefined;
@@ -83562,12 +83567,16 @@ var SequenceWidget = function (_CanvasWidget) {
           var iRes = _step.value;
 
           residue.iRes = iRes;
+
           if (!residue.isPolymer) {
             continue;
           }
 
+          var start = false;
           if (iStructure !== residue.iStructure || iChain !== residue.iChain) {
-            this.residues.push({ iChain: iChain, iStructure: iStructure, c: '', start: true, ss: '' });
+            start = true;
+            iChain = residue.iChain;
+            iStructure = residue.iStructure;
             var _iteratorNormalCompletion2 = true;
             var _didIteratorError2 = false;
             var _iteratorError2 = undefined;
@@ -83576,7 +83585,13 @@ var SequenceWidget = function (_CanvasWidget) {
               for (var _iterator2 = _lodash2.default.range(nPadRes)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                 var i = _step2.value;
 
-                this.residues.push({ iChain: iChain, iStructure: iStructure, c: '', start: false, ss: '' });
+                this.residues.push({
+                  iChain: iChain,
+                  iStructure: iStructure,
+                  c: '',
+                  start: i == 0 ? true : false,
+                  ss: ''
+                });
               }
             } catch (err) {
               _didIteratorError2 = true;
@@ -83592,19 +83607,17 @@ var SequenceWidget = function (_CanvasWidget) {
                 }
               }
             }
-
-            iChain = residue.iChain;
-            iStructure = residue.iStructure;
           }
 
           var entry = {
             iStructure: iStructure,
             iChain: iChain,
             iRes: iRes,
-            start: false,
+            start: start,
             ss: residue.ss,
             resId: residue.resId,
-            iAtom: residue.iAtom
+            iAtom: residue.iAtom,
+            resNum: residue.resNum
           };
 
           var resType = residue.resType;
@@ -83634,7 +83647,7 @@ var SequenceWidget = function (_CanvasWidget) {
       this.nResidue = this.residues.length;
 
       this.iRes = this.nChar / 2;
-      this.iStartChar = 0;
+      this.iStartChar = nPadRes;
     }
   }, {
     key: 'update',
@@ -83657,25 +83670,31 @@ var SequenceWidget = function (_CanvasWidget) {
         this.iStartChar = 0;
       }
 
+      var yTopStructure = this.offsetY - 2;
+      var yStructureName = this.offsetY + 7;
+      var heightStructure = this.yTopSequence - yTopStructure + 2;
+      var yMidStructure = yTopStructure + heightStructure / 2 + 2;
+      var heightSequence = this.yBottom - this.yTopSequence;
+      var yMidSequence = this.yTopSequence + this.spacingY * 1.2 + this.charHeight / 2;
+
       // draw background
       this.fillRect(0, 0, this.width(), this.height(), this.backColor);
 
-      var yTopMid = this.offsetY + this.spacingY + this.charHeight / 2;
+      // draw sequence bar background
+      this.fillRect(0, this.yTopSequence, this.width(), heightSequence, this.selectColor);
+
+      // draw border around sequence bar
+      this.line(0, this.yTopSequence, this.width(), this.yTopSequence, this.borderColor);
+      this.line(0, this.yBottom, this.width(), this.yBottom, this.borderColor);
+
       var x1 = this.iToX(this.iStartChar);
       var x2 = this.iToX(this.iEndChar);
 
-      // draw sequence bar background
-      this.fillRect(this.textXOffset, this.offsetY + this.heightBar + this.spacingY * 2, this.textWidth(), this.charHeight + this.spacingY * 2, this.selectColor);
-
-      // draw border around sequence bar
-      this.line(this.textXOffset - 3, this.offsetY + this.heightBar + this.spacingY * 2, this.textXOffset - 3 + this.textWidth(), this.offsetY + this.heightBar + this.spacingY * 2, this.borderColor);
-      this.line(this.textXOffset - 3, this.offsetY + this.heightBar + this.spacingY * 2 + this.charHeight + this.spacingY * 2, this.textXOffset - 3 + this.textWidth(), this.offsetY + this.heightBar + this.spacingY * 2 + this.charHeight + this.spacingY * 2, this.borderColor);
-
       // draw selected part of structure bar
-      this.fillRect(x1, this.offsetY, x2 - x1, this.heightBar + this.spacingY * 2 + 3, 1, this.selectColor);
+      this.fillRect(x1, yTopStructure, x2 - x1, heightStructure, 1, this.selectColor);
 
       // draw line through structure bar
-      this.line(0, yTopMid, this.width(), yTopMid, 1, '#999');
+      this.line(0, yMidStructure, this.width(), yMidStructure, 1, '#999');
 
       // draw structure color bars
       var ss = this.residues[0].ss;
@@ -83686,13 +83705,13 @@ var SequenceWidget = function (_CanvasWidget) {
         if (iEnd === this.nResidue || this.residues[iEnd].ss !== ss) {
           var _x = this.iToX(iStart);
           var _x2 = this.iToX(iEnd);
-          var yTop = this.offsetY + this.spacingY;
-          var h = this.heightBar;
+          var h = this.heightStructureBar;
+          var yTop = yMidStructure - h / 2;
           if (ss !== '') {
             var color = data.getSsColor(ss).getStyle();
             if (ss !== 'C') {
-              yTop -= 4;
-              h += 2 * 4;
+              yTop -= 2;
+              h += 2 * 2;
             }
             this.fillRect(_x, yTop, _x2 - _x, h, color);
           }
@@ -83706,38 +83725,59 @@ var SequenceWidget = function (_CanvasWidget) {
       var iAtom = this.soupView.currentView.iAtom;
       var iResSelect = this.soupView.soup.getAtomProxy(iAtom).iRes;
 
-      // draw characters for sequence
-      var y = this.offsetY + this.heightBar + this.spacingY * 3;
-      var yMid = y + this.charHeight / 2;
-
       // draw line through sequence bar
-      this.line(0, yMid, this.width(), yMid, 1, '#999');
-      for (var iChar = this.iStartChar; iChar < this.iEndChar; iChar += 1) {
-        var residue = this.residues[iChar];
+      this.line(0, yMidSequence, this.width(), yMidSequence, 1, '#999');
+
+      var r = this.soup.getResidueProxy();
+      // draw characters for sequence
+      for (var _iChar = this.iStartChar; _iChar < this.iEndChar; _iChar += 1) {
+        var residue = this.residues[_iChar];
         if (residue.c === '') {
           continue;
         }
-        var _x3 = this.iCharToX(iChar);
-        var colorStyle = data.getSsColor(residue.ss).getStyle();
-        var _yTop = y;
-        var _h = this.charHeight;
+        var xLeft = this.iCharToX(_iChar);
+        var xMid = xLeft + this.charWidth / 2;
+        r.load(residue.iRes);
+        var colorStyle = '#' + r.color.getHexString();
+        var height = this.charHeight;
+        var _yTop = yMidSequence - height / 2;
         if (residue.ss !== 'C') {
           _yTop -= 4;
-          _h += 2 * 4;
+          height += 2 * 4;
         }
-        this.fillRect(_x3, _yTop, this.charWidth, _h, colorStyle);
-        this.text(residue.c, _x3 + this.charWidth / 2, y + this.charHeight / 2, '8pt Monospace', 'white', 'center');
+
+        this.fillRect(xLeft, _yTop, this.charWidth, height, colorStyle);
+
+        this.text(residue.c, xMid, yMidSequence, '8pt Monospace', 'white', 'center');
 
         // draw highlight res box
         if (iResSelect >= 0 && iResSelect === residue.iRes) {
-          this.strokeRect(_x3, _yTop - 3, this.charWidth, _h + 6, this.highlightColor);
+          this.strokeRect(xLeft, _yTop - 3, this.charWidth, height + 6, this.highlightColor);
+        }
+
+        if (residue.resNum % 20 === 0 || residue.start) {
+          this.line(xLeft, this.yBottom, xLeft, this.yBottom - 6, 1, this.borderColor);
+          this.text('' + residue.resNum, xLeft + 3, this.yBottom - 6, '8pt Monospace', this.borderColor, 'left');
         }
       }
 
-      // draw black box around selected region in structure bar
-      this.line(x1, this.offsetY, x2, this.offsetY, 1, this.borderColor);
-      this.line(x1, this.offsetY, x1, this.offsetY + this.heightBar + this.spacingY * 2 + 1, 1, this.borderColor);
-      this.line(x2, this.offsetY, x2, this.offsetY + this.heightBar + this.spacingY * 2 + 1, 1, this.borderColor);
+      // draw border box around selected region in structure bar
+      this.line(x1 - 1, yTopStructure, x2 + 1, yTopStructure, 1, this.borderColor);
+      this.line(x1 - 1, yTopStructure, x1 - 1, this.yTopSequence + 1, 1, this.borderColor);
+      this.line(x2 + 1, yTopStructure, x2 + 1, this.yTopSequence + 1, 1, this.borderColor);
+
+      // draw structure names
+      var iChar = 0;
+      while (iChar < this.nResidue) {
+        if (this.residues[iChar].start && this.residues[iChar].c === '') {
+          var x = this.iToX(iChar) + 12;
+          var res = this.residues[iChar];
+          var text = this.soup.structureIds[res.iStructure];
+          text += ':' + this.soup.chains[res.iChain];
+          this.text(text, x, yStructureName, '8pt Monospace', '#666', 'left');
+        }
+        iChar += 1;
+      }
     }
   }, {
     key: 'getCurrIAtom',
@@ -83751,7 +83791,7 @@ var SequenceWidget = function (_CanvasWidget) {
         return;
       }
       this.getPointer(event);
-      if (this.pointerY < this.heightBar + this.spacingY * 2) {
+      if (this.pointerY < this.heightStructureBar + this.spacingY * 2) {
         this.iRes = this.xToI(this.pointerX);
         if (this.residues[this.iRes].c === '') {
           return;
@@ -84090,7 +84130,7 @@ var GridControlWidget = function (_CanvasWidget3) {
     key: 'y',
     value: function y() {
       var parentDivPos = this.parentDiv.position();
-      return parentDivPos.top + 65;
+      return parentDivPos.top + 20;
     }
   }, {
     key: 'yToZ',
@@ -90610,7 +90650,7 @@ var WebglWidget = function () {
     value: function setMesssage(message) {
       console.log('Display.setProcessingMessage:', message);
       this.messageDiv.html(message).show();
-      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 90);
+      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 20);
     }
   }, {
     key: 'asyncSetMesssage',

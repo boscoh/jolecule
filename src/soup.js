@@ -240,6 +240,15 @@ class ResidueProxy {
     this.soup.residueStore.iColor[this.iRes] = iColor
   }
 
+  get activeColor () {
+    let iColor = this.soup.residueStore.iColor[this.iRes]
+    let color = this.soup.colorTable[iColor]
+    if (this.soup.residueSelect.get(this.iRes)) {
+      color = color.clone().offsetHSL(0, 0, +0.3)
+    }
+    return color
+  }
+
   get selected () {
     return this.soup.residueSelect.get(this.iRes)
   }

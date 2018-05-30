@@ -154,17 +154,18 @@ class CanvasWidget {
   }
 
   fillRect (x, y, w, h, fillStyle) {
-    this.drawContext.beginPath()
     this.drawContext.fillStyle = fillStyle
+    this.drawContext.strokeStyle = 'none'
     this.drawContext.fillRect(x, y, w, h)
   }
 
   line (x1, y1, x2, y2, lineWidth, color) {
+    this.drawContext.fillStyle = 'none'
+    this.drawContext.strokeStyle = color
+    this.drawContext.lineWidth = lineWidth
     this.drawContext.beginPath()
     this.drawContext.moveTo(x1, y1)
     this.drawContext.lineTo(x2, y2)
-    this.drawContext.lineWidth = lineWidth
-    this.drawContext.strokeStyle = color
     this.drawContext.stroke()
   }
 
@@ -482,8 +483,8 @@ class DistanceMeasuresWidget {
  *   - these two are integrated so that they share state
  */
 class SequenceWidget extends CanvasWidget {
-  constructor (display) {
-    super(display.divTag)
+  constructor (selector, display) {
+    super(selector)
 
     this.display = display
     this.soupView = display.soupView
@@ -492,9 +493,15 @@ class SequenceWidget extends CanvasWidget {
     this.traces = display.traces
     this.display.addObserver(this)
 
-    this.offsetY = 4
-    this.heightBar = 16
+    this.charWidth = 14
+    this.charHeight = 14
+    this.textXOffset = 0
+    this.offsetY = 6
+    this.heightStructureBar = 8
     this.spacingY = 13
+    this.yTopSequence = this.offsetY + this.heightStructureBar + this.spacingY * 2
+    this.yBottom = this.yTopSequence + + this.spacingY*2.7 + this.charHeight
+
     this.backColor = '#CCC'
     this.selectColor = '#FFF'
     this.highlightColor = 'red'
@@ -504,22 +511,14 @@ class SequenceWidget extends CanvasWidget {
     this.div.css({
       'width': this.parentDiv.width(),
       'height': this.height(),
-      'top': this.y(),
+      'position': 'relative',
       'background-color': '#CCC',
-      'border-bottom': '1px solid #AAA'
     })
-
-    this.charWidth = 14
-    this.charHeight = 16
-
-    this.textXOffset = 0
 
     this.residues = []
     this.iRes = null
     this.iStartChar = null
     this.iEndChar = null
-
-    this.resize()
   }
 
   width () {
@@ -527,7 +526,7 @@ class SequenceWidget extends CanvasWidget {
   }
 
   height () {
-    return this.offsetY + this.heightBar + this.spacingY * 6 - 5
+    return this.yBottom + 1
   }
 
   resize () {
@@ -565,18 +564,27 @@ class SequenceWidget extends CanvasWidget {
     let iChain = -1
     let iStructure = 0
     let nRes = this.soup.getResidueCount()
-    let nPadRes = 0.02*nRes
+    let nPadRes = parseInt(0.02 * nRes)
     for (let iRes of _.range(nRes)) {
       residue.iRes = iRes
+
       if (!residue.isPolymer) {
         continue
       }
+
+      let start = false
       if ((iStructure !== residue.iStructure) || (iChain !== residue.iChain)) {
+        start = true
         iChain = residue.iChain
         iStructure = residue.iStructure
-        this.residues.push({iChain, iStructure, c: '', start: true, ss: ''})
         for (let i of _.range(nPadRes)) {
-          this.residues.push({iChain, iStructure, c: '', start: false, ss: ''})
+          this.residues.push({
+            iChain,
+            iStructure,
+            c: '',
+            start: i == 0 ? true : false,
+            ss: ''
+          })
         }
       }
 
@@ -584,10 +592,11 @@ class SequenceWidget extends CanvasWidget {
         iStructure,
         iChain,
         iRes,
-        start: false,
+        start,
         ss: residue.ss,
         resId: residue.resId,
         iAtom: residue.iAtom,
+        resNum: residue.resNum
       }
 
       let resType = residue.resType
@@ -603,7 +612,7 @@ class SequenceWidget extends CanvasWidget {
     this.nResidue = this.residues.length
 
     this.iRes = this.nChar / 2
-    this.iStartChar = 0
+    this.iStartChar = nPadRes
   }
 
   update () {
@@ -625,40 +634,36 @@ class SequenceWidget extends CanvasWidget {
       this.iStartChar = 0
     }
 
+    let yTopStructure = this.offsetY - 2
+    let yStructureName = this.offsetY + 7
+    let heightStructure = this.yTopSequence - yTopStructure + 2
+    let yMidStructure = yTopStructure + heightStructure / 2 + 2
+    let heightSequence = this.yBottom - this.yTopSequence
+    let yMidSequence = this.yTopSequence + this.spacingY*1.2 + this.charHeight / 2
+
     // draw background
     this.fillRect(
       0, 0, this.width(), this.height(), this.backColor)
 
-    let yTopMid = this.offsetY + this.spacingY + this.charHeight / 2
-    let x1 = this.iToX(this.iStartChar)
-    let x2 = this.iToX(this.iEndChar)
-
     // draw sequence bar background
     this.fillRect(
-      this.textXOffset, this.offsetY + this.heightBar + this.spacingY * 2,
-      this.textWidth(), this.charHeight + this.spacingY * 2, this.selectColor)
+      0, this.yTopSequence, this.width(), heightSequence, this.selectColor)
 
     // draw border around sequence bar
     this.line(
-      this.textXOffset - 3,
-      this.offsetY + this.heightBar + this.spacingY * 2,
-      this.textXOffset - 3 + this.textWidth(),
-      this.offsetY + this.heightBar + this.spacingY * 2,
-      this.borderColor)
+      0, this.yTopSequence, this.width(), this.yTopSequence, this.borderColor)
     this.line(
-      this.textXOffset - 3,
-      this.offsetY + this.heightBar + this.spacingY * 2 + this.charHeight + this.spacingY * 2,
-      this.textXOffset - 3 + this.textWidth(),
-      this.offsetY + this.heightBar + this.spacingY * 2 + this.charHeight + this.spacingY * 2,
-      this.borderColor)
+      0, this.yBottom, this.width(), this.yBottom, this.borderColor)
+
+    let x1 = this.iToX(this.iStartChar)
+    let x2 = this.iToX(this.iEndChar)
 
     // draw selected part of structure bar
     this.fillRect(
-      x1, this.offsetY, x2 - x1, this.heightBar + this.spacingY * 2 + 3,
-      1, this.selectColor)
+      x1, yTopStructure, x2 - x1, heightStructure, 1, this.selectColor)
 
     // draw line through structure bar
-    this.line(0, yTopMid, this.width(), yTopMid, 1, '#999')
+    this.line(0, yMidStructure, this.width(), yMidStructure, 1, '#999')
 
     // draw structure color bars
     let ss = this.residues[0].ss
@@ -669,20 +674,15 @@ class SequenceWidget extends CanvasWidget {
       if (iEnd === this.nResidue || this.residues[iEnd].ss !== ss) {
         let x1 = this.iToX(iStart)
         let x2 = this.iToX(iEnd)
-        let yTop = this.offsetY + this.spacingY
-        let h = this.heightBar
+        let h = this.heightStructureBar
+        let yTop = yMidStructure - h / 2
         if (ss !== '') {
           let color = data.getSsColor(ss).getStyle()
           if (ss !== 'C') {
-            yTop -= 4
-            h += 2*4
+            yTop -= 2
+            h += 2 * 2
           }
-          this.fillRect(
-            x1,
-            yTop,
-            x2 - x1,
-            h,
-            color)
+          this.fillRect(x1, yTop, x2 - x1, h, color)
         }
         if (iEnd <= this.nResidue - 1) {
           iStart = iEnd
@@ -694,79 +694,80 @@ class SequenceWidget extends CanvasWidget {
     let iAtom = this.soupView.currentView.iAtom
     let iResSelect = this.soupView.soup.getAtomProxy(iAtom).iRes
 
-    // draw characters for sequence
-    let y = this.offsetY + this.heightBar + this.spacingY * 3
-    let yMid = y + this.charHeight / 2
-
     // draw line through sequence bar
-    this.line(0, yMid, this.width(), yMid, 1, '#999')
+    this.line(0, yMidSequence, this.width(), yMidSequence, 1, '#999')
+
+    let r = this.soup.getResidueProxy()
+    // draw characters for sequence
     for (let iChar = this.iStartChar; iChar < this.iEndChar; iChar += 1) {
       let residue = this.residues[iChar]
       if (residue.c === '') {
         continue
       }
-      let x1 = this.iCharToX(iChar)
-      let colorStyle = data.getSsColor(residue.ss).getStyle()
-      let yTop = y
-      let h = this.charHeight
+      r.load(residue.iRes)
+      let colorStyle = '#' + r.activeColor.getHexString()
+
+      let xLeft = this.iCharToX(iChar)
+      let xRight = this.iCharToX(iChar + 1)
+      let width = xRight - xLeft
+      let xMid = xLeft + width / 2
+      let height = this.charHeight
+      let yTop = yMidSequence - height / 2
       if (residue.ss !== 'C') {
         yTop -= 4
-        h += 2*4
+        height += 2*4
       }
+
       this.fillRect(
-        x1, yTop, this.charWidth, h, colorStyle)
+        xLeft, yTop, width, height, colorStyle)
+
       this.text(
         residue.c,
-        x1 + this.charWidth / 2, y + this.charHeight / 2,
-        '8pt Monospace', 'white', 'center')
+        xMid,
+        yMidSequence,
+        '8pt Monospace',
+        'white',
+        'center')
 
       // draw highlight res box
       if ((iResSelect >= 0) && (iResSelect === residue.iRes)) {
         this.strokeRect(
-          x1,
-          yTop - 3,
-          this.charWidth,
-          h + 6,
-          this.highlightColor)
+          xLeft, yTop - 3, width, height + 6, this.highlightColor)
+      }
+
+      if ((residue.resNum % 20 === 0) || residue.start) {
+        this.line(
+          xLeft, this.yBottom, xLeft, this.yBottom - 6, 1, this.borderColor)
+        this.text(
+          '' + residue.resNum,
+          xLeft + 3,
+          this.yBottom - 6,
+          '8pt Monospace',
+          this.borderColor,
+          'left')
       }
     }
 
-    // draw black box around selected region in structure bar
+    // draw border box around selected region in structure bar
     this.line(
-      x1,
-      this.offsetY,
-      x2,
-      this.offsetY,
-      1,
-      this.borderColor)
+      x1 - 1, yTopStructure, x2 + 1, yTopStructure, 1, this.borderColor)
     this.line(
-      x1,
-      this.offsetY,
-      x1,
-      this.offsetY + this.heightBar + this.spacingY * 2 + 1,
-      1,
-      this.borderColor)
+      x1 - 1, yTopStructure, x1 - 1, this.yTopSequence + 1, 1, this.borderColor)
     this.line(
-      x2,
-      this.offsetY,
-      x2,
-      this.offsetY + this.heightBar + this.spacingY * 2 + 1,
-      1,
-      this.borderColor)
+      x2 + 1, yTopStructure, x2 + 1, this.yTopSequence + 1, 1, this.borderColor)
 
     // draw structure names
     let iChar = 0
     while (iChar < this.nResidue) {
-      if (this.residues[iChar].start) {
-        let x1 = this.iToX(iChar)
+      if (this.residues[iChar].start && this.residues[iChar].c === '') {
+        let x = this.iToX(iChar) + 12
         let res = this.residues[iChar]
         let text = this.soup.structureIds[res.iStructure]
-        text += '-' + this.soup.chains[res.iChain]
-        this.text(text, x1, 10, '8pt Monospace', '#666', 'left')
+        text += ':' + this.soup.chains[res.iChain]
+        this.text(text, x, yStructureName, '8pt Monospace', '#666', 'left')
       }
       iChar += 1
     }
-
   }
 
   getCurrIAtom () {
@@ -778,25 +779,24 @@ class SequenceWidget extends CanvasWidget {
       return
     }
     this.getPointer(event)
-    if (this.pointerY < (this.heightBar + this.spacingY * 2)) {
+
+    if (this.pointerY < (this.heightStructureBar + this.spacingY * 2)) {
+      // mouse event in structure bar
       this.iRes = this.xToI(this.pointerX)
-      if (this.residues[this.iRes].c === '') {
-        return
-      }
-      // observerReset sequence window
       this.iStartChar = Math.max(this.iRes - 0.5 * this.nChar, 0)
       this.iStartChar = Math.min(this.iStartChar, this.nResidue - this.nChar)
       this.iStartChar = parseInt(this.iStartChar)
-
-      this.controller.setTargetViewByIAtom(this.getCurrIAtom())
       this.update()
-    } else {
-      this.iRes = this.xToIChar(this.pointerX)
-      if (this.residues[this.iRes].c === '') {
-        return
+      if (this.residues[this.iRes].c !== '') {
+        this.controller.setTargetViewByIAtom(this.getCurrIAtom())
       }
-      this.controller.setTargetViewByIAtom(this.getCurrIAtom())
-      this.update()
+    } else {
+      // mouse event in sequence bar
+      this.iRes = this.xToIChar(this.pointerX)
+      if (this.residues[this.iRes].c !== '') {
+        this.controller.setTargetViewByIAtom(this.getCurrIAtom())
+        this.update()
+      }
     }
   }
 }
@@ -1053,7 +1053,7 @@ class GridControlWidget extends CanvasWidget {
 
   y () {
     let parentDivPos = this.parentDiv.position()
-    return parentDivPos.top + 65
+    return parentDivPos.top + 20
   }
 
   yToZ (y) {

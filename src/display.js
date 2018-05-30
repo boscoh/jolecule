@@ -250,7 +250,7 @@ class WebglWidget {
   setMesssage (message) {
     console.log('Display.setProcessingMessage:', message)
     this.messageDiv.html(message).show()
-    util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 90)
+    util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 20)
   };
 
   async asyncSetMesssage (message) {
@@ -510,7 +510,7 @@ class Display extends WebglWidget {
         atom.iAtom = residue.iAtom
         lastTrace.refIndices.push(residue.iRes)
         lastTrace.points.push(atom.pos.clone())
-        lastTrace.colors.push(new THREE.Color(residue.color))
+        lastTrace.colors.push(residue.activeColor)
         lastTrace.indexColors.push(this.getIndexColor(residue.iAtom))
         lastTrace.segmentTypes.push(residue.ss)
         lastTrace.normals.push(residue.normal)
@@ -578,6 +578,20 @@ class Display extends WebglWidget {
       this.traces, data.coilFace, isFront, isBack, true)
     let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
     this.pickingMeshes['ribbons'].add(pickingMesh)
+  }
+
+  resetRibbonColors () {
+    let residue = this.soup.getResidueProxy()
+    for (let trace of this.traces) {
+      for (let iTrace of _.range(trace.points.length)) {
+        let iRes = trace.refIndices[iTrace]
+        trace.colors[iTrace] = residue.load(iRes).activeColor
+      }
+    }
+    glgeom.clearObject3D(this.displayMeshes['ribbons'])
+    this.ribbonBufferGeometry.setColors()
+    this.displayMeshes['ribbons'].add(new THREE.Mesh(
+      this.ribbonBufferGeometry, this.displayMaterial))
   }
 
   buildMeshOfArrows () {
@@ -1100,22 +1114,7 @@ class Display extends WebglWidget {
     }
 
     if (this.soupView.updateSelection) {
-      let residue = this.soup.getResidueProxy()
-      for (let trace of this.traces) {
-        for (let iTrace of _.range(trace.points.length)) {
-          residue.load(trace.refIndices[iTrace])
-          trace.colors[iTrace] = residue.color.clone()
-          if (residue.selected) {
-            trace.colors[iTrace].offsetHSL(0, 0, +0.3)
-          }
-        }
-      }
-
-      glgeom.clearObject3D(this.displayMeshes['ribbons'])
-      this.ribbonBufferGeometry.setColors()
-      this.displayMeshes['ribbons'].add(new THREE.Mesh(
-        this.ribbonBufferGeometry, this.displayMaterial))
-
+      this.resetRibbonColors()
       this.buildMeshOfArrows()
       this.buildMeshOfResidueSidechains()
       this.soupView.updateSelection = false

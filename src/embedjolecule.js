@@ -37,8 +37,7 @@ class EmbedJolecule {
 
     this.nDataServer = 0
 
-    this.createProteinDiv()
-    this.createStatusDiv()
+    this.createDivs()
 
     let resizeFn = () => this.resize()
     $(window).resize(resizeFn)
@@ -123,25 +122,30 @@ class EmbedJolecule {
     this.isProcessing.flag = false
   }
 
-  createProteinDiv () {
-    let height = this.div.outerHeight()
-    this.proteinDiv =
-      $('<div>')
-        .attr('id', 'jolecule-soup-display')
-        .addClass('jolecule-embed-body')
-        .css('overflow', 'hidden')
-        .css('width', this.div.outerWidth())
-        .css('height', height)
-    this.div.append(this.proteinDiv)
+  createDivs () {
+    this.sequenceDiv = $('<div>')
+      .attr('id', 'sequence-widget')
+
+    this.proteinDiv = $('<div>')
+      .attr('id', 'jolecule-soup-display')
+      .addClass('jolecule-embed-body')
+      .css('overflow', 'hidden')
+      .css('width', this.div.outerWidth())
+
+    this.div.append($('<div>')
+      .append(this.sequenceDiv)
+      .append(this.proteinDiv))
+
     this.display = new Display(
       this.soupView,
       '#jolecule-soup-display',
       this.controller,
       this.params.isGrid,
       this.params.backgroundColor)
-  }
 
-  createStatusDiv () {
+    this.sequenceWidget = new widgets.SequenceWidget(
+      '#sequence-widget', this.display)
+
     this.viewBarDiv =
       $('<div style="width: 100%; display: flex; flex-direction: row">')
         .append(
@@ -154,8 +158,7 @@ class EmbedJolecule {
             .append(`<div id="zslab" class="jolecule-residue-selector" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>`)
         )
         .append(linkButton(
-          '', 'Clear', 'jolecule-button',
-          () => { this.controller.clear() })
+          '', 'Clear', 'jolecule-button', () => { this.controller.clear() })
         )
         .append(
           $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
@@ -169,12 +172,14 @@ class EmbedJolecule {
             )
             .append($('<div id="ligand"></div>'))
         )
+
     this.statusDiv = $('<div style="display: flex; flex-direction: column">')
       .addClass('jolecule-embed-view-bar')
       .append(this.viewBarDiv)
+
     this.div.append(this.statusDiv)
+
     this.loopToggleWidget = new widgets.TogglePlayButtonWidget(this.display, '#loop')
-    this.sequenceWidget = new widgets.SequenceWidget(this.display)
     this.zSlabWidget = new widgets.ZSlabWidget(this.display, '#zslab')
     this.gridControlWidget = new widgets.GridControlWidget(this.display)
     this.residueSelectorWidget = new widgets.ResidueSelectorWidget(this.display, '#res-selector')
@@ -183,9 +188,12 @@ class EmbedJolecule {
 
   resize () {
     this.proteinDiv.width(this.div.outerWidth())
-    let newHeight = this.div.outerHeight() -
-      this.statusDiv.outerHeight()
-    this.proteinDiv.css('height', newHeight)
+    let statusHeight = this.statusDiv.outerHeight()
+    let sequenceHeight = this.sequenceWidget.height()
+    console.log(this.div.outerHeight(), statusHeight, sequenceHeight)
+    this.proteinDiv.css('top', sequenceHeight)
+    this.proteinDiv.css('height',
+      this.div.outerHeight() - sequenceHeight - statusHeight)
     this.display.resize()
   }
 }
