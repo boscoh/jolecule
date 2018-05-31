@@ -78308,15 +78308,13 @@ var EmbedJolecule = function () {
 
       this.sequenceWidget = new _widgets2.default.SequenceWidget('#sequence-widget', this.display);
 
-      this.viewBarDiv = (0, _jquery2.default)('<div style="width: 100%; display: flex; flex-direction: row">').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="loop">')).append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-residue-selector" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
+      this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div>').css('width', '100%').css('display', 'flex').css('flex-direction', 'row').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="loop">')).append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-residue-selector" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
         _this3.controller.clear();
       })).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _util.linkButton)('', 'Sidechains', 'jolecule-button', function () {
         _this3.controller.showSelectedSidechains();
       })).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
         _this3.controller.toggleResidueNeighbors();
-      })).append((0, _jquery2.default)('<div id="ligand"></div>')));
-
-      this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append(this.viewBarDiv);
+      })).append((0, _jquery2.default)('<div id="ligand"></div>'))));
 
       this.div.append(this.statusDiv);
 
@@ -78332,7 +78330,6 @@ var EmbedJolecule = function () {
       this.proteinDiv.width(this.div.outerWidth());
       var statusHeight = this.statusDiv.outerHeight();
       var sequenceHeight = this.sequenceWidget.height();
-      console.log(this.div.outerHeight(), statusHeight, sequenceHeight);
       this.proteinDiv.css('top', sequenceHeight);
       this.proteinDiv.css('height', this.div.outerHeight() - sequenceHeight - statusHeight);
       this.display.resize();
@@ -80391,11 +80388,15 @@ var SoupView = function () {
       this.startTargetAfterRender = true;
       this.saveTargetView = view.clone();
       this.saveTargetView.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
+      console.log('SoupView.setTargetView current', this.currentView.distances);
+      console.log('SoupView.setTargetView save', this.currentView.distances);
     }
   }, {
     key: 'startTargetView',
     value: function startTargetView() {
       this.targetView = this.saveTargetView;
+      console.log('SoupView.setTargetView current', this.currentView.distances);
+      console.log('SoupView.setTargetView target', this.currentView.distances);
       this.updateWidgets = true;
       this.startTargetAfterRender = false;
       this.changed = true;
@@ -83436,9 +83437,10 @@ var DistanceMeasuresWidget = function () {
         color: 0xFF7777,
         dashSize: 3,
         gapSize: 4,
-        linewidth: 2
+        linewidth: 1
       });
       var line = new THREE.Line(geometry, material);
+      line.dontDelete = true;
       this.scene.add(line);
 
       return { line: line, div: div };
@@ -92176,6 +92178,8 @@ var Display = function (_WebglWidget) {
       this.updateCrossHairs();
 
       this.rotateCameraParamsToCurrentView();
+
+      console.log('Display.drawFrame current', this.soupView.currentView.distances);
 
       // needs to be observers.updated before render
       // as lines must be placed in THREE.js scene

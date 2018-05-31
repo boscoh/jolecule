@@ -1130,6 +1130,8 @@ class Display extends WebglWidget {
 
     this.rotateCameraParamsToCurrentView()
 
+    console.log('Display.drawFrame current', this.soupView.currentView.distances)
+
     // needs to be observers.updated before render
     // as lines must be placed in THREE.js scene
     this.distanceMeasuresWidget.drawFrame()

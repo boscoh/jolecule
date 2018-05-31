@@ -146,8 +146,12 @@ class EmbedJolecule {
     this.sequenceWidget = new widgets.SequenceWidget(
       '#sequence-widget', this.display)
 
-    this.viewBarDiv =
-      $('<div style="width: 100%; display: flex; flex-direction: row">')
+    this.statusDiv = $('<div style="display: flex; flex-direction: column">')
+      .addClass('jolecule-embed-view-bar')
+      .append($('<div>')
+        .css('width', '100%')
+        .css('display', 'flex')
+        .css('flex-direction', 'row')
         .append(
           $('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">')
             .append($('<div id="loop">'))
@@ -171,11 +175,7 @@ class EmbedJolecule {
               () => { this.controller.toggleResidueNeighbors() })
             )
             .append($('<div id="ligand"></div>'))
-        )
-
-    this.statusDiv = $('<div style="display: flex; flex-direction: column">')
-      .addClass('jolecule-embed-view-bar')
-      .append(this.viewBarDiv)
+        ))
 
     this.div.append(this.statusDiv)
 
@@ -190,10 +190,8 @@ class EmbedJolecule {
     this.proteinDiv.width(this.div.outerWidth())
     let statusHeight = this.statusDiv.outerHeight()
     let sequenceHeight = this.sequenceWidget.height()
-    console.log(this.div.outerHeight(), statusHeight, sequenceHeight)
     this.proteinDiv.css('top', sequenceHeight)
-    this.proteinDiv.css('height',
-      this.div.outerHeight() - sequenceHeight - statusHeight)
+    this.proteinDiv.css('height', this.div.outerHeight() - sequenceHeight - statusHeight)
     this.display.resize()
   }
 }

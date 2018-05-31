@@ -406,9 +406,10 @@ class DistanceMeasuresWidget {
       color: 0xFF7777,
       dashSize: 3,
       gapSize: 4,
-      linewidth: 2
+      linewidth: 1
     })
     let line = new THREE.Line(geometry, material)
+    line.dontDelete = true
     this.scene.add(line)
 
     return { line, div }
