@@ -524,7 +524,7 @@ class SequenceWidget extends CanvasWidget {
     this.iStartChar = null
     this.iEndChar = null
     this.nChar = null
-    this.nCharInSequenceBar = null
+    this.nCharDisplay = null
   }
 
   width () {
@@ -553,13 +553,13 @@ class SequenceWidget extends CanvasWidget {
   }
 
   xToIChar (x) {
-    return parseInt((x - this.textXOffset) * this.nCharInSequenceBar / this.textWidth()) + this.iStartChar
+    return parseInt((x - this.textXOffset) * this.nCharDisplay / this.textWidth()) + this.iStartChar
   }
 
   iCharToX (iRes) {
     return parseInt(
       (iRes - this.iStartChar) /
-        this.nCharInSequenceBar *
+        this.nCharDisplay *
       this.textWidth() +
       this.textXOffset)
   }
@@ -616,8 +616,15 @@ class SequenceWidget extends CanvasWidget {
     }
 
     this.nChar = this.charEntries.length
-    this.iChar = this.nCharInSequenceBar / 2
+    this.iChar = this.nCharDisplay / 2
     this.iStartChar = nPadChar
+  }
+
+  setIChar (iChar) {
+    this.iChar = iChar
+    this.iStartChar = Math.min(this.iStartChar, this.nChar - this.nCharDisplay)
+    this.iStartChar = Math.max(this.iChar - 0.5 * this.nCharDisplay, 0)
+    this.iStartChar = parseInt(this.iStartChar)
   }
 
   update () {
@@ -629,9 +636,28 @@ class SequenceWidget extends CanvasWidget {
       return
     }
 
-    this.nCharInSequenceBar = Math.ceil(this.width() / this.charWidth)
+    let iAtom = this.soupView.currentView.iAtom
+    let iResCurrent = this.soupView.soup.getAtomProxy(iAtom).iRes
 
-    this.iEndChar = this.iStartChar + this.nCharInSequenceBar
+    let iCharCurrent = null
+    for (let iChar in _.range(this.nChar)) {
+      if (this.charEntries[iChar].iRes === iResCurrent) {
+        iCharCurrent = iChar
+        break
+      }
+    }
+
+    if (iCharCurrent !== null) {
+      if (
+        (iCharCurrent < this.iStartChar) ||
+        (iCharCurrent >= (this.iStartChar + this.nCharDisplay))) {
+        this.setIChar(iCharCurrent)
+      }
+    }
+
+    this.nCharDisplay = Math.ceil(this.width() / this.charWidth)
+
+    this.iEndChar = this.iStartChar + this.nCharDisplay
     if (this.iEndChar > this.charEntries.length) {
       this.iEndChar = this.charEntries.length
     }
@@ -696,9 +722,6 @@ class SequenceWidget extends CanvasWidget {
       }
     }
 
-    let iAtom = this.soupView.currentView.iAtom
-    let iResSelect = this.soupView.soup.getAtomProxy(iAtom).iRes
-
     // draw line through sequence bar
     this.line(0, yMidSequence, this.width(), yMidSequence, 1, '#999')
 
@@ -735,7 +758,7 @@ class SequenceWidget extends CanvasWidget {
         'center')
 
       // draw highlight res box
-      if ((iResSelect >= 0) && (iResSelect === residue.iRes)) {
+      if ((iResCurrent >= 0) && (iResCurrent === residue.iRes)) {
         this.strokeRect(
           xLeft, yTop - 3, width, height + 6, this.highlightColor)
       }
@@ -779,7 +802,6 @@ class SequenceWidget extends CanvasWidget {
     return this.charEntries[this.iChar].iAtom
   }
 
-  
   doubleclick (event) {
     this.getPointer(event)
     if (this.pointerY >= this.yTopSequence) {
@@ -800,10 +822,7 @@ class SequenceWidget extends CanvasWidget {
     this.getPointer(event)
     if (this.pointerY < this.yTopSequence) {
       // mouse event in structure bar
-      this.iChar = this.xToI(this.pointerX)
-      this.iStartChar = Math.max(this.iChar - 0.5 * this.nCharInSequenceBar, 0)
-      this.iStartChar = Math.min(this.iStartChar, this.nChar - this.nCharInSequenceBar)
-      this.iStartChar = parseInt(this.iStartChar)
+      this.setIChar(this.xToI(this.pointerX))
       this.update()
       if (this.charEntries[this.iChar].c !== '') {
         this.controller.setTargetViewByIAtom(this.getCurrIAtom())
