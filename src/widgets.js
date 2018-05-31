@@ -622,12 +622,12 @@ class SequenceWidget extends CanvasWidget {
 
   setIChar (iChar) {
     this.iChar = iChar
-    this.iStartChar = Math.min(this.iStartChar, this.nChar - this.nCharDisplay)
     this.iStartChar = Math.max(this.iChar - 0.5 * this.nCharDisplay, 0)
+    this.iStartChar = Math.min(this.iStartChar, this.nChar - this.nCharDisplay)
     this.iStartChar = parseInt(this.iStartChar)
   }
 
-  update () {
+  updateWithoutCheckingCurrent () {
     if (!util.exists(this.soupView)) {
       return
     }
@@ -639,31 +639,15 @@ class SequenceWidget extends CanvasWidget {
     let iAtom = this.soupView.currentView.iAtom
     let iResCurrent = this.soupView.soup.getAtomProxy(iAtom).iRes
 
-    let iCharCurrent = null
-    for (let iChar in _.range(this.nChar)) {
-      if (this.charEntries[iChar].iRes === iResCurrent) {
-        iCharCurrent = iChar
-        break
-      }
-    }
-
-    if (iCharCurrent !== null) {
-      if (
-        (iCharCurrent < this.iStartChar) ||
-        (iCharCurrent >= (this.iStartChar + this.nCharDisplay))) {
-        this.setIChar(iCharCurrent)
-      }
-    }
-
     this.nCharDisplay = Math.ceil(this.width() / this.charWidth)
 
-    this.iEndChar = this.iStartChar + this.nCharDisplay
-    if (this.iEndChar > this.charEntries.length) {
-      this.iEndChar = this.charEntries.length
+    if (this.iStartChar + this.nCharDisplay > this.charEntries.length) {
+      this.iStartChar = this.iEndChar - this.nCharDisplay
     }
     if (this.iStartChar < 0) {
       this.iStartChar = 0
     }
+    this.iEndChar = this.iStartChar + this.nCharDisplay
 
     let yTopStructure = this.offsetY - 2
     let yStructureName = this.offsetY + 7
@@ -798,6 +782,29 @@ class SequenceWidget extends CanvasWidget {
     }
   }
 
+  update () {
+    let iAtom = this.soupView.currentView.iAtom
+    let iResCurrent = this.soupView.soup.getAtomProxy(iAtom).iRes
+
+    let iCharCurrent = null
+    for (let iChar in _.range(this.nChar)) {
+      if (this.charEntries[iChar].iRes === iResCurrent) {
+        iCharCurrent = iChar
+        break
+      }
+    }
+
+    if (iCharCurrent !== null) {
+      if (
+        (iCharCurrent < this.iStartChar) ||
+        (iCharCurrent >= (this.iStartChar + this.nCharDisplay))) {
+        this.setIChar(iCharCurrent)
+      }
+    }
+
+    this.updateWithoutCheckingCurrent()
+  }
+
   getCurrIAtom () {
     return this.charEntries[this.iChar].iAtom
   }
@@ -810,7 +817,7 @@ class SequenceWidget extends CanvasWidget {
       if (this.charEntries[this.iChar].c !== '') {
         this.controller.selectResidue(this.charEntries[this.iChar].iRes)
         this.controller.setTargetViewByIAtom(this.getCurrIAtom())
-        this.update()
+        this.updateWithoutCheckingCurrent()
       }
     }
   }
@@ -823,7 +830,7 @@ class SequenceWidget extends CanvasWidget {
     if (this.pointerY < this.yTopSequence) {
       // mouse event in structure bar
       this.setIChar(this.xToI(this.pointerX))
-      this.update()
+      this.updateWithoutCheckingCurrent()
       if (this.charEntries[this.iChar].c !== '') {
         this.controller.setTargetViewByIAtom(this.getCurrIAtom())
       }
@@ -842,7 +849,7 @@ class SequenceWidget extends CanvasWidget {
       } else {
         this.controller.selectAdditionalResidue(iRes)
       }
-      this.update()
+      this.updateWithoutCheckingCurrent()
     }
   }
 }
