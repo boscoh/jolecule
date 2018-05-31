@@ -520,10 +520,10 @@ class SequenceWidget extends CanvasWidget {
     })
 
     this.charEntries = []
-    this.iChar = null
-    this.iStartChar = null
-    this.iEndChar = null
     this.nChar = null
+    this.iChar = null
+    this.iCharDisplayStart = null
+    this.iCharDisplayEnd = null
     this.nCharDisplay = null
   }
 
@@ -553,12 +553,12 @@ class SequenceWidget extends CanvasWidget {
   }
 
   xToIChar (x) {
-    return parseInt((x - this.textXOffset) * this.nCharDisplay / this.textWidth()) + this.iStartChar
+    return parseInt((x - this.textXOffset) * this.nCharDisplay / this.textWidth()) + this.iCharDisplayStart
   }
 
   iCharToX (iRes) {
     return parseInt(
-      (iRes - this.iStartChar) /
+      (iRes - this.iCharDisplayStart) /
         this.nCharDisplay *
       this.textWidth() +
       this.textXOffset)
@@ -617,14 +617,14 @@ class SequenceWidget extends CanvasWidget {
 
     this.nChar = this.charEntries.length
     this.iChar = this.nCharDisplay / 2
-    this.iStartChar = nPadChar
+    this.iCharDisplayStart = nPadChar
   }
 
   setIChar (iChar) {
     this.iChar = iChar
-    this.iStartChar = Math.max(this.iChar - 0.5 * this.nCharDisplay, 0)
-    this.iStartChar = Math.min(this.iStartChar, this.nChar - this.nCharDisplay)
-    this.iStartChar = parseInt(this.iStartChar)
+    this.iCharDisplayStart = Math.max(this.iChar - 0.5 * this.nCharDisplay, 0)
+    this.iCharDisplayStart = Math.min(this.iCharDisplayStart, this.nChar - this.nCharDisplay)
+    this.iCharDisplayStart = parseInt(this.iCharDisplayStart)
   }
 
   updateWithoutCheckingCurrent () {
@@ -641,13 +641,13 @@ class SequenceWidget extends CanvasWidget {
 
     this.nCharDisplay = Math.ceil(this.width() / this.charWidth)
 
-    if (this.iStartChar + this.nCharDisplay > this.charEntries.length) {
-      this.iStartChar = this.iEndChar - this.nCharDisplay
+    if (this.iCharDisplayStart + this.nCharDisplay > this.charEntries.length) {
+      this.iCharDisplayStart = this.iCharDisplayEnd - this.nCharDisplay
     }
-    if (this.iStartChar < 0) {
-      this.iStartChar = 0
+    if (this.iCharDisplayStart < 0) {
+      this.iCharDisplayStart = 0
     }
-    this.iEndChar = this.iStartChar + this.nCharDisplay
+    this.iCharDisplayEnd = this.iCharDisplayStart + this.nCharDisplay
 
     let yTopStructure = this.offsetY - 2
     let yStructureName = this.offsetY + 7
@@ -670,8 +670,8 @@ class SequenceWidget extends CanvasWidget {
     this.line(
       0, this.yBottom, this.width(), this.yBottom, this.borderColor)
 
-    let x1 = this.iToX(this.iStartChar)
-    let x2 = this.iToX(this.iEndChar)
+    let x1 = this.iToX(this.iCharDisplayStart)
+    let x2 = this.iToX(this.iCharDisplayEnd)
 
     // draw selected part of structure bar
     this.fillRect(
@@ -711,7 +711,7 @@ class SequenceWidget extends CanvasWidget {
 
     let r = this.soup.getResidueProxy()
     // draw characters for sequence
-    for (let iChar = this.iStartChar; iChar < this.iEndChar; iChar += 1) {
+    for (let iChar = this.iCharDisplayStart; iChar < this.iCharDisplayEnd; iChar += 1) {
       let residue = this.charEntries[iChar]
       if (residue.c === '') {
         continue
@@ -796,8 +796,8 @@ class SequenceWidget extends CanvasWidget {
 
     if (iCharCurrent !== null) {
       if (
-        (iCharCurrent < this.iStartChar) ||
-        (iCharCurrent >= (this.iStartChar + this.nCharDisplay))) {
+        (iCharCurrent < this.iCharDisplayStart) ||
+        (iCharCurrent >= (this.iCharDisplayStart + this.nCharDisplay))) {
         this.setIChar(iCharCurrent)
       }
     }

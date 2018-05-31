@@ -132,9 +132,9 @@ class EmbedJolecule {
       .css('overflow', 'hidden')
       .css('width', this.div.outerWidth())
 
-    this.div.append($('<div>')
+    this.div
       .append(this.sequenceDiv)
-      .append(this.proteinDiv))
+      .append(this.proteinDiv)
 
     this.display = new Display(
       this.soupView,

@@ -78302,7 +78302,7 @@ var EmbedJolecule = function () {
 
       this.proteinDiv = (0, _jquery2.default)('<div>').attr('id', 'jolecule-soup-display').addClass('jolecule-embed-body').css('overflow', 'hidden').css('width', this.div.outerWidth());
 
-      this.div.append((0, _jquery2.default)('<div>').append(this.sequenceDiv).append(this.proteinDiv));
+      this.div.append(this.sequenceDiv).append(this.proteinDiv);
 
       this.display = new _display.Display(this.soupView, '#jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
 
@@ -78817,7 +78817,7 @@ var ResidueProxy = function () {
       var iColor = this.soup.residueStore.iColor[this.iRes];
       var color = this.soup.colorTable[iColor];
       if (this.soup.residueSelect.get(this.iRes)) {
-        color = color.clone().offsetHSL(0, 0, +0.3);
+        color = color.clone().offsetHSL(0, 0, +0.2);
       }
       return color;
     }
@@ -83559,10 +83559,10 @@ var SequenceWidget = function (_CanvasWidget) {
     });
 
     _this4.charEntries = [];
-    _this4.iChar = null;
-    _this4.iStartChar = null;
-    _this4.iEndChar = null;
     _this4.nChar = null;
+    _this4.iChar = null;
+    _this4.iCharDisplayStart = null;
+    _this4.iCharDisplayEnd = null;
     _this4.nCharDisplay = null;
     return _this4;
   }
@@ -83601,12 +83601,12 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'xToIChar',
     value: function xToIChar(x) {
-      return parseInt((x - this.textXOffset) * this.nCharDisplay / this.textWidth()) + this.iStartChar;
+      return parseInt((x - this.textXOffset) * this.nCharDisplay / this.textWidth()) + this.iCharDisplayStart;
     }
   }, {
     key: 'iCharToX',
     value: function iCharToX(iRes) {
-      return parseInt((iRes - this.iStartChar) / this.nCharDisplay * this.textWidth() + this.textXOffset);
+      return parseInt((iRes - this.iCharDisplayStart) / this.nCharDisplay * this.textWidth() + this.textXOffset);
     }
   }, {
     key: 'rebuild',
@@ -83705,15 +83705,15 @@ var SequenceWidget = function (_CanvasWidget) {
 
       this.nChar = this.charEntries.length;
       this.iChar = this.nCharDisplay / 2;
-      this.iStartChar = nPadChar;
+      this.iCharDisplayStart = nPadChar;
     }
   }, {
     key: 'setIChar',
     value: function setIChar(iChar) {
       this.iChar = iChar;
-      this.iStartChar = Math.min(this.iStartChar, this.nChar - this.nCharDisplay);
-      this.iStartChar = Math.max(this.iChar - 0.5 * this.nCharDisplay, 0);
-      this.iStartChar = parseInt(this.iStartChar);
+      this.iCharDisplayStart = Math.max(this.iChar - 0.5 * this.nCharDisplay, 0);
+      this.iCharDisplayStart = Math.min(this.iCharDisplayStart, this.nChar - this.nCharDisplay);
+      this.iCharDisplayStart = parseInt(this.iCharDisplayStart);
     }
   }, {
     key: 'updateWithoutCheckingCurrent',
@@ -83731,13 +83731,13 @@ var SequenceWidget = function (_CanvasWidget) {
 
       this.nCharDisplay = Math.ceil(this.width() / this.charWidth);
 
-      this.iEndChar = this.iStartChar + this.nCharDisplay;
-      if (this.iEndChar > this.charEntries.length) {
-        this.iEndChar = this.charEntries.length;
+      if (this.iCharDisplayStart + this.nCharDisplay > this.charEntries.length) {
+        this.iCharDisplayStart = this.iCharDisplayEnd - this.nCharDisplay;
       }
-      if (this.iStartChar < 0) {
-        this.iStartChar = 0;
+      if (this.iCharDisplayStart < 0) {
+        this.iCharDisplayStart = 0;
       }
+      this.iCharDisplayEnd = this.iCharDisplayStart + this.nCharDisplay;
 
       var yTopStructure = this.offsetY - 2;
       var yStructureName = this.offsetY + 7;
@@ -83756,8 +83756,8 @@ var SequenceWidget = function (_CanvasWidget) {
       this.line(0, this.yTopSequence, this.width(), this.yTopSequence, this.borderColor);
       this.line(0, this.yBottom, this.width(), this.yBottom, this.borderColor);
 
-      var x1 = this.iToX(this.iStartChar);
-      var x2 = this.iToX(this.iEndChar);
+      var x1 = this.iToX(this.iCharDisplayStart);
+      var x2 = this.iToX(this.iCharDisplayEnd);
 
       // draw selected part of structure bar
       this.fillRect(x1, yTopStructure, x2 - x1, heightStructure, 1, this.selectColor);
@@ -83796,7 +83796,7 @@ var SequenceWidget = function (_CanvasWidget) {
 
       var r = this.soup.getResidueProxy();
       // draw characters for sequence
-      for (var _iChar = this.iStartChar; _iChar < this.iEndChar; _iChar += 1) {
+      for (var _iChar = this.iCharDisplayStart; _iChar < this.iCharDisplayEnd; _iChar += 1) {
         var residue = this.charEntries[_iChar];
         if (residue.c === '') {
           continue;
@@ -83863,7 +83863,7 @@ var SequenceWidget = function (_CanvasWidget) {
       }
 
       if (iCharCurrent !== null) {
-        if (iCharCurrent < this.iStartChar || iCharCurrent >= this.iStartChar + this.nCharDisplay) {
+        if (iCharCurrent < this.iCharDisplayStart || iCharCurrent >= this.iCharDisplayStart + this.nCharDisplay) {
           this.setIChar(iCharCurrent);
         }
       }
