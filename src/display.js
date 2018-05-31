@@ -115,6 +115,7 @@ class WebglWidget {
     bind('mousedown', e => this.mousedown(e))
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
+    bind('mouseout', e => this.mouseout(e))
     bind('mousewheel', e => this.mousewheel(e))
     bind('dblclick', e => this.doubleclick(e))
     bind('DOMMouseScroll', e => this.mousewheel(e))
@@ -1277,6 +1278,10 @@ class Display extends WebglWidget {
         this.saveMouse()
       }
     }
+  }
+
+  mouseout (event) {
+    this.hover.hide()
   }
 
   mouseup (event) {

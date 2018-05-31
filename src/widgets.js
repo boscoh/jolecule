@@ -107,7 +107,7 @@ class CanvasWidget {
     bind('mousedown', e => this.mousedown(e))
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
-    bind('mouseout', e => this.mouseup(e))
+    bind('mouseout', e => this.mouseout(e))
     bind('dblclick', e => this.doubleclick(e))
     bind('touchstart', e => this.mousedown(e))
     bind('touchmove', e => this.mousemove(e))
@@ -195,6 +195,9 @@ class CanvasWidget {
   mousemove (event) {
   }
 
+  mouseout (event) {
+  }
+
   mouseup (event) {
     event.preventDefault()
     this.mousePressed = false
@@ -217,6 +220,8 @@ class CanvasWidget {
  */
 class PopupText {
   constructor (divTag) {
+    this.heightArrow = 30
+
     this.div = $('<div>')
       .css({
         'position': 'absolute',
@@ -241,7 +246,7 @@ class PopupText {
         'box-sizing': 'border-box',
         'border-left': '5px solid transparent',
         'border-right': '5px solid transparent',
-        'border-top': '50px solid white',
+        'border-top': this.heightArrow + 'px solid white',
         'opacity': 0.7,
         'display': 'none',
         'pointer-events': 'none'
@@ -272,12 +277,12 @@ class PopupText {
     }
 
     this.arrow.css({
-      'top': y - 50 + parentDivPos.top,
+      'top': y - this.heightArrow + parentDivPos.top,
       'left': x - 5 + parentDivPos.left,
     })
 
     this.div.css({
-      'top': y - 50 + parentDivPos.top - height,
+      'top': y - this.heightArrow + parentDivPos.top - height,
       'left': x + parentDivPos.left - width / 2,
     })
   }
@@ -506,6 +511,7 @@ class SequenceWidget extends CanvasWidget {
     this.spacingY = 13
     this.yTopSequence = this.offsetY + this.heightStructureBar + this.spacingY * 2
     this.yBottom = this.yTopSequence + + this.spacingY*2.7 + this.charHeight
+    this.yMidSequence = this.yTopSequence + this.spacingY*1.2 + this.charHeight / 2
 
     this.backColor = '#CCC'
     this.selectColor = '#FFF'
@@ -526,6 +532,8 @@ class SequenceWidget extends CanvasWidget {
     this.iCharDisplayStart = null
     this.iCharDisplayEnd = null
     this.nCharDisplay = null
+
+    this.hover = new PopupText('#sequence-widget', 'lightblue')
   }
 
   width () {
@@ -655,7 +663,6 @@ class SequenceWidget extends CanvasWidget {
     let heightStructure = this.yTopSequence - yTopStructure + 2
     let yMidStructure = yTopStructure + heightStructure / 2 + 2
     let heightSequence = this.yBottom - this.yTopSequence
-    let yMidSequence = this.yTopSequence + this.spacingY*1.2 + this.charHeight / 2
 
     // draw background
     this.fillRect(
@@ -708,7 +715,7 @@ class SequenceWidget extends CanvasWidget {
     }
 
     // draw line through sequence bar
-    this.line(0, yMidSequence, this.width(), yMidSequence, 1, '#999')
+    this.line(0, this.yMidSequence, this.width(), this.yMidSequence, 1, '#999')
 
     let r = this.soup.getResidueProxy()
     // draw characters for sequence
@@ -725,7 +732,7 @@ class SequenceWidget extends CanvasWidget {
       let width = xRight - xLeft
       let xMid = xLeft + width / 2
       let height = this.charHeight
-      let yTop = yMidSequence - height / 2
+      let yTop = this.yMidSequence - height / 2
       if (residue.ss !== 'C') {
         yTop -= 4
         height += 2*4
@@ -737,7 +744,7 @@ class SequenceWidget extends CanvasWidget {
       this.text(
         residue.c,
         xMid,
-        yMidSequence,
+        this.yMidSequence,
         '8pt Monospace',
         'white',
         'center')
@@ -824,18 +831,32 @@ class SequenceWidget extends CanvasWidget {
   }
 
   mousemove (event) {
-    if (!this.mousePressed) {
-      return
-    }
     this.getPointer(event)
-    if (this.pointerY < this.yTopSequence) {
-      // mouse event in structure bar
-      this.setIChar(this.xToI(this.pointerX))
-      this.updateWithoutCheckingCurrent()
-      if (this.charEntries[this.iChar].c !== '') {
-        this.controller.setTargetViewByIAtom(this.getCurrIAtom())
+    if (this.mousePressed) {
+      if (this.pointerY < this.yTopSequence) {
+        // mouse event in structure bar
+        this.setIChar(this.xToI(this.pointerX))
+        this.updateWithoutCheckingCurrent()
+        if (this.charEntries[this.iChar].c !== '') {
+          this.controller.setTargetViewByIAtom(this.getCurrIAtom())
+        }
+      }
+    } else {
+      this.hover.hide()
+      if (this.pointerY >= this.yTopSequence) {
+        let iChar = this.xToIChar(this.pointerX)
+        let charEntry = this.charEntries[iChar]
+        if ('iRes' in charEntry) {
+          let res = this.soup.getResidueProxy(charEntry.iRes)
+          this.hover.html(res.resId)
+          this.hover.move(this.pointerX, this.yMidSequence)
+        }
       }
     }
+  }
+
+  mouseout () {
+    this.hover.hide()
   }
 
   mousedown (event) {

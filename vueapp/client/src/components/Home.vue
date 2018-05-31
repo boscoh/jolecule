@@ -48,13 +48,14 @@
               v-if="isDownloading"/>
           </md-layout>
           <div>
-            {{pdbText}}
+            {{error}}
           </div>
           <div>
             <md-layout
               md-vertical-align="center"
               md-direction="row"
-              v-for="(structureId, i) in structureIds">
+              v-for="(structureId, i) in structureIds"
+              :key="i">
               {{structureId}}
               <md-button
                 md-flex=true
@@ -161,6 +162,7 @@ export default {
       this.isDownloading = true
       let dataServer0 = this.makeDataServer(this.pdbId)
       await this.joleculeWidget.asyncAddDataServer(dataServer0)
+      this.joleculeWidget.controller.zoomOut()
       this.changeGraph()
     },
     makeDataServer (pdbId) {
