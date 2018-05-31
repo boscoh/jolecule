@@ -83085,7 +83085,7 @@ var CanvasWidget = function () {
       return _this.mouseup(e);
     });
     bind('mouseout', function (e) {
-      return _this.mouseup(e);
+      return _this.mouseout(e);
     });
     bind('dblclick', function (e) {
       return _this.doubleclick(e);
@@ -83193,6 +83193,9 @@ var CanvasWidget = function () {
     key: 'mousemove',
     value: function mousemove(event) {}
   }, {
+    key: 'mouseout',
+    value: function mouseout(event) {}
+  }, {
     key: 'mouseup',
     value: function mouseup(event) {
       event.preventDefault();
@@ -83224,6 +83227,8 @@ var PopupText = function () {
   function PopupText(divTag) {
     _classCallCheck(this, PopupText);
 
+    this.heightArrow = 30;
+
     this.div = (0, _jquery2.default)('<div>').css({
       'position': 'absolute',
       'top': 0,
@@ -83246,7 +83251,7 @@ var PopupText = function () {
       'box-sizing': 'border-box',
       'border-left': '5px solid transparent',
       'border-right': '5px solid transparent',
-      'border-top': '50px solid white',
+      'border-top': this.heightArrow + 'px solid white',
       'opacity': 0.7,
       'display': 'none',
       'pointer-events': 'none'
@@ -83275,12 +83280,12 @@ var PopupText = function () {
       }
 
       this.arrow.css({
-        'top': y - 50 + parentDivPos.top,
+        'top': y - this.heightArrow + parentDivPos.top,
         'left': x - 5 + parentDivPos.left
       });
 
       this.div.css({
-        'top': y - 50 + parentDivPos.top - height,
+        'top': y - this.heightArrow + parentDivPos.top - height,
         'left': x + parentDivPos.left - width / 2
       });
     }
@@ -83549,6 +83554,7 @@ var SequenceWidget = function (_CanvasWidget) {
     _this4.spacingY = 13;
     _this4.yTopSequence = _this4.offsetY + _this4.heightStructureBar + _this4.spacingY * 2;
     _this4.yBottom = _this4.yTopSequence + +_this4.spacingY * 2.7 + _this4.charHeight;
+    _this4.yMidSequence = _this4.yTopSequence + _this4.spacingY * 1.2 + _this4.charHeight / 2;
 
     _this4.backColor = '#CCC';
     _this4.selectColor = '#FFF';
@@ -83569,6 +83575,8 @@ var SequenceWidget = function (_CanvasWidget) {
     _this4.iCharDisplayStart = null;
     _this4.iCharDisplayEnd = null;
     _this4.nCharDisplay = null;
+
+    _this4.hover = new PopupText('#sequence-widget', 'lightblue');
     return _this4;
   }
 
@@ -83749,7 +83757,6 @@ var SequenceWidget = function (_CanvasWidget) {
       var heightStructure = this.yTopSequence - yTopStructure + 2;
       var yMidStructure = yTopStructure + heightStructure / 2 + 2;
       var heightSequence = this.yBottom - this.yTopSequence;
-      var yMidSequence = this.yTopSequence + this.spacingY * 1.2 + this.charHeight / 2;
 
       // draw background
       this.fillRect(0, 0, this.width(), this.height(), this.backColor);
@@ -83797,7 +83804,7 @@ var SequenceWidget = function (_CanvasWidget) {
       }
 
       // draw line through sequence bar
-      this.line(0, yMidSequence, this.width(), yMidSequence, 1, '#999');
+      this.line(0, this.yMidSequence, this.width(), this.yMidSequence, 1, '#999');
 
       var r = this.soup.getResidueProxy();
       // draw characters for sequence
@@ -83814,7 +83821,7 @@ var SequenceWidget = function (_CanvasWidget) {
         var width = xRight - xLeft;
         var xMid = xLeft + width / 2;
         var height = this.charHeight;
-        var _yTop = yMidSequence - height / 2;
+        var _yTop = this.yMidSequence - height / 2;
         if (residue.ss !== 'C') {
           _yTop -= 4;
           height += 2 * 4;
@@ -83822,7 +83829,7 @@ var SequenceWidget = function (_CanvasWidget) {
 
         this.fillRect(xLeft, _yTop, width, height, colorStyle);
 
-        this.text(residue.c, xMid, yMidSequence, '8pt Monospace', 'white', 'center');
+        this.text(residue.c, xMid, this.yMidSequence, '8pt Monospace', 'white', 'center');
 
         // draw highlight res box
         if (iResCurrent >= 0 && iResCurrent === residue.iRes) {
@@ -83897,18 +83904,33 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'mousemove',
     value: function mousemove(event) {
-      if (!this.mousePressed) {
-        return;
-      }
       this.getPointer(event);
-      if (this.pointerY < this.yTopSequence) {
-        // mouse event in structure bar
-        this.setIChar(this.xToI(this.pointerX));
-        this.updateWithoutCheckingCurrent();
-        if (this.charEntries[this.iChar].c !== '') {
-          this.controller.setTargetViewByIAtom(this.getCurrIAtom());
+      if (this.mousePressed) {
+        if (this.pointerY < this.yTopSequence) {
+          // mouse event in structure bar
+          this.setIChar(this.xToI(this.pointerX));
+          this.updateWithoutCheckingCurrent();
+          if (this.charEntries[this.iChar].c !== '') {
+            this.controller.setTargetViewByIAtom(this.getCurrIAtom());
+          }
+        }
+      } else {
+        this.hover.hide();
+        if (this.pointerY >= this.yTopSequence) {
+          var iChar = this.xToIChar(this.pointerX);
+          var charEntry = this.charEntries[iChar];
+          if ('iRes' in charEntry) {
+            var res = this.soup.getResidueProxy(charEntry.iRes);
+            this.hover.html(res.resId);
+            this.hover.move(this.pointerX, this.yMidSequence);
+          }
         }
       }
+    }
+  }, {
+    key: 'mouseout',
+    value: function mouseout() {
+      this.hover.hide();
     }
   }, {
     key: 'mousedown',
@@ -90618,6 +90640,9 @@ var WebglWidget = function () {
       bind('mouseup', function (e) {
         return _this.mouseup(e);
       });
+      bind('mouseout', function (e) {
+        return _this.mouseout(e);
+      });
       bind('mousewheel', function (e) {
         return _this.mousewheel(e);
       });
@@ -92329,6 +92354,11 @@ var Display = function (_WebglWidget) {
           this.saveMouse();
         }
       }
+    }
+  }, {
+    key: 'mouseout',
+    value: function mouseout(event) {
+      this.hover.hide();
     }
   }, {
     key: 'mouseup',

@@ -229,8 +229,10 @@ class PopupText {
         'left': 0,
         'background': 'white',
         'box-sizing': 'border-box',
+        'font': '12px Helvetica',
+        'color': '#666',
         'padding': '5',
-        'opacity': 0.7,
+        'opacity': 0.8,
         'display': 'none',
         'z-index': 1000,
         'cursor': 'pointer'
@@ -247,8 +249,9 @@ class PopupText {
         'border-left': '5px solid transparent',
         'border-right': '5px solid transparent',
         'border-top': this.heightArrow + 'px solid white',
-        'opacity': 0.7,
+        'opacity': 0.8,
         'display': 'none',
+        'z-index': 1000,
         'pointer-events': 'none'
       })
 
@@ -745,7 +748,7 @@ class SequenceWidget extends CanvasWidget {
         residue.c,
         xMid,
         this.yMidSequence,
-        '8pt Monospace',
+        '7pt Helvetica',
         'white',
         'center')
 
@@ -762,7 +765,7 @@ class SequenceWidget extends CanvasWidget {
           '' + residue.resNum,
           xLeft + 3,
           this.yBottom - 6,
-          '8pt Monospace',
+          '7pt Helvetica',
           this.borderColor,
           'left')
       }
@@ -784,7 +787,7 @@ class SequenceWidget extends CanvasWidget {
         let res = this.charEntries[iChar]
         let text = this.soup.structureIds[res.iStructure]
         text += ':' + this.soup.chains[res.iChain]
-        this.text(text, x, yStructureName, '8pt Monospace', '#666', 'left')
+        this.text(text, x, yStructureName, '7pt Helvetica', '#666', 'left')
       }
       iChar += 1
     }
@@ -848,8 +851,9 @@ class SequenceWidget extends CanvasWidget {
         let charEntry = this.charEntries[iChar]
         if ('iRes' in charEntry) {
           let res = this.soup.getResidueProxy(charEntry.iRes)
-          this.hover.html(res.resId)
-          this.hover.move(this.pointerX, this.yMidSequence)
+          this.hover.html(res.resId + ':' + res.resType)
+          let x = this.iCharToX(iChar) + this.charWidth / 2
+          this.hover.move(x, this.yMidSequence)
         }
       }
     }
