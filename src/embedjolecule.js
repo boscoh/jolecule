@@ -17,6 +17,7 @@ let defaultArgs = {
   viewHeight: 170,
   isViewTextShown: false,
   isEditable: true,
+  isPlayable: true,
   isLoop: false,
   isGrid: false,
   backgroundColor: 0x000000
@@ -33,6 +34,7 @@ class EmbedJolecule {
 
     this.soup = new Soup()
     this.soupView = new SoupView(this.soup)
+    this.soupView.isLoop = params.isLoop
     this.controller = new Controller(this.soupView)
 
     this.nDataServer = 0
@@ -146,6 +148,10 @@ class EmbedJolecule {
     this.sequenceWidget = new widgets.SequenceWidget(
       '#sequence-widget', this.display)
 
+    if (this.params.isGrid) {
+      this.gridControlWidget = new widgets.GridControlWidget(this.display)
+    }
+
     this.statusDiv = $('<div style="display: flex; flex-direction: column">')
       .addClass('jolecule-embed-view-bar')
       .append($('<div>')
@@ -179,9 +185,10 @@ class EmbedJolecule {
 
     this.div.append(this.statusDiv)
 
-    this.loopToggleWidget = new widgets.TogglePlayButtonWidget(this.display, '#loop')
+    if (this.params.isPlayable) {
+      this.loopToggleWidget = new widgets.TogglePlayButtonWidget(this.display, '#loop')
+    }
     this.zSlabWidget = new widgets.ZSlabWidget(this.display, '#zslab')
-    this.gridControlWidget = new widgets.GridControlWidget(this.display)
     this.residueSelectorWidget = new widgets.ResidueSelectorWidget(this.display, '#res-selector')
     this.ligandWidget = new widgets.ToggleButtonWidget(this.display, '#ligand', 'ligands')
   }

@@ -113,8 +113,9 @@ export default {
 
     this.joleculeWidget = initEmbedJolecule({
       divTag: '#jolecule',
-      isGrid: true,
+      isGrid: false,
       isEditable: true,
+      isPlayable: false,
       backgroundColor: 0xCCCCCC
     })
 

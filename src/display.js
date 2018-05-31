@@ -116,6 +116,7 @@ class WebglWidget {
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
     bind('mousewheel', e => this.mousewheel(e))
+    bind('dblclick', e => this.doubleclick(e))
     bind('DOMMouseScroll', e => this.mousewheel(e))
     bind('touchstart', e => this.mousedown(e))
     bind('touchmove', e => this.mousemove(e))
@@ -1130,8 +1131,6 @@ class Display extends WebglWidget {
 
     this.rotateCameraParamsToCurrentView()
 
-    console.log('Display.drawFrame current', this.soupView.currentView.distances)
-
     // needs to be observers.updated before render
     // as lines must be placed in THREE.js scene
     this.distanceMeasuresWidget.drawFrame()
@@ -1199,7 +1198,7 @@ class Display extends WebglWidget {
       } else {
         let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
         // trick to ensure that the double-clicked atom is selected
-        this.controller.setResidueSelect(iRes, false)
+        this.controller.setResidueSelect(iRes, true)
         this.setTargetViewByIAtom(this.iHoverAtom)
       }
       this.isDraggingCentralAtom = false
@@ -1219,12 +1218,7 @@ class Display extends WebglWidget {
     let iCenterAtom = this.soupView.getICenteredAtom()
 
     let now = (new Date()).getTime()
-    let isDoubleClick = (now - this.timePressed) < 500
-    if (isDoubleClick) {
-      if (this.iDoubleClickDownAtom === this.iDownAtom) {
-        this.doubleclick()
-      }
-    } else if (this.iDownAtom === iCenterAtom) {
+    if (this.iDownAtom === iCenterAtom) {
       this.isDraggingCentralAtom = this.iDownAtom !== null
     }
 
@@ -1361,7 +1355,6 @@ class Display extends WebglWidget {
 
     this.lastPinchRotation = event.rotation * 2
     this.lastScale = event.scale * event.scale
-    console.log('Display.gesturechange')
   }
 
   gestureend (event) {

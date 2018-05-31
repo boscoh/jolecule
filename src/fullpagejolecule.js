@@ -414,6 +414,7 @@ class FullPageJolecule {
       isViewTextShown: false,
       isEditable: true,
       isLoop: false,
+      isPlayable: true,
       isGrid: true,
       backgroundColor: 0xCCCCCC
     }

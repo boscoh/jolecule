@@ -1580,14 +1580,10 @@ class SoupView {
     this.startTargetAfterRender = true
     this.saveTargetView = view.clone()
     this.saveTargetView.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus)
-    console.log('SoupView.setTargetView current', this.currentView.distances)
-    console.log('SoupView.setTargetView save', this.currentView.distances)
   }
 
   startTargetView () {
     this.targetView = this.saveTargetView
-    console.log('SoupView.setTargetView current', this.currentView.distances)
-    console.log('SoupView.setTargetView target', this.currentView.distances)
     this.updateWidgets = true
     this.startTargetAfterRender = false
     this.changed = true

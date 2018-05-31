@@ -78066,6 +78066,7 @@ var defaultArgs = {
   viewHeight: 170,
   isViewTextShown: false,
   isEditable: true,
+  isPlayable: true,
   isLoop: false,
   isGrid: false,
   backgroundColor: 0x000000
@@ -78086,6 +78087,7 @@ var EmbedJolecule = function () {
 
     this.soup = new _soup.Soup();
     this.soupView = new _soup.SoupView(this.soup);
+    this.soupView.isLoop = params.isLoop;
     this.controller = new _soup.Controller(this.soupView);
 
     this.nDataServer = 0;
@@ -78308,6 +78310,10 @@ var EmbedJolecule = function () {
 
       this.sequenceWidget = new _widgets2.default.SequenceWidget('#sequence-widget', this.display);
 
+      if (this.params.isGrid) {
+        this.gridControlWidget = new _widgets2.default.GridControlWidget(this.display);
+      }
+
       this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div>').css('width', '100%').css('display', 'flex').css('flex-direction', 'row').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="loop">')).append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-residue-selector" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
         _this3.controller.clear();
       })).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _util.linkButton)('', 'Sidechains', 'jolecule-button', function () {
@@ -78318,9 +78324,10 @@ var EmbedJolecule = function () {
 
       this.div.append(this.statusDiv);
 
-      this.loopToggleWidget = new _widgets2.default.TogglePlayButtonWidget(this.display, '#loop');
+      if (this.params.isPlayable) {
+        this.loopToggleWidget = new _widgets2.default.TogglePlayButtonWidget(this.display, '#loop');
+      }
       this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.display, '#zslab');
-      this.gridControlWidget = new _widgets2.default.GridControlWidget(this.display);
       this.residueSelectorWidget = new _widgets2.default.ResidueSelectorWidget(this.display, '#res-selector');
       this.ligandWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#ligand', 'ligands');
     }
@@ -80388,15 +80395,11 @@ var SoupView = function () {
       this.startTargetAfterRender = true;
       this.saveTargetView = view.clone();
       this.saveTargetView.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
-      console.log('SoupView.setTargetView current', this.currentView.distances);
-      console.log('SoupView.setTargetView save', this.currentView.distances);
     }
   }, {
     key: 'startTargetView',
     value: function startTargetView() {
       this.targetView = this.saveTargetView;
-      console.log('SoupView.setTargetView current', this.currentView.distances);
-      console.log('SoupView.setTargetView target', this.currentView.distances);
       this.updateWidgets = true;
       this.startTargetAfterRender = false;
       this.changed = true;
@@ -90618,6 +90621,9 @@ var WebglWidget = function () {
       bind('mousewheel', function (e) {
         return _this.mousewheel(e);
       });
+      bind('dblclick', function (e) {
+        return _this.doubleclick(e);
+      });
       bind('DOMMouseScroll', function (e) {
         return _this.mousewheel(e);
       });
@@ -92179,8 +92185,6 @@ var Display = function (_WebglWidget) {
 
       this.rotateCameraParamsToCurrentView();
 
-      console.log('Display.drawFrame current', this.soupView.currentView.distances);
-
       // needs to be observers.updated before render
       // as lines must be placed in THREE.js scene
       this.distanceMeasuresWidget.drawFrame();
@@ -92249,7 +92253,7 @@ var Display = function (_WebglWidget) {
         } else {
           var iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes;
           // trick to ensure that the double-clicked atom is selected
-          this.controller.setResidueSelect(iRes, false);
+          this.controller.setResidueSelect(iRes, true);
           this.setTargetViewByIAtom(this.iHoverAtom);
         }
         this.isDraggingCentralAtom = false;
@@ -92270,12 +92274,7 @@ var Display = function (_WebglWidget) {
       var iCenterAtom = this.soupView.getICenteredAtom();
 
       var now = new Date().getTime();
-      var isDoubleClick = now - this.timePressed < 500;
-      if (isDoubleClick) {
-        if (this.iDoubleClickDownAtom === this.iDownAtom) {
-          this.doubleclick();
-        }
-      } else if (this.iDownAtom === iCenterAtom) {
+      if (this.iDownAtom === iCenterAtom) {
         this.isDraggingCentralAtom = this.iDownAtom !== null;
       }
 
@@ -92408,7 +92407,6 @@ var Display = function (_WebglWidget) {
 
       this.lastPinchRotation = event.rotation * 2;
       this.lastScale = event.scale * event.scale;
-      console.log('Display.gesturechange');
     }
   }, {
     key: 'gestureend',
@@ -99144,6 +99142,7 @@ var FullPageJolecule = function () {
       isViewTextShown: false,
       isEditable: true,
       isLoop: false,
+      isPlayable: true,
       isGrid: true,
       backgroundColor: 0xCCCCCC
     };
