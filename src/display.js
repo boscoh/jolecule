@@ -1218,6 +1218,7 @@ class Display extends WebglWidget {
     let iCenterAtom = this.soupView.getICenteredAtom()
 
     let now = (new Date()).getTime()
+
     if (this.iDownAtom === iCenterAtom) {
       this.isDraggingCentralAtom = this.iDownAtom !== null
     }

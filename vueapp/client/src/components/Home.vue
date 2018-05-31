@@ -22,14 +22,6 @@
 
       <md-layout md-flex="33">
         <md-whiteframe>
-          <div>
-            <md-button
-              md-flex=true
-              class="md-raised"
-              @click="deleteProtein()">
-              Delete
-            </md-button>
-          </div>
           <md-layout
             md-row
             md-vertical-align="center">
@@ -54,8 +46,24 @@
               :md-size="25"
               md-indeterminate
               v-if="isDownloading"/>
-            {{pdbText}}
           </md-layout>
+          <div>
+            {{pdbText}}
+          </div>
+          <div>
+            <md-layout
+              md-vertical-align="center"
+              md-direction="row"
+              v-for="(structureId, i) in structureIds">
+              {{structureId}}
+              <md-button
+                md-flex=true
+                class="md-fab md-mini"
+                @click="deleteProtein(i)">
+                <md-icon>delete</md-icon>
+              </md-button>
+            </md-layout>
+          </div>
         </md-whiteframe>
       </md-layout>
 
@@ -98,13 +106,15 @@ import _ from 'lodash'
 import $ from 'jquery'
 import ChartWidget from '../modules/chart-widget'
 import {initEmbedJolecule} from '../../../../src/main'
+import * as util from '../../../../src/util'
 
 export default {
   name: 'experiments',
   data () {
     return {
       pdbId: '',
-      pdbText: '',
+      error: '',
+      structureIds: [],
       isDownloading: false
     }
   },
@@ -140,13 +150,16 @@ export default {
     this.changeGraph()
   },
   methods: {
-    async deleteProtein () {
-      this.joleculeWidget.display.deleteStructure(1)
+    async deleteProtein (i) {
+      this.joleculeWidget.display.deleteStructure(i)
+      this.joleculeWidget.controller.zoomOut()
       this.changeGraph()
     },
     async loadFromPdbId () {
-      let dataServer0 = this.makeDataServer(this.pdbId)
+      await util.delay(100)
+      this.error = ''
       this.isDownloading = true
+      let dataServer0 = this.makeDataServer(this.pdbId)
       await this.joleculeWidget.asyncAddDataServer(dataServer0)
       this.changeGraph()
     },
@@ -156,12 +169,13 @@ export default {
         pdb_id: pdbId,
         get_protein_data: function (parsePdb) {
           let url = `https://files.rcsb.org/download/${pdbId}.pdb1`
+          console.log('makeDataServer', url)
           $.get(url, (pdbText) => {
             parsePdb({pdb_id: pdbId, pdb_text: pdbText})
             _this.isDownloading = false
           }).fail(() => {
             _this.isDownloading = false
-            _this.pdbText = 'Error: failed to load'
+            _this.error = 'Error: failed to load'
           })
         },
         get_views: function (processViews) { processViews({}) },
@@ -184,6 +198,8 @@ export default {
       this.chartWidget.setYLabel('b-factor')
       this.chartWidget.addDataset('sample')
       this.chartWidget.updateDataset(0, _.range(1, n + 1), bfactors)
+
+      this.structureIds = _.clone(soup.structureIds)
     },
     randomizeGraph () {
       for (let slider of this.sliders) {

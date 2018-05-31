@@ -92274,6 +92274,7 @@ var Display = function (_WebglWidget) {
       var iCenterAtom = this.soupView.getICenteredAtom();
 
       var now = new Date().getTime();
+
       if (this.iDownAtom === iCenterAtom) {
         this.isDraggingCentralAtom = this.iDownAtom !== null;
       }
