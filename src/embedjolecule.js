@@ -16,6 +16,7 @@ let defaultArgs = {
   viewId: '',
   viewHeight: 170,
   isViewTextShown: false,
+  isSequenceBar: true,
   isEditable: true,
   isPlayable: true,
   isLoop: false,
@@ -145,8 +146,10 @@ class EmbedJolecule {
       this.params.isGrid,
       this.params.backgroundColor)
 
-    this.sequenceWidget = new widgets.SequenceWidget(
-      '#sequence-widget', this.display)
+    if (this.params.isSequenceBar) {
+      this.sequenceWidget = new widgets.SequenceWidget(
+        '#sequence-widget', this.display)
+    }
 
     if (this.params.isGrid) {
       this.gridControlWidget = new widgets.GridControlWidget(this.display)
@@ -195,10 +198,15 @@ class EmbedJolecule {
 
   resize () {
     this.proteinDiv.width(this.div.outerWidth())
-    let statusHeight = this.statusDiv.outerHeight()
-    let sequenceHeight = this.sequenceWidget.height()
-    this.proteinDiv.css('top', sequenceHeight)
-    this.proteinDiv.css('height', this.div.outerHeight() - sequenceHeight - statusHeight)
+    let height = this.div.outerHeight()
+    if ('sequenceWidget' in this) {
+      height -= this.sequenceWidget.height()
+      this.proteinDiv.css('top', this.sequenceWidget.height())
+    }
+    if ('statusDiv' in this) {
+      height -= this.statusDiv.outerHeight()
+    }
+    this.proteinDiv.css('height', height)
     this.display.resize()
   }
 }

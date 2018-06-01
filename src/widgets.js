@@ -219,8 +219,13 @@ class CanvasWidget {
  * within a parent div denoted by selector
  */
 class PopupText {
-  constructor (divTag) {
-    this.heightArrow = 30
+  constructor (divTag, heightArrow) {
+    if (_.isUndefined(heightArrow)) {
+      this.heightArrow = 30
+    } else {
+      this.heightArrow = heightArrow
+    }
+    console.log('PopupText', this.heightArrow)
 
     this.div = $('<div>')
       .css({
@@ -536,7 +541,7 @@ class SequenceWidget extends CanvasWidget {
     this.iCharDisplayEnd = null
     this.nCharDisplay = null
 
-    this.hover = new PopupText('#sequence-widget', 'lightblue')
+    this.hover = new PopupText('#sequence-widget', 15)
   }
 
   width () {
@@ -835,13 +840,22 @@ class SequenceWidget extends CanvasWidget {
 
   mousemove (event) {
     this.getPointer(event)
-    if (this.mousePressed) {
-      if (this.pointerY < this.yTopSequence) {
+    if (this.pointerY < this.yTopSequence) {
+      if (this.mousePressed) {
         // mouse event in structure bar
         this.setIChar(this.xToI(this.pointerX))
         this.updateWithoutCheckingCurrent()
         if (this.charEntries[this.iChar].c !== '') {
           this.controller.setTargetViewByIAtom(this.getCurrIAtom())
+        }
+      } else {
+        this.hover.hide()
+        let iChar = this.xToI(this.pointerX)
+        let charEntry = this.charEntries[iChar]
+        if ('iRes' in charEntry) {
+          let res = this.soup.getResidueProxy(charEntry.iRes)
+          this.hover.html(res.resId + ':' + res.resType)
+          this.hover.move(this.iToX(iChar), 25)
         }
       }
     } else {

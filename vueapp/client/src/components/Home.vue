@@ -127,6 +127,7 @@ export default {
       isGrid: false,
       isEditable: true,
       isPlayable: false,
+      isSequenceBar: true,
       backgroundColor: 0xCCCCCC
     })
 

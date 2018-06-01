@@ -460,7 +460,7 @@ class Display extends WebglWidget {
     this.buildCrossHairs()
 
     // popup hover box over the mouse position
-    this.hover = new widgets.PopupText(this.divTag, 'lightblue')
+    this.hover = new widgets.PopupText(this.divTag, 50)
     this.iHoverAtom = null
 
     // Docking display control
