@@ -507,11 +507,11 @@ class SequenceWidget extends CanvasWidget {
     this.display.addObserver(this)
 
     this.charWidth = 14
-    this.charHeight = 14
+    this.charHeight = 15
     this.textXOffset = 0
     this.offsetY = 6
-    this.heightStructureBar = 8
-    this.spacingY = 13
+    this.heightStructureBar = 7
+    this.spacingY = 12
     this.yTopSequence = this.offsetY + this.heightStructureBar + this.spacingY * 2
     this.yBottom = this.yTopSequence + + this.spacingY*2.7 + this.charHeight
     this.yMidSequence = this.yTopSequence + this.spacingY*1.2 + this.charHeight / 2
@@ -582,7 +582,7 @@ class SequenceWidget extends CanvasWidget {
     let iChain = -1
     let iStructure = 0
     let nRes = this.soup.getResidueCount()
-    let nPadChar = parseInt(0.02 * nRes)
+    let nPadChar = parseInt(0.02 * nRes / this.soup.structureIds.length)
     for (let iRes of _.range(nRes)) {
       residue.iRes = iRes
 
@@ -755,7 +755,7 @@ class SequenceWidget extends CanvasWidget {
       // draw highlight res box
       if ((iResCurrent >= 0) && (iResCurrent === residue.iRes)) {
         this.strokeRect(
-          xLeft, yTop - 3, width, height + 6, this.highlightColor)
+          xLeft, yTop - 5, width, height + 10, this.highlightColor)
       }
 
       if ((residue.resNum % 20 === 0) || residue.start) {

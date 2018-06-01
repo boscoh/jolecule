@@ -345,12 +345,12 @@ class ResidueProxy {
     let thisRes = this
     let prevRes = new ResidueProxy(this.soup, this.iRes - 1)
 
-    const proteinAtomTypes = ['CA', 'N', 'C']
+    const proteinAtomTypes = ['CA']
     if (prevRes.checkAtomTypes(proteinAtomTypes) &&
       thisRes.checkAtomTypes(proteinAtomTypes)) {
-      let c = prevRes.getAtomProxy('C').pos
-      let n = thisRes.getAtomProxy('N').pos
-      if (v3.distance(c, n) < 2) {
+      let ca0 = prevRes.getAtomProxy('CA').pos
+      let ca1 = thisRes.getAtomProxy('CA').pos
+      if (v3.distance(ca0, ca1) < 4) {
         return true
       }
     }
@@ -366,7 +366,7 @@ class ResidueProxy {
     let thisRes = this
     let prevRes = new ResidueProxy(this.soup, this.iRes - 1)
 
-    const nucleicAtomTypes = ['C3\'', 'O3\'', 'C5\'', 'O4\'', 'C1\'']
+    const nucleicAtomTypes = ['C3\'', 'O3\'']
 
     if (prevRes.checkAtomTypes(nucleicAtomTypes) &&
         thisRes.checkAtomTypes(nucleicAtomTypes) &&

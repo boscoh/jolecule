@@ -78711,11 +78711,11 @@ var ResidueProxy = function () {
       var thisRes = this;
       var prevRes = new ResidueProxy(this.soup, this.iRes - 1);
 
-      var proteinAtomTypes = ['CA', 'N', 'C'];
+      var proteinAtomTypes = ['CA'];
       if (prevRes.checkAtomTypes(proteinAtomTypes) && thisRes.checkAtomTypes(proteinAtomTypes)) {
-        var c = prevRes.getAtomProxy('C').pos;
-        var n = thisRes.getAtomProxy('N').pos;
-        if (_v2.default.distance(c, n) < 2) {
+        var ca0 = prevRes.getAtomProxy('CA').pos;
+        var ca1 = thisRes.getAtomProxy('CA').pos;
+        if (_v2.default.distance(ca0, ca1) < 4) {
           return true;
         }
       }
@@ -78732,7 +78732,7 @@ var ResidueProxy = function () {
       var thisRes = this;
       var prevRes = new ResidueProxy(this.soup, this.iRes - 1);
 
-      var nucleicAtomTypes = ['C3\'', 'O3\'', 'C5\'', 'O4\'', 'C1\''];
+      var nucleicAtomTypes = ['C3\'', 'O3\''];
 
       if (prevRes.checkAtomTypes(nucleicAtomTypes) && thisRes.checkAtomTypes(nucleicAtomTypes) && thisRes.checkAtomTypes(['P'])) {
         var o3 = prevRes.getAtomProxy('O3\'').pos;
@@ -83235,8 +83235,10 @@ var PopupText = function () {
       'left': 0,
       'background': 'white',
       'box-sizing': 'border-box',
+      'font': '12px Helvetica',
+      'color': '#666',
       'padding': '5',
-      'opacity': 0.7,
+      'opacity': 0.8,
       'display': 'none',
       'z-index': 1000,
       'cursor': 'pointer'
@@ -83252,8 +83254,9 @@ var PopupText = function () {
       'border-left': '5px solid transparent',
       'border-right': '5px solid transparent',
       'border-top': this.heightArrow + 'px solid white',
-      'opacity': 0.7,
+      'opacity': 0.8,
       'display': 'none',
+      'z-index': 1000,
       'pointer-events': 'none'
     });
 
@@ -83547,11 +83550,11 @@ var SequenceWidget = function (_CanvasWidget) {
     _this4.display.addObserver(_this4);
 
     _this4.charWidth = 14;
-    _this4.charHeight = 14;
+    _this4.charHeight = 15;
     _this4.textXOffset = 0;
     _this4.offsetY = 6;
-    _this4.heightStructureBar = 8;
-    _this4.spacingY = 13;
+    _this4.heightStructureBar = 7;
+    _this4.spacingY = 12;
     _this4.yTopSequence = _this4.offsetY + _this4.heightStructureBar + _this4.spacingY * 2;
     _this4.yBottom = _this4.yTopSequence + +_this4.spacingY * 2.7 + _this4.charHeight;
     _this4.yMidSequence = _this4.yTopSequence + _this4.spacingY * 1.2 + _this4.charHeight / 2;
@@ -83629,7 +83632,7 @@ var SequenceWidget = function (_CanvasWidget) {
       var iChain = -1;
       var iStructure = 0;
       var nRes = this.soup.getResidueCount();
-      var nPadChar = parseInt(0.02 * nRes);
+      var nPadChar = parseInt(0.02 * nRes / this.soup.structureIds.length);
       var _iteratorNormalCompletion = true;
       var _didIteratorError = false;
       var _iteratorError = undefined;
@@ -83829,16 +83832,16 @@ var SequenceWidget = function (_CanvasWidget) {
 
         this.fillRect(xLeft, _yTop, width, height, colorStyle);
 
-        this.text(residue.c, xMid, this.yMidSequence, '8pt Monospace', 'white', 'center');
+        this.text(residue.c, xMid, this.yMidSequence, '7pt Helvetica', 'white', 'center');
 
         // draw highlight res box
         if (iResCurrent >= 0 && iResCurrent === residue.iRes) {
-          this.strokeRect(xLeft, _yTop - 3, width, height + 6, this.highlightColor);
+          this.strokeRect(xLeft, _yTop - 5, width, height + 10, this.highlightColor);
         }
 
         if (residue.resNum % 20 === 0 || residue.start) {
           this.line(xLeft, this.yBottom, xLeft, this.yBottom - 6, 1, this.borderColor);
-          this.text('' + residue.resNum, xLeft + 3, this.yBottom - 6, '8pt Monospace', this.borderColor, 'left');
+          this.text('' + residue.resNum, xLeft + 3, this.yBottom - 6, '7pt Helvetica', this.borderColor, 'left');
         }
       }
 
@@ -83855,7 +83858,7 @@ var SequenceWidget = function (_CanvasWidget) {
           var res = this.charEntries[iChar];
           var text = this.soup.structureIds[res.iStructure];
           text += ':' + this.soup.chains[res.iChain];
-          this.text(text, x, yStructureName, '8pt Monospace', '#666', 'left');
+          this.text(text, x, yStructureName, '7pt Helvetica', '#666', 'left');
         }
         iChar += 1;
       }
@@ -83921,8 +83924,9 @@ var SequenceWidget = function (_CanvasWidget) {
           var charEntry = this.charEntries[iChar];
           if ('iRes' in charEntry) {
             var res = this.soup.getResidueProxy(charEntry.iRes);
-            this.hover.html(res.resId);
-            this.hover.move(this.pointerX, this.yMidSequence);
+            this.hover.html(res.resId + ':' + res.resType);
+            var x = this.iCharToX(iChar) + this.charWidth / 2;
+            this.hover.move(x, this.yMidSequence);
           }
         }
       }
