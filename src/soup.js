@@ -350,7 +350,7 @@ class ResidueProxy {
       thisRes.checkAtomTypes(proteinAtomTypes)) {
       let ca0 = prevRes.getAtomProxy('CA').pos
       let ca1 = thisRes.getAtomProxy('CA').pos
-      if (v3.distance(ca0, ca1) < 4) {
+      if (v3.distance(ca0, ca1) < 5) {
         return true
       }
     }

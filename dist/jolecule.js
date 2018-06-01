@@ -78715,7 +78715,7 @@ var ResidueProxy = function () {
       if (prevRes.checkAtomTypes(proteinAtomTypes) && thisRes.checkAtomTypes(proteinAtomTypes)) {
         var ca0 = prevRes.getAtomProxy('CA').pos;
         var ca1 = thisRes.getAtomProxy('CA').pos;
-        if (_v2.default.distance(ca0, ca1) < 4) {
+        if (_v2.default.distance(ca0, ca1) < 5) {
           return true;
         }
       }
@@ -99284,8 +99284,6 @@ var FullPageJolecule = function () {
           if (this.soupView.currentView.show.backboneAtom) {
             this.controller.setBackboneOption('ribbon');
           } else if (this.soupView.currentView.show.ribbon) {
-            this.controller.setBackboneOption('trace');
-          } else if (this.soupView.currentView.show.trace) {
             this.controller.setBackboneOption('backboneAtom');
           }
         } else if (c === 'L') {

@@ -494,8 +494,6 @@ class FullPageJolecule {
         if (this.soupView.currentView.show.backboneAtom) {
           this.controller.setBackboneOption('ribbon')
         } else if (this.soupView.currentView.show.ribbon) {
-          this.controller.setBackboneOption('trace')
-        } else if (this.soupView.currentView.show.trace) {
           this.controller.setBackboneOption('backboneAtom')
         }
       } else if (c === 'L') {
