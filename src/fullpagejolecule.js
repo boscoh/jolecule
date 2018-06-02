@@ -412,6 +412,7 @@ class FullPageJolecule {
       viewId: '',
       viewHeight: 170,
       isViewTextShown: false,
+      isSequenceBar: true,
       isEditable: true,
       isLoop: false,
       isPlayable: true,

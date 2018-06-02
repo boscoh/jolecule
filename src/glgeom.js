@@ -259,7 +259,8 @@ class Trace extends PathAndFrenetFrames {
           // generate a normal from curvature
           let diff = this.points[i].clone().sub(this.points[i - 1])
           this.normals[i] = v3.create()
-            .crossVectors(diff, this.tangents[i]).normalize()
+            .crossVectors(diff, this.tangents[i])
+            .normalize()
 
           // smooth out auto-generated normal if flipped 180deg from prev
           let prevNormal = this.normals[i - 1]
@@ -396,6 +397,8 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
       this.nFace += ((nTrace - 1) * 2 * this.nShape * (2 * trace.detail + 1))
       this.nFace += this.nShape - 2
       this.nFace += this.nShape - 2
+
+      this.nVertex = this.nFace * 3
     }
   }
 
@@ -414,6 +417,12 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
       function getWidth (iTracePoint) {
         return trace.segmentTypes[iTracePoint] === 'C' ? 0.7 : 8
       }
+
+      let vertices = null
+      let lastVertices = null
+      let shapeNormals = null
+      let lastShapeNormals = null
+      let isFlat = true
 
       for (let iTracePoint = iTraceStart; iTracePoint < iTraceEnd; iTracePoint += 1) {
         // iPathStart, iPathEnd on the expanded path for a given tracePoint
@@ -448,6 +457,8 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
             }
           }
 
+          isFlat = trace.segmentTypes[iTracePoint] !== 'C'
+
           let point = path.points[iPathPoint]
           let normal = path.normals[iPathPoint]
           let binormal = path.binormals[iPathPoint]
@@ -458,45 +469,35 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
             shapePoint.y = shapePoint.y * height
           }
 
-          // draw cap of ribbon
-          let isFront = (iPathPoint === 0) && (iTracePoint === iTraceStart)
-          if (isFront) {
-            let iVertexOffset = this.vertexCount
-            let nVertex = shapePoints.length
-            let iLastVertex = nVertex - 1
-            for (let shapePoint of shapePoints) {
-              let x = normal.clone().multiplyScalar(shapePoint.x)
-              let y = binormal.clone().multiplyScalar(shapePoint.y)
-              this.pushVertex(point.clone().add(x).add(y))
-            }
-            let faceNormal = threePointNormal([
-              this.getVertex(iVertexOffset),
-              this.getVertex(iVertexOffset + 1),
-              this.getVertex(iVertexOffset + 2)])
-            for (let iVertex = 0; iVertex < nVertex - 2; iVertex += 1) {
-              this.pushFaceAndNormals(
-                iVertexOffset + iVertex,
-                iVertexOffset + iVertex + 1,
-                iVertexOffset + iLastVertex,
-                faceNormal, faceNormal, faceNormal)
-            }
-          }
-
-          iVertexOffsetOfPathPoint[iPathPoint] = this.vertexCount
-
+          vertices = []
           for (let shapePoint of shapePoints) {
             let x = normal.clone().multiplyScalar(shapePoint.x)
             let y = binormal.clone().multiplyScalar(shapePoint.y)
-            this.pushVertex(point.clone().add(x).add(y))
+            let vertex = point.clone().add(x).add(y)
+            vertices.push(vertex)
           }
 
-          if (iPathPoint === 0) {
-            continue
+          // draw back cap of ribbon
+          let isFront = (iPathPoint === 0) && (iTracePoint === iTraceStart)
+          if (isFront) {
+            let nVertex = shapePoints.length
+            let iLastVertex = nVertex - 1
+            let faceNormal = threePointNormal([
+              vertices[0],
+              vertices[1],
+              vertices[iLastVertex]])
+            for (let iVertex = 0; iVertex < nVertex - 2; iVertex += 1) {
+              this.pushVerticesNormalsOfFace(
+                vertices[iVertex],
+                vertices[iVertex + 1],
+                vertices[iLastVertex],
+                faceNormal,
+                faceNormal,
+                faceNormal)
+            }
           }
 
-          let iVertexOffset = iVertexOffsetOfPathPoint[iPathPoint - 1]
-
-          function getShapeNormals (iPathPoint) {
+          function getRoundedShapeNormals (iPathPoint) {
             let nVertex = shapePoints.length
             let shapeNormals = []
             let x, y
@@ -517,10 +518,34 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
             return shapeNormals
           }
 
-          let shapeNormals = getShapeNormals(iPathPoint)
-          let lastShapeNormals = getShapeNormals(iPathPoint - 1)
+          function getFlatShapeNormals (iPathPoint) {
+            let nVertex = shapePoints.length
+            let shapeNormals = []
+            let x, y
+            let shapeNormal = new THREE.Vector2()
+            for (let i = 0; i < nVertex; i += 1) {
+              let iPrev = i > 0 ? i - 1 : nVertex - 1
+              let v = shapePoints[i]
+              shapeNormal.subVectors(v, shapePoints[iPrev]).normalize()
+              x = path.normals[iPathPoint].clone().multiplyScalar(shapeNormal.x)
+              y = path.binormals[iPathPoint].clone().multiplyScalar(shapeNormal.y)
+              shapeNormals.push(x.add(y))
+            }
+            return shapeNormals
+          }
 
-          // Smoothed normals to give a rounded look
+          if (isFlat) {
+            shapeNormals = getFlatShapeNormals(iPathPoint)
+          } else {
+            shapeNormals = getRoundedShapeNormals(iPathPoint)
+          }
+
+          if (iPathPoint === 0) {
+            lastShapeNormals = shapeNormals
+            lastVertices = vertices
+            continue
+          }
+
           for (let iShapePoint = 0; iShapePoint < this.nShape; iShapePoint += 1) {
             let iLastShapePoint
             if (iShapePoint === 0) {
@@ -529,48 +554,62 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
               iLastShapePoint = iShapePoint - 1
             }
 
-            let iVertex00 = iVertexOffset + iLastShapePoint
-            let iVertex01 = iVertexOffset + iShapePoint
-            let iVertex10 = iVertex00 + this.nShape
-            let iVertex11 = iVertex01 + this.nShape
-
-            this.pushFaceAndNormals(
-              iVertex00, iVertex10, iVertex11,
-              lastShapeNormals[iLastShapePoint],
-              shapeNormals[iLastShapePoint],
-              shapeNormals[iShapePoint])
-            this.pushFaceAndNormals(
-              iVertex01, iVertex00, iVertex11,
-              lastShapeNormals[iShapePoint],
-              lastShapeNormals[iLastShapePoint],
-              shapeNormals[iShapePoint])
+            if (isFlat) {
+              // Flat normals to give a flat look
+              this.pushVerticesNormalsOfFace(
+                lastVertices[iLastShapePoint],
+                vertices[iLastShapePoint],
+                vertices[iShapePoint],
+                lastShapeNormals[iLastShapePoint],
+                shapeNormals[iLastShapePoint],
+                shapeNormals[iLastShapePoint])
+              this.pushVerticesNormalsOfFace(
+                lastVertices[iShapePoint],
+                lastVertices[iLastShapePoint],
+                vertices[iShapePoint],
+                lastShapeNormals[iLastShapePoint],
+                lastShapeNormals[iLastShapePoint],
+                shapeNormals[iLastShapePoint])
+            } else {
+              // Smoothed normals to give a rounded look
+              this.pushVerticesNormalsOfFace (
+                lastVertices[iLastShapePoint],
+                vertices[iLastShapePoint],
+                vertices[iShapePoint],
+                lastShapeNormals[iLastShapePoint],
+                shapeNormals[iLastShapePoint],
+                shapeNormals[iShapePoint])
+              this.pushVerticesNormalsOfFace (
+                lastVertices[iShapePoint],
+                lastVertices[iLastShapePoint],
+                vertices[iShapePoint],
+                lastShapeNormals[iShapePoint],
+                lastShapeNormals[iLastShapePoint],
+                shapeNormals[iShapePoint])
+            }
           }
 
           let isBack = (iPathPoint === iPathEnd - 1) && (iTracePoint === iTraceEnd - 1)
           if (isBack) {
-            let iVertexOffset = this.vertexCount
             let nVertex = shapePoints.length
             let iLastVertex = nVertex - 1
-            for (let shapePoint of shapePoints) {
-              let x = normal.clone().multiplyScalar(shapePoint.x)
-              let y = binormal.clone().multiplyScalar(shapePoint.y)
-              this.pushVertex(point.clone().add(x).add(y))
-            }
-            let faceNormal = threePointNormal([
-              this.getVertex(iVertexOffset + 2),
-              this.getVertex(iVertexOffset + 1),
-              this.getVertex(iVertexOffset)])
+            let faceNormal = threePointNormal(
+              [vertices[2], vertices[1], vertices[0]])
             for (let iVertex = 0; iVertex < nVertex - 2; iVertex += 1) {
-              this.pushFaceAndNormals(
-                iVertexOffset + iLastVertex,
-                iVertexOffset + iVertex + 1,
-                iVertexOffset + iVertex,
+              this.pushVerticesNormalsOfFace(
+                vertices[iLastVertex],
+                vertices[iVertex + 1],
+                vertices[iVertex],
                 faceNormal, faceNormal, faceNormal)
             }
           }
+
+          lastShapeNormals = shapeNormals
+          lastVertices = vertices
         }
       }
     }
+    // this.computeVertexNormals()
   }
 
   setColors () {
@@ -578,8 +617,6 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     for (let iPath of _.range(this.paths.length)) {
       let path = this.paths[iPath]
       let trace = this.parameters.traces[iPath]
-
-      let iVertexOffsetOfPathPoint = []
 
       let iTraceStart = 0
       let iTraceEnd = trace.points.length
@@ -612,22 +649,22 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
           // draw front-cap
           let isFront = (iPathPoint === 0) && (iTracePoint === iTraceStart)
           if (isFront) {
-            for (let i = 0; i < nShapePoint; i += 1) {
+            for (let i = 0; i < 3 * (nShapePoint - 2); i += 1) {
               this.setColor(vertexCount, color)
               vertexCount += 1
             }
           }
 
-          iVertexOffsetOfPathPoint[iPathPoint] = vertexCount
-
-          for (let i = 0; i < nShapePoint; i+=1) {
-            this.setColor(vertexCount, color)
-            vertexCount += 1
+          if (iPathPoint > 0) {
+            for (let i = 0; i < 6 * nShapePoint; i += 1) {
+              this.setColor(vertexCount, color)
+              vertexCount += 1
+            }
           }
 
           let isBack = (iPathPoint === iPathEnd - 1) && (iTracePoint === iTraceEnd - 1)
           if (isBack) {
-            for (let i = 0; i < nShapePoint; i += 1) {
+            for (let i = 0; i < 3 * (nShapePoint - 2); i += 1) {
               this.setColor(vertexCount, color)
               vertexCount += 1
             }
@@ -674,29 +711,20 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.vertexCount += 1
   }
 
-  pushVertexAndColor (vertex, color) {
-    this.positions[this.positionCount] = vertex.x
-    this.positions[this.positionCount + 1] = vertex.y
-    this.positions[this.positionCount + 2] = vertex.z
+  pushVerticesNormalsOfFace (v0, v1, v2, normalI, normalJ, normalK) {
+    this.pushVertex(v0)
+    this.pushVertex(v1)
+    this.pushVertex(v2)
 
-    this.colors[this.positionCount] = color.r
-    this.colors[this.positionCount + 1] = color.g
-    this.colors[this.positionCount + 2] = color.b
-
-    this.positionCount += 3
-    this.vertexCount += 1
-  }
-
-  pushFace (i, j, k) {
+    let i = this.indexCount
     this.indices[this.indexCount] = i
-    this.indices[this.indexCount + 1] = j
-    this.indices[this.indexCount + 2] = k
+    this.indices[this.indexCount + 1] = i + 1
+    this.indices[this.indexCount + 2] = i + 2
 
     this.indexCount += 3
-  }
 
-  pushFaceAndNormals (i, j, k, normalI, normalJ, normalK) {
-    this.pushFace(i, j, k)
+    let j = i + 1
+    let k = i + 2
 
     this.normals[i * 3] = normalI.x
     this.normals[i * 3 + 1] = normalI.y
