@@ -712,7 +712,7 @@ class Display extends WebglWidget {
       let matrix = glgeom.getCylinderMatrix(p1, p2, 0.2)
 
       displayGeom.applyMatrixToCopy(matrix, iCopy)
-      displayGeom.applyColorToCopy(residue.color, iCopy)
+      displayGeom.applyColorToCopy(residue.activeColor, iCopy)
     }
 
     let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)

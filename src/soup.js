@@ -149,9 +149,8 @@ class AtomProxy {
 
   get color () {
     if (this.elem === 'C' || this.elem === 'H') {
-      let iRes = this.iRes
-      let iColor = this.soup.residueStore.iColor[iRes]
-      return this.soup.colorTable[iColor]
+      let residue = this.soup.getResidueProxy(this.iRes)
+      return residue.activeColor
     } else if (this.elem in data.ElementColors) {
       return data.ElementColors[this.elem]
     }
