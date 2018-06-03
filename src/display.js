@@ -574,12 +574,12 @@ class Display extends WebglWidget {
     let isBack = false
     this.ribbonBufferGeometry = new glgeom.BufferRibbonGeometry(
       this.traces, data.coilFace, isFront, isBack)
-    let displayMesh = new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial)
-    this.displayMeshes['ribbons'].add(displayMesh)
+    this.displayMeshes['ribbons'].add(
+      new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial))
     let pickingGeom = new glgeom.BufferRibbonGeometry(
       this.traces, data.coilFace, isFront, isBack, true)
-    let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
-    this.pickingMeshes['ribbons'].add(pickingMesh)
+    this.pickingMeshes['ribbons'].add(
+      new THREE.Mesh(pickingGeom, this.pickingMaterial))
   }
 
   resetRibbonColors () {
@@ -590,10 +590,7 @@ class Display extends WebglWidget {
         trace.colors[iTrace] = residue.load(iRes).activeColor
       }
     }
-    glgeom.clearObject3D(this.displayMeshes['ribbons'])
     this.ribbonBufferGeometry.setColors()
-    this.displayMeshes['ribbons'].add(new THREE.Mesh(
-      this.ribbonBufferGeometry, this.displayMaterial))
   }
 
   buildMeshOfArrows () {
@@ -855,7 +852,7 @@ class Display extends WebglWidget {
     for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
       if (residue.ss === 'D' && residue.isPolymer) {
-        colorList.push(residue.color)
+        colorList.push(residue.activeColor)
         indexColorList.push(this.getIndexColor(residue.iAtom))
 
         let atomTypes = data.getNucleotideBaseAtomTypes(residue.resType)

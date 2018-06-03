@@ -78570,9 +78570,8 @@ var AtomProxy = function () {
     key: 'color',
     get: function get() {
       if (this.elem === 'C' || this.elem === 'H') {
-        var iRes = this.iRes;
-        var iColor = this.soup.residueStore.iColor[iRes];
-        return this.soup.colorTable[iColor];
+        var residue = this.soup.getResidueProxy(this.iRes);
+        return residue.activeColor;
       } else if (this.elem in data.ElementColors) {
         return data.ElementColors[this.elem];
       }
@@ -81719,6 +81718,8 @@ var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
           }
         }
       }
+
+      this.attributes.color.needsUpdate = true;
     }
   }, {
     key: 'setAttributes',
@@ -91253,11 +91254,9 @@ var Display = function (_WebglWidget) {
       var isFront = false;
       var isBack = false;
       this.ribbonBufferGeometry = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace, isFront, isBack);
-      var displayMesh = new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial);
-      this.displayMeshes['ribbons'].add(displayMesh);
+      this.displayMeshes['ribbons'].add(new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial));
       var pickingGeom = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace, isFront, isBack, true);
-      var pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial);
-      this.pickingMeshes['ribbons'].add(pickingMesh);
+      this.pickingMeshes['ribbons'].add(new THREE.Mesh(pickingGeom, this.pickingMaterial));
     }
   }, {
     key: 'resetRibbonColors',
@@ -91311,9 +91310,7 @@ var Display = function (_WebglWidget) {
         }
       }
 
-      glgeom.clearObject3D(this.displayMeshes['ribbons']);
       this.ribbonBufferGeometry.setColors();
-      this.displayMeshes['ribbons'].add(new THREE.Mesh(this.ribbonBufferGeometry, this.displayMaterial));
     }
   }, {
     key: 'buildMeshOfArrows',
@@ -91495,7 +91492,7 @@ var Display = function (_WebglWidget) {
         var matrix = glgeom.getCylinderMatrix(p1, p2, 0.2);
 
         displayGeom.applyMatrixToCopy(matrix, iCopy);
-        displayGeom.applyColorToCopy(residue.color, iCopy);
+        displayGeom.applyColorToCopy(residue.activeColor, iCopy);
       }
 
       var displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial);
@@ -91889,7 +91886,7 @@ var Display = function (_WebglWidget) {
 
           residue.iRes = iRes;
           if (residue.ss === 'D' && residue.isPolymer) {
-            colorList.push(residue.color);
+            colorList.push(residue.activeColor);
             indexColorList.push(this.getIndexColor(residue.iAtom));
 
             var atomTypes = data.getNucleotideBaseAtomTypes(residue.resType);

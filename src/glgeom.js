@@ -672,6 +672,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
         }
       }
     }
+    this.attributes.color.needsUpdate = true
   }
 
   setAttributes () {
