@@ -83965,8 +83965,6 @@ var ZSlabWidget = function (_CanvasWidget2) {
     display.addObserver(_this5);
     _this5.maxZLength = 0.0;
     _this5.div.css('box-sizing', 'border-box');
-    _this5.backColor = 'rgb(150, 150, 150)';
-    _this5.zBackColor = 'rgb(100, 70, 70)';
     _this5.zFrontColor = 'rgb(150, 90, 90)';
     return _this5;
   }
@@ -84040,6 +84038,10 @@ var ZSlabWidget = function (_CanvasWidget2) {
 
       // halfway marker
       this.line(xMid, 0, xMid, this.height(), 1, '#444');
+
+      this.text('back', xBack - 30, yMid, '7pt Helvetica', '#333', 'left');
+
+      this.text('front', xFront + 8, yMid, '7pt Helvetica', '#333', 'left');
     }
   }, {
     key: 'getZ',

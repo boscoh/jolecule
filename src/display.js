@@ -101,6 +101,7 @@ class WebglWidget {
     this.mouseR = null
     this.mouseT = null
     this.mousePressed = false
+    this.downTimer = null
   }
 
   initWebglRenderer () {
@@ -117,7 +118,7 @@ class WebglWidget {
     bind('mouseup', e => this.mouseup(e))
     bind('mouseout', e => this.mouseout(e))
     bind('mousewheel', e => this.mousewheel(e))
-    bind('dblclick', e => this.doubleclick(e))
+    // bind('dblclick', e => this.doubleclick(e))
     bind('DOMMouseScroll', e => this.mousewheel(e))
     bind('touchstart', e => this.mousedown(e))
     bind('touchmove', e => this.mousemove(e))
@@ -1217,13 +1218,39 @@ class Display extends WebglWidget {
 
     let now = (new Date()).getTime()
 
+    if (this.timeLastPressed) {
+      if (this.downTimer === null) {
+        if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
+          let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
+          this.downTimer = setTimeout(() => {
+            if (!event.metaKey && !event.shiftKey) {
+              this.controller.selectResidue(iRes)
+            } else if (event.shiftKey) {
+              this.controller.selectAdditionalRangeToResidue(iRes)
+            } else {
+              this.controller.selectAdditionalResidue(iRes)
+            }
+            this.iDownAtom = null
+            this.downTimer = null
+          }, 300)
+        }
+      } else {
+        clearTimeout(this.downTimer)
+        this.doubleclick()
+        this.downTimer = null
+      }
+
+    }
+
     if (this.iDownAtom === iCenterAtom) {
       this.isDraggingCentralAtom = this.iDownAtom !== null
     }
 
+
+
     this.iDoubleClickDownAtom = this.iDownAtom
 
-    this.timePressed = now
+    this.timeLastPressed = now
 
     this.saveMouse()
     this.mousePressed = true
@@ -1294,18 +1321,6 @@ class Display extends WebglWidget {
       }
       this.lineElement.hide()
       this.isDraggingCentralAtom = false
-    }
-
-    if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
-      let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
-      if (!event.metaKey && !event.shiftKey) {
-        this.controller.selectResidue(iRes)
-      } else if (event.shiftKey) {
-        this.controller.selectAdditionalRangeToResidue(iRes)
-      } else {
-        this.controller.selectAdditionalResidue(iRes)
-      }
-      this.iDownAtom = null
     }
 
     if (util.exists(event.touches)) {
