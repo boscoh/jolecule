@@ -905,8 +905,6 @@ class ZSlabWidget extends CanvasWidget {
     display.addObserver(this)
     this.maxZLength = 0.0
     this.div.css('box-sizing', 'border-box')
-    this.backColor = 'rgb(150, 150, 150)'
-    this.zBackColor = 'rgb(100, 70, 70)'
     this.zFrontColor = 'rgb(150, 90, 90)'
   }
 
@@ -970,6 +968,23 @@ class ZSlabWidget extends CanvasWidget {
 
     // halfway marker
     this.line(xMid, 0, xMid, this.height(), 1, '#444')
+
+    this.text(
+      'back',
+      xBack - 30,
+      yMid,
+      '7pt Helvetica',
+      '#333',
+      'left')
+
+    this.text(
+      'front',
+      xFront + 8,
+      yMid,
+      '7pt Helvetica',
+      '#333',
+      'left')
+
   }
 
   getZ (event) {
