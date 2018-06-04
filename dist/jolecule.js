@@ -78828,7 +78828,7 @@ var ResidueProxy = function () {
       var iColor = this.soup.residueStore.iColor[this.iRes];
       var color = this.soup.colorTable[iColor];
       if (this.soup.residueSelect.get(this.iRes)) {
-        color = color.clone().offsetHSL(0, 0, +0.2);
+        color = color.clone().offsetHSL(0, 0, +0.3);
       }
       return color;
     }
@@ -81930,6 +81930,54 @@ var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
       this.computeVertexNormals();
     }
   }, {
+    key: 'setColor',
+    value: function setColor(iVertex, color) {
+      var iPosition = 3 * iVertex;
+      this.colors[iPosition] = color.r;
+      this.colors[iPosition + 1] = color.g;
+      this.colors[iPosition + 2] = color.b;
+    }
+  }, {
+    key: 'recolor',
+    value: function recolor(newColorList) {
+      this.parameters.colorList = newColorList;
+      var iVertexTotal = 0;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
+
+      try {
+        for (var _iterator8 = this.parameters.verticesList.entries()[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var _step8$value = _slicedToArray(_step8.value, 2),
+              iVertexSet = _step8$value[0],
+              _vertices3 = _step8$value[1];
+
+          var color = this.parameters.colorList[iVertexSet];
+          var nVertex = _vertices3.length;
+          var nVertexOfNucleotide = 6 * (nVertex - 2) + 6 * nVertex;
+          for (var iVertex = 0; iVertex < nVertexOfNucleotide; iVertex += 1) {
+            this.setColor(iVertexTotal, color);
+            iVertexTotal += 1;
+          }
+        }
+      } catch (err) {
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
+          }
+        } finally {
+          if (_didIteratorError8) {
+            throw _iteratorError8;
+          }
+        }
+      }
+
+      this.attributes.color.needsUpdate = true;
+    }
+  }, {
     key: 'setAttributes',
     value: function setAttributes() {
       var positions = new Float32Array(this.nVertex * 3);
@@ -83046,6 +83094,7 @@ var CanvasWidget = function () {
     this.drawContext = this.canvasDom.getContext('2d');
 
     this.mousePressed = false;
+    this.downTimer = null;
     var dom = this.canvasDom;
     var bind = function bind(ev, fn) {
       dom.addEventListener(ev, fn);
@@ -83061,9 +83110,6 @@ var CanvasWidget = function () {
     });
     bind('mouseout', function (e) {
       return _this.mouseout(e);
-    });
-    bind('dblclick', function (e) {
-      return _this.doubleclick(e);
     });
     bind('touchstart', function (e) {
       return _this.mousedown(e);
@@ -83156,11 +83202,39 @@ var CanvasWidget = function () {
       return this.drawContext.measureText(text).width;
     }
   }, {
+    key: 'saveMouse',
+    value: function saveMouse() {
+      this.saveMouseX = this.pointerX;
+      this.saveMouseY = this.pointerY;
+      this.saveMouseR = this.mouseR;
+      this.saveMouseT = this.mouseT;
+    }
+  }, {
+    key: 'click',
+    value: function click(event) {}
+  }, {
+    key: 'doubleclick',
+    value: function doubleclick(event) {}
+  }, {
     key: 'mousedown',
     value: function mousedown(event) {
+      var _this2 = this;
+
       event.preventDefault();
 
+      this.getPointer(event);
+      this.saveMouse();
       this.mousePressed = true;
+
+      if (this.downTimer === null) {
+        this.downTimer = setTimeout(function () {
+          return _this2.click(event);
+        }, 250);
+      } else {
+        clearTimeout(this.downTimer);
+        this.doubleclick(event);
+        this.downTimer = null;
+      }
 
       this.mousemove(event);
     }
@@ -83177,14 +83251,33 @@ var CanvasWidget = function () {
       this.mousePressed = false;
     }
   }, {
-    key: 'doubleclick',
-    value: function doubleclick(event) {}
-  }, {
     key: 'getPointer',
     value: function getPointer(event) {
+      if (util.exists(event.touches) && event.touches.length > 0) {
+        this.eventX = event.touches[0].clientX;
+        this.eventY = event.touches[0].clientY;
+      } else {
+        this.eventX = event.clientX;
+        this.eventY = event.clientY;
+      }
+
       var rect = event.target.getBoundingClientRect();
-      this.pointerX = event.clientX - rect.left;
-      this.pointerY = event.clientY - rect.top;
+      this.pointerX = this.eventX - rect.left;
+      this.pointerY = this.eventY - rect.top;
+
+      var x = this.pointerX - this.width() / 2;
+      var y = this.pointerY - this.height() / 2;
+
+      this.mouseR = Math.sqrt(x * x + y * y);
+
+      this.mouseT = Math.atan(y / x);
+      if (x < 0) {
+        if (y > 0) {
+          this.mouseT += Math.PI;
+        } else {
+          this.mouseT -= Math.PI;
+        }
+      }
     }
   }]);
 
@@ -83321,12 +83414,12 @@ var AtomLabelsWidget = function () {
   }, {
     key: 'createPopup',
     value: function createPopup(i) {
-      var _this2 = this;
+      var _this3 = this;
 
       var popup = new PopupText(this.display.divTag);
       popup.i = i;
       popup.div.click(function () {
-        _this2.removePopup(popup.i);
+        _this3.removePopup(popup.i);
       });
       return popup;
     }
@@ -83404,7 +83497,7 @@ var DistanceMeasuresWidget = function () {
   }, {
     key: 'createDistanceMeasure',
     value: function createDistanceMeasure(i) {
-      var _this3 = this;
+      var _this4 = this;
 
       var div = (0, _jquery2.default)('<div>').css({
         'position': 'absolute',
@@ -83417,7 +83510,7 @@ var DistanceMeasuresWidget = function () {
       });
       div.i = i;
       div.click(function () {
-        _this3.removeDistance(div.i);
+        _this4.removeDistance(div.i);
       });
       this.parentDiv.append(div);
 
@@ -83520,47 +83613,47 @@ var SequenceWidget = function (_CanvasWidget) {
   function SequenceWidget(selector, display) {
     _classCallCheck(this, SequenceWidget);
 
-    var _this4 = _possibleConstructorReturn(this, (SequenceWidget.__proto__ || Object.getPrototypeOf(SequenceWidget)).call(this, selector));
+    var _this5 = _possibleConstructorReturn(this, (SequenceWidget.__proto__ || Object.getPrototypeOf(SequenceWidget)).call(this, selector));
 
-    _this4.display = display;
-    _this4.soupView = display.soupView;
-    _this4.soup = display.soup;
-    _this4.controller = display.controller;
-    _this4.traces = display.traces;
-    _this4.display.addObserver(_this4);
+    _this5.display = display;
+    _this5.soupView = display.soupView;
+    _this5.soup = display.soup;
+    _this5.controller = display.controller;
+    _this5.traces = display.traces;
+    _this5.display.addObserver(_this5);
 
-    _this4.charWidth = 14;
-    _this4.charHeight = 15;
-    _this4.textXOffset = 0;
-    _this4.offsetY = 6;
-    _this4.heightStructureBar = 7;
-    _this4.spacingY = 12;
-    _this4.yTopSequence = _this4.offsetY + _this4.heightStructureBar + _this4.spacingY * 2;
-    _this4.yBottom = _this4.yTopSequence + +_this4.spacingY * 2.7 + _this4.charHeight;
-    _this4.yMidSequence = _this4.yTopSequence + _this4.spacingY * 1.2 + _this4.charHeight / 2;
+    _this5.charWidth = 14;
+    _this5.charHeight = 15;
+    _this5.textXOffset = 0;
+    _this5.offsetY = 6;
+    _this5.heightStructureBar = 7;
+    _this5.spacingY = 12;
+    _this5.yTopSequence = _this5.offsetY + _this5.heightStructureBar + _this5.spacingY * 2;
+    _this5.yBottom = _this5.yTopSequence + +_this5.spacingY * 2.7 + _this5.charHeight;
+    _this5.yMidSequence = _this5.yTopSequence + _this5.spacingY * 1.2 + _this5.charHeight / 2;
 
-    _this4.backColor = '#CCC';
-    _this4.selectColor = '#FFF';
-    _this4.highlightColor = 'red';
-    _this4.borderColor = '#888';
+    _this5.backColor = '#CCC';
+    _this5.selectColor = '#FFF';
+    _this5.highlightColor = 'red';
+    _this5.borderColor = '#888';
 
-    _this4.div.attr('id', 'sequence-widget');
-    _this4.div.css({
-      'width': _this4.parentDiv.width(),
-      'height': _this4.height(),
+    _this5.div.attr('id', 'sequence-widget');
+    _this5.div.css({
+      'width': _this5.parentDiv.width(),
+      'height': _this5.height(),
       'position': 'relative',
       'background-color': '#CCC'
     });
 
-    _this4.charEntries = [];
-    _this4.nChar = null;
-    _this4.iChar = null;
-    _this4.iCharDisplayStart = null;
-    _this4.iCharDisplayEnd = null;
-    _this4.nCharDisplay = null;
+    _this5.charEntries = [];
+    _this5.nChar = null;
+    _this5.iChar = null;
+    _this5.iCharDisplayStart = null;
+    _this5.iCharDisplayEnd = null;
+    _this5.nCharDisplay = null;
 
-    _this4.hover = new PopupText('#sequence-widget', 15);
-    return _this4;
+    _this5.hover = new PopupText('#sequence-widget', 15);
+    return _this5;
   }
 
   _createClass(SequenceWidget, [{
@@ -83871,20 +83964,6 @@ var SequenceWidget = function (_CanvasWidget) {
       return this.charEntries[this.iChar].iAtom;
     }
   }, {
-    key: 'doubleclick',
-    value: function doubleclick(event) {
-      this.getPointer(event);
-      if (this.pointerY >= this.yTopSequence) {
-        // mouse event in sequence bar
-        this.iChar = this.xToIChar(this.pointerX);
-        if (this.charEntries[this.iChar].c !== '') {
-          this.controller.selectResidue(this.charEntries[this.iChar].iRes);
-          this.controller.setTargetViewByIAtom(this.getCurrIAtom());
-          this.updateWithoutCheckingCurrent();
-        }
-      }
-    }
-  }, {
     key: 'mousemove',
     value: function mousemove(event) {
       this.getPointer(event);
@@ -83926,12 +84005,35 @@ var SequenceWidget = function (_CanvasWidget) {
       this.hover.hide();
     }
   }, {
-    key: 'mousedown',
-    value: function mousedown(event) {
-      _get(SequenceWidget.prototype.__proto__ || Object.getPrototypeOf(SequenceWidget.prototype), 'mousedown', this).call(this, event);
+    key: 'mouseup',
+    value: function mouseup() {
+      this.hover.hide();
+      this.mousePressed = false;
+    }
+  }, {
+    key: 'doubleclick',
+    value: function doubleclick(event) {
+      this.getPointer(event);
       if (this.pointerY >= this.yTopSequence) {
+        // mouse event in sequence bar
         this.iChar = this.xToIChar(this.pointerX);
-        var iRes = this.charEntries[this.iChar].iRes;
+        if (this.iChar === this.iCharPressed) {
+          console.log('SequenceWidget.doubleclick select', this.iChar);
+          if (this.charEntries[this.iChar].c !== '') {
+            this.controller.clearSelectedResidues();
+            this.controller.setResidueSelect(this.charEntries[this.iChar].iRes, true);
+            this.controller.setTargetViewByIAtom(this.getCurrIAtom());
+            this.updateWithoutCheckingCurrent();
+          }
+        }
+      }
+    }
+  }, {
+    key: 'click',
+    value: function click(event) {
+      if (this.pointerY >= this.yTopSequence) {
+        var iRes = this.charEntries[this.iCharPressed].iRes;
+        console.log('SequenceWidget.click', this.iChar);
         if (!event.metaKey && !event.shiftKey) {
           this.controller.selectResidue(iRes);
         } else if (event.shiftKey) {
@@ -83941,6 +84043,33 @@ var SequenceWidget = function (_CanvasWidget) {
         }
         this.updateWithoutCheckingCurrent();
       }
+    }
+  }, {
+    key: 'mousedown',
+    value: function mousedown(event) {
+      var _this6 = this;
+
+      event.preventDefault();
+
+      this.getPointer(event);
+      this.saveMouse();
+      this.mousePressed = true;
+
+      this.iChar = this.xToIChar(this.pointerX);
+
+      if (this.downTimer !== null && this.iChar === this.iCharPressed) {
+        clearTimeout(this.downTimer);
+        this.doubleclick(event);
+        this.downTimer = null;
+      } else {
+        this.downTimer = setTimeout(function () {
+          return _this6.click(event);
+        }, 250);
+      }
+
+      this.mousemove(event);
+
+      this.iCharPressed = this.iChar;
     }
   }]);
 
@@ -83958,15 +84087,15 @@ var ZSlabWidget = function (_CanvasWidget2) {
   function ZSlabWidget(display, selector) {
     _classCallCheck(this, ZSlabWidget);
 
-    var _this5 = _possibleConstructorReturn(this, (ZSlabWidget.__proto__ || Object.getPrototypeOf(ZSlabWidget)).call(this, selector));
+    var _this7 = _possibleConstructorReturn(this, (ZSlabWidget.__proto__ || Object.getPrototypeOf(ZSlabWidget)).call(this, selector));
 
-    _this5.soupView = display.soupView;
-    _this5.controller = display.controller;
-    display.addObserver(_this5);
-    _this5.maxZLength = 0.0;
-    _this5.div.css('box-sizing', 'border-box');
-    _this5.zFrontColor = 'rgb(150, 90, 90)';
-    return _this5;
+    _this7.soupView = display.soupView;
+    _this7.controller = display.controller;
+    display.addObserver(_this7);
+    _this7.maxZLength = 0.0;
+    _this7.div.css('box-sizing', 'border-box');
+    _this7.zFrontColor = 'rgb(150, 90, 90)';
+    return _this7;
   }
 
   _createClass(ZSlabWidget, [{
@@ -84052,6 +84181,7 @@ var ZSlabWidget = function (_CanvasWidget2) {
   }, {
     key: 'mousedown',
     value: function mousedown(event) {
+      console.log('ZSlab.mousedown');
       this.getZ(event);
 
       if (this.z > 0) {
@@ -84068,6 +84198,9 @@ var ZSlabWidget = function (_CanvasWidget2) {
     key: 'mousemove',
     value: function mousemove(event) {
       event.preventDefault();
+      _get(ZSlabWidget.prototype.__proto__ || Object.getPrototypeOf(ZSlabWidget.prototype), 'mousemove', this).call(this, event);
+
+      console.log('ZSlab.mousemove', this.mousePressed);
 
       if (!this.mousePressed) {
         return;
@@ -84092,7 +84225,7 @@ var ZSlabWidget = function (_CanvasWidget2) {
 
 var GridToggleButtonWidget = function () {
   function GridToggleButtonWidget(display, selector, elem, x, y, color) {
-    var _this6 = this;
+    var _this8 = this;
 
     _classCallCheck(this, GridToggleButtonWidget);
 
@@ -84102,7 +84235,7 @@ var GridToggleButtonWidget = function () {
     this.color = color;
     this.div = (0, _jquery2.default)(selector).text(elem).addClass('jolecule-button').css('position', 'absolute').css('top', y + 'px').css('left', x + 'px').css('height', '15px').css('width', '20px').on('click touch', function (e) {
       e.preventDefault();
-      _this6.toggle();
+      _this8.toggle();
     });
     this.update();
     display.addObserver(this);
@@ -84152,27 +84285,27 @@ var GridControlWidget = function (_CanvasWidget3) {
   function GridControlWidget(display) {
     _classCallCheck(this, GridControlWidget);
 
-    var _this7 = _possibleConstructorReturn(this, (GridControlWidget.__proto__ || Object.getPrototypeOf(GridControlWidget)).call(this, display.divTag));
+    var _this9 = _possibleConstructorReturn(this, (GridControlWidget.__proto__ || Object.getPrototypeOf(GridControlWidget)).call(this, display.divTag));
 
-    _this7.display = display;
-    _this7.soupView = display.soupView;
-    _this7.controller = display.controller;
-    display.addObserver(_this7);
+    _this9.display = display;
+    _this9.soupView = display.soupView;
+    _this9.controller = display.controller;
+    display.addObserver(_this9);
 
-    _this7.backgroundColor = '#999';
-    _this7.buttonHeight = 40;
-    _this7.sliderHeight = _this7.buttonHeight * 6 - 30;
-    _this7.isGrid = display.isGrid;
+    _this9.backgroundColor = '#999';
+    _this9.buttonHeight = 40;
+    _this9.sliderHeight = _this9.buttonHeight * 6 - 30;
+    _this9.isGrid = display.isGrid;
 
-    if (!_this7.isGrid) {
-      _this7.div.css('display', 'none');
+    if (!_this9.isGrid) {
+      _this9.div.css('display', 'none');
     }
-    _this7.div.attr('id', 'grid-control');
-    _this7.div.css('height', _this7.height());
-    _this7.div.addClass('jolecule-residue-selector');
-    _this7.buttonsDiv = (0, _jquery2.default)('<div id="grid-control-buttons">');
-    _this7.div.append(_this7.buttonsDiv);
-    return _this7;
+    _this9.div.attr('id', 'grid-control');
+    _this9.div.css('height', _this9.height());
+    _this9.div.addClass('jolecule-residue-selector');
+    _this9.buttonsDiv = (0, _jquery2.default)('<div id="grid-control-buttons">');
+    _this9.div.append(_this9.buttonsDiv);
+    return _this9;
   }
 
   _createClass(GridControlWidget, [{
@@ -84393,7 +84526,7 @@ var ResidueSelectorWidget = function () {
   }, {
     key: 'rebuild',
     value: function rebuild() {
-      var _this8 = this;
+      var _this10 = this;
 
       // clear selector
       this.$elem = (0, _jquery2.default)(this.divTag);
@@ -84436,7 +84569,7 @@ var ResidueSelectorWidget = function () {
 
       this.$elem.select2({ width: '150px' });
       this.$elem.on('select2:select', function () {
-        _this8.change();
+        _this10.change();
       });
     }
   }, {
@@ -84455,7 +84588,7 @@ var ResidueSelectorWidget = function () {
 
 var ToggleButtonWidget = function () {
   function ToggleButtonWidget(display, selector, option) {
-    var _this9 = this;
+    var _this11 = this;
 
     _classCallCheck(this, ToggleButtonWidget);
 
@@ -84466,7 +84599,7 @@ var ToggleButtonWidget = function () {
     }
     this.div = (0, _jquery2.default)(selector).attr('href', '').html(_lodash2.default.capitalize(option)).addClass('jolecule-button').on('click touch', function (e) {
       e.preventDefault();
-      _this9.callback();
+      _this11.callback();
     });
     this.display.addObserver(this);
   }
@@ -84501,14 +84634,14 @@ var ToggleButtonWidget = function () {
 
 var TogglePlayButtonWidget = function () {
   function TogglePlayButtonWidget(display, selector) {
-    var _this10 = this;
+    var _this12 = this;
 
     _classCallCheck(this, TogglePlayButtonWidget);
 
     this.controller = display.controller;
     this.display = display;
     this.div = (0, _jquery2.default)(selector).attr('href', '').html('Play').addClass('jolecule-button').on('click touch', function (e) {
-      _this10.callback(e);
+      _this12.callback(e);
     });
     this.display.addObserver(this);
   }
@@ -90994,8 +91127,8 @@ var WebglWidget = function () {
       return height;
     }
   }, {
-    key: 'getMouse',
-    value: function getMouse(event) {
+    key: 'getPointer',
+    value: function getPointer(event) {
       if (util.exists(event.touches) && event.touches.length > 0) {
         this.eventX = event.touches[0].clientX;
         this.eventY = event.touches[0].clientY;
@@ -91007,6 +91140,8 @@ var WebglWidget = function () {
       var rect = event.target.getBoundingClientRect();
       this.mouseX = this.eventX - rect.left;
       this.mouseY = this.eventY - rect.top;
+
+      console.log('WebglWidget.getPointer touch', event.touches.length > 0, this.mouseX, this.mouseY);
 
       var x = this.mouseX - this.width() / 2;
       var y = this.mouseY - this.height() / 2;
@@ -91023,8 +91158,8 @@ var WebglWidget = function () {
       }
     }
   }, {
-    key: 'saveMouse',
-    value: function saveMouse() {
+    key: 'savePointer',
+    value: function savePointer() {
       this.saveMouseX = this.mouseX;
       this.saveMouseY = this.mouseY;
       this.saveMouseR = this.mouseR;
@@ -91084,7 +91219,7 @@ var Display = function (_WebglWidget) {
 
     // popup hover box over the mouse position
     _this2.hover = new _widgets2.default.PopupText(_this2.divTag, 50);
-    _this2.iHoverAtom = null;
+    _this2.iAtomHover = null;
 
     // Docking display control
     _this2.isGrid = isGrid;
@@ -91874,9 +92009,8 @@ var Display = function (_WebglWidget) {
       };
 
       var verticesList = [];
-      var colorList = [];
+      this.nucleotideColorList = [];
       var indexColorList = [];
-      var bondList = [];
       var _iteratorNormalCompletion21 = true;
       var _didIteratorError21 = false;
       var _iteratorError21 = undefined;
@@ -91887,36 +92021,10 @@ var Display = function (_WebglWidget) {
 
           residue.iRes = iRes;
           if (residue.ss === 'D' && residue.isPolymer) {
-            colorList.push(residue.activeColor);
+            this.nucleotideColorList.push(residue.activeColor);
             indexColorList.push(this.getIndexColor(residue.iAtom));
-
             var atomTypes = data.getNucleotideBaseAtomTypes(residue.resType);
             verticesList.push(_lodash2.default.map(atomTypes, getVecFromAtomType));
-
-            var _iteratorNormalCompletion22 = true;
-            var _didIteratorError22 = false;
-            var _iteratorError22 = undefined;
-
-            try {
-              for (var _iterator22 = data.getNucleotideConnectorBondAtomTypes(residue.resType)[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-                var bond = _step22.value;
-
-                bondList.push([getVecFromAtomType(bond[0]), getVecFromAtomType(bond[1]), residue.color]);
-              }
-            } catch (err) {
-              _didIteratorError22 = true;
-              _iteratorError22 = err;
-            } finally {
-              try {
-                if (!_iteratorNormalCompletion22 && _iterator22.return) {
-                  _iterator22.return();
-                }
-              } finally {
-                if (_didIteratorError22) {
-                  throw _iteratorError22;
-                }
-              }
-            }
           }
         }
       } catch (err) {
@@ -91934,29 +92042,114 @@ var Display = function (_WebglWidget) {
         }
       }
 
-      var displayGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, colorList, 0.2);
-      var displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial);
+      this.nucleotideGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, this.nucleotideColorList, 0.2);
+      var displayMesh = new THREE.Mesh(this.nucleotideGeom, this.displayMaterial);
       this.displayMeshes['basepairs'].add(displayMesh);
 
       var pickingGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, indexColorList, 0.2);
       var pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial);
       this.pickingMeshes['basepairs'].add(pickingMesh);
 
+      var bondList = [];
+      var _iteratorNormalCompletion22 = true;
+      var _didIteratorError22 = false;
+      var _iteratorError22 = undefined;
+
+      try {
+        for (var _iterator22 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+          var _iRes = _step22.value;
+
+          residue.iRes = _iRes;
+          if (residue.ss === 'D' && residue.isPolymer) {
+            var _iteratorNormalCompletion23 = true;
+            var _didIteratorError23 = false;
+            var _iteratorError23 = undefined;
+
+            try {
+              for (var _iterator23 = data.getNucleotideConnectorBondAtomTypes(residue.resType)[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+                var bond = _step23.value;
+
+                bondList.push([getVecFromAtomType(bond[0]), getVecFromAtomType(bond[1]), residue.color]);
+              }
+            } catch (err) {
+              _didIteratorError23 = true;
+              _iteratorError23 = err;
+            } finally {
+              try {
+                if (!_iteratorNormalCompletion23 && _iterator23.return) {
+                  _iterator23.return();
+                }
+              } finally {
+                if (_didIteratorError23) {
+                  throw _iteratorError23;
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        _didIteratorError22 = true;
+        _iteratorError22 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion22 && _iterator22.return) {
+            _iterator22.return();
+          }
+        } finally {
+          if (_didIteratorError22) {
+            throw _iteratorError22;
+          }
+        }
+      }
+
       var nBond = bondList.length;
       var cylinderBufferGeometry = glgeom.makeBufferZCylinderGeometry(0.4);
-      displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nBond);
+      var connectorDisplayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nBond);
       for (var iBond = 0; iBond < nBond; iBond += 1) {
         var _bondList$iBond = _slicedToArray(bondList[iBond], 3),
             p1 = _bondList$iBond[0],
             p2 = _bondList$iBond[1],
             color = _bondList$iBond[2];
 
-        displayGeom.applyMatrixToCopy(glgeom.getCylinderMatrix(p1, p2, 0.2), iBond);
-        displayGeom.applyColorToCopy(color, iBond);
+        connectorDisplayGeom.applyMatrixToCopy(glgeom.getCylinderMatrix(p1, p2, 0.2), iBond);
+        connectorDisplayGeom.applyColorToCopy(color, iBond);
+      }
+      this.displayMeshes['basepairs'].add(new THREE.Mesh(connectorDisplayGeom, this.displayMaterial));
+    }
+  }, {
+    key: 'recolorNucelotides',
+    value: function recolorNucelotides() {
+      this.nucleotideColorList = [];
+      var residue = this.soup.getResidueProxy();
+      var _iteratorNormalCompletion24 = true;
+      var _didIteratorError24 = false;
+      var _iteratorError24 = undefined;
+
+      try {
+        for (var _iterator24 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
+          var iRes = _step24.value;
+
+          residue.iRes = iRes;
+          if (residue.ss === 'D' && residue.isPolymer) {
+            this.nucleotideColorList.push(residue.activeColor);
+          }
+        }
+      } catch (err) {
+        _didIteratorError24 = true;
+        _iteratorError24 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion24 && _iterator24.return) {
+            _iterator24.return();
+          }
+        } finally {
+          if (_didIteratorError24) {
+            throw _iteratorError24;
+          }
+        }
       }
 
-      displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial);
-      this.displayMeshes['basepairs'].add(displayMesh);
+      this.nucleotideGeom.recolor(this.nucleotideColorList);
     }
   }, {
     key: 'deleteStructure',
@@ -92109,9 +92302,9 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'updateHover',
     value: function updateHover() {
-      this.iHoverAtom = this.getIAtomHover();
-      if (this.iHoverAtom) {
-        var atom = this.soup.getAtomProxy(this.iHoverAtom);
+      this.iAtomHover = this.getIAtomHover();
+      if (this.iAtomHover) {
+        var atom = this.soup.getAtomProxy(this.iAtomHover);
         var label = atom.label;
         var iAtom = atom.iAtom;
         var pos = atom.pos.clone();
@@ -92185,6 +92378,7 @@ var Display = function (_WebglWidget) {
 
       if (this.soupView.updateSelection) {
         this.resetRibbonColors();
+        this.recolorNucelotides();
         this.buildMeshOfArrows();
         this.buildMeshOfResidueSidechains();
         this.soupView.updateSelection = false;
@@ -92261,93 +92455,104 @@ var Display = function (_WebglWidget) {
     }
   }, {
     key: 'doubleclick',
-    value: function doubleclick() {
-      if (this.iHoverAtom !== null) {
-        if (this.iHoverAtom === this.soupView.getICenteredAtom()) {
+    value: function doubleclick(event) {
+      console.log('Display.doubleclick');
+      if (this.iAtomHover !== null) {
+        if (this.iAtomHover === this.soupView.getICenteredAtom()) {
           this.atomLabelDialog();
         } else {
-          var iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes;
-          // trick to ensure that the double-clicked atom is selected
-          this.controller.setResidueSelect(iRes, true);
-          this.setTargetViewByIAtom(this.iHoverAtom);
+          var iRes = this.soup.getAtomProxy(this.iAtomHover).iRes;
+          this.controller.selectResidue(iRes);
+          this.setTargetViewByIAtom(this.iAtomHover);
         }
         this.isDraggingCentralAtom = false;
       } else {
         this.controller.zoomOut();
       }
+      this.iAtomPressed = null;
+      this.iResClick = null;
+    }
+  }, {
+    key: 'click',
+    value: function click(event) {
+      console.log('Display.click', this.iResClick);
+      if (this.iResClick !== null) {
+        if (!event.metaKey && !event.shiftKey) {
+          this.controller.selectResidue(this.iResClick);
+        } else if (event.shiftKey) {
+          this.controller.selectAdditionalRangeToResidue(this.iResClick);
+        } else {
+          this.controller.selectAdditionalResidue(this.iResClick);
+        }
+      }
+      this.iAtomPressed = null;
+      this.iResClick = null;
+      this.clickTimer = null;
+      this.timePressed = null;
     }
   }, {
     key: 'mousedown',
     value: function mousedown(event) {
       var _this5 = this;
 
-      this.getMouse(event);
-
-      event.preventDefault();
-
-      this.updateHover();
-
-      this.iDownAtom = this.getIAtomHover();
-      var iCenterAtom = this.soupView.getICenteredAtom();
-
-      var now = new Date().getTime();
-
-      if (this.timeLastPressed) {
-        if (this.downTimer === null) {
-          if (this.iHoverAtom !== null && this.iHoverAtom === this.iDownAtom) {
-            var iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes;
-            this.downTimer = setTimeout(function () {
-              if (!event.metaKey && !event.shiftKey) {
-                _this5.controller.selectResidue(iRes);
-              } else if (event.shiftKey) {
-                _this5.controller.selectAdditionalRangeToResidue(iRes);
-              } else {
-                _this5.controller.selectAdditionalResidue(iRes);
-              }
-              _this5.iDownAtom = null;
-              _this5.downTimer = null;
-            }, 300);
-          }
-        } else {
-          clearTimeout(this.downTimer);
-          this.doubleclick();
-          this.downTimer = null;
-        }
-      }
-
-      if (this.iDownAtom === iCenterAtom) {
-        this.isDraggingCentralAtom = this.iDownAtom !== null;
-      }
-
-      this.iDoubleClickDownAtom = this.iDownAtom;
-
-      this.timeLastPressed = now;
-
-      this.saveMouse();
-      this.mousePressed = true;
-    }
-  }, {
-    key: 'mousemove',
-    value: function mousemove(event) {
-      this.getMouse(event);
-
-      event.preventDefault();
-
       if (this.isGesture) {
         return;
       }
 
+      event.preventDefault();
+
+      this.getPointer(event);
+      console.log('Display.mousedown');
+      this.updateHover();
+      this.iAtomPressed = this.iAtomHover;
+      this.iResClick = this.soup.getAtomProxy(this.iAtomPressed).iRes;
+
+      console.log('Display.mousedown', this.iAtomPressed);
+
+      if (this.iAtomPressed === this.soupView.getICenteredAtom()) {
+        this.isDraggingCentralAtom = this.iAtomPressed !== null;
+      }
+
+      var now = new Date().getTime();
+      var elapsedTime = this.timePressed ? now - this.timePressed : 0;
+
+      if (this.clickTimer === null) {
+        this.clickTimer = setTimeout(function () {
+          return _this5.click(event);
+        }, 250);
+      } else if (elapsedTime < 600) {
+        clearTimeout(this.clickTimer);
+        this.doubleclick(event);
+        this.clickTimer = null;
+      }
+
+      this.getPointer(event);
+      this.savePointer();
+      this.timePressed = new Date().getTime();
+      this.pointerPressed = true;
+    }
+  }, {
+    key: 'mousemove',
+    value: function mousemove(event) {
+      console.log('Display.mousemove');
+      event.preventDefault();
+      if (this.isGesture) {
+        return;
+      }
+
+      this.getPointer(event);
+
       this.updateHover();
 
       if (this.isDraggingCentralAtom) {
-        var v = this.getPosXY(this.soup.getAtomProxy(this.iDownAtom).pos);
+        var v = this.getPosXY(this.soup.getAtomProxy(this.iAtomPressed).pos);
         this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y);
       } else {
         var shiftDown = event.shiftKey === 1;
 
         var rightMouse = event.button === 2 || event.which === 3;
 
-        if (this.mousePressed) {
+        if (this.pointerPressed) {
           var zoomRatio = 1.0;
           var zRotationAngle = 0;
           var yRotationAngle = 0;
@@ -92366,26 +92571,29 @@ var Display = function (_WebglWidget) {
 
           this.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio);
 
-          this.saveMouse();
+          this.savePointer();
         }
       }
     }
   }, {
     key: 'mouseout',
     value: function mouseout(event) {
+      console.log('Display.mouseout');
       this.hover.hide();
+      this.pointerPressed = false;
     }
   }, {
     key: 'mouseup',
     value: function mouseup(event) {
-      this.getMouse(event);
+      console.log('Display.mouseup');
+      this.getPointer(event);
 
       event.preventDefault();
 
       if (this.isDraggingCentralAtom) {
-        if (this.iHoverAtom !== null) {
-          if (this.iHoverAtom !== this.iDownAtom) {
-            this.controller.makeDistance(this.iHoverAtom, this.iDownAtom);
+        if (this.iAtomHover !== null) {
+          if (this.iAtomHover !== this.iAtomPressed) {
+            this.controller.makeDistance(this.iAtomHover, this.iAtomPressed);
           }
         }
         this.lineElement.hide();
@@ -92394,17 +92602,18 @@ var Display = function (_WebglWidget) {
 
       if (util.exists(event.touches)) {
         this.hover.hide();
-        this.mouseX = null;
-        this.mouseY = null;
       }
 
-      this.iDownAtom = null;
-
-      this.mousePressed = false;
+      this.pointerPressed = false;
     }
   }, {
     key: 'mousewheel',
     value: function mousewheel(event) {
+      if (this.isGesture) {
+        return;
+      }
+      console.log('Display.mousewheel');
+
       event.preventDefault();
 
       var wheel = void 0;
@@ -92429,6 +92638,7 @@ var Display = function (_WebglWidget) {
     key: 'gesturestart',
     value: function gesturestart(event) {
       event.preventDefault();
+      console.log('Display.gesturestart');
       this.isGesture = true;
       this.lastPinchRotation = 0;
       this.lastScale = event.scale * event.scale;
@@ -92437,8 +92647,8 @@ var Display = function (_WebglWidget) {
     key: 'gesturechange',
     value: function gesturechange(event) {
       event.preventDefault();
+      console.log('Display.gesturechange');
       this.adjustCamera(0, 0, _v2.default.degToRad(event.rotation * 2 - this.lastPinchRotation), this.lastScale / (event.scale * event.scale));
-
       this.lastPinchRotation = event.rotation * 2;
       this.lastScale = event.scale * event.scale;
     }
@@ -92446,9 +92656,15 @@ var Display = function (_WebglWidget) {
     key: 'gestureend',
     value: function gestureend(event) {
       event.preventDefault();
+      console.log('Display.gestureend');
       this.isGesture = false;
-      this.iDownAtom = null;
-      this.mousePressed = false;
+      this.iAtomPressed = null;
+      this.iResClick = null;
+      if (this.clickTimer !== null) {
+        clearTimeout(this.clickTimer);
+        this.clickTimer = null;
+      }
+      this.pointerPressed = false;
     }
   }]);
 

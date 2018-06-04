@@ -380,7 +380,7 @@ class WebglWidget {
     return height
   }
 
-  getMouse (event) {
+  getPointer (event) {
     if (util.exists(event.touches) && (event.touches.length > 0)) {
       this.eventX = event.touches[0].clientX
       this.eventY = event.touches[0].clientY
@@ -392,6 +392,8 @@ class WebglWidget {
     let rect = event.target.getBoundingClientRect()
     this.mouseX = this.eventX - rect.left
     this.mouseY = this.eventY - rect.top
+
+    console.log('WebglWidget.getPointer touch', event.touches.length > 0, this.mouseX, this.mouseY)
 
     let x = this.mouseX - this.width() / 2
     let y = this.mouseY - this.height() / 2
@@ -408,7 +410,7 @@ class WebglWidget {
     }
   }
 
-  saveMouse () {
+  savePointer () {
     this.saveMouseX = this.mouseX
     this.saveMouseY = this.mouseY
     this.saveMouseR = this.mouseR
@@ -462,7 +464,7 @@ class Display extends WebglWidget {
 
     // popup hover box over the mouse position
     this.hover = new widgets.PopupText(this.divTag, 50)
-    this.iHoverAtom = null
+    this.iAtomHover = null
 
     // Docking display control
     this.isGrid = isGrid
@@ -1055,9 +1057,9 @@ class Display extends WebglWidget {
   }
 
   updateHover () {
-    this.iHoverAtom = this.getIAtomHover()
-    if (this.iHoverAtom) {
-      let atom = this.soup.getAtomProxy(this.iHoverAtom)
+    this.iAtomHover = this.getIAtomHover()
+    if (this.iAtomHover) {
+      let atom = this.soup.getAtomProxy(this.iAtomHover)
       let label = atom.label
       let iAtom = atom.iAtom
       let pos = atom.pos.clone()
@@ -1207,85 +1209,90 @@ class Display extends WebglWidget {
     this.controller.setChangeFlag()
   }
 
-  doubleclick () {
-    if (this.iHoverAtom !== null) {
-      if (this.iHoverAtom === this.soupView.getICenteredAtom()) {
+  doubleclick (event) {
+    console.log('Display.doubleclick')
+    if (this.iAtomHover !== null) {
+      if (this.iAtomHover === this.soupView.getICenteredAtom()) {
         this.atomLabelDialog()
       } else {
-        let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
-        // trick to ensure that the double-clicked atom is selected
-        this.controller.setResidueSelect(iRes, true)
-        this.setTargetViewByIAtom(this.iHoverAtom)
+        let iRes = this.soup.getAtomProxy(this.iAtomHover).iRes
+        this.controller.selectResidue(iRes)
+        this.setTargetViewByIAtom(this.iAtomHover)
       }
       this.isDraggingCentralAtom = false
     } else {
       this.controller.zoomOut()
     }
+    this.iAtomPressed = null
+    this.iResClick = null
+  }
+
+  click (event) {
+    console.log('Display.click', this.iResClick)
+    if (this.iResClick !== null) {
+      if (!event.metaKey && !event.shiftKey) {
+        this.controller.selectResidue(this.iResClick)
+      } else if (event.shiftKey) {
+        this.controller.selectAdditionalRangeToResidue(this.iResClick)
+      } else {
+        this.controller.selectAdditionalResidue(this.iResClick)
+      }
+    }
+    this.iAtomPressed = null
+    this.iResClick = null
+    this.clickTimer = null
+    this.timePressed = null
   }
 
   mousedown (event) {
-    this.getMouse(event)
-
-    event.preventDefault()
-
-    this.updateHover()
-
-    this.iDownAtom = this.getIAtomHover()
-    let iCenterAtom = this.soupView.getICenteredAtom()
-
-    let now = (new Date()).getTime()
-
-    if (this.timeLastPressed) {
-      if (this.downTimer === null) {
-        if ((this.iHoverAtom !== null) && (this.iHoverAtom === this.iDownAtom)) {
-          let iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes
-          this.downTimer = setTimeout(() => {
-            if (!event.metaKey && !event.shiftKey) {
-              this.controller.selectResidue(iRes)
-            } else if (event.shiftKey) {
-              this.controller.selectAdditionalRangeToResidue(iRes)
-            } else {
-              this.controller.selectAdditionalResidue(iRes)
-            }
-            this.iDownAtom = null
-            this.downTimer = null
-          }, 250)
-        }
-      } else {
-        clearTimeout(this.downTimer)
-        this.doubleclick()
-        this.downTimer = null
-      }
-
-    }
-
-    if (this.iDownAtom === iCenterAtom) {
-      this.isDraggingCentralAtom = this.iDownAtom !== null
-    }
-
-
-
-    this.iDoubleClickDownAtom = this.iDownAtom
-
-    this.timeLastPressed = now
-
-    this.saveMouse()
-    this.mousePressed = true
-  }
-
-  mousemove (event) {
-    this.getMouse(event)
-
-    event.preventDefault()
-
     if (this.isGesture) {
       return
     }
 
+    event.preventDefault()
+
+    this.getPointer(event)
+    console.log('Display.mousedown')
+    this.updateHover()
+    this.iAtomPressed = this.iAtomHover
+    this.iResClick = this.soup.getAtomProxy(this.iAtomPressed).iRes
+
+    console.log('Display.mousedown', this.iAtomPressed)
+
+    if (this.iAtomPressed === this.soupView.getICenteredAtom()) {
+      this.isDraggingCentralAtom = this.iAtomPressed !== null
+    }
+
+    let now = (new Date()).getTime()
+    let elapsedTime = this.timePressed ? now - this.timePressed : 0
+
+    if (this.clickTimer === null) {
+      this.clickTimer = setTimeout(() => this.click(event), 250)
+    } else if (elapsedTime < 600) {
+      clearTimeout(this.clickTimer)
+      this.doubleclick(event)
+      this.clickTimer = null
+    }
+
+    this.getPointer(event)
+    this.savePointer()
+    this.timePressed = (new Date()).getTime()
+    this.pointerPressed = true
+  }
+
+  mousemove (event) {
+    console.log('Display.mousemove')
+    event.preventDefault()
+    if (this.isGesture) {
+      return
+    }
+
+    this.getPointer(event)
+
     this.updateHover()
 
     if (this.isDraggingCentralAtom) {
-      let v = this.getPosXY(this.soup.getAtomProxy(this.iDownAtom).pos)
+      let v = this.getPosXY(this.soup.getAtomProxy(this.iAtomPressed).pos)
       this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y)
     } else {
       let shiftDown = (event.shiftKey === 1)
@@ -1293,7 +1300,7 @@ class Display extends WebglWidget {
       let rightMouse =
         (event.button === 2) || (event.which === 3)
 
-      if (this.mousePressed) {
+      if (this.pointerPressed) {
         let zoomRatio = 1.0
         let zRotationAngle = 0
         let yRotationAngle = 0
@@ -1316,24 +1323,27 @@ class Display extends WebglWidget {
           zRotationAngle,
           zoomRatio)
 
-        this.saveMouse()
+        this.savePointer()
       }
     }
   }
 
   mouseout (event) {
+    console.log('Display.mouseout')
     this.hover.hide()
+    this.pointerPressed = false
   }
 
   mouseup (event) {
-    this.getMouse(event)
+    console.log('Display.mouseup')
+    this.getPointer(event)
 
     event.preventDefault()
 
     if (this.isDraggingCentralAtom) {
-      if (this.iHoverAtom !== null) {
-        if (this.iHoverAtom !== this.iDownAtom) {
-          this.controller.makeDistance(this.iHoverAtom, this.iDownAtom)
+      if (this.iAtomHover !== null) {
+        if (this.iAtomHover !== this.iAtomPressed) {
+          this.controller.makeDistance(this.iAtomHover, this.iAtomPressed)
         }
       }
       this.lineElement.hide()
@@ -1342,16 +1352,17 @@ class Display extends WebglWidget {
 
     if (util.exists(event.touches)) {
       this.hover.hide()
-      this.mouseX = null
-      this.mouseY = null
     }
 
-    this.iDownAtom = null
-
-    this.mousePressed = false
+    this.pointerPressed = false
   }
 
   mousewheel (event) {
+    if (this.isGesture) {
+      return
+    }
+    console.log('Display.mousewheel')
+
     event.preventDefault()
 
     let wheel
@@ -1375,6 +1386,7 @@ class Display extends WebglWidget {
 
   gesturestart (event) {
     event.preventDefault()
+    console.log('Display.gesturestart')
     this.isGesture = true
     this.lastPinchRotation = 0
     this.lastScale = event.scale * event.scale
@@ -1382,21 +1394,27 @@ class Display extends WebglWidget {
 
   gesturechange (event) {
     event.preventDefault()
+    console.log('Display.gesturechange')
     this.adjustCamera(
       0,
       0,
       v3.degToRad(event.rotation * 2 - this.lastPinchRotation),
       this.lastScale / (event.scale * event.scale))
-
     this.lastPinchRotation = event.rotation * 2
     this.lastScale = event.scale * event.scale
   }
 
   gestureend (event) {
     event.preventDefault()
+    console.log('Display.gestureend')
     this.isGesture = false
-    this.iDownAtom = null
-    this.mousePressed = false
+    this.iAtomPressed = null
+    this.iResClick = null
+    if (this.clickTimer !== null) {
+      clearTimeout(this.clickTimer)
+      this.clickTimer = null
+    }
+    this.pointerPressed = false
   }
 }
 

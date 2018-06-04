@@ -124,7 +124,7 @@ export default {
 
     this.joleculeWidget = initEmbedJolecule({
       divTag: '#jolecule',
-      isGrid: false,
+      isGrid: true,
       isEditable: true,
       isPlayable: false,
       isSequenceBar: true,
@@ -142,12 +142,12 @@ export default {
 
     const dataServer0 = require('../../../dataservers/1a0a-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer0)
-    // const dataServer1 = require('../../../dataservers/1a0a-Ar-data-server')
-    // await this.joleculeWidget.asyncAddDataServer(dataServer1)
-    // const dataServer2 = require('../../../dataservers/1a0a-Kr-data-server')
-    // await this.joleculeWidget.asyncAddDataServer(dataServer2)
-    // const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
-    // await this.joleculeWidget.asyncAddDataServer(dataServer3)
+    const dataServer1 = require('../../../dataservers/1a0a-Ar-data-server')
+    await this.joleculeWidget.asyncAddDataServer(dataServer1)
+    const dataServer2 = require('../../../dataservers/1a0a-Kr-data-server')
+    await this.joleculeWidget.asyncAddDataServer(dataServer2)
+    const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
+    await this.joleculeWidget.asyncAddDataServer(dataServer3)
 
     this.changeGraph()
   },

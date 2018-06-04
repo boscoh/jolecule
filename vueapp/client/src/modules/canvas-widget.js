@@ -1,4 +1,5 @@
 import $ from 'jquery'
+import * as util from '../../../../src/util'
 
 /**
  * CanvasWidget
@@ -127,6 +128,31 @@ class CanvasWidget {
     let rect = event.target.getBoundingClientRect()
     this.pointerX = event.clientX - rect.left
     this.pointerY = event.clientY - rect.top
+    if (util.exists(event.touches) && (event.touches.length > 0)) {
+      this.eventX = event.touches[0].clientX
+      this.eventY = event.touches[0].clientY
+    } else {
+      this.eventX = event.clientX
+      this.eventY = event.clientY
+    }
+
+    let rect = event.target.getBoundingClientRect()
+    this.pointerX = this.eventX - rect.left
+    this.pointerY = this.eventY - rect.top
+
+    let x = this.pointerX - this.width() / 2
+    let y = this.pointerY - this.height() / 2
+
+    this.mouseR = Math.sqrt(x * x + y * y)
+
+    this.mouseT = Math.atan(y / x)
+    if (x < 0) {
+      if (y > 0) {
+        this.mouseT += Math.PI
+      } else {
+        this.mouseT -= Math.PI
+      }
+    }
   }
 }
 

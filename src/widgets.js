@@ -100,6 +100,7 @@ class CanvasWidget {
     this.drawContext = this.canvasDom.getContext('2d')
 
     this.mousePressed = false
+    this.downTimer = null
     const dom = this.canvasDom
     const bind = (ev, fn) => {
       dom.addEventListener(ev, fn)
@@ -108,7 +109,6 @@ class CanvasWidget {
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
     bind('mouseout', e => this.mouseout(e))
-    bind('dblclick', e => this.doubleclick(e))
     bind('touchstart', e => this.mousedown(e))
     bind('touchmove', e => this.mousemove(e))
     bind('touchend', e => this.mouseup(e))
@@ -184,10 +184,33 @@ class CanvasWidget {
     return this.drawContext.measureText(text).width
   }
 
+  saveMouse () {
+    this.saveMouseX = this.pointerX
+    this.saveMouseY = this.pointerY
+    this.saveMouseR = this.mouseR
+    this.saveMouseT = this.mouseT
+  }
+
+  click (event) {
+  }
+
+  doubleclick (event) {
+  }
+
   mousedown (event) {
     event.preventDefault()
 
+    this.getPointer(event)
+    this.saveMouse()
     this.mousePressed = true
+
+    if (this.downTimer === null) {
+      this.downTimer = setTimeout(() => this.click(event), 250)
+    } else {
+      clearTimeout(this.downTimer)
+      this.doubleclick(event)
+      this.downTimer = null
+    }
 
     this.mousemove(event)
   }
@@ -203,13 +226,32 @@ class CanvasWidget {
     this.mousePressed = false
   }
 
-  doubleclick (event) {
-  }
-
   getPointer (event) {
+    if (util.exists(event.touches) && (event.touches.length > 0)) {
+      this.eventX = event.touches[0].clientX
+      this.eventY = event.touches[0].clientY
+    } else {
+      this.eventX = event.clientX
+      this.eventY = event.clientY
+    }
+
     let rect = event.target.getBoundingClientRect()
-    this.pointerX = event.clientX - rect.left
-    this.pointerY = event.clientY - rect.top
+    this.pointerX = this.eventX - rect.left
+    this.pointerY = this.eventY - rect.top
+
+    let x = this.pointerX - this.width() / 2
+    let y = this.pointerY - this.height() / 2
+
+    this.mouseR = Math.sqrt(x * x + y * y)
+
+    this.mouseT = Math.atan(y / x)
+    if (x < 0) {
+      if (y > 0) {
+        this.mouseT += Math.PI
+      } else {
+        this.mouseT -= Math.PI
+      }
+    }
   }
 }
 
@@ -825,19 +867,6 @@ class SequenceWidget extends CanvasWidget {
     return this.charEntries[this.iChar].iAtom
   }
 
-  doubleclick (event) {
-    this.getPointer(event)
-    if (this.pointerY >= this.yTopSequence) {
-      // mouse event in sequence bar
-      this.iChar = this.xToIChar(this.pointerX)
-      if (this.charEntries[this.iChar].c !== '') {
-        this.controller.selectResidue(this.charEntries[this.iChar].iRes)
-        this.controller.setTargetViewByIAtom(this.getCurrIAtom())
-        this.updateWithoutCheckingCurrent()
-      }
-    }
-  }
-
   mousemove (event) {
     this.getPointer(event)
     if (this.pointerY < this.yTopSequence) {
@@ -877,11 +906,32 @@ class SequenceWidget extends CanvasWidget {
     this.hover.hide()
   }
 
-  mousedown (event) {
-    super.mousedown(event)
+  mouseup () {
+    this.hover.hide()
+    this.mousePressed = false
+  }
+
+  doubleclick (event) {
+    this.getPointer(event)
     if (this.pointerY >= this.yTopSequence) {
+      // mouse event in sequence bar
       this.iChar = this.xToIChar(this.pointerX)
-      let iRes = this.charEntries[this.iChar].iRes
+      if (this.iChar === this.iCharPressed) {
+        console.log('SequenceWidget.doubleclick select', this.iChar)
+        if (this.charEntries[this.iChar].c !== '') {
+          this.controller.clearSelectedResidues()
+          this.controller.setResidueSelect(this.charEntries[this.iChar].iRes, true)
+          this.controller.setTargetViewByIAtom(this.getCurrIAtom())
+          this.updateWithoutCheckingCurrent()
+        }
+      }
+    }
+  }
+
+  click (event) {
+    if (this.pointerY >= this.yTopSequence) {
+      let iRes = this.charEntries[this.iCharPressed].iRes
+      console.log('SequenceWidget.click', this.iChar)
       if (!event.metaKey && !event.shiftKey) {
         this.controller.selectResidue(iRes)
       } else if (event.shiftKey) {
@@ -891,6 +941,28 @@ class SequenceWidget extends CanvasWidget {
       }
       this.updateWithoutCheckingCurrent()
     }
+  }
+
+  mousedown (event) {
+    event.preventDefault()
+
+    this.getPointer(event)
+    this.saveMouse()
+    this.mousePressed = true
+
+    this.iChar = this.xToIChar(this.pointerX)
+
+    if ((this.downTimer !== null) && (this.iChar === this.iCharPressed)) {
+      clearTimeout(this.downTimer)
+      this.doubleclick(event)
+      this.downTimer = null
+    } else {
+      this.downTimer = setTimeout(() => this.click(event), 250)
+    }
+
+    this.mousemove(event)
+
+    this.iCharPressed = this.iChar
   }
 }
 
@@ -993,6 +1065,7 @@ class ZSlabWidget extends CanvasWidget {
   }
 
   mousedown (event) {
+    console.log('ZSlab.mousedown')
     this.getZ(event)
 
     if (this.z > 0) {
@@ -1008,6 +1081,9 @@ class ZSlabWidget extends CanvasWidget {
 
   mousemove (event) {
     event.preventDefault()
+    super.mousemove(event)
+
+    console.log('ZSlab.mousemove', this.mousePressed)
 
     if (!this.mousePressed) {
       return
