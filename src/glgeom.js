@@ -829,6 +829,28 @@ class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
     this.computeVertexNormals()
   }
 
+  setColor (iVertex, color) {
+    let iPosition = 3 * iVertex
+    this.colors[iPosition] = color.r
+    this.colors[iPosition + 1] = color.g
+    this.colors[iPosition + 2] = color.b
+  }
+
+  recolor (newColorList) {
+    this.parameters.colorList = newColorList
+    let iVertexTotal = 0
+    for (let [iVertexSet, vertices] of this.parameters.verticesList.entries()) {
+      let color = this.parameters.colorList[iVertexSet]
+      let nVertex = vertices.length
+      let nVertexOfNucleotide = 6 * (nVertex - 2) + 6 * nVertex
+      for (let iVertex = 0; iVertex < nVertexOfNucleotide; iVertex += 1) {
+        this.setColor(iVertexTotal, color)
+        iVertexTotal += 1
+      }
+    }
+    this.attributes.color.needsUpdate = true
+  }
+
   setAttributes () {
     let positions = new Float32Array(this.nVertex * 3)
     let normals = new Float32Array(this.nVertex * 3)

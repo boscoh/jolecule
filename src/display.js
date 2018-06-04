@@ -847,18 +847,31 @@ class Display extends WebglWidget {
     let getVecFromAtomType = a => atom.load(residue.getIAtom(a)).pos.clone()
 
     let verticesList = []
-    let colorList = []
+    this.nucleotideColorList = []
     let indexColorList = []
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      residue.iRes = iRes
+      if (residue.ss === 'D' && residue.isPolymer) {
+        this.nucleotideColorList.push(residue.activeColor)
+        indexColorList.push(this.getIndexColor(residue.iAtom))
+        let atomTypes = data.getNucleotideBaseAtomTypes(residue.resType)
+        verticesList.push(_.map(atomTypes, getVecFromAtomType))
+      }
+    }
+
+    this.nucleotideGeom = new glgeom.BufferRaisedShapesGeometry(
+      verticesList, this.nucleotideColorList, 0.2)
+    let displayMesh = new THREE.Mesh(this.nucleotideGeom, this.displayMaterial)
+    this.displayMeshes['basepairs'].add(displayMesh)
+
+    let pickingGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, indexColorList, 0.2)
+    let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
+    this.pickingMeshes['basepairs'].add(pickingMesh)
+
     let bondList = []
     for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
       if (residue.ss === 'D' && residue.isPolymer) {
-        colorList.push(residue.activeColor)
-        indexColorList.push(this.getIndexColor(residue.iAtom))
-
-        let atomTypes = data.getNucleotideBaseAtomTypes(residue.resType)
-        verticesList.push(_.map(atomTypes, getVecFromAtomType))
-
         for (let bond of data.getNucleotideConnectorBondAtomTypes(residue.resType)) {
           bondList.push([
             getVecFromAtomType(bond[0]),
@@ -868,26 +881,29 @@ class Display extends WebglWidget {
       }
     }
 
-    let displayGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, colorList, 0.2)
-    let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
-    this.displayMeshes['basepairs'].add(displayMesh)
-
-    let pickingGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, indexColorList, 0.2)
-    let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
-    this.pickingMeshes['basepairs'].add(pickingMesh)
-
     let nBond = bondList.length
     let cylinderBufferGeometry = glgeom.makeBufferZCylinderGeometry(0.4)
-    displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nBond)
+    let connectorDisplayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nBond)
     for (let iBond = 0; iBond < nBond; iBond += 1) {
       let [p1, p2, color] = bondList[iBond]
-      displayGeom.applyMatrixToCopy(
+      connectorDisplayGeom.applyMatrixToCopy(
         glgeom.getCylinderMatrix(p1, p2, 0.2), iBond)
-      displayGeom.applyColorToCopy(color, iBond)
+      connectorDisplayGeom.applyColorToCopy(color, iBond)
     }
+    this.displayMeshes['basepairs'].add(
+      new THREE.Mesh(connectorDisplayGeom, this.displayMaterial))
+  }
 
-    displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
-    this.displayMeshes['basepairs'].add(displayMesh)
+  recolorNucelotides () {
+    this.nucleotideColorList = []
+    let residue = this.soup.getResidueProxy()
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      residue.iRes = iRes
+      if (residue.ss === 'D' && residue.isPolymer) {
+        this.nucleotideColorList.push(residue.activeColor)
+      }
+    }
+    this.nucleotideGeom.recolor(this.nucleotideColorList)
   }
 
   deleteStructure (iStructure) {
@@ -1115,6 +1131,7 @@ class Display extends WebglWidget {
 
     if (this.soupView.updateSelection) {
       this.resetRibbonColors()
+      this.recolorNucelotides()
       this.buildMeshOfArrows()
       this.buildMeshOfResidueSidechains()
       this.soupView.updateSelection = false
@@ -1232,7 +1249,7 @@ class Display extends WebglWidget {
             }
             this.iDownAtom = null
             this.downTimer = null
-          }, 300)
+          }, 250)
         }
       } else {
         clearTimeout(this.downTimer)

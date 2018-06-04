@@ -90609,6 +90609,7 @@ var WebglWidget = function () {
     this.mouseR = null;
     this.mouseT = null;
     this.mousePressed = false;
+    this.downTimer = null;
   }
 
   _createClass(WebglWidget, [{
@@ -90641,9 +90642,7 @@ var WebglWidget = function () {
       bind('mousewheel', function (e) {
         return _this.mousewheel(e);
       });
-      bind('dblclick', function (e) {
-        return _this.doubleclick(e);
-      });
+      // bind('dblclick', e => this.doubleclick(e))
       bind('DOMMouseScroll', function (e) {
         return _this.mousewheel(e);
       });
@@ -92280,6 +92279,8 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'mousedown',
     value: function mousedown(event) {
+      var _this5 = this;
+
       this.getMouse(event);
 
       event.preventDefault();
@@ -92291,13 +92292,36 @@ var Display = function (_WebglWidget) {
 
       var now = new Date().getTime();
 
+      if (this.timeLastPressed) {
+        if (this.downTimer === null) {
+          if (this.iHoverAtom !== null && this.iHoverAtom === this.iDownAtom) {
+            var iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes;
+            this.downTimer = setTimeout(function () {
+              if (!event.metaKey && !event.shiftKey) {
+                _this5.controller.selectResidue(iRes);
+              } else if (event.shiftKey) {
+                _this5.controller.selectAdditionalRangeToResidue(iRes);
+              } else {
+                _this5.controller.selectAdditionalResidue(iRes);
+              }
+              _this5.iDownAtom = null;
+              _this5.downTimer = null;
+            }, 300);
+          }
+        } else {
+          clearTimeout(this.downTimer);
+          this.doubleclick();
+          this.downTimer = null;
+        }
+      }
+
       if (this.iDownAtom === iCenterAtom) {
         this.isDraggingCentralAtom = this.iDownAtom !== null;
       }
 
       this.iDoubleClickDownAtom = this.iDownAtom;
 
-      this.timePressed = now;
+      this.timeLastPressed = now;
 
       this.saveMouse();
       this.mousePressed = true;
@@ -92366,18 +92390,6 @@ var Display = function (_WebglWidget) {
         }
         this.lineElement.hide();
         this.isDraggingCentralAtom = false;
-      }
-
-      if (this.iHoverAtom !== null && this.iHoverAtom === this.iDownAtom) {
-        var iRes = this.soup.getAtomProxy(this.iHoverAtom).iRes;
-        if (!event.metaKey && !event.shiftKey) {
-          this.controller.selectResidue(iRes);
-        } else if (event.shiftKey) {
-          this.controller.selectAdditionalRangeToResidue(iRes);
-        } else {
-          this.controller.selectAdditionalResidue(iRes);
-        }
-        this.iDownAtom = null;
       }
 
       if (util.exists(event.touches)) {
