@@ -1290,7 +1290,8 @@ class Display extends WebglWidget {
     this.updateHover()
 
     if (this.isDraggingCentralAtom) {
-      let v = this.getPosXY(this.soup.getAtomProxy(this.iAtomPressed).pos)
+      let pos = this.soup.getAtomProxy(this.soupView.getICenteredAtom()).pos
+      let v = this.getPosXY(pos)
       this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y)
     } else {
       let shiftDown = (event.shiftKey === 1)
@@ -1340,8 +1341,9 @@ class Display extends WebglWidget {
 
     if (this.isDraggingCentralAtom) {
       if (this.iAtomHover !== null) {
-        if (this.iAtomHover !== this.iAtomPressed) {
-          this.controller.makeDistance(this.iAtomHover, this.iAtomPressed)
+        let iAtomCentre = this.soupView.getICenteredAtom()
+        if (this.iAtomHover !== iAtomCentre) {
+          this.controller.makeDistance(this.iAtomHover, iAtomCentre)
         }
       }
       this.lineElement.hide()

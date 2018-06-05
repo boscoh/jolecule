@@ -83797,12 +83797,17 @@ var SequenceWidget = function (_CanvasWidget) {
       this.iCharDisplayStart = nPadChar;
     }
   }, {
-    key: 'setIChar',
-    value: function setIChar(iChar) {
-      this.iChar = iChar;
+    key: 'checkDisplayLimits',
+    value: function checkDisplayLimits() {
       this.iCharDisplayStart = Math.max(this.iChar - 0.5 * this.nCharDisplay, 0);
       this.iCharDisplayStart = Math.min(this.iCharDisplayStart, this.nChar - this.nCharDisplay);
       this.iCharDisplayStart = parseInt(this.iCharDisplayStart);
+    }
+  }, {
+    key: 'setIChar',
+    value: function setIChar(iChar) {
+      this.iChar = iChar;
+      this.checkDisplayLimits();
     }
   }, {
     key: 'updateWithoutCheckingCurrent',
@@ -83997,6 +84002,13 @@ var SequenceWidget = function (_CanvasWidget) {
             this.hover.move(x, this.yMidSequence);
           }
         }
+        if (this.mousePressed) {
+          var iNewChar = this.xToIChar(this.pointerX);
+          var iCharDiff = iNewChar - this.iCharPressed;
+          this.iCharDisplayStart -= iCharDiff;
+          console.log('SequenceWidget drag', this.iCharPressed, iNewChar, iCharDiff, this.iCharDisplayStart);
+          this.updateWithoutCheckingCurrent();
+        }
       }
     }
   }, {
@@ -84018,7 +84030,7 @@ var SequenceWidget = function (_CanvasWidget) {
         // mouse event in sequence bar
         this.iChar = this.xToIChar(this.pointerX);
         if (this.iChar === this.iCharPressed) {
-          console.log('SequenceWidget.doubleclick select', this.iChar);
+          console.log('SequenceWidget.doubleclick', this.iChar);
           if (this.charEntries[this.iChar].c !== '') {
             this.controller.clearSelectedResidues();
             this.controller.setResidueSelect(this.charEntries[this.iChar].iRes, true);
@@ -84067,9 +84079,8 @@ var SequenceWidget = function (_CanvasWidget) {
         }, 250);
       }
 
-      this.mousemove(event);
-
       this.iCharPressed = this.iChar;
+      this.mousemove(event);
     }
   }]);
 
