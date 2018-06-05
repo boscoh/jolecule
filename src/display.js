@@ -393,8 +393,6 @@ class WebglWidget {
     this.mouseX = this.eventX - rect.left
     this.mouseY = this.eventY - rect.top
 
-    console.log('WebglWidget.getPointer touch', event.touches.length > 0, this.mouseX, this.mouseY)
-
     let x = this.mouseX - this.width() / 2
     let y = this.mouseY - this.height() / 2
 
@@ -1229,7 +1227,7 @@ class Display extends WebglWidget {
 
   click (event) {
     console.log('Display.click', this.iResClick)
-    if (this.iResClick !== null) {
+    if (!_.isUndefined(this.iResClick) && (this.iResClick !== null)) {
       if (!event.metaKey && !event.shiftKey) {
         this.controller.selectResidue(this.iResClick)
       } else if (event.shiftKey) {

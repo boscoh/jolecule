@@ -91141,8 +91141,6 @@ var WebglWidget = function () {
       this.mouseX = this.eventX - rect.left;
       this.mouseY = this.eventY - rect.top;
 
-      console.log('WebglWidget.getPointer touch', event.touches.length > 0, this.mouseX, this.mouseY);
-
       var x = this.mouseX - this.width() / 2;
       var y = this.mouseY - this.height() / 2;
 
@@ -92476,7 +92474,7 @@ var Display = function (_WebglWidget) {
     key: 'click',
     value: function click(event) {
       console.log('Display.click', this.iResClick);
-      if (this.iResClick !== null) {
+      if (!_lodash2.default.isUndefined(this.iResClick) && this.iResClick !== null) {
         if (!event.metaKey && !event.shiftKey) {
           this.controller.selectResidue(this.iResClick);
         } else if (event.shiftKey) {
