@@ -92554,7 +92554,8 @@ var Display = function (_WebglWidget) {
       this.updateHover();
 
       if (this.isDraggingCentralAtom) {
-        var v = this.getPosXY(this.soup.getAtomProxy(this.iAtomPressed).pos);
+        var pos = this.soup.getAtomProxy(this.soupView.getICenteredAtom()).pos;
+        var v = this.getPosXY(pos);
         this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y);
       } else {
         var shiftDown = event.shiftKey === 1;
@@ -92601,8 +92602,9 @@ var Display = function (_WebglWidget) {
 
       if (this.isDraggingCentralAtom) {
         if (this.iAtomHover !== null) {
-          if (this.iAtomHover !== this.iAtomPressed) {
-            this.controller.makeDistance(this.iAtomHover, this.iAtomPressed);
+          var iAtomCentre = this.soupView.getICenteredAtom();
+          if (this.iAtomHover !== iAtomCentre) {
+            this.controller.makeDistance(this.iAtomHover, iAtomCentre);
           }
         }
         this.lineElement.hide();
