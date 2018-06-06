@@ -604,10 +604,12 @@ class Display extends WebglWidget {
     let blockArrowGeometry = new glgeom.BlockArrowGeometry()
     let bufferGeometry = new THREE.BufferGeometry().fromGeometry(blockArrowGeometry)
 
-    let displayGeom = new glgeom.CopyBufferGeometry(bufferGeometry, nCopy)
+    this.arrowGeom = new glgeom.CopyBufferGeometry(bufferGeometry, nCopy)
     let pickingGeom = new glgeom.CopyBufferGeometry(bufferGeometry, nCopy)
 
     let obj = new THREE.Object3D()
+
+    let residue = this.soup.getResidueProxy()
 
     let iCopy = 0
     for (let trace of this.traces) {
@@ -624,10 +626,10 @@ class Display extends WebglWidget {
         obj.lookAt(target)
         obj.updateMatrix()
 
-        displayGeom.applyMatrixToCopy(obj.matrix, iCopy)
-        let color = trace.colors[i].clone()
-        color.offsetHSL(0, 0, -0.2)
-        displayGeom.applyColorToCopy(color, iCopy)
+        this.arrowGeom.applyMatrixToCopy(obj.matrix, iCopy)
+        let iRes = trace.refIndices[i]
+        let color = residue.load(iRes).activeColor
+        this.arrowGeom.applyColorToCopy(color, iCopy)
 
         pickingGeom.applyMatrixToCopy(obj.matrix, iCopy)
         pickingGeom.applyColorToCopy(trace.indexColors[i], iCopy)
@@ -636,11 +638,26 @@ class Display extends WebglWidget {
       }
     }
 
-    let displayMesh = new THREE.Mesh(displayGeom, this.displayMaterial)
+    let displayMesh = new THREE.Mesh(this.arrowGeom, this.displayMaterial)
     this.displayMeshes['arrows'].add(displayMesh)
 
     let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
     this.pickingMeshes['arrows'].add(pickingMesh)
+  }
+
+  recolorArrows () {
+    let iCopy = 0
+    let residue = this.soup.getResidueProxy()
+    for (let trace of this.traces) {
+      let n = trace.points.length
+      for (let i of _.range(n)) {
+        let iRes = trace.refIndices[i]
+        let color = residue.load(iRes).activeColor
+        this.arrowGeom.applyColorToCopy(color, iCopy)
+        iCopy += 1
+      }
+    }
+    this.arrowGeom.attributes.color.needsUpdate = true
   }
 
   buildAtomMeshes (atomIndices, meshName, atomRadius) {
@@ -868,30 +885,34 @@ class Display extends WebglWidget {
     let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
     this.pickingMeshes['basepairs'].add(pickingMesh)
 
-    let bondList = []
+    this.nucleotideConnectList = []
     for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
       if (residue.ss === 'D' && residue.isPolymer) {
         for (let bond of data.getNucleotideConnectorBondAtomTypes(residue.resType)) {
-          bondList.push([
+          this.nucleotideConnectList.push([
             getVecFromAtomType(bond[0]),
             getVecFromAtomType(bond[1]),
-            residue.color])
+            iRes])
         }
       }
     }
 
-    let nBond = bondList.length
+    let nBond = this.nucleotideConnectList.length
     let cylinderBufferGeometry = glgeom.makeBufferZCylinderGeometry(0.4)
-    let connectorDisplayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nBond)
+    this.nucleotideConnectorGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nBond)
     for (let iBond = 0; iBond < nBond; iBond += 1) {
-      let [p1, p2, color] = bondList[iBond]
-      connectorDisplayGeom.applyMatrixToCopy(
-        glgeom.getCylinderMatrix(p1, p2, 0.2), iBond)
-      connectorDisplayGeom.applyColorToCopy(color, iBond)
+      let [p1, p2, iRes] = this.nucleotideConnectList[iBond]
+      this.nucleotideConnectorGeom.applyMatrixToCopy(
+        glgeom.getCylinderMatrix(p1, p2, 0.3), iBond)
+    }
+    for (let iBond = 0; iBond < nBond; iBond += 1) {
+      let [p1, p2, iRes] = this.nucleotideConnectList[iBond]
+      let color = residue.load(iRes).activeColor
+      this.nucleotideConnectorGeom.applyColorToCopy(color, iBond)
     }
     this.displayMeshes['basepairs'].add(
-      new THREE.Mesh(connectorDisplayGeom, this.displayMaterial))
+      new THREE.Mesh(this.nucleotideConnectorGeom, this.displayMaterial))
   }
 
   recolorNucelotides () {
@@ -904,6 +925,14 @@ class Display extends WebglWidget {
       }
     }
     this.nucleotideGeom.recolor(this.nucleotideColorList)
+
+    let nBond = this.nucleotideConnectList.length
+    for (let iBond = 0; iBond < nBond; iBond += 1) {
+      let [p1, p2, iRes] = this.nucleotideConnectList[iBond]
+      let color = residue.load(iRes).activeColor
+      this.nucleotideConnectorGeom.applyColorToCopy(color, iBond)
+    }
+    this.nucleotideConnectorGeom.attributes.color.needsUpdate = true
   }
 
   deleteStructure (iStructure) {
@@ -1132,7 +1161,7 @@ class Display extends WebglWidget {
     if (this.soupView.updateSelection) {
       this.resetRibbonColors()
       this.recolorNucelotides()
-      this.buildMeshOfArrows()
+      this.recolorArrows()
       this.buildMeshOfResidueSidechains()
       this.soupView.updateSelection = false
       this.updateMeshesInScene = true

@@ -5,7 +5,7 @@
 const doc = `
 Creates a static jolecule page for a given pdb file.
 
-Usage: jol-static.js [-o out-html-dir] pdb
+Usage: jol-static.js [-f] [-b] [-o out-html-dir] pdb
 `
 
 const fs = require('fs-extra')
@@ -114,7 +114,6 @@ const fullPageIndexHtmlMustache = `
 <body>
   <div id="jolecule-container">
     <div id="jolecule-body">
-      <div id="jolecule-sequence-container"></div>
       <div id="jolecule-protein-container"></div>
       <div id="jolecule-views-container"></div>
       <script src="require.js"></script>
@@ -148,9 +147,14 @@ const fullPageIndexHtmlMustache = `
 
 let knownOpts = {
   'out': [String, null],
-  'batch': [Boolean, false],
+  'browser': [Boolean, false],
+  'full': [Boolean, true]
 }
-let shortHands = {'o': ['--out']}
+let shortHands = {
+  o: ['--out'],
+  f: ['--full'],
+  b: ['--browser']
+}
 let parsed = nopt(knownOpts, shortHands, process.argv, 2)
 let remain = parsed.argv.remain
 
@@ -200,8 +204,8 @@ if (remain.length < 1) {
   }
 
   let html = path.join(targetDir, 'index.html')
-  let title = 'jolecule'
-  let isFullPage = true
+  let isFullPage = !!parsed.full
+  console.log('isFullPage', isFullPage)
   let htmlText
   if (isFullPage) {
     let user_nickname = 'anonymous'
@@ -234,7 +238,7 @@ if (remain.length < 1) {
       path.join(targetDir, path.basename(fname)))
   }
 
-  if (!parsed.batch) {
+  if (parsed.browser) {
     opener(html)
   }
 }

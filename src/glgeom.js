@@ -913,9 +913,9 @@ class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
 class BlockArrowGeometry extends THREE.ExtrudeGeometry {
   constructor () {
     let shape = new THREE.Shape([
-      new THREE.Vector2(-0.4, -0.5),
+      new THREE.Vector2(-0.3, -0.5),
       new THREE.Vector2(0.0, +0.5),
-      new THREE.Vector2(+0.4, -0.5)
+      new THREE.Vector2(+0.3, -0.5)
     ])
 
     let path = new THREE.CatmullRomCurve3([

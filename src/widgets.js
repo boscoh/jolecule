@@ -89,7 +89,9 @@ class CanvasWidget {
 
     this.div = $('<div>')
       .css('position', 'absolute')
+      .css('position', 'absolute')
       .css('z-index', 100)
+      .css('user-select', 'none')
 
     this.parentDiv.append(this.div)
 
@@ -915,6 +917,7 @@ class SequenceWidget extends CanvasWidget {
 
   mouseout () {
     this.hover.hide()
+    this.mousePressed = false
   }
 
   mouseup () {
