@@ -148,11 +148,11 @@ const fullPageIndexHtmlMustache = `
 let knownOpts = {
   'out': [String, null],
   'browser': [Boolean, false],
-  'full': [Boolean, true]
+  'embed': [Boolean, true]
 }
 let shortHands = {
   o: ['--out'],
-  f: ['--full'],
+  e: ['--embed'],
   b: ['--browser']
 }
 let parsed = nopt(knownOpts, shortHands, process.argv, 2)
@@ -204,7 +204,7 @@ if (remain.length < 1) {
   }
 
   let html = path.join(targetDir, 'index.html')
-  let isFullPage = !!parsed.full
+  let isFullPage = !parsed.embed
   console.log('isFullPage', isFullPage)
   let htmlText
   if (isFullPage) {
@@ -238,7 +238,7 @@ if (remain.length < 1) {
       path.join(targetDir, path.basename(fname)))
   }
 
-  if (parsed.browser) {
+  if (!parsed.browser) {
     opener(html)
   }
 }

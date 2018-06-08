@@ -349,10 +349,8 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
    * @param {THREE.Shape} shape - collection of 2D points for cross section
    * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
    * @param {boolean} round - normals are draw from centre, otherwise perp to edge
-   * @param {boolean} front - draw front cross-section
-   * @param {boolean} back - draw back cross-section
    */
-  constructor (traces, shape, front, back, isIndexColor = false) {
+  constructor (traces, shape, isIndexColor = false) {
     super()
 
     this.type = 'BufferRibbonGeometry'
@@ -360,8 +358,6 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.parameters = {
       shape,
       traces,
-      front,
-      back,
       isIndexColor
     }
 
@@ -371,7 +367,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.nVertex = 0
     this.nFace = 0
 
-    this.countVertexAndFacesOfPath(front, back)
+    this.countVertexAndFacesOfPath()
 
     this.setAttributes()
 
@@ -379,7 +375,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.setColors()
   }
 
-  countVertexAndFacesOfPath (front, back) {
+  countVertexAndFacesOfPath () {
     this.nVertex = 0
     this.nFace = 0
 
@@ -404,8 +400,6 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
 
   build () {
     for (let iPath of _.range(this.paths.length)) {
-      let front = this.parameters.front
-      let back = this.parameters.back
       let path = this.paths[iPath]
       let trace = this.parameters.traces[iPath]
 
@@ -913,9 +907,9 @@ class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
 class BlockArrowGeometry extends THREE.ExtrudeGeometry {
   constructor () {
     let shape = new THREE.Shape([
-      new THREE.Vector2(-0.3, -0.5),
+      new THREE.Vector2(-0.25, -0.5),
       new THREE.Vector2(0.0, +0.5),
-      new THREE.Vector2(+0.3, -0.5)
+      new THREE.Vector2(+0.25, -0.5)
     ])
 
     let path = new THREE.CatmullRomCurve3([
