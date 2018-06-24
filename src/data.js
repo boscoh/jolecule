@@ -21,7 +21,7 @@ const yellow = new THREE.Color(0xFFC900)
 const purple = new THREE.Color(0x9578AA)
 const grey = new THREE.Color(0xBBBBBB)
 const red = new THREE.Color(0x993333)
-const darkGrey = new THREE.Color(0x555555)
+const darkGrey = new THREE.Color(0x999999)
 
 let ElementColors = {
   'H': 0xCCCCCC,

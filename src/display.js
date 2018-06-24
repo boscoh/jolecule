@@ -1010,7 +1010,7 @@ class Display extends WebglWidget {
     for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
       // residue.color = data.getSsColor(residue.ss)
-      residue.color = data.grey
+      residue.color = data.darkGrey
     }
 
     this.soup.findGridLimits()
