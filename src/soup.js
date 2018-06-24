@@ -1179,7 +1179,9 @@ class Soup {
     if (this.grid.bMax === null) {
       this.grid.bMin = 0
     }
-    this.grid.bCutoff = this.grid.bMin
+    if (!('bCutoff' in this.grid)) {
+      this.grid.bCutoff = this.grid.bMin
+    }
   }
 
   deleteStructure (iStructure) {

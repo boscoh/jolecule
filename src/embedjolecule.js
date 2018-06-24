@@ -18,9 +18,10 @@ let defaultArgs = {
   isViewTextShown: false,
   isSequenceBar: true,
   isEditable: true,
-  isPlayable: true,
+  isPlayable: false,
   isLoop: false,
   isGrid: false,
+  bCutoff: 0.5,
   backgroundColor: 0x000000
 }
 
@@ -83,6 +84,13 @@ class EmbedJolecule {
     this.soup.findSecondaryStructure()
 
     this.soupView.changed = true
+
+    console.log('Display.asyncLoadProteinData', this.params, this.soup.grid)
+
+    if (this.params.bCutoff !== null) {
+      this.soup.grid.bCutoff = this.params.bCutoff
+      console.log('Display.asyncLoadProteinData', this.soup.grid.bCutoff)
+    }
 
     this.display.buildScene()
     this.resize()

@@ -415,8 +415,9 @@ class FullPageJolecule {
       isSequenceBar: true,
       isEditable: true,
       isLoop: false,
-      isPlayable: true,
+      isPlayable: false,
       isGrid: true,
+      bCutoff: 0.5,
       backgroundColor: 0xCCCCCC
     }
     console.log('FullPageJolecule.constructor params', params)
