@@ -554,6 +554,7 @@ class SequenceWidget extends CanvasWidget {
     this.controller = display.controller
     this.traces = display.traces
     this.display.addObserver(this)
+    this.residue = this.soup.getResidueProxy()
 
     this.charWidth = 14
     this.charHeight = 15
@@ -692,6 +693,19 @@ class SequenceWidget extends CanvasWidget {
     this.checkDisplayLimits()
   }
 
+  getColorStyle (iChar) {
+    if (iChar >= this.charEntries.length) {
+      return '#000000'
+    }
+    let iRes = this.charEntries[iChar].iRes
+    this.residue.load(iRes)
+    if (_.isUndefined(this.residue.activeColor)) {
+      return '#000000'
+    } else {
+      return '#' + this.residue.activeColor.getHexString()
+    }
+  }
+
   updateWithoutCheckingCurrent () {
     if (!util.exists(this.soupView)) {
       return
@@ -744,19 +758,28 @@ class SequenceWidget extends CanvasWidget {
     // draw line through structure bar
     this.line(0, yMidStructure, this.width(), yMidStructure, 1, '#999')
 
+    let colorStyle
+
     // draw structure color bars
     let ss = this.charEntries[0].ss
+    let color = data.getSsColor(ss).getStyle()
+    color = this.getColorStyle(0)
+    let endColor
     let iStart = 0
     let iEnd = 0
     while (iEnd < this.nChar) {
       iEnd += 1
-      if (iEnd === this.nChar || this.charEntries[iEnd].ss !== ss) {
+      endColor = this.getColorStyle(iEnd)
+      let isNotEnd =
+        (iEnd === this.nChar) ||
+        (this.charEntries[iEnd].ss !== ss) ||
+        (endColor !== color)
+      if (isNotEnd) {
         let x1 = this.iToX(iStart)
         let x2 = this.iToX(iEnd)
         let h = this.heightStructureBar
         let yTop = yMidStructure - h / 2
         if (ss !== '') {
-          let color = data.getSsColor(ss).getStyle()
           if (ss !== 'C') {
             yTop -= 2
             h += 2 * 2
@@ -766,6 +789,7 @@ class SequenceWidget extends CanvasWidget {
         if (iEnd <= this.nChar - 1) {
           iStart = iEnd
           ss = this.charEntries[iEnd].ss
+          color = this.getColorStyle(iEnd)
         }
       }
     }
@@ -773,15 +797,13 @@ class SequenceWidget extends CanvasWidget {
     // draw line through sequence bar
     this.line(0, this.yMidSequence, this.width(), this.yMidSequence, 1, '#999')
 
-    let r = this.soup.getResidueProxy()
     // draw characters for sequence
     for (let iChar = this.iCharDisplayStart; iChar < this.iCharDisplayEnd; iChar += 1) {
-      let residue = this.charEntries[iChar]
-      if (residue.c === '') {
+      let charEntry = this.charEntries[iChar]
+      if (charEntry.c === '') {
         continue
       }
-      r.load(residue.iRes)
-      let colorStyle = '#' + r.activeColor.getHexString()
+      colorStyle = this.getColorStyle(iChar)
 
       let xLeft = this.iCharToX(iChar)
       let xRight = this.iCharToX(iChar + 1)
@@ -789,7 +811,7 @@ class SequenceWidget extends CanvasWidget {
       let xMid = xLeft + width / 2
       let height = this.charHeight
       let yTop = this.yMidSequence - height / 2
-      if (residue.ss !== 'C') {
+      if (charEntry.ss !== 'C') {
         yTop -= 4
         height += 2*4
       }
@@ -798,7 +820,7 @@ class SequenceWidget extends CanvasWidget {
         xLeft, yTop, width, height, colorStyle)
 
       this.text(
-        residue.c,
+        charEntry.c,
         xMid,
         this.yMidSequence,
         '7pt Helvetica',
@@ -806,16 +828,16 @@ class SequenceWidget extends CanvasWidget {
         'center')
 
       // draw highlight res box
-      if ((iResCurrent >= 0) && (iResCurrent === residue.iRes)) {
+      if ((iResCurrent >= 0) && (iResCurrent === charEntry.iRes)) {
         this.strokeRect(
           xLeft, yTop - 5, width, height + 10, this.highlightColor)
       }
 
-      if ((residue.resNum % 20 === 0) || residue.start) {
+      if ((charEntry.resNum % 20 === 0) || charEntry.start) {
         this.line(
           xLeft, this.yBottom, xLeft, this.yBottom - 6, 1, this.borderColor)
         this.text(
-          '' + residue.resNum,
+          '' + charEntry.resNum,
           xLeft + 3,
           this.yBottom - 6,
           '7pt Helvetica',

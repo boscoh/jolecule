@@ -10,16 +10,7 @@ import widgets from './widgets'
 import * as data from './data'
 import { interpolateCameras } from './soup'
 import { registerGlobalAnimationLoop } from './animation'
-import BitArray from './bitarray'
 
-let pickingMaterial = new THREE.MeshBasicMaterial(
-  {vertexColors: THREE.VertexColors})
-let displayMaterial = new THREE.MeshPhongMaterial(
-  {vertexColors: THREE.VertexColors})
-
-function getIndexColor (i) {
-  return new THREE.Color().setHex(i + 1)
-}
 
 /**
  * Utility class to handle a three.js HTML object with
@@ -325,14 +316,9 @@ class WebglWidget {
   }
 
   addRepresentation (name, repr) {
-    this.createOrClearMesh(name)
     this.representations[name] = repr
-    for (let mesh of repr.displayMeshes) {
-      this.displayMeshes[name].add(mesh)
-    }
-    for (let mesh of repr.pickingMeshes) {
-      this.pickingMeshes[name].add(mesh)
-    }
+    this.displayMeshes[name] = repr.displayObj
+    this.pickingMeshes[name] = repr.pickingObj
     this.updateMeshesInScene = true
   }
 
@@ -408,6 +394,28 @@ class WebglWidget {
 
 }
 
+/*******************************************************
+ * Representations of the Protein as THREE.JS meshes
+ *******************************************************
+ */
+
+let pickingMaterial = new THREE.MeshBasicMaterial(
+  {vertexColors: THREE.VertexColors})
+let displayMaterial = new THREE.MeshPhongMaterial(
+  {vertexColors: THREE.VertexColors})
+let atomRadius = 0.35
+let gridAtomRadius = 1.0
+
+function getIndexColor (i) {
+  return new THREE.Color().setHex(i + 1)
+}
+
+function transferObjects(fromObj, toObj) {
+  for (let child of fromObj.children) {
+    toObj.add(child)
+  }
+}
+
 /**
  * constructs THREE.js geometries from protein object:
  *  1. a displayGeom
@@ -415,11 +423,14 @@ class WebglWidget {
  */
 class ArrowRepresentation {
   constructor (soup, traces) {
-    this.name = 'arrows'
-
     this.soup = soup
     this.traces = traces
+    this.displayObj = new THREE.Object3D()
+    this.pickingObj = new THREE.Object3D()
+    this.build()
+  }
 
+  build () {
     let nCopy = 0
     for (let trace of this.traces) {
       nCopy += trace.points.length
@@ -458,8 +469,8 @@ class ArrowRepresentation {
 
     this.recolor()
 
-    this.displayMeshes = [new THREE.Mesh(this.displayGeom, displayMaterial)]
-    this.pickingMeshes = [new THREE.Mesh(this.pickingGeom, pickingMaterial)]
+    this.displayObj.add(new THREE.Mesh(this.displayGeom, displayMaterial))
+    this.pickingObj.add(new THREE.Mesh(this.pickingGeom, pickingMaterial))
   }
 
   recolor () {
@@ -478,17 +489,34 @@ class ArrowRepresentation {
   }
 }
 
+class Representation {
+  constructor () {
+  }
+  rebuild () {
+    glgeom.clearObject3D(this.representations.grid.displayObj)
+    glgeom.clearObject3D(this.representations.grid.pickingObj)
+    this.representations.grid.build()
+  }
+}
+
 class RibbonRepresentation {
   constructor (soup, traces) {
-    this.name = 'ribbons'
     this.soup = soup
     this.traces = traces
+    this.displayObj = new THREE.Object3D()
+    this.pickingObj = new THREE.Object3D()
+    this.build()
+  }
+
+  build () {
     this.displayGeom = new glgeom.BufferRibbonGeometry(
       this.traces, data.coilFace)
     this.pickingGeom = new glgeom.BufferRibbonGeometry(
       this.traces, data.coilFace, true)
-    this.displayMeshes = [new THREE.Mesh(this.displayGeom, displayMaterial)]
-    this.pickingMeshes = [new THREE.Mesh(this.pickingGeom, pickingMaterial)]
+    let displayMesh = new THREE.Mesh(this.displayGeom, displayMaterial)
+    let pickingMesh = new THREE.Mesh(this.pickingGeom, pickingMaterial)
+    this.displayObj.add(displayMesh)
+    this.pickingObj.add(pickingMesh)
     this.recolor()
   }
 
@@ -505,15 +533,16 @@ class RibbonRepresentation {
 }
 
 class AtomsRepresentation {
-  constructor (soup) {
+  constructor (soup, atomIndices, atomRadius) {
     this.soup = soup
-  }
-
-  build (atomIndices, atomRadius) {
+    this.displayObj = new THREE.Object3D()
+    this.pickingObj = new THREE.Object3D()
     this.atomIndices = atomIndices
     this.atomRadius = atomRadius
-    this.displayMeshes = []
-    this.pickingMeshes = []
+    this.build()
+  }
+
+  build () {
     if (this.atomIndices.length === 0) {
       return
     }
@@ -533,41 +562,48 @@ class AtomsRepresentation {
       pickingGeom.applyColorToCopy(getIndexColor(iAtom), iCopy)
     }
 
-    let displayMesh = new THREE.Mesh(displayGeom, displayMaterial)
-    this.displayMeshes = [displayMesh]
-
-    let pickingMesh = new THREE.Mesh(pickingGeom, pickingMaterial)
-    this.pickingMeshes = [pickingMesh]
+    this.displayObj.add(new THREE.Mesh(displayGeom, displayMaterial))
+    this.pickingObj.add(new THREE.Mesh(pickingGeom, pickingMaterial))
   }
 }
 
 class GridRepresentation extends AtomsRepresentation {
-  constructor (soup, gridAtomRadius) {
-    super(soup)
-    this.name = 'grid'
-    let grid = soup.grid
-    let atomIndices = []
-    let residue = soup.getResidueProxy()
-    let atom = soup.getAtomProxy()
-    for (let iRes of _.range(soup.getResidueCount())) {
+  constructor (soup, radius) {
+    super(soup, [], radius)
+  }
+
+  build () {
+    let grid = this.soup.grid
+    this.atomIndices = []
+    let residue = this.soup.getResidueProxy()
+    let atom = this.soup.getAtomProxy()
+    for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
       if (residue.ss === 'G') {
         atom.iAtom = residue.iAtom
         if ((atom.bfactor > grid.bCutoff) && grid.isElem[atom.elem]) {
-          atomIndices.push(atom.iAtom)
+          this.atomIndices.push(atom.iAtom)
         }
       }
     }
-    this.build(atomIndices, gridAtomRadius)
+    super.build()
   }
 }
 
 class BondsRepresentation {
   constructor (soup, bondIndices) {
+    this.soup = soup
+    this.bondIndices = bondIndices
+    this.displayObj = new THREE.Object3D()
+    this.pickingObj = new THREE.Object3D()
+    this.build()
+  }
+
+  build () {
+    let bondIndices = this.bondIndices
     if (bondIndices.length === 0) {
       return
     }
-    this.soup = soup
     let nCopy = bondIndices.length
 
     let cylinderBufferGeometry = new THREE.CylinderBufferGeometry(1, 1, 1, 4, 1, false)
@@ -608,13 +644,20 @@ class BondsRepresentation {
     }
 
     let displayMesh = new THREE.Mesh(displayGeom, displayMaterial)
-    this.displayMeshes = [displayMesh]
+    this.displayObj.add(displayMesh)
   }
 }
 
 class LigandRepresentation {
   constructor (soup, radius) {
     this.soup = soup
+    this.radius = radius
+    this.displayObj = new THREE.Object3D()
+    this.pickingObj = new THREE.Object3D()
+    this.build()
+  }
+
+  build () {
     let atomIndices = []
     let bondIndices = []
 
@@ -634,47 +677,42 @@ class LigandRepresentation {
         }
       }
     }
-    this.atomRepr = new AtomsRepresentation(
-      this.soup)
-    this.atomRepr.build(atomIndices, radius)
-    this.bondRepr = new BondsRepresentation(
-      this.soup, bondIndices)
 
-    this.displayMeshes = []
-    this.pickingMeshes = []
-
+    this.atomRepr = new AtomsRepresentation(this.soup, atomIndices, this.radius)
+    this.bondRepr = new BondsRepresentation(this.soup, bondIndices)
     if (atomIndices.length > 0) {
-      this.displayMeshes = _.concat(
-        this.atomRepr.displayMeshes, this.bondRepr.displayMeshes)
-      this.pickingMeshes = this.atomRepr.pickingMeshes
+      transferObjects(this.atomRepr.displayObj, this.displayObj)
+      transferObjects(this.bondRepr.displayObj, this.displayObj)
+      transferObjects(this.atomRepr.pickingObj, this.pickingObj)
     }
   }
 }
 
 class WaterRepresentation extends AtomsRepresentation {
   constructor (soup, radius) {
-    super(soup)
+    super(soup, [], radius)
     this.name = 'water'
-    let atomIndices = []
+    this.atomIndices = []
     let residue = this.soup.getResidueProxy()
     for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
       if (residue.resType === 'HOH') {
-        atomIndices.push(residue.iAtom)
+        this.atomIndices.push(residue.iAtom)
       }
     }
-    this.build(atomIndices, radius)
+    this.build()
   }
 }
 
-
 class NucleotideRepresentation {
   constructor (soup) {
-    this.displayMeshes = []
-    this.pickingMeshes = []
-
+    this.displayObj = new THREE.Object3D()
+    this.pickingObj = new THREE.Object3D()
     this.soup = soup
+    this.build()
+  }
 
+  build () {
     let residue = this.soup.getResidueProxy()
     let atom = this.soup.getAtomProxy()
     let getVecFromAtomType = a => atom.load(residue.getIAtom(a)).pos.clone()
@@ -695,11 +733,11 @@ class NucleotideRepresentation {
     this.nucleotideGeom = new glgeom.BufferRaisedShapesGeometry(
       verticesList, this.nucleotideColorList, 0.2)
     let displayMesh = new THREE.Mesh(this.nucleotideGeom, displayMaterial)
-    this.displayMeshes.push(displayMesh)
+    this.displayObj.add(displayMesh)
 
     let pickingGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, indexColorList, 0.2)
     let pickingMesh = new THREE.Mesh(pickingGeom, pickingMaterial)
-    this.pickingMeshes.push(pickingMesh)
+    this.pickingObj.add(pickingMesh)
 
     this.nucleotideConnectList = []
     for (let iRes of _.range(this.soup.getResidueCount())) {
@@ -727,8 +765,8 @@ class NucleotideRepresentation {
       let color = residue.load(iRes).activeColor
       this.nucleotideConnectorGeom.applyColorToCopy(color, iBond)
     }
-    this.displayMeshes.push(
-      new THREE.Mesh(this.nucleotideConnectorGeom, displayMaterial))
+    let mesh = new THREE.Mesh(this.nucleotideConnectorGeom, displayMaterial)
+    this.displayObj.add(mesh)
   }
 
   recolor () {
@@ -755,6 +793,13 @@ class NucleotideRepresentation {
 class SidechainRepresentation {
   constructor (soup, radius) {
     this.soup = soup
+    this.displayObj = new THREE.Object3D()
+    this.pickingObj = new THREE.Object3D()
+    this.radius = radius
+    this.build()
+  }
+
+  build () {
     let atomIndices = []
     let bondIndices = []
 
@@ -779,27 +824,27 @@ class SidechainRepresentation {
         }
       }
     }
-    this.atomRepr = new AtomsRepresentation(
-      this.soup)
-    this.atomRepr.build(atomIndices, radius)
-    this.bondRepr = new BondsRepresentation(
-      this.soup, bondIndices)
-
-    this.displayMeshes = []
-    this.pickingMeshes = []
+    this.atomRepr = new AtomsRepresentation(this.soup, atomIndices, this.radius)
+    this.bondRepr = new BondsRepresentation(this.soup, bondIndices)
 
     if (atomIndices.length > 0) {
-      this.displayMeshes = _.concat(
-        this.atomRepr.displayMeshes, this.bondRepr.displayMeshes)
-      this.pickingMeshes = this.atomRepr.pickingMeshes
+      transferObjects(this.atomRepr.displayObj, this.displayObj)
+      transferObjects(this.bondRepr.displayObj, this.displayObj)
+      transferObjects(this.atomRepr.pickingObj, this.pickingObj)
     }
   }
 }
 
-
 class BackboneRepresentation {
   constructor (soup, radius) {
     this.soup = soup
+    this.displayObj = new THREE.Object3D()
+    this.pickingObj = new THREE.Object3D()
+    this.radius = radius
+    this.build()
+  }
+
+  build () {
     let atomIndices = []
     let bondIndices = []
 
@@ -821,19 +866,13 @@ class BackboneRepresentation {
         }
       }
     }
-    this.atomRepr = new AtomsRepresentation(
-      this.soup)
-    this.atomRepr.build(atomIndices, radius)
-    this.bondRepr = new BondsRepresentation(
-      this.soup, bondIndices)
 
-    this.displayMeshes = []
-    this.pickingMeshes = []
-
+    this.atomRepr = new AtomsRepresentation(this.soup, atomIndices, this.radius)
+    this.bondRepr = new BondsRepresentation(this.soup, bondIndices)
     if (atomIndices.length > 0) {
-      this.displayMeshes = _.concat(
-        this.atomRepr.displayMeshes, this.bondRepr.displayMeshes)
-      this.pickingMeshes = this.atomRepr.pickingMeshes
+      transferObjects(this.atomRepr.displayObj, this.displayObj)
+      transferObjects(this.bondRepr.displayObj, this.displayObj)
+      transferObjects(this.atomRepr.pickingObj, this.pickingObj)
     }
   }
 }
@@ -970,7 +1009,8 @@ class Display extends WebglWidget {
     let residue = this.soup.getResidueProxy()
     for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
-      residue.color = data.getSsColor(residue.ss)
+      // residue.color = data.getSsColor(residue.ss)
+      residue.color = data.grey
     }
 
     this.soup.findGridLimits()
@@ -1215,8 +1255,9 @@ class Display extends WebglWidget {
     this.setMeshVisible('ligands', show.ligands)
 
     if (this.soupView.soup.grid.changed) {
-      this.addRepresentation(
-        'grid', new GridRepresentation(this.soup, this.gridAtomRadius))
+      glgeom.clearObject3D(this.representations.grid.displayObj)
+      glgeom.clearObject3D(this.representations.grid.pickingObj)
+      this.representations.grid.build()
       this.soupView.soup.grid.changed = false
     }
 
@@ -1306,7 +1347,6 @@ class Display extends WebglWidget {
   }
 
   doubleclick (event) {
-    console.log('Display.doubleclick')
     if (this.iAtomHover !== null) {
       if (this.iAtomHover === this.soupView.getICenteredAtom()) {
         this.atomLabelDialog()
@@ -1324,7 +1364,6 @@ class Display extends WebglWidget {
   }
 
   click (event) {
-    console.log('Display.click', this.iResClick)
     if (!_.isUndefined(this.iResClick) && (this.iResClick !== null)) {
       if (!event.metaKey && !event.shiftKey) {
         this.controller.selectResidue(this.iResClick)
@@ -1348,12 +1387,9 @@ class Display extends WebglWidget {
     event.preventDefault()
 
     this.getPointer(event)
-    console.log('Display.mousedown')
     this.updateHover()
     this.iAtomPressed = this.iAtomHover
     this.iResClick = this.soup.getAtomProxy(this.iAtomPressed).iRes
-
-    console.log('Display.mousedown', this.iAtomPressed)
 
     if (this.iAtomPressed === this.soupView.getICenteredAtom()) {
       this.isDraggingCentralAtom = this.iAtomPressed !== null
@@ -1377,7 +1413,6 @@ class Display extends WebglWidget {
   }
 
   mousemove (event) {
-    console.log('Display.mousemove')
     event.preventDefault()
     if (this.isGesture) {
       return
@@ -1426,13 +1461,11 @@ class Display extends WebglWidget {
   }
 
   mouseout (event) {
-    console.log('Display.mouseout')
     this.hover.hide()
     this.pointerPressed = false
   }
 
   mouseup (event) {
-    console.log('Display.mouseup')
     this.getPointer(event)
 
     event.preventDefault()
@@ -1459,7 +1492,6 @@ class Display extends WebglWidget {
     if (this.isGesture) {
       return
     }
-    console.log('Display.mousewheel')
 
     event.preventDefault()
 
@@ -1484,7 +1516,6 @@ class Display extends WebglWidget {
 
   gesturestart (event) {
     event.preventDefault()
-    console.log('Display.gesturestart')
     this.isGesture = true
     this.lastPinchRotation = 0
     this.lastScale = event.scale * event.scale
@@ -1492,7 +1523,6 @@ class Display extends WebglWidget {
 
   gesturechange (event) {
     event.preventDefault()
-    console.log('Display.gesturechange')
     this.adjustCamera(
       0,
       0,
@@ -1504,7 +1534,6 @@ class Display extends WebglWidget {
 
   gestureend (event) {
     event.preventDefault()
-    console.log('Display.gestureend')
     this.isGesture = false
     this.iAtomPressed = null
     this.iResClick = null

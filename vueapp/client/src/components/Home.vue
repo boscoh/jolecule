@@ -139,8 +139,8 @@ export default {
       backgroundColor: 0xCCCCCC
     })
 
-    // const dataServer1 = require('../../../dataservers/1mbo-data-server')
-    // await this.joleculeWidget.asyncAddDataServer(dataServer1)
+    // const dataServer7 = require('../../../dataservers/1mbo-data-server')
+    // await this.joleculeWidget.asyncAddDataServer(dataServer7)
 
     // const dataServer0 = require('../../../dataservers/1be9-data-server')
     // await this.joleculeWidget.asyncAddDataServer(dataServer0)
@@ -154,8 +154,8 @@ export default {
     await this.joleculeWidget.asyncAddDataServer(dataServer1)
     const dataServer2 = require('../../../dataservers/1a0a-Kr-data-server')
     await this.joleculeWidget.asyncAddDataServer(dataServer2)
-    // const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
-    // await this.joleculeWidget.asyncAddDataServer(dataServer3)
+    const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
+    await this.joleculeWidget.asyncAddDataServer(dataServer3)
 
     this.changeGraph()
   },
@@ -200,18 +200,35 @@ export default {
     changeGraph () {
       let soup = this.joleculeWidget.soup
       let atom = soup.getAtomProxy()
-      let res = soup.getResidueProxy()
-      let n = soup.getResidueCount()
+      let n = soup.getAtomCount()
       let bfactors = []
       for (let i = 0; i < n; i += 1) {
-        res.load(i)
-        bfactors.push(atom.load(res.iAtom).bfactor)
+        atom.load(i)
+        if (atom.resType === 'XXX') {
+          bfactors.push(-atom.bfactor)
+        }
+      }
+      let max = _.max(bfactors)
+      let min = _.min(bfactors)
+      let nBox = 20
+      let d = (max - min) / nBox
+      let bins = []
+      let xvals = []
+      for (let i = 0; i < nBox; i += 1) {
+        bins[i] = 0
+        xvals[i] = i * d + min
+        // console.log(i, xvals[i])
+      }
+      for (let b of bfactors) {
+        let i = parseInt((b - min) / d)
+        bins[i] += 1
       }
       this.chartWidget.setTitle('')
-      this.chartWidget.setXLabel('residue')
-      this.chartWidget.setYLabel('b-factor')
+      this.chartWidget.setXLabel('energy')
+      this.chartWidget.setYLabel('count')
       this.chartWidget.addDataset('sample')
       this.chartWidget.updateDataset(0, _.range(1, n + 1), bfactors)
+      this.chartWidget.updateDataset(0, xvals, bins)
 
       this.structureIds = _.clone(soup.structureIds)
     },

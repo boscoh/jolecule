@@ -1965,6 +1965,17 @@ class Controller {
     this.soupView.soup.grid.isElem[elem] = !b
     this.soupView.soup.grid.changed = true
     this.soupView.changed = true
+
+    let vals = _.values(this.soupView.soup.grid.isElem)
+    let showSecondary = _.every(vals, v => !v)
+    console.log('Controller.toggleGridElem', vals, showSecondary)
+    // pre-calculations needed before building meshes
+    let residue = this.soup.getResidueProxy()
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      residue.iRes = iRes
+      residue.color = showSecondary ? data.getSsColor(residue.ss) : residue.color = data.grey
+    }
+    this.soupView.updateSelection = true
   }
 
   setGridCutoff (cutoff) {
