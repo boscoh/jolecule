@@ -78174,17 +78174,14 @@ var EmbedJolecule = function () {
 
                 this.soupView.changed = true;
 
-                console.log('Display.asyncLoadProteinData', this.params, this.soup.grid);
-
                 if (this.params.bCutoff !== null) {
                   this.soup.grid.bCutoff = this.params.bCutoff;
-                  console.log('Display.asyncLoadProteinData', this.soup.grid.bCutoff);
                 }
 
                 this.display.buildScene();
                 this.resize();
 
-              case 32:
+              case 31:
               case 'end':
                 return _context.stop();
             }
@@ -79979,6 +79976,42 @@ var Soup = function () {
       }
       this.setSidechainOfResidues(indices, isSidechain);
     }
+  }, {
+    key: 'colorResidues',
+    value: function colorResidues() {
+      var vals = _lodash2.default.values(this.grid.isElem);
+      var showSecondary = _lodash2.default.every(vals, function (v) {
+        return !v;
+      });
+      console.log('Soup.colorResidue', vals, showSecondary);
+      // pre-calculations needed before building meshes
+      var residue = this.getResidueProxy();
+      var _iteratorNormalCompletion18 = true;
+      var _didIteratorError18 = false;
+      var _iteratorError18 = undefined;
+
+      try {
+        for (var _iterator18 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+          var iRes = _step18.value;
+
+          residue.iRes = iRes;
+          residue.color = showSecondary ? data.getSsColor(residue.ss) : residue.color = data.grey;
+        }
+      } catch (err) {
+        _didIteratorError18 = true;
+        _iteratorError18 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion18 && _iterator18.return) {
+            _iterator18.return();
+          }
+        } finally {
+          if (_didIteratorError18) {
+            throw _iteratorError18;
+          }
+        }
+      }
+    }
 
     /**
      * Searches autodock grid atoms for B-factor limits
@@ -80845,38 +80878,7 @@ var Controller = function () {
       this.soupView.soup.grid.changed = true;
       this.soupView.changed = true;
 
-      var vals = _lodash2.default.values(this.soupView.soup.grid.isElem);
-      var showSecondary = _lodash2.default.every(vals, function (v) {
-        return !v;
-      });
-      console.log('Controller.toggleGridElem', vals, showSecondary);
-      // pre-calculations needed before building meshes
-      var residue = this.soup.getResidueProxy();
-      var _iteratorNormalCompletion18 = true;
-      var _didIteratorError18 = false;
-      var _iteratorError18 = undefined;
-
-      try {
-        for (var _iterator18 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-          var iRes = _step18.value;
-
-          residue.iRes = iRes;
-          residue.color = showSecondary ? data.getSsColor(residue.ss) : residue.color = data.grey;
-        }
-      } catch (err) {
-        _didIteratorError18 = true;
-        _iteratorError18 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion18 && _iterator18.return) {
-            _iterator18.return();
-          }
-        } finally {
-          if (_didIteratorError18) {
-            throw _iteratorError18;
-          }
-        }
-      }
+      this.soupView.soup.colorResidues();
 
       this.soupView.updateSelection = true;
     }
@@ -82734,7 +82736,6 @@ var PopupText = function () {
     } else {
       this.heightArrow = heightArrow;
     }
-    console.log('PopupText', this.heightArrow);
 
     this.div = (0, _jquery2.default)('<div>').css({
       'position': 'absolute',
@@ -91272,6 +91273,8 @@ var ArrowRepresentation = function () {
   _createClass(ArrowRepresentation, [{
     key: 'build',
     value: function build() {
+      glgeom.clearObject3D(this.displayObj);
+      glgeom.clearObject3D(this.pickingObj);
       var nCopy = 0;
       var _iteratorNormalCompletion4 = true;
       var _didIteratorError4 = false;
@@ -91440,23 +91443,6 @@ var ArrowRepresentation = function () {
   return ArrowRepresentation;
 }();
 
-var Representation = function () {
-  function Representation() {
-    _classCallCheck(this, Representation);
-  }
-
-  _createClass(Representation, [{
-    key: 'rebuild',
-    value: function rebuild() {
-      glgeom.clearObject3D(this.representations.grid.displayObj);
-      glgeom.clearObject3D(this.representations.grid.pickingObj);
-      this.representations.grid.build();
-    }
-  }]);
-
-  return Representation;
-}();
-
 var RibbonRepresentation = function () {
   function RibbonRepresentation(soup, traces) {
     _classCallCheck(this, RibbonRepresentation);
@@ -91471,6 +91457,8 @@ var RibbonRepresentation = function () {
   _createClass(RibbonRepresentation, [{
     key: 'build',
     value: function build() {
+      glgeom.clearObject3D(this.displayObj);
+      glgeom.clearObject3D(this.pickingObj);
       this.displayGeom = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace);
       this.pickingGeom = new glgeom.BufferRibbonGeometry(this.traces, data.coilFace, true);
       var displayMesh = new THREE.Mesh(this.displayGeom, displayMaterial);
@@ -91553,6 +91541,8 @@ var AtomsRepresentation = function () {
   _createClass(AtomsRepresentation, [{
     key: 'build',
     value: function build() {
+      glgeom.clearObject3D(this.displayObj);
+      glgeom.clearObject3D(this.pickingObj);
       if (this.atomIndices.length === 0) {
         return;
       }
@@ -91592,6 +91582,8 @@ var GridRepresentation = function (_AtomsRepresentation) {
   _createClass(GridRepresentation, [{
     key: 'build',
     value: function build() {
+      glgeom.clearObject3D(this.displayObj);
+      glgeom.clearObject3D(this.pickingObj);
       var grid = this.soup.grid;
       this.atomIndices = [];
       var residue = this.soup.getResidueProxy();
@@ -91648,6 +91640,8 @@ var BondsRepresentation = function () {
   _createClass(BondsRepresentation, [{
     key: 'build',
     value: function build() {
+      glgeom.clearObject3D(this.displayObj);
+      glgeom.clearObject3D(this.pickingObj);
       var bondIndices = this.bondIndices;
       if (bondIndices.length === 0) {
         return;
@@ -91710,6 +91704,9 @@ var LigandRepresentation = function () {
   _createClass(LigandRepresentation, [{
     key: 'build',
     value: function build() {
+      glgeom.clearObject3D(this.displayObj);
+      glgeom.clearObject3D(this.pickingObj);
+
       var atomIndices = [];
       var bondIndices = [];
 
@@ -91865,6 +91862,9 @@ var NucleotideRepresentation = function () {
   _createClass(NucleotideRepresentation, [{
     key: 'build',
     value: function build() {
+      glgeom.clearObject3D(this.displayObj);
+      glgeom.clearObject3D(this.pickingObj);
+
       var residue = this.soup.getResidueProxy();
       var atom = this.soup.getAtomProxy();
       var getVecFromAtomType = function getVecFromAtomType(a) {
@@ -92054,6 +92054,9 @@ var SidechainRepresentation = function () {
   _createClass(SidechainRepresentation, [{
     key: 'build',
     value: function build() {
+      glgeom.clearObject3D(this.displayObj);
+      glgeom.clearObject3D(this.pickingObj);
+
       var atomIndices = [];
       var bondIndices = [];
 
@@ -92437,34 +92440,9 @@ var Display = function (_WebglWidget) {
         this.soupView.setCurrentViewToDefault();
       }
 
+      this.soup.colorResidues();
+
       // pre-calculations needed before building meshes
-      var residue = this.soup.getResidueProxy();
-      var _iteratorNormalCompletion27 = true;
-      var _didIteratorError27 = false;
-      var _iteratorError27 = undefined;
-
-      try {
-        for (var _iterator27 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
-          var iRes = _step27.value;
-
-          residue.iRes = iRes;
-          // residue.color = data.getSsColor(residue.ss)
-          residue.color = data.darkGrey;
-        }
-      } catch (err) {
-        _didIteratorError27 = true;
-        _iteratorError27 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion27 && _iterator27.return) {
-            _iterator27.return();
-          }
-        } finally {
-          if (_didIteratorError27) {
-            throw _iteratorError27;
-          }
-        }
-      }
 
       this.soup.findGridLimits();
       this.calculateTracesForRibbons();
@@ -92476,6 +92454,7 @@ var Display = function (_WebglWidget) {
       if (this.isGrid) {
         this.addRepresentation('grid', new GridRepresentation(this.soup, this.gridAtomRadius));
       }
+      this.addRepresentation('sidechain', new SidechainRepresentation(this.soup, this.atomRadius));
 
       this.rebuildSceneFromMeshes();
 
@@ -92707,11 +92686,13 @@ var Display = function (_WebglWidget) {
       this.setMeshVisible('backbone', show.backboneAtom);
       this.setMeshVisible('ligands', show.ligands);
 
-      if (this.soupView.soup.grid.changed) {
-        glgeom.clearObject3D(this.representations.grid.displayObj);
-        glgeom.clearObject3D(this.representations.grid.pickingObj);
-        this.representations.grid.build();
-        this.soupView.soup.grid.changed = false;
+      if (this.isGrid) {
+        if (this.soupView.soup.grid.changed) {
+          if (!_lodash2.default.isUndefined(this.representations.grid)) {
+            this.representations.grid.build();
+          }
+          this.soupView.soup.grid.changed = false;
+        }
       }
 
       if (this.soupView.updateSidechain) {
