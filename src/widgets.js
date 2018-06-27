@@ -269,7 +269,6 @@ class PopupText {
     } else {
       this.heightArrow = heightArrow
     }
-    console.log('PopupText', this.heightArrow)
 
     this.div = $('<div>')
       .css({

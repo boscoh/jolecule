@@ -85,11 +85,8 @@ class EmbedJolecule {
 
     this.soupView.changed = true
 
-    console.log('Display.asyncLoadProteinData', this.params, this.soup.grid)
-
     if (this.params.bCutoff !== null) {
       this.soup.grid.bCutoff = this.params.bCutoff
-      console.log('Display.asyncLoadProteinData', this.soup.grid.bCutoff)
     }
 
     this.display.buildScene()

@@ -431,6 +431,8 @@ class ArrowRepresentation {
   }
 
   build () {
+    glgeom.clearObject3D(this.displayObj)
+    glgeom.clearObject3D(this.pickingObj)
     let nCopy = 0
     for (let trace of this.traces) {
       nCopy += trace.points.length
@@ -489,16 +491,6 @@ class ArrowRepresentation {
   }
 }
 
-class Representation {
-  constructor () {
-  }
-  rebuild () {
-    glgeom.clearObject3D(this.representations.grid.displayObj)
-    glgeom.clearObject3D(this.representations.grid.pickingObj)
-    this.representations.grid.build()
-  }
-}
-
 class RibbonRepresentation {
   constructor (soup, traces) {
     this.soup = soup
@@ -509,6 +501,8 @@ class RibbonRepresentation {
   }
 
   build () {
+    glgeom.clearObject3D(this.displayObj)
+    glgeom.clearObject3D(this.pickingObj)
     this.displayGeom = new glgeom.BufferRibbonGeometry(
       this.traces, data.coilFace)
     this.pickingGeom = new glgeom.BufferRibbonGeometry(
@@ -543,6 +537,8 @@ class AtomsRepresentation {
   }
 
   build () {
+    glgeom.clearObject3D(this.displayObj)
+    glgeom.clearObject3D(this.pickingObj)
     if (this.atomIndices.length === 0) {
       return
     }
@@ -573,6 +569,8 @@ class GridRepresentation extends AtomsRepresentation {
   }
 
   build () {
+    glgeom.clearObject3D(this.displayObj)
+    glgeom.clearObject3D(this.pickingObj)
     let grid = this.soup.grid
     this.atomIndices = []
     let residue = this.soup.getResidueProxy()
@@ -600,6 +598,8 @@ class BondsRepresentation {
   }
 
   build () {
+    glgeom.clearObject3D(this.displayObj)
+    glgeom.clearObject3D(this.pickingObj)
     let bondIndices = this.bondIndices
     if (bondIndices.length === 0) {
       return
@@ -658,6 +658,9 @@ class LigandRepresentation {
   }
 
   build () {
+    glgeom.clearObject3D(this.displayObj)
+    glgeom.clearObject3D(this.pickingObj)
+
     let atomIndices = []
     let bondIndices = []
 
@@ -713,6 +716,9 @@ class NucleotideRepresentation {
   }
 
   build () {
+    glgeom.clearObject3D(this.displayObj)
+    glgeom.clearObject3D(this.pickingObj)
+
     let residue = this.soup.getResidueProxy()
     let atom = this.soup.getAtomProxy()
     let getVecFromAtomType = a => atom.load(residue.getIAtom(a)).pos.clone()
@@ -800,6 +806,9 @@ class SidechainRepresentation {
   }
 
   build () {
+    glgeom.clearObject3D(this.displayObj)
+    glgeom.clearObject3D(this.pickingObj)
+
     let atomIndices = []
     let bondIndices = []
 
@@ -1005,13 +1014,9 @@ class Display extends WebglWidget {
       this.soupView.setCurrentViewToDefault()
     }
 
+    this.soup.colorResidues()
+
     // pre-calculations needed before building meshes
-    let residue = this.soup.getResidueProxy()
-    for (let iRes of _.range(this.soup.getResidueCount())) {
-      residue.iRes = iRes
-      // residue.color = data.getSsColor(residue.ss)
-      residue.color = data.darkGrey
-    }
 
     this.soup.findGridLimits()
     this.calculateTracesForRibbons()
@@ -1028,6 +1033,8 @@ class Display extends WebglWidget {
       this.addRepresentation(
         'grid', new GridRepresentation(this.soup, this.gridAtomRadius))
     }
+    this.addRepresentation(
+      'sidechain', new SidechainRepresentation(this.soup, this.atomRadius))
 
     this.rebuildSceneFromMeshes()
 
@@ -1254,11 +1261,13 @@ class Display extends WebglWidget {
     this.setMeshVisible('backbone', show.backboneAtom)
     this.setMeshVisible('ligands', show.ligands)
 
-    if (this.soupView.soup.grid.changed) {
-      glgeom.clearObject3D(this.representations.grid.displayObj)
-      glgeom.clearObject3D(this.representations.grid.pickingObj)
-      this.representations.grid.build()
-      this.soupView.soup.grid.changed = false
+    if (this.isGrid) {
+      if (this.soupView.soup.grid.changed) {
+        if (!_.isUndefined(this.representations.grid)) {
+          this.representations.grid.build()
+        }
+        this.soupView.soup.grid.changed = false
+      }
     }
 
     if (this.soupView.updateSidechain) {

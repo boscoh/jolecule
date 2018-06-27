@@ -1146,6 +1146,18 @@ class Soup {
     this.setSidechainOfResidues(indices, isSidechain)
   }
 
+  colorResidues () {
+    let vals = _.values(this.grid.isElem)
+    let showSecondary = _.every(vals, v => !v)
+    console.log('Soup.colorResidue', vals, showSecondary)
+    // pre-calculations needed before building meshes
+    let residue = this.getResidueProxy()
+    for (let iRes of _.range(this.getResidueCount())) {
+      residue.iRes = iRes
+      residue.color = showSecondary ? data.getSsColor(residue.ss) : residue.color = data.grey
+    }
+  }
+
   /**
    * Searches autodock grid atoms for B-factor limits
    */
@@ -1968,15 +1980,8 @@ class Controller {
     this.soupView.soup.grid.changed = true
     this.soupView.changed = true
 
-    let vals = _.values(this.soupView.soup.grid.isElem)
-    let showSecondary = _.every(vals, v => !v)
-    console.log('Controller.toggleGridElem', vals, showSecondary)
-    // pre-calculations needed before building meshes
-    let residue = this.soup.getResidueProxy()
-    for (let iRes of _.range(this.soup.getResidueCount())) {
-      residue.iRes = iRes
-      residue.color = showSecondary ? data.getSsColor(residue.ss) : residue.color = data.grey
-    }
+    this.soupView.soup.colorResidues()
+
     this.soupView.updateSelection = true
   }
 
