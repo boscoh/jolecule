@@ -551,7 +551,6 @@ class SequenceWidget extends CanvasWidget {
     this.soupView = display.soupView
     this.soup = display.soup
     this.controller = display.controller
-    this.traces = display.traces
     this.display.addObserver(this)
     this.residue = this.soup.getResidueProxy()
 

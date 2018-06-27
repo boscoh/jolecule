@@ -6,6 +6,7 @@ import { SpaceHash } from './pairs.js'
 import Store from './store.js'
 import BitArray from './bitarray.js'
 import * as data from './data'
+import * as THREE from 'three'
 
 let user = 'public' // will be overriden by server
 
@@ -52,6 +53,10 @@ function parsetTitleFromPdbText (text) {
     }
   }
   return result
+}
+
+function getIndexColor (i) {
+  return new THREE.Color().setHex(i + 1)
 }
 
 const atomStoreFields = [
@@ -438,6 +443,9 @@ class Soup {
     this.iStructure = -1
 
     this.chains = []
+
+    // stores trace of protein/nucleotide backbones for ribbons
+    this.traces = []
 
     this.atomStore = new Store(atomStoreFields)
     this.residueStore = new Store(residueStoreFields)
@@ -1064,6 +1072,45 @@ class Soup {
           }
         }
       }
+    }
+  }
+
+  calculateTracesForRibbons () {
+    console.log('Soup.calculateTracesForRibbons')
+    this.traces.length = 0
+
+    let lastTrace
+    let residue = this.getResidueProxy()
+    let atom = this.getAtomProxy()
+    for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
+      residue.iRes = iRes
+      if (residue.isPolymer) {
+        if ((iRes === 0) || !residue.isConnectedToPrev()) {
+          let newTrace = new glgeom.Trace()
+          newTrace.getReference = i => {
+            residue.iRes = newTrace.indices[i]
+            return residue
+          }
+          this.traces.push(newTrace)
+          lastTrace = newTrace
+        }
+        lastTrace.indices.push(iRes)
+
+        atom.iAtom = residue.iAtom
+        lastTrace.refIndices.push(residue.iRes)
+        lastTrace.points.push(atom.pos.clone())
+        lastTrace.colors.push(residue.activeColor)
+        lastTrace.indexColors.push(getIndexColor(residue.iAtom))
+        lastTrace.segmentTypes.push(residue.ss)
+        lastTrace.normals.push(residue.normal)
+      }
+    }
+
+    for (let trace of this.traces) {
+      trace.calcTangents()
+      trace.calcNormals()
+      trace.calcBinormals()
+      trace.expand()
     }
   }
 

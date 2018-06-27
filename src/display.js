@@ -154,10 +154,6 @@ class WebglWidget {
     }
   }
 
-  getIndexColor (i) {
-    return new THREE.Color().setHex(i + 1)
-  }
-
   getPickColorFromMouse () {
     let x = this.mouseX
     let y = this.mouseY
@@ -422,9 +418,9 @@ function transferObjects(fromObj, toObj) {
  *  2. a pickingGeom
  */
 class ArrowRepresentation {
-  constructor (soup, traces) {
+  constructor (soup) {
     this.soup = soup
-    this.traces = traces
+    this.traces = soup.traces
     this.displayObj = new THREE.Object3D()
     this.pickingObj = new THREE.Object3D()
     this.build()
@@ -492,9 +488,9 @@ class ArrowRepresentation {
 }
 
 class RibbonRepresentation {
-  constructor (soup, traces) {
+  constructor (soup) {
     this.soup = soup
-    this.traces = traces
+    this.traces = soup.traces
     this.displayObj = new THREE.Object3D()
     this.pickingObj = new THREE.Object3D()
     this.build()
@@ -919,9 +915,6 @@ class Display extends WebglWidget {
     this.soup = soupView.soup
     this.controller = controller
 
-    // stores trace of protein/nucleotide backbones for ribbons
-    this.traces = []
-
     // screen atom radius
     this.atomRadius = 0.35
     this.gridAtomRadius = 1.0
@@ -960,41 +953,7 @@ class Display extends WebglWidget {
   }
 
   calculateTracesForRibbons () {
-    this.traces.length = 0
-
-    let lastTrace
-    let residue = this.soup.getResidueProxy()
-    let atom = this.soup.getAtomProxy()
-    for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
-      residue.iRes = iRes
-      if (residue.isPolymer) {
-        if ((iRes === 0) || !residue.isConnectedToPrev()) {
-          let newTrace = new glgeom.Trace()
-          newTrace.getReference = i => {
-            residue.iRes = newTrace.indices[i]
-            return residue
-          }
-          this.traces.push(newTrace)
-          lastTrace = newTrace
-        }
-        lastTrace.indices.push(iRes)
-
-        atom.iAtom = residue.iAtom
-        lastTrace.refIndices.push(residue.iRes)
-        lastTrace.points.push(atom.pos.clone())
-        lastTrace.colors.push(residue.activeColor)
-        lastTrace.indexColors.push(getIndexColor(residue.iAtom))
-        lastTrace.segmentTypes.push(residue.ss)
-        lastTrace.normals.push(residue.normal)
-      }
-    }
-
-    for (let trace of this.traces) {
-      trace.calcTangents()
-      trace.calcNormals()
-      trace.calcBinormals()
-      trace.expand()
-    }
+    this.soup.calculateTracesForRibbons()
   }
 
   /**
@@ -1022,9 +981,9 @@ class Display extends WebglWidget {
     this.calculateTracesForRibbons()
 
     this.addRepresentation(
-      'ribbons', new RibbonRepresentation(this.soup, this.traces))
+      'ribbons', new RibbonRepresentation(this.soup))
     this.addRepresentation(
-      'arrows', new ArrowRepresentation(this.soup, this.traces))
+      'arrows', new ArrowRepresentation(this.soup))
     this.addRepresentation(
       'nucleotides', new NucleotideRepresentation(this.soup))
     this.addRepresentation(
