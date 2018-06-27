@@ -1154,7 +1154,7 @@ class Soup {
     let residue = this.getResidueProxy()
     for (let iRes of _.range(this.getResidueCount())) {
       residue.iRes = iRes
-      residue.color = showSecondary ? data.getSsColor(residue.ss) : residue.color = data.grey
+      residue.color = showSecondary ? data.getSsColor(residue.ss) : residue.color = data.darkGrey
     }
   }
 

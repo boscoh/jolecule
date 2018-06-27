@@ -79995,7 +79995,7 @@ var Soup = function () {
           var iRes = _step18.value;
 
           residue.iRes = iRes;
-          residue.color = showSecondary ? data.getSsColor(residue.ss) : residue.color = data.grey;
+          residue.color = showSecondary ? data.getSsColor(residue.ss) : residue.color = data.darkGrey;
         }
       } catch (err) {
         _didIteratorError18 = true;
