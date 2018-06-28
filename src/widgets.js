@@ -283,7 +283,8 @@ class PopupText {
         'opacity': 0.8,
         'display': 'none',
         'z-index': 1000,
-        'cursor': 'pointer'
+        'cursor': 'pointer',
+        'user-select': 'none'
       })
 
     this.arrow = $('<div>')
@@ -300,7 +301,8 @@ class PopupText {
         'opacity': 0.8,
         'display': 'none',
         'z-index': 1000,
-        'pointer-events': 'none'
+        'pointer-events': 'none',
+        'user-select': 'none'
       })
 
     this.parentDiv = $(divTag)

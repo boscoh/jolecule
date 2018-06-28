@@ -82825,7 +82825,8 @@ var PopupText = function () {
       'opacity': 0.8,
       'display': 'none',
       'z-index': 1000,
-      'cursor': 'pointer'
+      'cursor': 'pointer',
+      'user-select': 'none'
     });
 
     this.arrow = (0, _jquery2.default)('<div>').css({
@@ -82841,7 +82842,8 @@ var PopupText = function () {
       'opacity': 0.8,
       'display': 'none',
       'z-index': 1000,
-      'pointer-events': 'none'
+      'pointer-events': 'none',
+      'user-select': 'none'
     });
 
     this.parentDiv = (0, _jquery2.default)(divTag);
@@ -91652,8 +91654,6 @@ var GridRepresentation = function (_AtomsRepresentation) {
   _createClass(GridRepresentation, [{
     key: 'build',
     value: function build() {
-      glgeom.clearObject3D(this.displayObj);
-      glgeom.clearObject3D(this.pickingObj);
       var grid = this.soup.grid;
       this.atomIndices = [];
       var residue = this.soup.getResidueProxy();
@@ -92218,11 +92218,9 @@ var SidechainRepresentation = function () {
       this.atomRepr = new AtomsRepresentation(this.soup, atomIndices, this.radius);
       this.bondRepr = new BondsRepresentation(this.soup, bondIndices);
 
-      if (atomIndices.length > 0) {
-        transferObjects(this.atomRepr.displayObj, this.displayObj);
-        transferObjects(this.bondRepr.displayObj, this.displayObj);
-        transferObjects(this.atomRepr.pickingObj, this.pickingObj);
-      }
+      transferObjects(this.atomRepr.displayObj, this.displayObj);
+      transferObjects(this.bondRepr.displayObj, this.displayObj);
+      transferObjects(this.atomRepr.pickingObj, this.pickingObj);
     }
   }]);
 
@@ -92704,15 +92702,16 @@ var Display = function (_WebglWidget) {
       }
 
       if (this.soupView.updateSidechain) {
-        this.addRepresentation('sidechain', new SidechainRepresentation(this.soup, this.atomRadius));
+        this.representations.sidechain.build();
         this.soupView.updateSidechain = false;
+        this.updateMeshesInScene = true;
       }
 
       if (this.soupView.updateSelection) {
         this.representations.ribbons.recolor();
         this.representations.arrows.recolor();
         this.representations.nucleotides.recolor();
-        this.addRepresentation('sidechain', new SidechainRepresentation(this.soup, this.atomRadius));
+        this.representations.sidechain.build();
         this.soupView.updateSelection = false;
         this.updateMeshesInScene = true;
         this.soupView.updateObservers = true;

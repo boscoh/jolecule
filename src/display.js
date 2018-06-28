@@ -565,8 +565,6 @@ class GridRepresentation extends AtomsRepresentation {
   }
 
   build () {
-    glgeom.clearObject3D(this.displayObj)
-    glgeom.clearObject3D(this.pickingObj)
     let grid = this.soup.grid
     this.atomIndices = []
     let residue = this.soup.getResidueProxy()
@@ -829,14 +827,13 @@ class SidechainRepresentation {
         }
       }
     }
+
     this.atomRepr = new AtomsRepresentation(this.soup, atomIndices, this.radius)
     this.bondRepr = new BondsRepresentation(this.soup, bondIndices)
 
-    if (atomIndices.length > 0) {
-      transferObjects(this.atomRepr.displayObj, this.displayObj)
-      transferObjects(this.bondRepr.displayObj, this.displayObj)
-      transferObjects(this.atomRepr.pickingObj, this.pickingObj)
-    }
+    transferObjects(this.atomRepr.displayObj, this.displayObj)
+    transferObjects(this.bondRepr.displayObj, this.displayObj)
+    transferObjects(this.atomRepr.pickingObj, this.pickingObj)
   }
 }
 
@@ -1230,17 +1227,16 @@ class Display extends WebglWidget {
     }
 
     if (this.soupView.updateSidechain) {
-      this.addRepresentation(
-        'sidechain', new SidechainRepresentation(this.soup, this.atomRadius))
+      this.representations.sidechain.build()
       this.soupView.updateSidechain = false
+      this.updateMeshesInScene = true
     }
 
     if (this.soupView.updateSelection) {
       this.representations.ribbons.recolor()
       this.representations.arrows.recolor()
       this.representations.nucleotides.recolor()
-      this.addRepresentation(
-        'sidechain', new SidechainRepresentation(this.soup, this.atomRadius))
+      this.representations.sidechain.build()
       this.soupView.updateSelection = false
       this.updateMeshesInScene = true
       this.soupView.updateObservers = true
