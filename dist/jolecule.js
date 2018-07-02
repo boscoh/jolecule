@@ -80042,15 +80042,20 @@ var Soup = function () {
       }
     }
   }, {
-    key: 'setSidechainOfNeighborResidues',
-    value: function setSidechainOfNeighborResidues(iRes, isSidechain) {
+    key: 'getNeighbours',
+    value: function getNeighbours(iRes) {
       var indices = [iRes];
       for (var jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
         if (this.areCloseResidues(jRes, iRes)) {
           indices.push(jRes);
         }
       }
-      this.setSidechainOfResidues(indices, isSidechain);
+      return indices;
+    }
+  }, {
+    key: 'setSidechainOfNeighborResidues',
+    value: function setSidechainOfNeighborResidues(iRes, isSidechain) {
+      this.setSidechainOfResidues(this.getNeighbours(iRes), isSidechain);
     }
   }, {
     key: 'colorResidues',
@@ -80828,17 +80833,50 @@ var Controller = function () {
   }, {
     key: 'toggleResidueNeighbors',
     value: function toggleResidueNeighbors() {
-      var iAtom = this.soupView.currentView.iAtom;
-      var iRes = this.soup.getAtomProxy(iAtom).iRes;
-      var b = void 0;
-      if (this.lastNeighborIRes === iRes) {
-        b = false;
-        this.lastNeighborIRes = null;
-      } else {
-        b = true;
-        this.lastNeighborIRes = iRes;
+      var indices = [];
+      var residue = this.soup.getResidueProxy();
+      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+        residue.load(iRes);
+        if (residue.selected) {
+          indices = _lodash2.default.concat(indices, this.soup.getNeighbours(iRes));
+        }
       }
-      this.soup.setSidechainOfNeighborResidues(iRes, b);
+      if (indices.length === 0) {
+        var iAtom = this.soupView.currentView.iAtom;
+        var _iRes9 = this.soup.getAtomProxy(iAtom).iRes;
+        indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes9));
+      }
+      var nSidechain = 0;
+      var _iteratorNormalCompletion20 = true;
+      var _didIteratorError20 = false;
+      var _iteratorError20 = undefined;
+
+      try {
+        for (var _iterator20 = indices[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+          var _iRes10 = _step20.value;
+
+          if (residue.load(_iRes10).sidechain) {
+            nSidechain += 1;
+          }
+        }
+      } catch (err) {
+        _didIteratorError20 = true;
+        _iteratorError20 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion20 && _iterator20.return) {
+            _iterator20.return();
+          }
+        } finally {
+          if (_didIteratorError20) {
+            throw _iteratorError20;
+          }
+        }
+      }
+
+      var isSidechain = nSidechain < indices.length;
+
+      this.soup.setSidechainOfResidues(indices, isSidechain);
       this.soupView.currentView.selected = this.makeSelectedResidueList();
       this.soupView.changed = true;
       this.soupView.updateSidechain = true;
@@ -80969,41 +81007,15 @@ var Controller = function () {
     key: 'clear',
     value: function clear() {
       var distances = this.soupView.currentView.distances;
-      var _iteratorNormalCompletion20 = true;
-      var _didIteratorError20 = false;
-      var _iteratorError20 = undefined;
-
-      try {
-        for (var _iterator20 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-          var i = _step20.value;
-
-          this.deleteDistance(i);
-        }
-      } catch (err) {
-        _didIteratorError20 = true;
-        _iteratorError20 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion20 && _iterator20.return) {
-            _iterator20.return();
-          }
-        } finally {
-          if (_didIteratorError20) {
-            throw _iteratorError20;
-          }
-        }
-      }
-
-      var labels = this.soupView.currentView.labels;
       var _iteratorNormalCompletion21 = true;
       var _didIteratorError21 = false;
       var _iteratorError21 = undefined;
 
       try {
-        for (var _iterator21 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-          var _i2 = _step21.value;
+        for (var _iterator21 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+          var i = _step21.value;
 
-          this.deleteAtomLabel(_i2);
+          this.deleteDistance(i);
         }
       } catch (err) {
         _didIteratorError21 = true;
@@ -81016,6 +81028,32 @@ var Controller = function () {
         } finally {
           if (_didIteratorError21) {
             throw _iteratorError21;
+          }
+        }
+      }
+
+      var labels = this.soupView.currentView.labels;
+      var _iteratorNormalCompletion22 = true;
+      var _didIteratorError22 = false;
+      var _iteratorError22 = undefined;
+
+      try {
+        for (var _iterator22 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+          var _i2 = _step22.value;
+
+          this.deleteAtomLabel(_i2);
+        }
+      } catch (err) {
+        _didIteratorError22 = true;
+        _iteratorError22 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion22 && _iterator22.return) {
+            _iterator22.return();
+          }
+        } finally {
+          if (_didIteratorError22) {
+            throw _iteratorError22;
           }
         }
       }
