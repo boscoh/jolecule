@@ -1905,14 +1905,28 @@ class Controller {
     this.soupView.changed = true
   }
 
-  showSelectedSidechains () {
+  toggleSelectedSidechains () {
     let residue = this.soup.getResidueProxy()
-    for (let jRes = 0; jRes < this.soup.getResidueCount(); jRes += 1) {
-      residue.load(jRes)
+    let indices = []
+    let nSidechain = 0
+    for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+      residue.load(iRes)
       if (residue.selected) {
-        residue.sidechain = true
+        indices.push(iRes)
+        if (residue.sidechain) {
+          nSidechain += 1
+        }
       }
     }
+    let isSidechain = true
+    if (nSidechain === indices.length) {
+      isSidechain = false
+    }
+    for (let iRes of indices) {
+      residue.load(iRes)
+      residue.sidechain = isSidechain
+    }
+
     this.soupView.updateSidechain = true
     this.soupView.changed = true
   }

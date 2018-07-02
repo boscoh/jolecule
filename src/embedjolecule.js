@@ -182,7 +182,7 @@ class EmbedJolecule {
           $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
             .append(linkButton(
               '', 'Sidechains', 'jolecule-button',
-              () => { this.controller.showSelectedSidechains() })
+              () => { this.controller.toggleSelectedSidechains() })
             )
             .append(linkButton(
               '', 'Neighbors', 'jolecule-button',
