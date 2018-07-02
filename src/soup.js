@@ -1183,14 +1183,19 @@ class Soup {
     }
   }
 
-  setSidechainOfNeighborResidues (iRes, isSidechain) {
+  getNeighbours (iRes) {
     let indices = [iRes]
     for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
       if (this.areCloseResidues(jRes, iRes)) {
         indices.push(jRes)
       }
     }
-    this.setSidechainOfResidues(indices, isSidechain)
+    return indices
+  }
+
+  setSidechainOfNeighborResidues (iRes, isSidechain) {
+    this.setSidechainOfResidues(
+      this.getNeighbours(iRes), isSidechain)
   }
 
   colorResidues () {
@@ -1913,17 +1918,28 @@ class Controller {
   }
 
   toggleResidueNeighbors () {
-    let iAtom = this.soupView.currentView.iAtom
-    let iRes = this.soup.getAtomProxy(iAtom).iRes
-    let b
-    if (this.lastNeighborIRes === iRes) {
-      b = false
-      this.lastNeighborIRes = null
-    } else {
-      b = true
-      this.lastNeighborIRes = iRes
+    let indices = []
+    let residue = this.soup.getResidueProxy()
+    for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+      residue.load(iRes)
+      if (residue.selected) {
+        indices = _.concat(indices, this.soup.getNeighbours(iRes))
+      }
     }
-    this.soup.setSidechainOfNeighborResidues(iRes, b)
+    if (indices.length === 0) {
+      let iAtom = this.soupView.currentView.iAtom
+      let iRes = this.soup.getAtomProxy(iAtom).iRes
+      indices = _.concat(indices, this.soup.getNeighbours(iRes))
+    }
+    let nSidechain = 0
+    for (let iRes of indices) {
+      if (residue.load(iRes).sidechain) {
+        nSidechain += 1
+      }
+    }
+    let isSidechain = nSidechain < indices.length
+
+    this.soup.setSidechainOfResidues(indices, isSidechain)
     this.soupView.currentView.selected = this.makeSelectedResidueList()
     this.soupView.changed = true
     this.soupView.updateSidechain = true
