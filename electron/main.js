@@ -1,22 +1,23 @@
+const electron = require('electron')
+const app = electron.app
+const BrowserWindow = electron.BrowserWindow
+const Menu = electron.Menu
+const dialog = electron.dialog
+const ipcMain = electron.ipcMain
 
-const electron = require('electron');
-const app = electron.app;
-const BrowserWindow = electron.BrowserWindow;
-const Menu = electron.Menu;
-const dialog = electron.dialog;
-const ipcMain = electron.ipcMain;
+const path = require('path')
+const url = require('url')
+const fs = require('fs')
+const nopt = require('nopt')
 
-const path = require('path');
-const url = require('url');
-const fs = require('fs');
-const nopt = require('nopt');
-
-const mustache = require('mustache');
-const _ = require('lodash');
+const mustache = require('mustache')
+const _ = require('lodash')
 
 // Global reference of the window to avoid garbage collection
-let mainWindow;
-let viewsJson;
+let mainWindow
+let viewsJson
+let loaded = {}
+let windows = {}
 
 const localServerMustache = `
 const {ipcRenderer} = require('electron');
@@ -67,107 +68,77 @@ document.title = "{{{title}}}";
 let j = jolecule.initEmbedJolecule({
   divTag: '#jolecule', 
   isGrid: false, 
-  backgroundColor: 0xCCCCCC
+  backgroundColor: 0x000000
 });
 j.asyncAddDataServer(dataServer);
 
-`;
+`
 
-function createWindow(pdb, title) {
-  const rendererJs = 'renderer.js';
-  let pdbId = path.basename(pdb).replace('.pdb', '');
+function createWindow (pdb, title) {
+  const rendererJs = 'renderer.js'
+  let pdbId = path.basename(pdb).replace('.pdb', '')
 
-  const pdbText = fs.readFileSync(pdb, 'utf8');
-  let pdbLines = pdbText.split(/\r?\n/);
-  pdbLines = _.map(pdbLines, (l) => l.replace(/"/g, '\\"'));
+  const pdbText = fs.readFileSync(pdb, 'utf8')
+  let pdbLines = pdbText.split(/\r?\n/)
+  pdbLines = _.map(pdbLines, (l) => l.replace(/"/g, '\\"'))
 
   // const localServerMustache = fs.readFileSync('renderer.mustache.js', 'utf8');
   let dataJsText = mustache.render(
-    localServerMustache, {pdbId, pdbLines, title});
-  fs.writeFileSync(rendererJs, dataJsText);
+    localServerMustache, {pdbId, pdbLines, title})
+  fs.writeFileSync(rendererJs, dataJsText)
+
+  console.log('createWindow', pdb, title)
 
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600});
+  windows[pdbId] = new BrowserWindow({width: 800, height: 600})
 
   // and load the index.html of the app.
-  mainWindow.loadURL(url.format({
+  windows[pdbId].loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
     protocol: 'file:',
     slashes: true
-  }));
+  }))
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  windows[pdbId].webContents.openDevTools()
 
   // Emitted when the window is closed.
-  mainWindow.on('closed', function () {
+  windows[pdbId].on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    mainWindow = null
+    console.log('close', pdbId)
+    windows[pdbId] = null
   })
 }
 
-function openPdbWindow(pdb) {
-  let base = pdb.replace('.pdb', '');
-  let pdbId = path.basename(pdb).replace('.pdb', '');
-  let title = `jolecule - ${pdbId}`;
+function openPdbWindow (pdb) {
+  let base = pdb.replace('.pdb', '')
+  let pdbId = path.basename(pdb).replace('.pdb', '')
+  let title = `jolecule - ${pdbId}`
 
-  createWindow(pdb, title);
+  createWindow(pdb, title)
 
-  viewsJson = base + '.views.json';
-  console.log(viewsJson);
-  ipcMain.on('get-view-dicts', (event, arg) => {
-    console.log('get-view-dicts');
-    let views = {};
-    if (fs.existsSync(viewsJson)) {
-      let text = fs.readFileSync(viewsJson, 'utf8');
-      views = JSON.parse(text);
-    }
-    event.sender.send('get-view-dicts', views);
-  });
-
-  ipcMain.on('save-view-dicts', (event, views) => {
-    console.log('save-view-dicts');  // prints "ping"
-    fs.writeFileSync(viewsJson, JSON.stringify(views, null, 2));
-    event.sender.send('save-view-dicts', "success");
-  });
-
-  ipcMain.on('delete-soup-view', (event, viewId) => {
-    console.log('delete-soup-view');  // prints "ping"
-    if (fs.existsSync(viewsJson)) {
-      let text = fs.readFileSync(viewsJson, 'utf8');
-      ;
-      views = JSON.parse(text);
-      console.log('before', JSON.stringify(views, null, 2));
-      _.unset(views, viewId);
-      console.log('after', JSON.stringify(views, null, 2));
-      fs.writeFileSync(viewsJson, JSON.stringify(views, null, 2));
-      event.sender.send('delete-soup-view', "success");
-      return;
-    }
-    fs.writeFileSync(viewsJson, JSON.stringify(arg, null, 2));
-    event.sender.send('delete-soup-view', "success");
-  });
+  loaded.viewsJson = base + '.views.json'
+  console.log('openPdbWindow', loaded.viewsJson)
 
 }
 
-function showOpen() {
-    var files = dialog.showOpenDialog({
-        properties: [ 'openFile'],
-        filters: [{ name: 'PDB', extensions: ['pdb'] }]
-    });
-    console.log(files);
+function showOpen () {
+  var files = dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [{name: 'PDB', extensions: ['pdb']}]
+  })
+  console.log('showOpen', files)
 
-    let pdb = files[0];
-    if (mainWindow) {
-        mainWindow.close();
-    }
-    openPdbWindow(pdb);
-};
+  let pdb = files[0]
+  if (mainWindow) {
+    mainWindow.close()
+  }
+  openPdbWindow(pdb)
+}
 
-
-function init() {
+function init () {
   const menuTemplate = [
     {
       label: 'Jolecule',
@@ -175,14 +146,14 @@ function init() {
         {
           label: 'About Jolecule',
           click: () => {
-            console.log('About Clicked');
+            console.log('About Clicked')
           }
-        }, 
+        },
         {
           label: 'Quit',
           accelerator: 'CmdOrCtrl+Q',
           click: () => {
-            app.quit();
+            app.quit()
           }
         }
       ]
@@ -192,40 +163,74 @@ function init() {
       submenu: [
         {
           label: 'Open PDB...',
-          click: function() { showOpen(); }
-        }, 
+          click: function () { showOpen() }
+        },
       ]
     }
-  ];
+  ]
 
-  const menu = Menu.buildFromTemplate(menuTemplate);
-  Menu.setApplicationMenu(menu);
+  const menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
 
-  let knownOpts = {"out": [String, null]};
-  let shortHands = {"o": ["--out"]};
-  let parsed = nopt(knownOpts, shortHands, process.argv, 2);
-  let remain = parsed.argv.remain;
+  let knownOpts = {'out': [String, null]}
+  let shortHands = {'o': ['--out']}
+  let parsed = nopt(knownOpts, shortHands, process.argv, 2)
+  let remain = parsed.argv.remain
 
-  let pdb = path.join(__dirname, '../examples/1mbo.pdb');
+  let pdb = path.join(__dirname, '../examples/1mbo.pdb')
   if (remain.length > 0) {
-    pdb = remain[0];
+    pdb = remain[0]
   }
 
-  console.log(process.argv, remain);
-  openPdbWindow(pdb);
+  ipcMain.on('get-view-dicts', (event, arg) => {
+    console.log('get-view-dicts')
+    let views = {}
+    if (fs.existsSync(loaded.viewsJson)) {
+      let text = fs.readFileSync(loaded.viewsJson, 'utf8')
+      views = JSON.parse(text)
+    }
+    event.sender.send('get-view-dicts', views)
+  })
+
+  ipcMain.on('save-view-dicts', (event, views) => {
+    console.log('save-view-dicts')  // prints "ping"
+    fs.writeFileSync(loaded.viewsJson, JSON.stringify(views, null, 2))
+    event.sender.send('save-view-dicts', 'success')
+  })
+
+  ipcMain.on('delete-soup-view', (event, viewId) => {
+    console.log('delete-soup-view')  // prints "ping"
+    if (fs.existsSync(loaded.viewsJson)) {
+      let text = fs.readFileSync(loaded.viewsJson, 'utf8')
+
+      views = JSON.parse(text)
+      console.log('before', JSON.stringify(views, null, 2))
+      _.unset(views, viewId)
+      console.log('after', JSON.stringify(views, null, 2))
+      fs.writeFileSync(loaded.viewsJson, JSON.stringify(views, null, 2))
+      event.sender.send('delete-soup-view', 'success')
+      return
+    }
+    fs.writeFileSync(loaded.viewsJson, JSON.stringify(arg, null, 2))
+    event.sender.send('delete-soup-view', 'success')
+  })
+
+
+  console.log('init', process.argv, remain)
+  openPdbWindow(pdb)
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', init);
+app.on('ready', init)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   app.quit()
-});
+})
 
 app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
@@ -233,7 +238,7 @@ app.on('activate', function () {
   if (mainWindow === null) {
     createWindow()
   }
-});
+})
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

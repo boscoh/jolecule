@@ -1078,9 +1078,9 @@ class ZSlabWidget extends CanvasWidget {
 
     this.text(
       'back',
-      xBack - 30,
+      xBack - 36,
       yMid,
-      '7pt Helvetica',
+      '9pt Helvetica',
       '#333',
       'left')
 
@@ -1088,7 +1088,7 @@ class ZSlabWidget extends CanvasWidget {
       'front',
       xFront + 8,
       yMid,
-      '7pt Helvetica',
+      '9pt Helvetica',
       '#333',
       'left')
 

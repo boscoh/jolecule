@@ -83785,9 +83785,9 @@ var ZSlabWidget = function (_CanvasWidget2) {
       // halfway marker
       this.line(xMid, 0, xMid, this.height(), 1, '#444');
 
-      this.text('back', xBack - 30, yMid, '7pt Helvetica', '#333', 'left');
+      this.text('back', xBack - 36, yMid, '9pt Helvetica', '#333', 'left');
 
-      this.text('front', xFront + 8, yMid, '7pt Helvetica', '#333', 'left');
+      this.text('front', xFront + 8, yMid, '9pt Helvetica', '#333', 'left');
     }
   }, {
     key: 'getZ',
