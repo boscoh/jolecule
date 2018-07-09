@@ -83239,6 +83239,8 @@ var SequenceWidget = function (_CanvasWidget) {
     _this5.nCharDisplay = null;
 
     _this5.hover = new PopupText('#sequence-widget', 15);
+
+    _this5.pressSection = 'none';
     return _this5;
   }
 
@@ -83578,55 +83580,52 @@ var SequenceWidget = function (_CanvasWidget) {
     value: function mousemove(event) {
       this.getPointer(event);
       if (this.pointerY < this.yTopSequence) {
-        if (this.mousePressed) {
-          // mouse event in structure bar
-          this.setIChar(this.xToI(this.pointerX));
-          this.updateWithoutCheckingCurrent();
-          if (this.charEntries[this.iChar].c !== '') {
-            this.controller.setTargetViewByIAtom(this.getCurrIAtom());
-          }
-        } else {
-          this.hover.hide();
-          var iChar = this.xToI(this.pointerX);
-          var charEntry = this.charEntries[iChar];
-          if ('iRes' in charEntry) {
-            var res = this.soup.getResidueProxy(charEntry.iRes);
-            this.hover.html(res.resId + ':' + res.resType);
-            this.hover.move(this.iToX(iChar), 25);
-          }
+        this.hover.hide();
+        var iChar = this.xToI(this.pointerX);
+        var charEntry = this.charEntries[iChar];
+        if ('iRes' in charEntry) {
+          var res = this.soup.getResidueProxy(charEntry.iRes);
+          this.hover.html(res.resId + ':' + res.resType);
+          this.hover.move(this.iToX(iChar), 25);
         }
       } else {
         this.hover.hide();
-        if (this.pointerY >= this.yTopSequence) {
-          var _iChar2 = this.xToIChar(this.pointerX);
-          var _charEntry = this.charEntries[_iChar2];
-          if ('iRes' in _charEntry) {
-            var _res = this.soup.getResidueProxy(_charEntry.iRes);
-            this.hover.html(_res.resId + ':' + _res.resType);
-            var x = this.iCharToX(_iChar2) + this.charWidth / 2;
-            this.hover.move(x, this.yMidSequence);
-          }
+        var _iChar2 = this.xToIChar(this.pointerX);
+        var _charEntry = this.charEntries[_iChar2];
+        if ('iRes' in _charEntry) {
+          var _res = this.soup.getResidueProxy(_charEntry.iRes);
+          this.hover.html(_res.resId + ':' + _res.resType);
+          var x = this.iCharToX(_iChar2) + this.charWidth / 2;
+          this.hover.move(x, this.yMidSequence);
         }
-        if (this.mousePressed) {
-          var iNewChar = this.xToIChar(this.pointerX);
-          var iCharDiff = iNewChar - this.iCharPressed;
-          this.iCharDisplayStart -= iCharDiff;
-          console.log('SequenceWidget drag', this.iCharPressed, iNewChar, iCharDiff, this.iCharDisplayStart);
-          this.updateWithoutCheckingCurrent();
+      }
+      if (this.mousePressed === 'top') {
+        // mouse event in structure bar
+        this.setIChar(this.xToI(this.pointerX));
+        this.updateWithoutCheckingCurrent();
+        if (this.charEntries[this.iChar].c !== '') {
+          this.controller.setTargetViewByIAtom(this.getCurrIAtom());
         }
+      } else if (this.mousePressed === 'bottom') {
+        var iNewChar = this.xToIChar(this.pointerX);
+        var iCharDiff = iNewChar - this.iCharPressed;
+        this.iCharDisplayStart -= iCharDiff;
+        this.updateWithoutCheckingCurrent();
       }
     }
   }, {
     key: 'mouseout',
     value: function mouseout() {
+      console.log('SequenceWidget.mouseout');
       this.hover.hide();
-      this.mousePressed = false;
+      this.mousePressed = '';
     }
   }, {
     key: 'mouseup',
     value: function mouseup() {
+      console.log('SequenceWidget.mouseup');
       this.hover.hide();
-      this.mousePressed = false;
+      this.mousePressed = '';
     }
   }, {
     key: 'doubleclick',
@@ -83649,9 +83648,9 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'click',
     value: function click(event) {
-      if (this.pointerY >= this.yTopSequence) {
+      console.log('SequenceWidget.click', this.pressSection, this.iChar);
+      if (this.pressSection === 'bottom') {
         var iRes = this.charEntries[this.iCharPressed].iRes;
-        console.log('SequenceWidget.click', this.iChar);
         if (!event.metaKey && !event.shiftKey) {
           this.controller.selectResidue(iRes);
         } else if (event.shiftKey) {
@@ -83671,9 +83670,19 @@ var SequenceWidget = function (_CanvasWidget) {
 
       this.getPointer(event);
       this.saveMouse();
-      this.mousePressed = true;
+      if (this.pointerY < this.yTopSequence) {
+        this.mousePressed = 'top';
+      } else {
+        this.mousePressed = 'bottom';
+      }
 
       this.iChar = this.xToIChar(this.pointerX);
+
+      if (this.pointerY < this.yTopSequence) {
+        this.pressSection = 'top';
+      } else {
+        this.pressSection = 'bottom';
+      }
 
       if (this.downTimer !== null && this.iChar === this.iCharPressed) {
         clearTimeout(this.downTimer);
@@ -83686,6 +83695,7 @@ var SequenceWidget = function (_CanvasWidget) {
       }
 
       this.iCharPressed = this.iChar;
+
       this.mousemove(event);
     }
   }]);
@@ -91693,7 +91703,7 @@ var AtomsRepresentation = function () {
       }
       var nCopy = this.atomIndices.length;
       var sphereBufferGeometry = new THREE.SphereBufferGeometry(1, 8, 8);
-      var displayGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy);
+      this.displayGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy);
       var pickingGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy);
 
       var atom = this.soup.getAtomProxy();
@@ -91701,14 +91711,27 @@ var AtomsRepresentation = function () {
         var iAtom = this.atomIndices[iCopy];
         atom.iAtom = iAtom;
         var matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius);
-        displayGeom.applyMatrixToCopy(matrix, iCopy);
+        this.displayGeom.applyMatrixToCopy(matrix, iCopy);
         pickingGeom.applyMatrixToCopy(matrix, iCopy);
-        displayGeom.applyColorToCopy(atom.color, iCopy);
+        this.displayGeom.applyColorToCopy(atom.color, iCopy);
         pickingGeom.applyColorToCopy(getIndexColor(iAtom), iCopy);
       }
 
-      this.displayObj.add(new THREE.Mesh(displayGeom, displayMaterial));
+      this.displayObj.add(new THREE.Mesh(this.displayGeom, displayMaterial));
       this.pickingObj.add(new THREE.Mesh(pickingGeom, pickingMaterial));
+    }
+  }, {
+    key: 'recolor',
+    value: function recolor() {
+      if (this.atomIndices.length === 0) {
+        return;
+      }
+      var nCopy = this.atomIndices.length;
+      var atom = this.soup.getAtomProxy();
+      for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
+        atom.iAtom = this.atomIndices[iCopy];
+        this.displayGeom.applyColorToCopy(atom.color, iCopy);
+      }
     }
   }]);
 
@@ -91794,7 +91817,7 @@ var BondsRepresentation = function () {
       var cylinderBufferGeometry = new THREE.CylinderBufferGeometry(1, 1, 1, 4, 1, false);
       cylinderBufferGeometry.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
 
-      var displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nCopy);
+      this.displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nCopy);
 
       var atom1 = this.soup.getAtomProxy();
       var atom2 = this.soup.getAtomProxy();
@@ -91821,12 +91844,32 @@ var BondsRepresentation = function () {
 
         var matrix = glgeom.getCylinderMatrix(p1, p2, 0.2);
 
-        displayGeom.applyMatrixToCopy(matrix, iCopy);
-        displayGeom.applyColorToCopy(residue.activeColor, iCopy);
+        this.displayGeom.applyMatrixToCopy(matrix, iCopy);
+        this.displayGeom.applyColorToCopy(residue.activeColor, iCopy);
       }
 
-      var displayMesh = new THREE.Mesh(displayGeom, displayMaterial);
+      var displayMesh = new THREE.Mesh(this.displayGeom, displayMaterial);
       this.displayObj.add(displayMesh);
+    }
+  }, {
+    key: 'recolor',
+    value: function recolor() {
+      var bondIndices = this.bondIndices;
+      if (bondIndices.length === 0) {
+        return;
+      }
+      var nCopy = bondIndices.length;
+
+      var bond = this.soup.getBondProxy();
+      var atom1 = this.soup.getAtomProxy();
+      var residue = this.soup.getResidueProxy();
+
+      for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
+        bond.iBond = bondIndices[iCopy];
+        atom1.iAtom = bond.iAtom1;
+        residue.iRes = atom1.iRes;
+        this.displayGeom.applyColorToCopy(residue.activeColor, iCopy);
+      }
     }
   }]);
 
@@ -92294,6 +92337,18 @@ var SidechainRepresentation = function () {
       transferObjects(this.atomRepr.displayObj, this.displayObj);
       transferObjects(this.bondRepr.displayObj, this.displayObj);
       transferObjects(this.atomRepr.pickingObj, this.pickingObj);
+    }
+  }, {
+    key: 'recolor',
+    value: function recolor() {
+      var obj = this.displayObj;
+      var iLast = obj.children.length - 1;
+      for (var i = iLast; i >= 0; i -= 1) {
+        var child = obj.children[i];
+        obj.remove(child);
+      }
+      transferObjects(this.atomRepr.displayObj, this.displayObj);
+      transferObjects(this.bondRepr.displayObj, this.displayObj);
     }
   }]);
 

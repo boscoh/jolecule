@@ -540,7 +540,7 @@ class AtomsRepresentation {
     }
     let nCopy = this.atomIndices.length
     let sphereBufferGeometry = new THREE.SphereBufferGeometry(1, 8, 8)
-    let displayGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy)
+    this.displayGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy)
     let pickingGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy)
 
     let atom = this.soup.getAtomProxy()
@@ -548,14 +548,26 @@ class AtomsRepresentation {
       let iAtom = this.atomIndices[iCopy]
       atom.iAtom = iAtom
       let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
-      displayGeom.applyMatrixToCopy(matrix, iCopy)
+      this.displayGeom.applyMatrixToCopy(matrix, iCopy)
       pickingGeom.applyMatrixToCopy(matrix, iCopy)
-      displayGeom.applyColorToCopy(atom.color, iCopy)
+      this.displayGeom.applyColorToCopy(atom.color, iCopy)
       pickingGeom.applyColorToCopy(getIndexColor(iAtom), iCopy)
     }
 
-    this.displayObj.add(new THREE.Mesh(displayGeom, displayMaterial))
+    this.displayObj.add(new THREE.Mesh(this.displayGeom, displayMaterial))
     this.pickingObj.add(new THREE.Mesh(pickingGeom, pickingMaterial))
+  }
+
+  recolor () {
+    if (this.atomIndices.length === 0) {
+      return
+    }
+    let nCopy = this.atomIndices.length
+    let atom = this.soup.getAtomProxy()
+    for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
+      atom.iAtom = this.atomIndices[iCopy]
+      this.displayGeom.applyColorToCopy(atom.color, iCopy)
+    }
   }
 }
 
@@ -606,7 +618,7 @@ class BondsRepresentation {
         .makeRotationFromEuler(
           new THREE.Euler(Math.PI / 2, Math.PI, 0)))
 
-    let displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nCopy)
+    this.displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nCopy)
 
     let atom1 = this.soup.getAtomProxy()
     let atom2 = this.soup.getAtomProxy()
@@ -633,12 +645,31 @@ class BondsRepresentation {
 
       let matrix = glgeom.getCylinderMatrix(p1, p2, 0.2)
 
-      displayGeom.applyMatrixToCopy(matrix, iCopy)
-      displayGeom.applyColorToCopy(residue.activeColor, iCopy)
+      this.displayGeom.applyMatrixToCopy(matrix, iCopy)
+      this.displayGeom.applyColorToCopy(residue.activeColor, iCopy)
     }
 
-    let displayMesh = new THREE.Mesh(displayGeom, displayMaterial)
+    let displayMesh = new THREE.Mesh(this.displayGeom, displayMaterial)
     this.displayObj.add(displayMesh)
+  }
+
+  recolor () {
+    let bondIndices = this.bondIndices
+    if (bondIndices.length === 0) {
+      return
+    }
+    let nCopy = bondIndices.length
+
+    let bond = this.soup.getBondProxy()
+    let atom1 = this.soup.getAtomProxy()
+    let residue = this.soup.getResidueProxy()
+
+    for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
+      bond.iBond = bondIndices[iCopy]
+      atom1.iAtom = bond.iAtom1
+      residue.iRes = atom1.iRes
+      this.displayGeom.applyColorToCopy(residue.activeColor, iCopy)
+    }
   }
 }
 

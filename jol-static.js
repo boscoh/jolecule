@@ -87,7 +87,7 @@ const embedIndexHtmlMustache = `
       divTag: '#jolecule',
       isGrid: true,
       isEditable: true,
-      backgroundColor: 0xCCCCCC});
+      backgroundColor: 0x000000});
     require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
       var dataServers = [{{{dataServerArgStr}}}];
       for (var dataServer of dataServers) {
@@ -128,6 +128,7 @@ const fullPageIndexHtmlMustache = `
               { 
                 isEditable: false,
                 isGrid: true,
+                backgroundColor: 0x000000
               });
             require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
               var dataServers = [{{{dataServerArgStr}}}];

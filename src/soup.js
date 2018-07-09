@@ -1201,7 +1201,6 @@ class Soup {
   colorResidues () {
     let vals = _.values(this.grid.isElem)
     let showSecondary = _.every(vals, v => !v)
-    console.log('Soup.colorResidue', vals, showSecondary)
     // pre-calculations needed before building meshes
     let residue = this.getResidueProxy()
     for (let iRes of _.range(this.getResidueCount())) {

@@ -587,6 +587,8 @@ class SequenceWidget extends CanvasWidget {
     this.nCharDisplay = null
 
     this.hover = new PopupText('#sequence-widget', 15)
+
+    this.pressSection = 'none'
   }
 
   width () {
@@ -698,6 +700,9 @@ class SequenceWidget extends CanvasWidget {
       return '#000000'
     }
     let iRes = this.charEntries[iChar].iRes
+    if (_.isUndefined(iRes)) {
+      return '#000000'
+    }
     this.residue.load(iRes)
     if (_.isUndefined(this.residue.activeColor)) {
       return '#000000'
@@ -898,53 +903,50 @@ class SequenceWidget extends CanvasWidget {
   mousemove (event) {
     this.getPointer(event)
     if (this.pointerY < this.yTopSequence) {
-      if (this.mousePressed) {
-        // mouse event in structure bar
-        this.setIChar(this.xToI(this.pointerX))
-        this.updateWithoutCheckingCurrent()
-        if (this.charEntries[this.iChar].c !== '') {
-          this.controller.setTargetViewByIAtom(this.getCurrIAtom())
-        }
-      } else {
-        this.hover.hide()
-        let iChar = this.xToI(this.pointerX)
-        let charEntry = this.charEntries[iChar]
-        if ('iRes' in charEntry) {
-          let res = this.soup.getResidueProxy(charEntry.iRes)
-          this.hover.html(res.resId + ':' + res.resType)
-          this.hover.move(this.iToX(iChar), 25)
-        }
+      this.hover.hide()
+      let iChar = this.xToI(this.pointerX)
+      let charEntry = this.charEntries[iChar]
+      if ('iRes' in charEntry) {
+        let res = this.soup.getResidueProxy(charEntry.iRes)
+        this.hover.html(res.resId + ':' + res.resType)
+        this.hover.move(this.iToX(iChar), 25)
       }
     } else {
       this.hover.hide()
-      if (this.pointerY >= this.yTopSequence) {
-        let iChar = this.xToIChar(this.pointerX)
-        let charEntry = this.charEntries[iChar]
-        if ('iRes' in charEntry) {
-          let res = this.soup.getResidueProxy(charEntry.iRes)
-          this.hover.html(res.resId + ':' + res.resType)
-          let x = this.iCharToX(iChar) + this.charWidth / 2
-          this.hover.move(x, this.yMidSequence)
-        }
+      let iChar = this.xToIChar(this.pointerX)
+      let charEntry = this.charEntries[iChar]
+      if ('iRes' in charEntry) {
+        let res = this.soup.getResidueProxy(charEntry.iRes)
+        this.hover.html(res.resId + ':' + res.resType)
+        let x = this.iCharToX(iChar) + this.charWidth / 2
+        this.hover.move(x, this.yMidSequence)
       }
-      if (this.mousePressed) {
-        let iNewChar = this.xToIChar(this.pointerX)
-        let iCharDiff = iNewChar - this.iCharPressed
-        this.iCharDisplayStart -= iCharDiff
-        console.log('SequenceWidget drag', this.iCharPressed, iNewChar, iCharDiff, this.iCharDisplayStart)
-        this.updateWithoutCheckingCurrent()
+    }
+    if (this.mousePressed === 'top') {
+      // mouse event in structure bar
+      this.setIChar(this.xToI(this.pointerX))
+      this.updateWithoutCheckingCurrent()
+      if (this.charEntries[this.iChar].c !== '') {
+        this.controller.setTargetViewByIAtom(this.getCurrIAtom())
       }
+    } else if (this.mousePressed === 'bottom') {
+      let iNewChar = this.xToIChar(this.pointerX)
+      let iCharDiff = iNewChar - this.iCharPressed
+      this.iCharDisplayStart -= iCharDiff
+      this.updateWithoutCheckingCurrent()
     }
   }
 
   mouseout () {
+    console.log('SequenceWidget.mouseout')
     this.hover.hide()
-    this.mousePressed = false
+    this.mousePressed = ''
   }
 
   mouseup () {
+    console.log('SequenceWidget.mouseup')
     this.hover.hide()
-    this.mousePressed = false
+    this.mousePressed = ''
   }
 
   doubleclick (event) {
@@ -965,9 +967,9 @@ class SequenceWidget extends CanvasWidget {
   }
 
   click (event) {
-    if (this.pointerY >= this.yTopSequence) {
+    console.log('SequenceWidget.click', this.pressSection, this.iChar)
+    if (this.pressSection === 'bottom') {
       let iRes = this.charEntries[this.iCharPressed].iRes
-      console.log('SequenceWidget.click', this.iChar)
       if (!event.metaKey && !event.shiftKey) {
         this.controller.selectResidue(iRes)
       } else if (event.shiftKey) {
@@ -984,9 +986,19 @@ class SequenceWidget extends CanvasWidget {
 
     this.getPointer(event)
     this.saveMouse()
-    this.mousePressed = true
+    if (this.pointerY < this.yTopSequence) {
+      this.mousePressed = 'top'
+    } else {
+      this.mousePressed = 'bottom'
+    }
 
     this.iChar = this.xToIChar(this.pointerX)
+
+    if (this.pointerY < this.yTopSequence) {
+      this.pressSection = 'top'
+    } else {
+      this.pressSection = 'bottom'
+    }
 
     if ((this.downTimer !== null) && (this.iChar === this.iCharPressed)) {
       clearTimeout(this.downTimer)
@@ -997,6 +1009,7 @@ class SequenceWidget extends CanvasWidget {
     }
 
     this.iCharPressed = this.iChar
+
     this.mousemove(event)
   }
 }
