@@ -102,8 +102,6 @@ class WebglWidget {
     this.mouseY = null
     this.mouseR = null
     this.mouseT = null
-    this.mousePressed = false
-    this.downTimer = null
   }
 
   initWebglRenderer () {
@@ -249,7 +247,7 @@ class WebglWidget {
   }
 
   setMesssage (message) {
-    console.log('Display.setProcessingMessage:', message)
+    console.log('Display.setMesssage:', message)
     this.messageDiv.html(message).show()
     util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 20)
   };
@@ -1239,9 +1237,14 @@ class Display extends WebglWidget {
 
     let show = this.soupView.currentView.show
     if (isNewTrigger('water', show.water)) {
-      this.addRepresentation('water', new BackboneRepresentation(this.soup, this.atomRadius))
+      this.addRepresentation('water', new WaterRepresentation(this.soup, this.atomRadius))
     }
 
+    if (isNewTrigger('backbone', show.backboneAtom)) {
+      this.addRepresentation('backbone', new BackboneRepresentation(this.soup, this.atomRadius))
+    }
+
+    console.log('Display.drawFrame', show)
     this.setMeshVisible('ribbons', show.ribbon)
     this.setMeshVisible('arrows', !show.backboneAtom)
     this.setMeshVisible('water', show.water)
@@ -1299,15 +1302,14 @@ class Display extends WebglWidget {
   }
 
   animate (elapsedTime) {
-    const MS_PER_STEP = 17
-    this.soupView.nUpdateStep -= elapsedTime / MS_PER_STEP
+    this.soupView.nUpdateStep -= elapsedTime / this.soupView.msPerStep
     if (this.soupView.nUpdateStep < 0) {
       if (this.soupView.targetView !== null) {
         this.controller.setCurrentView(this.soupView.targetView)
         this.soupView.updateObservers = true
         this.soupView.changed = true
         this.soupView.targetView = null
-        this.soupView.nUpdateStep = 70
+        this.soupView.nUpdateStep = this.soupView.maxUpdateStep
       } else {
         if (this.soupView.startTargetAfterRender) {
           this.soupView.changed = true

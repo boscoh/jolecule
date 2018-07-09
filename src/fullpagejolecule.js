@@ -409,16 +409,19 @@ class FullPageJolecule {
     this.sequenceDisplayTag = sequenceDisplayTag
     this.params = {
       divTag: proteinDisplayTag,
+      backgroundColor: 0xCCCCCC,
       viewId: '',
       viewHeight: 170,
       isViewTextShown: false,
       isSequenceBar: true,
       isEditable: true,
       isLoop: false,
-      isPlayable: false,
       isGrid: true,
       bCutoff: 0.5,
-      backgroundColor: 0xCCCCCC
+      isPlayable: false,
+      maxUpdateStep: 30,
+      msPerStep: 17
+
     }
     console.log('FullPageJolecule.constructor params', params)
     if (exists(params)) {

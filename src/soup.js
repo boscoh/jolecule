@@ -1627,7 +1627,8 @@ class SoupView {
     this.nUpdateStep = -1
 
     // this is to set the time between transitions of views
-    this.maxUpdateStep = 30
+    this.maxUpdateStep = 70
+    this.msPerStep = 17
   }
 
   setCurrentViewToDefault () {

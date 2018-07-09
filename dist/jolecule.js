@@ -78062,16 +78062,18 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var defaultArgs = {
   divTag: '',
+  backgroundColor: 0x000000,
   viewId: '',
   viewHeight: 170,
   isViewTextShown: false,
   isSequenceBar: true,
   isEditable: true,
-  isPlayable: false,
   isLoop: false,
   isGrid: false,
   bCutoff: 0.5,
-  backgroundColor: 0x000000
+  isPlayable: false,
+  maxUpdateStep: 30,
+  msPerStep: 17
 };
 
 var EmbedJolecule = function () {
@@ -78090,6 +78092,9 @@ var EmbedJolecule = function () {
     this.soup = new _soup.Soup();
     this.soupView = new _soup.SoupView(this.soup);
     this.soupView.isLoop = params.isLoop;
+    this.soupView.maxUpdateStep = params.maxUpdateStep;
+    this.soupView.msPerStep = params.msPerStep;
+
     this.controller = new _soup.Controller(this.soupView);
 
     this.nDataServer = 0;
@@ -80064,7 +80069,6 @@ var Soup = function () {
       var showSecondary = _lodash2.default.every(vals, function (v) {
         return !v;
       });
-      console.log('Soup.colorResidue', vals, showSecondary);
       // pre-calculations needed before building meshes
       var residue = this.getResidueProxy();
       var _iteratorNormalCompletion19 = true;
@@ -80506,7 +80510,8 @@ var SoupView = function () {
     this.nUpdateStep = -1;
 
     // this is to set the time between transitions of views
-    this.maxUpdateStep = 30;
+    this.maxUpdateStep = 70;
+    this.msPerStep = 17;
   }
 
   _createClass(SoupView, [{
@@ -83404,6 +83409,9 @@ var SequenceWidget = function (_CanvasWidget) {
         return '#000000';
       }
       var iRes = this.charEntries[iChar].iRes;
+      if (_lodash2.default.isUndefined(iRes)) {
+        return '#000000';
+      }
       this.residue.load(iRes);
       if (_lodash2.default.isUndefined(this.residue.activeColor)) {
         return '#000000';
@@ -90971,8 +90979,6 @@ var WebglWidget = function () {
     this.mouseY = null;
     this.mouseR = null;
     this.mouseT = null;
-    this.mousePressed = false;
-    this.downTimer = null;
   }
 
   _createClass(WebglWidget, [{
@@ -91143,7 +91149,7 @@ var WebglWidget = function () {
   }, {
     key: 'setMesssage',
     value: function setMesssage(message) {
-      console.log('Display.setProcessingMessage:', message);
+      console.log('Display.setMesssage:', message);
       this.messageDiv.html(message).show();
       util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 20);
     }
@@ -92338,18 +92344,6 @@ var SidechainRepresentation = function () {
       transferObjects(this.bondRepr.displayObj, this.displayObj);
       transferObjects(this.atomRepr.pickingObj, this.pickingObj);
     }
-  }, {
-    key: 'recolor',
-    value: function recolor() {
-      var obj = this.displayObj;
-      var iLast = obj.children.length - 1;
-      for (var i = iLast; i >= 0; i -= 1) {
-        var child = obj.children[i];
-        obj.remove(child);
-      }
-      transferObjects(this.atomRepr.displayObj, this.displayObj);
-      transferObjects(this.bondRepr.displayObj, this.displayObj);
-    }
   }]);
 
   return SidechainRepresentation;
@@ -92811,9 +92805,14 @@ var Display = function (_WebglWidget) {
 
       var show = this.soupView.currentView.show;
       if (isNewTrigger('water', show.water)) {
-        this.addRepresentation('water', new BackboneRepresentation(this.soup, this.atomRadius));
+        this.addRepresentation('water', new WaterRepresentation(this.soup, this.atomRadius));
       }
 
+      if (isNewTrigger('backbone', show.backboneAtom)) {
+        this.addRepresentation('backbone', new BackboneRepresentation(this.soup, this.atomRadius));
+      }
+
+      console.log('Display.drawFrame', show);
       this.setMeshVisible('ribbons', show.ribbon);
       this.setMeshVisible('arrows', !show.backboneAtom);
       this.setMeshVisible('water', show.water);
@@ -92872,15 +92871,14 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'animate',
     value: function animate(elapsedTime) {
-      var MS_PER_STEP = 17;
-      this.soupView.nUpdateStep -= elapsedTime / MS_PER_STEP;
+      this.soupView.nUpdateStep -= elapsedTime / this.soupView.msPerStep;
       if (this.soupView.nUpdateStep < 0) {
         if (this.soupView.targetView !== null) {
           this.controller.setCurrentView(this.soupView.targetView);
           this.soupView.updateObservers = true;
           this.soupView.changed = true;
           this.soupView.targetView = null;
-          this.soupView.nUpdateStep = 70;
+          this.soupView.nUpdateStep = this.soupView.maxUpdateStep;
         } else {
           if (this.soupView.startTargetAfterRender) {
             this.soupView.changed = true;
@@ -99836,16 +99834,19 @@ var FullPageJolecule = function () {
     this.sequenceDisplayTag = sequenceDisplayTag;
     this.params = {
       divTag: proteinDisplayTag,
+      backgroundColor: 0xCCCCCC,
       viewId: '',
       viewHeight: 170,
       isViewTextShown: false,
       isSequenceBar: true,
       isEditable: true,
       isLoop: false,
-      isPlayable: false,
       isGrid: true,
       bCutoff: 0.5,
-      backgroundColor: 0xCCCCCC
+      isPlayable: false,
+      maxUpdateStep: 30,
+      msPerStep: 17
+
     };
     console.log('FullPageJolecule.constructor params', params);
     if ((0, _util.exists)(params)) {

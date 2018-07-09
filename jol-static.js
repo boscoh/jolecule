@@ -128,7 +128,8 @@ const fullPageIndexHtmlMustache = `
               { 
                 isEditable: false,
                 isGrid: true,
-                backgroundColor: 0x000000
+                isPlayable: true,
+                backgroundColor: 0xCCCCCC
               });
             require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
               var dataServers = [{{{dataServerArgStr}}}];

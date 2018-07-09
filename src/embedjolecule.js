@@ -13,16 +13,18 @@ import v3 from './v3'
 
 let defaultArgs = {
   divTag: '',
+  backgroundColor: 0x000000,
   viewId: '',
   viewHeight: 170,
   isViewTextShown: false,
   isSequenceBar: true,
   isEditable: true,
-  isPlayable: false,
   isLoop: false,
   isGrid: false,
   bCutoff: 0.5,
-  backgroundColor: 0x000000
+  isPlayable: false,
+  maxUpdateStep: 30,
+  msPerStep: 17
 }
 
 class EmbedJolecule {
@@ -37,6 +39,9 @@ class EmbedJolecule {
     this.soup = new Soup()
     this.soupView = new SoupView(this.soup)
     this.soupView.isLoop = params.isLoop
+    this.soupView.maxUpdateStep = params.maxUpdateStep
+    this.soupView.msPerStep = params.msPerStep
+
     this.controller = new Controller(this.soupView)
 
     this.nDataServer = 0
