@@ -167,12 +167,14 @@ class EmbedJolecule {
       this.gridControlWidget = new widgets.GridControlWidget(this.display)
     }
 
+    this.playableDiv = $('<div id="playable" style="width: 100%; display: flex; flex-direction: row">')
+
     this.footerDiv =
       $('<div class="jolecule-embed-footer" style="width: 100%; display: flex; flex-direction: column">')
         .append($('<div style="display: flex; flex-wrap: wrap; flex-direction: row">')
+          .append(this.playableDiv)
           .append(
             $('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">')
-              .append($('<div id="loop">'))
               .append($('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))
           )
           .append(
@@ -184,12 +186,10 @@ class EmbedJolecule {
           .append(
             $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
               .append(linkButton(
-                '', 'Sidechains', 'jolecule-button',
-                () => { this.controller.toggleSelectedSidechains() })
+                '', 'Sidechains', 'jolecule-button', () => { this.controller.toggleSelectedSidechains() })
               )
               .append(linkButton(
-                '', 'Neighbors', 'jolecule-button',
-                () => { this.controller.toggleResidueNeighbors() })
+                '', 'Neighbors', 'jolecule-button', () => { this.controller.toggleResidueNeighbors() })
               )
               .append($('<div id="ligand">'))
           ))
@@ -197,9 +197,20 @@ class EmbedJolecule {
     this.div.append(this.footerDiv)
 
     if (this.params.isPlayable) {
+      this.playableDiv.append(linkButton(
+        '', '<', 'jolecule-button', () => { this.controller.setTargetToPrevView() })
+      )
+      this.playableDiv.append($('<div id="loop">'))
       this.loopToggleWidget = new widgets.TogglePlayButtonWidget(this.display, '#loop')
+      this.playableDiv.append(linkButton(
+        '', '>', 'jolecule-button',
+        () => { this.controller.setTargetToNextView() })
+      )
+      this.playableDiv.append(
+        $('<div id="view-text" class="jolecule-button" style="flex: 1 1; box-sizing: content-box; white-space: nowrap; overflow: hidden; text-align: left">'))
+      this.viewTextWidget = new widgets.ViewTextWidget(this.display, '#view-text')
     }
-    this.zSlabWidget = new widgets.ZSlabWidget(this.display, '#zslab')
+    this.clippingPlaneWidget = new widgets.ClippingPlaneWidget(this.display, '#zslab')
     this.residueSelectorWidget = new widgets.ResidueSelectorWidget(this.display, '#res-selector')
     this.ligandWidget = new widgets.ToggleButtonWidget(this.display, '#ligand', 'ligands')
   }

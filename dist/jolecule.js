@@ -78313,11 +78313,11 @@ var EmbedJolecule = function () {
     value: function createDivs() {
       var _this3 = this;
 
-      this.sequenceDiv = (0, _jquery2.default)('<div>').attr('id', 'sequence-widget');
+      this.headerDiv = (0, _jquery2.default)('<div>').attr('id', 'sequence-widget');
 
-      this.proteinDiv = (0, _jquery2.default)('<div>').attr('id', 'jolecule-soup-display').addClass('jolecule-embed-body').css('overflow', 'hidden').css('width', this.div.outerWidth());
+      this.bodyDiv = (0, _jquery2.default)('<div>').attr('id', 'jolecule-soup-display').addClass('jolecule-embed-body').css('overflow', 'hidden').css('width', this.div.outerWidth());
 
-      this.div.append(this.sequenceDiv).append(this.proteinDiv);
+      this.div.append(this.headerDiv).append(this.bodyDiv);
 
       this.display = new _display.Display(this.soupView, '#jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
 
@@ -78329,36 +78329,49 @@ var EmbedJolecule = function () {
         this.gridControlWidget = new _widgets2.default.GridControlWidget(this.display);
       }
 
-      this.statusDiv = (0, _jquery2.default)('<div style="display: flex; flex-direction: column">').addClass('jolecule-embed-view-bar').append((0, _jquery2.default)('<div>').css('width', '100%').css('display', 'flex').css('flex-direction', 'row').append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="loop">')).append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">').append('<div id="zslab" class="jolecule-residue-selector" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
+      this.playableDiv = (0, _jquery2.default)('<div id="playable" style="width: 100%; display: flex; flex-direction: row">');
+
+      this.footerDiv = (0, _jquery2.default)('<div class="jolecule-embed-footer" style="width: 100%; display: flex; flex-direction: column">').append((0, _jquery2.default)('<div style="display: flex; flex-wrap: wrap; flex-direction: row">').append(this.playableDiv).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div id="zslab" class="jolecule-button" style="flex: 1 0 120px; display: flex; flex-direction: row; justify-content: center;">')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
         _this3.controller.clear();
       })).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _util.linkButton)('', 'Sidechains', 'jolecule-button', function () {
         _this3.controller.toggleSelectedSidechains();
       })).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
         _this3.controller.toggleResidueNeighbors();
-      })).append((0, _jquery2.default)('<div id="ligand"></div>'))));
+      })).append((0, _jquery2.default)('<div id="ligand">'))));
 
-      this.div.append(this.statusDiv);
+      this.div.append(this.footerDiv);
 
       if (this.params.isPlayable) {
+        this.playableDiv.append((0, _util.linkButton)('', '<', 'jolecule-button', function () {
+          _this3.controller.setTargetToPrevView();
+        }));
+        this.playableDiv.append((0, _jquery2.default)('<div id="loop">'));
         this.loopToggleWidget = new _widgets2.default.TogglePlayButtonWidget(this.display, '#loop');
+        this.playableDiv.append((0, _util.linkButton)('', '>', 'jolecule-button', function () {
+          _this3.controller.setTargetToNextView();
+        }));
+        this.playableDiv.append((0, _jquery2.default)('<div id="view-text" style="flex: 1 1; white-space: nowrap; overflow: hidden">'));
+        this.viewTextWidget = new _widgets2.default.ViewTextWidget(this.display, '#view-text');
       }
-      this.zSlabWidget = new _widgets2.default.ZSlabWidget(this.display, '#zslab');
+      this.clippingPlaneWidget = new _widgets2.default.ClippingPlaneWidget(this.display, '#zslab');
       this.residueSelectorWidget = new _widgets2.default.ResidueSelectorWidget(this.display, '#res-selector');
       this.ligandWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#ligand', 'ligands');
     }
   }, {
     key: 'resize',
     value: function resize() {
-      this.proteinDiv.width(this.div.outerWidth());
+      this.bodyDiv.width(this.div.outerWidth());
+
       var height = this.div.outerHeight();
       if ('sequenceWidget' in this) {
         height -= this.sequenceWidget.height();
-        this.proteinDiv.css('top', this.sequenceWidget.height());
+        this.bodyDiv.css('top', this.sequenceWidget.height());
       }
-      if ('statusDiv' in this) {
-        height -= this.statusDiv.outerHeight();
+      if ('footerDiv' in this) {
+        height -= this.footerDiv.outerHeight();
       }
-      this.proteinDiv.css('height', height);
+      this.bodyDiv.css('height', height);
+
       this.display.resize();
     }
   }]);
@@ -83714,17 +83727,17 @@ var SequenceWidget = function (_CanvasWidget) {
 }(CanvasWidget);
 
 /**
- * ZSlabWidget
+ * ClippingPlaneWidget
  */
 
 
-var ZSlabWidget = function (_CanvasWidget2) {
-  _inherits(ZSlabWidget, _CanvasWidget2);
+var ClippingPlaneWidget = function (_CanvasWidget2) {
+  _inherits(ClippingPlaneWidget, _CanvasWidget2);
 
-  function ZSlabWidget(display, selector) {
-    _classCallCheck(this, ZSlabWidget);
+  function ClippingPlaneWidget(display, selector) {
+    _classCallCheck(this, ClippingPlaneWidget);
 
-    var _this7 = _possibleConstructorReturn(this, (ZSlabWidget.__proto__ || Object.getPrototypeOf(ZSlabWidget)).call(this, selector));
+    var _this7 = _possibleConstructorReturn(this, (ClippingPlaneWidget.__proto__ || Object.getPrototypeOf(ClippingPlaneWidget)).call(this, selector));
 
     _this7.soupView = display.soupView;
     _this7.controller = display.controller;
@@ -83735,14 +83748,14 @@ var ZSlabWidget = function (_CanvasWidget2) {
     return _this7;
   }
 
-  _createClass(ZSlabWidget, [{
+  _createClass(ClippingPlaneWidget, [{
     key: 'resize',
     value: function resize() {
       this.div.css({
         'width': this.width(),
         'height': this.height()
       });
-      _get(ZSlabWidget.prototype.__proto__ || Object.getPrototypeOf(ZSlabWidget.prototype), 'resize', this).call(this);
+      _get(ClippingPlaneWidget.prototype.__proto__ || Object.getPrototypeOf(ClippingPlaneWidget.prototype), 'resize', this).call(this);
       this.update();
     }
   }, {
@@ -83789,6 +83802,7 @@ var ZSlabWidget = function (_CanvasWidget2) {
       var xFront = this.zToX(cameraParams.zFront);
       var xMid = this.zToX(0);
       var yMid = this.height() / 2;
+      var font = '9pt Helvetica';
 
       // background
       this.fillRect(0, 0, this.width(), this.height(), '#999');
@@ -83796,18 +83810,24 @@ var ZSlabWidget = function (_CanvasWidget2) {
       // middle track
       this.fillRect(0, yMid - 3, this.width(), 6, '#AAB');
 
+      // filled track to back
       this.fillRect(xMid, yMid - 3, xBack - xMid, 6, this.zFrontColor);
-      this.fillRect(xBack - 5, 0, 4, this.height(), '#333');
 
+      // back control
+      var widthBackText = this.textWidth('back', font);
+      this.fillRect(xBack - 6 - widthBackText, 0, widthBackText + 6, this.height(), '#333');
+      this.text('back', xBack - 3 - widthBackText, yMid, font, '#AAA', 'left');
+
+      // filled track to front
       this.fillRect(xFront, yMid - 3, xMid - xFront, 6, this.zFrontColor);
-      this.fillRect(xFront + 1, 0, 4, this.height(), '#333');
+
+      // front control
+      var widthFrontText = this.textWidth('front', font);
+      this.fillRect(xFront, 0, widthFrontText + 6, this.height(), '#333');
+      this.text('front', xFront + 3, yMid, font, '#AAA', 'left');
 
       // halfway marker
-      this.line(xMid, 0, xMid, this.height(), 1, '#444');
-
-      this.text('back', xBack - 36, yMid, '9pt Helvetica', '#333', 'left');
-
-      this.text('front', xFront + 8, yMid, '9pt Helvetica', '#333', 'left');
+      this.line(xMid, 0, xMid, this.height(), 1, '#333');
     }
   }, {
     key: 'getZ',
@@ -83829,13 +83849,13 @@ var ZSlabWidget = function (_CanvasWidget2) {
         this.back = false;
       }
 
-      _get(ZSlabWidget.prototype.__proto__ || Object.getPrototypeOf(ZSlabWidget.prototype), 'mousedown', this).call(this, event);
+      _get(ClippingPlaneWidget.prototype.__proto__ || Object.getPrototypeOf(ClippingPlaneWidget.prototype), 'mousedown', this).call(this, event);
     }
   }, {
     key: 'mousemove',
     value: function mousemove(event) {
       event.preventDefault();
-      _get(ZSlabWidget.prototype.__proto__ || Object.getPrototypeOf(ZSlabWidget.prototype), 'mousemove', this).call(this, event);
+      _get(ClippingPlaneWidget.prototype.__proto__ || Object.getPrototypeOf(ClippingPlaneWidget.prototype), 'mousemove', this).call(this, event);
 
       console.log('ZSlab.mousemove', this.mousePressed);
 
@@ -83857,7 +83877,7 @@ var ZSlabWidget = function (_CanvasWidget2) {
     }
   }]);
 
-  return ZSlabWidget;
+  return ClippingPlaneWidget;
 }(CanvasWidget);
 
 var GridToggleButtonWidget = function () {
@@ -83939,7 +83959,7 @@ var GridControlWidget = function (_CanvasWidget3) {
     }
     _this9.div.attr('id', 'grid-control');
     _this9.div.css('height', _this9.height());
-    _this9.div.addClass('jolecule-residue-selector');
+    _this9.div.addClass('jolecule-button');
     _this9.buttonsDiv = (0, _jquery2.default)('<div id="grid-control-buttons">');
     _this9.div.append(_this9.buttonsDiv);
     return _this9;
@@ -84307,17 +84327,38 @@ var TogglePlayButtonWidget = function () {
   return TogglePlayButtonWidget;
 }();
 
+var ViewTextWidget = function () {
+  function ViewTextWidget(display, selector) {
+    _classCallCheck(this, ViewTextWidget);
+
+    this.soupView = display.soupView;
+    this.div = (0, _jquery2.default)(selector).attr('href', '').addClass('jolecule-button');
+    display.addObserver(this);
+    this.update();
+  }
+
+  _createClass(ViewTextWidget, [{
+    key: 'update',
+    value: function update() {
+      this.div.text(this.soupView.currentView.text);
+    }
+  }]);
+
+  return ViewTextWidget;
+}();
+
 exports.default = {
   LineElement: LineElement,
   PopupText: PopupText,
   AtomLabelsWidget: AtomLabelsWidget,
   DistanceMeasuresWidget: DistanceMeasuresWidget,
   SequenceWidget: SequenceWidget,
-  ZSlabWidget: ZSlabWidget,
+  ClippingPlaneWidget: ClippingPlaneWidget,
   GridControlWidget: GridControlWidget,
   ResidueSelectorWidget: ResidueSelectorWidget,
   ToggleButtonWidget: ToggleButtonWidget,
-  TogglePlayButtonWidget: TogglePlayButtonWidget
+  TogglePlayButtonWidget: TogglePlayButtonWidget,
+  ViewTextWidget: ViewTextWidget
 };
 
 /***/ }),
@@ -99956,8 +99997,6 @@ var FullPageJolecule = function () {
           }
         } else if (c === 'L') {
           this.controller.toggleShowOption('ligands');
-        } else if (c === 'S') {
-          this.controller.toggleShowOption('sidechain');
         } else if (c === 'W') {
           this.controller.toggleShowOption('water');
         } else if (c === 'E') {

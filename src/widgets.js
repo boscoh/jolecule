@@ -1015,9 +1015,9 @@ class SequenceWidget extends CanvasWidget {
 }
 
 /**
- * ZSlabWidget
+ * ClippingPlaneWidget
  */
-class ZSlabWidget extends CanvasWidget {
+class ClippingPlaneWidget extends CanvasWidget {
   constructor (display, selector) {
     super(selector)
     this.soupView = display.soupView
@@ -1073,6 +1073,7 @@ class ZSlabWidget extends CanvasWidget {
     let xFront = this.zToX(cameraParams.zFront)
     let xMid = this.zToX(0)
     let yMid = this.height() / 2
+    let font = '9pt Helvetica'
 
     // background
     this.fillRect(0, 0, this.width(), this.height(), '#999')
@@ -1080,31 +1081,24 @@ class ZSlabWidget extends CanvasWidget {
     // middle track
     this.fillRect(0, yMid - 3, this.width(), 6, '#AAB')
 
+    // filled track to back
     this.fillRect(xMid, yMid - 3, xBack - xMid, 6, this.zFrontColor)
-    this.fillRect(xBack - 5, 0, 4, this.height(), '#333')
 
+    // back control
+    let widthBackText = this.textWidth('back', font)
+    this.fillRect(xBack - 6 - widthBackText, 0, widthBackText + 6, this.height(), '#333')
+    this.text('back', xBack - 3 - widthBackText, yMid, font, '#AAA', 'left')
+
+    // filled track to front
     this.fillRect(xFront, yMid - 3, xMid - xFront, 6, this.zFrontColor)
-    this.fillRect(xFront + 1, 0, 4, this.height(), '#333')
+
+    // front control
+    let widthFrontText = this.textWidth('front', font)
+    this.fillRect(xFront, 0, widthFrontText + 6, this.height(), '#333')
+    this.text('front', xFront + 3, yMid, font, '#AAA', 'left')
 
     // halfway marker
-    this.line(xMid, 0, xMid, this.height(), 1, '#444')
-
-    this.text(
-      'back',
-      xBack - 36,
-      yMid,
-      '9pt Helvetica',
-      '#333',
-      'left')
-
-    this.text(
-      'front',
-      xFront + 8,
-      yMid,
-      '9pt Helvetica',
-      '#333',
-      'left')
-
+    this.line(xMid, 0, xMid, this.height(), 1, '#333')
   }
 
   getZ (event) {
@@ -1504,15 +1498,30 @@ class TogglePlayButtonWidget {
   }
 }
 
+class ViewTextWidget {
+  constructor (display, selector) {
+    this.soupView = display.soupView
+    this.div = $(selector)
+    display.addObserver(this)
+    this.update()
+  }
+
+  update () {
+    let text = `${this.soupView.currentView.order+1}/${this.soupView.savedViews.length}: ` +
+      this.soupView.currentView.text
+    this.div.text(text)
+  }
+}
 export default {
   LineElement,
   PopupText,
   AtomLabelsWidget,
   DistanceMeasuresWidget,
   SequenceWidget,
-  ZSlabWidget,
+  ClippingPlaneWidget,
   GridControlWidget,
   ResidueSelectorWidget,
   ToggleButtonWidget,
-  TogglePlayButtonWidget
+  TogglePlayButtonWidget,
+  ViewTextWidget
 }
