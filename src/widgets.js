@@ -1221,7 +1221,7 @@ class GridControlWidget extends CanvasWidget {
     }
     this.div.attr('id', 'grid-control')
     this.div.css('height', this.height())
-    this.div.addClass('jolecule-residue-selector')
+    this.div.addClass('jolecule-button')
     this.buttonsDiv = $('<div id="grid-control-buttons">')
     this.div.append(this.buttonsDiv)
   }

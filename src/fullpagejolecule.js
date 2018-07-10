@@ -503,8 +503,6 @@ class FullPageJolecule {
         }
       } else if (c === 'L') {
         this.controller.toggleShowOption('ligands')
-      } else if (c === 'S') {
-        this.controller.toggleShowOption('sidechain')
       } else if (c === 'W') {
         this.controller.toggleShowOption('water')
       } else if (c === 'E') {

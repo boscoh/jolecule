@@ -29,7 +29,9 @@ let defaultArgs = {
 
 class EmbedJolecule {
   constructor (params) {
-    this.params = params
+    this.params = _.cloneDeep(defaultArgs)
+    _.assign(this.params, params)
+    console.log('EmbedJolecule.constructor', this.params)
     this.isProcessing = {flag: false}
 
     this.divTag = this.params.divTag
@@ -136,18 +138,18 @@ class EmbedJolecule {
   }
 
   createDivs () {
-    this.sequenceDiv = $('<div>')
+    this.headerDiv = $('<div>')
       .attr('id', 'sequence-widget')
 
-    this.proteinDiv = $('<div>')
+    this.bodyDiv = $('<div>')
       .attr('id', 'jolecule-soup-display')
       .addClass('jolecule-embed-body')
       .css('overflow', 'hidden')
       .css('width', this.div.outerWidth())
 
     this.div
-      .append(this.sequenceDiv)
-      .append(this.proteinDiv)
+      .append(this.headerDiv)
+      .append(this.bodyDiv)
 
     this.display = new Display(
       this.soupView,
@@ -165,38 +167,34 @@ class EmbedJolecule {
       this.gridControlWidget = new widgets.GridControlWidget(this.display)
     }
 
-    this.statusDiv = $('<div style="display: flex; flex-direction: column">')
-      .addClass('jolecule-embed-view-bar')
-      .append($('<div>')
-        .css('width', '100%')
-        .css('display', 'flex')
-        .css('flex-direction', 'row')
-        .append(
-          $('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">')
-            .append($('<div id="loop">'))
-            .append($('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))
-        )
-        .append(
-          $('<div style="flex: 1; display: flex; flex-direction: row; justify-content: center;">')
-            .append(`<div id="zslab" class="jolecule-residue-selector" style="position: relative; box-sizing: content-box; width: 100%; height: 20px;"></div>`)
-        )
-        .append(linkButton(
-          '', 'Clear', 'jolecule-button', () => { this.controller.clear() })
-        )
-        .append(
-          $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
-            .append(linkButton(
-              '', 'Sidechains', 'jolecule-button',
-              () => { this.controller.toggleSelectedSidechains() })
-            )
-            .append(linkButton(
-              '', 'Neighbors', 'jolecule-button',
-              () => { this.controller.toggleResidueNeighbors() })
-            )
-            .append($('<div id="ligand"></div>'))
-        ))
+    this.footerDiv =
+      $('<div class="jolecule-embed-footer" style="width: 100%; display: flex; flex-direction: column">')
+        .append($('<div style="display: flex; flex-wrap: wrap; flex-direction: row">')
+          .append(
+            $('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">')
+              .append($('<div id="loop">'))
+              .append($('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))
+          )
+          .append(
+            $('<div id="zslab" class="jolecule-button" style="flex: 1 0 120px; display: flex; flex-direction: row; justify-content: center;">')
+          )
+          .append(linkButton(
+            '', 'Clear', 'jolecule-button', () => { this.controller.clear() })
+          )
+          .append(
+            $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
+              .append(linkButton(
+                '', 'Sidechains', 'jolecule-button',
+                () => { this.controller.toggleSelectedSidechains() })
+              )
+              .append(linkButton(
+                '', 'Neighbors', 'jolecule-button',
+                () => { this.controller.toggleResidueNeighbors() })
+              )
+              .append($('<div id="ligand">'))
+          ))
 
-    this.div.append(this.statusDiv)
+    this.div.append(this.footerDiv)
 
     if (this.params.isPlayable) {
       this.loopToggleWidget = new widgets.TogglePlayButtonWidget(this.display, '#loop')
@@ -207,16 +205,18 @@ class EmbedJolecule {
   }
 
   resize () {
-    this.proteinDiv.width(this.div.outerWidth())
+    this.bodyDiv.width(this.div.outerWidth())
+
     let height = this.div.outerHeight()
     if ('sequenceWidget' in this) {
       height -= this.sequenceWidget.height()
-      this.proteinDiv.css('top', this.sequenceWidget.height())
+      this.bodyDiv.css('top', this.sequenceWidget.height())
     }
-    if ('statusDiv' in this) {
-      height -= this.statusDiv.outerHeight()
+    if ('footerDiv' in this) {
+      height -= this.footerDiv.outerHeight()
     }
-    this.proteinDiv.css('height', height)
+    this.bodyDiv.css('height', height)
+
     this.display.resize()
   }
 }

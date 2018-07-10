@@ -78082,7 +78082,9 @@ var EmbedJolecule = function () {
 
     _classCallCheck(this, EmbedJolecule);
 
-    this.params = params;
+    this.params = _lodash2.default.cloneDeep(defaultArgs);
+    _lodash2.default.assign(this.params, params);
+    console.log('EmbedJolecule.constructor', this.params);
     this.isProcessing = { flag: false };
 
     this.divTag = this.params.divTag;
@@ -92812,7 +92814,6 @@ var Display = function (_WebglWidget) {
         this.addRepresentation('backbone', new BackboneRepresentation(this.soup, this.atomRadius));
       }
 
-      console.log('Display.drawFrame', show);
       this.setMeshVisible('ribbons', show.ribbon);
       this.setMeshVisible('arrows', !show.backboneAtom);
       this.setMeshVisible('water', show.water);

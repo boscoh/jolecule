@@ -136,7 +136,7 @@ export default {
       isEditable: true,
       isPlayable: true,
       isSequenceBar: true,
-      backgroundColor: 0xCCCCCC
+      backgroundColor: 0x000000
     })
 
     const dataServer7 = require('../../../dataservers/1mbo-data-server')

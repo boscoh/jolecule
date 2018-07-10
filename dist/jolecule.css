@@ -1,28 +1,17 @@
-.jolecule-residue-selector,
-.jolecule-slider,
 .jolecule-button {
-    -moz-border-radius: 3px;
     border-radius: 3px;
-    text-align: center;
     margin-right: 2px;
+    margin-bottom: 2px;
     padding: 10px 7px;
+    text-align: center;
     font-size: 12px;
     font-weight: normal;
     letter-spacing: 0.1em;
     cursor: pointer;
     box-sizing: content-box;
     height: 20px;
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-    -khtml-user-select: none; /* Konqueror HTML */
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* Internet Explorer/Edge */
-    user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+    user-select: none;
 }
-.jolecule-residue-selector {
-    border: 0;
-}
-.jolecule-residue-selector,
 .jolecule-button,
 a.jolecule-button input a,
 a.jolecule-button,
@@ -90,7 +79,7 @@ a.jolecule-large-button:active {
     line-height: 1em;
 }
 .jolecule-embed-header,
-.jolecule-embed-view-bar  {
+.jolecule-embed-footer  {
     display: flex;
     padding: 5px;
     vertical-align: middle;
@@ -101,18 +90,8 @@ a.jolecule-large-button:active {
     letter-spacing: 0.05em;
     overflow: hidden;
 }
-.jolecule-embed-view-bar {
+.jolecule-embed-footer {
     border-top: 2px solid #AAA;
-}
-.flex-left {
-    flex: 1 1;
-    text-align: left;
-    vertical-align: middle;
-}
-.flex-right {
-    flex: 1 1;
-    text-align: right;
-    vertical-align: middle;
 }
 .jolecule-embed-header,
 .jolecule-embed-header a {

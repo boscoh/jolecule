@@ -1244,7 +1244,6 @@ class Display extends WebglWidget {
       this.addRepresentation('backbone', new BackboneRepresentation(this.soup, this.atomRadius))
     }
 
-    console.log('Display.drawFrame', show)
     this.setMeshVisible('ribbons', show.ribbon)
     this.setMeshVisible('arrows', !show.backboneAtom)
     this.setMeshVisible('water', show.water)
