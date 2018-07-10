@@ -120,7 +120,7 @@ a.jolecule-large-button:active {
     display: -webkit-flex;
     flex-direction: row;
     -webkit-flex-direction: row;
-    padding: 5px 5px 15px 5px;
+    padding: 7px;
     box-sizing: border-box;
     margin: 0px 5px 5px 5px;
     -moz-border-radius: 3px;
@@ -142,8 +142,7 @@ textarea.jolecule-view-text,
     font-family: Helvetica, sans-serif;
     color: #333;
     background-color: #888;
-    margin-top: 0.5em;
-    margin-bottom: 1em;
+    margin-bottom: 7px;
 }
 .jolecule-loading-message {
     z-index: 5000;

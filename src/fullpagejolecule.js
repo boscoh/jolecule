@@ -19,31 +19,17 @@ class ViewPanel {
   constructor (params) {
     this.params = params
     this.div = $('<div>').addClass('jolecule-view')
-    if (exists(params.goto)) {
-      this.div
-        .append(
-          linkButton(
-            '',
-            this.params.goto,
-            'jolecule-button',
-            this.params.pick)
-        )
-        .append(
-          '<div style="width: 10px">'
-        )
-    }
-    this.params = params
     this.makeEditDiv()
     this.makeShowDiv()
   }
 
   saveChange () {
     console.log('ViewPiece.saveChange')
-    let changedTet = this.editTextArea.val()
+    let changedText = this.editTextArea.val()
     this.editDiv.hide()
     this.showDiv.show()
-    this.showTextDiv.html(changedTet)
-    this.params.saveChange(changedTet)
+    this.showTextDiv.html(changedText)
+    this.params.saveChange(changedText)
     window.keyboard_lock = false
   }
 
@@ -74,7 +60,6 @@ class ViewPanel {
       .css('width', '100%')
       .click(_.noop)
       .append(this.editTextArea)
-      .append('<br><br>')
       .append(
         linkButton(
           '', 'save', 'jolecule-small-button',
@@ -97,29 +82,29 @@ class ViewPanel {
       () => { this.startEdit() })
 
     this.showTextDiv = $('<div>')
-      .addClass('jolecule-view-text')
-      .html(this.params.view.text)
+      .addClass('jolecule-button')
+      .css('height', 'auto')
+      .css('background-color', '#BBB')
+      .css('text-align', 'left')
+      .on('click touch',
+        (e) => {
+          e.preventDefault()
+          this.params.pick()
+        }
+      )
 
     this.showDiv = $('<div>')
       .css('width', '100%')
       .append(this.showTextDiv)
-
-    if (view.id !== 'view:000000') {
-      this.showDiv
-        .append(
-          $('<div>')
-            .addClass('jolecule-author')
-            .html(view.creator)
-        )
-    }
 
     let isEditable = this.params.isEditable &&
       (!view.lock) &&
       (view.id !== 'view:000000')
 
     if (isEditable) {
-      this.showDiv
-        .append(editButton)
+      this.showTextDiv.css('margin-bottom', '7px')
+
+      this.showDiv.append(editButton)
 
       if (exists(this.params.swapUp) && this.params.swapUp) {
         this.showDiv
@@ -174,35 +159,7 @@ class ViewPanelList {
       .append(
         $('<div>')
           .addClass('jolecule-sub-header')
-          .append('VIEWS OF PROTEIN')
-          .append('<br>')
-          .append('<br>')
-          .append(
-            linkButton(
-              '', '+[v]iew', 'jolecule-button',
-              () => {
-                this.makeNewView()
-              }))
-          .append(
-            linkButton(
-              '', 'prev[&uarr;]', 'jolecule-button',
-              () => {
-                this.gotoPrevView()
-              }))
-          .append(
-            linkButton(
-              '', 'next[&darr;]', 'jolecule-button',
-              () => {
-                this.gotoNextView()
-              }))
-          .append(
-            linkButton(
-              '', '+l[a]bel', 'jolecule-button',
-              () => {
-                this.display.atomLabelDialog()
-              }
-            ))
-          .append('<br>')
+          .append('SAVED VIEWS')
       )
       .append(
         $('<div>')
@@ -244,7 +201,7 @@ class ViewPanelList {
 
       let viewPiece = this.viewPiece[id]
       if (view.text !== viewPiece.showTextDiv.html()) {
-        viewPiece.showTextDiv.html(view.text)
+        viewPiece.showTextDiv.html(viewPiece.params.goto + ": " + view.text)
       }
 
       let a = viewPiece.div.find('a').eq(0)
@@ -379,8 +336,7 @@ class ViewPanelList {
 
   makeNewView () {
     console.log('ViewPieceList.makeNewView')
-    let newId = randomId()
-    this.controller.saveCurrentView(newId)
+    this.controller.saveCurrentView()
     this.insertNewViewDiv(newId)
     this.update()
     this.viewPiece[newId].div.css('background-color', 'lightgray')

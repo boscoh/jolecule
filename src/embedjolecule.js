@@ -5,6 +5,7 @@ import { Display } from './display'
 import { exists, linkButton, delay } from './util.js'
 import widgets from './widgets'
 import v3 from './v3'
+import { randomId } from './util'
 
 /**
  * EmbedJolecule - the widget that shows proteins and
@@ -206,8 +207,12 @@ class EmbedJolecule {
         '', '>', 'jolecule-button',
         () => { this.controller.setTargetToNextView() })
       )
+      this.playableDiv.append(linkButton(
+        '', 'Save', 'jolecule-button',
+        () => { this.controller.saveCurrentView() })
+      )
       this.playableDiv.append(
-        $('<div id="view-text" class="jolecule-button" style="flex: 1 1; box-sizing: content-box; white-space: nowrap; overflow: hidden; text-align: left">'))
+        $('<div id="view-text" class="jolecule-button" style="background-color: #BBB; flex: 1 1; box-sizing: content-box; white-space: nowrap; overflow: hidden; text-align: left">'))
       this.viewTextWidget = new widgets.ViewTextWidget(this.display, '#view-text')
     }
     this.clippingPlaneWidget = new widgets.ClippingPlaneWidget(this.display, '#zslab')

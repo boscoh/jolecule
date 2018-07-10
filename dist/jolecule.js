@@ -340,7 +340,7 @@ module.exports = function (NAME, exec) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // to indexed object, toObject with fallback for non-array-like ES3 strings
-var IObject = __webpack_require__(49);
+var IObject = __webpack_require__(50);
 var defined = __webpack_require__(23);
 module.exports = function (it) {
   return IObject(defined(it));
@@ -351,7 +351,7 @@ module.exports = function (it) {
 /* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var pIE = __webpack_require__(50);
+var pIE = __webpack_require__(51);
 var createDesc = __webpack_require__(33);
 var toIObject = __webpack_require__(15);
 var toPrimitive = __webpack_require__(22);
@@ -518,7 +518,7 @@ module.exports = function (KEY, exec) {
 // 5 -> Array#find
 // 6 -> Array#findIndex
 var ctx = __webpack_require__(18);
-var IObject = __webpack_require__(49);
+var IObject = __webpack_require__(50);
 var toObject = __webpack_require__(9);
 var toLength = __webpack_require__(8);
 var asc = __webpack_require__(88);
@@ -580,7 +580,7 @@ if (__webpack_require__(6)) {
   var toAbsoluteIndex = __webpack_require__(37);
   var toPrimitive = __webpack_require__(22);
   var has = __webpack_require__(11);
-  var classof = __webpack_require__(51);
+  var classof = __webpack_require__(52);
   var isObject = __webpack_require__(4);
   var toObject = __webpack_require__(9);
   var isArrayIter = __webpack_require__(85);
@@ -75050,54 +75050,6 @@ function LensFlare() {
 /* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// fallback for non-array-like ES3 and non-enumerable old V8 strings
-var cof = __webpack_require__(19);
-// eslint-disable-next-line no-prototype-builtins
-module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
-  return cof(it) == 'String' ? it.split('') : Object(it);
-};
-
-
-/***/ }),
-/* 50 */
-/***/ (function(module, exports) {
-
-exports.f = {}.propertyIsEnumerable;
-
-
-/***/ }),
-/* 51 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// getting tag from 19.1.3.6 Object.prototype.toString()
-var cof = __webpack_require__(19);
-var TAG = __webpack_require__(5)('toStringTag');
-// ES3 wrong here
-var ARG = cof(function () { return arguments; }()) == 'Arguments';
-
-// fallback for IE11 Script Access Denied error
-var tryGet = function (it, key) {
-  try {
-    return it[key];
-  } catch (e) { /* empty */ }
-};
-
-module.exports = function (it) {
-  var O, T, B;
-  return it === undefined ? 'Undefined' : it === null ? 'Null'
-    // @@toStringTag case
-    : typeof (T = tryGet(O = Object(it), TAG)) == 'string' ? T
-    // builtinTag case
-    : ARG ? cof(O)
-    // ES3 arguments fallback
-    : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
-};
-
-
-/***/ }),
-/* 52 */
-/***/ (function(module, exports, __webpack_require__) {
-
 "use strict";
 
 
@@ -75272,6 +75224,54 @@ exports.randomId = randomId;
 exports.getCurrentDateStr = getCurrentDateStr;
 exports.textEntryDialog = textEntryDialog;
 exports.delay = delay;
+
+/***/ }),
+/* 50 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// fallback for non-array-like ES3 and non-enumerable old V8 strings
+var cof = __webpack_require__(19);
+// eslint-disable-next-line no-prototype-builtins
+module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
+  return cof(it) == 'String' ? it.split('') : Object(it);
+};
+
+
+/***/ }),
+/* 51 */
+/***/ (function(module, exports) {
+
+exports.f = {}.propertyIsEnumerable;
+
+
+/***/ }),
+/* 52 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// getting tag from 19.1.3.6 Object.prototype.toString()
+var cof = __webpack_require__(19);
+var TAG = __webpack_require__(5)('toStringTag');
+// ES3 wrong here
+var ARG = cof(function () { return arguments; }()) == 'Arguments';
+
+// fallback for IE11 Script Access Denied error
+var tryGet = function (it, key) {
+  try {
+    return it[key];
+  } catch (e) { /* empty */ }
+};
+
+module.exports = function (it) {
+  var O, T, B;
+  return it === undefined ? 'Undefined' : it === null ? 'Null'
+    // @@toStringTag case
+    : typeof (T = tryGet(O = Object(it), TAG)) == 'string' ? T
+    // builtinTag case
+    : ARG ? cof(O)
+    // ES3 arguments fallback
+    : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
+};
+
 
 /***/ }),
 /* 53 */
@@ -76197,7 +76197,7 @@ module.exports = function (object, index, value) {
 /* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var classof = __webpack_require__(51);
+var classof = __webpack_require__(52);
 var ITERATOR = __webpack_require__(5)('iterator');
 var Iterators = __webpack_require__(46);
 module.exports = __webpack_require__(21).getIteratorMethod = function (it) {
@@ -77063,9 +77063,9 @@ module.exports.f = function getOwnPropertyNames(it) {
 // 19.1.2.1 Object.assign(target, source, ...)
 var getKeys = __webpack_require__(36);
 var gOPS = __webpack_require__(55);
-var pIE = __webpack_require__(50);
+var pIE = __webpack_require__(51);
 var toObject = __webpack_require__(9);
-var IObject = __webpack_require__(49);
+var IObject = __webpack_require__(50);
 var $assign = Object.assign;
 
 // should work with symbols and should have deterministic property order (V8 bug)
@@ -77264,7 +77264,7 @@ module.exports = function (iterator, fn, value, entries) {
 
 var aFunction = __webpack_require__(10);
 var toObject = __webpack_require__(9);
-var IObject = __webpack_require__(49);
+var IObject = __webpack_require__(50);
 var toLength = __webpack_require__(8);
 
 module.exports = function (that, callbackfn, aLen, memo, isRight) {
@@ -77838,7 +77838,7 @@ module.exports = function (that, maxLength, fillString, left) {
 
 var getKeys = __webpack_require__(36);
 var toIObject = __webpack_require__(15);
-var isEnum = __webpack_require__(50).f;
+var isEnum = __webpack_require__(51).f;
 module.exports = function (isEntries) {
   return function (it) {
     var O = toIObject(it);
@@ -77859,7 +77859,7 @@ module.exports = function (isEntries) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/DavidBruant/Map-Set.prototype.toJSON
-var classof = __webpack_require__(51);
+var classof = __webpack_require__(52);
 var from = __webpack_require__(129);
 module.exports = function (NAME) {
   return function toJSON() {
@@ -78039,7 +78039,7 @@ var _soup = __webpack_require__(133);
 
 var _display = __webpack_require__(344);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(49);
 
 var _widgets = __webpack_require__(135);
 
@@ -78048,6 +78048,8 @@ var _widgets2 = _interopRequireDefault(_widgets);
 var _v = __webpack_require__(67);
 
 var _v2 = _interopRequireDefault(_v);
+
+var _util2 = __webpack_require__(49);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -78350,7 +78352,10 @@ var EmbedJolecule = function () {
         this.playableDiv.append((0, _util.linkButton)('', '>', 'jolecule-button', function () {
           _this3.controller.setTargetToNextView();
         }));
-        this.playableDiv.append((0, _jquery2.default)('<div id="view-text" style="flex: 1 1; white-space: nowrap; overflow: hidden">'));
+        this.playableDiv.append((0, _util.linkButton)('', 'Save', 'jolecule-button', function () {
+          _this3.controller.saveCurrentView();
+        }));
+        this.playableDiv.append((0, _jquery2.default)('<div id="view-text" class="jolecule-button" style="background-color: #BBB; flex: 1 1; box-sizing: content-box; white-space: nowrap; overflow: hidden; text-align: left">'));
         this.viewTextWidget = new _widgets2.default.ViewTextWidget(this.display, '#view-text');
       }
       this.clippingPlaneWidget = new _widgets2.default.ClippingPlaneWidget(this.display, '#zslab');
@@ -78406,7 +78411,7 @@ var _v = __webpack_require__(67);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(49);
 
 var _glgeom = __webpack_require__(134);
 
@@ -80938,7 +80943,8 @@ var Controller = function () {
     }
   }, {
     key: 'saveCurrentView',
-    value: function saveCurrentView(newViewId) {
+    value: function saveCurrentView() {
+      var newViewId = (0, _util.randomId)();
       var iNewView = this.soupView.iLastViewSelected + 1;
       var newView = this.soupView.currentView.clone();
       newView.text = 'Click edit to change this text.';
@@ -80952,6 +80958,10 @@ var Controller = function () {
       newView.id = newViewId;
       newView.selected = this.makeSelectedResidueList();
       this.soupView.insertView(iNewView, newViewId, newView);
+
+      this.soupView.changed = true;
+      this.soupView.updateSelection = true;
+
       return iNewView;
     }
   }, {
@@ -82597,7 +82607,7 @@ var _data = __webpack_require__(96);
 
 var data = _interopRequireWildcard(_data);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(49);
 
 var util = _interopRequireWildcard(_util);
 
@@ -84332,7 +84342,7 @@ var ViewTextWidget = function () {
     _classCallCheck(this, ViewTextWidget);
 
     this.soupView = display.soupView;
-    this.div = (0, _jquery2.default)(selector).attr('href', '').addClass('jolecule-button');
+    this.div = (0, _jquery2.default)(selector);
     display.addObserver(this);
     this.update();
   }
@@ -84340,7 +84350,8 @@ var ViewTextWidget = function () {
   _createClass(ViewTextWidget, [{
     key: 'update',
     value: function update() {
-      this.div.text(this.soupView.currentView.text);
+      var text = this.soupView.currentView.order + 1 + '/' + this.soupView.savedViews.length + ': ' + this.soupView.currentView.text;
+      this.div.text(text);
     }
   }]);
 
@@ -84762,7 +84773,7 @@ if (!USE_NATIVE) {
   $GOPD.f = $getOwnPropertyDescriptor;
   $DP.f = $defineProperty;
   __webpack_require__(39).f = gOPNExt.f = $getOwnPropertyNames;
-  __webpack_require__(50).f = $propertyIsEnumerable;
+  __webpack_require__(51).f = $propertyIsEnumerable;
   __webpack_require__(55).f = $getOwnPropertySymbols;
 
   if (DESCRIPTORS && !__webpack_require__(35)) {
@@ -84855,7 +84866,7 @@ setToStringTag(global.JSON, 'JSON', true);
 // all enumerable object keys, includes symbols
 var getKeys = __webpack_require__(36);
 var gOPS = __webpack_require__(55);
-var pIE = __webpack_require__(50);
+var pIE = __webpack_require__(51);
 module.exports = function (it) {
   var result = getKeys(it);
   var getSymbols = gOPS.f;
@@ -85084,7 +85095,7 @@ $export($export.S, 'Object', { setPrototypeOf: __webpack_require__(74).set });
 "use strict";
 
 // 19.1.3.6 Object.prototype.toString()
-var classof = __webpack_require__(51);
+var classof = __webpack_require__(52);
 var test = {};
 test[__webpack_require__(5)('toStringTag')] = 'z';
 if (test + '' != '[object z]') {
@@ -86358,7 +86369,7 @@ var toIObject = __webpack_require__(15);
 var arrayJoin = [].join;
 
 // fallback for not array-like strings
-$export($export.P + $export.F * (__webpack_require__(49) != Object || !__webpack_require__(20)(arrayJoin)), 'Array', {
+$export($export.P + $export.F * (__webpack_require__(50) != Object || !__webpack_require__(20)(arrayJoin)), 'Array', {
   join: function join(separator) {
     return arrayJoin.call(toIObject(this), separator === undefined ? ',' : separator);
   }
@@ -86913,7 +86924,7 @@ __webpack_require__(60)('split', 2, function (defined, SPLIT, $split) {
 var LIBRARY = __webpack_require__(35);
 var global = __webpack_require__(2);
 var ctx = __webpack_require__(18);
-var classof = __webpack_require__(51);
+var classof = __webpack_require__(52);
 var $export = __webpack_require__(0);
 var isObject = __webpack_require__(4);
 var aFunction = __webpack_require__(10);
@@ -90907,7 +90918,7 @@ var _v = __webpack_require__(67);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(49);
 
 var util = _interopRequireWildcard(_util);
 
@@ -99499,7 +99510,7 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var _embedjolecule = __webpack_require__(132);
 
-var _util = __webpack_require__(52);
+var _util = __webpack_require__(49);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -99524,10 +99535,6 @@ var ViewPanel = function () {
 
     this.params = params;
     this.div = (0, _jquery2.default)('<div>').addClass('jolecule-view');
-    if ((0, _util.exists)(params.goto)) {
-      this.div.append((0, _util.linkButton)('', this.params.goto, 'jolecule-button', this.params.pick)).append('<div style="width: 10px">');
-    }
-    this.params = params;
     this.makeEditDiv();
     this.makeShowDiv();
   }
@@ -99536,11 +99543,11 @@ var ViewPanel = function () {
     key: 'saveChange',
     value: function saveChange() {
       console.log('ViewPiece.saveChange');
-      var changedTet = this.editTextArea.val();
+      var changedText = this.editTextArea.val();
       this.editDiv.hide();
       this.showDiv.show();
-      this.showTextDiv.html(changedTet);
-      this.params.saveChange(changedTet);
+      this.showTextDiv.html(changedText);
+      this.params.saveChange(changedText);
       window.keyboard_lock = false;
     }
   }, {
@@ -99570,7 +99577,7 @@ var ViewPanel = function () {
 
       this.editTextArea = (0, _jquery2.default)('<textarea>').addClass('jolecule-view-text').css('width', '100%').css('height', '5em').click(_lodash2.default.noop);
 
-      this.editDiv = (0, _jquery2.default)('<div>').css('width', '100%').click(_lodash2.default.noop).append(this.editTextArea).append('<br><br>').append((0, _util.linkButton)('', 'save', 'jolecule-small-button', function (event) {
+      this.editDiv = (0, _jquery2.default)('<div>').css('width', '100%').click(_lodash2.default.noop).append(this.editTextArea).append((0, _util.linkButton)('', 'save', 'jolecule-small-button', function (event) {
         _this.saveChange();
       })).append(' &nbsp; ').append((0, _util.linkButton)('', 'discard', 'jolecule-small-button', function (event) {
         _this.discardChange();
@@ -99589,17 +99596,18 @@ var ViewPanel = function () {
         _this2.startEdit();
       });
 
-      this.showTextDiv = (0, _jquery2.default)('<div>').addClass('jolecule-view-text').html(this.params.view.text);
+      this.showTextDiv = (0, _jquery2.default)('<div>').addClass('jolecule-button').css('height', 'auto').css('background-color', '#BBB').css('text-align', 'left').on('click touch', function (e) {
+        e.preventDefault();
+        _this2.params.pick();
+      });
 
       this.showDiv = (0, _jquery2.default)('<div>').css('width', '100%').append(this.showTextDiv);
-
-      if (view.id !== 'view:000000') {
-        this.showDiv.append((0, _jquery2.default)('<div>').addClass('jolecule-author').html(view.creator));
-      }
 
       var isEditable = this.params.isEditable && !view.lock && view.id !== 'view:000000';
 
       if (isEditable) {
+        this.showTextDiv.css('margin-bottom', '7px');
+
         this.showDiv.append(editButton);
 
         if ((0, _util.exists)(this.params.swapUp) && this.params.swapUp) {
@@ -99636,8 +99644,6 @@ var ViewPanel = function () {
 
 var ViewPanelList = function () {
   function ViewPanelList(divTag, soupDisplay, dataServer, isEditable) {
-    var _this3 = this;
-
     _classCallCheck(this, ViewPanelList);
 
     this.divTag = divTag;
@@ -99647,15 +99653,7 @@ var ViewPanelList = function () {
     this.isEditable = isEditable;
     this.dataServer = dataServer;
     this.viewPiece = {};
-    this.topDiv = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('VIEWS OF PROTEIN').append('<br>').append('<br>').append((0, _util.linkButton)('', '+[v]iew', 'jolecule-button', function () {
-      _this3.makeNewView();
-    })).append((0, _util.linkButton)('', 'prev[&uarr;]', 'jolecule-button', function () {
-      _this3.gotoPrevView();
-    })).append((0, _util.linkButton)('', 'next[&darr;]', 'jolecule-button', function () {
-      _this3.gotoNextView();
-    })).append((0, _util.linkButton)('', '+l[a]bel', 'jolecule-button', function () {
-      _this3.display.atomLabelDialog();
-    })).append('<br>')).append((0, _jquery2.default)('<div>').attr('id', 'jolecule-views'));
+    this.topDiv = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('SAVED VIEWS')).append((0, _jquery2.default)('<div>').attr('id', 'jolecule-views'));
   }
 
   _createClass(ViewPanelList, [{
@@ -99694,7 +99692,7 @@ var ViewPanelList = function () {
 
         var viewPiece = this.viewPiece[_id];
         if (view.text !== viewPiece.showTextDiv.html()) {
-          viewPiece.showTextDiv.html(view.text);
+          viewPiece.showTextDiv.html(viewPiece.params.goto + ": " + view.text);
         }
 
         var a = viewPiece.div.find('a').eq(0);
@@ -99731,21 +99729,21 @@ var ViewPanelList = function () {
   }, {
     key: 'removeView',
     value: function removeView(id) {
-      var _this4 = this;
+      var _this3 = this;
 
       console.log('ViewPieceList.removeView');
       this.viewPiece[id].div.css('background-color', 'lightgray');
       this.dataServer.delete_protein_view(id, function () {
-        _this4.controller.deleteView(id);
-        _this4.viewPiece[id].div.remove();
-        delete _this4.viewPiece[id];
-        _this4.update();
+        _this3.controller.deleteView(id);
+        _this3.viewPiece[id].div.remove();
+        delete _this3.viewPiece[id];
+        _this3.update();
       });
     }
   }, {
     key: 'swapViews',
     value: function swapViews(i, j) {
-      var _this5 = this;
+      var _this4 = this;
 
       var iId = this.soupView.savedViews[i].id;
       var jId = this.soupView.savedViews[j].id;
@@ -99759,7 +99757,7 @@ var ViewPanelList = function () {
 
       this.saveViewsToDataServer(function () {
         jDiv.insertBefore(iDiv);
-        _this5.update();
+        _this4.update();
         iDiv.css('background-color', '');
         jDiv.css('background-color', '');
       });
@@ -99785,32 +99783,32 @@ var ViewPanelList = function () {
   }, {
     key: 'makeViewDiv',
     value: function makeViewDiv(id) {
-      var _this6 = this;
+      var _this5 = this;
 
       var view = this.soupView.savedViewsByViewId[id];
       this.viewPiece[id] = new ViewPanel({
         view: view,
         isEditable: this.isEditable,
         delete_view: function delete_view() {
-          _this6.removeView(id);
+          _this5.removeView(id);
         },
         save_change: function save_change(changedText) {
           view.text = changedText;
-          _this6.viewPiece[id].div.css('background-color', 'lightgray');
-          _this6.saveViewsToDataServer(function () {
-            _this6.viewPiece[id].div.css('background-color', '');
+          _this5.viewPiece[id].div.css('background-color', 'lightgray');
+          _this5.saveViewsToDataServer(function () {
+            _this5.viewPiece[id].div.css('background-color', '');
           });
-          _this6.soupView.changed = true;
+          _this5.soupView.changed = true;
         },
         pick: function pick() {
-          _this6.setTargetByViewId(id);
+          _this5.setTargetByViewId(id);
         },
         goto: view.order + 1,
         swapUp: function swapUp() {
-          _this6.swapUp(id);
+          _this5.swapUp(id);
         },
         swapDown: function swapDown() {
-          _this6.swapDown(id);
+          _this5.swapDown(id);
         }
       });
       return this.viewPiece[id].div;
@@ -99840,18 +99838,17 @@ var ViewPanelList = function () {
   }, {
     key: 'makeNewView',
     value: function makeNewView() {
-      var _this7 = this;
+      var _this6 = this;
 
       console.log('ViewPieceList.makeNewView');
-      var newId = (0, _util.randomId)();
-      this.controller.saveCurrentView(newId);
+      this.controller.saveCurrentView();
       this.insertNewViewDiv(newId);
       this.update();
       this.viewPiece[newId].div.css('background-color', 'lightgray');
       this.saveViewsToDataServer(function () {
         console.log('ViewPieceList.makeNewView success');
-        _this7.viewPiece[newId].div.css('background-color', '');
-        (0, _jquery2.default)('#jolecule-views').stop().scrollTo(_this7.viewPiece[newId].div, 1000, { offset: { top: -80 } });
+        _this6.viewPiece[newId].div.css('background-color', '');
+        (0, _jquery2.default)('#jolecule-views').stop().scrollTo(_this6.viewPiece[newId].div, 1000, { offset: { top: -80 } });
       });
     }
   }]);
@@ -99868,7 +99865,7 @@ var ViewPanelList = function () {
 
 var FullPageJolecule = function () {
   function FullPageJolecule(proteinDisplayTag, sequenceDisplayTag, viewsDisplayTag, params) {
-    var _this8 = this;
+    var _this7 = this;
 
     _classCallCheck(this, FullPageJolecule);
 
@@ -99898,7 +99895,7 @@ var FullPageJolecule = function () {
     this.embedJolecule.display.addObserver(this);
     document.oncontextmenu = _lodash2.default.noop;
     document.onkeydown = function (e) {
-      _this8.onkeydown(e);
+      _this7.onkeydown(e);
     };
     this.noData = true;
   }

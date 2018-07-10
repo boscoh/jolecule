@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import v3 from './v3'
-import { getWindowUrl, inArray, getCurrentDateStr } from './util.js'
+import { randomId, getWindowUrl, inArray, getCurrentDateStr } from './util.js'
 import * as glgeom from './glgeom'
 import { SpaceHash } from './pairs.js'
 import Store from './store.js'
@@ -1959,7 +1959,8 @@ class Controller {
     this.soupView.updateSidechain = true
   }
 
-  saveCurrentView (newViewId) {
+  saveCurrentView () {
+    let newViewId = randomId()
     let iNewView = this.soupView.iLastViewSelected + 1
     let newView = this.soupView.currentView.clone()
     newView.text = 'Click edit to change this text.'
@@ -1973,6 +1974,10 @@ class Controller {
     newView.id = newViewId
     newView.selected = this.makeSelectedResidueList()
     this.soupView.insertView(iNewView, newViewId, newView)
+
+    this.soupView.changed = true
+    this.soupView.updateSelection = true
+
     return iNewView
   }
 
