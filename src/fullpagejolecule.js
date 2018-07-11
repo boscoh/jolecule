@@ -7,8 +7,7 @@ import { getWindowUrl, linkButton, randomId, exists } from './util'
 class ViewPanel {
   /**
    * @param {Object} params {
-   *    goto,
-   *    saveChage(txt),
+   *    saveChange(txt),
    *    pick,
    *    view,
    *    deleteView,
@@ -156,22 +155,29 @@ class ViewPanelList {
     this.isEditable = isEditable
     this.dataServer = dataServer
     this.viewPiece = {}
+    this.subheaderDiv = $('<div>')
+      .addClass('jolecule-sub-header')
+      .append('SAVED VIEWS &nbsp;')
     this.div = $(this.divTag)
-      .append(
-        $('<div>')
-          .addClass('jolecule-sub-header')
-          .append('SAVED VIEWS')
-      )
-      .append(
-        $('<div>')
-          .attr('id', 'jolecule-views')
-      )
+      .append(this.subheaderDiv)
+      .append($('<div id="jolecule-views">'))
+    if (this.isEditable) {
+      this.subheaderDiv.append(
+        linkButton('', 'Save', 'jolecule-button', () => { this.saveCurrentView() }))
+    }
   }
 
   saveViewsToDataServer (success) {
     console.log('ViewPanelList.saveViewsToDataServer')
     this.dataServer.save_views(
       this.controller.getViewDicts(), success)
+  }
+
+  saveCurrentView () {
+    this.controller.saveCurrentView()
+    this.dataServer.save_views(
+      this.controller.getViewDicts(),
+      () => { console.log('ViewPanelList.saveCurrentView') })
   }
 
   update () {
@@ -295,7 +301,6 @@ class ViewPanelList {
       pick: () => {
         this.setTargetByViewId(id)
       },
-      goto: view.order + 1,
       swapUp: () => {
         this.swapUp(id)
       },

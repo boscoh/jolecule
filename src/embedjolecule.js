@@ -169,35 +169,12 @@ class EmbedJolecule {
       this.gridControlWidget = new widgets.GridControlWidget(this.display)
     }
 
-    this.playableDiv = $('<div id="playable" style="width: 100%; display: flex; flex-direction: row">')
-
-    this.footerDiv =
-      $('<div class="jolecule-embed-footer" style="display: flex; flex-wrap: wrap; flex-direction: row">')
-          .append(this.playableDiv)
-          .append(
-            $('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">')
-              .append($('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))
-          )
-          .append(
-            $('<div id="zslab" class="jolecule-button" style="flex: 1 0 120px; display: flex; flex-direction: row; justify-content: center;">')
-          )
-          .append(linkButton(
-            '', 'Clear', 'jolecule-button', () => { this.controller.clear() })
-          )
-          .append(
-            $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
-              .append(linkButton(
-                '', 'Sidechains', 'jolecule-button', () => { this.controller.toggleSelectedSidechains() })
-              )
-              .append(linkButton(
-                '', 'Neighbors', 'jolecule-button', () => { this.controller.toggleResidueNeighbors() })
-              )
-              .append($('<div id="ligand">'))
-          )
-
+    this.footerDiv = $('<div class="jolecule-embed-footer" style="display: flex; flex-wrap: wrap; flex-direction: row">')
     this.div.append(this.footerDiv)
 
     if (this.params.isPlayable) {
+      this.playableDiv = $('<div id="playable" style="width: 100%; display: flex; flex-direction: row">')
+      this.footerDiv.append(this.playableDiv)
       this.playableDiv.append(linkButton(
         '', '<', 'jolecule-button',
         () => { this.controller.setTargetToPrevView() }))
@@ -210,30 +187,41 @@ class EmbedJolecule {
         '', '>', 'jolecule-button',
         () => { this.controller.setTargetToNextView() }))
 
-      this.playableDiv.append(linkButton(
-        '', 'Save', 'jolecule-button', () => { this.saveCurrentView() }))
-
       this.playableDiv.append(
         $('<div id="view-text" class="jolecule-button" style="background-color: #BBB; flex: 1 1; box-sizing: content-box; white-space: nowrap; overflow: hidden; text-align: left">'))
       this.viewTextWidget = new widgets.ViewTextWidget(
         this.display, '#view-text')
     }
 
-    this.clippingPlaneWidget = new widgets.ClippingPlaneWidget(
-      this.display, '#zslab')
-
+    this.footerDiv
+      .append(
+        $('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))
     this.residueSelectorWidget = new widgets.ResidueSelectorWidget(
       this.display, '#res-selector')
 
+    this.footerDiv
+      .append(
+        $('<div id="zslab" class="jolecule-button" style="flex: 1 0 120px; display: flex; flex-direction: row; justify-content: center;">'))
+    this.clippingPlaneWidget = new widgets.ClippingPlaneWidget(
+      this.display, '#zslab')
+
+    this.footerDiv
+      .append(
+        $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
+          .append(linkButton(
+            '', 'Clear', 'jolecule-button', () => { this.controller.clear() })
+          )
+          .append(linkButton(
+            '', 'Sidechains', 'jolecule-button', () => { this.controller.toggleSelectedSidechains() })
+          )
+          .append(linkButton(
+            '', 'Neighbors', 'jolecule-button', () => { this.controller.toggleResidueNeighbors() })
+          )
+          .append($('<div id="ligand">'))
+      )
     this.ligandWidget = new widgets.ToggleButtonWidget(
       this.display, '#ligand', 'ligands')
-  }
 
-  saveCurrentView () {
-    this.controller.saveCurrentView()
-    this.dataServer.save_views(
-      this.controller.getViewDicts(),
-      () => { console.log('EmbedJolecule.saveCurrentView success') })
   }
 
   resize () {

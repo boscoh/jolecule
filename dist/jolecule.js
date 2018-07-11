@@ -78332,19 +78332,12 @@ var EmbedJolecule = function () {
         this.gridControlWidget = new _widgets2.default.GridControlWidget(this.display);
       }
 
-      this.playableDiv = (0, _jquery2.default)('<div id="playable" style="width: 100%; display: flex; flex-direction: row">');
-
-      this.footerDiv = (0, _jquery2.default)('<div class="jolecule-embed-footer" style="display: flex; flex-wrap: wrap; flex-direction: row">').append(this.playableDiv).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div id="zslab" class="jolecule-button" style="flex: 1 0 120px; display: flex; flex-direction: row; justify-content: center;">')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
-        _this3.controller.clear();
-      })).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _util.linkButton)('', 'Sidechains', 'jolecule-button', function () {
-        _this3.controller.toggleSelectedSidechains();
-      })).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
-        _this3.controller.toggleResidueNeighbors();
-      })).append((0, _jquery2.default)('<div id="ligand">')));
-
+      this.footerDiv = (0, _jquery2.default)('<div class="jolecule-embed-footer" style="display: flex; flex-wrap: wrap; flex-direction: row">');
       this.div.append(this.footerDiv);
 
       if (this.params.isPlayable) {
+        this.playableDiv = (0, _jquery2.default)('<div id="playable" style="width: 100%; display: flex; flex-direction: row">');
+        this.footerDiv.append(this.playableDiv);
         this.playableDiv.append((0, _util.linkButton)('', '<', 'jolecule-button', function () {
           _this3.controller.setTargetToPrevView();
         }));
@@ -78356,27 +78349,24 @@ var EmbedJolecule = function () {
           _this3.controller.setTargetToNextView();
         }));
 
-        this.playableDiv.append((0, _util.linkButton)('', 'Save', 'jolecule-button', function () {
-          _this3.saveCurrentView();
-        }));
-
         this.playableDiv.append((0, _jquery2.default)('<div id="view-text" class="jolecule-button" style="background-color: #BBB; flex: 1 1; box-sizing: content-box; white-space: nowrap; overflow: hidden; text-align: left">'));
         this.viewTextWidget = new _widgets2.default.ViewTextWidget(this.display, '#view-text');
       }
 
-      this.clippingPlaneWidget = new _widgets2.default.ClippingPlaneWidget(this.display, '#zslab');
-
+      this.footerDiv.append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'));
       this.residueSelectorWidget = new _widgets2.default.ResidueSelectorWidget(this.display, '#res-selector');
 
+      this.footerDiv.append((0, _jquery2.default)('<div id="zslab" class="jolecule-button" style="flex: 1 0 120px; display: flex; flex-direction: row; justify-content: center;">'));
+      this.clippingPlaneWidget = new _widgets2.default.ClippingPlaneWidget(this.display, '#zslab');
+
+      this.footerDiv.append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
+        _this3.controller.clear();
+      })).append((0, _util.linkButton)('', 'Sidechains', 'jolecule-button', function () {
+        _this3.controller.toggleSelectedSidechains();
+      })).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
+        _this3.controller.toggleResidueNeighbors();
+      })).append((0, _jquery2.default)('<div id="ligand">')));
       this.ligandWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#ligand', 'ligands');
-    }
-  }, {
-    key: 'saveCurrentView',
-    value: function saveCurrentView() {
-      this.controller.saveCurrentView();
-      this.dataServer.save_views(this.controller.getViewDicts(), function () {
-        console.log('EmbedJolecule.saveCurrentView success');
-      });
     }
   }, {
     key: 'resize',
@@ -99541,8 +99531,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var ViewPanel = function () {
   /**
    * @param {Object} params {
-   *    goto,
-   *    saveChage(txt),
+   *    saveChange(txt),
    *    pick,
    *    view,
    *    deleteView,
@@ -99664,6 +99653,8 @@ var ViewPanel = function () {
 
 var ViewPanelList = function () {
   function ViewPanelList(divTag, soupDisplay, dataServer, isEditable) {
+    var _this3 = this;
+
     _classCallCheck(this, ViewPanelList);
 
     this.divTag = divTag;
@@ -99673,7 +99664,13 @@ var ViewPanelList = function () {
     this.isEditable = isEditable;
     this.dataServer = dataServer;
     this.viewPiece = {};
-    this.div = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('SAVED VIEWS')).append((0, _jquery2.default)('<div>').attr('id', 'jolecule-views'));
+    this.subheaderDiv = (0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('SAVED VIEWS &nbsp;');
+    this.div = (0, _jquery2.default)(this.divTag).append(this.subheaderDiv).append((0, _jquery2.default)('<div id="jolecule-views">'));
+    if (this.isEditable) {
+      this.subheaderDiv.append((0, _util.linkButton)('', 'Save', 'jolecule-button', function () {
+        _this3.saveCurrentView();
+      }));
+    }
   }
 
   _createClass(ViewPanelList, [{
@@ -99681,6 +99678,14 @@ var ViewPanelList = function () {
     value: function saveViewsToDataServer(success) {
       console.log('ViewPanelList.saveViewsToDataServer');
       this.dataServer.save_views(this.controller.getViewDicts(), success);
+    }
+  }, {
+    key: 'saveCurrentView',
+    value: function saveCurrentView() {
+      this.controller.saveCurrentView();
+      this.dataServer.save_views(this.controller.getViewDicts(), function () {
+        console.log('ViewPanelList.saveCurrentView');
+      });
     }
   }, {
     key: 'update',
@@ -99745,21 +99750,21 @@ var ViewPanelList = function () {
   }, {
     key: 'removeView',
     value: function removeView(id) {
-      var _this3 = this;
+      var _this4 = this;
 
       console.log('ViewPanelList.removeView');
       this.viewPiece[id].div.css('background-color', 'lightgray');
       this.dataServer.delete_protein_view(id, function () {
-        _this3.controller.deleteView(id);
-        _this3.viewPiece[id].div.remove();
-        delete _this3.viewPiece[id];
-        _this3.update();
+        _this4.controller.deleteView(id);
+        _this4.viewPiece[id].div.remove();
+        delete _this4.viewPiece[id];
+        _this4.update();
       });
     }
   }, {
     key: 'swapViews',
     value: function swapViews(i, j) {
-      var _this4 = this;
+      var _this5 = this;
 
       var iId = this.soupView.savedViews[i].id;
       var jId = this.soupView.savedViews[j].id;
@@ -99773,7 +99778,7 @@ var ViewPanelList = function () {
 
       this.saveViewsToDataServer(function () {
         jDiv.insertBefore(iDiv);
-        _this4.update();
+        _this5.update();
         iDiv.css('background-color', '');
         jDiv.css('background-color', '');
       });
@@ -99799,32 +99804,31 @@ var ViewPanelList = function () {
   }, {
     key: 'makeViewDiv',
     value: function makeViewDiv(id) {
-      var _this5 = this;
+      var _this6 = this;
 
       var view = this.soupView.savedViewsByViewId[id];
       this.viewPiece[id] = new ViewPanel({
         view: view,
         isEditable: this.isEditable,
         deleteView: function deleteView() {
-          _this5.removeView(id);
+          _this6.removeView(id);
         },
         saveChange: function saveChange(changedText) {
           view.text = changedText;
-          _this5.viewPiece[id].div.css('background-color', 'lightgray');
-          _this5.saveViewsToDataServer(function () {
-            _this5.viewPiece[id].div.css('background-color', '');
+          _this6.viewPiece[id].div.css('background-color', 'lightgray');
+          _this6.saveViewsToDataServer(function () {
+            _this6.viewPiece[id].div.css('background-color', '');
           });
-          _this5.soupView.changed = true;
+          _this6.soupView.changed = true;
         },
         pick: function pick() {
-          _this5.setTargetByViewId(id);
+          _this6.setTargetByViewId(id);
         },
-        goto: view.order + 1,
         swapUp: function swapUp() {
-          _this5.swapUp(id);
+          _this6.swapUp(id);
         },
         swapDown: function swapDown() {
-          _this5.swapDown(id);
+          _this6.swapDown(id);
         }
       });
       return this.viewPiece[id].div;
@@ -99854,7 +99858,7 @@ var ViewPanelList = function () {
   }, {
     key: 'makeNewView',
     value: function makeNewView() {
-      var _this6 = this;
+      var _this7 = this;
 
       console.log('ViewPanelList.makeNewView');
       this.controller.saveCurrentView();
@@ -99863,8 +99867,8 @@ var ViewPanelList = function () {
       this.viewPiece[newId].div.css('background-color', 'lightgray');
       this.saveViewsToDataServer(function () {
         console.log('ViewPieceList.makeNewView success');
-        _this6.viewPiece[newId].div.css('background-color', '');
-        (0, _jquery2.default)('#jolecule-views').stop().scrollTo(_this6.viewPiece[newId].div, 1000, { offset: { top: -80 } });
+        _this7.viewPiece[newId].div.css('background-color', '');
+        (0, _jquery2.default)('#jolecule-views').stop().scrollTo(_this7.viewPiece[newId].div, 1000, { offset: { top: -80 } });
       });
     }
   }]);
@@ -99881,7 +99885,7 @@ var ViewPanelList = function () {
 
 var FullPageJolecule = function () {
   function FullPageJolecule(proteinDisplayTag, sequenceDisplayTag, viewsDisplayTag, params) {
-    var _this7 = this;
+    var _this8 = this;
 
     _classCallCheck(this, FullPageJolecule);
 
@@ -99911,7 +99915,7 @@ var FullPageJolecule = function () {
     this.embedJolecule.display.addObserver(this);
     document.oncontextmenu = _lodash2.default.noop;
     document.onkeydown = function (e) {
-      _this7.onkeydown(e);
+      _this8.onkeydown(e);
     };
     this.noData = true;
   }
