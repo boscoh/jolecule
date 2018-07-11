@@ -199,21 +199,34 @@ class EmbedJolecule {
 
     if (this.params.isPlayable) {
       this.playableDiv.append(linkButton(
-        '', '<', 'jolecule-button', () => { this.controller.setTargetToPrevView() }))
+        '', '<', 'jolecule-button',
+        () => { this.controller.setTargetToPrevView() }))
+
       this.playableDiv.append($('<div id="loop">'))
-      this.loopToggleWidget = new widgets.TogglePlayButtonWidget(this.display, '#loop')
+      this.loopToggleWidget = new widgets.TogglePlayButtonWidget(
+        this.display, '#loop')
+
       this.playableDiv.append(linkButton(
         '', '>', 'jolecule-button',
         () => { this.controller.setTargetToNextView() }))
+
       this.playableDiv.append(linkButton(
         '', 'Save', 'jolecule-button', () => { this.saveCurrentView() }))
+
       this.playableDiv.append(
         $('<div id="view-text" class="jolecule-button" style="background-color: #BBB; flex: 1 1; box-sizing: content-box; white-space: nowrap; overflow: hidden; text-align: left">'))
-      this.viewTextWidget = new widgets.ViewTextWidget(this.display, '#view-text')
+      this.viewTextWidget = new widgets.ViewTextWidget(
+        this.display, '#view-text')
     }
-    this.clippingPlaneWidget = new widgets.ClippingPlaneWidget(this.display, '#zslab')
-    this.residueSelectorWidget = new widgets.ResidueSelectorWidget(this.display, '#res-selector')
-    this.ligandWidget = new widgets.ToggleButtonWidget(this.display, '#ligand', 'ligands')
+
+    this.clippingPlaneWidget = new widgets.ClippingPlaneWidget(
+      this.display, '#zslab')
+
+    this.residueSelectorWidget = new widgets.ResidueSelectorWidget(
+      this.display, '#res-selector')
+
+    this.ligandWidget = new widgets.ToggleButtonWidget(
+      this.display, '#ligand', 'ligands')
   }
 
   saveCurrentView () {

@@ -78348,19 +78348,26 @@ var EmbedJolecule = function () {
         this.playableDiv.append((0, _util.linkButton)('', '<', 'jolecule-button', function () {
           _this3.controller.setTargetToPrevView();
         }));
+
         this.playableDiv.append((0, _jquery2.default)('<div id="loop">'));
         this.loopToggleWidget = new _widgets2.default.TogglePlayButtonWidget(this.display, '#loop');
+
         this.playableDiv.append((0, _util.linkButton)('', '>', 'jolecule-button', function () {
           _this3.controller.setTargetToNextView();
         }));
+
         this.playableDiv.append((0, _util.linkButton)('', 'Save', 'jolecule-button', function () {
           _this3.saveCurrentView();
         }));
+
         this.playableDiv.append((0, _jquery2.default)('<div id="view-text" class="jolecule-button" style="background-color: #BBB; flex: 1 1; box-sizing: content-box; white-space: nowrap; overflow: hidden; text-align: left">'));
         this.viewTextWidget = new _widgets2.default.ViewTextWidget(this.display, '#view-text');
       }
+
       this.clippingPlaneWidget = new _widgets2.default.ClippingPlaneWidget(this.display, '#zslab');
+
       this.residueSelectorWidget = new _widgets2.default.ResidueSelectorWidget(this.display, '#res-selector');
+
       this.ligandWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#ligand', 'ligands');
     }
   }, {
@@ -99672,7 +99679,7 @@ var ViewPanelList = function () {
   _createClass(ViewPanelList, [{
     key: 'saveViewsToDataServer',
     value: function saveViewsToDataServer(success) {
-      console.log('ViewPieceList.saveViewsToDataServer');
+      console.log('ViewPanelList.saveViewsToDataServer');
       this.dataServer.save_views(this.controller.getViewDicts(), success);
     }
   }, {
@@ -99740,7 +99747,7 @@ var ViewPanelList = function () {
     value: function removeView(id) {
       var _this3 = this;
 
-      console.log('ViewPieceList.removeView');
+      console.log('ViewPanelList.removeView');
       this.viewPiece[id].div.css('background-color', 'lightgray');
       this.dataServer.delete_protein_view(id, function () {
         _this3.controller.deleteView(id);
@@ -99798,10 +99805,10 @@ var ViewPanelList = function () {
       this.viewPiece[id] = new ViewPanel({
         view: view,
         isEditable: this.isEditable,
-        delete_view: function delete_view() {
+        deleteView: function deleteView() {
           _this5.removeView(id);
         },
-        save_change: function save_change(changedText) {
+        saveChange: function saveChange(changedText) {
           view.text = changedText;
           _this5.viewPiece[id].div.css('background-color', 'lightgray');
           _this5.saveViewsToDataServer(function () {
@@ -99849,7 +99856,7 @@ var ViewPanelList = function () {
     value: function makeNewView() {
       var _this6 = this;
 
-      console.log('ViewPieceList.makeNewView');
+      console.log('ViewPanelList.makeNewView');
       this.controller.saveCurrentView();
       this.insertNewViewDiv(newId);
       this.update();

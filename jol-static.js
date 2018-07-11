@@ -30,7 +30,7 @@ var result = {
     loadViewDicts(getViewDicts());
   },
   save_views: function(views, success) { success() },
-  delete_protein_view: function(viewId, success) { sucess() }, };
+  delete_protein_view: function(viewId, success) { success() }, };
   
 function getPdbLines() {
     return pdbLines.join('\\n');

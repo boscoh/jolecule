@@ -169,7 +169,7 @@ class ViewPanelList {
   }
 
   saveViewsToDataServer (success) {
-    console.log('ViewPieceList.saveViewsToDataServer')
+    console.log('ViewPanelList.saveViewsToDataServer')
     this.dataServer.save_views(
       this.controller.getViewDicts(), success)
   }
@@ -231,7 +231,7 @@ class ViewPanelList {
   }
 
   removeView (id) {
-    console.log('ViewPieceList.removeView')
+    console.log('ViewPanelList.removeView')
     this.viewPiece[id].div.css('background-color', 'lightgray')
     this.dataServer.delete_protein_view(id, () => {
       this.controller.deleteView(id)
@@ -281,10 +281,10 @@ class ViewPanelList {
     this.viewPiece[id] = new ViewPanel({
       view: view,
       isEditable: this.isEditable,
-      delete_view: () => {
+      deleteView: () => {
         this.removeView(id)
       },
-      save_change: (changedText) => {
+      saveChange: (changedText) => {
         view.text = changedText
         this.viewPiece[id].div.css('background-color', 'lightgray')
         this.saveViewsToDataServer(() => {
@@ -327,7 +327,7 @@ class ViewPanelList {
   }
 
   makeNewView () {
-    console.log('ViewPieceList.makeNewView')
+    console.log('ViewPanelList.makeNewView')
     this.controller.saveCurrentView()
     this.insertNewViewDiv(newId)
     this.update()
