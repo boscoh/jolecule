@@ -1975,6 +1975,8 @@ class Controller {
     newView.selected = this.makeSelectedResidueList()
     this.soupView.insertView(iNewView, newViewId, newView)
 
+    this.setTargetViewByViewId(newViewId)
+
     this.soupView.changed = true
     this.soupView.updateSelection = true
 
