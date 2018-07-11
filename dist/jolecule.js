@@ -78003,6 +78003,7 @@ function loop() {
  * window space to lock one single copy of loop
  */
 function registerGlobalAnimationLoop(widget) {
+  console.log('registerGlobalAnimationLoop window', window);
   if (typeof window.globalWidgets === 'undefined') {
     window.globalWidgets = [];
     loop();
@@ -83833,7 +83834,7 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
 
       // back control
       var widthBackText = this.textWidth('back', font);
-      this.fillRect(xBack - 6 - widthBackText, 0, widthBackText + 6, this.height(), '#333');
+      this.fillRect(xBack - 6 - widthBackText, 0, widthBackText + 6, this.height(), '#666');
       this.text('back', xBack - 3 - widthBackText, yMid, font, '#AAA', 'left');
 
       // filled track to front
@@ -83841,7 +83842,7 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
 
       // front control
       var widthFrontText = this.textWidth('front', font);
-      this.fillRect(xFront, 0, widthFrontText + 6, this.height(), '#333');
+      this.fillRect(xFront, 0, widthFrontText + 6, this.height(), '#666');
       this.text('front', xFront + 3, yMid, font, '#AAA', 'left');
 
       // halfway marker
@@ -92889,6 +92890,8 @@ var Display = function (_WebglWidget) {
           }
           this.soupView.soup.grid.changed = false;
         }
+      } else {
+        this.soupView.soup.grid.changed = false;
       }
 
       if (this.soupView.updateSidechain) {
@@ -92982,6 +92985,7 @@ var Display = function (_WebglWidget) {
         } else {
           var iRes = this.soup.getAtomProxy(this.iAtomHover).iRes;
           this.controller.selectResidue(iRes);
+          console.log('Display.doubleclick', this.iAtomHover);
           this.setTargetViewByIAtom(this.iAtomHover);
         }
         this.isDraggingCentralAtom = false;

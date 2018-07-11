@@ -43,6 +43,7 @@ function loop () {
  * window space to lock one single copy of loop
  */
 function registerGlobalAnimationLoop (widget) {
+  console.log('registerGlobalAnimationLoop window', window)
   if (typeof window.globalWidgets === 'undefined') {
     window.globalWidgets = []
     loop()

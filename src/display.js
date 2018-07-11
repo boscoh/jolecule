@@ -1257,6 +1257,8 @@ class Display extends WebglWidget {
         }
         this.soupView.soup.grid.changed = false
       }
+    } else {
+      this.soupView.soup.grid.changed = false
     }
 
     if (this.soupView.updateSidechain) {
@@ -1349,6 +1351,7 @@ class Display extends WebglWidget {
       } else {
         let iRes = this.soup.getAtomProxy(this.iAtomHover).iRes
         this.controller.selectResidue(iRes)
+        console.log('Display.doubleclick', this.iAtomHover)
         this.setTargetViewByIAtom(this.iAtomHover)
       }
       this.isDraggingCentralAtom = false

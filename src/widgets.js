@@ -1086,7 +1086,7 @@ class ClippingPlaneWidget extends CanvasWidget {
 
     // back control
     let widthBackText = this.textWidth('back', font)
-    this.fillRect(xBack - 6 - widthBackText, 0, widthBackText + 6, this.height(), '#333')
+    this.fillRect(xBack - 6 - widthBackText, 0, widthBackText + 6, this.height(), '#666')
     this.text('back', xBack - 3 - widthBackText, yMid, font, '#AAA', 'left')
 
     // filled track to front
@@ -1094,7 +1094,7 @@ class ClippingPlaneWidget extends CanvasWidget {
 
     // front control
     let widthFrontText = this.textWidth('front', font)
-    this.fillRect(xFront, 0, widthFrontText + 6, this.height(), '#333')
+    this.fillRect(xFront, 0, widthFrontText + 6, this.height(), '#666')
     this.text('front', xFront + 3, yMid, font, '#AAA', 'left')
 
     // halfway marker

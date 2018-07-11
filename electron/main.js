@@ -68,7 +68,10 @@ document.title = "{{{title}}}";
 let j = jolecule.initEmbedJolecule({
   divTag: '#jolecule', 
   isGrid: false, 
-  backgroundColor: 0x000000
+  backgroundColor: 0x000000,
+  isPlayable: true,
+  maxUpdateStep: 30,
+  msPerStep: 17
 });
 j.asyncAddDataServer(dataServer);
 
