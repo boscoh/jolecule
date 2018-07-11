@@ -78275,7 +78275,7 @@ var EmbedJolecule = function () {
                 this.nDataServer += 1;
 
                 if (!(this.nDataServer === 1)) {
-                  _context3.next = 15;
+                  _context3.next = 16;
                   break;
                 }
 
@@ -78286,8 +78286,9 @@ var EmbedJolecule = function () {
                 dataServer.get_views(function (viewDicts) {
                   _this2.loadViewDicts(viewDicts);
                 });
+                this.dataServer = dataServer;
 
-              case 15:
+              case 16:
 
                 this.controller.zoomOut();
 
@@ -78296,7 +78297,7 @@ var EmbedJolecule = function () {
 
                 this.isProcessing.flag = false;
 
-              case 19:
+              case 20:
               case 'end':
                 return _context3.stop();
             }
@@ -78333,13 +78334,13 @@ var EmbedJolecule = function () {
 
       this.playableDiv = (0, _jquery2.default)('<div id="playable" style="width: 100%; display: flex; flex-direction: row">');
 
-      this.footerDiv = (0, _jquery2.default)('<div class="jolecule-embed-footer" style="width: 100%; display: flex; flex-direction: column">').append((0, _jquery2.default)('<div style="display: flex; flex-wrap: wrap; flex-direction: row">').append(this.playableDiv).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div id="zslab" class="jolecule-button" style="flex: 1 0 120px; display: flex; flex-direction: row; justify-content: center;">')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
+      this.footerDiv = (0, _jquery2.default)('<div class="jolecule-embed-footer" style="display: flex; flex-wrap: wrap; flex-direction: row">').append(this.playableDiv).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">').append((0, _jquery2.default)('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))).append((0, _jquery2.default)('<div id="zslab" class="jolecule-button" style="flex: 1 0 120px; display: flex; flex-direction: row; justify-content: center;">')).append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
         _this3.controller.clear();
       })).append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _util.linkButton)('', 'Sidechains', 'jolecule-button', function () {
         _this3.controller.toggleSelectedSidechains();
       })).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
         _this3.controller.toggleResidueNeighbors();
-      })).append((0, _jquery2.default)('<div id="ligand">'))));
+      })).append((0, _jquery2.default)('<div id="ligand">')));
 
       this.div.append(this.footerDiv);
 
@@ -78353,7 +78354,7 @@ var EmbedJolecule = function () {
           _this3.controller.setTargetToNextView();
         }));
         this.playableDiv.append((0, _util.linkButton)('', 'Save', 'jolecule-button', function () {
-          _this3.controller.saveCurrentView();
+          _this3.saveCurrentView();
         }));
         this.playableDiv.append((0, _jquery2.default)('<div id="view-text" class="jolecule-button" style="background-color: #BBB; flex: 1 1; box-sizing: content-box; white-space: nowrap; overflow: hidden; text-align: left">'));
         this.viewTextWidget = new _widgets2.default.ViewTextWidget(this.display, '#view-text');
@@ -78361,6 +78362,14 @@ var EmbedJolecule = function () {
       this.clippingPlaneWidget = new _widgets2.default.ClippingPlaneWidget(this.display, '#zslab');
       this.residueSelectorWidget = new _widgets2.default.ResidueSelectorWidget(this.display, '#res-selector');
       this.ligandWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#ligand', 'ligands');
+    }
+  }, {
+    key: 'saveCurrentView',
+    value: function saveCurrentView() {
+      this.controller.saveCurrentView();
+      this.dataServer.save_views(this.controller.getViewDicts(), function () {
+        console.log('EmbedJolecule.saveCurrentView success');
+      });
     }
   }, {
     key: 'resize',
@@ -79048,7 +79057,7 @@ var Soup = function () {
 
       if (!this.title) {
         var title = parsetTitleFromPdbText(pdbText);
-        this.title = this.structureId + ': ' + title;
+        this.title = '[' + this.structureId.toUpperCase() + '] ' + title;
       }
 
       var pdbLines = pdbText.split(/\r?\n/);
@@ -84350,8 +84359,10 @@ var ViewTextWidget = function () {
   _createClass(ViewTextWidget, [{
     key: 'update',
     value: function update() {
-      var text = this.soupView.currentView.order + 1 + '/' + this.soupView.savedViews.length + ': ' + this.soupView.currentView.text;
-      this.div.text(text);
+      var i = this.soupView.currentView.order + 1;
+      var n = this.soupView.savedViews.length;
+      var text = this.soupView.currentView.text;
+      this.div.text(i + '/' + n + ': ' + text);
     }
   }]);
 
@@ -99596,7 +99607,7 @@ var ViewPanel = function () {
         _this2.startEdit();
       });
 
-      this.showTextDiv = (0, _jquery2.default)('<div>').addClass('jolecule-button').css('height', 'auto').css('background-color', '#BBB').css('text-align', 'left').on('click touch', function (e) {
+      this.showTextDiv = (0, _jquery2.default)('<div>').addClass('jolecule-button').css('height', 'auto').css('padding', '0').css('background-color', '#BBB').css('text-align', 'left').on('click touch', function (e) {
         e.preventDefault();
         _this2.params.pick();
       });
@@ -99653,7 +99664,7 @@ var ViewPanelList = function () {
     this.isEditable = isEditable;
     this.dataServer = dataServer;
     this.viewPiece = {};
-    this.topDiv = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('SAVED VIEWS')).append((0, _jquery2.default)('<div>').attr('id', 'jolecule-views'));
+    this.div = (0, _jquery2.default)(this.divTag).append((0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('SAVED VIEWS')).append((0, _jquery2.default)('<div>').attr('id', 'jolecule-views'));
   }
 
   _createClass(ViewPanelList, [{
@@ -99671,7 +99682,9 @@ var ViewPanelList = function () {
           delete this.viewPiece[id];
         }
       }
-      for (var i = 0; i < this.soupView.savedViews.length; i++) {
+
+      var nView = this.soupView.savedViews.length;
+      for (var i = 0; i < nView; i++) {
         var view = this.soupView.savedViews[i];
         var _id = view.id;
 
@@ -99692,7 +99705,7 @@ var ViewPanelList = function () {
 
         var viewPiece = this.viewPiece[_id];
         if (view.text !== viewPiece.showTextDiv.html()) {
-          viewPiece.showTextDiv.html(viewPiece.params.goto + ": " + view.text);
+          viewPiece.showTextDiv.html(view.order + 1 + "/" + nView + ": " + view.text);
         }
 
         var a = viewPiece.div.find('a').eq(0);
@@ -99700,30 +99713,24 @@ var ViewPanelList = function () {
       }
     }
   }, {
-    key: 'redrawSelectedViewId',
-    value: function redrawSelectedViewId(id) {
-      this.update();
-      (0, _jquery2.default)('#jolecule-views').stop().scrollTo(this.viewPiece[id].div, 1000, { offset: { top: -80 } });
-    }
-  }, {
     key: 'setTargetByViewId',
     value: function setTargetByViewId(id) {
       this.controller.setTargetViewByViewId(id);
-      this.redrawSelectedViewId(id);
+      this.update();
       window.location.hash = id;
     }
   }, {
     key: 'gotoPrevView',
     value: function gotoPrevView() {
       var id = this.controller.setTargetToPrevView();
-      this.redrawSelectedViewId(id);
+      this.update();
       window.location.hash = id;
     }
   }, {
     key: 'gotoNextView',
     value: function gotoNextView() {
       var id = this.controller.setTargetToNextView();
-      this.redrawSelectedViewId(id);
+      this.update();
       window.location.hash = id;
     }
   }, {

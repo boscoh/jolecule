@@ -1507,11 +1507,13 @@ class ViewTextWidget {
   }
 
   update () {
-    let text = `${this.soupView.currentView.order+1}/${this.soupView.savedViews.length}: ` +
-      this.soupView.currentView.text
-    this.div.text(text)
+    let i = this.soupView.currentView.order + 1
+    let n = this.soupView.savedViews.length
+    let text = this.soupView.currentView.text
+    this.div.text(`${i}/${n}: ${text}`)
   }
 }
+
 export default {
   LineElement,
   PopupText,

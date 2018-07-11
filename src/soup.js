@@ -506,7 +506,7 @@ class Soup {
 
     if (!this.title) {
       let title = parsetTitleFromPdbText(pdbText)
-      this.title = this.structureId + ': ' + title
+      this.title = `[${this.structureId.toUpperCase()}] ` + title
     }
 
     const pdbLines = pdbText.split(/\r?\n/)

@@ -84,6 +84,7 @@ class ViewPanel {
     this.showTextDiv = $('<div>')
       .addClass('jolecule-button')
       .css('height', 'auto')
+      .css('padding', '0')
       .css('background-color', '#BBB')
       .css('text-align', 'left')
       .on('click touch',
@@ -155,7 +156,7 @@ class ViewPanelList {
     this.isEditable = isEditable
     this.dataServer = dataServer
     this.viewPiece = {}
-    this.topDiv = $(this.divTag)
+    this.div = $(this.divTag)
       .append(
         $('<div>')
           .addClass('jolecule-sub-header')
@@ -180,7 +181,9 @@ class ViewPanelList {
         delete this.viewPiece[id]
       }
     }
-    for (let i = 0; i < this.soupView.savedViews.length; i++) {
+
+    let nView = this.soupView.savedViews.length
+    for (let i = 0; i < nView; i++) {
       let view = this.soupView.savedViews[i]
       let id = view.id
 
@@ -201,7 +204,7 @@ class ViewPanelList {
 
       let viewPiece = this.viewPiece[id]
       if (view.text !== viewPiece.showTextDiv.html()) {
-        viewPiece.showTextDiv.html(viewPiece.params.goto + ": " + view.text)
+        viewPiece.showTextDiv.html((view.order + 1) + "/" + nView + ": " + view.text)
       }
 
       let a = viewPiece.div.find('a').eq(0)
@@ -209,32 +212,21 @@ class ViewPanelList {
     }
   }
 
-  redrawSelectedViewId (id) {
-    this.update()
-    $('#jolecule-views')
-      .stop()
-      .scrollTo(
-        this.viewPiece[id].div,
-        1000,
-        {offset: {top: -80}}
-      )
-  }
-
   setTargetByViewId (id) {
     this.controller.setTargetViewByViewId(id)
-    this.redrawSelectedViewId(id)
+    this.update()
     window.location.hash = id
   }
 
   gotoPrevView () {
     let id = this.controller.setTargetToPrevView()
-    this.redrawSelectedViewId(id)
+    this.update()
     window.location.hash = id
   }
 
   gotoNextView () {
     let id = this.controller.setTargetToNextView()
-    this.redrawSelectedViewId(id)
+    this.update()
     window.location.hash = id
   }
 

@@ -121,16 +121,43 @@ body {
   padding-left: 10px;
   padding-right: 30px;
 }
-
+.jolecule-view {
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: row;
+  -webkit-flex-direction: row;
+  padding: 7px;
+  box-sizing: border-box;
+  margin: 0px 5px 5px 5px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+.jolecule-view,
+.jolecule-view-text {
+  font-size: 12px;
+  font-family: Helvetica, sans-serif;
+  letter-spacing: 0.1em;
+  line-height: 1.5em;
+  background-color: #BBB;
+  color: #333;
+  margin-bottom: 5px;
+}
+.jolecule-view-text.textarea {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  font-family: Helvetica, sans-serif;
+  /*color: #333;*/
+  /*background-color: #888;*/
+}
 .jolecule-sub-header {
   padding-top: 10px;
-  padding-left: 15px;
-  padding-bottom: 15px;
+  padding-left: 20px;
+  padding-bottom: 5px;
   text-align: left;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: bold;
-  letter-spacing: 0.3em;
-  color: #555;
+  letter-spacing: 0.2em;
+  color: #999;
 }
 .jolecule-selected-box {
   border: 2px solid #A88; 

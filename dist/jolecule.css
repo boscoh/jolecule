@@ -115,35 +115,7 @@ a.jolecule-large-button:active {
     letter-spacing: 0.05em;
     line-height: 1em;
 }
-.jolecule-view {
-    display: flex;
-    display: -webkit-flex;
-    flex-direction: row;
-    -webkit-flex-direction: row;
-    padding: 7px;
-    box-sizing: border-box;
-    margin: 0px 5px 5px 5px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-}
-.jolecule-view,
-.jolecule-view-text {
-    font-size: 12px;
-    font-family: Helvetica, sans-serif;
-    letter-spacing: 0.05em;
-    line-height: 1.5em;
-    background-color: #BBB;
-    color: #333;
-}
-textarea.jolecule-view-text,
-.jolecule-edit-textarea {
-    font-size: 12px;
-    letter-spacing: 0.05em;
-    font-family: Helvetica, sans-serif;
-    color: #333;
-    background-color: #888;
-    margin-bottom: 7px;
-}
+
 .jolecule-loading-message {
     z-index: 5000;
     background-color: rgba(180, 180, 180, 0.9);

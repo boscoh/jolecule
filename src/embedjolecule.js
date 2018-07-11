@@ -128,6 +128,7 @@ class EmbedJolecule {
     if (this.nDataServer === 1) {
       await this.display.asyncSetMesssage('Loading views...')
       dataServer.get_views(viewDicts => { this.loadViewDicts(viewDicts) })
+      this.dataServer = dataServer
     }
 
     this.controller.zoomOut()
@@ -171,8 +172,7 @@ class EmbedJolecule {
     this.playableDiv = $('<div id="playable" style="width: 100%; display: flex; flex-direction: row">')
 
     this.footerDiv =
-      $('<div class="jolecule-embed-footer" style="width: 100%; display: flex; flex-direction: column">')
-        .append($('<div style="display: flex; flex-wrap: wrap; flex-direction: row">')
+      $('<div class="jolecule-embed-footer" style="display: flex; flex-wrap: wrap; flex-direction: row">')
           .append(this.playableDiv)
           .append(
             $('<div style="flex: 0; display: flex; flex-direction: row; align-items: center;">')
@@ -193,24 +193,20 @@ class EmbedJolecule {
                 '', 'Neighbors', 'jolecule-button', () => { this.controller.toggleResidueNeighbors() })
               )
               .append($('<div id="ligand">'))
-          ))
+          )
 
     this.div.append(this.footerDiv)
 
     if (this.params.isPlayable) {
       this.playableDiv.append(linkButton(
-        '', '<', 'jolecule-button', () => { this.controller.setTargetToPrevView() })
-      )
+        '', '<', 'jolecule-button', () => { this.controller.setTargetToPrevView() }))
       this.playableDiv.append($('<div id="loop">'))
       this.loopToggleWidget = new widgets.TogglePlayButtonWidget(this.display, '#loop')
       this.playableDiv.append(linkButton(
         '', '>', 'jolecule-button',
-        () => { this.controller.setTargetToNextView() })
-      )
+        () => { this.controller.setTargetToNextView() }))
       this.playableDiv.append(linkButton(
-        '', 'Save', 'jolecule-button',
-        () => { this.controller.saveCurrentView() })
-      )
+        '', 'Save', 'jolecule-button', () => { this.saveCurrentView() }))
       this.playableDiv.append(
         $('<div id="view-text" class="jolecule-button" style="background-color: #BBB; flex: 1 1; box-sizing: content-box; white-space: nowrap; overflow: hidden; text-align: left">'))
       this.viewTextWidget = new widgets.ViewTextWidget(this.display, '#view-text')
@@ -218,6 +214,13 @@ class EmbedJolecule {
     this.clippingPlaneWidget = new widgets.ClippingPlaneWidget(this.display, '#zslab')
     this.residueSelectorWidget = new widgets.ResidueSelectorWidget(this.display, '#res-selector')
     this.ligandWidget = new widgets.ToggleButtonWidget(this.display, '#ligand', 'ligands')
+  }
+
+  saveCurrentView () {
+    this.controller.saveCurrentView()
+    this.dataServer.save_views(
+      this.controller.getViewDicts(),
+      () => { console.log('EmbedJolecule.saveCurrentView success') })
   }
 
   resize () {
