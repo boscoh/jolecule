@@ -19,7 +19,7 @@ let viewsJson
 let loaded = {}
 let windows = {}
 
-const localServerMustache = `
+const localEmbedServerMustache = `
 const {ipcRenderer} = require('electron');
 const jolecule = require('../dist/jolecule');
 
@@ -73,6 +73,66 @@ let j = jolecule.initEmbedJolecule({
   maxUpdateStep: 30,
   msPerStep: 17
 });
+j.asyncAddDataServer(dataServer);
+
+`
+
+const localServerMustache = `
+const {ipcRenderer} = require('electron');
+const jolecule = require('../dist/jolecule');
+
+var dataServer = {
+  get_protein_data: function(loadProteinData) {
+    loadProteinData({
+      pdb_id: "{{pdbId}}",
+      pdb_text: getPdbLines(),
+    });
+  },
+  get_views: function(loadViewDicts) {
+    console.log('get_views');
+    ipcRenderer.send('get-view-dicts');
+    ipcRenderer.on('get-view-dicts', (event, viewDicts) => {
+      loadViewDicts(viewDicts);
+    })
+  },
+  save_views: function(views, success) {
+    console.log('save_views');
+    ipcRenderer.send('save-view-dicts', views);
+    ipcRenderer.on('save-view-dicts', (event) => {
+      console.log('successfully saved');
+    })
+  },
+  delete_protein_view: function(viewId, success) {
+    console.log('delete_protein_view');
+    ipcRenderer.send('delete-protein-view', viewId);
+    ipcRenderer.on('delete-protein-view', (event) => {
+      console.log('successfully deleted');
+    })
+  },
+};
+  
+function getPdbLines() {
+  var pdbLines = [
+    {{#pdbLines}} 
+      "{{{.}}}", 
+    {{/pdbLines}}
+  ];
+  var lines = pdbLines.join('\\n');
+  return lines;
+}
+
+document.title = "{{{title}}}";   
+
+let j = jolecule.initFullPageJolecule(
+  '#jolecule-protein-container',
+  '#jolecule-sequence-container',
+  '#jolecule-views-container',
+  { 
+    isEditable: true,
+    isGrid: true,
+    isPlayable: true,
+    backgroundColor: 0xCCCCCC
+  });
 j.asyncAddDataServer(dataServer);
 
 `

@@ -99854,6 +99854,10 @@ var ViewPanelList = function () {
         (0, _jquery2.default)('#jolecule-views').append(div);
       } else {
         var j = this.soupView.iLastViewSelected - 1;
+        if (j < 0) {
+          j = _lodash2.default.keys(this.viewPiece).length - 2;
+        }
+        console.log('ViewPanelList.insertNewViewDiv', this.soupView.iLastViewSelected, j, this.soupView.savedViews[j]);
         var jId = this.soupView.savedViews[j].id;
         var jDiv = this.viewPiece[jId].div;
         div.insertAfter(jDiv);

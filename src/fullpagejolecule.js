@@ -325,6 +325,10 @@ class ViewPanelList {
       $('#jolecule-views').append(div)
     } else {
       let j = this.soupView.iLastViewSelected - 1
+      if (j < 0) {
+        j = _.keys(this.viewPiece).length - 2
+      }
+      console.log('ViewPanelList.insertNewViewDiv', this.soupView.iLastViewSelected, j, this.soupView.savedViews[j])
       let jId = this.soupView.savedViews[j].id
       let jDiv = this.viewPiece[jId].div
       div.insertAfter(jDiv)
