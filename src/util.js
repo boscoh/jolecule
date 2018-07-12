@@ -107,22 +107,22 @@ function textEntryDialog (parentDiv, label, callback) {
     label = ''
   }
 
-  window.keyboard_lock = true
+  window.keyboardLock = true
 
   function cleanup () {
     dialog.remove()
-    window.keyboard_lock = false
+    window.keyboardLock = false
   }
 
   function accept () {
     callback(textarea.val())
     cleanup()
-    window.keyboard_lock = false
+    window.keyboardLock = false
   }
 
   function discard () {
     cleanup()
-    window.keyboard_lock = false
+    window.keyboardLock = false
   }
 
   let saveButton = linkButton(

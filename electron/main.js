@@ -15,7 +15,6 @@ const _ = require('lodash')
 
 // Global reference of the window to avoid garbage collection
 let mainWindow
-let viewsJson
 let loaded = {}
 let windows = {}
 
@@ -25,30 +24,33 @@ const jolecule = require('../dist/jolecule');
 
 var dataServer = {
   get_protein_data: function(loadProteinData) {
+    console.log('dataServer.get_protein_data');
     loadProteinData({
       pdb_id: "{{pdbId}}",
       pdb_text: getPdbLines(),
     });
   },
   get_views: function(loadViewDicts) {
-    console.log('get_views');
+    console.log('dataServer.get_views');
     ipcRenderer.send('get-view-dicts');
     ipcRenderer.on('get-view-dicts', (event, viewDicts) => {
       loadViewDicts(viewDicts);
     })
   },
   save_views: function(views, success) {
-    console.log('save_views');
+    console.log('dataServer.save_views');
     ipcRenderer.send('save-view-dicts', views);
     ipcRenderer.on('save-view-dicts', (event) => {
       console.log('successfully saved');
+      success()
     })
   },
   delete_protein_view: function(viewId, success) {
-    console.log('delete_protein_view');
+    console.log('dataServer.delete_protein_view');
     ipcRenderer.send('delete-protein-view', viewId);
     ipcRenderer.on('delete-protein-view', (event) => {
       console.log('successfully deleted');
+      success()
     })
   },
 };
@@ -83,30 +85,31 @@ const jolecule = require('../dist/jolecule');
 
 var dataServer = {
   get_protein_data: function(loadProteinData) {
+    console.log('dataServer.get_protein_data');
     loadProteinData({
       pdb_id: "{{pdbId}}",
       pdb_text: getPdbLines(),
     });
   },
   get_views: function(loadViewDicts) {
-    console.log('get_views');
     ipcRenderer.send('get-view-dicts');
     ipcRenderer.on('get-view-dicts', (event, viewDicts) => {
+      console.log('dataServer.get_views', viewDicts);
       loadViewDicts(viewDicts);
     })
   },
   save_views: function(views, success) {
-    console.log('save_views');
     ipcRenderer.send('save-view-dicts', views);
     ipcRenderer.on('save-view-dicts', (event) => {
-      console.log('successfully saved');
+      console.log('dataServer.save_views success');
+      success()      
     })
   },
   delete_protein_view: function(viewId, success) {
-    console.log('delete_protein_view');
     ipcRenderer.send('delete-protein-view', viewId);
     ipcRenderer.on('delete-protein-view', (event) => {
-      console.log('successfully deleted');
+      console.log('dataServer.delete_protein_view success');
+      success()
     })
   },
 };
@@ -150,10 +153,14 @@ function createWindow (pdb, title) {
     localServerMustache, {pdbId, pdbLines, title})
   fs.writeFileSync(rendererJs, dataJsText)
 
-  console.log('createWindow', pdb, title)
-
   // Create the browser window.
-  windows[pdbId] = new BrowserWindow({width: 800, height: 600})
+  windows[pdbId] = new BrowserWindow({
+    width: 1000,
+    height: 800,
+    webPreferences: {
+      devTools: true
+    }
+  })
 
   // and load the index.html of the app.
   windows[pdbId].loadURL(url.format({
@@ -176,14 +183,13 @@ function createWindow (pdb, title) {
 }
 
 function openPdbWindow (pdb) {
+  console.log('openPdbWindow pdb:', pdb)
   let base = pdb.replace('.pdb', '')
   let pdbId = path.basename(pdb).replace('.pdb', '')
   let title = `jolecule - ${pdbId}`
-
   createWindow(pdb, title)
-
   loaded.viewsJson = base + '.views.json'
-  console.log('openPdbWindow', loaded.viewsJson)
+  console.log('openPdbWindow views:', loaded.viewsJson)
 
 }
 
@@ -246,7 +252,7 @@ function init () {
   }
 
   ipcMain.on('get-view-dicts', (event, arg) => {
-    console.log('get-view-dicts')
+    console.log('ipcMain:get-view-dicts')
     let views = {}
     if (fs.existsSync(loaded.viewsJson)) {
       let text = fs.readFileSync(loaded.viewsJson, 'utf8')
@@ -256,30 +262,23 @@ function init () {
   })
 
   ipcMain.on('save-view-dicts', (event, views) => {
-    console.log('save-view-dicts')  // prints "ping"
+    console.log('ipcMain:save-view-dicts')
     fs.writeFileSync(loaded.viewsJson, JSON.stringify(views, null, 2))
     event.sender.send('save-view-dicts', 'success')
   })
 
-  ipcMain.on('delete-soup-view', (event, viewId) => {
-    console.log('delete-soup-view')  // prints "ping"
+  ipcMain.on('delete-protein-view', (event, viewId) => {
+    console.log('ipcMain:delete-protein-view', viewId)
     if (fs.existsSync(loaded.viewsJson)) {
       let text = fs.readFileSync(loaded.viewsJson, 'utf8')
-
-      views = JSON.parse(text)
-      console.log('before', JSON.stringify(views, null, 2))
-      _.unset(views, viewId)
-      console.log('after', JSON.stringify(views, null, 2))
+      let views = JSON.parse(text)
+      _.remove(views, v => v.view_id === viewId)
       fs.writeFileSync(loaded.viewsJson, JSON.stringify(views, null, 2))
-      event.sender.send('delete-soup-view', 'success')
-      return
+      event.sender.send('delete-protein-view', 'success')
     }
-    fs.writeFileSync(loaded.viewsJson, JSON.stringify(arg, null, 2))
-    event.sender.send('delete-soup-view', 'success')
   })
 
-
-  console.log('init', process.argv, remain)
+  console.log('init', process.argv[0])
   openPdbWindow(pdb)
 }
 

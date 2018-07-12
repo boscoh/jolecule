@@ -27,9 +27,8 @@ class ViewPanel {
     let changedText = this.editTextArea.val()
     this.editDiv.hide()
     this.showDiv.show()
-    this.showTextDiv.html(changedText)
     this.params.saveChange(changedText)
-    window.keyboard_lock = false
+    window.keyboardLock = false
   }
 
   startEdit () {
@@ -39,13 +38,13 @@ class ViewPanel {
     this.showDiv.hide()
     let textarea = this.editTextArea.find('textarea')
     setTimeout(function () { textarea.focus() }, 100)
-    window.keyboard_lock = true
+    window.keyboardLock = true
   }
 
   discardChange () {
     this.editDiv.hide()
     this.showDiv.show()
-    window.keyboard_lock = false
+    window.keyboardLock = false
   }
 
   makeEditDiv () {
@@ -169,15 +168,7 @@ class ViewPanelList {
 
   saveViewsToDataServer (success) {
     console.log('ViewPanelList.saveViewsToDataServer')
-    this.dataServer.save_views(
-      this.controller.getViewDicts(), success)
-  }
-
-  saveCurrentView () {
-    this.controller.saveCurrentView()
-    this.dataServer.save_views(
-      this.controller.getViewDicts(),
-      () => { console.log('ViewPanelList.saveCurrentView') })
+    this.dataServer.save_views(this.controller.getViewDicts(), success)
   }
 
   update () {
@@ -241,8 +232,6 @@ class ViewPanelList {
     this.viewPiece[id].div.css('background-color', 'lightgray')
     this.dataServer.delete_protein_view(id, () => {
       this.controller.deleteView(id)
-      this.viewPiece[id].div.remove()
-      delete this.viewPiece[id]
       this.update()
     })
   }
@@ -295,8 +284,9 @@ class ViewPanelList {
         this.viewPiece[id].div.css('background-color', 'lightgray')
         this.saveViewsToDataServer(() => {
           this.viewPiece[id].div.css('background-color', '')
+          this.soupView.changed = true
+          this.update()
         })
-        this.soupView.changed = true
       },
       pick: () => {
         this.setTargetByViewId(id)
@@ -321,32 +311,32 @@ class ViewPanelList {
 
   insertNewViewDiv (newId) {
     let div = this.makeViewDiv(newId)
-    if (this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1) {
+    if ((this.soupView.iLastViewSelected === 0) ||
+        (this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1)) {
+      console.log('ViewPanelList.insertNewViewDiv append', this.soupView.iLastViewSelected)
       $('#jolecule-views').append(div)
     } else {
       let j = this.soupView.iLastViewSelected - 1
-      if (j < 0) {
-        j = _.keys(this.viewPiece).length - 2
-      }
-      console.log('ViewPanelList.insertNewViewDiv', this.soupView.iLastViewSelected, j, this.soupView.savedViews[j])
+      console.log('ViewPanelList.insertNewViewDiv insert', this.soupView.iLastViewSelected, j, this.soupView.savedViews[j])
       let jId = this.soupView.savedViews[j].id
       let jDiv = this.viewPiece[jId].div
       div.insertAfter(jDiv)
     }
   }
 
-  makeNewView () {
-    console.log('ViewPanelList.makeNewView')
-    this.controller.saveCurrentView()
+  saveCurrentView () {
+    console.log('ViewPanelList.saveCurrentView')
+    let newId = this.controller.saveCurrentView()
     this.insertNewViewDiv(newId)
     this.update()
-    this.viewPiece[newId].div.css('background-color', 'lightgray')
+    let div = this.viewPiece[newId].div
+    div.css('background-color', 'lightgray')
     this.saveViewsToDataServer(() => {
-      console.log('ViewPieceList.makeNewView success')
-      this.viewPiece[newId].div.css('background-color', '')
+      console.log('ViewPieceList.saveCurrentView success')
+      div.css('background-color', '')
       $('#jolecule-views')
         .stop()
-        .scrollTo(this.viewPiece[newId].div, 1000, {offset: {top: -80}})
+        .scrollTo(div, 1000, {offset: {top: -80}})
     })
   }
 }
@@ -439,10 +429,10 @@ class FullPageJolecule {
   }
 
   onkeydown (event) {
-    if (!window.keyboard_lock) {
+    if (!window.keyboardLock) {
       let c = String.fromCharCode(event.keyCode).toUpperCase()
       if (c === 'V') {
-        this.viewPanelList.makeNewView()
+        this.viewPanelList.saveCurrentView()
         return
       } else if ((c === 'K') || (event.keyCode === 37)) {
         this.gotoPrevResidue()

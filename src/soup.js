@@ -1980,7 +1980,7 @@ class Controller {
     this.soupView.changed = true
     this.soupView.updateSelection = true
 
-    return iNewView
+    return newViewId
   }
 
   deleteView (viewId) {

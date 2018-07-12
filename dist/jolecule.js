@@ -75167,22 +75167,22 @@ function textEntryDialog(parentDiv, label, callback) {
     label = '';
   }
 
-  window.keyboard_lock = true;
+  window.keyboardLock = true;
 
   function cleanup() {
     dialog.remove();
-    window.keyboard_lock = false;
+    window.keyboardLock = false;
   }
 
   function accept() {
     callback(textarea.val());
     cleanup();
-    window.keyboard_lock = false;
+    window.keyboardLock = false;
   }
 
   function discard() {
     cleanup();
-    window.keyboard_lock = false;
+    window.keyboardLock = false;
   }
 
   var saveButton = linkButton('okay', 'okay', 'jolecule-small-button', accept);
@@ -80971,7 +80971,7 @@ var Controller = function () {
       this.soupView.changed = true;
       this.soupView.updateSelection = true;
 
-      return iNewView;
+      return newViewId;
     }
   }, {
     key: 'deleteView',
@@ -99559,9 +99559,8 @@ var ViewPanel = function () {
       var changedText = this.editTextArea.val();
       this.editDiv.hide();
       this.showDiv.show();
-      this.showTextDiv.html(changedText);
       this.params.saveChange(changedText);
-      window.keyboard_lock = false;
+      window.keyboardLock = false;
     }
   }, {
     key: 'startEdit',
@@ -99574,14 +99573,14 @@ var ViewPanel = function () {
       setTimeout(function () {
         textarea.focus();
       }, 100);
-      window.keyboard_lock = true;
+      window.keyboardLock = true;
     }
   }, {
     key: 'discardChange',
     value: function discardChange() {
       this.editDiv.hide();
       this.showDiv.show();
-      window.keyboard_lock = false;
+      window.keyboardLock = false;
     }
   }, {
     key: 'makeEditDiv',
@@ -99684,14 +99683,6 @@ var ViewPanelList = function () {
       this.dataServer.save_views(this.controller.getViewDicts(), success);
     }
   }, {
-    key: 'saveCurrentView',
-    value: function saveCurrentView() {
-      this.controller.saveCurrentView();
-      this.dataServer.save_views(this.controller.getViewDicts(), function () {
-        console.log('ViewPanelList.saveCurrentView');
-      });
-    }
-  }, {
     key: 'update',
     value: function update() {
       for (var id in this.viewPiece) {
@@ -99760,8 +99751,6 @@ var ViewPanelList = function () {
       this.viewPiece[id].div.css('background-color', 'lightgray');
       this.dataServer.delete_protein_view(id, function () {
         _this4.controller.deleteView(id);
-        _this4.viewPiece[id].div.remove();
-        delete _this4.viewPiece[id];
         _this4.update();
       });
     }
@@ -99822,8 +99811,9 @@ var ViewPanelList = function () {
           _this6.viewPiece[id].div.css('background-color', 'lightgray');
           _this6.saveViewsToDataServer(function () {
             _this6.viewPiece[id].div.css('background-color', '');
+            _this6.soupView.changed = true;
+            _this6.update();
           });
-          _this6.soupView.changed = true;
         },
         pick: function pick() {
           _this6.setTargetByViewId(id);
@@ -99850,33 +99840,30 @@ var ViewPanelList = function () {
     key: 'insertNewViewDiv',
     value: function insertNewViewDiv(newId) {
       var div = this.makeViewDiv(newId);
-      if (this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1) {
+      if (this.soupView.iLastViewSelected === 0 || this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1) {
+        console.log('ViewPanelList.insertNewViewDiv append', this.soupView.iLastViewSelected);
         (0, _jquery2.default)('#jolecule-views').append(div);
       } else {
         var j = this.soupView.iLastViewSelected - 1;
-        if (j < 0) {
-          j = _lodash2.default.keys(this.viewPiece).length - 2;
-        }
-        console.log('ViewPanelList.insertNewViewDiv', this.soupView.iLastViewSelected, j, this.soupView.savedViews[j]);
+        console.log('ViewPanelList.insertNewViewDiv insert', this.soupView.iLastViewSelected, j, this.soupView.savedViews[j]);
         var jId = this.soupView.savedViews[j].id;
         var jDiv = this.viewPiece[jId].div;
         div.insertAfter(jDiv);
       }
     }
   }, {
-    key: 'makeNewView',
-    value: function makeNewView() {
-      var _this7 = this;
-
-      console.log('ViewPanelList.makeNewView');
-      this.controller.saveCurrentView();
+    key: 'saveCurrentView',
+    value: function saveCurrentView() {
+      console.log('ViewPanelList.saveCurrentView');
+      var newId = this.controller.saveCurrentView();
       this.insertNewViewDiv(newId);
       this.update();
-      this.viewPiece[newId].div.css('background-color', 'lightgray');
+      var div = this.viewPiece[newId].div;
+      div.css('background-color', 'lightgray');
       this.saveViewsToDataServer(function () {
-        console.log('ViewPieceList.makeNewView success');
-        _this7.viewPiece[newId].div.css('background-color', '');
-        (0, _jquery2.default)('#jolecule-views').stop().scrollTo(_this7.viewPiece[newId].div, 1000, { offset: { top: -80 } });
+        console.log('ViewPieceList.saveCurrentView success');
+        div.css('background-color', '');
+        (0, _jquery2.default)('#jolecule-views').stop().scrollTo(div, 1000, { offset: { top: -80 } });
       });
     }
   }]);
@@ -99893,7 +99880,7 @@ var ViewPanelList = function () {
 
 var FullPageJolecule = function () {
   function FullPageJolecule(proteinDisplayTag, sequenceDisplayTag, viewsDisplayTag, params) {
-    var _this8 = this;
+    var _this7 = this;
 
     _classCallCheck(this, FullPageJolecule);
 
@@ -99923,7 +99910,7 @@ var FullPageJolecule = function () {
     this.embedJolecule.display.addObserver(this);
     document.oncontextmenu = _lodash2.default.noop;
     document.onkeydown = function (e) {
-      _this8.onkeydown(e);
+      _this7.onkeydown(e);
     };
     this.noData = true;
   }
@@ -100001,10 +99988,10 @@ var FullPageJolecule = function () {
   }, {
     key: 'onkeydown',
     value: function onkeydown(event) {
-      if (!window.keyboard_lock) {
+      if (!window.keyboardLock) {
         var c = String.fromCharCode(event.keyCode).toUpperCase();
         if (c === 'V') {
-          this.viewPanelList.makeNewView();
+          this.viewPanelList.saveCurrentView();
           return;
         } else if (c === 'K' || event.keyCode === 37) {
           this.gotoPrevResidue();
