@@ -81004,22 +81004,10 @@ var Controller = function () {
       this.sortViewsByOrder();
     }
   }, {
-    key: 'setBackboneOption',
-    value: function setBackboneOption(option) {
-      this.soupView.currentView.show.backboneAtom = false;
-      this.soupView.currentView.show.trace = false;
-      this.soupView.currentView.show.ribbon = false;
-      this.soupView.currentView.show[option] = true;
-      this.soupView.changed = true;
-    }
-  }, {
     key: 'setShowOption',
     value: function setShowOption(option, bool) {
       console.log('Controller.setShowOption', option, bool);
       this.soupView.currentView.show[option] = bool;
-      if (option === 'sidechain') {
-        this.soupView.updateSidechain = true;
-      }
       this.soupView.changed = true;
     }
   }, {
@@ -91070,9 +91058,7 @@ var WebglWidget = function () {
       bind('mouseup', function (e) {
         return _this.mouseup(e);
       });
-      bind('mouseout', function (e) {
-        return _this.mouseout(e);
-      });
+      // bind('mouseleave', e => this.mouseout(e))
       bind('mousewheel', function (e) {
         return _this.mousewheel(e);
       });
@@ -92878,7 +92864,7 @@ var Display = function (_WebglWidget) {
       }
 
       this.setMeshVisible('ribbons', show.ribbon);
-      this.setMeshVisible('arrows', !show.backboneAtom);
+      this.setMeshVisible('arrows', show.ribbon);
       this.setMeshVisible('water', show.water);
       this.setMeshVisible('backbone', show.backboneAtom);
       this.setMeshVisible('ligands', show.ligands);
@@ -92998,6 +92984,7 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'click',
     value: function click(event) {
+      console.log('Display.click');
       if (!_lodash2.default.isUndefined(this.iResClick) && this.iResClick !== null) {
         if (!event.metaKey && !event.shiftKey) {
           this.controller.selectResidue(this.iResClick);
@@ -93097,6 +93084,7 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'mouseout',
     value: function mouseout(event) {
+      console.log('Display.mouseout');
       this.hover.hide();
       this.pointerPressed = false;
     }
@@ -99879,13 +99867,12 @@ var ViewPanelList = function () {
 
 
 var FullPageJolecule = function () {
-  function FullPageJolecule(proteinDisplayTag, sequenceDisplayTag, viewsDisplayTag, params) {
+  function FullPageJolecule(proteinDisplayTag, viewsDisplayTag, params) {
     var _this7 = this;
 
     _classCallCheck(this, FullPageJolecule);
 
     this.viewsDisplayTag = viewsDisplayTag;
-    this.sequenceDisplayTag = sequenceDisplayTag;
     this.params = {
       divTag: proteinDisplayTag,
       backgroundColor: 0xCCCCCC,
@@ -100002,11 +99989,9 @@ var FullPageJolecule = function () {
         } else if (c === ' ' || event.keyCode === 40) {
           this.viewPanelList.gotoNextView();
         } else if (c === 'B') {
-          if (this.soupView.currentView.show.backboneAtom) {
-            this.controller.setBackboneOption('ribbon');
-          } else if (this.soupView.currentView.show.ribbon) {
-            this.controller.setBackboneOption('backboneAtom');
-          }
+          this.controller.toggleShowOption('backboneAtom');
+        } else if (c === 'R') {
+          this.controller.toggleShowOption('ribbon');
         } else if (c === 'L') {
           this.controller.toggleShowOption('ligands');
         } else if (c === 'W') {

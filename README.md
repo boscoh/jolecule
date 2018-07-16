@@ -54,7 +54,7 @@ To create a static web page with a PDB converted to a javascript module:
        ./jol-static.js your.pdb
     
 This will create a directory `your-jol` and a completely contained
-web-page is available at `your-jol/index.html`.
+web-page is available at `your-jol/pdb-index.html`.
 
 If there also exists a `your.views.json`, these will also be built
 statically in the webpage
@@ -163,13 +163,13 @@ local version that can zipped and stuffed into an email attachment.
 
 An example is given in `examples/1mbo-jol`. It contians:
 
-- index.html - generic html that looks for the following files
+- pdb-index.html - generic html that looks for the following files
 - require.js - the module loader
 - jolecule.js - the bundled jolecule UMD module
 - jolecule.css - common stylings
 - data-server.js - specific data for your structure.
 
-This is the loading code in `index.html`:
+This is the loading code in `pdb-index.html`:
 
     <script src="require.js"></script>
     <script>

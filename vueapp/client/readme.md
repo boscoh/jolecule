@@ -9,10 +9,10 @@
 - a basic user management page
 - persistent user sessions
 - routers setup
-- es6 babel compilation 
-    - async/await - they're great! 
+- es6 babel compilation
+    - async/await - they're great!
 - eslint standard coding style
-- in client handle failure to rpc properly - handle failed rpc and 
+- in client handle failure to rpc properly - handle failed rpc and
   turn into errors
 
 ## Build Setup
@@ -26,7 +26,7 @@ with minification:
 
     npm run build
 
-This can then be opened as a static file in `dist/index.html`
+This can then be opened as a static file in `dist/pdb-index.html`
 
 During development, a hot-reloading version can be run on port 8030:
 

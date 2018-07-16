@@ -2010,20 +2010,9 @@ class Controller {
     this.sortViewsByOrder()
   }
 
-  setBackboneOption (option) {
-    this.soupView.currentView.show.backboneAtom = false
-    this.soupView.currentView.show.trace = false
-    this.soupView.currentView.show.ribbon = false
-    this.soupView.currentView.show[option] = true
-    this.soupView.changed = true
-  }
-
   setShowOption (option, bool) {
     console.log('Controller.setShowOption', option, bool)
     this.soupView.currentView.show[option] = bool
-    if (option === 'sidechain') {
-      this.soupView.updateSidechain = true
-    }
     this.soupView.changed = true
   }
 

@@ -116,7 +116,7 @@ class WebglWidget {
     bind('mousedown', e => this.mousedown(e))
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
-    bind('mouseout', e => this.mouseout(e))
+    // bind('mouseleave', e => this.mouseout(e))
     bind('mousewheel', e => this.mousewheel(e))
     // bind('dblclick', e => this.doubleclick(e))
     bind('DOMMouseScroll', e => this.mousewheel(e))
@@ -1245,7 +1245,7 @@ class Display extends WebglWidget {
     }
 
     this.setMeshVisible('ribbons', show.ribbon)
-    this.setMeshVisible('arrows', !show.backboneAtom)
+    this.setMeshVisible('arrows', show.ribbon)
     this.setMeshVisible('water', show.water)
     this.setMeshVisible('backbone', show.backboneAtom)
     this.setMeshVisible('ligands', show.ligands)
@@ -1363,6 +1363,7 @@ class Display extends WebglWidget {
   }
 
   click (event) {
+    console.log('Display.click')
     if (!_.isUndefined(this.iResClick) && (this.iResClick !== null)) {
       if (!event.metaKey && !event.shiftKey) {
         this.controller.selectResidue(this.iResClick)
@@ -1460,6 +1461,7 @@ class Display extends WebglWidget {
   }
 
   mouseout (event) {
+    console.log('Display.mouseout')
     this.hover.hide()
     this.pointerPressed = false
   }

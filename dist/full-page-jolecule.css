@@ -52,7 +52,7 @@ body {
 }
 #jolecule-body {
   overflow: hidden;
-  -webkit-flex: 1 1 100%;
+  -webkit-flex: 1 1;
   display: flex;
   display: -webkit-flex;
   flex-direction: row;

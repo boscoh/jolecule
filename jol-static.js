@@ -123,7 +123,6 @@ const fullPageIndexHtmlMustache = `
             window.user = '{{user_nickname}}';
             var j = jolecule.initFullPageJolecule(
               '#jolecule-protein-container',
-              '#jolecule-sequence-container',
               '#jolecule-views-container',
               { 
                 isEditable: true,

@@ -349,11 +349,9 @@ class ViewPanelList {
 class FullPageJolecule {
   constructor (
     proteinDisplayTag,
-    sequenceDisplayTag,
     viewsDisplayTag,
     params) {
     this.viewsDisplayTag = viewsDisplayTag
-    this.sequenceDisplayTag = sequenceDisplayTag
     this.params = {
       divTag: proteinDisplayTag,
       backgroundColor: 0xCCCCCC,
@@ -370,10 +368,10 @@ class FullPageJolecule {
       msPerStep: 17
 
     }
-    console.log('FullPageJolecule.constructor params', params)
     if (exists(params)) {
       this.params = _.assign(this.params, params)
     }
+    console.log('FullPageJolecule.constructor params', this.params)
     this.embedJolecule = new EmbedJolecule(this.params)
     this.embedJolecule.display.addObserver(this)
     document.oncontextmenu = _.noop
@@ -443,11 +441,9 @@ class FullPageJolecule {
       } else if (c === ' ' || event.keyCode === 40) {
         this.viewPanelList.gotoNextView()
       } else if (c === 'B') {
-        if (this.soupView.currentView.show.backboneAtom) {
-          this.controller.setBackboneOption('ribbon')
-        } else if (this.soupView.currentView.show.ribbon) {
-          this.controller.setBackboneOption('backboneAtom')
-        }
+        this.controller.toggleShowOption('backboneAtom')
+      } else if (c === 'R') {
+        this.controller.toggleShowOption('ribbon')
       } else if (c === 'L') {
         this.controller.toggleShowOption('ligands')
       } else if (c === 'W') {
