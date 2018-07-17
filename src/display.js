@@ -1032,6 +1032,8 @@ class Display extends WebglWidget {
   deleteStructure (iStructure) {
     this.controller.deleteStructure(iStructure)
     this.observers.rebuilt.dispatch()
+    glgeom.clearObject3D(this.displayScene)
+    glgeom.clearObject3D(this.pickingScene)
     this.buildScene()
   }
 

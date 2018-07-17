@@ -634,7 +634,7 @@ class SequenceWidget extends CanvasWidget {
     let iChain = -1
     let iStructure = 0
     let nRes = this.soup.getResidueCount()
-    let nPadChar = parseInt(0.02 * nRes / this.soup.structureIds.length)
+    let nPadChar = _.min(0, parseInt(0.02 * nRes / this.soup.structureIds.length))
     for (let iRes of _.range(nRes)) {
       residue.iRes = iRes
 
@@ -712,6 +712,26 @@ class SequenceWidget extends CanvasWidget {
   }
 
   updateWithoutCheckingCurrent () {
+    let yTopStructure = this.offsetY - 2
+    let yStructureName = this.offsetY + 7
+    let heightStructure = this.yTopSequence - yTopStructure + 2
+    let yMidStructure = yTopStructure + heightStructure / 2 + 2
+    let heightSequence = this.yBottom - this.yTopSequence
+
+    // draw background
+    this.fillRect(
+      0, 0, this.width(), this.height(), this.backColor)
+
+    // draw sequence bar background
+    this.fillRect(
+      0, this.yTopSequence, this.width(), heightSequence, this.selectColor)
+
+    // draw border around sequence bar
+    this.line(
+      0, this.yTopSequence, this.width(), this.yTopSequence, this.borderColor)
+    this.line(
+      0, this.yBottom, this.width(), this.yBottom, this.borderColor)
+
     if (!util.exists(this.soupView)) {
       return
     }
@@ -733,26 +753,6 @@ class SequenceWidget extends CanvasWidget {
     }
     this.iCharDisplayEnd = this.iCharDisplayStart + this.nCharDisplay
 
-    let yTopStructure = this.offsetY - 2
-    let yStructureName = this.offsetY + 7
-    let heightStructure = this.yTopSequence - yTopStructure + 2
-    let yMidStructure = yTopStructure + heightStructure / 2 + 2
-    let heightSequence = this.yBottom - this.yTopSequence
-
-    // draw background
-    this.fillRect(
-      0, 0, this.width(), this.height(), this.backColor)
-
-    // draw sequence bar background
-    this.fillRect(
-      0, this.yTopSequence, this.width(), heightSequence, this.selectColor)
-
-    // draw border around sequence bar
-    this.line(
-      0, this.yTopSequence, this.width(), this.yTopSequence, this.borderColor)
-    this.line(
-      0, this.yBottom, this.width(), this.yBottom, this.borderColor)
-
     let x1 = this.iToX(this.iCharDisplayStart)
     let x2 = this.iToX(this.iCharDisplayEnd)
 
@@ -771,7 +771,7 @@ class SequenceWidget extends CanvasWidget {
     color = this.getColorStyle(0)
     let endColor
     let iStart = 0
-    let iEnd = 0
+    let iEnd = 1
     while (iEnd < this.nChar) {
       iEnd += 1
       endColor = this.getColorStyle(iEnd)
@@ -906,7 +906,7 @@ class SequenceWidget extends CanvasWidget {
       this.hover.hide()
       let iChar = this.xToI(this.pointerX)
       let charEntry = this.charEntries[iChar]
-      if ('iRes' in charEntry) {
+      if (!_.isUndefined(charEntry) && ('iRes' in charEntry)) {
         let res = this.soup.getResidueProxy(charEntry.iRes)
         this.hover.html(res.resId + ':' + res.resType)
         this.hover.move(this.iToX(iChar), 25)
@@ -915,7 +915,7 @@ class SequenceWidget extends CanvasWidget {
       this.hover.hide()
       let iChar = this.xToIChar(this.pointerX)
       let charEntry = this.charEntries[iChar]
-      if ('iRes' in charEntry) {
+      if (!_.isUndefined(charEntry) && ('iRes' in charEntry)) {
         let res = this.soup.getResidueProxy(charEntry.iRes)
         this.hover.html(res.resId + ':' + res.resType)
         let x = this.iCharToX(iChar) + this.charWidth / 2
@@ -926,8 +926,11 @@ class SequenceWidget extends CanvasWidget {
       // mouse event in structure bar
       this.setIChar(this.xToI(this.pointerX))
       this.updateWithoutCheckingCurrent()
-      if (this.charEntries[this.iChar].c !== '') {
-        this.controller.setTargetViewByIAtom(this.getCurrIAtom())
+      let charEntry = this.charEntries[this.iChar]
+      if (!_.isUndefined(charEntry)) {
+        if (charEntry.c !== '') {
+          this.controller.setTargetViewByIAtom(this.getCurrIAtom())
+        }
       }
     } else if (this.mousePressed === 'bottom') {
       let iNewChar = this.xToIChar(this.pointerX)
@@ -969,15 +972,18 @@ class SequenceWidget extends CanvasWidget {
   click (event) {
     console.log('SequenceWidget.click', this.pressSection, this.iChar)
     if (this.pressSection === 'bottom') {
-      let iRes = this.charEntries[this.iCharPressed].iRes
-      if (!event.metaKey && !event.shiftKey) {
-        this.controller.selectResidue(iRes)
-      } else if (event.shiftKey) {
-        this.controller.selectAdditionalRangeToResidue(iRes)
-      } else {
-        this.controller.selectAdditionalResidue(iRes)
+      let charEntry = this.charEntries[this.iCharPressed]
+      if (!_.isUndefined(charEntry)) {
+        let iRes = charEntry.iRes
+        if (!event.metaKey && !event.shiftKey) {
+          this.controller.selectResidue(iRes)
+        } else if (event.shiftKey) {
+          this.controller.selectAdditionalRangeToResidue(iRes)
+        } else {
+          this.controller.selectAdditionalResidue(iRes)
+        }
+        this.updateWithoutCheckingCurrent()
       }
-      this.updateWithoutCheckingCurrent()
     }
   }
 

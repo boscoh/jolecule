@@ -25,14 +25,6 @@
           <md-layout
             md-row
             md-vertical-align="center">
-            <div>
-              <md-button
-                md-flex=true
-                class="md-raised"
-                @click="toggleWater()">
-                water
-              </md-button>
-            </div>
             <md-input-container
               style="width: 100px">
               <label>

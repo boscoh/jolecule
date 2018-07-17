@@ -99889,10 +99889,10 @@ var FullPageJolecule = function () {
       msPerStep: 17
 
     };
-    console.log('FullPageJolecule.constructor params', params);
     if ((0, _util.exists)(params)) {
       this.params = _lodash2.default.assign(this.params, params);
     }
+    console.log('FullPageJolecule.constructor params', this.params);
     this.embedJolecule = new _embedjolecule.EmbedJolecule(this.params);
     this.embedJolecule.display.addObserver(this);
     document.oncontextmenu = _lodash2.default.noop;

@@ -1601,7 +1601,6 @@ class SoupView {
     this.soup = soup
 
     this.changed = true
-    this.updateWidgets = false
     this.updateSidechain = false
     this.updateSelection = false
     this.startTargetAfterRender = false
