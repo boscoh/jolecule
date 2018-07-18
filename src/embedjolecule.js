@@ -47,8 +47,6 @@ class EmbedJolecule {
 
     this.controller = new Controller(this.soupView)
 
-    this.nDataServer = 0
-
     this.createDivs()
 
     let resizeFn = () => this.resize()
@@ -57,55 +55,7 @@ class EmbedJolecule {
     resizeFn()
   };
 
-  async asyncLoadProteinData (proteinData) {
-    let pdbText = proteinData.pdb_text
-    let pdbId = proteinData.pdb_id
-
-    if (proteinData.pdb_text.length === 0) {
-      await this.display.asyncSetMesssage('Error: no soup data')
-      return
-    }
-
-    await this.display.asyncSetMesssage(`Parsing '${pdbId}'`)
-    this.soup.parsePdbData(pdbText, pdbId)
-
-    if (this.soup.parsingError) {
-      let err = this.soup.parsingError
-      await this.display.asyncSetMesssage(`Error parsing soup: ${err}`)
-      return
-    }
-
-    this.soup.assignResidueProperties()
-    this.soup.calcMaxLength()
-
-    let nAtom = this.soup.getAtomCount()
-    let nRes = this.soup.getResidueCount()
-    await this.display.asyncSetMesssage(
-      `Calculating bonds for ${nAtom} atoms, ${nRes} residues...`)
-
-    this.soup.calcBondsStrategic()
-
-    let nBond = this.soup.getBondCount()
-    await this.display.asyncSetMesssage(`Calculated ${nBond} bonds.`)
-    await this.display.asyncSetMesssage(`Assigning secondary structure...`)
-
-    this.soup.findSecondaryStructure()
-
-    this.soupView.changed = true
-
-    if (this.params.bCutoff !== null) {
-      this.soup.grid.bCutoff = this.params.bCutoff
-    }
-
-    this.display.buildScene()
-    this.resize()
-  }
-
   loadViewDicts (viewDicts) {
-    this.controller.loadViewsFromViewDicts(viewDicts)
-    if (this.params.viewId in this.soupView.savedViewsByViewId) {
-      this.controller.setTargetViewByViewId(this.params.viewId)
-    }
   }
 
   async asyncAddDataServer (dataServer) {
@@ -115,23 +65,34 @@ class EmbedJolecule {
 
     this.isProcessing.flag = true
 
+    console.log('EmbedJolecule.asyncAddDataServer', this.soupView.currentView.cameraParams)
+
     await this.display.asyncSetMesssage('Loading structure...')
     await new Promise(resolve => {
-      dataServer.get_protein_data(async (proteinD) => {
-        await this.asyncLoadProteinData(proteinD)
+      dataServer.get_protein_data(async (proteinData) => {
+        await this.controller.asyncLoadProteinData(
+          proteinData, m => this.display.asyncSetMesssage(m))
+        if (this.params.bCutoff !== null) {
+          this.soup.grid.bCutoff = this.params.bCutoff
+        }
+        this.display.buildScene()
+        this.resize()
         resolve()
       })
     })
 
-    this.nDataServer += 1
+    console.log('EmbedJolecule.asyncAddDataServer', this.soupView.currentView.cameraParams)
+    await this.display.asyncSetMesssage('Loading views...')
+    dataServer.get_views(viewDicts => {
+      this.controller.loadViewsFromViewDicts(viewDicts)
+      if (this.params.viewId in this.soupView.savedViewsByViewId) {
+        this.controller.setTargetViewByViewId(this.params.viewId)
+      }
+    })
 
-    if (this.nDataServer === 1) {
-      await this.display.asyncSetMesssage('Loading views...')
-      dataServer.get_views(viewDicts => { this.loadViewDicts(viewDicts) })
-      this.dataServer = dataServer
-    }
-
+    console.log('EmbedJolecule.asyncAddDataServer', this.soupView.currentView.cameraParams)
     this.controller.zoomOut()
+    console.log('EmbedJolecule.asyncAddDataServer', this.soupView.currentView.cameraParams)
 
     this.display.observers.rebuilt.dispatch()
     this.display.cleanupMessage()

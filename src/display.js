@@ -8,7 +8,7 @@ import * as util from './util'
 import * as glgeom from './glgeom'
 import widgets from './widgets'
 import * as data from './data'
-import { interpolateCameras } from './soup'
+import { interpolateCameras, View } from './soup'
 import { registerGlobalAnimationLoop } from './animation'
 
 
@@ -63,6 +63,11 @@ class WebglWidget {
     this.displayScene.background = new THREE.Color(this.backgroundColor)
     this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
 
+    // this.representations is a dictionary that holds representations
+    // that transform this.soup into meshes that will be inserted into
+    // this.displayMeshes and this.pickingMeshes at draw time
+    this.representations = {}
+
     // this.displayMeshes is a dictionary that holds THREE.Object3D
     // collections of meshes. This allows collections to be collectively
     // turned on and off. The meshes will be regenerated into this.displayScene
@@ -71,18 +76,11 @@ class WebglWidget {
     // as the default. This assumes vertexColors are used, allowing multiple
     // colors within the same geometry.
     this.displayMeshes = {}
-    this.displayMaterial = new THREE.MeshPhongMaterial(
-      {vertexColors: THREE.VertexColors})
+    this.pickingMeshes = {}
 
     this.pickingScene = new THREE.Scene()
     this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height())
     this.pickingTexture.texture.minFilter = THREE.LinearFilter
-
-    this.pickingMeshes = {}
-    this.pickingMaterial = new THREE.MeshBasicMaterial(
-      {vertexColors: THREE.VertexColors})
-
-    this.representations = {}
 
     this.lights = []
     this.buildLights()
@@ -213,9 +211,14 @@ class WebglWidget {
 
     this.displayScene.fog.near = this.cameraParams.zoom
     this.displayScene.fog.far = far
+
+    console.log('Display.setCameraParams', this.cameraParams, this.soupView.currentView)
+
   }
 
   buildLights () {
+    this.lights.length = 0
+
     let directedLight = new THREE.DirectionalLight(0xFFFFFF)
     directedLight.position.copy(
       v3.create(0.2, 0.2, -100).normalize())
@@ -272,23 +275,6 @@ class WebglWidget {
    * this.pickingMeshes
    **********************************************************
    */
-
-  /**
-   * Clears/creates a mesh entry in the mesh collection
-   * @param meshName - the name for a mesh collection
-   */
-  createOrClearMesh (meshName) {
-    if (!(meshName in this.displayMeshes)) {
-      this.displayMeshes[meshName] = new THREE.Object3D()
-    } else {
-      glgeom.clearObject3D(this.displayMeshes[meshName])
-    }
-    if (!(meshName in this.pickingMeshes)) {
-      this.pickingMeshes[meshName] = new THREE.Object3D()
-    } else {
-      glgeom.clearObject3D(this.pickingMeshes[meshName])
-    }
-  }
 
   /**
    * Rebuild soupView from meshes in this.displayMeshes &
@@ -393,12 +379,8 @@ class WebglWidget {
  *******************************************************
  */
 
-let pickingMaterial = new THREE.MeshBasicMaterial(
-  {vertexColors: THREE.VertexColors})
-let displayMaterial = new THREE.MeshPhongMaterial(
-  {vertexColors: THREE.VertexColors})
-let atomRadius = 0.35
-let gridAtomRadius = 1.0
+let pickingMaterial = new THREE.MeshBasicMaterial({vertexColors: THREE.VertexColors})
+let displayMaterial = new THREE.MeshPhongMaterial({vertexColors: THREE.VertexColors})
 
 function getIndexColor (i) {
   return new THREE.Color().setHex(i + 1)
@@ -978,10 +960,6 @@ class Display extends WebglWidget {
     }
   }
 
-  calculateTracesForRibbons () {
-    this.soup.calculateTracesForRibbons()
-  }
-
   /**
    **********************************************************
    * Mesh-building methods
@@ -995,16 +973,15 @@ class Display extends WebglWidget {
    */
 
   buildScene () {
-    if (this.soupView.savedViews.length === 0) {
-      this.soupView.setCurrentViewToDefault()
-    }
-
-    this.soup.colorResidues()
-
     // pre-calculations needed before building meshes
+    this.soupView.build()
 
-    this.soup.findGridLimits()
-    this.calculateTracesForRibbons()
+    for (let key of _.keys(this.displayMeshes)) {
+      _.unset(this.displayMeshes, key)
+    }
+    for (let key of _.keys(this.pickingMeshes)) {
+      _.unset(this.pickingMeshes, key)
+    }
 
     this.addRepresentation(
       'ribbons', new RibbonRepresentation(this.soup))
@@ -1031,10 +1008,8 @@ class Display extends WebglWidget {
 
   deleteStructure (iStructure) {
     this.controller.deleteStructure(iStructure)
-    this.observers.rebuilt.dispatch()
-    glgeom.clearObject3D(this.displayScene)
-    glgeom.clearObject3D(this.pickingScene)
     this.buildScene()
+    this.observers.rebuilt.dispatch()
   }
 
   buildCrossHairs () {
@@ -1221,19 +1196,21 @@ class Display extends WebglWidget {
     if (!this.isChanged()) {
       return
     }
-    this.updateMeshesInScene = false
+
+    let isNoMoreChanges =
+      !this.soupView.soup.grid.changed &&
+      !this.soupView.updateSidechain &&
+      !this.soupView.updateSelection
 
     if (this.soupView.startTargetAfterRender) {
-      // call here as the tick AFTER the new stuff
-      // has been rebuilt and rendered
-      if (
-        !this.soupView.soup.grid.changed &&
-        !this.soupView.updateSidechain &&
-        !this.soupView.updateSelection) {
+      // set target only AFTER all changes have been applied in previous tick
+      if (isNoMoreChanges) {
         this.soupView.startTargetView()
         this.soupView.nUpdateStep = this.soupView.maxUpdateStep
       }
     }
+
+    this.updateMeshesInScene = false
 
     let isNewTrigger = (meshName, visible) => visible && (!(meshName in this.displayMeshes))
 
@@ -1290,6 +1267,8 @@ class Display extends WebglWidget {
     // needs to be observers.updated before render
     // as lines must be placed in THREE.js scene
     this.distanceMeasuresWidget.drawFrame()
+
+    // console.log('Display.drawFrame', this.displayScene.children)
 
     this.render()
 
@@ -1353,7 +1332,6 @@ class Display extends WebglWidget {
       } else {
         let iRes = this.soup.getAtomProxy(this.iAtomHover).iRes
         this.controller.selectResidue(iRes)
-        console.log('Display.doubleclick', this.iAtomHover)
         this.setTargetViewByIAtom(this.iAtomHover)
       }
       this.isDraggingCentralAtom = false
@@ -1365,7 +1343,6 @@ class Display extends WebglWidget {
   }
 
   click (event) {
-    console.log('Display.click')
     if (!_.isUndefined(this.iResClick) && (this.iResClick !== null)) {
       if (!event.metaKey && !event.shiftKey) {
         this.controller.selectResidue(this.iResClick)

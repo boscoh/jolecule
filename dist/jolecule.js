@@ -78088,7 +78088,7 @@ var EmbedJolecule = function () {
     this.params = _lodash2.default.cloneDeep(defaultArgs);
     _lodash2.default.assign(this.params, params);
     console.log('EmbedJolecule.constructor', this.params);
-    this.isProcessing = { flag: false };
+    this.isLoadingDataServer = { flag: false };
 
     this.divTag = this.params.divTag;
     this.div = (0, _jquery2.default)(this.params.divTag);
@@ -78223,7 +78223,7 @@ var EmbedJolecule = function () {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                if (!this.isProcessing.flag) {
+                if (!this.isLoadingDataServer.flag) {
                   _context3.next = 5;
                   break;
                 }
@@ -78237,7 +78237,7 @@ var EmbedJolecule = function () {
 
               case 5:
 
-                this.isProcessing.flag = true;
+                this.isLoadingDataServer.flag = true;
 
                 _context3.next = 8;
                 return this.display.asyncSetMesssage('Loading structure...');
@@ -78296,7 +78296,7 @@ var EmbedJolecule = function () {
                 this.display.observers.rebuilt.dispatch();
                 this.display.cleanupMessage();
 
-                this.isProcessing.flag = false;
+                this.isLoadingDataServer.flag = false;
 
               case 20:
               case 'end':
@@ -80511,7 +80511,6 @@ var SoupView = function () {
     this.soup = soup;
 
     this.changed = true;
-    this.updateWidgets = false;
     this.updateSidechain = false;
     this.updateSelection = false;
     this.startTargetAfterRender = false;
@@ -82720,9 +82719,7 @@ var CanvasWidget = function () {
     bind('mouseup', function (e) {
       return _this.mouseup(e);
     });
-    bind('mouseout', function (e) {
-      return _this.mouseout(e);
-    });
+    // bind('mouseout', e => this.mouseout(e))
     bind('touchstart', function (e) {
       return _this.mousedown(e);
     });
@@ -83444,6 +83441,22 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'updateWithoutCheckingCurrent',
     value: function updateWithoutCheckingCurrent() {
+      var yTopStructure = this.offsetY - 2;
+      var yStructureName = this.offsetY + 7;
+      var heightStructure = this.yTopSequence - yTopStructure + 2;
+      var yMidStructure = yTopStructure + heightStructure / 2 + 2;
+      var heightSequence = this.yBottom - this.yTopSequence;
+
+      // draw background
+      this.fillRect(0, 0, this.width(), this.height(), this.backColor);
+
+      // draw sequence bar background
+      this.fillRect(0, this.yTopSequence, this.width(), heightSequence, this.selectColor);
+
+      // draw border around sequence bar
+      this.line(0, this.yTopSequence, this.width(), this.yTopSequence, this.borderColor);
+      this.line(0, this.yBottom, this.width(), this.yBottom, this.borderColor);
+
       if (!util.exists(this.soupView)) {
         return;
       }
@@ -83464,22 +83477,6 @@ var SequenceWidget = function (_CanvasWidget) {
         this.iCharDisplayStart = 0;
       }
       this.iCharDisplayEnd = this.iCharDisplayStart + this.nCharDisplay;
-
-      var yTopStructure = this.offsetY - 2;
-      var yStructureName = this.offsetY + 7;
-      var heightStructure = this.yTopSequence - yTopStructure + 2;
-      var yMidStructure = yTopStructure + heightStructure / 2 + 2;
-      var heightSequence = this.yBottom - this.yTopSequence;
-
-      // draw background
-      this.fillRect(0, 0, this.width(), this.height(), this.backColor);
-
-      // draw sequence bar background
-      this.fillRect(0, this.yTopSequence, this.width(), heightSequence, this.selectColor);
-
-      // draw border around sequence bar
-      this.line(0, this.yTopSequence, this.width(), this.yTopSequence, this.borderColor);
-      this.line(0, this.yBottom, this.width(), this.yBottom, this.borderColor);
 
       var x1 = this.iToX(this.iCharDisplayStart);
       var x2 = this.iToX(this.iCharDisplayEnd);
@@ -83613,7 +83610,7 @@ var SequenceWidget = function (_CanvasWidget) {
         this.hover.hide();
         var iChar = this.xToI(this.pointerX);
         var charEntry = this.charEntries[iChar];
-        if ('iRes' in charEntry) {
+        if (!_lodash2.default.isUndefined(charEntry) && 'iRes' in charEntry) {
           var res = this.soup.getResidueProxy(charEntry.iRes);
           this.hover.html(res.resId + ':' + res.resType);
           this.hover.move(this.iToX(iChar), 25);
@@ -83622,7 +83619,7 @@ var SequenceWidget = function (_CanvasWidget) {
         this.hover.hide();
         var _iChar2 = this.xToIChar(this.pointerX);
         var _charEntry = this.charEntries[_iChar2];
-        if ('iRes' in _charEntry) {
+        if (!_lodash2.default.isUndefined(_charEntry) && 'iRes' in _charEntry) {
           var _res = this.soup.getResidueProxy(_charEntry.iRes);
           this.hover.html(_res.resId + ':' + _res.resType);
           var x = this.iCharToX(_iChar2) + this.charWidth / 2;
@@ -83633,8 +83630,11 @@ var SequenceWidget = function (_CanvasWidget) {
         // mouse event in structure bar
         this.setIChar(this.xToI(this.pointerX));
         this.updateWithoutCheckingCurrent();
-        if (this.charEntries[this.iChar].c !== '') {
-          this.controller.setTargetViewByIAtom(this.getCurrIAtom());
+        var _charEntry2 = this.charEntries[this.iChar];
+        if (!_lodash2.default.isUndefined(_charEntry2)) {
+          if (_charEntry2.c !== '') {
+            this.controller.setTargetViewByIAtom(this.getCurrIAtom());
+          }
         }
       } else if (this.mousePressed === 'bottom') {
         var iNewChar = this.xToIChar(this.pointerX);
@@ -83646,14 +83646,12 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'mouseout',
     value: function mouseout() {
-      console.log('SequenceWidget.mouseout');
       this.hover.hide();
       this.mousePressed = '';
     }
   }, {
     key: 'mouseup',
     value: function mouseup() {
-      console.log('SequenceWidget.mouseup');
       this.hover.hide();
       this.mousePressed = '';
     }
@@ -83678,17 +83676,19 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'click',
     value: function click(event) {
-      console.log('SequenceWidget.click', this.pressSection, this.iChar);
       if (this.pressSection === 'bottom') {
-        var iRes = this.charEntries[this.iCharPressed].iRes;
-        if (!event.metaKey && !event.shiftKey) {
-          this.controller.selectResidue(iRes);
-        } else if (event.shiftKey) {
-          this.controller.selectAdditionalRangeToResidue(iRes);
-        } else {
-          this.controller.selectAdditionalResidue(iRes);
+        var charEntry = this.charEntries[this.iCharPressed];
+        if (!_lodash2.default.isUndefined(charEntry)) {
+          var iRes = charEntry.iRes;
+          if (!event.metaKey && !event.shiftKey) {
+            this.controller.selectResidue(iRes);
+          } else if (event.shiftKey) {
+            this.controller.selectAdditionalRangeToResidue(iRes);
+          } else {
+            this.controller.selectAdditionalResidue(iRes);
+          }
+          this.updateWithoutCheckingCurrent();
         }
-        this.updateWithoutCheckingCurrent();
       }
     }
   }, {
@@ -83863,8 +83863,6 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
     value: function mousemove(event) {
       event.preventDefault();
       _get(ClippingPlaneWidget.prototype.__proto__ || Object.getPrototypeOf(ClippingPlaneWidget.prototype), 'mousemove', this).call(this, event);
-
-      console.log('ZSlab.mousemove', this.mousePressed);
 
       if (!this.mousePressed) {
         return;
@@ -90997,6 +90995,11 @@ var WebglWidget = function () {
     this.displayScene.background = new THREE.Color(this.backgroundColor);
     this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100);
 
+    // this.representations is a dictionary that holds representations
+    // that transform this.soup into meshes that will be inserted into
+    // this.displayMeshes and this.pickingMeshes at draw time
+    this.representations = {};
+
     // this.displayMeshes is a dictionary that holds THREE.Object3D
     // collections of meshes. This allows collections to be collectively
     // turned on and off. The meshes will be regenerated into this.displayScene
@@ -91005,16 +91008,11 @@ var WebglWidget = function () {
     // as the default. This assumes vertexColors are used, allowing multiple
     // colors within the same geometry.
     this.displayMeshes = {};
-    this.displayMaterial = new THREE.MeshPhongMaterial({ vertexColors: THREE.VertexColors });
+    this.pickingMeshes = {};
 
     this.pickingScene = new THREE.Scene();
     this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height());
     this.pickingTexture.texture.minFilter = THREE.LinearFilter;
-
-    this.pickingMeshes = {};
-    this.pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: THREE.VertexColors });
-
-    this.representations = {};
 
     this.lights = [];
     this.buildLights();
@@ -92594,11 +92592,6 @@ var Display = function (_WebglWidget) {
         });
       }
     }
-  }, {
-    key: 'calculateTracesForRibbons',
-    value: function calculateTracesForRibbons() {
-      this.soup.calculateTracesForRibbons();
-    }
 
     /**
      **********************************************************
@@ -92615,16 +92608,65 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'buildScene',
     value: function buildScene() {
+      // pre-calculations needed before building meshes
+
       if (this.soupView.savedViews.length === 0) {
         this.soupView.setCurrentViewToDefault();
       }
 
       this.soup.colorResidues();
-
-      // pre-calculations needed before building meshes
-
       this.soup.findGridLimits();
-      this.calculateTracesForRibbons();
+      this.soup.calculateTracesForRibbons();
+
+      var _iteratorNormalCompletion26 = true;
+      var _didIteratorError26 = false;
+      var _iteratorError26 = undefined;
+
+      try {
+        for (var _iterator26 = _lodash2.default.keys(this.displayMeshes)[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
+          var key = _step26.value;
+
+          _lodash2.default.unset(this.displayMeshes, key);
+        }
+      } catch (err) {
+        _didIteratorError26 = true;
+        _iteratorError26 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion26 && _iterator26.return) {
+            _iterator26.return();
+          }
+        } finally {
+          if (_didIteratorError26) {
+            throw _iteratorError26;
+          }
+        }
+      }
+
+      var _iteratorNormalCompletion27 = true;
+      var _didIteratorError27 = false;
+      var _iteratorError27 = undefined;
+
+      try {
+        for (var _iterator27 = _lodash2.default.keys(this.pickingMeshes)[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
+          var _key = _step27.value;
+
+          _lodash2.default.unset(this.pickingMeshes, _key);
+        }
+      } catch (err) {
+        _didIteratorError27 = true;
+        _iteratorError27 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion27 && _iterator27.return) {
+            _iterator27.return();
+          }
+        } finally {
+          if (_didIteratorError27) {
+            throw _iteratorError27;
+          }
+        }
+      }
 
       this.addRepresentation('ribbons', new RibbonRepresentation(this.soup));
       this.addRepresentation('arrows', new ArrowRepresentation(this.soup));
@@ -92639,6 +92681,7 @@ var Display = function (_WebglWidget) {
 
       this.observers.rebuilt.dispatch();
 
+      console.log('Display.buildScene', this.displayScene.children);
       this.soupView.changed = true;
       this.soupView.updateObservers = true;
     }
@@ -92971,7 +93014,6 @@ var Display = function (_WebglWidget) {
         } else {
           var iRes = this.soup.getAtomProxy(this.iAtomHover).iRes;
           this.controller.selectResidue(iRes);
-          console.log('Display.doubleclick', this.iAtomHover);
           this.setTargetViewByIAtom(this.iAtomHover);
         }
         this.isDraggingCentralAtom = false;
@@ -92984,7 +93026,6 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'click',
     value: function click(event) {
-      console.log('Display.click');
       if (!_lodash2.default.isUndefined(this.iResClick) && this.iResClick !== null) {
         if (!event.metaKey && !event.shiftKey) {
           this.controller.selectResidue(this.iResClick);

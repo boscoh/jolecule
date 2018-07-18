@@ -110,7 +110,7 @@ class CanvasWidget {
     bind('mousedown', e => this.mousedown(e))
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
-    bind('mouseout', e => this.mouseout(e))
+    // bind('mouseout', e => this.mouseout(e))
     bind('touchstart', e => this.mousedown(e))
     bind('touchmove', e => this.mousemove(e))
     bind('touchend', e => this.mouseup(e))
@@ -634,7 +634,7 @@ class SequenceWidget extends CanvasWidget {
     let iChain = -1
     let iStructure = 0
     let nRes = this.soup.getResidueCount()
-    let nPadChar = _.min(0, parseInt(0.02 * nRes / this.soup.structureIds.length))
+    let nPadChar = parseInt(0.02 * nRes / this.soup.structureIds.length)
     for (let iRes of _.range(nRes)) {
       residue.iRes = iRes
 
@@ -771,7 +771,7 @@ class SequenceWidget extends CanvasWidget {
     color = this.getColorStyle(0)
     let endColor
     let iStart = 0
-    let iEnd = 1
+    let iEnd = 0
     while (iEnd < this.nChar) {
       iEnd += 1
       endColor = this.getColorStyle(iEnd)
@@ -941,13 +941,11 @@ class SequenceWidget extends CanvasWidget {
   }
 
   mouseout () {
-    console.log('SequenceWidget.mouseout')
     this.hover.hide()
     this.mousePressed = ''
   }
 
   mouseup () {
-    console.log('SequenceWidget.mouseup')
     this.hover.hide()
     this.mousePressed = ''
   }
@@ -970,7 +968,6 @@ class SequenceWidget extends CanvasWidget {
   }
 
   click (event) {
-    console.log('SequenceWidget.click', this.pressSection, this.iChar)
     if (this.pressSection === 'bottom') {
       let charEntry = this.charEntries[this.iCharPressed]
       if (!_.isUndefined(charEntry)) {
@@ -1130,8 +1127,6 @@ class ClippingPlaneWidget extends CanvasWidget {
   mousemove (event) {
     event.preventDefault()
     super.mousemove(event)
-
-    console.log('ZSlab.mousemove', this.mousePressed)
 
     if (!this.mousePressed) {
       return
@@ -1513,10 +1508,14 @@ class ViewTextWidget {
   }
 
   update () {
-    let i = this.soupView.currentView.order + 1
     let n = this.soupView.savedViews.length
-    let text = this.soupView.currentView.text
-    this.div.text(`${i}/${n}: ${text}`)
+    if (n == 0) {
+      this.div.text('')
+    } else {
+      let i = this.soupView.currentView.order + 1
+      let text = this.soupView.currentView.text
+      this.div.text(`${i}/${n}: ${text}`)
+    }
   }
 }
 

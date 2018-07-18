@@ -477,6 +477,10 @@ class Soup {
     }
   }
 
+  isEmpty () {
+    return this.getAtomCount() == 0
+  }
+
   load (pdbData) {
     console.log(`Soup.load parse ${this.structureId}...`)
 
@@ -560,6 +564,40 @@ class Soup {
           resType, resNum, insCode, chain)
       }
     }
+  }
+
+  async asyncLoadProteinData (proteinData, asyncSetMessageFn) {
+    let pdbText = proteinData.pdb_text
+    let pdbId = proteinData.pdb_id
+
+    if (proteinData.pdb_text.length === 0) {
+      await asyncSetMessageFn('Error: no soup data')
+      return
+    }
+
+    await asyncSetMessageFn(`Parsing '${pdbId}'`)
+    this.parsePdbData(pdbText, pdbId)
+
+    if (this.parsingError) {
+      let err = this.soup.parsingError
+      await asyncSetMessageFn(`Error parsing soup: ${err}`)
+      return
+    }
+
+    this.assignResidueProperties()
+    this.calcMaxLength()
+
+    let nAtom = this.getAtomCount()
+    let nRes = this.getResidueCount()
+    await asyncSetMessageFn(
+      `Calculating bonds for ${nAtom} atoms, ${nRes} residues...`)
+
+    this.calcBondsStrategic()
+
+    let nBond = this.getBondCount()
+    await asyncSetMessageFn(`Calculated ${nBond} bonds. Assigning secondary structure...`)
+
+    this.findSecondaryStructure()
   }
 
   addAtom (x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain) {
@@ -1342,6 +1380,7 @@ class Soup {
     }
 
     this.structureIds.splice(iStructure, 1)
+    this.iStructure -= 1
 
     this.calcBondsStrategic()
     this.calcMaxLength()
@@ -1604,7 +1643,9 @@ class SoupView {
     this.updateSidechain = false
     this.updateSelection = false
     this.startTargetAfterRender = false
-    this.updateWidgets = true
+    this.updateObservers = true
+
+    this.nDataServer = 0
 
     this.isLoop = false
 
@@ -1630,7 +1671,18 @@ class SoupView {
     this.msPerStep = 17
   }
 
-  setCurrentViewToDefault () {
+  build () {
+    if ((this.savedViews.length === 0) && (this.soup.getAtomCount() > 0)) {
+      console.log('SoupView.build setCurrentViewToDefaultAndSave')
+      this.setCurrentViewToDefaultAndSave()
+    }
+    this.soup.colorResidues()
+    this.soup.findGridLimits()
+    this.soup.calculateTracesForRibbons()
+  }
+
+  setCurrentViewToDefaultAndSave () {
+    console.log('SoupView.setCurrentViewToDefaultAndSave')
     this.currentView.show.sidechain = false
     this.currentView.order = 0
     this.currentView.text = this.soup.title
@@ -1648,7 +1700,7 @@ class SoupView {
 
   startTargetView () {
     this.targetView = this.saveTargetView
-    this.updateWidgets = true
+    this.updateObservers = true
     this.startTargetAfterRender = false
     this.changed = true
   }
@@ -1703,15 +1755,20 @@ class SoupView {
   getZoomedOutViewOfCurrentView () {
     this.soup.calcMaxLength()
 
-    let atomIndices = _.range(this.soup.getAtomCount())
-    let center = this.soup.getCenter(atomIndices)
-
     let newView = this.currentView.clone()
+
+    if (this.soup.maxLength === 0) {
+      return newView
+    }
+
     let cameraParams = newView.cameraParams
 
     cameraParams.zFront = -this.soup.maxLength / 2
     cameraParams.zBack = this.soup.maxLength / 2
     cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75
+
+    let atomIndices = _.range(this.soup.getAtomCount())
+    let center = this.soup.getCenter(atomIndices)
 
     let look = cameraParams.position.clone()
       .sub(cameraParams.focus)
@@ -1798,23 +1855,29 @@ class Controller {
   }
 
   setTargetToPrevView () {
-    let scene = this.soupView
-    scene.iLastViewSelected -= 1
-    if (scene.iLastViewSelected < 0) {
-      scene.iLastViewSelected = scene.savedViews.length - 1
+    let soupView = this.soupView
+    if (soupView.savedViews.length == 0) {
+      return ''
     }
-    let id = scene.savedViews[scene.iLastViewSelected].id
+    soupView.iLastViewSelected -= 1
+    if (soupView.iLastViewSelected < 0) {
+      soupView.iLastViewSelected = soupView.savedViews.length - 1
+    }
+    let id = soupView.savedViews[soupView.iLastViewSelected].id
     this.setTargetViewByViewId(id)
     return id
   }
 
   setTargetToNextView () {
-    let scene = this.soupView
-    scene.iLastViewSelected += 1
-    if (scene.iLastViewSelected >= scene.savedViews.length) {
-      scene.iLastViewSelected = 0
+    let soupView = this.soupView
+    if (soupView.savedViews.length == 0) {
+      return ''
     }
-    let id = scene.savedViews[scene.iLastViewSelected].id
+    soupView.iLastViewSelected += 1
+    if (soupView.iLastViewSelected >= soupView.savedViews.length) {
+      soupView.iLastViewSelected = 0
+    }
+    let id = soupView.savedViews[soupView.iLastViewSelected].id
     this.setTargetViewByViewId(id)
     return id
   }
@@ -1998,6 +2061,9 @@ class Controller {
   }
 
   loadViewsFromViewDicts (viewDicts) {
+    if (this.nDataServer > 1) {
+      return
+    }
     for (let i = 0; i < viewDicts.length; i += 1) {
       let view = new View()
       view.setFromDict(viewDicts[i])
@@ -2007,6 +2073,12 @@ class Controller {
       this.soupView.saveView(view)
     }
     this.sortViewsByOrder()
+  }
+
+  async asyncLoadProteinData (proteinData, asyncSetMessageFn) {
+    this.nDataServer += 1
+    await this.soup.asyncLoadProteinData(proteinData, asyncSetMessageFn)
+    this.soupView.changed = true
   }
 
   setShowOption (option, bool) {
@@ -2088,14 +2160,29 @@ class Controller {
 
   deleteStructure (iStructure) {
     this.soup.deleteStructure(iStructure)
-    this.soupView.updateSidechain = true
-    this.soupView.updateSelection = true
+    this.nDataServer -= 1
+    if (this.soup.isEmpty()) {
+      this.soupView.savedViews.length = 0
+      for (let id of _.keys(this.soupView.savedViewsByViewId)) {
+        delete this.soupView.savedViewsByViewId[id]
+      }
+      this.soupView.currentView = new View()
+      this.soupView.targetView = null
+      this.soupView.startTargetAfterRender = false
+      this.soupView.nUpdateStep = -1
+    } else {
+      this.soupView.updateSidechain = true
+      this.soupView.updateSelection = true
+    }
+    this.soupView.updateObservers = true
     this.soupView.changed = true
   }
 
   zoomOut () {
-    this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView())
-    this.soupView.changed = true
+    if (!this.soup.isEmpty()) {
+      this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView())
+      this.soupView.changed = true
+    }
   }
 }
 
@@ -2103,5 +2190,6 @@ export {
   Soup,
   Controller,
   interpolateCameras,
-  SoupView
+  SoupView,
+  View
 }
