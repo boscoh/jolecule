@@ -65,8 +65,6 @@ class EmbedJolecule {
 
     this.isProcessing.flag = true
 
-    console.log('EmbedJolecule.asyncAddDataServer', this.soupView.currentView.cameraParams)
-
     await this.display.asyncSetMesssage('Loading structure...')
     await new Promise(resolve => {
       dataServer.get_protein_data(async (proteinData) => {
@@ -81,7 +79,6 @@ class EmbedJolecule {
       })
     })
 
-    console.log('EmbedJolecule.asyncAddDataServer', this.soupView.currentView.cameraParams)
     await this.display.asyncSetMesssage('Loading views...')
     dataServer.get_views(viewDicts => {
       this.controller.loadViewsFromViewDicts(viewDicts)
@@ -90,9 +87,7 @@ class EmbedJolecule {
       }
     })
 
-    console.log('EmbedJolecule.asyncAddDataServer', this.soupView.currentView.cameraParams)
     this.controller.zoomOut()
-    console.log('EmbedJolecule.asyncAddDataServer', this.soupView.currentView.cameraParams)
 
     this.display.observers.rebuilt.dispatch()
     this.display.cleanupMessage()

@@ -1110,7 +1110,6 @@ class ClippingPlaneWidget extends CanvasWidget {
   }
 
   mousedown (event) {
-    console.log('ZSlab.mousedown')
     this.getZ(event)
 
     if (this.z > 0) {

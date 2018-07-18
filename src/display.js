@@ -211,9 +211,6 @@ class WebglWidget {
 
     this.displayScene.fog.near = this.cameraParams.zoom
     this.displayScene.fog.far = far
-
-    console.log('Display.setCameraParams', this.cameraParams, this.soupView.currentView)
-
   }
 
   buildLights () {

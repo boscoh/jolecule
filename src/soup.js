@@ -508,10 +508,9 @@ class Soup {
     this.structureIds.push(pdbId)
     this.iStructure = this.structureIds.length - 1
 
-    if (!this.title) {
-      let title = parsetTitleFromPdbText(pdbText)
-      this.title = `[${this.structureId.toUpperCase()}] ` + title
-    }
+    let title = parsetTitleFromPdbText(pdbText)
+    this.title = `[${this.structureId.toUpperCase()}] ` + title
+    console.log('Soup.parsePdbData', this.title)
 
     const pdbLines = pdbText.split(/\r?\n/)
 
@@ -1114,7 +1113,6 @@ class Soup {
   }
 
   calculateTracesForRibbons () {
-    console.log('Soup.calculateTracesForRibbons')
     this.traces.length = 0
 
     let lastTrace
@@ -1672,8 +1670,7 @@ class SoupView {
   }
 
   build () {
-    if ((this.savedViews.length === 0) && (this.soup.getAtomCount() > 0)) {
-      console.log('SoupView.build setCurrentViewToDefaultAndSave')
+    if ((this.savedViews.length === 0) && (!this.soup.isEmpty())) {
       this.setCurrentViewToDefaultAndSave()
     }
     this.soup.colorResidues()
