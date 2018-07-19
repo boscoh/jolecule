@@ -80385,7 +80385,7 @@ var View = function () {
         creator: this.creator,
         pdb_id: this.pdb_id,
         order: this.order,
-        show: this.show,
+        show: show,
         text: this.text,
         i_atom: this.iAtom,
         labels: this.labels,
@@ -80421,11 +80421,15 @@ var View = function () {
       this.distances = flatDict.distances;
 
       this.show = flatDict.show;
-      this.show.backboneAtom = flatDict.show.all_atom;
+      this.show.backboneAtom = !!flatDict.show.all_atom;
       delete this.show.all_atom;
 
       if (!(this.show.backboneAtom || this.show.trace || this.show.ribbon)) {
         this.show.ribbon = true;
+      }
+
+      if (!(this.show.all_atom || this.show.trace || this.show.ribbon)) {
+        this.show.backbone = true;
       }
 
       var pos = _v2.default.create(flatDict.camera.pos[0], flatDict.camera.pos[1], flatDict.camera.pos[2]);
@@ -82808,7 +82812,9 @@ var CanvasWidget = function () {
     bind('mouseup', function (e) {
       return _this.mouseup(e);
     });
-    // bind('mouseout', e => this.mouseout(e))
+    bind('mouseout', function (e) {
+      return _this.mouseout(e);
+    });
     bind('touchstart', function (e) {
       return _this.mousedown(e);
     });
@@ -83012,7 +83018,8 @@ var PopupText = function () {
       'display': 'none',
       'z-index': 1000,
       'cursor': 'pointer',
-      'user-select': 'none'
+      'user-select': 'none',
+      'pointer-events': 'none'
     });
 
     this.arrow = (0, _jquery2.default)('<div>').css({
@@ -91148,7 +91155,9 @@ var WebglWidget = function () {
       bind('mouseup', function (e) {
         return _this.mouseup(e);
       });
-      // bind('mouseleave', e => this.mouseout(e))
+      bind('mouseleave', function (e) {
+        return _this.mouseout(e);
+      });
       bind('mousewheel', function (e) {
         return _this.mousewheel(e);
       });
@@ -92953,6 +92962,7 @@ var Display = function (_WebglWidget) {
         // set target only AFTER all changes have been applied in previous tick
         if (isNoMoreChanges) {
           this.soupView.startTargetView();
+          console.log('Display.drawFrame setnew target', this.soupView.targetView.show);
           this.soupView.nUpdateStep = this.soupView.maxUpdateStep;
         }
       }

@@ -110,7 +110,7 @@ class CanvasWidget {
     bind('mousedown', e => this.mousedown(e))
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
-    // bind('mouseout', e => this.mouseout(e))
+    bind('mouseout', e => this.mouseout(e))
     bind('touchstart', e => this.mousedown(e))
     bind('touchmove', e => this.mousemove(e))
     bind('touchend', e => this.mouseup(e))
@@ -284,7 +284,8 @@ class PopupText {
         'display': 'none',
         'z-index': 1000,
         'cursor': 'pointer',
-        'user-select': 'none'
+        'user-select': 'none',
+        'pointer-events': 'none'
       })
 
     this.arrow = $('<div>')

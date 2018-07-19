@@ -1497,7 +1497,7 @@ class View {
       creator: this.creator,
       pdb_id: this.pdb_id,
       order: this.order,
-      show: this.show,
+      show: show,
       text: this.text,
       i_atom: this.iAtom,
       labels: this.labels,
@@ -1532,11 +1532,15 @@ class View {
     this.distances = flatDict.distances
 
     this.show = flatDict.show
-    this.show.backboneAtom = flatDict.show.all_atom
+    this.show.backboneAtom = !!flatDict.show.all_atom
     delete this.show.all_atom
 
     if (!(this.show.backboneAtom || this.show.trace || this.show.ribbon)) {
       this.show.ribbon = true
+    }
+
+    if (!(this.show.all_atom || this.show.trace || this.show.ribbon)) {
+      this.show.backbone = true
     }
 
     let pos = v3.create(

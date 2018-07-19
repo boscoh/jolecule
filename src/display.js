@@ -114,7 +114,7 @@ class WebglWidget {
     bind('mousedown', e => this.mousedown(e))
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
-    // bind('mouseleave', e => this.mouseout(e))
+    bind('mouseleave', e => this.mouseout(e))
     bind('mousewheel', e => this.mousewheel(e))
     // bind('dblclick', e => this.doubleclick(e))
     bind('DOMMouseScroll', e => this.mousewheel(e))
@@ -1203,6 +1203,7 @@ class Display extends WebglWidget {
       // set target only AFTER all changes have been applied in previous tick
       if (isNoMoreChanges) {
         this.soupView.startTargetView()
+        console.log('Display.drawFrame setnew target', this.soupView.targetView.show)
         this.soupView.nUpdateStep = this.soupView.maxUpdateStep
       }
     }

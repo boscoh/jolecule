@@ -55,7 +55,7 @@ function makeDataServer(pdb) {
   };
 }
 
-document.title = "jolecule - 1mbo";
+document.title = "jolecule - 1be9";
 
 let joleculeInstance = jolecule.initFullPageJolecule(
   "#jolecule-protein-container",
