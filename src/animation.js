@@ -22,7 +22,7 @@ function loop () {
   if (window.globalWidgets === []) {
     return
   }
-  let currTime = (new Date()).getTime()
+  let currTime = new Date().getTime()
   let elapsedTime = currTime - window.lastTime
 
   for (let widget of window.globalWidgets) {
@@ -47,7 +47,7 @@ function registerGlobalAnimationLoop (widget) {
   if (typeof window.globalWidgets === 'undefined') {
     window.globalWidgets = []
     loop()
-    window.lastTime = (new Date()).getTime()
+    window.lastTime = new Date().getTime()
   }
   window.globalWidgets.push(widget)
 }

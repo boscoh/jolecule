@@ -10,7 +10,6 @@ const path = require('path')
 const url = require('url')
 const fs = require('fs')
 const nopt = require('nopt')
-const readline = require('readline')
 
 const mustache = require('mustache')
 const _ = require('lodash')
@@ -18,26 +17,23 @@ const _ = require('lodash')
 // Global reference of the window to avoid garbage collection
 let lastWindowId
 let windows = {}
-let viewJsonFiles = {}
 let isDebug = false
 
-function createWindow (pdb, title) {
+function createWindow (pdb) {
   const rendererJs = 'pdb-renderer.js'
-  let pdbId = path.basename(pdb).replace('.pdb', '')
+  const title = `jolecule - ${getPdbId(pdb)}`
 
-  const pdbText = fs.readFileSync(pdb, 'utf8')
-  let pdbLines = pdbText.split(/\r?\n/)
-  pdbLines = _.map(pdbLines, (l) => l.replace(/"/g, '\\"'))
-
-  const localServerMustache = fs.readFileSync('pdb-renderer.mustache.js', 'utf8');
-  let dataJsText = mustache.render(
-    localServerMustache, {pdbId, pdbLines, title})
+  const localServerMustache = fs.readFileSync(
+    'pdb-renderer.mustache.js',
+    'utf8'
+  )
+  let dataJsText = mustache.render(localServerMustache, {pdbId: pdb, title})
   fs.writeFileSync(rendererJs, dataJsText)
 
-  console.log('creatWindow', pdbId)
+  console.log('creatWindow', pdb)
 
   // Create the browser window.
-  windows[pdbId] = new BrowserWindow({
+  windows[pdb] = new BrowserWindow({
     width: 1000,
     height: 800,
     webPreferences: {
@@ -46,25 +42,27 @@ function createWindow (pdb, title) {
   })
 
   // and load the pdb-index.html of the app.
-  windows[pdbId].loadURL(url.format({
-    pathname: path.join(__dirname, 'pdb-index.html'),
-    protocol: 'file:',
-    slashes: true
-  }))
+  windows[pdb].loadURL(
+    url.format({
+      pathname: path.join(__dirname, 'pdb-index.html'),
+      protocol: 'file:',
+      slashes: true
+    })
+  )
 
   // Open the DevTools.
   if (isDebug) {
-    windows[pdbId].webContents.openDevTools()
+    windows[pdb].webContents.openDevTools()
   }
 
   // Emitted when the window is closed.
-  windows[pdbId].on('closed', function () {
+  windows[pdb].on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    console.log('close', pdbId)
+    console.log('close', pdb)
     // windows[pdbId].close()
-    windows[pdbId] = null
+    windows[pdb] = null
   })
 
   if (windows[lastWindowId]) {
@@ -73,21 +71,16 @@ function createWindow (pdb, title) {
     delete windows[lastWindowId]
   }
 
-  lastWindowId = pdbId
+  lastWindowId = pdb
 }
 
-function openPdbWindow (pdb) {
-  console.log('openPdbWindow pdb:', pdb)
+function getPdbId (pdb) {
+  return path.basename(pdb).replace('.pdb', '')
+}
 
+function getViewsJson (pdb) {
   let base = pdb.replace('.pdb', '')
-  let pdbId = path.basename(pdb).replace('.pdb', '')
-  let title = `jolecule - ${pdbId}`
-
-  createWindow(pdb, title)
-
-  let viewsJsonFile = base + '.views.json'
-  viewJsonFiles[pdbId] = viewsJsonFile
-  console.log('openPdbWindow views:', viewsJsonFile)
+  return base + '.views.json'
 }
 
 function showOpen () {
@@ -97,7 +90,7 @@ function showOpen () {
   })
   console.log('showOpen', files)
   let pdb = files[0]
-  openPdbWindow(pdb)
+  createWindow(pdb)
 }
 
 const menuTemplate = [
@@ -125,8 +118,10 @@ const menuTemplate = [
       {
         label: 'Open PDB...',
         accelerator: 'CmdOrCtrl+O',
-        click: function () { showOpen() }
-      },
+        click: function () {
+          showOpen()
+        }
+      }
     ]
   }
 ]
@@ -143,8 +138,8 @@ function parsetTitleFromPdbText (text) {
 }
 
 function init () {
-  let knownOpts = {'debug': [Boolean, false]}
-  let shortHands = {'d': ['--debug']}
+  let knownOpts = {debug: [Boolean, false]}
+  let shortHands = {d: ['--debug']}
   let parsed = nopt(knownOpts, shortHands, process.argv, 2)
   let remain = parsed.argv.remain
 
@@ -175,52 +170,62 @@ function init () {
           filename: path.join(dirname, filename),
           name: filename
         })
-      } catch (error) {
-      }
+      } catch (error) {}
     }
   }
+
   console.log('init', payload)
 
-  ipcMain.on('get-files', (event) => {
+  ipcMain.on('get-file', event => {
+    console.log('ipcMain:get-file')
+    event.sender.send('get-file', pdb)
+  })
+
+  ipcMain.on('get-files', event => {
     console.log('ipcMain:get-files')
     event.sender.send('get-files', payload)
   })
 
-  ipcMain.on('get-view-dicts', (event, pdbId) => {
-    console.log('ipcMain:get-view-dicts', pdbId)
+  ipcMain.on('get-protein-text', (event, id, pdb) => {
+    const pdbText = fs.readFileSync(pdb, 'utf8')
+    console.log('ipcMain:get-protein-text', pdb, pdbText.length)
+    event.sender.send('get-protein-text', id, pdbText)
+  })
+
+  ipcMain.on('get-view-dicts', (event, id, pdb) => {
+    let viewJson = getViewsJson(pdb)
     let views = {}
-    if (fs.existsSync(viewJsonFiles[pdbId])) {
-      let text = fs.readFileSync(viewJsonFiles[pdbId], 'utf8')
+    let text = ''
+    if (fs.existsSync(viewJson)) {
+      text = fs.readFileSync(viewJson, 'utf8')
       views = JSON.parse(text)
     }
-    event.sender.send('get-view-dicts', views)
+    console.log('ipcMain:get-view-dicts', viewJson, text.length)
+    event.sender.send('get-view-dicts', id, views)
   })
 
-  ipcMain.on('save-view-dicts', (event, pdbId, views) => {
+  ipcMain.on('save-view-dicts', (event, id, pdb, views) => {
     console.log('ipcMain:save-view-dicts')
-    fs.writeFileSync(viewJsonFiles[pdbId], JSON.stringify(views, null, 2))
-    event.sender.send('save-view-dicts', 'success')
+    let viewJson = getViewsJson(pdb)
+    fs.writeFileSync(viewJson, JSON.stringify(views, null, 2))
+    event.sender.send('save-view-dicts', id, 'success')
   })
 
-  ipcMain.on('delete-protein-view', (event, pdbId, viewId) => {
+  ipcMain.on('delete-protein-view', (event, id, pdb, viewId) => {
     console.log('ipcMain:delete-protein-view', viewId)
-    if (fs.existsSync(viewJsonFiles[pdbId])) {
-      let text = fs.readFileSync(viewJsonFiles[pdbId], 'utf8')
+    let viewJson = getViewsJson(pdb)
+    if (fs.existsSync(viewJson)) {
+      let text = fs.readFileSync(viewJson, 'utf8')
       let views = JSON.parse(text)
       _.remove(views, v => v.view_id === viewId)
-      fs.writeFileSync(viewJsonFiles[pdbId], JSON.stringify(views, null, 2))
-      event.sender.send('delete-protein-view', 'success')
+      fs.writeFileSync(viewJson, JSON.stringify(views, null, 2))
     }
-  })
-
-  ipcMain.on('open-file', (event, filename) => {
-    console.log('ipcMain:open-file', filename)
-    openPdbWindow(filename)
+    event.sender.send('delete-protein-view', id, 'success')
   })
 
   console.log('electron', process.argv[0])
 
-  openPdbWindow(pdb)
+  createWindow(pdb)
 }
 
 // This method will be called when Electron has finished

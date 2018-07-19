@@ -78088,7 +78088,7 @@ var EmbedJolecule = function () {
     this.params = _lodash2.default.cloneDeep(defaultArgs);
     _lodash2.default.assign(this.params, params);
     console.log('EmbedJolecule.constructor', this.params);
-    this.isLoadingDataServer = { flag: false };
+    this.isProcessing = { flag: false };
 
     this.divTag = this.params.divTag;
     this.div = (0, _jquery2.default)(this.params.divTag);
@@ -78102,8 +78102,6 @@ var EmbedJolecule = function () {
 
     this.controller = new _soup.Controller(this.soupView);
 
-    this.nDataServer = 0;
-
     this.createDivs();
 
     var resizeFn = function resizeFn() {
@@ -78115,203 +78113,115 @@ var EmbedJolecule = function () {
   }
 
   _createClass(EmbedJolecule, [{
-    key: 'asyncLoadProteinData',
-    value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(proteinData) {
-        var pdbText, pdbId, err, nAtom, nRes, nBond;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                pdbText = proteinData.pdb_text;
-                pdbId = proteinData.pdb_id;
-
-                if (!(proteinData.pdb_text.length === 0)) {
-                  _context.next = 6;
-                  break;
-                }
-
-                _context.next = 5;
-                return this.display.asyncSetMesssage('Error: no soup data');
-
-              case 5:
-                return _context.abrupt('return');
-
-              case 6:
-                _context.next = 8;
-                return this.display.asyncSetMesssage('Parsing \'' + pdbId + '\'');
-
-              case 8:
-                this.soup.parsePdbData(pdbText, pdbId);
-
-                if (!this.soup.parsingError) {
-                  _context.next = 14;
-                  break;
-                }
-
-                err = this.soup.parsingError;
-                _context.next = 13;
-                return this.display.asyncSetMesssage('Error parsing soup: ' + err);
-
-              case 13:
-                return _context.abrupt('return');
-
-              case 14:
-
-                this.soup.assignResidueProperties();
-                this.soup.calcMaxLength();
-
-                nAtom = this.soup.getAtomCount();
-                nRes = this.soup.getResidueCount();
-                _context.next = 20;
-                return this.display.asyncSetMesssage('Calculating bonds for ' + nAtom + ' atoms, ' + nRes + ' residues...');
-
-              case 20:
-
-                this.soup.calcBondsStrategic();
-
-                nBond = this.soup.getBondCount();
-                _context.next = 24;
-                return this.display.asyncSetMesssage('Calculated ' + nBond + ' bonds.');
-
-              case 24:
-                _context.next = 26;
-                return this.display.asyncSetMesssage('Assigning secondary structure...');
-
-              case 26:
-
-                this.soup.findSecondaryStructure();
-
-                this.soupView.changed = true;
-
-                if (this.params.bCutoff !== null) {
-                  this.soup.grid.bCutoff = this.params.bCutoff;
-                }
-
-                this.display.buildScene();
-                this.resize();
-
-              case 31:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function asyncLoadProteinData(_x) {
-        return _ref.apply(this, arguments);
-      }
-
-      return asyncLoadProteinData;
-    }()
-  }, {
-    key: 'loadViewDicts',
-    value: function loadViewDicts(viewDicts) {
-      this.controller.loadViewsFromViewDicts(viewDicts);
-      if (this.params.viewId in this.soupView.savedViewsByViewId) {
-        this.controller.setTargetViewByViewId(this.params.viewId);
-      }
-    }
-  }, {
     key: 'asyncAddDataServer',
     value: function () {
-      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(dataServer) {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(dataServer) {
         var _this2 = this;
 
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
-                if (!this.isLoadingDataServer.flag) {
-                  _context3.next = 5;
+                console.log('EmbedJolecule.asyncAddDataServer');
+
+              case 1:
+                if (!this.isProcessing.flag) {
+                  _context2.next = 6;
                   break;
                 }
 
-                _context3.next = 3;
+                _context2.next = 4;
                 return (0, _util.delay)(100);
 
-              case 3:
-                _context3.next = 0;
+              case 4:
+                _context2.next = 1;
                 break;
 
-              case 5:
+              case 6:
 
-                this.isLoadingDataServer.flag = true;
+                this.isProcessing.flag = true;
 
-                _context3.next = 8;
+                _context2.next = 9;
                 return this.display.asyncSetMesssage('Loading structure...');
 
-              case 8:
-                _context3.next = 10;
+              case 9:
+                _context2.next = 11;
                 return new Promise(function (resolve) {
                   dataServer.get_protein_data(function () {
-                    var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(proteinD) {
-                      return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(proteinData) {
+                      return regeneratorRuntime.wrap(function _callee$(_context) {
                         while (1) {
-                          switch (_context2.prev = _context2.next) {
+                          switch (_context.prev = _context.next) {
                             case 0:
-                              _context2.next = 2;
-                              return _this2.asyncLoadProteinData(proteinD);
+                              _context.next = 2;
+                              return _this2.controller.asyncLoadProteinData(proteinData, function (m) {
+                                return _this2.display.asyncSetMesssage(m);
+                              });
 
                             case 2:
+                              if (_this2.params.bCutoff !== null) {
+                                _this2.soup.grid.bCutoff = _this2.params.bCutoff;
+                              }
+                              _this2.display.buildScene();
+                              _this2.resize();
                               resolve();
 
-                            case 3:
+                            case 6:
                             case 'end':
-                              return _context2.stop();
+                              return _context.stop();
                           }
                         }
-                      }, _callee2, _this2);
+                      }, _callee, _this2);
                     }));
 
-                    return function (_x3) {
-                      return _ref3.apply(this, arguments);
+                    return function (_x2) {
+                      return _ref2.apply(this, arguments);
                     };
                   }());
                 });
 
-              case 10:
-
-                this.nDataServer += 1;
-
-                if (!(this.nDataServer === 1)) {
-                  _context3.next = 16;
-                  break;
-                }
-
-                _context3.next = 14;
+              case 11:
+                _context2.next = 13;
                 return this.display.asyncSetMesssage('Loading views...');
 
-              case 14:
+              case 13:
                 dataServer.get_views(function (viewDicts) {
-                  _this2.loadViewDicts(viewDicts);
+                  _this2.controller.loadViewsFromViewDicts(viewDicts);
+                  if (_this2.params.viewId in _this2.soupView.savedViewsByViewId) {
+                    _this2.controller.setTargetViewByViewId(_this2.params.viewId);
+                  }
                 });
-                this.dataServer = dataServer;
 
-              case 16:
+                this.display.dataServer = dataServer;
 
                 this.controller.zoomOut();
 
                 this.display.observers.rebuilt.dispatch();
                 this.display.cleanupMessage();
 
-                this.isLoadingDataServer.flag = false;
+                this.isProcessing.flag = false;
 
-              case 20:
+              case 19:
               case 'end':
-                return _context3.stop();
+                return _context2.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee2, this);
       }));
 
-      function asyncAddDataServer(_x2) {
-        return _ref2.apply(this, arguments);
+      function asyncAddDataServer(_x) {
+        return _ref.apply(this, arguments);
       }
 
       return asyncAddDataServer;
     }()
+  }, {
+    key: 'clear',
+    value: function clear() {
+      while (this.display.soup.structureIds.length > 0) {
+        this.display.deleteStructure(0);
+      }
+    }
   }, {
     key: 'createDivs',
     value: function createDivs() {
@@ -78404,7 +78314,7 @@ exports.defaultArgs = defaultArgs;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.SoupView = exports.interpolateCameras = exports.Controller = exports.Soup = undefined;
+exports.View = exports.SoupView = exports.interpolateCameras = exports.Controller = exports.Soup = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -78445,6 +78355,8 @@ var THREE = _interopRequireWildcard(_three);
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -79026,6 +78938,11 @@ var Soup = function () {
   }
 
   _createClass(Soup, [{
+    key: 'isEmpty',
+    value: function isEmpty() {
+      return this.getAtomCount() == 0;
+    }
+  }, {
     key: 'load',
     value: function load(pdbData) {
       console.log('Soup.load parse ' + this.structureId + '...');
@@ -79053,10 +78970,9 @@ var Soup = function () {
       this.structureIds.push(pdbId);
       this.iStructure = this.structureIds.length - 1;
 
-      if (!this.title) {
-        var title = parsetTitleFromPdbText(pdbText);
-        this.title = '[' + this.structureId.toUpperCase() + '] ' + title;
-      }
+      var title = parsetTitleFromPdbText(pdbText);
+      this.title = '[' + this.structureId.toUpperCase() + '] ' + title;
+      console.log('Soup.parsePdbData', this.title);
 
       var pdbLines = pdbText.split(/\r?\n/);
 
@@ -79137,6 +79053,84 @@ var Soup = function () {
         }
       }
     }
+  }, {
+    key: 'asyncLoadProteinData',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(proteinData, asyncSetMessageFn) {
+        var pdbText, pdbId, err, nAtom, nRes, nBond;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                pdbText = proteinData.pdb_text;
+                pdbId = proteinData.pdb_id;
+
+                if (!(proteinData.pdb_text.length === 0)) {
+                  _context.next = 6;
+                  break;
+                }
+
+                _context.next = 5;
+                return asyncSetMessageFn('Error: no soup data');
+
+              case 5:
+                return _context.abrupt('return');
+
+              case 6:
+                _context.next = 8;
+                return asyncSetMessageFn('Parsing \'' + pdbId + '\'');
+
+              case 8:
+                this.parsePdbData(pdbText, pdbId);
+
+                if (!this.parsingError) {
+                  _context.next = 14;
+                  break;
+                }
+
+                err = this.soup.parsingError;
+                _context.next = 13;
+                return asyncSetMessageFn('Error parsing soup: ' + err);
+
+              case 13:
+                return _context.abrupt('return');
+
+              case 14:
+
+                this.assignResidueProperties();
+                this.calcMaxLength();
+
+                nAtom = this.getAtomCount();
+                nRes = this.getResidueCount();
+                _context.next = 20;
+                return asyncSetMessageFn('Calculating bonds for ' + nAtom + ' atoms, ' + nRes + ' residues...');
+
+              case 20:
+
+                this.calcBondsStrategic();
+
+                nBond = this.getBondCount();
+                _context.next = 24;
+                return asyncSetMessageFn('Calculated ' + nBond + ' bonds. Assigning secondary structure...');
+
+              case 24:
+
+                this.findSecondaryStructure();
+
+              case 25:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function asyncLoadProteinData(_x, _x2) {
+        return _ref.apply(this, arguments);
+      }
+
+      return asyncLoadProteinData;
+    }()
   }, {
     key: 'addAtom',
     value: function addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain) {
@@ -79607,9 +79601,9 @@ var Soup = function () {
             atom0.iAtom = atomIndices[pair[0]];
             atom1.iAtom = atomIndices[pair[1]];
             if (atom0.elem === 'O' && atom1.elem === 'N') {
-              var _ref = [atom1, atom0];
-              atom0 = _ref[0];
-              atom1 = _ref[1];
+              var _ref2 = [atom1, atom0];
+              atom0 = _ref2[0];
+              atom1 = _ref2[1];
             }
             if (!(atom0.elem === 'N' && atom1.elem === 'O')) {
               continue;
@@ -79870,7 +79864,6 @@ var Soup = function () {
     value: function calculateTracesForRibbons() {
       var _this2 = this;
 
-      console.log('Soup.calculateTracesForRibbons');
       this.traces.length = 0;
 
       var lastTrace = void 0;
@@ -80188,6 +80181,8 @@ var Soup = function () {
             iResStart = atom.iRes;
           }
           iResEnd = atom.iRes + 1;
+        } else if (res.iStructure > iStructure) {
+          res.iStructure -= 1;
         }
       }
 
@@ -80262,6 +80257,7 @@ var Soup = function () {
       }
 
       this.structureIds.splice(iStructure, 1);
+      this.iStructure -= 1;
 
       this.calcBondsStrategic();
       this.calcMaxLength();
@@ -80514,7 +80510,9 @@ var SoupView = function () {
     this.updateSidechain = false;
     this.updateSelection = false;
     this.startTargetAfterRender = false;
-    this.updateWidgets = true;
+    this.updateObservers = true;
+
+    this.nDataServer = 0;
 
     this.isLoop = false;
 
@@ -80541,8 +80539,18 @@ var SoupView = function () {
   }
 
   _createClass(SoupView, [{
-    key: 'setCurrentViewToDefault',
-    value: function setCurrentViewToDefault() {
+    key: 'build',
+    value: function build() {
+      if (this.savedViews.length === 0 && !this.soup.isEmpty()) {
+        this.setCurrentViewToDefaultAndSave();
+      }
+      this.soup.colorResidues();
+      this.soup.findGridLimits();
+      this.soup.calculateTracesForRibbons();
+    }
+  }, {
+    key: 'setCurrentViewToDefaultAndSave',
+    value: function setCurrentViewToDefaultAndSave() {
       this.currentView.show.sidechain = false;
       this.currentView.order = 0;
       this.currentView.text = this.soup.title;
@@ -80562,7 +80570,7 @@ var SoupView = function () {
     key: 'startTargetView',
     value: function startTargetView() {
       this.targetView = this.saveTargetView;
-      this.updateWidgets = true;
+      this.updateObservers = true;
       this.startTargetAfterRender = false;
       this.changed = true;
     }
@@ -80623,15 +80631,20 @@ var SoupView = function () {
     value: function getZoomedOutViewOfCurrentView() {
       this.soup.calcMaxLength();
 
-      var atomIndices = _lodash2.default.range(this.soup.getAtomCount());
-      var center = this.soup.getCenter(atomIndices);
-
       var newView = this.currentView.clone();
+
+      if (this.soup.maxLength === 0) {
+        return newView;
+      }
+
       var cameraParams = newView.cameraParams;
 
       cameraParams.zFront = -this.soup.maxLength / 2;
       cameraParams.zBack = this.soup.maxLength / 2;
       cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75;
+
+      var atomIndices = _lodash2.default.range(this.soup.getAtomCount());
+      var center = this.soup.getCenter(atomIndices);
 
       var look = cameraParams.position.clone().sub(cameraParams.focus).normalize();
       cameraParams.focus.copy(center);
@@ -80733,24 +80746,30 @@ var Controller = function () {
   }, {
     key: 'setTargetToPrevView',
     value: function setTargetToPrevView() {
-      var scene = this.soupView;
-      scene.iLastViewSelected -= 1;
-      if (scene.iLastViewSelected < 0) {
-        scene.iLastViewSelected = scene.savedViews.length - 1;
+      var soupView = this.soupView;
+      if (soupView.savedViews.length == 0) {
+        return '';
       }
-      var id = scene.savedViews[scene.iLastViewSelected].id;
+      soupView.iLastViewSelected -= 1;
+      if (soupView.iLastViewSelected < 0) {
+        soupView.iLastViewSelected = soupView.savedViews.length - 1;
+      }
+      var id = soupView.savedViews[soupView.iLastViewSelected].id;
       this.setTargetViewByViewId(id);
       return id;
     }
   }, {
     key: 'setTargetToNextView',
     value: function setTargetToNextView() {
-      var scene = this.soupView;
-      scene.iLastViewSelected += 1;
-      if (scene.iLastViewSelected >= scene.savedViews.length) {
-        scene.iLastViewSelected = 0;
+      var soupView = this.soupView;
+      if (soupView.savedViews.length == 0) {
+        return '';
       }
-      var id = scene.savedViews[scene.iLastViewSelected].id;
+      soupView.iLastViewSelected += 1;
+      if (soupView.iLastViewSelected >= soupView.savedViews.length) {
+        soupView.iLastViewSelected = 0;
+      }
+      var id = soupView.savedViews[soupView.iLastViewSelected].id;
       this.setTargetViewByViewId(id);
       return id;
     }
@@ -80992,6 +81011,9 @@ var Controller = function () {
   }, {
     key: 'loadViewsFromViewDicts',
     value: function loadViewsFromViewDicts(viewDicts) {
+      if (this.nDataServer > 1) {
+        return;
+      }
       for (var i = 0; i < viewDicts.length; i += 1) {
         var view = new View();
         view.setFromDict(viewDicts[i]);
@@ -81002,6 +81024,35 @@ var Controller = function () {
       }
       this.sortViewsByOrder();
     }
+  }, {
+    key: 'asyncLoadProteinData',
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(proteinData, asyncSetMessageFn) {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                this.nDataServer += 1;
+                _context2.next = 3;
+                return this.soup.asyncLoadProteinData(proteinData, asyncSetMessageFn);
+
+              case 3:
+                this.soupView.changed = true;
+
+              case 4:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function asyncLoadProteinData(_x3, _x4) {
+        return _ref3.apply(this, arguments);
+      }
+
+      return asyncLoadProteinData;
+    }()
   }, {
     key: 'setShowOption',
     value: function setShowOption(option, bool) {
@@ -81138,15 +81189,52 @@ var Controller = function () {
     key: 'deleteStructure',
     value: function deleteStructure(iStructure) {
       this.soup.deleteStructure(iStructure);
-      this.soupView.updateSidechain = true;
-      this.soupView.updateSelection = true;
+      this.nDataServer -= 1;
+      if (this.soup.isEmpty()) {
+        this.soupView.savedViews.length = 0;
+        var _iteratorNormalCompletion24 = true;
+        var _didIteratorError24 = false;
+        var _iteratorError24 = undefined;
+
+        try {
+          for (var _iterator24 = _lodash2.default.keys(this.soupView.savedViewsByViewId)[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
+            var id = _step24.value;
+
+            delete this.soupView.savedViewsByViewId[id];
+          }
+        } catch (err) {
+          _didIteratorError24 = true;
+          _iteratorError24 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion24 && _iterator24.return) {
+              _iterator24.return();
+            }
+          } finally {
+            if (_didIteratorError24) {
+              throw _iteratorError24;
+            }
+          }
+        }
+
+        this.soupView.currentView = new View();
+        this.soupView.targetView = null;
+        this.soupView.startTargetAfterRender = false;
+        this.soupView.nUpdateStep = -1;
+      } else {
+        this.soupView.updateSidechain = true;
+        this.soupView.updateSelection = true;
+      }
+      this.soupView.updateObservers = true;
       this.soupView.changed = true;
     }
   }, {
     key: 'zoomOut',
     value: function zoomOut() {
-      this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView());
-      this.soupView.changed = true;
+      if (!this.soup.isEmpty()) {
+        this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView());
+        this.soupView.changed = true;
+      }
     }
   }]);
 
@@ -81157,6 +81245,7 @@ exports.Soup = Soup;
 exports.Controller = Controller;
 exports.interpolateCameras = interpolateCameras;
 exports.SoupView = SoupView;
+exports.View = View;
 
 /***/ }),
 /* 134 */
@@ -83845,7 +83934,6 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
   }, {
     key: 'mousedown',
     value: function mousedown(event) {
-      console.log('ZSlab.mousedown');
       this.getZ(event);
 
       if (this.z > 0) {
@@ -84345,10 +84433,14 @@ var ViewTextWidget = function () {
   _createClass(ViewTextWidget, [{
     key: 'update',
     value: function update() {
-      var i = this.soupView.currentView.order + 1;
       var n = this.soupView.savedViews.length;
-      var text = this.soupView.currentView.text;
-      this.div.text(i + '/' + n + ': ' + text);
+      if (n == 0) {
+        this.div.text('');
+      } else {
+        var i = this.soupView.currentView.order + 1;
+        var text = this.soupView.currentView.text;
+        this.div.text(i + '/' + n + ': ' + text);
+      }
     }
   }]);
 
@@ -91166,6 +91258,8 @@ var WebglWidget = function () {
   }, {
     key: 'buildLights',
     value: function buildLights() {
+      this.lights.length = 0;
+
       var directedLight = new THREE.DirectionalLight(0xFFFFFF);
       directedLight.position.copy(_v2.default.create(0.2, 0.2, -100).normalize());
       directedLight.dontDelete = true;
@@ -91234,7 +91328,7 @@ var WebglWidget = function () {
       this.messageDiv.hide();
     }
   }, {
-    key: 'createOrClearMesh',
+    key: 'rebuildSceneFromMeshes',
 
 
     /**
@@ -91250,29 +91344,9 @@ var WebglWidget = function () {
      */
 
     /**
-     * Clears/creates a mesh entry in the mesh collection
-     * @param meshName - the name for a mesh collection
-     */
-    value: function createOrClearMesh(meshName) {
-      if (!(meshName in this.displayMeshes)) {
-        this.displayMeshes[meshName] = new THREE.Object3D();
-      } else {
-        glgeom.clearObject3D(this.displayMeshes[meshName]);
-      }
-      if (!(meshName in this.pickingMeshes)) {
-        this.pickingMeshes[meshName] = new THREE.Object3D();
-      } else {
-        glgeom.clearObject3D(this.pickingMeshes[meshName]);
-      }
-    }
-
-    /**
      * Rebuild soupView from meshes in this.displayMeshes &
      * this.pickingMeshes
      */
-
-  }, {
-    key: 'rebuildSceneFromMeshes',
     value: function rebuildSceneFromMeshes() {
       glgeom.clearObject3D(this.displayScene);
       glgeom.clearObject3D(this.pickingScene);
@@ -91429,8 +91503,6 @@ var WebglWidget = function () {
 
 var pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: THREE.VertexColors });
 var displayMaterial = new THREE.MeshPhongMaterial({ vertexColors: THREE.VertexColors });
-var atomRadius = 0.35;
-var gridAtomRadius = 1.0;
 
 function getIndexColor(i) {
   return new THREE.Color().setHex(i + 1);
@@ -92609,14 +92681,7 @@ var Display = function (_WebglWidget) {
     key: 'buildScene',
     value: function buildScene() {
       // pre-calculations needed before building meshes
-
-      if (this.soupView.savedViews.length === 0) {
-        this.soupView.setCurrentViewToDefault();
-      }
-
-      this.soup.colorResidues();
-      this.soup.findGridLimits();
-      this.soup.calculateTracesForRibbons();
+      this.soupView.build();
 
       var _iteratorNormalCompletion26 = true;
       var _didIteratorError26 = false;
@@ -92681,7 +92746,6 @@ var Display = function (_WebglWidget) {
 
       this.observers.rebuilt.dispatch();
 
-      console.log('Display.buildScene', this.displayScene.children);
       this.soupView.changed = true;
       this.soupView.updateObservers = true;
     }
@@ -92689,8 +92753,8 @@ var Display = function (_WebglWidget) {
     key: 'deleteStructure',
     value: function deleteStructure(iStructure) {
       this.controller.deleteStructure(iStructure);
-      this.observers.rebuilt.dispatch();
       this.buildScene();
+      this.observers.rebuilt.dispatch();
     }
   }, {
     key: 'buildCrossHairs',
@@ -92882,16 +92946,18 @@ var Display = function (_WebglWidget) {
       if (!this.isChanged()) {
         return;
       }
-      this.updateMeshesInScene = false;
+
+      var isNoMoreChanges = !this.soupView.soup.grid.changed && !this.soupView.updateSidechain && !this.soupView.updateSelection;
 
       if (this.soupView.startTargetAfterRender) {
-        // call here as the tick AFTER the new stuff
-        // has been rebuilt and rendered
-        if (!this.soupView.soup.grid.changed && !this.soupView.updateSidechain && !this.soupView.updateSelection) {
+        // set target only AFTER all changes have been applied in previous tick
+        if (isNoMoreChanges) {
           this.soupView.startTargetView();
           this.soupView.nUpdateStep = this.soupView.maxUpdateStep;
         }
       }
+
+      this.updateMeshesInScene = false;
 
       var isNewTrigger = function isNewTrigger(meshName, visible) {
         return visible && !(meshName in _this6.displayMeshes);
@@ -92950,6 +93016,8 @@ var Display = function (_WebglWidget) {
       // needs to be observers.updated before render
       // as lines must be placed in THREE.js scene
       this.distanceMeasuresWidget.drawFrame();
+
+      // console.log('Display.drawFrame', this.displayScene.children)
 
       this.render();
 
@@ -99684,7 +99752,7 @@ var ViewPanel = function () {
 
 
 var ViewPanelList = function () {
-  function ViewPanelList(divTag, soupDisplay, dataServer, isEditable) {
+  function ViewPanelList(divTag, soupDisplay, isEditable) {
     var _this3 = this;
 
     _classCallCheck(this, ViewPanelList);
@@ -99694,7 +99762,6 @@ var ViewPanelList = function () {
     this.soupView = soupDisplay.soupView;
     this.controller = soupDisplay.controller;
     this.isEditable = isEditable;
-    this.dataServer = dataServer;
     this.viewPiece = {};
     this.subheaderDiv = (0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('SAVED VIEWS &nbsp;');
     this.div = (0, _jquery2.default)(this.divTag).append(this.subheaderDiv).append((0, _jquery2.default)('<div id="jolecule-views">'));
@@ -99709,7 +99776,7 @@ var ViewPanelList = function () {
     key: 'saveViewsToDataServer',
     value: function saveViewsToDataServer(success) {
       console.log('ViewPanelList.saveViewsToDataServer');
-      this.dataServer.save_views(this.controller.getViewDicts(), success);
+      this.display.dataServer.save_views(this.controller.getViewDicts(), success);
     }
   }, {
     key: 'update',
@@ -99722,6 +99789,17 @@ var ViewPanelList = function () {
       }
 
       var nView = this.soupView.savedViews.length;
+
+      var iLastView = this.soupView.iLastViewSelected;
+      if (iLastView >= this.soupView.savedViews.length) {
+        iLastView = 0;
+        this.soupView.iLastViewSelected = iLastView;
+      }
+      var lastId = null;
+      if (iLastView < this.soupView.savedViews.length) {
+        lastId = this.soupView.savedViews[iLastView].id;
+      }
+
       for (var i = 0; i < nView; i++) {
         var view = this.soupView.savedViews[i];
         var _id = view.id;
@@ -99729,9 +99807,6 @@ var ViewPanelList = function () {
         if (!(view.id in this.viewPiece)) {
           this.insertNewViewDiv(view.id);
         }
-
-        var iLastView = this.soupView.iLastViewSelected;
-        var lastId = this.soupView.savedViews[iLastView].id;
 
         if (lastId === _id) {
           this.viewPiece[_id].div.removeClass('jolecule-unselected-box');
@@ -99778,7 +99853,7 @@ var ViewPanelList = function () {
 
       console.log('ViewPanelList.removeView');
       this.viewPiece[id].div.css('background-color', 'lightgray');
-      this.dataServer.delete_protein_view(id, function () {
+      this.display.dataServer.delete_protein_view(id, function () {
         _this4.controller.deleteView(id);
         _this4.update();
       });
@@ -99944,6 +100019,11 @@ var FullPageJolecule = function () {
   }
 
   _createClass(FullPageJolecule, [{
+    key: 'clear',
+    value: function clear() {
+      this.embedJolecule.clear();
+    }
+  }, {
     key: 'asyncAddDataServer',
     value: function () {
       var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(dataServer) {
@@ -99951,12 +100031,12 @@ var FullPageJolecule = function () {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _context.next = 2;
+                console.log('FullPageJolecule.asyncAddDataServer', dataServer.id);
+                _context.next = 3;
                 return this.embedJolecule.asyncAddDataServer(dataServer);
 
-              case 2:
+              case 3:
                 this.initViewsDisplay(dataServer);
-                console.log('FullPageJolecule.asyncAddDataServer added dataserver');
 
               case 4:
               case 'end':
@@ -99982,7 +100062,7 @@ var FullPageJolecule = function () {
         this.controller = this.embedJolecule.controller;
         this.display = this.embedJolecule.display;
 
-        this.viewPanelList = new ViewPanelList(this.viewsDisplayTag, this.display, dataServer, this.params.isEditable);
+        this.viewPanelList = new ViewPanelList(this.viewsDisplayTag, this.display, this.params.isEditable);
 
         this.viewPanelList.makeAllViews();
         var hashTag = (0, _util.getWindowUrl)().split('#')[1];

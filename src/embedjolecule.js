@@ -55,10 +55,9 @@ class EmbedJolecule {
     resizeFn()
   };
 
-  loadViewDicts (viewDicts) {
-  }
-
   async asyncAddDataServer (dataServer) {
+    console.log('EmbedJolecule.asyncAddDataServer')
+
     while (this.isProcessing.flag) {
       await delay(100)
     }
@@ -87,12 +86,20 @@ class EmbedJolecule {
       }
     })
 
+    this.display.dataServer = dataServer
+
     this.controller.zoomOut()
 
     this.display.observers.rebuilt.dispatch()
     this.display.cleanupMessage()
 
     this.isProcessing.flag = false
+  }
+
+  clear () {
+    while (this.display.soup.structureIds.length > 0) {
+      this.display.deleteStructure(0)
+    }
   }
 
   createDivs () {

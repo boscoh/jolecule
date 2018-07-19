@@ -146,13 +146,12 @@ class ViewPanel {
  * ViewPanelList keeps track of the ViewPanel's
  */
 class ViewPanelList {
-  constructor (divTag, soupDisplay, dataServer, isEditable) {
+  constructor (divTag, soupDisplay, isEditable) {
     this.divTag = divTag
     this.display = soupDisplay
     this.soupView = soupDisplay.soupView
     this.controller = soupDisplay.controller
     this.isEditable = isEditable
-    this.dataServer = dataServer
     this.viewPiece = {}
     this.subheaderDiv = $('<div>')
       .addClass('jolecule-sub-header')
@@ -168,7 +167,7 @@ class ViewPanelList {
 
   saveViewsToDataServer (success) {
     console.log('ViewPanelList.saveViewsToDataServer')
-    this.dataServer.save_views(this.controller.getViewDicts(), success)
+    this.display.dataServer.save_views(this.controller.getViewDicts(), success)
   }
 
   update () {
@@ -180,6 +179,17 @@ class ViewPanelList {
     }
 
     let nView = this.soupView.savedViews.length
+
+    let iLastView = this.soupView.iLastViewSelected
+    if (iLastView >= this.soupView.savedViews.length) {
+      iLastView = 0
+      this.soupView.iLastViewSelected = iLastView
+    }
+    let lastId = null
+    if (iLastView < this.soupView.savedViews.length) {
+      lastId = this.soupView.savedViews[iLastView].id
+    }
+
     for (let i = 0; i < nView; i++) {
       let view = this.soupView.savedViews[i]
       let id = view.id
@@ -187,9 +197,6 @@ class ViewPanelList {
       if (!(view.id in this.viewPiece)) {
         this.insertNewViewDiv(view.id)
       }
-
-      let iLastView = this.soupView.iLastViewSelected
-      let lastId = this.soupView.savedViews[iLastView].id
 
       if (lastId === id) {
         this.viewPiece[id].div.removeClass('jolecule-unselected-box')
@@ -230,7 +237,7 @@ class ViewPanelList {
   removeView (id) {
     console.log('ViewPanelList.removeView')
     this.viewPiece[id].div.css('background-color', 'lightgray')
-    this.dataServer.delete_protein_view(id, () => {
+    this.display.dataServer.delete_protein_view(id, () => {
       this.controller.deleteView(id)
       this.update()
     })
@@ -379,10 +386,14 @@ class FullPageJolecule {
     this.noData = true
   }
 
+  clear () {
+    this.embedJolecule.clear()
+  }
+
   async asyncAddDataServer (dataServer) {
+    console.log('FullPageJolecule.asyncAddDataServer', dataServer.id)
     await this.embedJolecule.asyncAddDataServer(dataServer)
     this.initViewsDisplay(dataServer)
-    console.log('FullPageJolecule.asyncAddDataServer added dataserver')
   }
 
   initViewsDisplay (dataServer) {
@@ -396,7 +407,6 @@ class FullPageJolecule {
       this.viewPanelList = new ViewPanelList(
         this.viewsDisplayTag,
         this.display,
-        dataServer,
         this.params.isEditable)
 
       this.viewPanelList.makeAllViews()

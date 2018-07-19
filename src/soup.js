@@ -1304,6 +1304,8 @@ class Soup {
           iResStart = atom.iRes
         }
         iResEnd = atom.iRes + 1
+      } else if (res.iStructure > iStructure) {
+        res.iStructure -= 1
       }
     }
 
@@ -1679,7 +1681,6 @@ class SoupView {
   }
 
   setCurrentViewToDefaultAndSave () {
-    console.log('SoupView.setCurrentViewToDefaultAndSave')
     this.currentView.show.sidechain = false
     this.currentView.order = 0
     this.currentView.text = this.soup.title
