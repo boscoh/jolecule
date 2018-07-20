@@ -1284,6 +1284,7 @@ class Soup {
   }
 
   deleteStructure (iStructure) {
+    console.log('Soup.deleteStructure', iStructure)
     let atom = this.getAtomProxy()
     let res = this.getResidueProxy()
 
@@ -1304,8 +1305,6 @@ class Soup {
           iResStart = atom.iRes
         }
         iResEnd = atom.iRes + 1
-      } else if (res.iStructure > iStructure) {
-        res.iStructure -= 1
       }
     }
 

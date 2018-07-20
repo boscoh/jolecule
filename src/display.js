@@ -1203,7 +1203,6 @@ class Display extends WebglWidget {
       // set target only AFTER all changes have been applied in previous tick
       if (isNoMoreChanges) {
         this.soupView.startTargetView()
-        console.log('Display.drawFrame setnew target', this.soupView.targetView.show)
         this.soupView.nUpdateStep = this.soupView.maxUpdateStep
       }
     }

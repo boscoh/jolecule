@@ -80161,6 +80161,7 @@ var Soup = function () {
   }, {
     key: 'deleteStructure',
     value: function deleteStructure(iStructure) {
+      console.log('Soup.deleteStructure', iStructure);
       var atom = this.getAtomProxy();
       var res = this.getResidueProxy();
 
@@ -80181,8 +80182,6 @@ var Soup = function () {
             iResStart = atom.iRes;
           }
           iResEnd = atom.iRes + 1;
-        } else if (res.iStructure > iStructure) {
-          res.iStructure -= 1;
         }
       }
 
@@ -92962,7 +92961,6 @@ var Display = function (_WebglWidget) {
         // set target only AFTER all changes have been applied in previous tick
         if (isNoMoreChanges) {
           this.soupView.startTargetView();
-          console.log('Display.drawFrame setnew target', this.soupView.targetView.show);
           this.soupView.nUpdateStep = this.soupView.maxUpdateStep;
         }
       }

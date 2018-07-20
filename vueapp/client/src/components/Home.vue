@@ -153,6 +153,7 @@ export default {
   },
   methods: {
     async deleteProtein (i) {
+      console.log('deleteProtein', i, this.joleculeWidget.display.soup.structureIds)
       this.joleculeWidget.display.deleteStructure(i)
       this.joleculeWidget.controller.zoomOut()
       this.changeGraph()

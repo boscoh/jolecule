@@ -21,13 +21,12 @@ let isDebug = false
 
 function createWindow (pdb) {
   const rendererJs = 'pdb-renderer.js'
-  const title = `jolecule - ${getPdbId(pdb)}`
 
   const localServerMustache = fs.readFileSync(
     'pdb-renderer.mustache.js',
     'utf8'
   )
-  let dataJsText = mustache.render(localServerMustache, {pdbId: pdb, title})
+  let dataJsText = mustache.render(localServerMustache, {pdbId: pdb})
   fs.writeFileSync(rendererJs, dataJsText)
 
   console.log('creatWindow', pdb)
@@ -72,10 +71,6 @@ function createWindow (pdb) {
   }
 
   lastWindowId = pdb
-}
-
-function getPdbId (pdb) {
-  return path.basename(pdb).replace('.pdb', '')
 }
 
 function getViewsJson (pdb) {

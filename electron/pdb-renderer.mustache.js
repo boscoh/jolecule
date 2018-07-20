@@ -55,8 +55,6 @@ function makeDataServer(pdb) {
   };
 }
 
-document.title = "{{{title}}}";
-
 let joleculeInstance = jolecule.initFullPageJolecule(
   "#jolecule-protein-container",
   "#jolecule-views-container",
@@ -68,7 +66,12 @@ let joleculeInstance = jolecule.initFullPageJolecule(
   }
 );
 
+function getPdbId (pdb) {
+  return path.basename(pdb).replace('.pdb', '')
+}
+
 function loadPdb(pdb) {
+  document.title = 'jolecule - ' + getPdbId(pdb)
   joleculeInstance.clear();
   joleculeInstance.asyncAddDataServer(makeDataServer(pdb));
 }
