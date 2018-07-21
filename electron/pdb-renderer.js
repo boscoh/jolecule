@@ -9,36 +9,36 @@ function makeDataServer(pdb) {
   return {
     id,
     get_protein_data: function(loadProteinData) {
-      console.log("dataServer.get-protein-text", id, pdb);
+      console.log("ipcRenderer:get-protein-text", id, pdb);
       ipcRenderer.send("get-protein-text", id, pdb);
       ipcRenderer.once("get-protein-text", (event, returnId, pdbText) => {
         if (id !== returnId) {
           return;
         }
         let pdbId = path.basename(pdb).replace(".pdb", "");
-        console.log("dataServer.get-protein-text", returnId, pdb, pdbText.length);
+        console.log("ipcRenderer:get-protein-text", returnId, pdb, pdbText.length);
         loadProteinData({ pdb_id: pdbId, pdb_text: pdbText });
       });
     },
     get_views: function(loadViewDicts) {
       ipcRenderer.send("get-view-dicts", id, pdb);
-      console.log("dataServer.get_views", id, pdb);
+      console.log("ipcRenderer:get_views", id, pdb);
       ipcRenderer.once("get-view-dicts", (event, returnId, viewDicts) => {
         if (id !== returnId) {
           return;
         }
-        console.log("dataServer.get_views", viewDicts);
+        console.log("ipcRenderer:get_views", viewDicts);
         loadViewDicts(viewDicts);
       });
     },
     save_views: function(views, success) {
       ipcRenderer.send("save-view-dicts", id, pdb, views);
-      console.log("dataServer.save_views", id, pdb);
+      console.log("ipcRenderer:save_views", id, pdb);
       ipcRenderer.once("save-view-dicts", (event, returnId) => {
         if (id !== returnId) {
           return;
         }
-        console.log("dataServer.save-view-dicts", returnId, pdb);
+        console.log("ipcRenderer:save-view-dicts", returnId, pdb);
         success();
       });
     },
@@ -48,7 +48,7 @@ function makeDataServer(pdb) {
         if (id !== returnId) {
           return;
         }
-        console.log("dataServer.delete_protein_view", returnId, pdb);
+        console.log("ipcRenderer:delete_protein_view", returnId, pdb);
         success();
       });
     }
@@ -79,11 +79,16 @@ function loadPdb(pdb) {
 ipcRenderer.send("get-file");
 ipcRenderer.on("get-file", (event, pdb) => {
   loadPdb(pdb);
+  ipcRenderer.send("get-files", path.dirname(pdb));
 });
 
 function buildFileDiv(entry) {
+  let s = entry.name
+  if (entry.title) {
+    s += ' - ' + entry.title
+  }
   let entryDiv = $('<div class="file-entry">')
-    .append($("<span>").text(entry.name + " - " + entry.title))
+    .append($("<span>").text(s))
     .click(e => {
       loadPdb(entry.filename);
       // ipcRenderer.send('open-file', entry.filename);
@@ -91,10 +96,24 @@ function buildFileDiv(entry) {
   return entryDiv;
 }
 
-ipcRenderer.send("get-files");
+function buildDirDiv(entry, directory) {
+  console.log('buildDirDiv', directory, entry)
+  let entryDiv = $('<div class="file-entry">')
+    .append($("<span>").text('> ' + entry))
+    .click(e => {
+      let fullDir = path.join(directory, entry)
+      ipcRenderer.send("get-files", fullDir)
+    });
+  return entryDiv;
+}
+
 ipcRenderer.on("get-files", (event, payload) => {
+  console.log('ipcRenderer:get-files', payload)
   let div = $("#files");
   div.empty();
+  for (let entry of payload.directories) {
+    div.append(buildDirDiv(entry, payload.dirname));
+  }
   for (let entry of payload.files) {
     div.append(buildFileDiv(entry));
   }

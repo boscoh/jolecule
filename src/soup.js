@@ -1121,7 +1121,7 @@ class Soup {
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
       residue.iRes = iRes
       if (residue.isPolymer) {
-        if ((iRes === 0) || !residue.isConnectedToPrev()) {
+        if (_.isUndefined(lastTrace) || (iRes === 0) || !residue.isConnectedToPrev()) {
           let newTrace = new glgeom.Trace()
           newTrace.getReference = i => {
             residue.iRes = newTrace.indices[i]

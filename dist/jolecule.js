@@ -79872,7 +79872,7 @@ var Soup = function () {
       for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
         residue.iRes = iRes;
         if (residue.isPolymer) {
-          if (iRes === 0 || !residue.isConnectedToPrev()) {
+          if (_lodash2.default.isUndefined(lastTrace) || iRes === 0 || !residue.isConnectedToPrev()) {
             (function () {
               var newTrace = new glgeom.Trace();
               newTrace.getReference = function (i) {
@@ -99953,11 +99953,9 @@ var ViewPanelList = function () {
     value: function insertNewViewDiv(newId) {
       var div = this.makeViewDiv(newId);
       if (this.soupView.iLastViewSelected === 0 || this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1) {
-        console.log('ViewPanelList.insertNewViewDiv append', this.soupView.iLastViewSelected);
         (0, _jquery2.default)('#jolecule-views').append(div);
       } else {
         var j = this.soupView.iLastViewSelected - 1;
-        console.log('ViewPanelList.insertNewViewDiv insert', this.soupView.iLastViewSelected, j, this.soupView.savedViews[j]);
         var jId = this.soupView.savedViews[j].id;
         var jDiv = this.viewPiece[jId].div;
         div.insertAfter(jDiv);

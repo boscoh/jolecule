@@ -18,18 +18,10 @@ const _ = require('lodash')
 let lastWindowId
 let windows = {}
 let isDebug = false
+let initPdb
 
 function createWindow (pdb) {
-  const rendererJs = 'pdb-renderer.js'
-
-  const localServerMustache = fs.readFileSync(
-    'pdb-renderer.mustache.js',
-    'utf8'
-  )
-  let dataJsText = mustache.render(localServerMustache, {pdbId: pdb})
-  fs.writeFileSync(rendererJs, dataJsText)
-
-  console.log('creatWindow', pdb)
+  console.log('createWindow', pdb)
 
   // Create the browser window.
   windows[pdb] = new BrowserWindow({
@@ -40,7 +32,6 @@ function createWindow (pdb) {
     }
   })
 
-  // and load the pdb-index.html of the app.
   windows[pdb].loadURL(
     url.format({
       pathname: path.join(__dirname, 'pdb-index.html'),
@@ -132,52 +123,45 @@ function parsetTitleFromPdbText (text) {
   return result
 }
 
-function init () {
-  let knownOpts = {debug: [Boolean, false]}
-  let shortHands = {d: ['--debug']}
-  let parsed = nopt(knownOpts, shortHands, process.argv, 2)
-  let remain = parsed.argv.remain
-
-  isDebug = !!parsed.debug
-
-  const menu = Menu.buildFromTemplate(menuTemplate)
-  Menu.setApplicationMenu(menu)
-
-  let pdb = path.join(__dirname, '../examples/1mbo.pdb')
-  if (remain.length > 0) {
-    pdb = remain[0]
+function isDirectory (f) {
+  try{
+    console.log('isDirectory', f, fs.statSync(f).isDirectory())
+    return fs.statSync(f).isDirectory()
+  }catch(e){
   }
+  return false
+}
 
-  let dirname = path.dirname(pdb)
-  let files = fs.readdirSync(dirname)
-  let payload = {
-    dirname,
-    files: [],
-    time: ''
-  }
-  for (let filename of files) {
-    if (_.endsWith(filename, '.pdb')) {
-      console.log(dirname, filename)
-      try {
-        const pdbText = fs.readFileSync(path.join(dirname, filename), 'utf8')
-        payload.files.push({
-          title: parsetTitleFromPdbText(pdbText),
-          filename: path.join(dirname, filename),
-          name: filename
-        })
-      } catch (error) {}
-    }
-  }
-
-  console.log('init', payload)
-
+function addHandlers () {
   ipcMain.on('get-file', event => {
     console.log('ipcMain:get-file')
-    event.sender.send('get-file', pdb)
+    event.sender.send('get-file', initPdb)
   })
 
-  ipcMain.on('get-files', event => {
-    console.log('ipcMain:get-files')
+  ipcMain.on('get-files', (event, dirname) => {
+    console.log('ipcMain:get-files', dirname)
+    let files = fs.readdirSync(dirname)
+    let payload = {
+      dirname,
+      files: [],
+      directories: [],
+      time: ''
+    }
+    payload.directories.push('..')
+    for (let filename of files) {
+      if (isDirectory(path.join(dirname, filename))) {
+        payload.directories.push(filename)
+      } else if (_.endsWith(filename, '.pdb')) {
+        try {
+          const pdbText = fs.readFileSync(path.join(dirname, filename), 'utf8')
+          payload.files.push({
+            title: parsetTitleFromPdbText(pdbText),
+            filename: path.join(dirname, filename),
+            name: filename
+          })
+        } catch (error) {}
+      }
+    }
     event.sender.send('get-files', payload)
   })
 
@@ -217,10 +201,34 @@ function init () {
     }
     event.sender.send('delete-protein-view', id, 'success')
   })
+}
+
+function init () {
+  let knownOpts = {debug: [Boolean, false]}
+  let shortHands = {d: ['--debug']}
+  let parsed = nopt(knownOpts, shortHands, process.argv, 2)
+  let remain = parsed.argv.remain
+
+  isDebug = !!parsed.debug
+
+  const menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
 
   console.log('electron', process.argv[0])
 
-  createWindow(pdb)
+  initPdb = path.join(__dirname, '../examples/1mbo.pdb')
+  if (remain.length > 0) {
+    initPdb = remain[0]
+    if (!fs.existsSync(initPdb)) {
+      let testInitPdb = initPdb + '.pdb'
+      if (fs.existsSync(testInitPdb)) {
+        initPdb = testInitPdb
+      }
+    }
+  }
+
+  addHandlers()
+  createWindow(initPdb)
 }
 
 // This method will be called when Electron has finished
