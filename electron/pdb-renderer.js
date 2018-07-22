@@ -76,10 +76,14 @@ function loadPdb(pdb) {
   joleculeInstance.asyncAddDataServer(makeDataServer(pdb));
 }
 
-ipcRenderer.send("get-file");
-ipcRenderer.on("get-file", (event, pdb) => {
-  loadPdb(pdb);
-  ipcRenderer.send("get-files", path.dirname(pdb));
+ipcRenderer.send("get-init");
+ipcRenderer.on("get-init", (event, dirname, pdb) => {
+  console.log('ipcRenderer:get-init', dirname, pdb)
+  joleculeInstance.clear();
+  if (pdb) {
+    loadPdb(pdb);
+  }
+  ipcRenderer.send("get-files", dirname);
 });
 
 function buildFileDiv(entry) {
@@ -91,13 +95,11 @@ function buildFileDiv(entry) {
     .append($("<span>").text(s))
     .click(e => {
       loadPdb(entry.filename);
-      // ipcRenderer.send('open-file', entry.filename);
     });
   return entryDiv;
 }
 
 function buildDirDiv(entry, directory) {
-  console.log('buildDirDiv', directory, entry)
   let entryDiv = $('<div class="file-entry">')
     .append($("<span>").text('> ' + entry))
     .click(e => {

@@ -124,18 +124,17 @@ function parsetTitleFromPdbText (text) {
 }
 
 function isDirectory (f) {
-  try{
-    console.log('isDirectory', f, fs.statSync(f).isDirectory())
+  try {
     return fs.statSync(f).isDirectory()
-  }catch(e){
+  } catch (e) {
   }
   return false
 }
 
 function addHandlers () {
-  ipcMain.on('get-file', event => {
-    console.log('ipcMain:get-file')
-    event.sender.send('get-file', initPdb)
+  ipcMain.on('get-init', event => {
+    console.log('ipcMain:get-init', initDir, initPdb)
+    event.sender.send('get-init', initDir, initPdb)
   })
 
   ipcMain.on('get-files', (event, dirname) => {
@@ -204,32 +203,54 @@ function addHandlers () {
 }
 
 function init () {
-  let knownOpts = {debug: [Boolean, false]}
-  let shortHands = {d: ['--debug']}
-  let parsed = nopt(knownOpts, shortHands, process.argv, 2)
-  let remain = parsed.argv.remain
-
-  isDebug = !!parsed.debug
-
   const menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
-
-  console.log('electron', process.argv[0])
-
-  initPdb = path.join(__dirname, '../examples/1mbo.pdb')
-  if (remain.length > 0) {
-    initPdb = remain[0]
-    if (!fs.existsSync(initPdb)) {
-      let testInitPdb = initPdb + '.pdb'
-      if (fs.existsSync(testInitPdb)) {
-        initPdb = testInitPdb
-      }
-    }
-  }
-
   addHandlers()
   createWindow(initPdb)
 }
+
+
+let knownOpts = {debug: [Boolean, false]}
+let shortHands = {d: ['--debug']}
+let parsed = nopt(knownOpts, shortHands, process.argv, 2)
+let remain = parsed.argv.remain
+
+// console.log('electron', process.argv[0])
+
+isDebug = !!parsed.debug
+
+let initDir
+
+if (remain.length > 0) {
+  testPdb = remain[0]
+
+  initPdb = testPdb
+  initDir = path.dirname(initPdb)
+
+  if (isDirectory(testPdb)) {
+    initDir = testPdb
+    initPdb = ''
+  } else if (!fs.existsSync(testPdb)) {
+    let testInitPdb = testPdb + '.pdb'
+    if (fs.existsSync(testInitPdb)) {
+      initPdb = testInitPdb
+      initDir = path.dirname(initPdb)
+    }
+  }
+  if (initPdb && !fs.existsSync(initPdb)) {
+    console.log('file not found', initPdb)
+    process.exit(1);
+  }
+  if (!isDirectory(initDir)) {
+    console.log('directory not found', initDir)
+    process.exit(1);
+  }
+} else {
+  initPdb = path.join(__dirname, '../examples/1mbo.pdb')
+  initDir = path.dirname(initPdb)
+}
+
+console.log('init', initDir, initPdb)
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
