@@ -83621,7 +83621,7 @@ var SequenceWidget = function (_CanvasWidget) {
       // draw characters for sequence
       for (var _iChar = this.iCharDisplayStart; _iChar < this.iCharDisplayEnd; _iChar += 1) {
         var charEntry = this.charEntries[_iChar];
-        if (charEntry.c === '') {
+        if (_lodash2.default.isUndefined(charEntry) || charEntry.c === '') {
           continue;
         }
         colorStyle = this.getColorStyle(_iChar);
@@ -84445,7 +84445,7 @@ var ViewTextWidget = function () {
       } else {
         var i = this.soupView.currentView.order + 1;
         var text = this.soupView.currentView.text;
-        this.div.text(i + '/' + n + ': ' + text);
+        this.div.html(i + '/' + n + ': ' + text);
       }
     }
   }]);

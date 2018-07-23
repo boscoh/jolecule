@@ -806,7 +806,7 @@ class SequenceWidget extends CanvasWidget {
     // draw characters for sequence
     for (let iChar = this.iCharDisplayStart; iChar < this.iCharDisplayEnd; iChar += 1) {
       let charEntry = this.charEntries[iChar]
-      if (charEntry.c === '') {
+      if (_.isUndefined(charEntry) || charEntry.c === '') {
         continue
       }
       colorStyle = this.getColorStyle(iChar)
@@ -1514,7 +1514,7 @@ class ViewTextWidget {
     } else {
       let i = this.soupView.currentView.order + 1
       let text = this.soupView.currentView.text
-      this.div.text(`${i}/${n}: ${text}`)
+      this.div.html(`${i}/${n}: ${text}`)
     }
   }
 }
