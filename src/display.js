@@ -1293,7 +1293,9 @@ class Display extends WebglWidget {
         if (this.soupView.startTargetAfterRender) {
           this.soupView.changed = true
         } else if (this.soupView.isLoop) {
-          this.controller.setTargetToNextView()
+          if (this.soupView.nUpdateStep < -this.soupView.maxWaitStep) {
+            this.controller.setTargetToNextView()
+          }
         }
       }
     } else if (this.soupView.nUpdateStep >= 1) {

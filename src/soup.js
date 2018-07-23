@@ -1439,7 +1439,8 @@ class View {
       trace: true,
       backboneAtom: false,
       ribbon: true
-    }
+    },
+    this.pdb_id = ''
   }
 
   setCamera (cameraParams) {
@@ -1457,6 +1458,7 @@ class View {
   clone () {
     let v = new View()
     v.id = this.id
+    v.pdb_id = this.pdb_id
     v.iAtom = this.iAtom
     v.selected = this.selected
     v.labels = _.cloneDeep(this.labels)
@@ -1687,8 +1689,9 @@ class SoupView {
     this.currentView.show.sidechain = false
     this.currentView.order = 0
     this.currentView.text = this.soup.title
-    this.currentView.pdb_id = this.soup.structureId
+    this.currentView.pdb_id = this.soup.structureIds[0]
     this.currentView = this.getZoomedOutViewOfCurrentView()
+    console.log('SoupView.setCurrentViewToDefaultAndSave', this.currentView)
     this.saveView(this.currentView)
     this.changed = true
   }
@@ -1896,6 +1899,7 @@ class Controller {
     for (let i = 1; i < this.soupView.savedViews.length; i += 1) {
       viewDicts.push(this.soupView.savedViews[i].getDict())
     }
+    console.log('Controller.getViewDicts', this.soupView.savedViews, viewDicts)
     return viewDicts
   }
 
@@ -2027,7 +2031,7 @@ class Controller {
     let iNewView = this.soupView.iLastViewSelected + 1
     let newView = this.soupView.currentView.clone()
     newView.text = 'Click edit to change this text.'
-    newView.pdb_id = this.soup.pdb_id
+    newView.pdb_id = this.soup.structureIds[0]
     let time = getCurrentDateStr()
     if (user === '' || typeof user === 'undefined') {
       newView.creator = '~ [public] @' + time

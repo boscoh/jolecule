@@ -369,9 +369,6 @@ class FullPageJolecule {
       isGrid: true,
       bCutoff: 0.5,
       isPlayable: false,
-      maxUpdateStep: 30,
-      msPerStep: 17
-
     }
     if (exists(params)) {
       this.params = _.assign(this.params, params)

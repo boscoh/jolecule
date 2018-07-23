@@ -53,7 +53,7 @@ function remoteDataServer (pdbId) {
       $.getJSON(`/pdb/${pdbId}.views.json`, processViews)
     },
     save_views: function (views, success) {
-      console.log('remoteDataServer.save_views', '/save/views')
+      console.log('remoteDataServer.save_views', '/save/views', views)
       $.post('/save/views', JSON.stringify(views), success)
     },
     delete_protein_view: function (viewId, success) {

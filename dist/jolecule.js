@@ -80323,7 +80323,7 @@ var View = function () {
       trace: true,
       backboneAtom: false,
       ribbon: true
-    };
+    }, this.pdb_id = '';
   }
 
   _createClass(View, [{
@@ -80345,6 +80345,7 @@ var View = function () {
     value: function clone() {
       var v = new View();
       v.id = this.id;
+      v.pdb_id = this.pdb_id;
       v.iAtom = this.iAtom;
       v.selected = this.selected;
       v.labels = _lodash2.default.cloneDeep(this.labels);
@@ -80557,8 +80558,9 @@ var SoupView = function () {
       this.currentView.show.sidechain = false;
       this.currentView.order = 0;
       this.currentView.text = this.soup.title;
-      this.currentView.pdb_id = this.soup.structureId;
+      this.currentView.pdb_id = this.soup.structureIds[0];
       this.currentView = this.getZoomedOutViewOfCurrentView();
+      console.log('SoupView.setCurrentViewToDefaultAndSave', this.currentView);
       this.saveView(this.currentView);
       this.changed = true;
     }
@@ -80792,6 +80794,7 @@ var Controller = function () {
       for (var i = 1; i < this.soupView.savedViews.length; i += 1) {
         viewDicts.push(this.soupView.savedViews[i].getDict());
       }
+      console.log('Controller.getViewDicts', this.soupView.savedViews, viewDicts);
       return viewDicts;
     }
   }, {
@@ -80976,7 +80979,7 @@ var Controller = function () {
       var iNewView = this.soupView.iLastViewSelected + 1;
       var newView = this.soupView.currentView.clone();
       newView.text = 'Click edit to change this text.';
-      newView.pdb_id = this.soup.pdb_id;
+      newView.pdb_id = this.soup.structureIds[0];
       var time = (0, _util.getCurrentDateStr)();
       if (user === '' || typeof user === 'undefined') {
         newView.creator = '~ [public] @' + time;
@@ -89862,7 +89865,7 @@ function remoteDataServer(pdbId) {
       _jquery2.default.getJSON('/pdb/' + pdbId + '.views.json', processViews);
     },
     save_views: function save_views(views, success) {
-      console.log('remoteDataServer.save_views', '/save/views');
+      console.log('remoteDataServer.save_views', '/save/views', views);
       _jquery2.default.post('/save/views', JSON.stringify(views), success);
     },
     delete_protein_view: function delete_protein_view(viewId, success) {

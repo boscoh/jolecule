@@ -25,7 +25,8 @@ let defaultArgs = {
   bCutoff: 0.5,
   isPlayable: false,
   maxUpdateStep: 30,
-  msPerStep: 17
+  msPerStep: 17,
+  maxWaitStep: 30
 }
 
 class EmbedJolecule {
@@ -44,6 +45,7 @@ class EmbedJolecule {
     this.soupView.isLoop = params.isLoop
     this.soupView.maxUpdateStep = params.maxUpdateStep
     this.soupView.msPerStep = params.msPerStep
+    this.soupView.maxWaitStep = params.maxWaitStep
 
     this.controller = new Controller(this.soupView)
 
