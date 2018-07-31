@@ -20,6 +20,7 @@ let defaultArgs = {
   isViewTextShown: false,
   isSequenceBar: true,
   isEditable: true,
+  isExtraEditable: false,
   isLoop: false,
   isGrid: false,
   bCutoff: 0.5,
@@ -168,25 +169,38 @@ class EmbedJolecule {
       this.footerDiv
         .append(
           $('<div id="zslab" class="jolecule-button" style="flex: 1 0 120px; display: flex; flex-direction: row; justify-content: center;">'))
+
       this.clippingPlaneWidget = new widgets.ClippingPlaneWidget(
         this.display, '#zslab')
+    }
 
+    if (this.params.isEditable) {
       this.footerDiv
-        .append(
-          $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
-            .append(linkButton(
-              '', 'Clear', 'jolecule-button', () => { this.controller.clear() })
-            )
-            .append(linkButton(
-              '', 'Sidechains', 'jolecule-button', () => { this.controller.toggleSelectedSidechains() })
-            )
-            .append(linkButton(
-              '', 'Neighbors', 'jolecule-button', () => { this.controller.toggleResidueNeighbors() })
-            )
-            .append($('<div id="ligand">'))
+        .append(linkButton(
+          '', 'Clear', 'jolecule-button', () => { this.controller.clear() })
         )
+        .append(linkButton(
+          '', 'Sidechains', 'jolecule-button', () => { this.controller.toggleSelectedSidechains() })
+        )
+        .append(linkButton(
+          '', 'Neighbors', 'jolecule-button', () => { this.controller.toggleResidueNeighbors() })
+        )
+        .append($('<div id="ligand">'))
       this.ligandWidget = new widgets.ToggleButtonWidget(
         this.display, '#ligand', 'ligands')
+    }
+
+    if (this.params.isEditable) {
+      this.footerDiv
+        .append($('<div id="sphere">'))
+        .append($('<div id="ribbon">'))
+        .append($('<div id="backbone">'))
+      this.spherWidget = new widgets.ToggleButtonWidget(
+        this.display, '#sphere', 'sphere')
+      this.ribbonWidget = new widgets.ToggleButtonWidget(
+        this.display, '#ribbon', 'ribbon')
+      this.backboneWidget = new widgets.ToggleButtonWidget(
+        this.display, '#backbone', 'backbone')
     }
 
   }

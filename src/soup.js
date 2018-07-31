@@ -1697,7 +1697,6 @@ class SoupView {
     this.currentView.text = this.soup.title
     this.currentView.pdb_id = this.soup.structureIds[0]
     this.currentView = this.getZoomedOutViewOfCurrentView()
-    console.log('SoupView.setCurrentViewToDefaultAndSave', this.currentView)
     this.saveView(this.currentView)
     this.changed = true
   }

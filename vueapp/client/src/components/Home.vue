@@ -156,24 +156,22 @@ export default {
   },
   methods: {
     async deleteProtein (i) {
-      console.log('deleteProtein', i, this.joleculeWidget.display.soup.structureIds)
       this.joleculeWidget.display.deleteStructure(i)
       this.joleculeWidget.controller.zoomOut()
-      this.changeGraph()
     },
     async toggleOption (option) {
       this.joleculeWidget.controller.toggleShowOption(option)
     },
     async loadFromPdbId () {
       await util.delay(100)
-      this.error = ''
-      this.isDownloading = true
       let dataServer = this.makeDataServer(this.pdbId)
       await this.joleculeWidget.asyncAddDataServer(dataServer)
       this.structureIds = this.joleculeWidget.display.soup.structureIds
       this.joleculeWidget.controller.zoomOut()
     },
     makeDataServer (pdbId) {
+      this.isDownloading = true
+      this.error = ''
       let _this = this
       return {
         pdb_id: pdbId,

@@ -755,7 +755,6 @@ class Display extends WebglWidget {
         this.representations.backbone.recolor()
       }
       if (this.representations.sphere) {
-        console.log('Display.drawFrame sphere recolor')
         this.representations.sphere.recolor()
       }
       this.soupView.updateSelection = false
@@ -949,7 +948,6 @@ class Display extends WebglWidget {
   }
 
   mouseout (event) {
-    console.log('Display.mouseout')
     this.hover.hide()
     this.pointerPressed = false
   }

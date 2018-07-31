@@ -225,7 +225,7 @@ class GridRepresentation extends AtomsRepresentation {
 
 class SphereRepresentation extends AtomsRepresentation {
   constructor (soup, radius) {
-    super(soup, [], 3)
+    super(soup, [], 1.7)
   }
 
   build () {

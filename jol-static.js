@@ -126,6 +126,7 @@ const fullPageIndexHtmlMustache = `
               '#jolecule-views-container',
               { 
                 isEditable: true,
+                isExtraEditable: true,
                 isGrid: true,
                 isPlayable: true,
                 backgroundColor: 0xCCCCCC

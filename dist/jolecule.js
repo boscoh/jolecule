@@ -78071,6 +78071,7 @@ var defaultArgs = {
   isViewTextShown: false,
   isSequenceBar: true,
   isEditable: true,
+  isExtraEditable: false,
   isLoop: false,
   isGrid: false,
   bCutoff: 0.5,
@@ -78271,16 +78272,26 @@ var EmbedJolecule = function () {
         this.residueSelectorWidget = new _widgets2.default.ResidueSelectorWidget(this.display, '#res-selector');
 
         this.footerDiv.append((0, _jquery2.default)('<div id="zslab" class="jolecule-button" style="flex: 1 0 120px; display: flex; flex-direction: row; justify-content: center;">'));
-        this.clippingPlaneWidget = new _widgets2.default.ClippingPlaneWidget(this.display, '#zslab');
 
-        this.footerDiv.append((0, _jquery2.default)('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">').append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
+        this.clippingPlaneWidget = new _widgets2.default.ClippingPlaneWidget(this.display, '#zslab');
+      }
+
+      if (this.params.isEditable) {
+        this.footerDiv.append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
           _this3.controller.clear();
         })).append((0, _util.linkButton)('', 'Sidechains', 'jolecule-button', function () {
           _this3.controller.toggleSelectedSidechains();
         })).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
           _this3.controller.toggleResidueNeighbors();
-        })).append((0, _jquery2.default)('<div id="ligand">')));
+        })).append((0, _jquery2.default)('<div id="ligand">'));
         this.ligandWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#ligand', 'ligands');
+      }
+
+      if (this.params.isEditable) {
+        this.footerDiv.append((0, _jquery2.default)('<div id="sphere">')).append((0, _jquery2.default)('<div id="ribbon">')).append((0, _jquery2.default)('<div id="backbone">'));
+        this.spherWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#sphere', 'sphere');
+        this.ribbonWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#ribbon', 'ribbon');
+        this.backboneWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#backbone', 'backbone');
       }
     }
   }, {
@@ -80591,7 +80602,6 @@ var SoupView = function () {
       this.currentView.text = this.soup.title;
       this.currentView.pdb_id = this.soup.structureIds[0];
       this.currentView = this.getZoomedOutViewOfCurrentView();
-      console.log('SoupView.setCurrentViewToDefaultAndSave', this.currentView);
       this.saveView(this.currentView);
       this.changed = true;
     }
@@ -92026,7 +92036,6 @@ var Display = function (_WebglWidget) {
           this.representations.backbone.recolor();
         }
         if (this.representations.sphere) {
-          console.log('Display.drawFrame sphere recolor');
           this.representations.sphere.recolor();
         }
         this.soupView.updateSelection = false;
@@ -92224,7 +92233,6 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'mouseout',
     value: function mouseout(event) {
-      console.log('Display.mouseout');
       this.hover.hide();
       this.pointerPressed = false;
     }
@@ -99887,7 +99895,7 @@ var SphereRepresentation = function (_AtomsRepresentation2) {
   function SphereRepresentation(soup, radius) {
     _classCallCheck(this, SphereRepresentation);
 
-    return _possibleConstructorReturn(this, (SphereRepresentation.__proto__ || Object.getPrototypeOf(SphereRepresentation)).call(this, soup, [], 3));
+    return _possibleConstructorReturn(this, (SphereRepresentation.__proto__ || Object.getPrototypeOf(SphereRepresentation)).call(this, soup, [], 1.7));
   }
 
   _createClass(SphereRepresentation, [{
