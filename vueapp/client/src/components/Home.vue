@@ -46,21 +46,6 @@
               :md-size="25"
               md-indeterminate
               v-if="isDownloading"/>
-            <md-button
-              class="md-raised"
-              @click="toggleOption('sphere')">
-              sphere
-            </md-button>
-            <md-button
-              class="md-raised"
-              @click="toggleOption('ribbon')">
-              ribbon
-            </md-button>
-            <md-button
-              class="md-raised"
-              @click="toggleOption('backbone')">
-              backbone
-            </md-button>
           </md-layout>
           <div>
             {{error}}

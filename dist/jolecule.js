@@ -199,7 +199,7 @@ module.exports = !__webpack_require__(3)(function () {
 /***/ (function(module, exports, __webpack_require__) {
 
 var anObject = __webpack_require__(1);
-var IE8_DOM_DEFINE = __webpack_require__(97);
+var IE8_DOM_DEFINE = __webpack_require__(98);
 var toPrimitive = __webpack_require__(22);
 var dP = Object.defineProperty;
 
@@ -356,7 +356,7 @@ var createDesc = __webpack_require__(33);
 var toIObject = __webpack_require__(15);
 var toPrimitive = __webpack_require__(22);
 var has = __webpack_require__(11);
-var IE8_DOM_DEFINE = __webpack_require__(97);
+var IE8_DOM_DEFINE = __webpack_require__(98);
 var gOPD = Object.getOwnPropertyDescriptor;
 
 exports.f = __webpack_require__(6) ? gOPD : function getOwnPropertyDescriptor(O, P) {
@@ -558,550 +558,6 @@ module.exports = function (TYPE, $create) {
 
 /***/ }),
 /* 27 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-if (__webpack_require__(6)) {
-  var LIBRARY = __webpack_require__(35);
-  var global = __webpack_require__(2);
-  var fails = __webpack_require__(3);
-  var $export = __webpack_require__(0);
-  var $typed = __webpack_require__(63);
-  var $buffer = __webpack_require__(94);
-  var ctx = __webpack_require__(18);
-  var anInstance = __webpack_require__(41);
-  var propertyDesc = __webpack_require__(33);
-  var hide = __webpack_require__(12);
-  var redefineAll = __webpack_require__(43);
-  var toInteger = __webpack_require__(24);
-  var toLength = __webpack_require__(8);
-  var toIndex = __webpack_require__(123);
-  var toAbsoluteIndex = __webpack_require__(37);
-  var toPrimitive = __webpack_require__(22);
-  var has = __webpack_require__(11);
-  var classof = __webpack_require__(52);
-  var isObject = __webpack_require__(4);
-  var toObject = __webpack_require__(9);
-  var isArrayIter = __webpack_require__(85);
-  var create = __webpack_require__(38);
-  var getPrototypeOf = __webpack_require__(17);
-  var gOPN = __webpack_require__(39).f;
-  var getIterFn = __webpack_require__(87);
-  var uid = __webpack_require__(34);
-  var wks = __webpack_require__(5);
-  var createArrayMethod = __webpack_require__(26);
-  var createArrayIncludes = __webpack_require__(54);
-  var speciesConstructor = __webpack_require__(61);
-  var ArrayIterators = __webpack_require__(90);
-  var Iterators = __webpack_require__(46);
-  var $iterDetect = __webpack_require__(58);
-  var setSpecies = __webpack_require__(40);
-  var arrayFill = __webpack_require__(89);
-  var arrayCopyWithin = __webpack_require__(113);
-  var $DP = __webpack_require__(7);
-  var $GOPD = __webpack_require__(16);
-  var dP = $DP.f;
-  var gOPD = $GOPD.f;
-  var RangeError = global.RangeError;
-  var TypeError = global.TypeError;
-  var Uint8Array = global.Uint8Array;
-  var ARRAY_BUFFER = 'ArrayBuffer';
-  var SHARED_BUFFER = 'Shared' + ARRAY_BUFFER;
-  var BYTES_PER_ELEMENT = 'BYTES_PER_ELEMENT';
-  var PROTOTYPE = 'prototype';
-  var ArrayProto = Array[PROTOTYPE];
-  var $ArrayBuffer = $buffer.ArrayBuffer;
-  var $DataView = $buffer.DataView;
-  var arrayForEach = createArrayMethod(0);
-  var arrayFilter = createArrayMethod(2);
-  var arraySome = createArrayMethod(3);
-  var arrayEvery = createArrayMethod(4);
-  var arrayFind = createArrayMethod(5);
-  var arrayFindIndex = createArrayMethod(6);
-  var arrayIncludes = createArrayIncludes(true);
-  var arrayIndexOf = createArrayIncludes(false);
-  var arrayValues = ArrayIterators.values;
-  var arrayKeys = ArrayIterators.keys;
-  var arrayEntries = ArrayIterators.entries;
-  var arrayLastIndexOf = ArrayProto.lastIndexOf;
-  var arrayReduce = ArrayProto.reduce;
-  var arrayReduceRight = ArrayProto.reduceRight;
-  var arrayJoin = ArrayProto.join;
-  var arraySort = ArrayProto.sort;
-  var arraySlice = ArrayProto.slice;
-  var arrayToString = ArrayProto.toString;
-  var arrayToLocaleString = ArrayProto.toLocaleString;
-  var ITERATOR = wks('iterator');
-  var TAG = wks('toStringTag');
-  var TYPED_CONSTRUCTOR = uid('typed_constructor');
-  var DEF_CONSTRUCTOR = uid('def_constructor');
-  var ALL_CONSTRUCTORS = $typed.CONSTR;
-  var TYPED_ARRAY = $typed.TYPED;
-  var VIEW = $typed.VIEW;
-  var WRONG_LENGTH = 'Wrong length!';
-
-  var $map = createArrayMethod(1, function (O, length) {
-    return allocate(speciesConstructor(O, O[DEF_CONSTRUCTOR]), length);
-  });
-
-  var LITTLE_ENDIAN = fails(function () {
-    // eslint-disable-next-line no-undef
-    return new Uint8Array(new Uint16Array([1]).buffer)[0] === 1;
-  });
-
-  var FORCED_SET = !!Uint8Array && !!Uint8Array[PROTOTYPE].set && fails(function () {
-    new Uint8Array(1).set({});
-  });
-
-  var toOffset = function (it, BYTES) {
-    var offset = toInteger(it);
-    if (offset < 0 || offset % BYTES) throw RangeError('Wrong offset!');
-    return offset;
-  };
-
-  var validate = function (it) {
-    if (isObject(it) && TYPED_ARRAY in it) return it;
-    throw TypeError(it + ' is not a typed array!');
-  };
-
-  var allocate = function (C, length) {
-    if (!(isObject(C) && TYPED_CONSTRUCTOR in C)) {
-      throw TypeError('It is not a typed array constructor!');
-    } return new C(length);
-  };
-
-  var speciesFromList = function (O, list) {
-    return fromList(speciesConstructor(O, O[DEF_CONSTRUCTOR]), list);
-  };
-
-  var fromList = function (C, list) {
-    var index = 0;
-    var length = list.length;
-    var result = allocate(C, length);
-    while (length > index) result[index] = list[index++];
-    return result;
-  };
-
-  var addGetter = function (it, key, internal) {
-    dP(it, key, { get: function () { return this._d[internal]; } });
-  };
-
-  var $from = function from(source /* , mapfn, thisArg */) {
-    var O = toObject(source);
-    var aLen = arguments.length;
-    var mapfn = aLen > 1 ? arguments[1] : undefined;
-    var mapping = mapfn !== undefined;
-    var iterFn = getIterFn(O);
-    var i, length, values, result, step, iterator;
-    if (iterFn != undefined && !isArrayIter(iterFn)) {
-      for (iterator = iterFn.call(O), values = [], i = 0; !(step = iterator.next()).done; i++) {
-        values.push(step.value);
-      } O = values;
-    }
-    if (mapping && aLen > 2) mapfn = ctx(mapfn, arguments[2], 2);
-    for (i = 0, length = toLength(O.length), result = allocate(this, length); length > i; i++) {
-      result[i] = mapping ? mapfn(O[i], i) : O[i];
-    }
-    return result;
-  };
-
-  var $of = function of(/* ...items */) {
-    var index = 0;
-    var length = arguments.length;
-    var result = allocate(this, length);
-    while (length > index) result[index] = arguments[index++];
-    return result;
-  };
-
-  // iOS Safari 6.x fails here
-  var TO_LOCALE_BUG = !!Uint8Array && fails(function () { arrayToLocaleString.call(new Uint8Array(1)); });
-
-  var $toLocaleString = function toLocaleString() {
-    return arrayToLocaleString.apply(TO_LOCALE_BUG ? arraySlice.call(validate(this)) : validate(this), arguments);
-  };
-
-  var proto = {
-    copyWithin: function copyWithin(target, start /* , end */) {
-      return arrayCopyWithin.call(validate(this), target, start, arguments.length > 2 ? arguments[2] : undefined);
-    },
-    every: function every(callbackfn /* , thisArg */) {
-      return arrayEvery(validate(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
-    },
-    fill: function fill(value /* , start, end */) { // eslint-disable-line no-unused-vars
-      return arrayFill.apply(validate(this), arguments);
-    },
-    filter: function filter(callbackfn /* , thisArg */) {
-      return speciesFromList(this, arrayFilter(validate(this), callbackfn,
-        arguments.length > 1 ? arguments[1] : undefined));
-    },
-    find: function find(predicate /* , thisArg */) {
-      return arrayFind(validate(this), predicate, arguments.length > 1 ? arguments[1] : undefined);
-    },
-    findIndex: function findIndex(predicate /* , thisArg */) {
-      return arrayFindIndex(validate(this), predicate, arguments.length > 1 ? arguments[1] : undefined);
-    },
-    forEach: function forEach(callbackfn /* , thisArg */) {
-      arrayForEach(validate(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
-    },
-    indexOf: function indexOf(searchElement /* , fromIndex */) {
-      return arrayIndexOf(validate(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
-    },
-    includes: function includes(searchElement /* , fromIndex */) {
-      return arrayIncludes(validate(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
-    },
-    join: function join(separator) { // eslint-disable-line no-unused-vars
-      return arrayJoin.apply(validate(this), arguments);
-    },
-    lastIndexOf: function lastIndexOf(searchElement /* , fromIndex */) { // eslint-disable-line no-unused-vars
-      return arrayLastIndexOf.apply(validate(this), arguments);
-    },
-    map: function map(mapfn /* , thisArg */) {
-      return $map(validate(this), mapfn, arguments.length > 1 ? arguments[1] : undefined);
-    },
-    reduce: function reduce(callbackfn /* , initialValue */) { // eslint-disable-line no-unused-vars
-      return arrayReduce.apply(validate(this), arguments);
-    },
-    reduceRight: function reduceRight(callbackfn /* , initialValue */) { // eslint-disable-line no-unused-vars
-      return arrayReduceRight.apply(validate(this), arguments);
-    },
-    reverse: function reverse() {
-      var that = this;
-      var length = validate(that).length;
-      var middle = Math.floor(length / 2);
-      var index = 0;
-      var value;
-      while (index < middle) {
-        value = that[index];
-        that[index++] = that[--length];
-        that[length] = value;
-      } return that;
-    },
-    some: function some(callbackfn /* , thisArg */) {
-      return arraySome(validate(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
-    },
-    sort: function sort(comparefn) {
-      return arraySort.call(validate(this), comparefn);
-    },
-    subarray: function subarray(begin, end) {
-      var O = validate(this);
-      var length = O.length;
-      var $begin = toAbsoluteIndex(begin, length);
-      return new (speciesConstructor(O, O[DEF_CONSTRUCTOR]))(
-        O.buffer,
-        O.byteOffset + $begin * O.BYTES_PER_ELEMENT,
-        toLength((end === undefined ? length : toAbsoluteIndex(end, length)) - $begin)
-      );
-    }
-  };
-
-  var $slice = function slice(start, end) {
-    return speciesFromList(this, arraySlice.call(validate(this), start, end));
-  };
-
-  var $set = function set(arrayLike /* , offset */) {
-    validate(this);
-    var offset = toOffset(arguments[1], 1);
-    var length = this.length;
-    var src = toObject(arrayLike);
-    var len = toLength(src.length);
-    var index = 0;
-    if (len + offset > length) throw RangeError(WRONG_LENGTH);
-    while (index < len) this[offset + index] = src[index++];
-  };
-
-  var $iterators = {
-    entries: function entries() {
-      return arrayEntries.call(validate(this));
-    },
-    keys: function keys() {
-      return arrayKeys.call(validate(this));
-    },
-    values: function values() {
-      return arrayValues.call(validate(this));
-    }
-  };
-
-  var isTAIndex = function (target, key) {
-    return isObject(target)
-      && target[TYPED_ARRAY]
-      && typeof key != 'symbol'
-      && key in target
-      && String(+key) == String(key);
-  };
-  var $getDesc = function getOwnPropertyDescriptor(target, key) {
-    return isTAIndex(target, key = toPrimitive(key, true))
-      ? propertyDesc(2, target[key])
-      : gOPD(target, key);
-  };
-  var $setDesc = function defineProperty(target, key, desc) {
-    if (isTAIndex(target, key = toPrimitive(key, true))
-      && isObject(desc)
-      && has(desc, 'value')
-      && !has(desc, 'get')
-      && !has(desc, 'set')
-      // TODO: add validation descriptor w/o calling accessors
-      && !desc.configurable
-      && (!has(desc, 'writable') || desc.writable)
-      && (!has(desc, 'enumerable') || desc.enumerable)
-    ) {
-      target[key] = desc.value;
-      return target;
-    } return dP(target, key, desc);
-  };
-
-  if (!ALL_CONSTRUCTORS) {
-    $GOPD.f = $getDesc;
-    $DP.f = $setDesc;
-  }
-
-  $export($export.S + $export.F * !ALL_CONSTRUCTORS, 'Object', {
-    getOwnPropertyDescriptor: $getDesc,
-    defineProperty: $setDesc
-  });
-
-  if (fails(function () { arrayToString.call({}); })) {
-    arrayToString = arrayToLocaleString = function toString() {
-      return arrayJoin.call(this);
-    };
-  }
-
-  var $TypedArrayPrototype$ = redefineAll({}, proto);
-  redefineAll($TypedArrayPrototype$, $iterators);
-  hide($TypedArrayPrototype$, ITERATOR, $iterators.values);
-  redefineAll($TypedArrayPrototype$, {
-    slice: $slice,
-    set: $set,
-    constructor: function () { /* noop */ },
-    toString: arrayToString,
-    toLocaleString: $toLocaleString
-  });
-  addGetter($TypedArrayPrototype$, 'buffer', 'b');
-  addGetter($TypedArrayPrototype$, 'byteOffset', 'o');
-  addGetter($TypedArrayPrototype$, 'byteLength', 'l');
-  addGetter($TypedArrayPrototype$, 'length', 'e');
-  dP($TypedArrayPrototype$, TAG, {
-    get: function () { return this[TYPED_ARRAY]; }
-  });
-
-  // eslint-disable-next-line max-statements
-  module.exports = function (KEY, BYTES, wrapper, CLAMPED) {
-    CLAMPED = !!CLAMPED;
-    var NAME = KEY + (CLAMPED ? 'Clamped' : '') + 'Array';
-    var GETTER = 'get' + KEY;
-    var SETTER = 'set' + KEY;
-    var TypedArray = global[NAME];
-    var Base = TypedArray || {};
-    var TAC = TypedArray && getPrototypeOf(TypedArray);
-    var FORCED = !TypedArray || !$typed.ABV;
-    var O = {};
-    var TypedArrayPrototype = TypedArray && TypedArray[PROTOTYPE];
-    var getter = function (that, index) {
-      var data = that._d;
-      return data.v[GETTER](index * BYTES + data.o, LITTLE_ENDIAN);
-    };
-    var setter = function (that, index, value) {
-      var data = that._d;
-      if (CLAMPED) value = (value = Math.round(value)) < 0 ? 0 : value > 0xff ? 0xff : value & 0xff;
-      data.v[SETTER](index * BYTES + data.o, value, LITTLE_ENDIAN);
-    };
-    var addElement = function (that, index) {
-      dP(that, index, {
-        get: function () {
-          return getter(this, index);
-        },
-        set: function (value) {
-          return setter(this, index, value);
-        },
-        enumerable: true
-      });
-    };
-    if (FORCED) {
-      TypedArray = wrapper(function (that, data, $offset, $length) {
-        anInstance(that, TypedArray, NAME, '_d');
-        var index = 0;
-        var offset = 0;
-        var buffer, byteLength, length, klass;
-        if (!isObject(data)) {
-          length = toIndex(data);
-          byteLength = length * BYTES;
-          buffer = new $ArrayBuffer(byteLength);
-        } else if (data instanceof $ArrayBuffer || (klass = classof(data)) == ARRAY_BUFFER || klass == SHARED_BUFFER) {
-          buffer = data;
-          offset = toOffset($offset, BYTES);
-          var $len = data.byteLength;
-          if ($length === undefined) {
-            if ($len % BYTES) throw RangeError(WRONG_LENGTH);
-            byteLength = $len - offset;
-            if (byteLength < 0) throw RangeError(WRONG_LENGTH);
-          } else {
-            byteLength = toLength($length) * BYTES;
-            if (byteLength + offset > $len) throw RangeError(WRONG_LENGTH);
-          }
-          length = byteLength / BYTES;
-        } else if (TYPED_ARRAY in data) {
-          return fromList(TypedArray, data);
-        } else {
-          return $from.call(TypedArray, data);
-        }
-        hide(that, '_d', {
-          b: buffer,
-          o: offset,
-          l: byteLength,
-          e: length,
-          v: new $DataView(buffer)
-        });
-        while (index < length) addElement(that, index++);
-      });
-      TypedArrayPrototype = TypedArray[PROTOTYPE] = create($TypedArrayPrototype$);
-      hide(TypedArrayPrototype, 'constructor', TypedArray);
-    } else if (!fails(function () {
-      TypedArray(1);
-    }) || !fails(function () {
-      new TypedArray(-1); // eslint-disable-line no-new
-    }) || !$iterDetect(function (iter) {
-      new TypedArray(); // eslint-disable-line no-new
-      new TypedArray(null); // eslint-disable-line no-new
-      new TypedArray(1.5); // eslint-disable-line no-new
-      new TypedArray(iter); // eslint-disable-line no-new
-    }, true)) {
-      TypedArray = wrapper(function (that, data, $offset, $length) {
-        anInstance(that, TypedArray, NAME);
-        var klass;
-        // `ws` module bug, temporarily remove validation length for Uint8Array
-        // https://github.com/websockets/ws/pull/645
-        if (!isObject(data)) return new Base(toIndex(data));
-        if (data instanceof $ArrayBuffer || (klass = classof(data)) == ARRAY_BUFFER || klass == SHARED_BUFFER) {
-          return $length !== undefined
-            ? new Base(data, toOffset($offset, BYTES), $length)
-            : $offset !== undefined
-              ? new Base(data, toOffset($offset, BYTES))
-              : new Base(data);
-        }
-        if (TYPED_ARRAY in data) return fromList(TypedArray, data);
-        return $from.call(TypedArray, data);
-      });
-      arrayForEach(TAC !== Function.prototype ? gOPN(Base).concat(gOPN(TAC)) : gOPN(Base), function (key) {
-        if (!(key in TypedArray)) hide(TypedArray, key, Base[key]);
-      });
-      TypedArray[PROTOTYPE] = TypedArrayPrototype;
-      if (!LIBRARY) TypedArrayPrototype.constructor = TypedArray;
-    }
-    var $nativeIterator = TypedArrayPrototype[ITERATOR];
-    var CORRECT_ITER_NAME = !!$nativeIterator
-      && ($nativeIterator.name == 'values' || $nativeIterator.name == undefined);
-    var $iterator = $iterators.values;
-    hide(TypedArray, TYPED_CONSTRUCTOR, true);
-    hide(TypedArrayPrototype, TYPED_ARRAY, NAME);
-    hide(TypedArrayPrototype, VIEW, true);
-    hide(TypedArrayPrototype, DEF_CONSTRUCTOR, TypedArray);
-
-    if (CLAMPED ? new TypedArray(1)[TAG] != NAME : !(TAG in TypedArrayPrototype)) {
-      dP(TypedArrayPrototype, TAG, {
-        get: function () { return NAME; }
-      });
-    }
-
-    O[NAME] = TypedArray;
-
-    $export($export.G + $export.W + $export.F * (TypedArray != Base), O);
-
-    $export($export.S, NAME, {
-      BYTES_PER_ELEMENT: BYTES
-    });
-
-    $export($export.S + $export.F * fails(function () { Base.of.call(TypedArray, 1); }), NAME, {
-      from: $from,
-      of: $of
-    });
-
-    if (!(BYTES_PER_ELEMENT in TypedArrayPrototype)) hide(TypedArrayPrototype, BYTES_PER_ELEMENT, BYTES);
-
-    $export($export.P, NAME, proto);
-
-    setSpecies(NAME);
-
-    $export($export.P + $export.F * FORCED_SET, NAME, { set: $set });
-
-    $export($export.P + $export.F * !CORRECT_ITER_NAME, NAME, $iterators);
-
-    if (!LIBRARY && TypedArrayPrototype.toString != arrayToString) TypedArrayPrototype.toString = arrayToString;
-
-    $export($export.P + $export.F * fails(function () {
-      new TypedArray(1).slice();
-    }), NAME, { slice: $slice });
-
-    $export($export.P + $export.F * (fails(function () {
-      return [1, 2].toLocaleString() != new TypedArray([1, 2]).toLocaleString();
-    }) || !fails(function () {
-      TypedArrayPrototype.toLocaleString.call([1, 2]);
-    })), NAME, { toLocaleString: $toLocaleString });
-
-    Iterators[NAME] = CORRECT_ITER_NAME ? $nativeIterator : $iterator;
-    if (!LIBRARY && !CORRECT_ITER_NAME) hide(TypedArrayPrototype, ITERATOR, $iterator);
-  };
-} else module.exports = function () { /* empty */ };
-
-
-/***/ }),
-/* 28 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var Map = __webpack_require__(118);
-var $export = __webpack_require__(0);
-var shared = __webpack_require__(53)('metadata');
-var store = shared.store || (shared.store = new (__webpack_require__(121))());
-
-var getOrCreateMetadataMap = function (target, targetKey, create) {
-  var targetMetadata = store.get(target);
-  if (!targetMetadata) {
-    if (!create) return undefined;
-    store.set(target, targetMetadata = new Map());
-  }
-  var keyMetadata = targetMetadata.get(targetKey);
-  if (!keyMetadata) {
-    if (!create) return undefined;
-    targetMetadata.set(targetKey, keyMetadata = new Map());
-  } return keyMetadata;
-};
-var ordinaryHasOwnMetadata = function (MetadataKey, O, P) {
-  var metadataMap = getOrCreateMetadataMap(O, P, false);
-  return metadataMap === undefined ? false : metadataMap.has(MetadataKey);
-};
-var ordinaryGetOwnMetadata = function (MetadataKey, O, P) {
-  var metadataMap = getOrCreateMetadataMap(O, P, false);
-  return metadataMap === undefined ? undefined : metadataMap.get(MetadataKey);
-};
-var ordinaryDefineOwnMetadata = function (MetadataKey, MetadataValue, O, P) {
-  getOrCreateMetadataMap(O, P, true).set(MetadataKey, MetadataValue);
-};
-var ordinaryOwnMetadataKeys = function (target, targetKey) {
-  var metadataMap = getOrCreateMetadataMap(target, targetKey, false);
-  var keys = [];
-  if (metadataMap) metadataMap.forEach(function (_, key) { keys.push(key); });
-  return keys;
-};
-var toMetaKey = function (it) {
-  return it === undefined || typeof it == 'symbol' ? it : String(it);
-};
-var exp = function (O) {
-  $export($export.S, 'Reflect', O);
-};
-
-module.exports = {
-  store: store,
-  map: getOrCreateMetadataMap,
-  has: ordinaryHasOwnMetadata,
-  get: ordinaryGetOwnMetadata,
-  set: ordinaryDefineOwnMetadata,
-  keys: ordinaryOwnMetadataKeys,
-  key: toMetaKey,
-  exp: exp
-};
-
-
-/***/ }),
-/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, module) {var __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -18193,6 +17649,550 @@ module.exports = {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(68), __webpack_require__(340)(module)))
 
 /***/ }),
+/* 28 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+if (__webpack_require__(6)) {
+  var LIBRARY = __webpack_require__(35);
+  var global = __webpack_require__(2);
+  var fails = __webpack_require__(3);
+  var $export = __webpack_require__(0);
+  var $typed = __webpack_require__(63);
+  var $buffer = __webpack_require__(94);
+  var ctx = __webpack_require__(18);
+  var anInstance = __webpack_require__(41);
+  var propertyDesc = __webpack_require__(33);
+  var hide = __webpack_require__(12);
+  var redefineAll = __webpack_require__(43);
+  var toInteger = __webpack_require__(24);
+  var toLength = __webpack_require__(8);
+  var toIndex = __webpack_require__(124);
+  var toAbsoluteIndex = __webpack_require__(37);
+  var toPrimitive = __webpack_require__(22);
+  var has = __webpack_require__(11);
+  var classof = __webpack_require__(52);
+  var isObject = __webpack_require__(4);
+  var toObject = __webpack_require__(9);
+  var isArrayIter = __webpack_require__(85);
+  var create = __webpack_require__(38);
+  var getPrototypeOf = __webpack_require__(17);
+  var gOPN = __webpack_require__(39).f;
+  var getIterFn = __webpack_require__(87);
+  var uid = __webpack_require__(34);
+  var wks = __webpack_require__(5);
+  var createArrayMethod = __webpack_require__(26);
+  var createArrayIncludes = __webpack_require__(54);
+  var speciesConstructor = __webpack_require__(61);
+  var ArrayIterators = __webpack_require__(90);
+  var Iterators = __webpack_require__(48);
+  var $iterDetect = __webpack_require__(58);
+  var setSpecies = __webpack_require__(40);
+  var arrayFill = __webpack_require__(89);
+  var arrayCopyWithin = __webpack_require__(114);
+  var $DP = __webpack_require__(7);
+  var $GOPD = __webpack_require__(16);
+  var dP = $DP.f;
+  var gOPD = $GOPD.f;
+  var RangeError = global.RangeError;
+  var TypeError = global.TypeError;
+  var Uint8Array = global.Uint8Array;
+  var ARRAY_BUFFER = 'ArrayBuffer';
+  var SHARED_BUFFER = 'Shared' + ARRAY_BUFFER;
+  var BYTES_PER_ELEMENT = 'BYTES_PER_ELEMENT';
+  var PROTOTYPE = 'prototype';
+  var ArrayProto = Array[PROTOTYPE];
+  var $ArrayBuffer = $buffer.ArrayBuffer;
+  var $DataView = $buffer.DataView;
+  var arrayForEach = createArrayMethod(0);
+  var arrayFilter = createArrayMethod(2);
+  var arraySome = createArrayMethod(3);
+  var arrayEvery = createArrayMethod(4);
+  var arrayFind = createArrayMethod(5);
+  var arrayFindIndex = createArrayMethod(6);
+  var arrayIncludes = createArrayIncludes(true);
+  var arrayIndexOf = createArrayIncludes(false);
+  var arrayValues = ArrayIterators.values;
+  var arrayKeys = ArrayIterators.keys;
+  var arrayEntries = ArrayIterators.entries;
+  var arrayLastIndexOf = ArrayProto.lastIndexOf;
+  var arrayReduce = ArrayProto.reduce;
+  var arrayReduceRight = ArrayProto.reduceRight;
+  var arrayJoin = ArrayProto.join;
+  var arraySort = ArrayProto.sort;
+  var arraySlice = ArrayProto.slice;
+  var arrayToString = ArrayProto.toString;
+  var arrayToLocaleString = ArrayProto.toLocaleString;
+  var ITERATOR = wks('iterator');
+  var TAG = wks('toStringTag');
+  var TYPED_CONSTRUCTOR = uid('typed_constructor');
+  var DEF_CONSTRUCTOR = uid('def_constructor');
+  var ALL_CONSTRUCTORS = $typed.CONSTR;
+  var TYPED_ARRAY = $typed.TYPED;
+  var VIEW = $typed.VIEW;
+  var WRONG_LENGTH = 'Wrong length!';
+
+  var $map = createArrayMethod(1, function (O, length) {
+    return allocate(speciesConstructor(O, O[DEF_CONSTRUCTOR]), length);
+  });
+
+  var LITTLE_ENDIAN = fails(function () {
+    // eslint-disable-next-line no-undef
+    return new Uint8Array(new Uint16Array([1]).buffer)[0] === 1;
+  });
+
+  var FORCED_SET = !!Uint8Array && !!Uint8Array[PROTOTYPE].set && fails(function () {
+    new Uint8Array(1).set({});
+  });
+
+  var toOffset = function (it, BYTES) {
+    var offset = toInteger(it);
+    if (offset < 0 || offset % BYTES) throw RangeError('Wrong offset!');
+    return offset;
+  };
+
+  var validate = function (it) {
+    if (isObject(it) && TYPED_ARRAY in it) return it;
+    throw TypeError(it + ' is not a typed array!');
+  };
+
+  var allocate = function (C, length) {
+    if (!(isObject(C) && TYPED_CONSTRUCTOR in C)) {
+      throw TypeError('It is not a typed array constructor!');
+    } return new C(length);
+  };
+
+  var speciesFromList = function (O, list) {
+    return fromList(speciesConstructor(O, O[DEF_CONSTRUCTOR]), list);
+  };
+
+  var fromList = function (C, list) {
+    var index = 0;
+    var length = list.length;
+    var result = allocate(C, length);
+    while (length > index) result[index] = list[index++];
+    return result;
+  };
+
+  var addGetter = function (it, key, internal) {
+    dP(it, key, { get: function () { return this._d[internal]; } });
+  };
+
+  var $from = function from(source /* , mapfn, thisArg */) {
+    var O = toObject(source);
+    var aLen = arguments.length;
+    var mapfn = aLen > 1 ? arguments[1] : undefined;
+    var mapping = mapfn !== undefined;
+    var iterFn = getIterFn(O);
+    var i, length, values, result, step, iterator;
+    if (iterFn != undefined && !isArrayIter(iterFn)) {
+      for (iterator = iterFn.call(O), values = [], i = 0; !(step = iterator.next()).done; i++) {
+        values.push(step.value);
+      } O = values;
+    }
+    if (mapping && aLen > 2) mapfn = ctx(mapfn, arguments[2], 2);
+    for (i = 0, length = toLength(O.length), result = allocate(this, length); length > i; i++) {
+      result[i] = mapping ? mapfn(O[i], i) : O[i];
+    }
+    return result;
+  };
+
+  var $of = function of(/* ...items */) {
+    var index = 0;
+    var length = arguments.length;
+    var result = allocate(this, length);
+    while (length > index) result[index] = arguments[index++];
+    return result;
+  };
+
+  // iOS Safari 6.x fails here
+  var TO_LOCALE_BUG = !!Uint8Array && fails(function () { arrayToLocaleString.call(new Uint8Array(1)); });
+
+  var $toLocaleString = function toLocaleString() {
+    return arrayToLocaleString.apply(TO_LOCALE_BUG ? arraySlice.call(validate(this)) : validate(this), arguments);
+  };
+
+  var proto = {
+    copyWithin: function copyWithin(target, start /* , end */) {
+      return arrayCopyWithin.call(validate(this), target, start, arguments.length > 2 ? arguments[2] : undefined);
+    },
+    every: function every(callbackfn /* , thisArg */) {
+      return arrayEvery(validate(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    fill: function fill(value /* , start, end */) { // eslint-disable-line no-unused-vars
+      return arrayFill.apply(validate(this), arguments);
+    },
+    filter: function filter(callbackfn /* , thisArg */) {
+      return speciesFromList(this, arrayFilter(validate(this), callbackfn,
+        arguments.length > 1 ? arguments[1] : undefined));
+    },
+    find: function find(predicate /* , thisArg */) {
+      return arrayFind(validate(this), predicate, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    findIndex: function findIndex(predicate /* , thisArg */) {
+      return arrayFindIndex(validate(this), predicate, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    forEach: function forEach(callbackfn /* , thisArg */) {
+      arrayForEach(validate(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    indexOf: function indexOf(searchElement /* , fromIndex */) {
+      return arrayIndexOf(validate(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    includes: function includes(searchElement /* , fromIndex */) {
+      return arrayIncludes(validate(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    join: function join(separator) { // eslint-disable-line no-unused-vars
+      return arrayJoin.apply(validate(this), arguments);
+    },
+    lastIndexOf: function lastIndexOf(searchElement /* , fromIndex */) { // eslint-disable-line no-unused-vars
+      return arrayLastIndexOf.apply(validate(this), arguments);
+    },
+    map: function map(mapfn /* , thisArg */) {
+      return $map(validate(this), mapfn, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    reduce: function reduce(callbackfn /* , initialValue */) { // eslint-disable-line no-unused-vars
+      return arrayReduce.apply(validate(this), arguments);
+    },
+    reduceRight: function reduceRight(callbackfn /* , initialValue */) { // eslint-disable-line no-unused-vars
+      return arrayReduceRight.apply(validate(this), arguments);
+    },
+    reverse: function reverse() {
+      var that = this;
+      var length = validate(that).length;
+      var middle = Math.floor(length / 2);
+      var index = 0;
+      var value;
+      while (index < middle) {
+        value = that[index];
+        that[index++] = that[--length];
+        that[length] = value;
+      } return that;
+    },
+    some: function some(callbackfn /* , thisArg */) {
+      return arraySome(validate(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    sort: function sort(comparefn) {
+      return arraySort.call(validate(this), comparefn);
+    },
+    subarray: function subarray(begin, end) {
+      var O = validate(this);
+      var length = O.length;
+      var $begin = toAbsoluteIndex(begin, length);
+      return new (speciesConstructor(O, O[DEF_CONSTRUCTOR]))(
+        O.buffer,
+        O.byteOffset + $begin * O.BYTES_PER_ELEMENT,
+        toLength((end === undefined ? length : toAbsoluteIndex(end, length)) - $begin)
+      );
+    }
+  };
+
+  var $slice = function slice(start, end) {
+    return speciesFromList(this, arraySlice.call(validate(this), start, end));
+  };
+
+  var $set = function set(arrayLike /* , offset */) {
+    validate(this);
+    var offset = toOffset(arguments[1], 1);
+    var length = this.length;
+    var src = toObject(arrayLike);
+    var len = toLength(src.length);
+    var index = 0;
+    if (len + offset > length) throw RangeError(WRONG_LENGTH);
+    while (index < len) this[offset + index] = src[index++];
+  };
+
+  var $iterators = {
+    entries: function entries() {
+      return arrayEntries.call(validate(this));
+    },
+    keys: function keys() {
+      return arrayKeys.call(validate(this));
+    },
+    values: function values() {
+      return arrayValues.call(validate(this));
+    }
+  };
+
+  var isTAIndex = function (target, key) {
+    return isObject(target)
+      && target[TYPED_ARRAY]
+      && typeof key != 'symbol'
+      && key in target
+      && String(+key) == String(key);
+  };
+  var $getDesc = function getOwnPropertyDescriptor(target, key) {
+    return isTAIndex(target, key = toPrimitive(key, true))
+      ? propertyDesc(2, target[key])
+      : gOPD(target, key);
+  };
+  var $setDesc = function defineProperty(target, key, desc) {
+    if (isTAIndex(target, key = toPrimitive(key, true))
+      && isObject(desc)
+      && has(desc, 'value')
+      && !has(desc, 'get')
+      && !has(desc, 'set')
+      // TODO: add validation descriptor w/o calling accessors
+      && !desc.configurable
+      && (!has(desc, 'writable') || desc.writable)
+      && (!has(desc, 'enumerable') || desc.enumerable)
+    ) {
+      target[key] = desc.value;
+      return target;
+    } return dP(target, key, desc);
+  };
+
+  if (!ALL_CONSTRUCTORS) {
+    $GOPD.f = $getDesc;
+    $DP.f = $setDesc;
+  }
+
+  $export($export.S + $export.F * !ALL_CONSTRUCTORS, 'Object', {
+    getOwnPropertyDescriptor: $getDesc,
+    defineProperty: $setDesc
+  });
+
+  if (fails(function () { arrayToString.call({}); })) {
+    arrayToString = arrayToLocaleString = function toString() {
+      return arrayJoin.call(this);
+    };
+  }
+
+  var $TypedArrayPrototype$ = redefineAll({}, proto);
+  redefineAll($TypedArrayPrototype$, $iterators);
+  hide($TypedArrayPrototype$, ITERATOR, $iterators.values);
+  redefineAll($TypedArrayPrototype$, {
+    slice: $slice,
+    set: $set,
+    constructor: function () { /* noop */ },
+    toString: arrayToString,
+    toLocaleString: $toLocaleString
+  });
+  addGetter($TypedArrayPrototype$, 'buffer', 'b');
+  addGetter($TypedArrayPrototype$, 'byteOffset', 'o');
+  addGetter($TypedArrayPrototype$, 'byteLength', 'l');
+  addGetter($TypedArrayPrototype$, 'length', 'e');
+  dP($TypedArrayPrototype$, TAG, {
+    get: function () { return this[TYPED_ARRAY]; }
+  });
+
+  // eslint-disable-next-line max-statements
+  module.exports = function (KEY, BYTES, wrapper, CLAMPED) {
+    CLAMPED = !!CLAMPED;
+    var NAME = KEY + (CLAMPED ? 'Clamped' : '') + 'Array';
+    var GETTER = 'get' + KEY;
+    var SETTER = 'set' + KEY;
+    var TypedArray = global[NAME];
+    var Base = TypedArray || {};
+    var TAC = TypedArray && getPrototypeOf(TypedArray);
+    var FORCED = !TypedArray || !$typed.ABV;
+    var O = {};
+    var TypedArrayPrototype = TypedArray && TypedArray[PROTOTYPE];
+    var getter = function (that, index) {
+      var data = that._d;
+      return data.v[GETTER](index * BYTES + data.o, LITTLE_ENDIAN);
+    };
+    var setter = function (that, index, value) {
+      var data = that._d;
+      if (CLAMPED) value = (value = Math.round(value)) < 0 ? 0 : value > 0xff ? 0xff : value & 0xff;
+      data.v[SETTER](index * BYTES + data.o, value, LITTLE_ENDIAN);
+    };
+    var addElement = function (that, index) {
+      dP(that, index, {
+        get: function () {
+          return getter(this, index);
+        },
+        set: function (value) {
+          return setter(this, index, value);
+        },
+        enumerable: true
+      });
+    };
+    if (FORCED) {
+      TypedArray = wrapper(function (that, data, $offset, $length) {
+        anInstance(that, TypedArray, NAME, '_d');
+        var index = 0;
+        var offset = 0;
+        var buffer, byteLength, length, klass;
+        if (!isObject(data)) {
+          length = toIndex(data);
+          byteLength = length * BYTES;
+          buffer = new $ArrayBuffer(byteLength);
+        } else if (data instanceof $ArrayBuffer || (klass = classof(data)) == ARRAY_BUFFER || klass == SHARED_BUFFER) {
+          buffer = data;
+          offset = toOffset($offset, BYTES);
+          var $len = data.byteLength;
+          if ($length === undefined) {
+            if ($len % BYTES) throw RangeError(WRONG_LENGTH);
+            byteLength = $len - offset;
+            if (byteLength < 0) throw RangeError(WRONG_LENGTH);
+          } else {
+            byteLength = toLength($length) * BYTES;
+            if (byteLength + offset > $len) throw RangeError(WRONG_LENGTH);
+          }
+          length = byteLength / BYTES;
+        } else if (TYPED_ARRAY in data) {
+          return fromList(TypedArray, data);
+        } else {
+          return $from.call(TypedArray, data);
+        }
+        hide(that, '_d', {
+          b: buffer,
+          o: offset,
+          l: byteLength,
+          e: length,
+          v: new $DataView(buffer)
+        });
+        while (index < length) addElement(that, index++);
+      });
+      TypedArrayPrototype = TypedArray[PROTOTYPE] = create($TypedArrayPrototype$);
+      hide(TypedArrayPrototype, 'constructor', TypedArray);
+    } else if (!fails(function () {
+      TypedArray(1);
+    }) || !fails(function () {
+      new TypedArray(-1); // eslint-disable-line no-new
+    }) || !$iterDetect(function (iter) {
+      new TypedArray(); // eslint-disable-line no-new
+      new TypedArray(null); // eslint-disable-line no-new
+      new TypedArray(1.5); // eslint-disable-line no-new
+      new TypedArray(iter); // eslint-disable-line no-new
+    }, true)) {
+      TypedArray = wrapper(function (that, data, $offset, $length) {
+        anInstance(that, TypedArray, NAME);
+        var klass;
+        // `ws` module bug, temporarily remove validation length for Uint8Array
+        // https://github.com/websockets/ws/pull/645
+        if (!isObject(data)) return new Base(toIndex(data));
+        if (data instanceof $ArrayBuffer || (klass = classof(data)) == ARRAY_BUFFER || klass == SHARED_BUFFER) {
+          return $length !== undefined
+            ? new Base(data, toOffset($offset, BYTES), $length)
+            : $offset !== undefined
+              ? new Base(data, toOffset($offset, BYTES))
+              : new Base(data);
+        }
+        if (TYPED_ARRAY in data) return fromList(TypedArray, data);
+        return $from.call(TypedArray, data);
+      });
+      arrayForEach(TAC !== Function.prototype ? gOPN(Base).concat(gOPN(TAC)) : gOPN(Base), function (key) {
+        if (!(key in TypedArray)) hide(TypedArray, key, Base[key]);
+      });
+      TypedArray[PROTOTYPE] = TypedArrayPrototype;
+      if (!LIBRARY) TypedArrayPrototype.constructor = TypedArray;
+    }
+    var $nativeIterator = TypedArrayPrototype[ITERATOR];
+    var CORRECT_ITER_NAME = !!$nativeIterator
+      && ($nativeIterator.name == 'values' || $nativeIterator.name == undefined);
+    var $iterator = $iterators.values;
+    hide(TypedArray, TYPED_CONSTRUCTOR, true);
+    hide(TypedArrayPrototype, TYPED_ARRAY, NAME);
+    hide(TypedArrayPrototype, VIEW, true);
+    hide(TypedArrayPrototype, DEF_CONSTRUCTOR, TypedArray);
+
+    if (CLAMPED ? new TypedArray(1)[TAG] != NAME : !(TAG in TypedArrayPrototype)) {
+      dP(TypedArrayPrototype, TAG, {
+        get: function () { return NAME; }
+      });
+    }
+
+    O[NAME] = TypedArray;
+
+    $export($export.G + $export.W + $export.F * (TypedArray != Base), O);
+
+    $export($export.S, NAME, {
+      BYTES_PER_ELEMENT: BYTES
+    });
+
+    $export($export.S + $export.F * fails(function () { Base.of.call(TypedArray, 1); }), NAME, {
+      from: $from,
+      of: $of
+    });
+
+    if (!(BYTES_PER_ELEMENT in TypedArrayPrototype)) hide(TypedArrayPrototype, BYTES_PER_ELEMENT, BYTES);
+
+    $export($export.P, NAME, proto);
+
+    setSpecies(NAME);
+
+    $export($export.P + $export.F * FORCED_SET, NAME, { set: $set });
+
+    $export($export.P + $export.F * !CORRECT_ITER_NAME, NAME, $iterators);
+
+    if (!LIBRARY && TypedArrayPrototype.toString != arrayToString) TypedArrayPrototype.toString = arrayToString;
+
+    $export($export.P + $export.F * fails(function () {
+      new TypedArray(1).slice();
+    }), NAME, { slice: $slice });
+
+    $export($export.P + $export.F * (fails(function () {
+      return [1, 2].toLocaleString() != new TypedArray([1, 2]).toLocaleString();
+    }) || !fails(function () {
+      TypedArrayPrototype.toLocaleString.call([1, 2]);
+    })), NAME, { toLocaleString: $toLocaleString });
+
+    Iterators[NAME] = CORRECT_ITER_NAME ? $nativeIterator : $iterator;
+    if (!LIBRARY && !CORRECT_ITER_NAME) hide(TypedArrayPrototype, ITERATOR, $iterator);
+  };
+} else module.exports = function () { /* empty */ };
+
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var Map = __webpack_require__(119);
+var $export = __webpack_require__(0);
+var shared = __webpack_require__(53)('metadata');
+var store = shared.store || (shared.store = new (__webpack_require__(122))());
+
+var getOrCreateMetadataMap = function (target, targetKey, create) {
+  var targetMetadata = store.get(target);
+  if (!targetMetadata) {
+    if (!create) return undefined;
+    store.set(target, targetMetadata = new Map());
+  }
+  var keyMetadata = targetMetadata.get(targetKey);
+  if (!keyMetadata) {
+    if (!create) return undefined;
+    targetMetadata.set(targetKey, keyMetadata = new Map());
+  } return keyMetadata;
+};
+var ordinaryHasOwnMetadata = function (MetadataKey, O, P) {
+  var metadataMap = getOrCreateMetadataMap(O, P, false);
+  return metadataMap === undefined ? false : metadataMap.has(MetadataKey);
+};
+var ordinaryGetOwnMetadata = function (MetadataKey, O, P) {
+  var metadataMap = getOrCreateMetadataMap(O, P, false);
+  return metadataMap === undefined ? undefined : metadataMap.get(MetadataKey);
+};
+var ordinaryDefineOwnMetadata = function (MetadataKey, MetadataValue, O, P) {
+  getOrCreateMetadataMap(O, P, true).set(MetadataKey, MetadataValue);
+};
+var ordinaryOwnMetadataKeys = function (target, targetKey) {
+  var metadataMap = getOrCreateMetadataMap(target, targetKey, false);
+  var keys = [];
+  if (metadataMap) metadataMap.forEach(function (_, key) { keys.push(key); });
+  return keys;
+};
+var toMetaKey = function (it) {
+  return it === undefined || typeof it == 'symbol' ? it : String(it);
+};
+var exp = function (O) {
+  $export($export.S, 'Reflect', O);
+};
+
+module.exports = {
+  store: store,
+  map: getOrCreateMetadataMap,
+  has: ordinaryHasOwnMetadata,
+  get: ordinaryGetOwnMetadata,
+  set: ordinaryDefineOwnMetadata,
+  keys: ordinaryOwnMetadataKeys,
+  key: toMetaKey,
+  exp: exp
+};
+
+
+/***/ }),
 /* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -28561,7 +28561,7 @@ module.exports = false;
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.14 / 15.2.3.14 Object.keys(O)
-var $keys = __webpack_require__(99);
+var $keys = __webpack_require__(100);
 var enumBugKeys = __webpack_require__(72);
 
 module.exports = Object.keys || function keys(O) {
@@ -28588,7 +28588,7 @@ module.exports = function (index, length) {
 
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = __webpack_require__(1);
-var dPs = __webpack_require__(100);
+var dPs = __webpack_require__(101);
 var enumBugKeys = __webpack_require__(72);
 var IE_PROTO = __webpack_require__(71)('IE_PROTO');
 var Empty = function () { /* empty */ };
@@ -28634,7 +28634,7 @@ module.exports = Object.create || function create(O, Properties) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
-var $keys = __webpack_require__(99);
+var $keys = __webpack_require__(100);
 var hiddenKeys = __webpack_require__(72).concat('length', 'prototype');
 
 exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
@@ -28678,7 +28678,7 @@ module.exports = function (it, Constructor, name, forbiddenField) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var ctx = __webpack_require__(18);
-var call = __webpack_require__(111);
+var call = __webpack_require__(112);
 var isArrayIter = __webpack_require__(85);
 var anObject = __webpack_require__(1);
 var toLength = __webpack_require__(8);
@@ -28717,73 +28717,6 @@ module.exports = function (target, src, safe) {
 
 /***/ }),
 /* 44 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var def = __webpack_require__(7).f;
-var has = __webpack_require__(11);
-var TAG = __webpack_require__(5)('toStringTag');
-
-module.exports = function (it, tag, stat) {
-  if (it && !has(it = stat ? it : it.prototype, TAG)) def(it, TAG, { configurable: true, value: tag });
-};
-
-
-/***/ }),
-/* 45 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var $export = __webpack_require__(0);
-var defined = __webpack_require__(23);
-var fails = __webpack_require__(3);
-var spaces = __webpack_require__(75);
-var space = '[' + spaces + ']';
-var non = '\u200b\u0085';
-var ltrim = RegExp('^' + space + space + '*');
-var rtrim = RegExp(space + space + '*$');
-
-var exporter = function (KEY, exec, ALIAS) {
-  var exp = {};
-  var FORCE = fails(function () {
-    return !!spaces[KEY]() || non[KEY]() != non;
-  });
-  var fn = exp[KEY] = FORCE ? exec(trim) : spaces[KEY];
-  if (ALIAS) exp[ALIAS] = fn;
-  $export($export.P + $export.F * FORCE, 'String', exp);
-};
-
-// 1 -> String#trimLeft
-// 2 -> String#trimRight
-// 3 -> String#trim
-var trim = exporter.trim = function (string, TYPE) {
-  string = String(defined(string));
-  if (TYPE & 1) string = string.replace(ltrim, '');
-  if (TYPE & 2) string = string.replace(rtrim, '');
-  return string;
-};
-
-module.exports = exporter;
-
-
-/***/ }),
-/* 46 */
-/***/ (function(module, exports) {
-
-module.exports = {};
-
-
-/***/ }),
-/* 47 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var isObject = __webpack_require__(4);
-module.exports = function (it, TYPE) {
-  if (!isObject(it) || it._t !== TYPE) throw TypeError('Incompatible receiver, ' + TYPE + ' required!');
-  return it;
-};
-
-
-/***/ }),
-/* 48 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -75047,7 +74980,7 @@ function LensFlare() {
 
 
 /***/ }),
-/* 49 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75062,7 +74995,7 @@ var _jquery = __webpack_require__(32);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _lodash = __webpack_require__(29);
+var _lodash = __webpack_require__(27);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -75224,6 +75157,73 @@ exports.randomId = randomId;
 exports.getCurrentDateStr = getCurrentDateStr;
 exports.textEntryDialog = textEntryDialog;
 exports.delay = delay;
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var def = __webpack_require__(7).f;
+var has = __webpack_require__(11);
+var TAG = __webpack_require__(5)('toStringTag');
+
+module.exports = function (it, tag, stat) {
+  if (it && !has(it = stat ? it : it.prototype, TAG)) def(it, TAG, { configurable: true, value: tag });
+};
+
+
+/***/ }),
+/* 47 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var $export = __webpack_require__(0);
+var defined = __webpack_require__(23);
+var fails = __webpack_require__(3);
+var spaces = __webpack_require__(75);
+var space = '[' + spaces + ']';
+var non = '\u200b\u0085';
+var ltrim = RegExp('^' + space + space + '*');
+var rtrim = RegExp(space + space + '*$');
+
+var exporter = function (KEY, exec, ALIAS) {
+  var exp = {};
+  var FORCE = fails(function () {
+    return !!spaces[KEY]() || non[KEY]() != non;
+  });
+  var fn = exp[KEY] = FORCE ? exec(trim) : spaces[KEY];
+  if (ALIAS) exp[ALIAS] = fn;
+  $export($export.P + $export.F * FORCE, 'String', exp);
+};
+
+// 1 -> String#trimLeft
+// 2 -> String#trimRight
+// 3 -> String#trim
+var trim = exporter.trim = function (string, TYPE) {
+  string = String(defined(string));
+  if (TYPE & 1) string = string.replace(ltrim, '');
+  if (TYPE & 2) string = string.replace(rtrim, '');
+  return string;
+};
+
+module.exports = exporter;
+
+
+/***/ }),
+/* 48 */
+/***/ (function(module, exports) {
+
+module.exports = {};
+
+
+/***/ }),
+/* 49 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var isObject = __webpack_require__(4);
+module.exports = function (it, TYPE) {
+  if (!isObject(it) || it._t !== TYPE) throw TypeError('Incompatible receiver, ' + TYPE + ' required!');
+  return it;
+};
+
 
 /***/ }),
 /* 50 */
@@ -75460,7 +75460,7 @@ var anInstance = __webpack_require__(41);
 var isObject = __webpack_require__(4);
 var fails = __webpack_require__(3);
 var $iterDetect = __webpack_require__(58);
-var setToStringTag = __webpack_require__(44);
+var setToStringTag = __webpack_require__(46);
 var inheritIfRequired = __webpack_require__(76);
 
 module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
@@ -75651,7 +75651,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _three = __webpack_require__(48);
+var _three = __webpack_require__(44);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -75875,7 +75875,7 @@ module.exports = function (it) {
 var global = __webpack_require__(2);
 var core = __webpack_require__(21);
 var LIBRARY = __webpack_require__(35);
-var wksExt = __webpack_require__(98);
+var wksExt = __webpack_require__(99);
 var defineProperty = __webpack_require__(7).f;
 module.exports = function (name) {
   var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
@@ -76046,9 +76046,9 @@ var $export = __webpack_require__(0);
 var redefine = __webpack_require__(13);
 var hide = __webpack_require__(12);
 var has = __webpack_require__(11);
-var Iterators = __webpack_require__(46);
+var Iterators = __webpack_require__(48);
 var $iterCreate = __webpack_require__(82);
-var setToStringTag = __webpack_require__(44);
+var setToStringTag = __webpack_require__(46);
 var getPrototypeOf = __webpack_require__(17);
 var ITERATOR = __webpack_require__(5)('iterator');
 var BUGGY = !([].keys && 'next' in [].keys()); // Safari has buggy iterators w/o `next`
@@ -76120,7 +76120,7 @@ module.exports = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCE
 
 var create = __webpack_require__(38);
 var descriptor = __webpack_require__(33);
-var setToStringTag = __webpack_require__(44);
+var setToStringTag = __webpack_require__(46);
 var IteratorPrototype = {};
 
 // 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
@@ -76169,7 +76169,7 @@ module.exports = function (KEY) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // check on default Array iterator
-var Iterators = __webpack_require__(46);
+var Iterators = __webpack_require__(48);
 var ITERATOR = __webpack_require__(5)('iterator');
 var ArrayProto = Array.prototype;
 
@@ -76199,7 +76199,7 @@ module.exports = function (object, index, value) {
 
 var classof = __webpack_require__(52);
 var ITERATOR = __webpack_require__(5)('iterator');
-var Iterators = __webpack_require__(46);
+var Iterators = __webpack_require__(48);
 module.exports = __webpack_require__(21).getIteratorMethod = function (it) {
   if (it != undefined) return it[ITERATOR]
     || it['@@iterator']
@@ -76248,8 +76248,8 @@ module.exports = function fill(value /* , start = 0, end = @length */) {
 "use strict";
 
 var addToUnscopables = __webpack_require__(31);
-var step = __webpack_require__(114);
-var Iterators = __webpack_require__(46);
+var step = __webpack_require__(115);
+var Iterators = __webpack_require__(48);
 var toIObject = __webpack_require__(15);
 
 // 22.1.3.4 Array.prototype.entries()
@@ -76287,7 +76287,7 @@ addToUnscopables('entries');
 /***/ (function(module, exports, __webpack_require__) {
 
 var ctx = __webpack_require__(18);
-var invoke = __webpack_require__(104);
+var invoke = __webpack_require__(105);
 var html = __webpack_require__(73);
 var cel = __webpack_require__(69);
 var global = __webpack_require__(2);
@@ -76487,11 +76487,11 @@ var fails = __webpack_require__(3);
 var anInstance = __webpack_require__(41);
 var toInteger = __webpack_require__(24);
 var toLength = __webpack_require__(8);
-var toIndex = __webpack_require__(123);
+var toIndex = __webpack_require__(124);
 var gOPN = __webpack_require__(39).f;
 var dP = __webpack_require__(7).f;
 var arrayFill = __webpack_require__(89);
-var setToStringTag = __webpack_require__(44);
+var setToStringTag = __webpack_require__(46);
 var ARRAY_BUFFER = 'ArrayBuffer';
 var DATA_VIEW = 'DataView';
 var PROTOTYPE = 'prototype';
@@ -76774,6 +76774,1404 @@ module.exports = navigator && navigator.userAgent || '';
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.applyColorToVector3array = exports.applyRotationOfMatrix4toVector3array = exports.applyMatrix4toVector3array = exports.CopyBufferGeometry = exports.getCylinderMatrix = exports.getSphereMatrix = exports.Trace = exports.clearObject3D = exports.makeBufferZCylinderGeometry = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.BufferRaisedShapesGeometry = exports.BufferRibbonGeometry = exports.setVisible = exports.BlockArrowGeometry = undefined;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Custom geometry and mesh generators based on the
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * THREE.js library.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * In particular, there is a Ribbon class which is an
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * extrusion where the normal and tangents are specified.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _three = __webpack_require__(44);
+
+var THREE = _interopRequireWildcard(_three);
+
+var _v = __webpack_require__(67);
+
+var _v2 = _interopRequireDefault(_v);
+
+var _lodash = __webpack_require__(27);
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function CatmullRom(t, p0, p1, p2, p3) {
+  var v0 = (p2 - p0) * 0.5;
+  var v1 = (p3 - p1) * 0.5;
+  var t2 = t * t;
+  var t3 = t * t2;
+  return (2 * p1 - 2 * p2 + v0 + v1) * t3 + (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t2 + v0 * t + p1;
+}
+
+/**
+ * Interpolation function for a Catmul-Rom spline
+ * in 3D space, where the 4 guide-points are given
+ * and an interpolation parameter is given.
+ *
+ * @param {Number} t - interpolation from [0, 1]
+ * @param {THREE.Vector3} p1
+ * @param {THREE.Vector3} p2
+ * @param {THREE.Vector3} p3
+ * @param {THREE.Vector3} p4
+ * @returns {THREE.Vector3} the interpolated point
+ */
+function catmulRomSpline(t, p1, p2, p3, p4) {
+  return _v2.default.create(CatmullRom(t, p1.x, p2.x, p3.x, p4.x), CatmullRom(t, p1.y, p2.y, p3.y, p4.y), CatmullRom(t, p1.z, p2.z, p3.z, p4.z));
+}
+
+/**
+ * Create a path for extrusion where the direction of the
+ * normal and binormal is defined, as well as the tangent.
+ *
+ * In particular, the path provides a slice() function
+ * that produces a sub-portion of the path.
+ */
+
+var PathAndFrenetFrames = function () {
+  function PathAndFrenetFrames() {
+    _classCallCheck(this, PathAndFrenetFrames);
+
+    this.points = [];
+    this.normals = [];
+    this.tangents = [];
+    this.binormals = [];
+
+    this.colors = [];
+    this.indexColors = [];
+    this.segmentTypes = [];
+    this.refIndices = [];
+  }
+
+  _createClass(PathAndFrenetFrames, [{
+    key: 'slice',
+    value: function slice(i, j) {
+      var subPath = new PathAndFrenetFrames();
+      subPath.points = this.points.slice(i, j);
+      subPath.normals = this.normals.slice(i, j);
+      subPath.tangents = this.tangents.slice(i, j);
+      subPath.binormals = this.binormals.slice(i, j);
+      return subPath;
+    }
+  }]);
+
+  return PathAndFrenetFrames;
+}();
+
+/**
+ * Creates a new path out of a slice of the oldPath, with
+ * n number of segments between two points, using a Catmul-Rom
+ * spline based on the two points, and the two surrounding
+ * points. At the ends, the external points are projected
+ * from the end using the tangent at the ends.
+ *
+ * @param {PathAndFrenetFrames} oldPath
+ * @param {Number} n
+ * @param {Number} iOldPoint
+ * @param {Number} jOldPoint
+ * @returns {PathAndFrenetFrames}
+ */
+
+
+function expandPath(oldPath, n, iOldPoint, jOldPoint) {
+  var newPath = new PathAndFrenetFrames();
+
+  newPath.points.push(oldPath.points[iOldPoint]);
+
+  for (var i = iOldPoint; i < jOldPoint - 1; i += 1) {
+    var jStart = 1;
+    var jEnd = n + 1;
+
+    for (var j = jStart; j < jEnd; j += 1) {
+      var t = j / n;
+
+      var prevOldPoint = void 0,
+          nextOldPoint = void 0;
+
+      if (i > 0) {
+        prevOldPoint = oldPath.points[i - 1];
+      } else {
+        prevOldPoint = oldPath.points[i].clone().sub(oldPath.tangents[i]);
+      }
+
+      if (i < oldPath.points.length - 2) {
+        nextOldPoint = oldPath.points[i + 2];
+      } else {
+        nextOldPoint = oldPath.points[i + 1].clone().add(oldPath.tangents[i]);
+      }
+
+      newPath.points.push(catmulRomSpline(t, prevOldPoint, oldPath.points[i], oldPath.points[i + 1], nextOldPoint));
+    }
+  }
+
+  newPath.normals.push(oldPath.normals[iOldPoint]);
+  for (var _i = iOldPoint; _i < jOldPoint - 1; _i += 1) {
+    for (var _j = 1; _j < n + 1; _j += 1) {
+      var _t = _j / n;
+
+      var prevOldNormal = void 0,
+          nextOldNormal = void 0;
+
+      if (_i > 0) {
+        prevOldNormal = oldPath.normals[_i - 1];
+      } else {
+        prevOldNormal = oldPath.normals[_i];
+      }
+
+      if (_i < oldPath.normals.length - 2) {
+        nextOldNormal = oldPath.normals[_i + 2];
+      } else {
+        nextOldNormal = oldPath.normals[_i + 1];
+      }
+
+      newPath.normals.push(catmulRomSpline(_t, prevOldNormal, oldPath.normals[_i], oldPath.normals[_i + 1], nextOldNormal).normalize());
+    }
+  }
+
+  for (var _i2 = 0; _i2 < newPath.points.length; _i2 += 1) {
+    if (_i2 === 0) {
+      newPath.tangents.push(oldPath.tangents[0]);
+    } else if (_i2 === newPath.points.length - 1) {
+      newPath.tangents.push(oldPath.tangents[jOldPoint - 1]);
+    } else {
+      newPath.tangents.push(newPath.points[_i2 + 1].clone().sub(newPath.points[_i2 - 1]).normalize());
+    }
+  }
+
+  for (var _i3 = 0; _i3 < newPath.points.length; _i3 += 1) {
+    newPath.binormals.push(_v2.default.create().crossVectors(newPath.tangents[_i3], newPath.normals[_i3]));
+  }
+
+  return newPath;
+}
+
+/**
+ * Trace is an object designed to be built up progressively
+ * by adding to this.indices, this.points and this.normals.
+ *
+ * Once built, it can be expanded into a more detailed
+ * trace, which is used to generate geometric pieces of
+ * an extrusion where the normals and tangents are
+ * controlled.
+ */
+
+var Trace = function (_PathAndFrenetFrames) {
+  _inherits(Trace, _PathAndFrenetFrames);
+
+  function Trace() {
+    _classCallCheck(this, Trace);
+
+    var _this = _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this));
+
+    _this.indices = [];
+    _this.detail = 4;
+    return _this;
+  }
+
+  _createClass(Trace, [{
+    key: 'getReference',
+    value: function getReference(i) {
+      var iRef = this.indices[i];
+      return this.referenceObjects[iRef];
+    }
+
+    /**
+     * Calculates tangents as an average on neighbouring points
+     * so that we get a smooth path.
+     */
+
+  }, {
+    key: 'calcTangents',
+    value: function calcTangents() {
+      var iStart = 0;
+      var iEnd = this.points.length;
+      var iLast = iEnd - 1;
+      if (iEnd - iStart > 2) {
+        // project out first tangent from main chain
+        this.tangents[iStart] = this.points[iStart + 1].clone().sub(this.points[iStart]).normalize();
+
+        // calculate tangents as averages of neighbouring residues
+        for (var i = iStart + 1; i < iLast; i += 1) {
+          this.tangents[i] = this.points[i + 1].clone().sub(this.points[i - 1]).normalize();
+        }
+
+        // project out last tangent from main chain
+        this.tangents[iLast] = this.points[iLast].clone().sub(this.points[iLast - 1]).normalize();
+      } else {
+        // for short 2 point traces
+        var tangent = this.points[iLast].clone().sub(this.points[iStart]).normalize();
+
+        this.tangents[iStart] = tangent;
+        this.tangents[iLast] = tangent;
+      }
+    }
+
+    /**
+     * If normal[i] is not null,
+     * it will use the normal, otherwise it will generate own
+     * normal from the path curvature
+     */
+
+  }, {
+    key: 'calcNormals',
+    value: function calcNormals() {
+      var iStart = 0;
+      var iEnd = this.points.length;
+      var iLast = iEnd - 1;
+      if (iEnd - iStart > 2) {
+        for (var i = iStart + 1; i < iLast; i += 1) {
+          if (this.normals[i] !== null) {
+            // normal already provided, normalize properly against tangent
+            this.normals[i] = perpVector(this.tangents[i], this.normals[i]);
+            this.normals[i].normalize();
+          } else {
+            // generate a normal from curvature
+            var diff = this.points[i].clone().sub(this.points[i - 1]);
+            this.normals[i] = _v2.default.create().crossVectors(diff, this.tangents[i]).normalize();
+
+            // smooth out auto-generated normal if flipped 180deg from prev
+            var prevNormal = this.normals[i - 1];
+            if (prevNormal !== null) {
+              if (this.normals[i].dot(prevNormal) < 0) {
+                this.normals[i].negate();
+              }
+            }
+          }
+        }
+
+        this.normals[iStart] = this.normals[iStart + 1];
+        this.normals[iLast] = this.normals[iLast - 1];
+      } else {
+        for (var _i4 = iStart; _i4 <= iLast; _i4 += 1) {
+          if (this.normals[_i4] !== null) {
+            this.normals[_i4] = perpVector(this.tangents[_i4], this.normals[_i4]);
+            this.normals[_i4].normalize();
+          } else {
+            var randomDir = this.points[_i4];
+            this.normals[_i4] = _v2.default.create().crossVectors(randomDir, this.tangents[_i4]).normalize();
+          }
+        }
+      }
+    }
+  }, {
+    key: 'calcBinormals',
+    value: function calcBinormals() {
+      var iStart = 0;
+      var iEnd = this.points.length;
+      for (var i = iStart; i < iEnd; i += 1) {
+        this.binormals[i] = _v2.default.create().crossVectors(this.tangents[i], this.normals[i]);
+      }
+    }
+  }, {
+    key: 'expand',
+    value: function expand() {
+      this.detailedPath = expandPath(this, 2 * this.detail, 0, this.points.length);
+    }
+  }, {
+    key: 'getGeometry',
+    value: function getGeometry(face, isRound, isFront, isBack, color) {
+      var path = this.detailedPath;
+      var iResStart = 0;
+      var iResEnd = this.points.length;
+
+      // works out start on expanded path, including overhang
+      var iPathStart = iResStart * 2 * this.detail - this.detail;
+      if (iPathStart < 0) {
+        iPathStart = 0;
+      }
+
+      // works out end of expanded path, including overhang
+      var iPathEnd = iResEnd * 2 * this.detail - this.detail + 1;
+      if (iPathEnd >= path.points.length) {
+        iPathEnd = path.points.length - 1;
+      }
+
+      var segmentPath = path.slice(iPathStart, iPathEnd);
+
+      var geom = new BufferRibbonGeometry(this, segmentPath, isRound, isFront, isBack, color);
+
+      return geom;
+    }
+  }]);
+
+  return Trace;
+}(PathAndFrenetFrames);
+
+/**
+ * Extrusion along a path that aligns a 2D shape as cross-section, with
+ * orientation along the normal for the cross-section.
+ *
+ * Accepts a cross-section shape, which is a collection of 2D points around
+ * the origin, and a path, which contains points, normals and binormals
+ * and builds a oriented extrusion out of it.
+ *
+ * If round is set, then the vertex normals are set to orient along the
+ * normal/binormal axis from the origin, otherwise, face normals are defined
+ * perpedicular to the face.
+ *
+ * For a segment between two path points and a repetition of the cross-section,
+ * two triangles are defined.
+ */
+
+
+var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
+  _inherits(BufferRibbonGeometry, _THREE$BufferGeometry);
+
+  /**
+   * @param {THREE.Shape} shape - collection of 2D points for cross section
+   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
+   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
+   */
+  function BufferRibbonGeometry(traces, shape) {
+    var isIndexColor = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+    _classCallCheck(this, BufferRibbonGeometry);
+
+    var _this2 = _possibleConstructorReturn(this, (BufferRibbonGeometry.__proto__ || Object.getPrototypeOf(BufferRibbonGeometry)).call(this));
+
+    _this2.type = 'BufferRibbonGeometry';
+
+    _this2.parameters = {
+      shape: shape,
+      traces: traces,
+      isIndexColor: isIndexColor
+    };
+
+    _this2.shapePoints = shape.extractPoints(4).shape;
+    _this2.nShape = _this2.shapePoints.length;
+
+    _this2.nVertex = 0;
+    _this2.nFace = 0;
+
+    _this2.countVertexAndFacesOfPath();
+
+    _this2.setAttributes();
+
+    _this2.build();
+    _this2.setColors();
+    return _this2;
+  }
+
+  _createClass(BufferRibbonGeometry, [{
+    key: 'countVertexAndFacesOfPath',
+    value: function countVertexAndFacesOfPath() {
+      this.nVertex = 0;
+      this.nFace = 0;
+
+      this.paths = [];
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = this.parameters.traces[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var trace = _step.value;
+
+          var path = trace.detailedPath;
+          this.paths.push(path);
+
+          var nPath = path.points.length;
+          this.nVertex += (nPath + trace.points.length - 1) * this.nShape;
+          this.nVertex += this.nShape;
+          this.nVertex += this.nShape;
+
+          var nTrace = trace.points.length;
+          this.nFace += (nTrace - 1) * 2 * this.nShape * (2 * trace.detail + 1);
+          this.nFace += this.nShape - 2;
+          this.nFace += this.nShape - 2;
+
+          this.nVertex = this.nFace * 3;
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+    }
+  }, {
+    key: 'build',
+    value: function build() {
+      var _this3 = this;
+
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
+        var _loop = function _loop() {
+          var iPath = _step2.value;
+
+          var path = _this3.paths[iPath];
+          var trace = _this3.parameters.traces[iPath];
+
+          var iVertexOffsetOfPathPoint = [];
+
+          var iTraceStart = 0;
+          var iTraceEnd = trace.points.length;
+
+          function getWidth(iTracePoint) {
+            return trace.segmentTypes[iTracePoint] === 'C' ? 0.7 : 8;
+          }
+
+          var vertices = null;
+          var lastVertices = null;
+          var shapeNormals = null;
+          var lastShapeNormals = null;
+          var isFlat = true;
+
+          for (var iTracePoint = iTraceStart; iTracePoint < iTraceEnd; iTracePoint += 1) {
+            // iPathStart, iPathEnd on the expanded path for a given tracePoint
+            // assumes an overhang between neighbouring pieces to allow for disjoint
+            // coloring
+            var iPathStart = iTracePoint * 2 * trace.detail - trace.detail;
+            if (iPathStart < 0) {
+              iPathStart = 0;
+            }
+
+            // works out end of expanded path, including overhang
+            var iPathEnd = (iTracePoint + 1) * 2 * trace.detail - trace.detail + 1;
+            if (iPathEnd >= path.points.length) {
+              iPathEnd = path.points.length;
+            }
+
+            var _loop2 = function _loop2(iPathPoint) {
+              var width = getWidth(iTracePoint);
+              var height = 0.7;
+
+              if (iPathPoint === iPathStart && iPathPoint > 0) {
+                if (trace.segmentTypes[iTracePoint - 1] === 'C' && trace.segmentTypes[iTracePoint] !== 'C') {
+                  width = getWidth(iTracePoint - 1);
+                }
+              }
+              if (iPathPoint === iPathEnd - 1 && iTracePoint < trace.points.length - 1) {
+                var iNextTracePoint = iTracePoint + 1;
+                if (trace.segmentTypes[iNextTracePoint] === 'C' && trace.segmentTypes[iTracePoint] !== 'C') {
+                  width = getWidth(iNextTracePoint);
+                }
+              }
+
+              isFlat = trace.segmentTypes[iTracePoint] !== 'C';
+
+              var point = path.points[iPathPoint];
+              var normal = path.normals[iPathPoint];
+              var binormal = path.binormals[iPathPoint];
+
+              var shapePoints = _lodash2.default.cloneDeep(_this3.shapePoints);
+              var _iteratorNormalCompletion3 = true;
+              var _didIteratorError3 = false;
+              var _iteratorError3 = undefined;
+
+              try {
+                for (var _iterator3 = shapePoints[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                  var shapePoint = _step3.value;
+
+                  shapePoint.x = shapePoint.x * width;
+                  shapePoint.y = shapePoint.y * height;
+                }
+              } catch (err) {
+                _didIteratorError3 = true;
+                _iteratorError3 = err;
+              } finally {
+                try {
+                  if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                    _iterator3.return();
+                  }
+                } finally {
+                  if (_didIteratorError3) {
+                    throw _iteratorError3;
+                  }
+                }
+              }
+
+              vertices = [];
+              var _iteratorNormalCompletion4 = true;
+              var _didIteratorError4 = false;
+              var _iteratorError4 = undefined;
+
+              try {
+                for (var _iterator4 = shapePoints[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                  var _shapePoint = _step4.value;
+
+                  var x = normal.clone().multiplyScalar(_shapePoint.x);
+                  var y = binormal.clone().multiplyScalar(_shapePoint.y);
+                  var vertex = point.clone().add(x).add(y);
+                  vertices.push(vertex);
+                }
+
+                // draw back cap of ribbon
+              } catch (err) {
+                _didIteratorError4 = true;
+                _iteratorError4 = err;
+              } finally {
+                try {
+                  if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                    _iterator4.return();
+                  }
+                } finally {
+                  if (_didIteratorError4) {
+                    throw _iteratorError4;
+                  }
+                }
+              }
+
+              var isFront = iPathPoint === 0 && iTracePoint === iTraceStart;
+              if (isFront) {
+                var nVertex = shapePoints.length;
+                var iLastVertex = nVertex - 1;
+                var faceNormal = threePointNormal([vertices[0], vertices[1], vertices[iLastVertex]]);
+                for (var iVertex = 0; iVertex < nVertex - 2; iVertex += 1) {
+                  _this3.pushVerticesNormalsOfFace(vertices[iVertex], vertices[iVertex + 1], vertices[iLastVertex], faceNormal, faceNormal, faceNormal);
+                }
+              }
+
+              function getRoundedShapeNormals(iPathPoint) {
+                var nVertex = shapePoints.length;
+                var shapeNormals = [];
+                var x = void 0,
+                    y = void 0;
+                var diffPrev = new THREE.Vector2();
+                var diffNext = new THREE.Vector2();
+                var shapeNormal = new THREE.Vector2();
+                for (var i = 0; i < nVertex; i += 1) {
+                  var iPrev = i > 0 ? i - 1 : nVertex - 1;
+                  var iNext = i + 1 < nVertex ? i + 1 : 0;
+                  var v = shapePoints[i];
+                  diffPrev.subVectors(v, shapePoints[iPrev]).normalize();
+                  diffNext.subVectors(v, shapePoints[iNext]).normalize();
+                  shapeNormal.addVectors(diffPrev, diffNext).normalize();
+                  x = path.normals[iPathPoint].clone().multiplyScalar(shapeNormal.x);
+                  y = path.binormals[iPathPoint].clone().multiplyScalar(shapeNormal.y);
+                  shapeNormals.push(x.add(y));
+                }
+                return shapeNormals;
+              }
+
+              function getFlatShapeNormals(iPathPoint) {
+                var nVertex = shapePoints.length;
+                var shapeNormals = [];
+                var x = void 0,
+                    y = void 0;
+                var shapeNormal = new THREE.Vector2();
+                for (var i = 0; i < nVertex; i += 1) {
+                  var iPrev = i > 0 ? i - 1 : nVertex - 1;
+                  var v = shapePoints[i];
+                  shapeNormal.subVectors(v, shapePoints[iPrev]).normalize();
+                  x = path.normals[iPathPoint].clone().multiplyScalar(shapeNormal.x);
+                  y = path.binormals[iPathPoint].clone().multiplyScalar(shapeNormal.y);
+                  shapeNormals.push(x.add(y));
+                }
+                return shapeNormals;
+              }
+
+              if (isFlat) {
+                shapeNormals = getFlatShapeNormals(iPathPoint);
+              } else {
+                shapeNormals = getRoundedShapeNormals(iPathPoint);
+              }
+
+              if (iPathPoint === 0) {
+                lastShapeNormals = shapeNormals;
+                lastVertices = vertices;
+                return 'continue';
+              }
+
+              for (var iShapePoint = 0; iShapePoint < _this3.nShape; iShapePoint += 1) {
+                var iLastShapePoint = void 0;
+                if (iShapePoint === 0) {
+                  iLastShapePoint = _this3.nShape - 1;
+                } else {
+                  iLastShapePoint = iShapePoint - 1;
+                }
+
+                if (isFlat) {
+                  // Flat normals to give a flat look
+                  _this3.pushVerticesNormalsOfFace(lastVertices[iLastShapePoint], vertices[iLastShapePoint], vertices[iShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint]);
+                  _this3.pushVerticesNormalsOfFace(lastVertices[iShapePoint], lastVertices[iLastShapePoint], vertices[iShapePoint], lastShapeNormals[iLastShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint]);
+                } else {
+                  // Smoothed normals to give a rounded look
+                  _this3.pushVerticesNormalsOfFace(lastVertices[iLastShapePoint], vertices[iLastShapePoint], vertices[iShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
+                  _this3.pushVerticesNormalsOfFace(lastVertices[iShapePoint], lastVertices[iLastShapePoint], vertices[iShapePoint], lastShapeNormals[iShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
+                }
+              }
+
+              var isBack = iPathPoint === iPathEnd - 1 && iTracePoint === iTraceEnd - 1;
+              if (isBack) {
+                var _nVertex = shapePoints.length;
+                var _iLastVertex = _nVertex - 1;
+                var _faceNormal = threePointNormal([vertices[2], vertices[1], vertices[0]]);
+                for (var _iVertex = 0; _iVertex < _nVertex - 2; _iVertex += 1) {
+                  _this3.pushVerticesNormalsOfFace(vertices[_iLastVertex], vertices[_iVertex + 1], vertices[_iVertex], _faceNormal, _faceNormal, _faceNormal);
+                }
+              }
+
+              lastShapeNormals = shapeNormals;
+              lastVertices = vertices;
+            };
+
+            for (var iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
+              var _ret2 = _loop2(iPathPoint);
+
+              if (_ret2 === 'continue') continue;
+            }
+          }
+        };
+
+        for (var _iterator2 = _lodash2.default.range(this.paths.length)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          _loop();
+        }
+        // this.computeVertexNormals()
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
+        }
+      }
+    }
+  }, {
+    key: 'setColors',
+    value: function setColors() {
+      var vertexCount = 0;
+      var _iteratorNormalCompletion5 = true;
+      var _didIteratorError5 = false;
+      var _iteratorError5 = undefined;
+
+      try {
+        for (var _iterator5 = _lodash2.default.range(this.paths.length)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+          var iPath = _step5.value;
+
+          var _path = this.paths[iPath];
+          var _trace = this.parameters.traces[iPath];
+
+          var _iTraceStart = 0;
+          var _iTraceEnd = _trace.points.length;
+
+          for (var iTracePoint = _iTraceStart; iTracePoint < _iTraceEnd; iTracePoint += 1) {
+            // iPathStart, iPathEnd on the expanded path for a given tracePoint
+            // assumes an overhang between neighbouring pieces to allow for disjoint
+            // coloring
+            var iPathStart = iTracePoint * 2 * _trace.detail - _trace.detail;
+            if (iPathStart < 0) {
+              iPathStart = 0;
+            }
+
+            // works out end of expanded path, including overhang
+            var iPathEnd = (iTracePoint + 1) * 2 * _trace.detail - _trace.detail + 1;
+            if (iPathEnd >= _path.points.length) {
+              iPathEnd = _path.points.length;
+            }
+
+            for (var iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
+              var nShapePoint = this.shapePoints.length;
+
+              var color = void 0;
+              if (this.parameters.isIndexColor) {
+                color = _trace.indexColors[iTracePoint];
+              } else {
+                color = _trace.colors[iTracePoint].clone();
+              }
+
+              // draw front-cap
+              var isFront = iPathPoint === 0 && iTracePoint === _iTraceStart;
+              if (isFront) {
+                for (var i = 0; i < 3 * (nShapePoint - 2); i += 1) {
+                  this.setColor(vertexCount, color);
+                  vertexCount += 1;
+                }
+              }
+
+              if (iPathPoint > 0) {
+                for (var _i5 = 0; _i5 < 6 * nShapePoint; _i5 += 1) {
+                  this.setColor(vertexCount, color);
+                  vertexCount += 1;
+                }
+              }
+
+              var isBack = iPathPoint === iPathEnd - 1 && iTracePoint === _iTraceEnd - 1;
+              if (isBack) {
+                for (var _i6 = 0; _i6 < 3 * (nShapePoint - 2); _i6 += 1) {
+                  this.setColor(vertexCount, color);
+                  vertexCount += 1;
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        _didIteratorError5 = true;
+        _iteratorError5 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+            _iterator5.return();
+          }
+        } finally {
+          if (_didIteratorError5) {
+            throw _iteratorError5;
+          }
+        }
+      }
+
+      this.attributes.color.needsUpdate = true;
+    }
+  }, {
+    key: 'setAttributes',
+    value: function setAttributes() {
+      var positions = new Float32Array(this.nVertex * 3);
+      var normals = new Float32Array(this.nVertex * 3);
+      var indices = new Int32Array(this.nFace * 3);
+      var colors = new Float32Array(this.nVertex * 3);
+
+      this.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      this.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+      this.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      this.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
+
+      this.positions = this.attributes.position.array;
+      this.normals = this.attributes.normal.array;
+      this.indices = this.index.array;
+      this.colors = this.attributes.color.array;
+
+      this.positionCount = 0;
+      this.indexCount = 0;
+      this.vertexCount = 0;
+    }
+  }, {
+    key: 'setColor',
+    value: function setColor(iVertex, color) {
+      var iPosition = 3 * iVertex;
+      this.colors[iPosition] = color.r;
+      this.colors[iPosition + 1] = color.g;
+      this.colors[iPosition + 2] = color.b;
+    }
+  }, {
+    key: 'pushVertex',
+    value: function pushVertex(vertex) {
+      this.positions[this.positionCount] = vertex.x;
+      this.positions[this.positionCount + 1] = vertex.y;
+      this.positions[this.positionCount + 2] = vertex.z;
+
+      this.positionCount += 3;
+      this.vertexCount += 1;
+    }
+  }, {
+    key: 'pushVerticesNormalsOfFace',
+    value: function pushVerticesNormalsOfFace(v0, v1, v2, normalI, normalJ, normalK) {
+      this.pushVertex(v0);
+      this.pushVertex(v1);
+      this.pushVertex(v2);
+
+      var i = this.indexCount;
+      this.indices[this.indexCount] = i;
+      this.indices[this.indexCount + 1] = i + 1;
+      this.indices[this.indexCount + 2] = i + 2;
+
+      this.indexCount += 3;
+
+      var j = i + 1;
+      var k = i + 2;
+
+      this.normals[i * 3] = normalI.x;
+      this.normals[i * 3 + 1] = normalI.y;
+      this.normals[i * 3 + 2] = normalI.z;
+
+      this.normals[j * 3] = normalJ.x;
+      this.normals[j * 3 + 1] = normalJ.y;
+      this.normals[j * 3 + 2] = normalJ.z;
+
+      this.normals[k * 3] = normalK.x;
+      this.normals[k * 3 + 1] = normalK.y;
+      this.normals[k * 3 + 2] = normalK.z;
+    }
+  }, {
+    key: 'getVertex',
+    value: function getVertex(iVertex) {
+      return _v2.default.create(this.positions[iVertex * 3], this.positions[iVertex * 3 + 1], this.positions[iVertex * 3 + 2]);
+    }
+  }]);
+
+  return BufferRibbonGeometry;
+}(THREE.BufferGeometry);
+
+/**
+ * Takes a bunch of points and treats it as defining
+ * a polygon, and raises it to a certain thickness.
+ */
+
+
+var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
+  _inherits(BufferRaisedShapesGeometry, _THREE$BufferGeometry2);
+
+  function BufferRaisedShapesGeometry(verticesList, colorList, thickness) {
+    _classCallCheck(this, BufferRaisedShapesGeometry);
+
+    var _this4 = _possibleConstructorReturn(this, (BufferRaisedShapesGeometry.__proto__ || Object.getPrototypeOf(BufferRaisedShapesGeometry)).call(this));
+
+    _this4.type = 'BufferRaisedShapesGeometry';
+
+    _this4.parameters = { verticesList: verticesList, thickness: thickness, colorList: colorList };
+
+    _this4.nVertex = 0;
+    _this4.nFace = 0;
+
+    _this4.countVertexAndFacesOfPath();
+
+    _this4.setAttributes();
+
+    _this4.setPath();
+    return _this4;
+  }
+
+  _createClass(BufferRaisedShapesGeometry, [{
+    key: 'countVertexAndFacesOfPath',
+    value: function countVertexAndFacesOfPath(front, back) {
+      this.nVertex = 0;
+      this.nFace = 0;
+
+      var _iteratorNormalCompletion6 = true;
+      var _didIteratorError6 = false;
+      var _iteratorError6 = undefined;
+
+      try {
+        for (var _iterator6 = this.parameters.verticesList[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+          var _vertices = _step6.value;
+
+          var nVertex = _vertices.length;
+          // top layer
+          this.nFace += nVertex - 2;
+          // bottom layer
+          this.nFace += nVertex - 2;
+          // side layers
+          this.nFace += 2 * nVertex;
+        }
+      } catch (err) {
+        _didIteratorError6 = true;
+        _iteratorError6 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion6 && _iterator6.return) {
+            _iterator6.return();
+          }
+        } finally {
+          if (_didIteratorError6) {
+            throw _iteratorError6;
+          }
+        }
+      }
+
+      this.nVertex = 3 * this.nFace;
+    }
+  }, {
+    key: 'setPath',
+    value: function setPath() {
+      var _iteratorNormalCompletion7 = true;
+      var _didIteratorError7 = false;
+      var _iteratorError7 = undefined;
+
+      try {
+        for (var _iterator7 = this.parameters.verticesList.entries()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          var _step7$value = _slicedToArray(_step7.value, 2),
+              i = _step7$value[0],
+              _vertices2 = _step7$value[1];
+
+          var _normal = threePointNormal(_vertices2.slice(0, 3));
+          var displacement = _normal.clone().multiplyScalar(this.parameters.thickness / 2);
+          var color = this.parameters.colorList[i];
+
+          var nVertex = _vertices2.length;
+          var iLast = nVertex - 1;
+
+          var topVertices = [];
+          for (var _i7 = 0; _i7 < _vertices2.length; _i7 += 1) {
+            topVertices.push(_vertices2[_i7].clone().add(displacement));
+          }
+
+          var bottomVertices = [];
+          for (var _i8 = 0; _i8 < _vertices2.length; _i8 += 1) {
+            bottomVertices.push(_vertices2[_i8].clone().sub(displacement));
+          }
+
+          for (var _i9 = 0; _i9 < nVertex - 2; _i9 += 1) {
+            this.pushVerticesOfFace(topVertices[_i9], topVertices[_i9 + 1], topVertices[iLast], color);
+          }
+
+          for (var _i10 = 0; _i10 < nVertex - 2; _i10 += 1) {
+            this.pushVerticesOfFace(bottomVertices[_i10], bottomVertices[iLast], bottomVertices[_i10 + 1], color);
+          }
+
+          for (var _i11 = 0; _i11 < nVertex; _i11 += 1) {
+            var j = _i11 === nVertex - 1 ? 0 : _i11 + 1;
+            this.pushVerticesOfFace(topVertices[_i11], bottomVertices[_i11], bottomVertices[j], color);
+            this.pushVerticesOfFace(topVertices[_i11], bottomVertices[j], topVertices[j], color);
+          }
+        }
+      } catch (err) {
+        _didIteratorError7 = true;
+        _iteratorError7 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion7 && _iterator7.return) {
+            _iterator7.return();
+          }
+        } finally {
+          if (_didIteratorError7) {
+            throw _iteratorError7;
+          }
+        }
+      }
+
+      this.computeVertexNormals();
+    }
+  }, {
+    key: 'setColor',
+    value: function setColor(iVertex, color) {
+      var iPosition = 3 * iVertex;
+      this.colors[iPosition] = color.r;
+      this.colors[iPosition + 1] = color.g;
+      this.colors[iPosition + 2] = color.b;
+    }
+  }, {
+    key: 'recolor',
+    value: function recolor(newColorList) {
+      this.parameters.colorList = newColorList;
+      var iVertexTotal = 0;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
+
+      try {
+        for (var _iterator8 = this.parameters.verticesList.entries()[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var _step8$value = _slicedToArray(_step8.value, 2),
+              iVertexSet = _step8$value[0],
+              _vertices3 = _step8$value[1];
+
+          var color = this.parameters.colorList[iVertexSet];
+          var nVertex = _vertices3.length;
+          var nVertexOfNucleotide = 6 * (nVertex - 2) + 6 * nVertex;
+          for (var iVertex = 0; iVertex < nVertexOfNucleotide; iVertex += 1) {
+            this.setColor(iVertexTotal, color);
+            iVertexTotal += 1;
+          }
+        }
+      } catch (err) {
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
+          }
+        } finally {
+          if (_didIteratorError8) {
+            throw _iteratorError8;
+          }
+        }
+      }
+
+      this.attributes.color.needsUpdate = true;
+    }
+  }, {
+    key: 'setAttributes',
+    value: function setAttributes() {
+      var positions = new Float32Array(this.nVertex * 3);
+      var normals = new Float32Array(this.nVertex * 3);
+      var indices = new Int32Array(this.nFace * 3);
+      var colors = new Float32Array(this.nVertex * 3);
+
+      this.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      this.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+      this.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      this.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
+
+      this.positions = this.attributes.position.array;
+      this.normals = this.attributes.normal.array;
+      this.indices = this.index.array;
+      this.colors = this.attributes.color.array;
+
+      this.positionCount = 0;
+      this.indexCount = 0;
+      this.vertexCount = 0;
+    }
+  }, {
+    key: 'pushVertex',
+    value: function pushVertex(vertex, color) {
+      this.positions[this.positionCount] = vertex.x;
+      this.positions[this.positionCount + 1] = vertex.y;
+      this.positions[this.positionCount + 2] = vertex.z;
+
+      this.colors[this.positionCount] = color.r;
+      this.colors[this.positionCount + 1] = color.g;
+      this.colors[this.positionCount + 2] = color.b;
+
+      this.positionCount += 3;
+      this.vertexCount += 1;
+    }
+  }, {
+    key: 'pushVerticesOfFace',
+    value: function pushVerticesOfFace(v0, v1, v2, color) {
+      this.pushVertex(v0, color);
+      this.pushVertex(v1, color);
+      this.pushVertex(v2, color);
+
+      var i = this.indexCount;
+      this.indices[this.indexCount] = i;
+      this.indices[this.indexCount + 1] = i + 1;
+      this.indices[this.indexCount + 2] = i + 2;
+
+      this.indexCount += 3;
+    }
+  }, {
+    key: 'getVertex',
+    value: function getVertex(iVertex) {
+      return _v2.default.create(this.positions[iVertex * 3], this.positions[iVertex * 3 + 1], this.positions[iVertex * 3 + 2]);
+    }
+  }]);
+
+  return BufferRaisedShapesGeometry;
+}(THREE.BufferGeometry);
+
+/**
+ * Creates a unit-based block arrow pointing in the -Z direction.
+ * It can be reorientated using a lookAt() call
+ */
+
+
+var BlockArrowGeometry = function (_THREE$ExtrudeGeometr) {
+  _inherits(BlockArrowGeometry, _THREE$ExtrudeGeometr);
+
+  function BlockArrowGeometry() {
+    _classCallCheck(this, BlockArrowGeometry);
+
+    var shape = new THREE.Shape([new THREE.Vector2(-0.25, -0.5), new THREE.Vector2(0.0, +0.5), new THREE.Vector2(+0.25, -0.5)]);
+
+    var path = new THREE.CatmullRomCurve3([_v2.default.create(0, -0.2, 0), _v2.default.create(0, 0.2, 0)]);
+
+    var _this5 = _possibleConstructorReturn(this, (BlockArrowGeometry.__proto__ || Object.getPrototypeOf(BlockArrowGeometry)).call(this, shape, {
+      steps: 2,
+      bevelEnabled: false,
+      extrudePath: path
+    }));
+
+    _this5.type = 'BlockArrowGeometry';
+
+    _this5.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, 0)));
+    return _this5;
+  }
+
+  return BlockArrowGeometry;
+}(THREE.ExtrudeGeometry);
+
+/**
+ * Convenience function to set the visibility of a THREE
+ * Object3D collection of meshes and other objects
+ *
+ * @param {THREE.Object3D} obj
+ * @param {boolean} visibility
+ */
+
+
+function setVisible(obj, visibility) {
+  if (_lodash2.default.isUndefined(obj)) {
+    return;
+  }
+  obj.traverse(function (c) {
+    c.visible = visibility;
+  });
+}
+
+/**
+ * A generic cleaner for a THREE.Object3D collection,
+ * where a custom 'dontDelete' field is used to
+ * avoid deletion, and all other children are
+ * disposed of correctly to reclaim memory
+ *
+ * @param {THREE.Object3D} obj
+ */
+function clearObject3D(obj) {
+  var iLast = obj.children.length - 1;
+  for (var i = iLast; i >= 0; i -= 1) {
+    var child = obj.children[i];
+    if (!_lodash2.default.isUndefined(child.dontDelete)) {
+      continue;
+    }
+    if (!_lodash2.default.isUndefined(child.geometry)) {
+      child.geometry.dispose();
+    }
+    if (!_lodash2.default.isUndefined(child.material)) {
+      child.material.dispose();
+    }
+    obj.remove(child);
+  }
+}
+
+function perpVector(ref, vec) {
+  var vecAlongRef = ref.clone().multiplyScalar(vec.dot(ref));
+
+  return vec.clone().sub(vecAlongRef);
+}
+
+function threePointNormal(vertices) {
+  var cb = new THREE.Vector3();
+  var ab = new THREE.Vector3();
+
+  cb.subVectors(vertices[2], vertices[1]);
+  ab.subVectors(vertices[0], vertices[1]);
+  cb.cross(ab);
+
+  cb.normalize();
+
+  return cb;
+}
+
+function getUnitVectorRotation(reference, target) {
+  return new THREE.Quaternion().setFromUnitVectors(reference, target);
+}
+
+function fraction(reference, target, t) {
+  return t * (target - reference) + reference;
+}
+
+function getFractionRotation(rotation, t) {
+  var identity = new THREE.Quaternion();
+  return identity.slerp(rotation, t);
+}
+
+function setGeometryVerticesColor(geom, color) {
+  for (var i = 0; i < geom.faces.length; i += 1) {
+    var face = geom.faces[i];
+    face.vertexColors[0] = color;
+    face.vertexColors[1] = color;
+    face.vertexColors[2] = color;
+  }
+}
+
+/**
+ * Calculates the transform matrix for a SphereGeometry
+ * to a given position and radius
+ *
+ * @param {THREE.Vector3} pos
+ * @param {Number} radius
+ * @returns {THREE.Matrix4}
+ */
+function getSphereMatrix(pos, radius) {
+  var obj = new THREE.Object3D();
+  obj.matrix.identity();
+  obj.position.copy(pos);
+  obj.scale.set(radius, radius, radius);
+  obj.updateMatrix();
+  return obj.matrix;
+}
+
+function makeBufferZCylinderGeometry(radius, radialSegments) {
+  if (_lodash2.default.isUndefined(radialSegments)) {
+    radialSegments = 4;
+  }
+  var cylinderBufferGeometry = new THREE.CylinderBufferGeometry(radius, radius, 1, radialSegments, 1, false);
+  cylinderBufferGeometry.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
+  return cylinderBufferGeometry;
+}
+
+/**
+ * Calculates the transform matrix for a UnitCylinderGeometry
+ * to orientate along the axis between the 'from' and 'to' vector
+ *
+ * @param {THREE.Vector3} from
+ * @param {THREE.Vector3} to
+ * @param {Number} radius
+ * @returns {THREE.Matrix4}
+ */
+function getCylinderMatrix(from, to, radius) {
+  var obj = new THREE.Object3D();
+  obj.scale.set(radius, radius, from.distanceTo(to));
+  obj.position.copy(from).add(to).multiplyScalar(0.5);
+  obj.lookAt(to);
+  obj.updateMatrix();
+  return obj.matrix;
+}
+
+function applyMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
+  var elems = matrix.elements;
+  for (var i = iStart; i < iEnd; i += 3) {
+    var x = vec3Array[i];
+    var y = vec3Array[i + 1];
+    var z = vec3Array[i + 2];
+    vec3Array[i] = elems[0] * x + elems[4] * y + elems[8] * z + elems[12];
+    vec3Array[i + 1] = elems[1] * x + elems[5] * y + elems[9] * z + elems[13];
+    vec3Array[i + 2] = elems[2] * x + elems[6] * y + elems[10] * z + elems[14];
+  }
+}
+
+function applyRotationOfMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
+  var elems = matrix.elements;
+  for (var i = iStart; i < iEnd; i += 3) {
+    var x = vec3Array[i];
+    var y = vec3Array[i + 1];
+    var z = vec3Array[i + 2];
+    vec3Array[i] = elems[0] * x + elems[4] * y + elems[8] * z;
+    vec3Array[i + 1] = elems[1] * x + elems[5] * y + elems[9] * z;
+    vec3Array[i + 2] = elems[2] * x + elems[6] * y + elems[10] * z;
+  }
+}
+
+function expandFloatArray(refArray, nCopy) {
+  var nElem = refArray.length;
+  var targetArray = new Float32Array(nElem * nCopy);
+  for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
+    var iStart = iCopy * nElem;
+    for (var i = 0; i < nElem; i += 1) {
+      targetArray[iStart + i] = refArray[i];
+    }
+  }
+  return targetArray;
+}
+
+function applyColorToVector3array(color, vec3Array, iStart, iEnd) {
+  for (var i = iStart; i < iEnd; i += 3) {
+    vec3Array[i] = color.r;
+    vec3Array[i + 1] = color.g;
+    vec3Array[i + 2] = color.b;
+  }
+}
+
+function expandIndices(refArray, nCopy, nIndexInCopy) {
+  var nElem = refArray.length;
+  var targetArray = new Uint32Array(nElem * nCopy);
+  for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
+    var iStart = iCopy * nElem;
+    var indexOffset = iCopy * nIndexInCopy;
+    for (var i = 0; i < nElem; i += 1) {
+      targetArray[iStart + i] = refArray[i] + indexOffset;
+    }
+  }
+  return targetArray;
+}
+
+/**
+ * CopyBufferGeometry is designed to replicate multiple copies of
+ * an existing BufferGeometry in one single assignment - thus
+ * efficiently creating a large dataset
+ */
+
+var CopyBufferGeometry = function (_THREE$BufferGeometry3) {
+  _inherits(CopyBufferGeometry, _THREE$BufferGeometry3);
+
+  function CopyBufferGeometry(copyBufferGeometry, nCopy) {
+    _classCallCheck(this, CopyBufferGeometry);
+
+    var _this6 = _possibleConstructorReturn(this, (CopyBufferGeometry.__proto__ || Object.getPrototypeOf(CopyBufferGeometry)).call(this));
+
+    _this6.type = 'CopyBufferGeometry';
+    _this6.parameters = {
+      nCopy: nCopy
+    };
+
+    _this6.refBufferGeometry = copyBufferGeometry;
+
+    var positions = expandFloatArray(copyBufferGeometry.attributes.position.array, nCopy);
+    _this6.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+    var normals = expandFloatArray(copyBufferGeometry.attributes.normal.array, nCopy);
+    _this6.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+
+    var uvs = expandFloatArray(copyBufferGeometry.attributes.uv.array, nCopy);
+    _this6.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+
+    var nVertexInCopy = copyBufferGeometry.attributes.position.count;
+
+    if ('index' in copyBufferGeometry) {
+      if (copyBufferGeometry.index) {
+        var indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy);
+        _this6.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
+      }
+    }
+
+    var colors = new Float32Array(nVertexInCopy * 3 * nCopy);
+    _this6.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    return _this6;
+  }
+
+  _createClass(CopyBufferGeometry, [{
+    key: 'applyMatrixToCopy',
+    value: function applyMatrixToCopy(matrix, iCopy) {
+      var nElemRef = this.refBufferGeometry.attributes.position.array.length;
+      var positions = this.attributes.position.array;
+      var normals = this.attributes.normal.array;
+      var iElemStart = iCopy * nElemRef;
+      var iElemEnd = iElemStart + nElemRef;
+      applyMatrix4toVector3array(matrix, positions, iElemStart, iElemEnd);
+      applyRotationOfMatrix4toVector3array(matrix, normals, iElemStart, iElemEnd);
+    }
+  }, {
+    key: 'applyColorToCopy',
+    value: function applyColorToCopy(color, iCopy) {
+      var nElemRef = this.refBufferGeometry.attributes.position.array.length;
+      var colors = this.attributes.color.array;
+      var iElemStart = iCopy * nElemRef;
+      var iElemEnd = iElemStart + nElemRef;
+      applyColorToVector3array(color, colors, iElemStart, iElemEnd);
+    }
+  }]);
+
+  return CopyBufferGeometry;
+}(THREE.BufferGeometry);
+
+exports.BlockArrowGeometry = BlockArrowGeometry;
+exports.setVisible = setVisible;
+exports.BufferRibbonGeometry = BufferRibbonGeometry;
+exports.BufferRaisedShapesGeometry = BufferRaisedShapesGeometry;
+exports.getUnitVectorRotation = getUnitVectorRotation;
+exports.getFractionRotation = getFractionRotation;
+exports.fraction = fraction;
+exports.setGeometryVerticesColor = setGeometryVerticesColor;
+exports.makeBufferZCylinderGeometry = makeBufferZCylinderGeometry;
+exports.clearObject3D = clearObject3D;
+exports.Trace = Trace;
+exports.getSphereMatrix = getSphereMatrix;
+exports.getCylinderMatrix = getCylinderMatrix;
+exports.CopyBufferGeometry = CopyBufferGeometry;
+exports.applyMatrix4toVector3array = applyMatrix4toVector3array;
+exports.applyRotationOfMatrix4toVector3array = applyRotationOfMatrix4toVector3array;
+exports.applyColorToVector3array = applyColorToVector3array;
+
+/***/ }),
+/* 97 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.getNucleotideConnectorBondAtomTypes = exports.getNucleotideBaseAtomTypes = exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.darkGrey = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.fatCoilFace = exports.coilFace = exports.getSsFace = exports.backboneAtomTypes = exports.resToAa = exports.getSsColor = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }(); /**
@@ -76781,11 +78179,11 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * accesors
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           */
 
-var _lodash = __webpack_require__(29);
+var _lodash = __webpack_require__(27);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _three = __webpack_require__(48);
+var _three = __webpack_require__(44);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -76972,7 +78370,7 @@ exports.getNucleotideBaseAtomTypes = getNucleotideBaseAtomTypes;
 exports.getNucleotideConnectorBondAtomTypes = getNucleotideConnectorBondAtomTypes;
 
 /***/ }),
-/* 97 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = !__webpack_require__(6) && !__webpack_require__(3)(function () {
@@ -76981,14 +78379,14 @@ module.exports = !__webpack_require__(6) && !__webpack_require__(3)(function () 
 
 
 /***/ }),
-/* 98 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports.f = __webpack_require__(5);
 
 
 /***/ }),
-/* 99 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var has = __webpack_require__(11);
@@ -77011,7 +78409,7 @@ module.exports = function (object, names) {
 
 
 /***/ }),
-/* 100 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP = __webpack_require__(7);
@@ -77030,7 +78428,7 @@ module.exports = __webpack_require__(6) ? Object.defineProperties : function def
 
 
 /***/ }),
-/* 101 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
@@ -77055,7 +78453,7 @@ module.exports.f = function getOwnPropertyNames(it) {
 
 
 /***/ }),
-/* 102 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77096,14 +78494,14 @@ module.exports = !$assign || __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 103 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var aFunction = __webpack_require__(10);
 var isObject = __webpack_require__(4);
-var invoke = __webpack_require__(104);
+var invoke = __webpack_require__(105);
 var arraySlice = [].slice;
 var factories = {};
 
@@ -77128,7 +78526,7 @@ module.exports = Function.bind || function bind(that /* , ...args */) {
 
 
 /***/ }),
-/* 104 */
+/* 105 */
 /***/ (function(module, exports) {
 
 // fast apply, http://jsperf.lnkit.com/fast-apply/5
@@ -77150,11 +78548,11 @@ module.exports = function (fn, args, that) {
 
 
 /***/ }),
-/* 105 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $parseInt = __webpack_require__(2).parseInt;
-var $trim = __webpack_require__(45).trim;
+var $trim = __webpack_require__(47).trim;
 var ws = __webpack_require__(75);
 var hex = /^[-+]?0[xX]/;
 
@@ -77165,11 +78563,11 @@ module.exports = $parseInt(ws + '08') !== 8 || $parseInt(ws + '0x16') !== 22 ? f
 
 
 /***/ }),
-/* 106 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $parseFloat = __webpack_require__(2).parseFloat;
-var $trim = __webpack_require__(45).trim;
+var $trim = __webpack_require__(47).trim;
 
 module.exports = 1 / $parseFloat(__webpack_require__(75) + '-0') !== -Infinity ? function parseFloat(str) {
   var string = $trim(String(str), 3);
@@ -77179,7 +78577,7 @@ module.exports = 1 / $parseFloat(__webpack_require__(75) + '-0') !== -Infinity ?
 
 
 /***/ }),
-/* 107 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var cof = __webpack_require__(19);
@@ -77190,7 +78588,7 @@ module.exports = function (it, msg) {
 
 
 /***/ }),
-/* 108 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.3 Number.isInteger(number)
@@ -77202,7 +78600,7 @@ module.exports = function isInteger(it) {
 
 
 /***/ }),
-/* 109 */
+/* 110 */
 /***/ (function(module, exports) {
 
 // 20.2.2.20 Math.log1p(x)
@@ -77212,7 +78610,7 @@ module.exports = Math.log1p || function log1p(x) {
 
 
 /***/ }),
-/* 110 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.16 Math.fround(x)
@@ -77241,7 +78639,7 @@ module.exports = Math.fround || function fround(x) {
 
 
 /***/ }),
-/* 111 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // call something on iterator step with safe closing on error
@@ -77259,7 +78657,7 @@ module.exports = function (iterator, fn, value, entries) {
 
 
 /***/ }),
-/* 112 */
+/* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var aFunction = __webpack_require__(10);
@@ -77293,7 +78691,7 @@ module.exports = function (that, callbackfn, aLen, memo, isRight) {
 
 
 /***/ }),
-/* 113 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77326,7 +78724,7 @@ module.exports = [].copyWithin || function copyWithin(target /* = 0 */, start /*
 
 
 /***/ }),
-/* 114 */
+/* 115 */
 /***/ (function(module, exports) {
 
 module.exports = function (done, value) {
@@ -77335,7 +78733,7 @@ module.exports = function (done, value) {
 
 
 /***/ }),
-/* 115 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 21.2.5.3 get RegExp.prototype.flags()
@@ -77346,7 +78744,7 @@ if (__webpack_require__(6) && /./g.flags != 'g') __webpack_require__(7).f(RegExp
 
 
 /***/ }),
-/* 116 */
+/* 117 */
 /***/ (function(module, exports) {
 
 module.exports = function (exec) {
@@ -77359,7 +78757,7 @@ module.exports = function (exec) {
 
 
 /***/ }),
-/* 117 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var anObject = __webpack_require__(1);
@@ -77377,13 +78775,13 @@ module.exports = function (C, x) {
 
 
 /***/ }),
-/* 118 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var strong = __webpack_require__(119);
-var validate = __webpack_require__(47);
+var strong = __webpack_require__(120);
+var validate = __webpack_require__(49);
 var MAP = 'Map';
 
 // 23.1 Map Objects
@@ -77403,7 +78801,7 @@ module.exports = __webpack_require__(62)(MAP, function (get) {
 
 
 /***/ }),
-/* 119 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77415,11 +78813,11 @@ var ctx = __webpack_require__(18);
 var anInstance = __webpack_require__(41);
 var forOf = __webpack_require__(42);
 var $iterDefine = __webpack_require__(81);
-var step = __webpack_require__(114);
+var step = __webpack_require__(115);
 var setSpecies = __webpack_require__(40);
 var DESCRIPTORS = __webpack_require__(6);
 var fastKey = __webpack_require__(30).fastKey;
-var validate = __webpack_require__(47);
+var validate = __webpack_require__(49);
 var SIZE = DESCRIPTORS ? '_s' : 'size';
 
 var getEntry = function (that, key) {
@@ -77554,13 +78952,13 @@ module.exports = {
 
 
 /***/ }),
-/* 120 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var strong = __webpack_require__(119);
-var validate = __webpack_require__(47);
+var strong = __webpack_require__(120);
+var validate = __webpack_require__(49);
 var SET = 'Set';
 
 // 23.2 Set Objects
@@ -77575,7 +78973,7 @@ module.exports = __webpack_require__(62)(SET, function (get) {
 
 
 /***/ }),
-/* 121 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77583,11 +78981,11 @@ module.exports = __webpack_require__(62)(SET, function (get) {
 var each = __webpack_require__(26)(0);
 var redefine = __webpack_require__(13);
 var meta = __webpack_require__(30);
-var assign = __webpack_require__(102);
-var weak = __webpack_require__(122);
+var assign = __webpack_require__(103);
+var weak = __webpack_require__(123);
 var isObject = __webpack_require__(4);
 var fails = __webpack_require__(3);
-var validate = __webpack_require__(47);
+var validate = __webpack_require__(49);
 var WEAK_MAP = 'WeakMap';
 var getWeak = meta.getWeak;
 var isExtensible = Object.isExtensible;
@@ -77641,7 +79039,7 @@ if (fails(function () { return new $WeakMap().set((Object.freeze || Object)(tmp)
 
 
 /***/ }),
-/* 122 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77654,7 +79052,7 @@ var anInstance = __webpack_require__(41);
 var forOf = __webpack_require__(42);
 var createArrayMethod = __webpack_require__(26);
 var $has = __webpack_require__(11);
-var validate = __webpack_require__(47);
+var validate = __webpack_require__(49);
 var arrayFind = createArrayMethod(5);
 var arrayFindIndex = createArrayMethod(6);
 var id = 0;
@@ -77733,7 +79131,7 @@ module.exports = {
 
 
 /***/ }),
-/* 123 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/ecma262/#sec-toindex
@@ -77749,7 +79147,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 124 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // all object keys, includes non-enumerable and symbols
@@ -77765,7 +79163,7 @@ module.exports = Reflect && Reflect.ownKeys || function ownKeys(it) {
 
 
 /***/ }),
-/* 125 */
+/* 126 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77811,7 +79209,7 @@ module.exports = flattenIntoArray;
 
 
 /***/ }),
-/* 126 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-string-pad-start-end
@@ -77833,7 +79231,7 @@ module.exports = function (that, maxLength, fillString, left) {
 
 
 /***/ }),
-/* 127 */
+/* 128 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var getKeys = __webpack_require__(36);
@@ -77855,12 +79253,12 @@ module.exports = function (isEntries) {
 
 
 /***/ }),
-/* 128 */
+/* 129 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/DavidBruant/Map-Set.prototype.toJSON
 var classof = __webpack_require__(52);
-var from = __webpack_require__(129);
+var from = __webpack_require__(130);
 module.exports = function (NAME) {
   return function toJSON() {
     if (classof(this) != NAME) throw TypeError(NAME + "#toJSON isn't generic");
@@ -77870,7 +79268,7 @@ module.exports = function (NAME) {
 
 
 /***/ }),
-/* 129 */
+/* 130 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var forOf = __webpack_require__(42);
@@ -77883,7 +79281,7 @@ module.exports = function (iter, ITERATOR) {
 
 
 /***/ }),
-/* 130 */
+/* 131 */
 /***/ (function(module, exports) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -77907,7 +79305,7 @@ module.exports = Math.scale || function scale(x, inLow, inHigh, outLow, outHigh)
 
 
 /***/ }),
-/* 131 */
+/* 132 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -78015,7 +79413,7 @@ function registerGlobalAnimationLoop(widget) {
 exports.registerGlobalAnimationLoop = registerGlobalAnimationLoop;
 
 /***/ }),
-/* 132 */
+/* 133 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -78032,15 +79430,15 @@ var _jquery = __webpack_require__(32);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _lodash = __webpack_require__(29);
+var _lodash = __webpack_require__(27);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _soup = __webpack_require__(133);
+var _soup = __webpack_require__(134);
 
 var _display = __webpack_require__(344);
 
-var _util = __webpack_require__(49);
+var _util = __webpack_require__(45);
 
 var _widgets = __webpack_require__(135);
 
@@ -78050,7 +79448,7 @@ var _v = __webpack_require__(67);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _util2 = __webpack_require__(49);
+var _util2 = __webpack_require__(45);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -78320,7 +79718,7 @@ exports.EmbedJolecule = EmbedJolecule;
 exports.defaultArgs = defaultArgs;
 
 /***/ }),
-/* 133 */
+/* 134 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -78335,7 +79733,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _lodash = __webpack_require__(29);
+var _lodash = __webpack_require__(27);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -78343,9 +79741,9 @@ var _v = __webpack_require__(67);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _util = __webpack_require__(49);
+var _util = __webpack_require__(45);
 
-var _glgeom = __webpack_require__(134);
+var _glgeom = __webpack_require__(96);
 
 var glgeom = _interopRequireWildcard(_glgeom);
 
@@ -78359,11 +79757,11 @@ var _bitarray = __webpack_require__(343);
 
 var _bitarray2 = _interopRequireDefault(_bitarray);
 
-var _data = __webpack_require__(96);
+var _data = __webpack_require__(97);
 
 var data = _interopRequireWildcard(_data);
 
-var _three = __webpack_require__(48);
+var _three = __webpack_require__(44);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -80760,13 +82158,16 @@ var Controller = function () {
     value: function setTargetViewByIAtom(iAtom) {
       var atom = this.soup.getAtomProxy(iAtom);
       var view = this.soupView.currentView.getViewTranslatedTo(atom.pos);
-      view.iAtom = iAtom;
+      view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
       this.setTargetView(view);
     }
   }, {
     key: 'setTargetToPrevResidue',
     value: function setTargetToPrevResidue() {
       var iAtom = this.soupView.currentView.iAtom;
+      if (iAtom < 0) {
+        iAtom = 0;
+      }
       var iRes = this.soup.getAtomProxy(iAtom).iRes;
       if (iRes <= 0) {
         iRes = this.soup.getResidueCount() - 1;
@@ -80774,12 +82175,16 @@ var Controller = function () {
         iRes -= 1;
       }
       iAtom = this.soup.getResidueProxy(iRes).iAtom;
+      console.log('Controller.setTargetToPrevResidue', iAtom, iRes);
       this.setTargetViewByIAtom(iAtom);
     }
   }, {
     key: 'setTargetToNextResidue',
     value: function setTargetToNextResidue() {
       var iAtom = this.soupView.currentView.iAtom;
+      if (iAtom < 0) {
+        iAtom = 0;
+      }
       var iRes = this.soup.getAtomProxy(iAtom).iRes;
       if (iRes >= this.soup.getResidueCount() - 1) {
         iRes = 0;
@@ -80787,6 +82192,7 @@ var Controller = function () {
         iRes += 1;
       }
       iAtom = this.soup.getResidueProxy(iRes).iAtom;
+      console.log('Controller.setTargetToNextResidue', iAtom, iRes);
       this.setTargetViewByIAtom(iAtom);
     }
   }, {
@@ -81295,1404 +82701,6 @@ exports.SoupView = SoupView;
 exports.View = View;
 
 /***/ }),
-/* 134 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.applyColorToVector3array = exports.applyRotationOfMatrix4toVector3array = exports.applyMatrix4toVector3array = exports.CopyBufferGeometry = exports.getCylinderMatrix = exports.getSphereMatrix = exports.Trace = exports.clearObject3D = exports.makeBufferZCylinderGeometry = exports.setGeometryVerticesColor = exports.fraction = exports.getFractionRotation = exports.getUnitVectorRotation = exports.BufferRaisedShapesGeometry = exports.BufferRibbonGeometry = exports.setVisible = exports.BlockArrowGeometry = undefined;
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Custom geometry and mesh generators based on the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * THREE.js library.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * In particular, there is a Ribbon class which is an
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * extrusion where the normal and tangents are specified.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
-
-var _three = __webpack_require__(48);
-
-var THREE = _interopRequireWildcard(_three);
-
-var _v = __webpack_require__(67);
-
-var _v2 = _interopRequireDefault(_v);
-
-var _lodash = __webpack_require__(29);
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function CatmullRom(t, p0, p1, p2, p3) {
-  var v0 = (p2 - p0) * 0.5;
-  var v1 = (p3 - p1) * 0.5;
-  var t2 = t * t;
-  var t3 = t * t2;
-  return (2 * p1 - 2 * p2 + v0 + v1) * t3 + (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t2 + v0 * t + p1;
-}
-
-/**
- * Interpolation function for a Catmul-Rom spline
- * in 3D space, where the 4 guide-points are given
- * and an interpolation parameter is given.
- *
- * @param {Number} t - interpolation from [0, 1]
- * @param {THREE.Vector3} p1
- * @param {THREE.Vector3} p2
- * @param {THREE.Vector3} p3
- * @param {THREE.Vector3} p4
- * @returns {THREE.Vector3} the interpolated point
- */
-function catmulRomSpline(t, p1, p2, p3, p4) {
-  return _v2.default.create(CatmullRom(t, p1.x, p2.x, p3.x, p4.x), CatmullRom(t, p1.y, p2.y, p3.y, p4.y), CatmullRom(t, p1.z, p2.z, p3.z, p4.z));
-}
-
-/**
- * Create a path for extrusion where the direction of the
- * normal and binormal is defined, as well as the tangent.
- *
- * In particular, the path provides a slice() function
- * that produces a sub-portion of the path.
- */
-
-var PathAndFrenetFrames = function () {
-  function PathAndFrenetFrames() {
-    _classCallCheck(this, PathAndFrenetFrames);
-
-    this.points = [];
-    this.normals = [];
-    this.tangents = [];
-    this.binormals = [];
-
-    this.colors = [];
-    this.indexColors = [];
-    this.segmentTypes = [];
-    this.refIndices = [];
-  }
-
-  _createClass(PathAndFrenetFrames, [{
-    key: 'slice',
-    value: function slice(i, j) {
-      var subPath = new PathAndFrenetFrames();
-      subPath.points = this.points.slice(i, j);
-      subPath.normals = this.normals.slice(i, j);
-      subPath.tangents = this.tangents.slice(i, j);
-      subPath.binormals = this.binormals.slice(i, j);
-      return subPath;
-    }
-  }]);
-
-  return PathAndFrenetFrames;
-}();
-
-/**
- * Creates a new path out of a slice of the oldPath, with
- * n number of segments between two points, using a Catmul-Rom
- * spline based on the two points, and the two surrounding
- * points. At the ends, the external points are projected
- * from the end using the tangent at the ends.
- *
- * @param {PathAndFrenetFrames} oldPath
- * @param {Number} n
- * @param {Number} iOldPoint
- * @param {Number} jOldPoint
- * @returns {PathAndFrenetFrames}
- */
-
-
-function expandPath(oldPath, n, iOldPoint, jOldPoint) {
-  var newPath = new PathAndFrenetFrames();
-
-  newPath.points.push(oldPath.points[iOldPoint]);
-
-  for (var i = iOldPoint; i < jOldPoint - 1; i += 1) {
-    var jStart = 1;
-    var jEnd = n + 1;
-
-    for (var j = jStart; j < jEnd; j += 1) {
-      var t = j / n;
-
-      var prevOldPoint = void 0,
-          nextOldPoint = void 0;
-
-      if (i > 0) {
-        prevOldPoint = oldPath.points[i - 1];
-      } else {
-        prevOldPoint = oldPath.points[i].clone().sub(oldPath.tangents[i]);
-      }
-
-      if (i < oldPath.points.length - 2) {
-        nextOldPoint = oldPath.points[i + 2];
-      } else {
-        nextOldPoint = oldPath.points[i + 1].clone().add(oldPath.tangents[i]);
-      }
-
-      newPath.points.push(catmulRomSpline(t, prevOldPoint, oldPath.points[i], oldPath.points[i + 1], nextOldPoint));
-    }
-  }
-
-  newPath.normals.push(oldPath.normals[iOldPoint]);
-  for (var _i = iOldPoint; _i < jOldPoint - 1; _i += 1) {
-    for (var _j = 1; _j < n + 1; _j += 1) {
-      var _t = _j / n;
-
-      var prevOldNormal = void 0,
-          nextOldNormal = void 0;
-
-      if (_i > 0) {
-        prevOldNormal = oldPath.normals[_i - 1];
-      } else {
-        prevOldNormal = oldPath.normals[_i];
-      }
-
-      if (_i < oldPath.normals.length - 2) {
-        nextOldNormal = oldPath.normals[_i + 2];
-      } else {
-        nextOldNormal = oldPath.normals[_i + 1];
-      }
-
-      newPath.normals.push(catmulRomSpline(_t, prevOldNormal, oldPath.normals[_i], oldPath.normals[_i + 1], nextOldNormal).normalize());
-    }
-  }
-
-  for (var _i2 = 0; _i2 < newPath.points.length; _i2 += 1) {
-    if (_i2 === 0) {
-      newPath.tangents.push(oldPath.tangents[0]);
-    } else if (_i2 === newPath.points.length - 1) {
-      newPath.tangents.push(oldPath.tangents[jOldPoint - 1]);
-    } else {
-      newPath.tangents.push(newPath.points[_i2 + 1].clone().sub(newPath.points[_i2 - 1]).normalize());
-    }
-  }
-
-  for (var _i3 = 0; _i3 < newPath.points.length; _i3 += 1) {
-    newPath.binormals.push(_v2.default.create().crossVectors(newPath.tangents[_i3], newPath.normals[_i3]));
-  }
-
-  return newPath;
-}
-
-/**
- * Trace is an object designed to be built up progressively
- * by adding to this.indices, this.points and this.normals.
- *
- * Once built, it can be expanded into a more detailed
- * trace, which is used to generate geometric pieces of
- * an extrusion where the normals and tangents are
- * controlled.
- */
-
-var Trace = function (_PathAndFrenetFrames) {
-  _inherits(Trace, _PathAndFrenetFrames);
-
-  function Trace() {
-    _classCallCheck(this, Trace);
-
-    var _this = _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this));
-
-    _this.indices = [];
-    _this.detail = 4;
-    return _this;
-  }
-
-  _createClass(Trace, [{
-    key: 'getReference',
-    value: function getReference(i) {
-      var iRef = this.indices[i];
-      return this.referenceObjects[iRef];
-    }
-
-    /**
-     * Calculates tangents as an average on neighbouring points
-     * so that we get a smooth path.
-     */
-
-  }, {
-    key: 'calcTangents',
-    value: function calcTangents() {
-      var iStart = 0;
-      var iEnd = this.points.length;
-      var iLast = iEnd - 1;
-      if (iEnd - iStart > 2) {
-        // project out first tangent from main chain
-        this.tangents[iStart] = this.points[iStart + 1].clone().sub(this.points[iStart]).normalize();
-
-        // calculate tangents as averages of neighbouring residues
-        for (var i = iStart + 1; i < iLast; i += 1) {
-          this.tangents[i] = this.points[i + 1].clone().sub(this.points[i - 1]).normalize();
-        }
-
-        // project out last tangent from main chain
-        this.tangents[iLast] = this.points[iLast].clone().sub(this.points[iLast - 1]).normalize();
-      } else {
-        // for short 2 point traces
-        var tangent = this.points[iLast].clone().sub(this.points[iStart]).normalize();
-
-        this.tangents[iStart] = tangent;
-        this.tangents[iLast] = tangent;
-      }
-    }
-
-    /**
-     * If normal[i] is not null,
-     * it will use the normal, otherwise it will generate own
-     * normal from the path curvature
-     */
-
-  }, {
-    key: 'calcNormals',
-    value: function calcNormals() {
-      var iStart = 0;
-      var iEnd = this.points.length;
-      var iLast = iEnd - 1;
-      if (iEnd - iStart > 2) {
-        for (var i = iStart + 1; i < iLast; i += 1) {
-          if (this.normals[i] !== null) {
-            // normal already provided, normalize properly against tangent
-            this.normals[i] = perpVector(this.tangents[i], this.normals[i]);
-            this.normals[i].normalize();
-          } else {
-            // generate a normal from curvature
-            var diff = this.points[i].clone().sub(this.points[i - 1]);
-            this.normals[i] = _v2.default.create().crossVectors(diff, this.tangents[i]).normalize();
-
-            // smooth out auto-generated normal if flipped 180deg from prev
-            var prevNormal = this.normals[i - 1];
-            if (prevNormal !== null) {
-              if (this.normals[i].dot(prevNormal) < 0) {
-                this.normals[i].negate();
-              }
-            }
-          }
-        }
-
-        this.normals[iStart] = this.normals[iStart + 1];
-        this.normals[iLast] = this.normals[iLast - 1];
-      } else {
-        for (var _i4 = iStart; _i4 <= iLast; _i4 += 1) {
-          if (this.normals[_i4] !== null) {
-            this.normals[_i4] = perpVector(this.tangents[_i4], this.normals[_i4]);
-            this.normals[_i4].normalize();
-          } else {
-            var randomDir = this.points[_i4];
-            this.normals[_i4] = _v2.default.create().crossVectors(randomDir, this.tangents[_i4]).normalize();
-          }
-        }
-      }
-    }
-  }, {
-    key: 'calcBinormals',
-    value: function calcBinormals() {
-      var iStart = 0;
-      var iEnd = this.points.length;
-      for (var i = iStart; i < iEnd; i += 1) {
-        this.binormals[i] = _v2.default.create().crossVectors(this.tangents[i], this.normals[i]);
-      }
-    }
-  }, {
-    key: 'expand',
-    value: function expand() {
-      this.detailedPath = expandPath(this, 2 * this.detail, 0, this.points.length);
-    }
-  }, {
-    key: 'getGeometry',
-    value: function getGeometry(face, isRound, isFront, isBack, color) {
-      var path = this.detailedPath;
-      var iResStart = 0;
-      var iResEnd = this.points.length;
-
-      // works out start on expanded path, including overhang
-      var iPathStart = iResStart * 2 * this.detail - this.detail;
-      if (iPathStart < 0) {
-        iPathStart = 0;
-      }
-
-      // works out end of expanded path, including overhang
-      var iPathEnd = iResEnd * 2 * this.detail - this.detail + 1;
-      if (iPathEnd >= path.points.length) {
-        iPathEnd = path.points.length - 1;
-      }
-
-      var segmentPath = path.slice(iPathStart, iPathEnd);
-
-      var geom = new BufferRibbonGeometry(this, segmentPath, isRound, isFront, isBack, color);
-
-      return geom;
-    }
-  }]);
-
-  return Trace;
-}(PathAndFrenetFrames);
-
-/**
- * Extrusion along a path that aligns a 2D shape as cross-section, with
- * orientation along the normal for the cross-section.
- *
- * Accepts a cross-section shape, which is a collection of 2D points around
- * the origin, and a path, which contains points, normals and binormals
- * and builds a oriented extrusion out of it.
- *
- * If round is set, then the vertex normals are set to orient along the
- * normal/binormal axis from the origin, otherwise, face normals are defined
- * perpedicular to the face.
- *
- * For a segment between two path points and a repetition of the cross-section,
- * two triangles are defined.
- */
-
-
-var BufferRibbonGeometry = function (_THREE$BufferGeometry) {
-  _inherits(BufferRibbonGeometry, _THREE$BufferGeometry);
-
-  /**
-   * @param {THREE.Shape} shape - collection of 2D points for cross section
-   * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
-   * @param {boolean} round - normals are draw from centre, otherwise perp to edge
-   */
-  function BufferRibbonGeometry(traces, shape) {
-    var isIndexColor = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-
-    _classCallCheck(this, BufferRibbonGeometry);
-
-    var _this2 = _possibleConstructorReturn(this, (BufferRibbonGeometry.__proto__ || Object.getPrototypeOf(BufferRibbonGeometry)).call(this));
-
-    _this2.type = 'BufferRibbonGeometry';
-
-    _this2.parameters = {
-      shape: shape,
-      traces: traces,
-      isIndexColor: isIndexColor
-    };
-
-    _this2.shapePoints = shape.extractPoints(4).shape;
-    _this2.nShape = _this2.shapePoints.length;
-
-    _this2.nVertex = 0;
-    _this2.nFace = 0;
-
-    _this2.countVertexAndFacesOfPath();
-
-    _this2.setAttributes();
-
-    _this2.build();
-    _this2.setColors();
-    return _this2;
-  }
-
-  _createClass(BufferRibbonGeometry, [{
-    key: 'countVertexAndFacesOfPath',
-    value: function countVertexAndFacesOfPath() {
-      this.nVertex = 0;
-      this.nFace = 0;
-
-      this.paths = [];
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = this.parameters.traces[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var trace = _step.value;
-
-          var path = trace.detailedPath;
-          this.paths.push(path);
-
-          var nPath = path.points.length;
-          this.nVertex += (nPath + trace.points.length - 1) * this.nShape;
-          this.nVertex += this.nShape;
-          this.nVertex += this.nShape;
-
-          var nTrace = trace.points.length;
-          this.nFace += (nTrace - 1) * 2 * this.nShape * (2 * trace.detail + 1);
-          this.nFace += this.nShape - 2;
-          this.nFace += this.nShape - 2;
-
-          this.nVertex = this.nFace * 3;
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-      }
-    }
-  }, {
-    key: 'build',
-    value: function build() {
-      var _this3 = this;
-
-      var _iteratorNormalCompletion2 = true;
-      var _didIteratorError2 = false;
-      var _iteratorError2 = undefined;
-
-      try {
-        var _loop = function _loop() {
-          var iPath = _step2.value;
-
-          var path = _this3.paths[iPath];
-          var trace = _this3.parameters.traces[iPath];
-
-          var iVertexOffsetOfPathPoint = [];
-
-          var iTraceStart = 0;
-          var iTraceEnd = trace.points.length;
-
-          function getWidth(iTracePoint) {
-            return trace.segmentTypes[iTracePoint] === 'C' ? 0.7 : 8;
-          }
-
-          var vertices = null;
-          var lastVertices = null;
-          var shapeNormals = null;
-          var lastShapeNormals = null;
-          var isFlat = true;
-
-          for (var iTracePoint = iTraceStart; iTracePoint < iTraceEnd; iTracePoint += 1) {
-            // iPathStart, iPathEnd on the expanded path for a given tracePoint
-            // assumes an overhang between neighbouring pieces to allow for disjoint
-            // coloring
-            var iPathStart = iTracePoint * 2 * trace.detail - trace.detail;
-            if (iPathStart < 0) {
-              iPathStart = 0;
-            }
-
-            // works out end of expanded path, including overhang
-            var iPathEnd = (iTracePoint + 1) * 2 * trace.detail - trace.detail + 1;
-            if (iPathEnd >= path.points.length) {
-              iPathEnd = path.points.length;
-            }
-
-            var _loop2 = function _loop2(iPathPoint) {
-              var width = getWidth(iTracePoint);
-              var height = 0.7;
-
-              if (iPathPoint === iPathStart && iPathPoint > 0) {
-                if (trace.segmentTypes[iTracePoint - 1] === 'C' && trace.segmentTypes[iTracePoint] !== 'C') {
-                  width = getWidth(iTracePoint - 1);
-                }
-              }
-              if (iPathPoint === iPathEnd - 1 && iTracePoint < trace.points.length - 1) {
-                var iNextTracePoint = iTracePoint + 1;
-                if (trace.segmentTypes[iNextTracePoint] === 'C' && trace.segmentTypes[iTracePoint] !== 'C') {
-                  width = getWidth(iNextTracePoint);
-                }
-              }
-
-              isFlat = trace.segmentTypes[iTracePoint] !== 'C';
-
-              var point = path.points[iPathPoint];
-              var normal = path.normals[iPathPoint];
-              var binormal = path.binormals[iPathPoint];
-
-              var shapePoints = _lodash2.default.cloneDeep(_this3.shapePoints);
-              var _iteratorNormalCompletion3 = true;
-              var _didIteratorError3 = false;
-              var _iteratorError3 = undefined;
-
-              try {
-                for (var _iterator3 = shapePoints[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                  var shapePoint = _step3.value;
-
-                  shapePoint.x = shapePoint.x * width;
-                  shapePoint.y = shapePoint.y * height;
-                }
-              } catch (err) {
-                _didIteratorError3 = true;
-                _iteratorError3 = err;
-              } finally {
-                try {
-                  if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                    _iterator3.return();
-                  }
-                } finally {
-                  if (_didIteratorError3) {
-                    throw _iteratorError3;
-                  }
-                }
-              }
-
-              vertices = [];
-              var _iteratorNormalCompletion4 = true;
-              var _didIteratorError4 = false;
-              var _iteratorError4 = undefined;
-
-              try {
-                for (var _iterator4 = shapePoints[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                  var _shapePoint = _step4.value;
-
-                  var x = normal.clone().multiplyScalar(_shapePoint.x);
-                  var y = binormal.clone().multiplyScalar(_shapePoint.y);
-                  var vertex = point.clone().add(x).add(y);
-                  vertices.push(vertex);
-                }
-
-                // draw back cap of ribbon
-              } catch (err) {
-                _didIteratorError4 = true;
-                _iteratorError4 = err;
-              } finally {
-                try {
-                  if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                    _iterator4.return();
-                  }
-                } finally {
-                  if (_didIteratorError4) {
-                    throw _iteratorError4;
-                  }
-                }
-              }
-
-              var isFront = iPathPoint === 0 && iTracePoint === iTraceStart;
-              if (isFront) {
-                var nVertex = shapePoints.length;
-                var iLastVertex = nVertex - 1;
-                var faceNormal = threePointNormal([vertices[0], vertices[1], vertices[iLastVertex]]);
-                for (var iVertex = 0; iVertex < nVertex - 2; iVertex += 1) {
-                  _this3.pushVerticesNormalsOfFace(vertices[iVertex], vertices[iVertex + 1], vertices[iLastVertex], faceNormal, faceNormal, faceNormal);
-                }
-              }
-
-              function getRoundedShapeNormals(iPathPoint) {
-                var nVertex = shapePoints.length;
-                var shapeNormals = [];
-                var x = void 0,
-                    y = void 0;
-                var diffPrev = new THREE.Vector2();
-                var diffNext = new THREE.Vector2();
-                var shapeNormal = new THREE.Vector2();
-                for (var i = 0; i < nVertex; i += 1) {
-                  var iPrev = i > 0 ? i - 1 : nVertex - 1;
-                  var iNext = i + 1 < nVertex ? i + 1 : 0;
-                  var v = shapePoints[i];
-                  diffPrev.subVectors(v, shapePoints[iPrev]).normalize();
-                  diffNext.subVectors(v, shapePoints[iNext]).normalize();
-                  shapeNormal.addVectors(diffPrev, diffNext).normalize();
-                  x = path.normals[iPathPoint].clone().multiplyScalar(shapeNormal.x);
-                  y = path.binormals[iPathPoint].clone().multiplyScalar(shapeNormal.y);
-                  shapeNormals.push(x.add(y));
-                }
-                return shapeNormals;
-              }
-
-              function getFlatShapeNormals(iPathPoint) {
-                var nVertex = shapePoints.length;
-                var shapeNormals = [];
-                var x = void 0,
-                    y = void 0;
-                var shapeNormal = new THREE.Vector2();
-                for (var i = 0; i < nVertex; i += 1) {
-                  var iPrev = i > 0 ? i - 1 : nVertex - 1;
-                  var v = shapePoints[i];
-                  shapeNormal.subVectors(v, shapePoints[iPrev]).normalize();
-                  x = path.normals[iPathPoint].clone().multiplyScalar(shapeNormal.x);
-                  y = path.binormals[iPathPoint].clone().multiplyScalar(shapeNormal.y);
-                  shapeNormals.push(x.add(y));
-                }
-                return shapeNormals;
-              }
-
-              if (isFlat) {
-                shapeNormals = getFlatShapeNormals(iPathPoint);
-              } else {
-                shapeNormals = getRoundedShapeNormals(iPathPoint);
-              }
-
-              if (iPathPoint === 0) {
-                lastShapeNormals = shapeNormals;
-                lastVertices = vertices;
-                return 'continue';
-              }
-
-              for (var iShapePoint = 0; iShapePoint < _this3.nShape; iShapePoint += 1) {
-                var iLastShapePoint = void 0;
-                if (iShapePoint === 0) {
-                  iLastShapePoint = _this3.nShape - 1;
-                } else {
-                  iLastShapePoint = iShapePoint - 1;
-                }
-
-                if (isFlat) {
-                  // Flat normals to give a flat look
-                  _this3.pushVerticesNormalsOfFace(lastVertices[iLastShapePoint], vertices[iLastShapePoint], vertices[iShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint]);
-                  _this3.pushVerticesNormalsOfFace(lastVertices[iShapePoint], lastVertices[iLastShapePoint], vertices[iShapePoint], lastShapeNormals[iLastShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint]);
-                } else {
-                  // Smoothed normals to give a rounded look
-                  _this3.pushVerticesNormalsOfFace(lastVertices[iLastShapePoint], vertices[iLastShapePoint], vertices[iShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
-                  _this3.pushVerticesNormalsOfFace(lastVertices[iShapePoint], lastVertices[iLastShapePoint], vertices[iShapePoint], lastShapeNormals[iShapePoint], lastShapeNormals[iLastShapePoint], shapeNormals[iShapePoint]);
-                }
-              }
-
-              var isBack = iPathPoint === iPathEnd - 1 && iTracePoint === iTraceEnd - 1;
-              if (isBack) {
-                var _nVertex = shapePoints.length;
-                var _iLastVertex = _nVertex - 1;
-                var _faceNormal = threePointNormal([vertices[2], vertices[1], vertices[0]]);
-                for (var _iVertex = 0; _iVertex < _nVertex - 2; _iVertex += 1) {
-                  _this3.pushVerticesNormalsOfFace(vertices[_iLastVertex], vertices[_iVertex + 1], vertices[_iVertex], _faceNormal, _faceNormal, _faceNormal);
-                }
-              }
-
-              lastShapeNormals = shapeNormals;
-              lastVertices = vertices;
-            };
-
-            for (var iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
-              var _ret2 = _loop2(iPathPoint);
-
-              if (_ret2 === 'continue') continue;
-            }
-          }
-        };
-
-        for (var _iterator2 = _lodash2.default.range(this.paths.length)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-          _loop();
-        }
-        // this.computeVertexNormals()
-      } catch (err) {
-        _didIteratorError2 = true;
-        _iteratorError2 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-            _iterator2.return();
-          }
-        } finally {
-          if (_didIteratorError2) {
-            throw _iteratorError2;
-          }
-        }
-      }
-    }
-  }, {
-    key: 'setColors',
-    value: function setColors() {
-      var vertexCount = 0;
-      var _iteratorNormalCompletion5 = true;
-      var _didIteratorError5 = false;
-      var _iteratorError5 = undefined;
-
-      try {
-        for (var _iterator5 = _lodash2.default.range(this.paths.length)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-          var iPath = _step5.value;
-
-          var _path = this.paths[iPath];
-          var _trace = this.parameters.traces[iPath];
-
-          var _iTraceStart = 0;
-          var _iTraceEnd = _trace.points.length;
-
-          for (var iTracePoint = _iTraceStart; iTracePoint < _iTraceEnd; iTracePoint += 1) {
-            // iPathStart, iPathEnd on the expanded path for a given tracePoint
-            // assumes an overhang between neighbouring pieces to allow for disjoint
-            // coloring
-            var iPathStart = iTracePoint * 2 * _trace.detail - _trace.detail;
-            if (iPathStart < 0) {
-              iPathStart = 0;
-            }
-
-            // works out end of expanded path, including overhang
-            var iPathEnd = (iTracePoint + 1) * 2 * _trace.detail - _trace.detail + 1;
-            if (iPathEnd >= _path.points.length) {
-              iPathEnd = _path.points.length;
-            }
-
-            for (var iPathPoint = iPathStart; iPathPoint < iPathEnd; iPathPoint += 1) {
-              var nShapePoint = this.shapePoints.length;
-
-              var color = void 0;
-              if (this.parameters.isIndexColor) {
-                color = _trace.indexColors[iTracePoint];
-              } else {
-                color = _trace.colors[iTracePoint].clone();
-              }
-
-              // draw front-cap
-              var isFront = iPathPoint === 0 && iTracePoint === _iTraceStart;
-              if (isFront) {
-                for (var i = 0; i < 3 * (nShapePoint - 2); i += 1) {
-                  this.setColor(vertexCount, color);
-                  vertexCount += 1;
-                }
-              }
-
-              if (iPathPoint > 0) {
-                for (var _i5 = 0; _i5 < 6 * nShapePoint; _i5 += 1) {
-                  this.setColor(vertexCount, color);
-                  vertexCount += 1;
-                }
-              }
-
-              var isBack = iPathPoint === iPathEnd - 1 && iTracePoint === _iTraceEnd - 1;
-              if (isBack) {
-                for (var _i6 = 0; _i6 < 3 * (nShapePoint - 2); _i6 += 1) {
-                  this.setColor(vertexCount, color);
-                  vertexCount += 1;
-                }
-              }
-            }
-          }
-        }
-      } catch (err) {
-        _didIteratorError5 = true;
-        _iteratorError5 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion5 && _iterator5.return) {
-            _iterator5.return();
-          }
-        } finally {
-          if (_didIteratorError5) {
-            throw _iteratorError5;
-          }
-        }
-      }
-
-      this.attributes.color.needsUpdate = true;
-    }
-  }, {
-    key: 'setAttributes',
-    value: function setAttributes() {
-      var positions = new Float32Array(this.nVertex * 3);
-      var normals = new Float32Array(this.nVertex * 3);
-      var indices = new Int32Array(this.nFace * 3);
-      var colors = new Float32Array(this.nVertex * 3);
-
-      this.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-      this.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-      this.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-      this.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
-
-      this.positions = this.attributes.position.array;
-      this.normals = this.attributes.normal.array;
-      this.indices = this.index.array;
-      this.colors = this.attributes.color.array;
-
-      this.positionCount = 0;
-      this.indexCount = 0;
-      this.vertexCount = 0;
-    }
-  }, {
-    key: 'setColor',
-    value: function setColor(iVertex, color) {
-      var iPosition = 3 * iVertex;
-      this.colors[iPosition] = color.r;
-      this.colors[iPosition + 1] = color.g;
-      this.colors[iPosition + 2] = color.b;
-    }
-  }, {
-    key: 'pushVertex',
-    value: function pushVertex(vertex) {
-      this.positions[this.positionCount] = vertex.x;
-      this.positions[this.positionCount + 1] = vertex.y;
-      this.positions[this.positionCount + 2] = vertex.z;
-
-      this.positionCount += 3;
-      this.vertexCount += 1;
-    }
-  }, {
-    key: 'pushVerticesNormalsOfFace',
-    value: function pushVerticesNormalsOfFace(v0, v1, v2, normalI, normalJ, normalK) {
-      this.pushVertex(v0);
-      this.pushVertex(v1);
-      this.pushVertex(v2);
-
-      var i = this.indexCount;
-      this.indices[this.indexCount] = i;
-      this.indices[this.indexCount + 1] = i + 1;
-      this.indices[this.indexCount + 2] = i + 2;
-
-      this.indexCount += 3;
-
-      var j = i + 1;
-      var k = i + 2;
-
-      this.normals[i * 3] = normalI.x;
-      this.normals[i * 3 + 1] = normalI.y;
-      this.normals[i * 3 + 2] = normalI.z;
-
-      this.normals[j * 3] = normalJ.x;
-      this.normals[j * 3 + 1] = normalJ.y;
-      this.normals[j * 3 + 2] = normalJ.z;
-
-      this.normals[k * 3] = normalK.x;
-      this.normals[k * 3 + 1] = normalK.y;
-      this.normals[k * 3 + 2] = normalK.z;
-    }
-  }, {
-    key: 'getVertex',
-    value: function getVertex(iVertex) {
-      return _v2.default.create(this.positions[iVertex * 3], this.positions[iVertex * 3 + 1], this.positions[iVertex * 3 + 2]);
-    }
-  }]);
-
-  return BufferRibbonGeometry;
-}(THREE.BufferGeometry);
-
-/**
- * Takes a bunch of points and treats it as defining
- * a polygon, and raises it to a certain thickness.
- */
-
-
-var BufferRaisedShapesGeometry = function (_THREE$BufferGeometry2) {
-  _inherits(BufferRaisedShapesGeometry, _THREE$BufferGeometry2);
-
-  function BufferRaisedShapesGeometry(verticesList, colorList, thickness) {
-    _classCallCheck(this, BufferRaisedShapesGeometry);
-
-    var _this4 = _possibleConstructorReturn(this, (BufferRaisedShapesGeometry.__proto__ || Object.getPrototypeOf(BufferRaisedShapesGeometry)).call(this));
-
-    _this4.type = 'BufferRaisedShapesGeometry';
-
-    _this4.parameters = { verticesList: verticesList, thickness: thickness, colorList: colorList };
-
-    _this4.nVertex = 0;
-    _this4.nFace = 0;
-
-    _this4.countVertexAndFacesOfPath();
-
-    _this4.setAttributes();
-
-    _this4.setPath();
-    return _this4;
-  }
-
-  _createClass(BufferRaisedShapesGeometry, [{
-    key: 'countVertexAndFacesOfPath',
-    value: function countVertexAndFacesOfPath(front, back) {
-      this.nVertex = 0;
-      this.nFace = 0;
-
-      var _iteratorNormalCompletion6 = true;
-      var _didIteratorError6 = false;
-      var _iteratorError6 = undefined;
-
-      try {
-        for (var _iterator6 = this.parameters.verticesList[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-          var _vertices = _step6.value;
-
-          var nVertex = _vertices.length;
-          // top layer
-          this.nFace += nVertex - 2;
-          // bottom layer
-          this.nFace += nVertex - 2;
-          // side layers
-          this.nFace += 2 * nVertex;
-        }
-      } catch (err) {
-        _didIteratorError6 = true;
-        _iteratorError6 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion6 && _iterator6.return) {
-            _iterator6.return();
-          }
-        } finally {
-          if (_didIteratorError6) {
-            throw _iteratorError6;
-          }
-        }
-      }
-
-      this.nVertex = 3 * this.nFace;
-    }
-  }, {
-    key: 'setPath',
-    value: function setPath() {
-      var _iteratorNormalCompletion7 = true;
-      var _didIteratorError7 = false;
-      var _iteratorError7 = undefined;
-
-      try {
-        for (var _iterator7 = this.parameters.verticesList.entries()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-          var _step7$value = _slicedToArray(_step7.value, 2),
-              i = _step7$value[0],
-              _vertices2 = _step7$value[1];
-
-          var _normal = threePointNormal(_vertices2.slice(0, 3));
-          var displacement = _normal.clone().multiplyScalar(this.parameters.thickness / 2);
-          var color = this.parameters.colorList[i];
-
-          var nVertex = _vertices2.length;
-          var iLast = nVertex - 1;
-
-          var topVertices = [];
-          for (var _i7 = 0; _i7 < _vertices2.length; _i7 += 1) {
-            topVertices.push(_vertices2[_i7].clone().add(displacement));
-          }
-
-          var bottomVertices = [];
-          for (var _i8 = 0; _i8 < _vertices2.length; _i8 += 1) {
-            bottomVertices.push(_vertices2[_i8].clone().sub(displacement));
-          }
-
-          for (var _i9 = 0; _i9 < nVertex - 2; _i9 += 1) {
-            this.pushVerticesOfFace(topVertices[_i9], topVertices[_i9 + 1], topVertices[iLast], color);
-          }
-
-          for (var _i10 = 0; _i10 < nVertex - 2; _i10 += 1) {
-            this.pushVerticesOfFace(bottomVertices[_i10], bottomVertices[iLast], bottomVertices[_i10 + 1], color);
-          }
-
-          for (var _i11 = 0; _i11 < nVertex; _i11 += 1) {
-            var j = _i11 === nVertex - 1 ? 0 : _i11 + 1;
-            this.pushVerticesOfFace(topVertices[_i11], bottomVertices[_i11], bottomVertices[j], color);
-            this.pushVerticesOfFace(topVertices[_i11], bottomVertices[j], topVertices[j], color);
-          }
-        }
-      } catch (err) {
-        _didIteratorError7 = true;
-        _iteratorError7 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion7 && _iterator7.return) {
-            _iterator7.return();
-          }
-        } finally {
-          if (_didIteratorError7) {
-            throw _iteratorError7;
-          }
-        }
-      }
-
-      this.computeVertexNormals();
-    }
-  }, {
-    key: 'setColor',
-    value: function setColor(iVertex, color) {
-      var iPosition = 3 * iVertex;
-      this.colors[iPosition] = color.r;
-      this.colors[iPosition + 1] = color.g;
-      this.colors[iPosition + 2] = color.b;
-    }
-  }, {
-    key: 'recolor',
-    value: function recolor(newColorList) {
-      this.parameters.colorList = newColorList;
-      var iVertexTotal = 0;
-      var _iteratorNormalCompletion8 = true;
-      var _didIteratorError8 = false;
-      var _iteratorError8 = undefined;
-
-      try {
-        for (var _iterator8 = this.parameters.verticesList.entries()[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-          var _step8$value = _slicedToArray(_step8.value, 2),
-              iVertexSet = _step8$value[0],
-              _vertices3 = _step8$value[1];
-
-          var color = this.parameters.colorList[iVertexSet];
-          var nVertex = _vertices3.length;
-          var nVertexOfNucleotide = 6 * (nVertex - 2) + 6 * nVertex;
-          for (var iVertex = 0; iVertex < nVertexOfNucleotide; iVertex += 1) {
-            this.setColor(iVertexTotal, color);
-            iVertexTotal += 1;
-          }
-        }
-      } catch (err) {
-        _didIteratorError8 = true;
-        _iteratorError8 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-            _iterator8.return();
-          }
-        } finally {
-          if (_didIteratorError8) {
-            throw _iteratorError8;
-          }
-        }
-      }
-
-      this.attributes.color.needsUpdate = true;
-    }
-  }, {
-    key: 'setAttributes',
-    value: function setAttributes() {
-      var positions = new Float32Array(this.nVertex * 3);
-      var normals = new Float32Array(this.nVertex * 3);
-      var indices = new Int32Array(this.nFace * 3);
-      var colors = new Float32Array(this.nVertex * 3);
-
-      this.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-      this.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-      this.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-      this.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
-
-      this.positions = this.attributes.position.array;
-      this.normals = this.attributes.normal.array;
-      this.indices = this.index.array;
-      this.colors = this.attributes.color.array;
-
-      this.positionCount = 0;
-      this.indexCount = 0;
-      this.vertexCount = 0;
-    }
-  }, {
-    key: 'pushVertex',
-    value: function pushVertex(vertex, color) {
-      this.positions[this.positionCount] = vertex.x;
-      this.positions[this.positionCount + 1] = vertex.y;
-      this.positions[this.positionCount + 2] = vertex.z;
-
-      this.colors[this.positionCount] = color.r;
-      this.colors[this.positionCount + 1] = color.g;
-      this.colors[this.positionCount + 2] = color.b;
-
-      this.positionCount += 3;
-      this.vertexCount += 1;
-    }
-  }, {
-    key: 'pushVerticesOfFace',
-    value: function pushVerticesOfFace(v0, v1, v2, color) {
-      this.pushVertex(v0, color);
-      this.pushVertex(v1, color);
-      this.pushVertex(v2, color);
-
-      var i = this.indexCount;
-      this.indices[this.indexCount] = i;
-      this.indices[this.indexCount + 1] = i + 1;
-      this.indices[this.indexCount + 2] = i + 2;
-
-      this.indexCount += 3;
-    }
-  }, {
-    key: 'getVertex',
-    value: function getVertex(iVertex) {
-      return _v2.default.create(this.positions[iVertex * 3], this.positions[iVertex * 3 + 1], this.positions[iVertex * 3 + 2]);
-    }
-  }]);
-
-  return BufferRaisedShapesGeometry;
-}(THREE.BufferGeometry);
-
-/**
- * Creates a unit-based block arrow pointing in the -Z direction.
- * It can be reorientated using a lookAt() call
- */
-
-
-var BlockArrowGeometry = function (_THREE$ExtrudeGeometr) {
-  _inherits(BlockArrowGeometry, _THREE$ExtrudeGeometr);
-
-  function BlockArrowGeometry() {
-    _classCallCheck(this, BlockArrowGeometry);
-
-    var shape = new THREE.Shape([new THREE.Vector2(-0.25, -0.5), new THREE.Vector2(0.0, +0.5), new THREE.Vector2(+0.25, -0.5)]);
-
-    var path = new THREE.CatmullRomCurve3([_v2.default.create(0, -0.2, 0), _v2.default.create(0, 0.2, 0)]);
-
-    var _this5 = _possibleConstructorReturn(this, (BlockArrowGeometry.__proto__ || Object.getPrototypeOf(BlockArrowGeometry)).call(this, shape, {
-      steps: 2,
-      bevelEnabled: false,
-      extrudePath: path
-    }));
-
-    _this5.type = 'BlockArrowGeometry';
-
-    _this5.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, 0)));
-    return _this5;
-  }
-
-  return BlockArrowGeometry;
-}(THREE.ExtrudeGeometry);
-
-/**
- * Convenience function to set the visibility of a THREE
- * Object3D collection of meshes and other objects
- *
- * @param {THREE.Object3D} obj
- * @param {boolean} visibility
- */
-
-
-function setVisible(obj, visibility) {
-  if (_lodash2.default.isUndefined(obj)) {
-    return;
-  }
-  obj.traverse(function (c) {
-    c.visible = visibility;
-  });
-}
-
-/**
- * A generic cleaner for a THREE.Object3D collection,
- * where a custom 'dontDelete' field is used to
- * avoid deletion, and all other children are
- * disposed of correctly to reclaim memory
- *
- * @param {THREE.Object3D} obj
- */
-function clearObject3D(obj) {
-  var iLast = obj.children.length - 1;
-  for (var i = iLast; i >= 0; i -= 1) {
-    var child = obj.children[i];
-    if (!_lodash2.default.isUndefined(child.dontDelete)) {
-      continue;
-    }
-    if (!_lodash2.default.isUndefined(child.geometry)) {
-      child.geometry.dispose();
-    }
-    if (!_lodash2.default.isUndefined(child.material)) {
-      child.material.dispose();
-    }
-    obj.remove(child);
-  }
-}
-
-function perpVector(ref, vec) {
-  var vecAlongRef = ref.clone().multiplyScalar(vec.dot(ref));
-
-  return vec.clone().sub(vecAlongRef);
-}
-
-function threePointNormal(vertices) {
-  var cb = new THREE.Vector3();
-  var ab = new THREE.Vector3();
-
-  cb.subVectors(vertices[2], vertices[1]);
-  ab.subVectors(vertices[0], vertices[1]);
-  cb.cross(ab);
-
-  cb.normalize();
-
-  return cb;
-}
-
-function getUnitVectorRotation(reference, target) {
-  return new THREE.Quaternion().setFromUnitVectors(reference, target);
-}
-
-function fraction(reference, target, t) {
-  return t * (target - reference) + reference;
-}
-
-function getFractionRotation(rotation, t) {
-  var identity = new THREE.Quaternion();
-  return identity.slerp(rotation, t);
-}
-
-function setGeometryVerticesColor(geom, color) {
-  for (var i = 0; i < geom.faces.length; i += 1) {
-    var face = geom.faces[i];
-    face.vertexColors[0] = color;
-    face.vertexColors[1] = color;
-    face.vertexColors[2] = color;
-  }
-}
-
-/**
- * Calculates the transform matrix for a SphereGeometry
- * to a given position and radius
- *
- * @param {THREE.Vector3} pos
- * @param {Number} radius
- * @returns {THREE.Matrix4}
- */
-function getSphereMatrix(pos, radius) {
-  var obj = new THREE.Object3D();
-  obj.matrix.identity();
-  obj.position.copy(pos);
-  obj.scale.set(radius, radius, radius);
-  obj.updateMatrix();
-  return obj.matrix;
-}
-
-function makeBufferZCylinderGeometry(radius, radialSegments) {
-  if (_lodash2.default.isUndefined(radialSegments)) {
-    radialSegments = 4;
-  }
-  var cylinderBufferGeometry = new THREE.CylinderBufferGeometry(radius, radius, 1, radialSegments, 1, false);
-  cylinderBufferGeometry.applyMatrix(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)));
-  return cylinderBufferGeometry;
-}
-
-/**
- * Calculates the transform matrix for a UnitCylinderGeometry
- * to orientate along the axis between the 'from' and 'to' vector
- *
- * @param {THREE.Vector3} from
- * @param {THREE.Vector3} to
- * @param {Number} radius
- * @returns {THREE.Matrix4}
- */
-function getCylinderMatrix(from, to, radius) {
-  var obj = new THREE.Object3D();
-  obj.scale.set(radius, radius, from.distanceTo(to));
-  obj.position.copy(from).add(to).multiplyScalar(0.5);
-  obj.lookAt(to);
-  obj.updateMatrix();
-  return obj.matrix;
-}
-
-function applyMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
-  var elems = matrix.elements;
-  for (var i = iStart; i < iEnd; i += 3) {
-    var x = vec3Array[i];
-    var y = vec3Array[i + 1];
-    var z = vec3Array[i + 2];
-    vec3Array[i] = elems[0] * x + elems[4] * y + elems[8] * z + elems[12];
-    vec3Array[i + 1] = elems[1] * x + elems[5] * y + elems[9] * z + elems[13];
-    vec3Array[i + 2] = elems[2] * x + elems[6] * y + elems[10] * z + elems[14];
-  }
-}
-
-function applyRotationOfMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
-  var elems = matrix.elements;
-  for (var i = iStart; i < iEnd; i += 3) {
-    var x = vec3Array[i];
-    var y = vec3Array[i + 1];
-    var z = vec3Array[i + 2];
-    vec3Array[i] = elems[0] * x + elems[4] * y + elems[8] * z;
-    vec3Array[i + 1] = elems[1] * x + elems[5] * y + elems[9] * z;
-    vec3Array[i + 2] = elems[2] * x + elems[6] * y + elems[10] * z;
-  }
-}
-
-function expandFloatArray(refArray, nCopy) {
-  var nElem = refArray.length;
-  var targetArray = new Float32Array(nElem * nCopy);
-  for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
-    var iStart = iCopy * nElem;
-    for (var i = 0; i < nElem; i += 1) {
-      targetArray[iStart + i] = refArray[i];
-    }
-  }
-  return targetArray;
-}
-
-function applyColorToVector3array(color, vec3Array, iStart, iEnd) {
-  for (var i = iStart; i < iEnd; i += 3) {
-    vec3Array[i] = color.r;
-    vec3Array[i + 1] = color.g;
-    vec3Array[i + 2] = color.b;
-  }
-}
-
-function expandIndices(refArray, nCopy, nIndexInCopy) {
-  var nElem = refArray.length;
-  var targetArray = new Uint32Array(nElem * nCopy);
-  for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
-    var iStart = iCopy * nElem;
-    var indexOffset = iCopy * nIndexInCopy;
-    for (var i = 0; i < nElem; i += 1) {
-      targetArray[iStart + i] = refArray[i] + indexOffset;
-    }
-  }
-  return targetArray;
-}
-
-/**
- * CopyBufferGeometry is designed to replicate multiple copies of
- * an existing BufferGeometry in one single assignment - thus
- * efficiently creating a large dataset
- */
-
-var CopyBufferGeometry = function (_THREE$BufferGeometry3) {
-  _inherits(CopyBufferGeometry, _THREE$BufferGeometry3);
-
-  function CopyBufferGeometry(copyBufferGeometry, nCopy) {
-    _classCallCheck(this, CopyBufferGeometry);
-
-    var _this6 = _possibleConstructorReturn(this, (CopyBufferGeometry.__proto__ || Object.getPrototypeOf(CopyBufferGeometry)).call(this));
-
-    _this6.type = 'CopyBufferGeometry';
-    _this6.parameters = {
-      nCopy: nCopy
-    };
-
-    _this6.refBufferGeometry = copyBufferGeometry;
-
-    var positions = expandFloatArray(copyBufferGeometry.attributes.position.array, nCopy);
-    _this6.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-
-    var normals = expandFloatArray(copyBufferGeometry.attributes.normal.array, nCopy);
-    _this6.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-
-    var uvs = expandFloatArray(copyBufferGeometry.attributes.uv.array, nCopy);
-    _this6.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-
-    var nVertexInCopy = copyBufferGeometry.attributes.position.count;
-
-    if ('index' in copyBufferGeometry) {
-      if (copyBufferGeometry.index) {
-        var indices = expandIndices(copyBufferGeometry.index.array, nCopy, nVertexInCopy);
-        _this6.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
-      }
-    }
-
-    var colors = new Float32Array(nVertexInCopy * 3 * nCopy);
-    _this6.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    return _this6;
-  }
-
-  _createClass(CopyBufferGeometry, [{
-    key: 'applyMatrixToCopy',
-    value: function applyMatrixToCopy(matrix, iCopy) {
-      var nElemRef = this.refBufferGeometry.attributes.position.array.length;
-      var positions = this.attributes.position.array;
-      var normals = this.attributes.normal.array;
-      var iElemStart = iCopy * nElemRef;
-      var iElemEnd = iElemStart + nElemRef;
-      applyMatrix4toVector3array(matrix, positions, iElemStart, iElemEnd);
-      applyRotationOfMatrix4toVector3array(matrix, normals, iElemStart, iElemEnd);
-    }
-  }, {
-    key: 'applyColorToCopy',
-    value: function applyColorToCopy(color, iCopy) {
-      var nElemRef = this.refBufferGeometry.attributes.position.array.length;
-      var colors = this.attributes.color.array;
-      var iElemStart = iCopy * nElemRef;
-      var iElemEnd = iElemStart + nElemRef;
-      applyColorToVector3array(color, colors, iElemStart, iElemEnd);
-    }
-  }]);
-
-  return CopyBufferGeometry;
-}(THREE.BufferGeometry);
-
-exports.BlockArrowGeometry = BlockArrowGeometry;
-exports.setVisible = setVisible;
-exports.BufferRibbonGeometry = BufferRibbonGeometry;
-exports.BufferRaisedShapesGeometry = BufferRaisedShapesGeometry;
-exports.getUnitVectorRotation = getUnitVectorRotation;
-exports.getFractionRotation = getFractionRotation;
-exports.fraction = fraction;
-exports.setGeometryVerticesColor = setGeometryVerticesColor;
-exports.makeBufferZCylinderGeometry = makeBufferZCylinderGeometry;
-exports.clearObject3D = clearObject3D;
-exports.Trace = Trace;
-exports.getSphereMatrix = getSphereMatrix;
-exports.getCylinderMatrix = getCylinderMatrix;
-exports.CopyBufferGeometry = CopyBufferGeometry;
-exports.applyMatrix4toVector3array = applyMatrix4toVector3array;
-exports.applyRotationOfMatrix4toVector3array = applyRotationOfMatrix4toVector3array;
-exports.applyColorToVector3array = applyColorToVector3array;
-
-/***/ }),
 /* 135 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -82723,11 +82731,11 @@ var _jquery = __webpack_require__(32);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _three = __webpack_require__(48);
+var _three = __webpack_require__(44);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _lodash = __webpack_require__(29);
+var _lodash = __webpack_require__(27);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -82735,11 +82743,11 @@ var _select = __webpack_require__(346);
 
 var _select2 = _interopRequireDefault(_select);
 
-var _data = __webpack_require__(96);
+var _data = __webpack_require__(97);
 
 var data = _interopRequireWildcard(_data);
 
-var _util = __webpack_require__(49);
+var _util = __webpack_require__(45);
 
 var util = _interopRequireWildcard(_util);
 
@@ -84405,9 +84413,6 @@ var ResidueSelectorWidget = function () {
           var iRes = _step6.value;
 
           residue.iRes = iRes;
-          if (_lodash2.default.includes(['HOH', 'XXX'], residue.resType)) {
-            continue;
-          }
           var text = residue.resId + '-' + residue.resType;
           this.$elem.append(new Option(text, '' + iRes));
         }
@@ -84721,15 +84726,15 @@ __webpack_require__(242);
 __webpack_require__(90);
 __webpack_require__(243);
 __webpack_require__(244);
-__webpack_require__(115);
+__webpack_require__(116);
 __webpack_require__(245);
 __webpack_require__(246);
 __webpack_require__(247);
 __webpack_require__(248);
 __webpack_require__(249);
-__webpack_require__(118);
-__webpack_require__(120);
+__webpack_require__(119);
 __webpack_require__(121);
+__webpack_require__(122);
 __webpack_require__(250);
 __webpack_require__(251);
 __webpack_require__(252);
@@ -84833,10 +84838,10 @@ var redefine = __webpack_require__(13);
 var META = __webpack_require__(30).KEY;
 var $fails = __webpack_require__(3);
 var shared = __webpack_require__(53);
-var setToStringTag = __webpack_require__(44);
+var setToStringTag = __webpack_require__(46);
 var uid = __webpack_require__(34);
 var wks = __webpack_require__(5);
-var wksExt = __webpack_require__(98);
+var wksExt = __webpack_require__(99);
 var wksDefine = __webpack_require__(70);
 var enumKeys = __webpack_require__(140);
 var isArray = __webpack_require__(56);
@@ -84846,7 +84851,7 @@ var toIObject = __webpack_require__(15);
 var toPrimitive = __webpack_require__(22);
 var createDesc = __webpack_require__(33);
 var _create = __webpack_require__(38);
-var gOPNExt = __webpack_require__(101);
+var gOPNExt = __webpack_require__(102);
 var $GOPD = __webpack_require__(16);
 var $DP = __webpack_require__(7);
 var $keys = __webpack_require__(36);
@@ -85104,7 +85109,7 @@ $export($export.S + $export.F * !__webpack_require__(6), 'Object', { definePrope
 
 var $export = __webpack_require__(0);
 // 19.1.2.3 / 15.2.3.7 Object.defineProperties(O, Properties)
-$export($export.S + $export.F * !__webpack_require__(6), 'Object', { defineProperties: __webpack_require__(100) });
+$export($export.S + $export.F * !__webpack_require__(6), 'Object', { defineProperties: __webpack_require__(101) });
 
 
 /***/ }),
@@ -85158,7 +85163,7 @@ __webpack_require__(25)('keys', function () {
 
 // 19.1.2.7 Object.getOwnPropertyNames(O)
 __webpack_require__(25)('getOwnPropertyNames', function () {
-  return __webpack_require__(101).f;
+  return __webpack_require__(102).f;
 });
 
 
@@ -85256,7 +85261,7 @@ __webpack_require__(25)('isExtensible', function ($isExtensible) {
 // 19.1.3.1 Object.assign(target, source)
 var $export = __webpack_require__(0);
 
-$export($export.S + $export.F, 'Object', { assign: __webpack_require__(102) });
+$export($export.S + $export.F, 'Object', { assign: __webpack_require__(103) });
 
 
 /***/ }),
@@ -85312,7 +85317,7 @@ if (test + '' != '[object z]') {
 // 19.2.3.2 / 15.3.4.5 Function.prototype.bind(thisArg, args...)
 var $export = __webpack_require__(0);
 
-$export($export.P, 'Function', { bind: __webpack_require__(103) });
+$export($export.P, 'Function', { bind: __webpack_require__(104) });
 
 
 /***/ }),
@@ -85362,7 +85367,7 @@ if (!(HAS_INSTANCE in FunctionProto)) __webpack_require__(7).f(FunctionProto, HA
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
-var $parseInt = __webpack_require__(105);
+var $parseInt = __webpack_require__(106);
 // 18.2.5 parseInt(string, radix)
 $export($export.G + $export.F * (parseInt != $parseInt), { parseInt: $parseInt });
 
@@ -85372,7 +85377,7 @@ $export($export.G + $export.F * (parseInt != $parseInt), { parseInt: $parseInt }
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
-var $parseFloat = __webpack_require__(106);
+var $parseFloat = __webpack_require__(107);
 // 18.2.4 parseFloat(string)
 $export($export.G + $export.F * (parseFloat != $parseFloat), { parseFloat: $parseFloat });
 
@@ -85392,7 +85397,7 @@ var fails = __webpack_require__(3);
 var gOPN = __webpack_require__(39).f;
 var gOPD = __webpack_require__(16).f;
 var dP = __webpack_require__(7).f;
-var $trim = __webpack_require__(45).trim;
+var $trim = __webpack_require__(47).trim;
 var NUMBER = 'Number';
 var $Number = global[NUMBER];
 var Base = $Number;
@@ -85461,7 +85466,7 @@ if (!$Number(' 0o1') || !$Number('0b1') || $Number('+0x1')) {
 
 var $export = __webpack_require__(0);
 var toInteger = __webpack_require__(24);
-var aNumberValue = __webpack_require__(107);
+var aNumberValue = __webpack_require__(108);
 var repeat = __webpack_require__(77);
 var $toFixed = 1.0.toFixed;
 var floor = Math.floor;
@@ -85582,7 +85587,7 @@ $export($export.P + $export.F * (!!$toFixed && (
 
 var $export = __webpack_require__(0);
 var $fails = __webpack_require__(3);
-var aNumberValue = __webpack_require__(107);
+var aNumberValue = __webpack_require__(108);
 var $toPrecision = 1.0.toPrecision;
 
 $export($export.P + $export.F * ($fails(function () {
@@ -85631,7 +85636,7 @@ $export($export.S, 'Number', {
 // 20.1.2.3 Number.isInteger(number)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Number', { isInteger: __webpack_require__(108) });
+$export($export.S, 'Number', { isInteger: __webpack_require__(109) });
 
 
 /***/ }),
@@ -85655,7 +85660,7 @@ $export($export.S, 'Number', {
 
 // 20.1.2.5 Number.isSafeInteger(number)
 var $export = __webpack_require__(0);
-var isInteger = __webpack_require__(108);
+var isInteger = __webpack_require__(109);
 var abs = Math.abs;
 
 $export($export.S, 'Number', {
@@ -85690,7 +85695,7 @@ $export($export.S, 'Number', { MIN_SAFE_INTEGER: -0x1fffffffffffff });
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
-var $parseFloat = __webpack_require__(106);
+var $parseFloat = __webpack_require__(107);
 // 20.1.2.12 Number.parseFloat(string)
 $export($export.S + $export.F * (Number.parseFloat != $parseFloat), 'Number', { parseFloat: $parseFloat });
 
@@ -85700,7 +85705,7 @@ $export($export.S + $export.F * (Number.parseFloat != $parseFloat), 'Number', { 
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
-var $parseInt = __webpack_require__(105);
+var $parseInt = __webpack_require__(106);
 // 20.1.2.13 Number.parseInt(string, radix)
 $export($export.S + $export.F * (Number.parseInt != $parseInt), 'Number', { parseInt: $parseInt });
 
@@ -85711,7 +85716,7 @@ $export($export.S + $export.F * (Number.parseInt != $parseInt), 'Number', { pars
 
 // 20.2.2.3 Math.acosh(x)
 var $export = __webpack_require__(0);
-var log1p = __webpack_require__(109);
+var log1p = __webpack_require__(110);
 var sqrt = Math.sqrt;
 var $acosh = Math.acosh;
 
@@ -85823,7 +85828,7 @@ $export($export.S + $export.F * ($expm1 != Math.expm1), 'Math', { expm1: $expm1 
 // 20.2.2.16 Math.fround(x)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Math', { fround: __webpack_require__(110) });
+$export($export.S, 'Math', { fround: __webpack_require__(111) });
 
 
 /***/ }),
@@ -85901,7 +85906,7 @@ $export($export.S, 'Math', {
 // 20.2.2.20 Math.log1p(x)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Math', { log1p: __webpack_require__(109) });
+$export($export.S, 'Math', { log1p: __webpack_require__(110) });
 
 
 /***/ }),
@@ -86041,7 +86046,7 @@ $export($export.S, 'String', {
 "use strict";
 
 // 21.1.3.25 String.prototype.trim()
-__webpack_require__(45)('trim', function ($trim) {
+__webpack_require__(47)('trim', function ($trim) {
   return function trim() {
     return $trim(this, 3);
   };
@@ -86496,7 +86501,7 @@ $export($export.S, 'Array', { isArray: __webpack_require__(56) });
 var ctx = __webpack_require__(18);
 var $export = __webpack_require__(0);
 var toObject = __webpack_require__(9);
-var call = __webpack_require__(111);
+var call = __webpack_require__(112);
 var isArrayIter = __webpack_require__(85);
 var toLength = __webpack_require__(8);
 var createProperty = __webpack_require__(86);
@@ -86756,7 +86761,7 @@ $export($export.P + $export.F * !__webpack_require__(20)([].every, true), 'Array
 "use strict";
 
 var $export = __webpack_require__(0);
-var $reduce = __webpack_require__(112);
+var $reduce = __webpack_require__(113);
 
 $export($export.P + $export.F * !__webpack_require__(20)([].reduce, true), 'Array', {
   // 22.1.3.18 / 15.4.4.21 Array.prototype.reduce(callbackfn [, initialValue])
@@ -86773,7 +86778,7 @@ $export($export.P + $export.F * !__webpack_require__(20)([].reduce, true), 'Arra
 "use strict";
 
 var $export = __webpack_require__(0);
-var $reduce = __webpack_require__(112);
+var $reduce = __webpack_require__(113);
 
 $export($export.P + $export.F * !__webpack_require__(20)([].reduceRight, true), 'Array', {
   // 22.1.3.19 / 15.4.4.22 Array.prototype.reduceRight(callbackfn [, initialValue])
@@ -86841,7 +86846,7 @@ $export($export.P + $export.F * (NEGATIVE_ZERO || !__webpack_require__(20)($nati
 // 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
 var $export = __webpack_require__(0);
 
-$export($export.P, 'Array', { copyWithin: __webpack_require__(113) });
+$export($export.P, 'Array', { copyWithin: __webpack_require__(114) });
 
 __webpack_require__(31)('copyWithin');
 
@@ -86962,7 +86967,7 @@ __webpack_require__(40)('RegExp');
 
 "use strict";
 
-__webpack_require__(115);
+__webpack_require__(116);
 var anObject = __webpack_require__(1);
 var $flags = __webpack_require__(59);
 var DESCRIPTORS = __webpack_require__(6);
@@ -87134,8 +87139,8 @@ var speciesConstructor = __webpack_require__(61);
 var task = __webpack_require__(91).set;
 var microtask = __webpack_require__(92)();
 var newPromiseCapabilityModule = __webpack_require__(93);
-var perform = __webpack_require__(116);
-var promiseResolve = __webpack_require__(117);
+var perform = __webpack_require__(117);
+var promiseResolve = __webpack_require__(118);
 var PROMISE = 'Promise';
 var TypeError = global.TypeError;
 var process = global.process;
@@ -87329,7 +87334,7 @@ if (!USE_NATIVE) {
 }
 
 $export($export.G + $export.W + $export.F * !USE_NATIVE, { Promise: $Promise });
-__webpack_require__(44)($Promise, PROMISE);
+__webpack_require__(46)($Promise, PROMISE);
 __webpack_require__(40)(PROMISE);
 Wrapper = __webpack_require__(21)[PROMISE];
 
@@ -87401,8 +87406,8 @@ $export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(58)(function
 
 "use strict";
 
-var weak = __webpack_require__(122);
-var validate = __webpack_require__(47);
+var weak = __webpack_require__(123);
+var validate = __webpack_require__(49);
 var WEAK_SET = 'WeakSet';
 
 // 23.4 WeakSet Objects
@@ -87483,7 +87488,7 @@ $export($export.G + $export.W + $export.F * !__webpack_require__(63).ABV, {
 /* 253 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(27)('Int8', 1, function (init) {
+__webpack_require__(28)('Int8', 1, function (init) {
   return function Int8Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -87494,7 +87499,7 @@ __webpack_require__(27)('Int8', 1, function (init) {
 /* 254 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(27)('Uint8', 1, function (init) {
+__webpack_require__(28)('Uint8', 1, function (init) {
   return function Uint8Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -87505,7 +87510,7 @@ __webpack_require__(27)('Uint8', 1, function (init) {
 /* 255 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(27)('Uint8', 1, function (init) {
+__webpack_require__(28)('Uint8', 1, function (init) {
   return function Uint8ClampedArray(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -87516,7 +87521,7 @@ __webpack_require__(27)('Uint8', 1, function (init) {
 /* 256 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(27)('Int16', 2, function (init) {
+__webpack_require__(28)('Int16', 2, function (init) {
   return function Int16Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -87527,7 +87532,7 @@ __webpack_require__(27)('Int16', 2, function (init) {
 /* 257 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(27)('Uint16', 2, function (init) {
+__webpack_require__(28)('Uint16', 2, function (init) {
   return function Uint16Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -87538,7 +87543,7 @@ __webpack_require__(27)('Uint16', 2, function (init) {
 /* 258 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(27)('Int32', 4, function (init) {
+__webpack_require__(28)('Int32', 4, function (init) {
   return function Int32Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -87549,7 +87554,7 @@ __webpack_require__(27)('Int32', 4, function (init) {
 /* 259 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(27)('Uint32', 4, function (init) {
+__webpack_require__(28)('Uint32', 4, function (init) {
   return function Uint32Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -87560,7 +87565,7 @@ __webpack_require__(27)('Uint32', 4, function (init) {
 /* 260 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(27)('Float32', 4, function (init) {
+__webpack_require__(28)('Float32', 4, function (init) {
   return function Float32Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -87571,7 +87576,7 @@ __webpack_require__(27)('Float32', 4, function (init) {
 /* 261 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(27)('Float64', 8, function (init) {
+__webpack_require__(28)('Float64', 8, function (init) {
   return function Float64Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -87611,7 +87616,7 @@ var aFunction = __webpack_require__(10);
 var anObject = __webpack_require__(1);
 var isObject = __webpack_require__(4);
 var fails = __webpack_require__(3);
-var bind = __webpack_require__(103);
+var bind = __webpack_require__(104);
 var rConstruct = (__webpack_require__(2).Reflect || {}).construct;
 
 // MS Edge supports only 2 arguments and argumentsList argument is optional
@@ -87829,7 +87834,7 @@ $export($export.S, 'Reflect', {
 // 26.1.11 Reflect.ownKeys(target)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Reflect', { ownKeys: __webpack_require__(124) });
+$export($export.S, 'Reflect', { ownKeys: __webpack_require__(125) });
 
 
 /***/ }),
@@ -87939,7 +87944,7 @@ __webpack_require__(31)('includes');
 
 // https://tc39.github.io/proposal-flatMap/#sec-Array.prototype.flatMap
 var $export = __webpack_require__(0);
-var flattenIntoArray = __webpack_require__(125);
+var flattenIntoArray = __webpack_require__(126);
 var toObject = __webpack_require__(9);
 var toLength = __webpack_require__(8);
 var aFunction = __webpack_require__(10);
@@ -87968,7 +87973,7 @@ __webpack_require__(31)('flatMap');
 
 // https://tc39.github.io/proposal-flatMap/#sec-Array.prototype.flatten
 var $export = __webpack_require__(0);
-var flattenIntoArray = __webpack_require__(125);
+var flattenIntoArray = __webpack_require__(126);
 var toObject = __webpack_require__(9);
 var toLength = __webpack_require__(8);
 var toInteger = __webpack_require__(24);
@@ -88013,7 +88018,7 @@ $export($export.P, 'String', {
 
 // https://github.com/tc39/proposal-string-pad-start-end
 var $export = __webpack_require__(0);
-var $pad = __webpack_require__(126);
+var $pad = __webpack_require__(127);
 var userAgent = __webpack_require__(95);
 
 // https://github.com/zloirock/core-js/issues/280
@@ -88032,7 +88037,7 @@ $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAge
 
 // https://github.com/tc39/proposal-string-pad-start-end
 var $export = __webpack_require__(0);
-var $pad = __webpack_require__(126);
+var $pad = __webpack_require__(127);
 var userAgent = __webpack_require__(95);
 
 // https://github.com/zloirock/core-js/issues/280
@@ -88050,7 +88055,7 @@ $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAge
 "use strict";
 
 // https://github.com/sebmarkbage/ecmascript-string-left-right-trim
-__webpack_require__(45)('trimLeft', function ($trim) {
+__webpack_require__(47)('trimLeft', function ($trim) {
   return function trimLeft() {
     return $trim(this, 1);
   };
@@ -88064,7 +88069,7 @@ __webpack_require__(45)('trimLeft', function ($trim) {
 "use strict";
 
 // https://github.com/sebmarkbage/ecmascript-string-left-right-trim
-__webpack_require__(45)('trimRight', function ($trim) {
+__webpack_require__(47)('trimRight', function ($trim) {
   return function trimRight() {
     return $trim(this, 2);
   };
@@ -88128,7 +88133,7 @@ __webpack_require__(70)('observable');
 
 // https://github.com/tc39/proposal-object-getownpropertydescriptors
 var $export = __webpack_require__(0);
-var ownKeys = __webpack_require__(124);
+var ownKeys = __webpack_require__(125);
 var toIObject = __webpack_require__(15);
 var gOPD = __webpack_require__(16);
 var createProperty = __webpack_require__(86);
@@ -88156,7 +88161,7 @@ $export($export.S, 'Object', {
 
 // https://github.com/tc39/proposal-object-values-entries
 var $export = __webpack_require__(0);
-var $values = __webpack_require__(127)(false);
+var $values = __webpack_require__(128)(false);
 
 $export($export.S, 'Object', {
   values: function values(it) {
@@ -88171,7 +88176,7 @@ $export($export.S, 'Object', {
 
 // https://github.com/tc39/proposal-object-values-entries
 var $export = __webpack_require__(0);
-var $entries = __webpack_require__(127)(true);
+var $entries = __webpack_require__(128)(true);
 
 $export($export.S, 'Object', {
   entries: function entries(it) {
@@ -88275,7 +88280,7 @@ __webpack_require__(6) && $export($export.P + __webpack_require__(64), 'Object',
 // https://github.com/DavidBruant/Map-Set.prototype.toJSON
 var $export = __webpack_require__(0);
 
-$export($export.P + $export.R, 'Map', { toJSON: __webpack_require__(128)('Map') });
+$export($export.P + $export.R, 'Map', { toJSON: __webpack_require__(129)('Map') });
 
 
 /***/ }),
@@ -88285,7 +88290,7 @@ $export($export.P + $export.R, 'Map', { toJSON: __webpack_require__(128)('Map') 
 // https://github.com/DavidBruant/Map-Set.prototype.toJSON
 var $export = __webpack_require__(0);
 
-$export($export.P + $export.R, 'Set', { toJSON: __webpack_require__(128)('Set') });
+$export($export.P + $export.R, 'Set', { toJSON: __webpack_require__(129)('Set') });
 
 
 /***/ }),
@@ -88432,8 +88437,8 @@ $export($export.S, 'Math', {
 
 // https://rwaldron.github.io/proposal-math-extensions/
 var $export = __webpack_require__(0);
-var scale = __webpack_require__(130);
-var fround = __webpack_require__(110);
+var scale = __webpack_require__(131);
+var fround = __webpack_require__(111);
 
 $export($export.S, 'Math', {
   fscale: function fscale(x, inLow, inHigh, outLow, outHigh) {
@@ -88530,7 +88535,7 @@ $export($export.S, 'Math', {
 // https://rwaldron.github.io/proposal-math-extensions/
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Math', { scale: __webpack_require__(130) });
+$export($export.S, 'Math', { scale: __webpack_require__(131) });
 
 
 /***/ }),
@@ -88579,7 +88584,7 @@ var $export = __webpack_require__(0);
 var core = __webpack_require__(21);
 var global = __webpack_require__(2);
 var speciesConstructor = __webpack_require__(61);
-var promiseResolve = __webpack_require__(117);
+var promiseResolve = __webpack_require__(118);
 
 $export($export.P + $export.R, 'Promise', { 'finally': function (onFinally) {
   var C = speciesConstructor(this, core.Promise || global.Promise);
@@ -88604,7 +88609,7 @@ $export($export.P + $export.R, 'Promise', { 'finally': function (onFinally) {
 // https://github.com/tc39/proposal-promise-try
 var $export = __webpack_require__(0);
 var newPromiseCapability = __webpack_require__(93);
-var perform = __webpack_require__(116);
+var perform = __webpack_require__(117);
 
 $export($export.S, 'Promise', { 'try': function (callbackfn) {
   var promiseCapability = newPromiseCapability.f(this);
@@ -88618,7 +88623,7 @@ $export($export.S, 'Promise', { 'try': function (callbackfn) {
 /* 321 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var metadata = __webpack_require__(28);
+var metadata = __webpack_require__(29);
 var anObject = __webpack_require__(1);
 var toMetaKey = metadata.key;
 var ordinaryDefineOwnMetadata = metadata.set;
@@ -88632,7 +88637,7 @@ metadata.exp({ defineMetadata: function defineMetadata(metadataKey, metadataValu
 /* 322 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var metadata = __webpack_require__(28);
+var metadata = __webpack_require__(29);
 var anObject = __webpack_require__(1);
 var toMetaKey = metadata.key;
 var getOrCreateMetadataMap = metadata.map;
@@ -88653,7 +88658,7 @@ metadata.exp({ deleteMetadata: function deleteMetadata(metadataKey, target /* , 
 /* 323 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var metadata = __webpack_require__(28);
+var metadata = __webpack_require__(29);
 var anObject = __webpack_require__(1);
 var getPrototypeOf = __webpack_require__(17);
 var ordinaryHasOwnMetadata = metadata.has;
@@ -88676,9 +88681,9 @@ metadata.exp({ getMetadata: function getMetadata(metadataKey, target /* , target
 /* 324 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var Set = __webpack_require__(120);
-var from = __webpack_require__(129);
-var metadata = __webpack_require__(28);
+var Set = __webpack_require__(121);
+var from = __webpack_require__(130);
+var metadata = __webpack_require__(29);
 var anObject = __webpack_require__(1);
 var getPrototypeOf = __webpack_require__(17);
 var ordinaryOwnMetadataKeys = metadata.keys;
@@ -88701,7 +88706,7 @@ metadata.exp({ getMetadataKeys: function getMetadataKeys(target /* , targetKey *
 /* 325 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var metadata = __webpack_require__(28);
+var metadata = __webpack_require__(29);
 var anObject = __webpack_require__(1);
 var ordinaryGetOwnMetadata = metadata.get;
 var toMetaKey = metadata.key;
@@ -88716,7 +88721,7 @@ metadata.exp({ getOwnMetadata: function getOwnMetadata(metadataKey, target /* , 
 /* 326 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var metadata = __webpack_require__(28);
+var metadata = __webpack_require__(29);
 var anObject = __webpack_require__(1);
 var ordinaryOwnMetadataKeys = metadata.keys;
 var toMetaKey = metadata.key;
@@ -88730,7 +88735,7 @@ metadata.exp({ getOwnMetadataKeys: function getOwnMetadataKeys(target /* , targe
 /* 327 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var metadata = __webpack_require__(28);
+var metadata = __webpack_require__(29);
 var anObject = __webpack_require__(1);
 var getPrototypeOf = __webpack_require__(17);
 var ordinaryHasOwnMetadata = metadata.has;
@@ -88752,7 +88757,7 @@ metadata.exp({ hasMetadata: function hasMetadata(metadataKey, target /* , target
 /* 328 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var metadata = __webpack_require__(28);
+var metadata = __webpack_require__(29);
 var anObject = __webpack_require__(1);
 var ordinaryHasOwnMetadata = metadata.has;
 var toMetaKey = metadata.key;
@@ -88767,7 +88772,7 @@ metadata.exp({ hasOwnMetadata: function hasOwnMetadata(metadataKey, target /* , 
 /* 329 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var $metadata = __webpack_require__(28);
+var $metadata = __webpack_require__(29);
 var anObject = __webpack_require__(1);
 var aFunction = __webpack_require__(10);
 var toMetaKey = $metadata.key;
@@ -89055,7 +89060,7 @@ var getKeys = __webpack_require__(36);
 var redefine = __webpack_require__(13);
 var global = __webpack_require__(2);
 var hide = __webpack_require__(12);
-var Iterators = __webpack_require__(46);
+var Iterators = __webpack_require__(48);
 var wks = __webpack_require__(5);
 var ITERATOR = wks('iterator');
 var TO_STRING_TAG = wks('toStringTag');
@@ -89898,13 +89903,13 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.remoteDataServer = exports.initFullPageJolecule = exports.initEmbedJolecule = undefined;
 
-var _animation = __webpack_require__(131);
+var _animation = __webpack_require__(132);
 
-var _embedjolecule = __webpack_require__(132);
+var _embedjolecule = __webpack_require__(133);
 
-var _fullpagejolecule = __webpack_require__(347);
+var _fullpagejolecule = __webpack_require__(348);
 
-var _lodash = __webpack_require__(29);
+var _lodash = __webpack_require__(27);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -91100,11 +91105,11 @@ var _jquery = __webpack_require__(32);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _lodash = __webpack_require__(29);
+var _lodash = __webpack_require__(27);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _three = __webpack_require__(48);
+var _three = __webpack_require__(44);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -91116,11 +91121,11 @@ var _v = __webpack_require__(67);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _util = __webpack_require__(49);
+var _util = __webpack_require__(45);
 
 var util = _interopRequireWildcard(_util);
 
-var _glgeom = __webpack_require__(134);
+var _glgeom = __webpack_require__(96);
 
 var glgeom = _interopRequireWildcard(_glgeom);
 
@@ -91128,13 +91133,13 @@ var _widgets = __webpack_require__(135);
 
 var _widgets2 = _interopRequireDefault(_widgets);
 
-var _representation = __webpack_require__(350);
+var _representation = __webpack_require__(347);
 
 var representation = _interopRequireWildcard(_representation);
 
-var _soup = __webpack_require__(133);
+var _soup = __webpack_require__(134);
 
-var _animation = __webpack_require__(131);
+var _animation = __webpack_require__(132);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -98641,774 +98646,6 @@ S2.define('jquery.select2',[
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.FullPageJolecule = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // eslint-disable-line
-
-
-var _jquery = __webpack_require__(32);
-
-var _jquery2 = _interopRequireDefault(_jquery);
-
-var _jquery3 = __webpack_require__(348);
-
-var _jquery4 = _interopRequireDefault(_jquery3);
-
-var _lodash = __webpack_require__(29);
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-var _embedjolecule = __webpack_require__(132);
-
-var _util = __webpack_require__(49);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var ViewPanel = function () {
-  /**
-   * @param {Object} params {
-   *    saveChange(txt),
-   *    pick,
-   *    view,
-   *    deleteView,
-   *    isEditable,
-   *    swapUp
-   * }
-   */
-  function ViewPanel(params) {
-    _classCallCheck(this, ViewPanel);
-
-    this.params = params;
-    this.div = (0, _jquery2.default)('<div>').addClass('jolecule-view');
-    this.makeEditDiv();
-    this.makeShowDiv();
-  }
-
-  _createClass(ViewPanel, [{
-    key: 'saveChange',
-    value: function saveChange() {
-      console.log('ViewPiece.saveChange');
-      var changedText = this.editTextArea.val();
-      this.editDiv.hide();
-      this.showDiv.show();
-      this.params.saveChange(changedText);
-      window.keyboardLock = false;
-    }
-  }, {
-    key: 'startEdit',
-    value: function startEdit() {
-      this.params.pick();
-      this.editTextArea.text(this.params.view.text);
-      this.editDiv.show();
-      this.showDiv.hide();
-      var textarea = this.editTextArea.find('textarea');
-      setTimeout(function () {
-        textarea.focus();
-      }, 100);
-      window.keyboardLock = true;
-    }
-  }, {
-    key: 'discardChange',
-    value: function discardChange() {
-      this.editDiv.hide();
-      this.showDiv.show();
-      window.keyboardLock = false;
-    }
-  }, {
-    key: 'makeEditDiv',
-    value: function makeEditDiv() {
-      var _this = this;
-
-      this.editTextArea = (0, _jquery2.default)('<textarea>').addClass('jolecule-view-text').css('width', '100%').css('height', '5em').click(_lodash2.default.noop);
-
-      this.editDiv = (0, _jquery2.default)('<div>').css('width', '100%').click(_lodash2.default.noop).append(this.editTextArea).append((0, _util.linkButton)('', 'save', 'jolecule-small-button', function (event) {
-        _this.saveChange();
-      })).append(' &nbsp; ').append((0, _util.linkButton)('', 'discard', 'jolecule-small-button', function (event) {
-        _this.discardChange();
-      })).hide();
-
-      this.div.append(this.editDiv);
-    }
-  }, {
-    key: 'makeShowDiv',
-    value: function makeShowDiv() {
-      var _this2 = this;
-
-      var view = this.params.view;
-
-      var editButton = (0, _util.linkButton)('', 'edit', 'jolecule-small-button', function () {
-        _this2.startEdit();
-      });
-
-      this.showTextDiv = (0, _jquery2.default)('<div>').addClass('jolecule-button').css('height', 'auto').css('padding', '0').css('background-color', '#BBB').css('text-align', 'left').on('click touch', function (e) {
-        e.preventDefault();
-        _this2.params.pick();
-      });
-
-      this.showDiv = (0, _jquery2.default)('<div>').css('width', '100%').append(this.showTextDiv);
-
-      var isEditable = this.params.isEditable && !view.lock && view.id !== 'view:000000';
-
-      if (isEditable) {
-        this.showTextDiv.css('margin-bottom', '7px');
-
-        this.showDiv.append(editButton);
-
-        if ((0, _util.exists)(this.params.swapUp) && this.params.swapUp) {
-          this.showDiv.append(' ').append((0, _util.linkButton)('', 'up', 'jolecule-small-button', function () {
-            _this2.params.swapUp();
-          }));
-        }
-
-        if ((0, _util.exists)(this.params.swapUp) && this.params.swapDown) {
-          this.showDiv.append(' ').append((0, _util.linkButton)('', 'down', 'jolecule-small-button', function () {
-            _this2.params.swapDown();
-          }));
-        }
-
-        if ((0, _util.exists)(this.params.deleteView)) {
-          this.showDiv.append((0, _jquery2.default)('<div>').css('float', 'right').append((0, _util.linkButton)('', 'delete', 'jolecule-small-button', function () {
-            console.log('ViewPiece.deleteButton');
-            _this2.params.deleteView();
-          })));
-        }
-      }
-
-      this.div.append(this.showDiv);
-    }
-  }]);
-
-  return ViewPanel;
-}();
-
-/**
- * ViewPanelList keeps track of the ViewPanel's
- */
-
-
-var ViewPanelList = function () {
-  function ViewPanelList(divTag, soupDisplay, isEditable) {
-    var _this3 = this;
-
-    _classCallCheck(this, ViewPanelList);
-
-    this.divTag = divTag;
-    this.display = soupDisplay;
-    this.soupView = soupDisplay.soupView;
-    this.controller = soupDisplay.controller;
-    this.isEditable = isEditable;
-    this.viewPiece = {};
-    this.subheaderDiv = (0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('SAVED VIEWS &nbsp;');
-    this.div = (0, _jquery2.default)(this.divTag).append(this.subheaderDiv).append((0, _jquery2.default)('<div id="jolecule-views">'));
-    if (this.isEditable) {
-      this.subheaderDiv.append((0, _util.linkButton)('', 'Save', 'jolecule-button', function () {
-        _this3.saveCurrentView();
-      }));
-    }
-  }
-
-  _createClass(ViewPanelList, [{
-    key: 'saveViewsToDataServer',
-    value: function saveViewsToDataServer(success) {
-      console.log('ViewPanelList.saveViewsToDataServer');
-      this.display.dataServer.save_views(this.controller.getViewDicts(), success);
-    }
-  }, {
-    key: 'update',
-    value: function update() {
-      for (var id in this.viewPiece) {
-        if (!(id in this.soupView.savedViewsByViewId)) {
-          this.viewPiece[id].div.remove();
-          delete this.viewPiece[id];
-        }
-      }
-
-      var nView = this.soupView.savedViews.length;
-
-      var iLastView = this.soupView.iLastViewSelected;
-      if (iLastView >= this.soupView.savedViews.length) {
-        iLastView = 0;
-        this.soupView.iLastViewSelected = iLastView;
-      }
-      var lastId = null;
-      if (iLastView < this.soupView.savedViews.length) {
-        lastId = this.soupView.savedViews[iLastView].id;
-      }
-
-      for (var i = 0; i < nView; i++) {
-        var view = this.soupView.savedViews[i];
-        var _id = view.id;
-
-        if (!(view.id in this.viewPiece)) {
-          this.insertNewViewDiv(view.id);
-        }
-
-        if (lastId === _id) {
-          this.viewPiece[_id].div.removeClass('jolecule-unselected-box');
-          this.viewPiece[_id].div.addClass('jolecule-selected-box');
-        } else {
-          this.viewPiece[_id].div.removeClass('jolecule-selected-box');
-          this.viewPiece[_id].div.addClass('jolecule-unselected-box');
-        }
-
-        var viewPiece = this.viewPiece[_id];
-        if (view.text !== viewPiece.showTextDiv.html()) {
-          viewPiece.showTextDiv.html(view.order + 1 + "/" + nView + ": " + view.text);
-        }
-
-        var a = viewPiece.div.find('a').eq(0);
-        a.text(view.order + 1);
-      }
-    }
-  }, {
-    key: 'setTargetByViewId',
-    value: function setTargetByViewId(id) {
-      this.controller.setTargetViewByViewId(id);
-      this.update();
-      window.location.hash = id;
-    }
-  }, {
-    key: 'gotoPrevView',
-    value: function gotoPrevView() {
-      var id = this.controller.setTargetToPrevView();
-      this.update();
-      window.location.hash = id;
-    }
-  }, {
-    key: 'gotoNextView',
-    value: function gotoNextView() {
-      var id = this.controller.setTargetToNextView();
-      this.update();
-      window.location.hash = id;
-    }
-  }, {
-    key: 'removeView',
-    value: function removeView(id) {
-      var _this4 = this;
-
-      console.log('ViewPanelList.removeView');
-      this.viewPiece[id].div.css('background-color', 'lightgray');
-      this.display.dataServer.delete_protein_view(id, function () {
-        _this4.controller.deleteView(id);
-        _this4.update();
-      });
-    }
-  }, {
-    key: 'swapViews',
-    value: function swapViews(i, j) {
-      var _this5 = this;
-
-      var iId = this.soupView.savedViews[i].id;
-      var jId = this.soupView.savedViews[j].id;
-      var iDiv = this.viewPiece[iId].div;
-      var jDiv = this.viewPiece[jId].div;
-
-      this.controller.swapViews(i, j);
-
-      iDiv.css('background-color', 'lightgray');
-      jDiv.css('background-color', 'lightgray');
-
-      this.saveViewsToDataServer(function () {
-        jDiv.insertBefore(iDiv);
-        _this5.update();
-        iDiv.css('background-color', '');
-        jDiv.css('background-color', '');
-      });
-    }
-  }, {
-    key: 'swapUp',
-    value: function swapUp(viewId) {
-      var i = this.soupView.getIViewFromViewId(viewId);
-      if (i < 2) {
-        return;
-      }
-      this.swapViews(i - 1, i);
-    }
-  }, {
-    key: 'swapDown',
-    value: function swapDown(viewId) {
-      var i = this.soupView.getIViewFromViewId(viewId);
-      if (i > this.soupView.savedViews.length - 2) {
-        return;
-      }
-      this.swapViews(i, i + 1);
-    }
-  }, {
-    key: 'makeViewDiv',
-    value: function makeViewDiv(id) {
-      var _this6 = this;
-
-      var view = this.soupView.savedViewsByViewId[id];
-      this.viewPiece[id] = new ViewPanel({
-        view: view,
-        isEditable: this.isEditable,
-        deleteView: function deleteView() {
-          _this6.removeView(id);
-        },
-        saveChange: function saveChange(changedText) {
-          view.text = changedText;
-          _this6.viewPiece[id].div.css('background-color', 'lightgray');
-          _this6.saveViewsToDataServer(function () {
-            _this6.viewPiece[id].div.css('background-color', '');
-            _this6.soupView.changed = true;
-            _this6.update();
-          });
-        },
-        pick: function pick() {
-          _this6.setTargetByViewId(id);
-        },
-        swapUp: function swapUp() {
-          _this6.swapUp(id);
-        },
-        swapDown: function swapDown() {
-          _this6.swapDown(id);
-        }
-      });
-      return this.viewPiece[id].div;
-    }
-  }, {
-    key: 'makeAllViews',
-    value: function makeAllViews() {
-      for (var i = 0; i < this.soupView.savedViews.length; i += 1) {
-        var id = this.soupView.savedViews[i].id;
-        var div = this.makeViewDiv(id);
-        (0, _jquery2.default)('#jolecule-views').append(div);
-      }
-    }
-  }, {
-    key: 'insertNewViewDiv',
-    value: function insertNewViewDiv(newId) {
-      var div = this.makeViewDiv(newId);
-      if (this.soupView.iLastViewSelected === 0 || this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1) {
-        (0, _jquery2.default)('#jolecule-views').append(div);
-      } else {
-        var j = this.soupView.iLastViewSelected - 1;
-        var jId = this.soupView.savedViews[j].id;
-        var jDiv = this.viewPiece[jId].div;
-        div.insertAfter(jDiv);
-      }
-    }
-  }, {
-    key: 'saveCurrentView',
-    value: function saveCurrentView() {
-      console.log('ViewPanelList.saveCurrentView');
-      var newId = this.controller.saveCurrentView();
-      this.insertNewViewDiv(newId);
-      this.update();
-      var div = this.viewPiece[newId].div;
-      div.css('background-color', 'lightgray');
-      this.saveViewsToDataServer(function () {
-        console.log('ViewPieceList.saveCurrentView success');
-        div.css('background-color', '');
-        (0, _jquery2.default)('#jolecule-views').stop().scrollTo(div, 1000, { offset: { top: -80 } });
-      });
-    }
-  }]);
-
-  return ViewPanelList;
-}();
-
-/**
- * FullPageJolecule - full page wrapper around an embedded EmbedJolecule
- * widget. Handles keypresses and urls and adds a view list side-panel
- * FullPageJolecule satisfies the interface for animation.js
- */
-
-
-var FullPageJolecule = function () {
-  function FullPageJolecule(proteinDisplayTag, viewsDisplayTag, params) {
-    var _this7 = this;
-
-    _classCallCheck(this, FullPageJolecule);
-
-    this.viewsDisplayTag = viewsDisplayTag;
-    this.params = {
-      divTag: proteinDisplayTag,
-      backgroundColor: 0xCCCCCC,
-      viewId: '',
-      viewHeight: 170,
-      isViewTextShown: false,
-      isSequenceBar: true,
-      isEditable: true,
-      isLoop: false,
-      isGrid: true,
-      bCutoff: 0.5,
-      isPlayable: false
-    };
-    if ((0, _util.exists)(params)) {
-      this.params = _lodash2.default.assign(this.params, params);
-    }
-    this.embedJolecule = new _embedjolecule.EmbedJolecule(this.params);
-    this.embedJolecule.display.addObserver(this);
-    document.oncontextmenu = _lodash2.default.noop;
-    document.onkeydown = function (e) {
-      _this7.onkeydown(e);
-    };
-    this.noData = true;
-  }
-
-  _createClass(FullPageJolecule, [{
-    key: 'clear',
-    value: function clear() {
-      this.embedJolecule.clear();
-    }
-  }, {
-    key: 'asyncAddDataServer',
-    value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(dataServer) {
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                console.log('FullPageJolecule.asyncAddDataServer', dataServer.id);
-                _context.next = 3;
-                return this.embedJolecule.asyncAddDataServer(dataServer);
-
-              case 3:
-                this.initViewsDisplay(dataServer);
-
-              case 4:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function asyncAddDataServer(_x) {
-        return _ref.apply(this, arguments);
-      }
-
-      return asyncAddDataServer;
-    }()
-  }, {
-    key: 'initViewsDisplay',
-    value: function initViewsDisplay(dataServer) {
-      if (this.noData) {
-        this.noData = false;
-
-        this.soupView = this.embedJolecule.soupView;
-        this.controller = this.embedJolecule.controller;
-        this.display = this.embedJolecule.display;
-
-        this.viewPanelList = new ViewPanelList(this.viewsDisplayTag, this.display, this.params.isEditable);
-
-        this.viewPanelList.makeAllViews();
-        var hashTag = (0, _util.getWindowUrl)().split('#')[1];
-        if (hashTag in this.soupView.savedViewsByViewId) {
-          this.viewPanelList.setTargetByViewId(hashTag);
-        } else {
-          this.viewPanelList.setTargetByViewId('view:000000');
-        }
-        this.viewPanelList.update();
-
-        this.embedJolecule.resize();
-      }
-    }
-  }, {
-    key: 'update',
-    value: function update() {
-      if (!_lodash2.default.isUndefined(this.viewPanelList)) {
-        this.viewPanelList.update();
-      }
-    }
-  }, {
-    key: 'gotoPrevResidue',
-    value: function gotoPrevResidue() {
-      this.controller.setTargetToPrevResidue();
-    }
-  }, {
-    key: 'gotoNextResidue',
-    value: function gotoNextResidue() {
-      this.controller.setTargetToNextResidue();
-    }
-  }, {
-    key: 'onkeydown',
-    value: function onkeydown(event) {
-      if (!window.keyboardLock) {
-        var c = String.fromCharCode(event.keyCode).toUpperCase();
-        if (c === 'V') {
-          this.viewPanelList.saveCurrentView();
-          return;
-        } else if (c === 'K' || event.keyCode === 37) {
-          this.gotoPrevResidue();
-        } else if (c === 'J' || event.keyCode === 39) {
-          this.gotoNextResidue();
-        } else if (event.keyCode === 38) {
-          this.viewPanelList.gotoPrevView();
-        } else if (c === ' ' || event.keyCode === 40) {
-          this.viewPanelList.gotoNextView();
-        } else if (c === 'S') {
-          this.controller.toggleShowOption('sphere');
-        } else if (c === 'B') {
-          this.controller.toggleShowOption('backbone');
-        } else if (c === 'R') {
-          this.controller.toggleShowOption('ribbon');
-        } else if (c === 'L') {
-          this.controller.toggleShowOption('ligands');
-        } else if (c === 'W') {
-          this.controller.toggleShowOption('water');
-        } else if (c === 'E') {
-          var iView = this.display.soupView.iLastViewSelected;
-          if (iView > 0) {
-            var viewId = this.display.soupView.savedViews[iView].id;
-            this.viewPanelList.div[viewId].edit_fn();
-          }
-        } else if (c === 'N') {
-          this.display.controller.toggleResidueNeighbors();
-        } else if (c === 'A') {
-          this.display.atomLabelDialog();
-        } else {
-          var i = parseInt(c) - 1;
-          if ((i || i === 0) && i < this.soupView.savedViews.length) {
-            var id = this.soupView.savedViews[i].id;
-            this.viewPanelList.setTargetByViewId(id);
-          }
-        }
-        this.display.soupView.changed = true;
-      }
-    }
-  }]);
-
-  return FullPageJolecule;
-}();
-
-exports.FullPageJolecule = FullPageJolecule;
-
-/***/ }),
-/* 348 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
- * jQuery.scrollTo
- * Copyright (c) 2007-2015 Ariel Flesler - aflesler<a>gmail<d>com | http://flesler.blogspot.com
- * Licensed under MIT
- * http://flesler.blogspot.com/2007/10/jqueryscrollto.html
- * @projectDescription Lightweight, cross-browser and highly customizable animated scrolling with jQuery
- * @author Ariel Flesler
- * @version 2.1.2
- */
-;(function(factory) {
-	'use strict';
-	if (true) {
-		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(32)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
-				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
-				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	} else if (typeof module !== 'undefined' && module.exports) {
-		// CommonJS
-		module.exports = factory(require('jquery'));
-	} else {
-		// Global
-		factory(jQuery);
-	}
-})(function($) {
-	'use strict';
-
-	var $scrollTo = $.scrollTo = function(target, duration, settings) {
-		return $(window).scrollTo(target, duration, settings);
-	};
-
-	$scrollTo.defaults = {
-		axis:'xy',
-		duration: 0,
-		limit:true
-	};
-
-	function isWin(elem) {
-		return !elem.nodeName ||
-			$.inArray(elem.nodeName.toLowerCase(), ['iframe','#document','html','body']) !== -1;
-	}		
-
-	$.fn.scrollTo = function(target, duration, settings) {
-		if (typeof duration === 'object') {
-			settings = duration;
-			duration = 0;
-		}
-		if (typeof settings === 'function') {
-			settings = { onAfter:settings };
-		}
-		if (target === 'max') {
-			target = 9e9;
-		}
-
-		settings = $.extend({}, $scrollTo.defaults, settings);
-		// Speed is still recognized for backwards compatibility
-		duration = duration || settings.duration;
-		// Make sure the settings are given right
-		var queue = settings.queue && settings.axis.length > 1;
-		if (queue) {
-			// Let's keep the overall duration
-			duration /= 2;
-		}
-		settings.offset = both(settings.offset);
-		settings.over = both(settings.over);
-
-		return this.each(function() {
-			// Null target yields nothing, just like jQuery does
-			if (target === null) return;
-
-			var win = isWin(this),
-				elem = win ? this.contentWindow || window : this,
-				$elem = $(elem),
-				targ = target, 
-				attr = {},
-				toff;
-
-			switch (typeof targ) {
-				// A number will pass the regex
-				case 'number':
-				case 'string':
-					if (/^([+-]=?)?\d+(\.\d+)?(px|%)?$/.test(targ)) {
-						targ = both(targ);
-						// We are done
-						break;
-					}
-					// Relative/Absolute selector
-					targ = win ? $(targ) : $(targ, elem);
-					/* falls through */
-				case 'object':
-					if (targ.length === 0) return;
-					// DOMElement / jQuery
-					if (targ.is || targ.style) {
-						// Get the real position of the target
-						toff = (targ = $(targ)).offset();
-					}
-			}
-
-			var offset = $.isFunction(settings.offset) && settings.offset(elem, targ) || settings.offset;
-
-			$.each(settings.axis.split(''), function(i, axis) {
-				var Pos	= axis === 'x' ? 'Left' : 'Top',
-					pos = Pos.toLowerCase(),
-					key = 'scroll' + Pos,
-					prev = $elem[key](),
-					max = $scrollTo.max(elem, axis);
-
-				if (toff) {// jQuery / DOMElement
-					attr[key] = toff[pos] + (win ? 0 : prev - $elem.offset()[pos]);
-
-					// If it's a dom element, reduce the margin
-					if (settings.margin) {
-						attr[key] -= parseInt(targ.css('margin'+Pos), 10) || 0;
-						attr[key] -= parseInt(targ.css('border'+Pos+'Width'), 10) || 0;
-					}
-
-					attr[key] += offset[pos] || 0;
-
-					if (settings.over[pos]) {
-						// Scroll to a fraction of its width/height
-						attr[key] += targ[axis === 'x'?'width':'height']() * settings.over[pos];
-					}
-				} else {
-					var val = targ[pos];
-					// Handle percentage values
-					attr[key] = val.slice && val.slice(-1) === '%' ?
-						parseFloat(val) / 100 * max
-						: val;
-				}
-
-				// Number or 'number'
-				if (settings.limit && /^\d+$/.test(attr[key])) {
-					// Check the limits
-					attr[key] = attr[key] <= 0 ? 0 : Math.min(attr[key], max);
-				}
-
-				// Don't waste time animating, if there's no need.
-				if (!i && settings.axis.length > 1) {
-					if (prev === attr[key]) {
-						// No animation needed
-						attr = {};
-					} else if (queue) {
-						// Intermediate animation
-						animate(settings.onAfterFirst);
-						// Don't animate this axis again in the next iteration.
-						attr = {};
-					}
-				}
-			});
-
-			animate(settings.onAfter);
-
-			function animate(callback) {
-				var opts = $.extend({}, settings, {
-					// The queue setting conflicts with animate()
-					// Force it to always be true
-					queue: true,
-					duration: duration,
-					complete: callback && function() {
-						callback.call(elem, targ, settings);
-					}
-				});
-				$elem.animate(attr, opts);
-			}
-		});
-	};
-
-	// Max scrolling position, works on quirks mode
-	// It only fails (not too badly) on IE, quirks mode.
-	$scrollTo.max = function(elem, axis) {
-		var Dim = axis === 'x' ? 'Width' : 'Height',
-			scroll = 'scroll'+Dim;
-
-		if (!isWin(elem))
-			return elem[scroll] - $(elem)[Dim.toLowerCase()]();
-
-		var size = 'client' + Dim,
-			doc = elem.ownerDocument || elem.document,
-			html = doc.documentElement,
-			body = doc.body;
-
-		return Math.max(html[scroll], body[scroll]) - Math.min(html[size], body[size]);
-	};
-
-	function both(val) {
-		return $.isFunction(val) || $.isPlainObject(val) ? val : { top:val, left:val };
-	}
-
-	// Add special hooks so that window scroll properties can be animated
-	$.Tween.propHooks.scrollLeft = 
-	$.Tween.propHooks.scrollTop = {
-		get: function(t) {
-			return $(t.elem)[t.prop]();
-		},
-		set: function(t) {
-			var curr = this.get(t);
-			// If interrupt is true and user scrolled, stop animating
-			if (t.options.interrupt && t._last && t._last !== curr) {
-				return $(t.elem).stop();
-			}
-			var next = Math.round(t.now);
-			// Don't waste CPU
-			// Browsers don't render floating point scroll
-			if (curr !== next) {
-				$(t.elem)[t.prop](next);
-				t._last = this.get(t);
-			}
-		}
-	};
-
-	// AMD requirement
-	return $scrollTo;
-});
-
-
-/***/ }),
-/* 349 */,
-/* 350 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 exports.BackboneRepresentation = exports.SidechainRepresentation = exports.NucleotideRepresentation = exports.WaterRepresentation = exports.LigandRepresentation = exports.BondRepresentation = exports.SphereRepresentation = exports.GridRepresentation = exports.AtomsRepresentation = exports.RibbonRepresentation = exports.ArrowRepresentation = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -99417,23 +98654,23 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _data = __webpack_require__(96);
+var _data = __webpack_require__(97);
 
 var data = _interopRequireWildcard(_data);
 
-var _three = __webpack_require__(48);
+var _three = __webpack_require__(44);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _util = __webpack_require__(49);
+var _util = __webpack_require__(45);
 
 var util = _interopRequireWildcard(_util);
 
-var _lodash = __webpack_require__(29);
+var _lodash = __webpack_require__(27);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _glgeom = __webpack_require__(134);
+var _glgeom = __webpack_require__(96);
 
 var glgeom = _interopRequireWildcard(_glgeom);
 
@@ -100649,6 +99886,773 @@ exports.WaterRepresentation = WaterRepresentation;
 exports.NucleotideRepresentation = NucleotideRepresentation;
 exports.SidechainRepresentation = SidechainRepresentation;
 exports.BackboneRepresentation = BackboneRepresentation;
+
+/***/ }),
+/* 348 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.FullPageJolecule = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // eslint-disable-line
+
+
+var _jquery = __webpack_require__(32);
+
+var _jquery2 = _interopRequireDefault(_jquery);
+
+var _jquery3 = __webpack_require__(349);
+
+var _jquery4 = _interopRequireDefault(_jquery3);
+
+var _lodash = __webpack_require__(27);
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _embedjolecule = __webpack_require__(133);
+
+var _util = __webpack_require__(45);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var ViewPanel = function () {
+  /**
+   * @param {Object} params {
+   *    saveChange(txt),
+   *    pick,
+   *    view,
+   *    deleteView,
+   *    isEditable,
+   *    swapUp
+   * }
+   */
+  function ViewPanel(params) {
+    _classCallCheck(this, ViewPanel);
+
+    this.params = params;
+    this.div = (0, _jquery2.default)('<div>').addClass('jolecule-view');
+    this.makeEditDiv();
+    this.makeShowDiv();
+  }
+
+  _createClass(ViewPanel, [{
+    key: 'saveChange',
+    value: function saveChange() {
+      console.log('ViewPiece.saveChange');
+      var changedText = this.editTextArea.val();
+      this.editDiv.hide();
+      this.showDiv.show();
+      this.params.saveChange(changedText);
+      window.keyboardLock = false;
+    }
+  }, {
+    key: 'startEdit',
+    value: function startEdit() {
+      this.params.pick();
+      this.editTextArea.text(this.params.view.text);
+      this.editDiv.show();
+      this.showDiv.hide();
+      var textarea = this.editTextArea.find('textarea');
+      setTimeout(function () {
+        textarea.focus();
+      }, 100);
+      window.keyboardLock = true;
+    }
+  }, {
+    key: 'discardChange',
+    value: function discardChange() {
+      this.editDiv.hide();
+      this.showDiv.show();
+      window.keyboardLock = false;
+    }
+  }, {
+    key: 'makeEditDiv',
+    value: function makeEditDiv() {
+      var _this = this;
+
+      this.editTextArea = (0, _jquery2.default)('<textarea>').addClass('jolecule-view-text').css('width', '100%').css('height', '5em').click(_lodash2.default.noop);
+
+      this.editDiv = (0, _jquery2.default)('<div>').css('width', '100%').click(_lodash2.default.noop).append(this.editTextArea).append((0, _util.linkButton)('', 'save', 'jolecule-small-button', function (event) {
+        _this.saveChange();
+      })).append(' &nbsp; ').append((0, _util.linkButton)('', 'discard', 'jolecule-small-button', function (event) {
+        _this.discardChange();
+      })).hide();
+
+      this.div.append(this.editDiv);
+    }
+  }, {
+    key: 'makeShowDiv',
+    value: function makeShowDiv() {
+      var _this2 = this;
+
+      var view = this.params.view;
+
+      var editButton = (0, _util.linkButton)('', 'edit', 'jolecule-small-button', function () {
+        _this2.startEdit();
+      });
+
+      this.showTextDiv = (0, _jquery2.default)('<div>').addClass('jolecule-button').css('height', 'auto').css('padding', '0').css('background-color', '#BBB').css('text-align', 'left').on('click touch', function (e) {
+        e.preventDefault();
+        _this2.params.pick();
+      });
+
+      this.showDiv = (0, _jquery2.default)('<div>').css('width', '100%').append(this.showTextDiv);
+
+      var isEditable = this.params.isEditable && !view.lock && view.id !== 'view:000000';
+
+      if (isEditable) {
+        this.showTextDiv.css('margin-bottom', '7px');
+
+        this.showDiv.append(editButton);
+
+        if ((0, _util.exists)(this.params.swapUp) && this.params.swapUp) {
+          this.showDiv.append(' ').append((0, _util.linkButton)('', 'up', 'jolecule-small-button', function () {
+            _this2.params.swapUp();
+          }));
+        }
+
+        if ((0, _util.exists)(this.params.swapUp) && this.params.swapDown) {
+          this.showDiv.append(' ').append((0, _util.linkButton)('', 'down', 'jolecule-small-button', function () {
+            _this2.params.swapDown();
+          }));
+        }
+
+        if ((0, _util.exists)(this.params.deleteView)) {
+          this.showDiv.append((0, _jquery2.default)('<div>').css('float', 'right').append((0, _util.linkButton)('', 'delete', 'jolecule-small-button', function () {
+            console.log('ViewPiece.deleteButton');
+            _this2.params.deleteView();
+          })));
+        }
+      }
+
+      this.div.append(this.showDiv);
+    }
+  }]);
+
+  return ViewPanel;
+}();
+
+/**
+ * ViewPanelList keeps track of the ViewPanel's
+ */
+
+
+var ViewPanelList = function () {
+  function ViewPanelList(divTag, soupDisplay, isEditable) {
+    var _this3 = this;
+
+    _classCallCheck(this, ViewPanelList);
+
+    this.divTag = divTag;
+    this.display = soupDisplay;
+    this.soupView = soupDisplay.soupView;
+    this.controller = soupDisplay.controller;
+    this.isEditable = isEditable;
+    this.viewPiece = {};
+    this.subheaderDiv = (0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('SAVED VIEWS &nbsp;');
+    this.div = (0, _jquery2.default)(this.divTag).append(this.subheaderDiv).append((0, _jquery2.default)('<div id="jolecule-views">'));
+    if (this.isEditable) {
+      this.subheaderDiv.append((0, _util.linkButton)('', 'Save', 'jolecule-button', function () {
+        _this3.saveCurrentView();
+      }));
+    }
+  }
+
+  _createClass(ViewPanelList, [{
+    key: 'saveViewsToDataServer',
+    value: function saveViewsToDataServer(success) {
+      console.log('ViewPanelList.saveViewsToDataServer');
+      this.display.dataServer.save_views(this.controller.getViewDicts(), success);
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      for (var id in this.viewPiece) {
+        if (!(id in this.soupView.savedViewsByViewId)) {
+          this.viewPiece[id].div.remove();
+          delete this.viewPiece[id];
+        }
+      }
+
+      var nView = this.soupView.savedViews.length;
+
+      var iLastView = this.soupView.iLastViewSelected;
+      if (iLastView >= this.soupView.savedViews.length) {
+        iLastView = 0;
+        this.soupView.iLastViewSelected = iLastView;
+      }
+      var lastId = null;
+      if (iLastView < this.soupView.savedViews.length) {
+        lastId = this.soupView.savedViews[iLastView].id;
+      }
+
+      for (var i = 0; i < nView; i++) {
+        var view = this.soupView.savedViews[i];
+        var _id = view.id;
+
+        if (!(view.id in this.viewPiece)) {
+          this.insertNewViewDiv(view.id);
+        }
+
+        if (lastId === _id) {
+          this.viewPiece[_id].div.removeClass('jolecule-unselected-box');
+          this.viewPiece[_id].div.addClass('jolecule-selected-box');
+        } else {
+          this.viewPiece[_id].div.removeClass('jolecule-selected-box');
+          this.viewPiece[_id].div.addClass('jolecule-unselected-box');
+        }
+
+        var viewPiece = this.viewPiece[_id];
+        if (view.text !== viewPiece.showTextDiv.html()) {
+          viewPiece.showTextDiv.html(view.order + 1 + "/" + nView + ": " + view.text);
+        }
+
+        var a = viewPiece.div.find('a').eq(0);
+        a.text(view.order + 1);
+      }
+    }
+  }, {
+    key: 'setTargetByViewId',
+    value: function setTargetByViewId(id) {
+      this.controller.setTargetViewByViewId(id);
+      this.update();
+      window.location.hash = id;
+    }
+  }, {
+    key: 'gotoPrevView',
+    value: function gotoPrevView() {
+      var id = this.controller.setTargetToPrevView();
+      this.update();
+      window.location.hash = id;
+    }
+  }, {
+    key: 'gotoNextView',
+    value: function gotoNextView() {
+      var id = this.controller.setTargetToNextView();
+      this.update();
+      window.location.hash = id;
+    }
+  }, {
+    key: 'removeView',
+    value: function removeView(id) {
+      var _this4 = this;
+
+      console.log('ViewPanelList.removeView');
+      this.viewPiece[id].div.css('background-color', 'lightgray');
+      this.display.dataServer.delete_protein_view(id, function () {
+        _this4.controller.deleteView(id);
+        _this4.update();
+      });
+    }
+  }, {
+    key: 'swapViews',
+    value: function swapViews(i, j) {
+      var _this5 = this;
+
+      var iId = this.soupView.savedViews[i].id;
+      var jId = this.soupView.savedViews[j].id;
+      var iDiv = this.viewPiece[iId].div;
+      var jDiv = this.viewPiece[jId].div;
+
+      this.controller.swapViews(i, j);
+
+      iDiv.css('background-color', 'lightgray');
+      jDiv.css('background-color', 'lightgray');
+
+      this.saveViewsToDataServer(function () {
+        jDiv.insertBefore(iDiv);
+        _this5.update();
+        iDiv.css('background-color', '');
+        jDiv.css('background-color', '');
+      });
+    }
+  }, {
+    key: 'swapUp',
+    value: function swapUp(viewId) {
+      var i = this.soupView.getIViewFromViewId(viewId);
+      if (i < 2) {
+        return;
+      }
+      this.swapViews(i - 1, i);
+    }
+  }, {
+    key: 'swapDown',
+    value: function swapDown(viewId) {
+      var i = this.soupView.getIViewFromViewId(viewId);
+      if (i > this.soupView.savedViews.length - 2) {
+        return;
+      }
+      this.swapViews(i, i + 1);
+    }
+  }, {
+    key: 'makeViewDiv',
+    value: function makeViewDiv(id) {
+      var _this6 = this;
+
+      var view = this.soupView.savedViewsByViewId[id];
+      this.viewPiece[id] = new ViewPanel({
+        view: view,
+        isEditable: this.isEditable,
+        deleteView: function deleteView() {
+          _this6.removeView(id);
+        },
+        saveChange: function saveChange(changedText) {
+          view.text = changedText;
+          _this6.viewPiece[id].div.css('background-color', 'lightgray');
+          _this6.saveViewsToDataServer(function () {
+            _this6.viewPiece[id].div.css('background-color', '');
+            _this6.soupView.changed = true;
+            _this6.update();
+          });
+        },
+        pick: function pick() {
+          _this6.setTargetByViewId(id);
+        },
+        swapUp: function swapUp() {
+          _this6.swapUp(id);
+        },
+        swapDown: function swapDown() {
+          _this6.swapDown(id);
+        }
+      });
+      return this.viewPiece[id].div;
+    }
+  }, {
+    key: 'makeAllViews',
+    value: function makeAllViews() {
+      for (var i = 0; i < this.soupView.savedViews.length; i += 1) {
+        var id = this.soupView.savedViews[i].id;
+        var div = this.makeViewDiv(id);
+        (0, _jquery2.default)('#jolecule-views').append(div);
+      }
+    }
+  }, {
+    key: 'insertNewViewDiv',
+    value: function insertNewViewDiv(newId) {
+      var div = this.makeViewDiv(newId);
+      if (this.soupView.iLastViewSelected === 0 || this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1) {
+        (0, _jquery2.default)('#jolecule-views').append(div);
+      } else {
+        var j = this.soupView.iLastViewSelected - 1;
+        var jId = this.soupView.savedViews[j].id;
+        var jDiv = this.viewPiece[jId].div;
+        div.insertAfter(jDiv);
+      }
+    }
+  }, {
+    key: 'saveCurrentView',
+    value: function saveCurrentView() {
+      console.log('ViewPanelList.saveCurrentView');
+      var newId = this.controller.saveCurrentView();
+      this.insertNewViewDiv(newId);
+      this.update();
+      var div = this.viewPiece[newId].div;
+      div.css('background-color', 'lightgray');
+      this.saveViewsToDataServer(function () {
+        console.log('ViewPieceList.saveCurrentView success');
+        div.css('background-color', '');
+        (0, _jquery2.default)('#jolecule-views').stop().scrollTo(div, 1000, { offset: { top: -80 } });
+      });
+    }
+  }]);
+
+  return ViewPanelList;
+}();
+
+/**
+ * FullPageJolecule - full page wrapper around an embedded EmbedJolecule
+ * widget. Handles keypresses and urls and adds a view list side-panel
+ * FullPageJolecule satisfies the interface for animation.js
+ */
+
+
+var FullPageJolecule = function () {
+  function FullPageJolecule(proteinDisplayTag, viewsDisplayTag, params) {
+    var _this7 = this;
+
+    _classCallCheck(this, FullPageJolecule);
+
+    this.viewsDisplayTag = viewsDisplayTag;
+    this.params = {
+      divTag: proteinDisplayTag,
+      backgroundColor: 0xCCCCCC,
+      viewId: '',
+      viewHeight: 170,
+      isViewTextShown: false,
+      isSequenceBar: true,
+      isEditable: true,
+      isLoop: false,
+      isGrid: true,
+      bCutoff: 0.5,
+      isPlayable: false
+    };
+    if ((0, _util.exists)(params)) {
+      this.params = _lodash2.default.assign(this.params, params);
+    }
+    this.embedJolecule = new _embedjolecule.EmbedJolecule(this.params);
+    this.embedJolecule.display.addObserver(this);
+    document.oncontextmenu = _lodash2.default.noop;
+    document.onkeydown = function (e) {
+      _this7.onkeydown(e);
+    };
+    this.noData = true;
+  }
+
+  _createClass(FullPageJolecule, [{
+    key: 'clear',
+    value: function clear() {
+      this.embedJolecule.clear();
+    }
+  }, {
+    key: 'asyncAddDataServer',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(dataServer) {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                console.log('FullPageJolecule.asyncAddDataServer', dataServer.id);
+                _context.next = 3;
+                return this.embedJolecule.asyncAddDataServer(dataServer);
+
+              case 3:
+                this.initViewsDisplay(dataServer);
+
+              case 4:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function asyncAddDataServer(_x) {
+        return _ref.apply(this, arguments);
+      }
+
+      return asyncAddDataServer;
+    }()
+  }, {
+    key: 'initViewsDisplay',
+    value: function initViewsDisplay(dataServer) {
+      if (this.noData) {
+        this.noData = false;
+
+        this.soupView = this.embedJolecule.soupView;
+        this.controller = this.embedJolecule.controller;
+        this.display = this.embedJolecule.display;
+
+        this.viewPanelList = new ViewPanelList(this.viewsDisplayTag, this.display, this.params.isEditable);
+
+        this.viewPanelList.makeAllViews();
+        var hashTag = (0, _util.getWindowUrl)().split('#')[1];
+        if (hashTag in this.soupView.savedViewsByViewId) {
+          this.viewPanelList.setTargetByViewId(hashTag);
+        } else {
+          this.viewPanelList.setTargetByViewId('view:000000');
+        }
+        this.viewPanelList.update();
+
+        this.embedJolecule.resize();
+      }
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      if (!_lodash2.default.isUndefined(this.viewPanelList)) {
+        this.viewPanelList.update();
+      }
+    }
+  }, {
+    key: 'gotoPrevResidue',
+    value: function gotoPrevResidue() {
+      this.controller.setTargetToPrevResidue();
+    }
+  }, {
+    key: 'gotoNextResidue',
+    value: function gotoNextResidue() {
+      this.controller.setTargetToNextResidue();
+    }
+  }, {
+    key: 'onkeydown',
+    value: function onkeydown(event) {
+      if (!window.keyboardLock) {
+        var c = String.fromCharCode(event.keyCode).toUpperCase();
+        if (c === 'V') {
+          this.viewPanelList.saveCurrentView();
+          return;
+        } else if (c === 'K' || event.keyCode === 37) {
+          this.gotoPrevResidue();
+        } else if (c === 'J' || event.keyCode === 39) {
+          this.gotoNextResidue();
+        } else if (event.keyCode === 38) {
+          this.viewPanelList.gotoPrevView();
+        } else if (c === ' ' || event.keyCode === 40) {
+          this.viewPanelList.gotoNextView();
+        } else if (c === 'S') {
+          this.controller.toggleShowOption('sphere');
+        } else if (c === 'B') {
+          this.controller.toggleShowOption('backbone');
+        } else if (c === 'R') {
+          this.controller.toggleShowOption('ribbon');
+        } else if (c === 'L') {
+          this.controller.toggleShowOption('ligands');
+        } else if (c === 'W') {
+          this.controller.toggleShowOption('water');
+        } else if (c === 'E') {
+          var iView = this.display.soupView.iLastViewSelected;
+          if (iView > 0) {
+            var viewId = this.display.soupView.savedViews[iView].id;
+            this.viewPanelList.div[viewId].edit_fn();
+          }
+        } else if (c === 'N') {
+          this.display.controller.toggleResidueNeighbors();
+        } else if (c === 'A') {
+          this.display.atomLabelDialog();
+        } else {
+          var i = parseInt(c) - 1;
+          if ((i || i === 0) && i < this.soupView.savedViews.length) {
+            var id = this.soupView.savedViews[i].id;
+            this.viewPanelList.setTargetByViewId(id);
+          }
+        }
+        this.display.soupView.changed = true;
+      }
+    }
+  }]);
+
+  return FullPageJolecule;
+}();
+
+exports.FullPageJolecule = FullPageJolecule;
+
+/***/ }),
+/* 349 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+ * jQuery.scrollTo
+ * Copyright (c) 2007-2015 Ariel Flesler - aflesler<a>gmail<d>com | http://flesler.blogspot.com
+ * Licensed under MIT
+ * http://flesler.blogspot.com/2007/10/jqueryscrollto.html
+ * @projectDescription Lightweight, cross-browser and highly customizable animated scrolling with jQuery
+ * @author Ariel Flesler
+ * @version 2.1.2
+ */
+;(function(factory) {
+	'use strict';
+	if (true) {
+		// AMD
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(32)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	} else if (typeof module !== 'undefined' && module.exports) {
+		// CommonJS
+		module.exports = factory(require('jquery'));
+	} else {
+		// Global
+		factory(jQuery);
+	}
+})(function($) {
+	'use strict';
+
+	var $scrollTo = $.scrollTo = function(target, duration, settings) {
+		return $(window).scrollTo(target, duration, settings);
+	};
+
+	$scrollTo.defaults = {
+		axis:'xy',
+		duration: 0,
+		limit:true
+	};
+
+	function isWin(elem) {
+		return !elem.nodeName ||
+			$.inArray(elem.nodeName.toLowerCase(), ['iframe','#document','html','body']) !== -1;
+	}		
+
+	$.fn.scrollTo = function(target, duration, settings) {
+		if (typeof duration === 'object') {
+			settings = duration;
+			duration = 0;
+		}
+		if (typeof settings === 'function') {
+			settings = { onAfter:settings };
+		}
+		if (target === 'max') {
+			target = 9e9;
+		}
+
+		settings = $.extend({}, $scrollTo.defaults, settings);
+		// Speed is still recognized for backwards compatibility
+		duration = duration || settings.duration;
+		// Make sure the settings are given right
+		var queue = settings.queue && settings.axis.length > 1;
+		if (queue) {
+			// Let's keep the overall duration
+			duration /= 2;
+		}
+		settings.offset = both(settings.offset);
+		settings.over = both(settings.over);
+
+		return this.each(function() {
+			// Null target yields nothing, just like jQuery does
+			if (target === null) return;
+
+			var win = isWin(this),
+				elem = win ? this.contentWindow || window : this,
+				$elem = $(elem),
+				targ = target, 
+				attr = {},
+				toff;
+
+			switch (typeof targ) {
+				// A number will pass the regex
+				case 'number':
+				case 'string':
+					if (/^([+-]=?)?\d+(\.\d+)?(px|%)?$/.test(targ)) {
+						targ = both(targ);
+						// We are done
+						break;
+					}
+					// Relative/Absolute selector
+					targ = win ? $(targ) : $(targ, elem);
+					/* falls through */
+				case 'object':
+					if (targ.length === 0) return;
+					// DOMElement / jQuery
+					if (targ.is || targ.style) {
+						// Get the real position of the target
+						toff = (targ = $(targ)).offset();
+					}
+			}
+
+			var offset = $.isFunction(settings.offset) && settings.offset(elem, targ) || settings.offset;
+
+			$.each(settings.axis.split(''), function(i, axis) {
+				var Pos	= axis === 'x' ? 'Left' : 'Top',
+					pos = Pos.toLowerCase(),
+					key = 'scroll' + Pos,
+					prev = $elem[key](),
+					max = $scrollTo.max(elem, axis);
+
+				if (toff) {// jQuery / DOMElement
+					attr[key] = toff[pos] + (win ? 0 : prev - $elem.offset()[pos]);
+
+					// If it's a dom element, reduce the margin
+					if (settings.margin) {
+						attr[key] -= parseInt(targ.css('margin'+Pos), 10) || 0;
+						attr[key] -= parseInt(targ.css('border'+Pos+'Width'), 10) || 0;
+					}
+
+					attr[key] += offset[pos] || 0;
+
+					if (settings.over[pos]) {
+						// Scroll to a fraction of its width/height
+						attr[key] += targ[axis === 'x'?'width':'height']() * settings.over[pos];
+					}
+				} else {
+					var val = targ[pos];
+					// Handle percentage values
+					attr[key] = val.slice && val.slice(-1) === '%' ?
+						parseFloat(val) / 100 * max
+						: val;
+				}
+
+				// Number or 'number'
+				if (settings.limit && /^\d+$/.test(attr[key])) {
+					// Check the limits
+					attr[key] = attr[key] <= 0 ? 0 : Math.min(attr[key], max);
+				}
+
+				// Don't waste time animating, if there's no need.
+				if (!i && settings.axis.length > 1) {
+					if (prev === attr[key]) {
+						// No animation needed
+						attr = {};
+					} else if (queue) {
+						// Intermediate animation
+						animate(settings.onAfterFirst);
+						// Don't animate this axis again in the next iteration.
+						attr = {};
+					}
+				}
+			});
+
+			animate(settings.onAfter);
+
+			function animate(callback) {
+				var opts = $.extend({}, settings, {
+					// The queue setting conflicts with animate()
+					// Force it to always be true
+					queue: true,
+					duration: duration,
+					complete: callback && function() {
+						callback.call(elem, targ, settings);
+					}
+				});
+				$elem.animate(attr, opts);
+			}
+		});
+	};
+
+	// Max scrolling position, works on quirks mode
+	// It only fails (not too badly) on IE, quirks mode.
+	$scrollTo.max = function(elem, axis) {
+		var Dim = axis === 'x' ? 'Width' : 'Height',
+			scroll = 'scroll'+Dim;
+
+		if (!isWin(elem))
+			return elem[scroll] - $(elem)[Dim.toLowerCase()]();
+
+		var size = 'client' + Dim,
+			doc = elem.ownerDocument || elem.document,
+			html = doc.documentElement,
+			body = doc.body;
+
+		return Math.max(html[scroll], body[scroll]) - Math.min(html[size], body[size]);
+	};
+
+	function both(val) {
+		return $.isFunction(val) || $.isPlainObject(val) ? val : { top:val, left:val };
+	}
+
+	// Add special hooks so that window scroll properties can be animated
+	$.Tween.propHooks.scrollLeft = 
+	$.Tween.propHooks.scrollTop = {
+		get: function(t) {
+			return $(t.elem)[t.prop]();
+		},
+		set: function(t) {
+			var curr = this.get(t);
+			// If interrupt is true and user scrolled, stop animating
+			if (t.options.interrupt && t._last && t._last !== curr) {
+				return $(t.elem).stop();
+			}
+			var next = Math.round(t.now);
+			// Don't waste CPU
+			// Browsers don't render floating point scroll
+			if (curr !== next) {
+				$(t.elem)[t.prop](next);
+				t._last = this.get(t);
+			}
+		}
+	};
+
+	// AMD requirement
+	return $scrollTo;
+});
+
 
 /***/ })
 /******/ ]);

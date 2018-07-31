@@ -1835,12 +1835,15 @@ class Controller {
   setTargetViewByIAtom (iAtom) {
     let atom = this.soup.getAtomProxy(iAtom)
     let view = this.soupView.currentView.getViewTranslatedTo(atom.pos)
-    view.iAtom = iAtom
+    view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus)
     this.setTargetView(view)
   }
 
   setTargetToPrevResidue () {
     let iAtom = this.soupView.currentView.iAtom
+    if (iAtom < 0) {
+      iAtom = 0
+    }
     let iRes = this.soup.getAtomProxy(iAtom).iRes
     if (iRes <= 0) {
       iRes = this.soup.getResidueCount() - 1
@@ -1848,11 +1851,15 @@ class Controller {
       iRes -= 1
     }
     iAtom = this.soup.getResidueProxy(iRes).iAtom
+    console.log('Controller.setTargetToPrevResidue', iAtom, iRes)
     this.setTargetViewByIAtom(iAtom)
   }
 
   setTargetToNextResidue () {
     let iAtom = this.soupView.currentView.iAtom
+    if (iAtom < 0) {
+      iAtom = 0
+    }
     let iRes = this.soup.getAtomProxy(iAtom).iRes
     if (iRes >= this.soup.getResidueCount() - 1) {
       iRes = 0
@@ -1860,6 +1867,7 @@ class Controller {
       iRes += 1
     }
     iAtom = this.soup.getResidueProxy(iRes).iAtom
+    console.log('Controller.setTargetToNextResidue', iAtom, iRes)
     this.setTargetViewByIAtom(iAtom)
   }
 
