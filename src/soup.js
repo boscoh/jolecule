@@ -1437,8 +1437,9 @@ class View {
       water: false,
       ligands: true,
       trace: true,
-      backboneAtom: false,
-      ribbon: true
+      backbone: false,
+      ribbon: true,
+      sphere: false,
     },
     this.pdb_id = ''
   }
@@ -1489,8 +1490,8 @@ class View {
     let upV = pos.clone().sub(this.cameraParams.up)
 
     let show = _.clone(this.show)
-    show.all_atom = show.backboneAtom
-    delete show.backboneAtom
+    show.all_atom = show.backbone
+    delete show.backbone
 
     return {
       version: 2,
@@ -1532,11 +1533,16 @@ class View {
     this.selected = flatDict.selected
     this.distances = flatDict.distances
 
-    this.show = flatDict.show
-    this.show.backboneAtom = !!flatDict.show.all_atom
-    delete this.show.all_atom
+    for (let key of _.keys(flatDict.show)) {
+      if (key in this.show) {
+        this.show[key] = !!flatDict.show[key]
+      }
+      if (key === 'all_atom') {
+        this.show.backbone = !!flatDict.show.all_atom
+      }
+    }
 
-    if (!(this.show.backboneAtom || this.show.trace || this.show.ribbon)) {
+    if (!(this.show.backbone || this.show.trace || this.show.ribbon)) {
       this.show.ribbon = true
     }
 

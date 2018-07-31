@@ -42,10 +42,10 @@ class EmbedJolecule {
 
     this.soup = new Soup()
     this.soupView = new SoupView(this.soup)
-    this.soupView.isLoop = params.isLoop
-    this.soupView.maxUpdateStep = params.maxUpdateStep
-    this.soupView.msPerStep = params.msPerStep
-    this.soupView.maxWaitStep = params.maxWaitStep
+    this.soupView.isLoop = this.params.isLoop
+    this.soupView.maxUpdateStep = this.params.maxUpdateStep
+    this.soupView.msPerStep = this.params.msPerStep
+    this.soupView.maxWaitStep = this.params.maxWaitStep
 
     this.controller = new Controller(this.soupView)
 
@@ -158,34 +158,36 @@ class EmbedJolecule {
         this.display, '#view-text')
     }
 
-    this.footerDiv
-      .append(
-        $('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))
-    this.residueSelectorWidget = new widgets.ResidueSelectorWidget(
-      this.display, '#res-selector')
+    if (this.params.isEditable) {
+      this.footerDiv
+        .append(
+          $('<div id="res-selector" class="jolecule-button" style="padding-top: 6px; height: 24px; box-sizing: content-box;"></div>'))
+      this.residueSelectorWidget = new widgets.ResidueSelectorWidget(
+        this.display, '#res-selector')
 
-    this.footerDiv
-      .append(
-        $('<div id="zslab" class="jolecule-button" style="flex: 1 0 120px; display: flex; flex-direction: row; justify-content: center;">'))
-    this.clippingPlaneWidget = new widgets.ClippingPlaneWidget(
-      this.display, '#zslab')
+      this.footerDiv
+        .append(
+          $('<div id="zslab" class="jolecule-button" style="flex: 1 0 120px; display: flex; flex-direction: row; justify-content: center;">'))
+      this.clippingPlaneWidget = new widgets.ClippingPlaneWidget(
+        this.display, '#zslab')
 
-    this.footerDiv
-      .append(
-        $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
-          .append(linkButton(
-            '', 'Clear', 'jolecule-button', () => { this.controller.clear() })
-          )
-          .append(linkButton(
-            '', 'Sidechains', 'jolecule-button', () => { this.controller.toggleSelectedSidechains() })
-          )
-          .append(linkButton(
-            '', 'Neighbors', 'jolecule-button', () => { this.controller.toggleResidueNeighbors() })
-          )
-          .append($('<div id="ligand">'))
-      )
-    this.ligandWidget = new widgets.ToggleButtonWidget(
-      this.display, '#ligand', 'ligands')
+      this.footerDiv
+        .append(
+          $('<div style="flex: 0; display: flex; flex-direction: row; justify-content: flex-end;">')
+            .append(linkButton(
+              '', 'Clear', 'jolecule-button', () => { this.controller.clear() })
+            )
+            .append(linkButton(
+              '', 'Sidechains', 'jolecule-button', () => { this.controller.toggleSelectedSidechains() })
+            )
+            .append(linkButton(
+              '', 'Neighbors', 'jolecule-button', () => { this.controller.toggleResidueNeighbors() })
+            )
+            .append($('<div id="ligand">'))
+        )
+      this.ligandWidget = new widgets.ToggleButtonWidget(
+        this.display, '#ligand', 'ligands')
+    }
 
   }
 

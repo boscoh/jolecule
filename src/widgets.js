@@ -635,7 +635,21 @@ class SequenceWidget extends CanvasWidget {
     let iChain = -1
     let iStructure = 0
     let nRes = this.soup.getResidueCount()
-    let nPadChar = parseInt(0.02 * nRes / this.soup.structureIds.length)
+
+    let polymerLengths = []
+    for (let i of _.range(this.soup.structureIds.length)) {
+      polymerLengths.push(0)
+    }
+    for (let iRes of _.range(nRes)) {
+      residue.iRes = iRes
+      if (residue.isPolymer) {
+        polymerLengths[residue.iStructure] += 1
+      }
+    }
+    polymerLengths = _.filter(polymerLengths, l => l > 0)
+    let averageLength = _.mean(polymerLengths)
+    let nPadChar = parseInt(0.02 * averageLength)
+
     for (let iRes of _.range(nRes)) {
       residue.iRes = iRes
 
@@ -958,9 +972,10 @@ class SequenceWidget extends CanvasWidget {
       this.iChar = this.xToIChar(this.pointerX)
       if (this.iChar === this.iCharPressed) {
         console.log('SequenceWidget.doubleclick', this.iChar)
-        if (this.charEntries[this.iChar].c !== '') {
+        let charEntry = this.charEntries[this.iChar]
+        if (charEntry.c !== '') {
           this.controller.clearSelectedResidues()
-          this.controller.setResidueSelect(this.charEntries[this.iChar].iRes, true)
+          this.controller.setResidueSelect(charEntry.iRes, true)
           this.controller.setTargetViewByIAtom(this.getCurrIAtom())
           this.updateWithoutCheckingCurrent()
         }
@@ -1211,9 +1226,7 @@ class GridControlWidget extends CanvasWidget {
     this.sliderHeight = this.buttonHeight * 6 - 30
     this.isGrid = display.isGrid
 
-    if (!this.isGrid) {
-      this.div.css('display', 'none')
-    }
+    this.div.css('display', 'none')
     this.div.attr('id', 'grid-control')
     this.div.css('height', this.height())
     this.div.addClass('jolecule-button')
@@ -1395,6 +1408,8 @@ class ResidueSelectorWidget {
   change () {
     let iRes = parseInt(this.$elem.select2('val'))
     let residue = this.soupView.soup.getResidueProxy(iRes)
+    this.controller.clearSelectedResidues()
+    this.controller.setResidueSelect(iRes, true)
     this.controller.setTargetViewByIAtom(residue.iAtom)
   }
 

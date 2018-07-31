@@ -20,7 +20,7 @@
         </md-whiteframe>
       </md-layout>
 
-      <md-layout md-flex="33">
+      <md-layout md-flex="100">
         <md-whiteframe>
           <md-layout
             md-row
@@ -46,6 +46,21 @@
               :md-size="25"
               md-indeterminate
               v-if="isDownloading"/>
+            <md-button
+              class="md-raised"
+              @click="toggleOption('sphere')">
+              sphere
+            </md-button>
+            <md-button
+              class="md-raised"
+              @click="toggleOption('ribbon')">
+              ribbon
+            </md-button>
+            <md-button
+              class="md-raised"
+              @click="toggleOption('backbone')">
+              backbone
+            </md-button>
           </md-layout>
           <div>
             {{error}}
@@ -65,17 +80,6 @@
               </md-button>
             </md-layout>
           </div>
-        </md-whiteframe>
-      </md-layout>
-
-      <md-layout md-flex="66">
-        <md-whiteframe>
-          <md-layout>
-            <div
-              id="charts"
-              style="flex: 1; height: 200px">
-            </div>
-          </md-layout>
         </md-whiteframe>
       </md-layout>
 
@@ -103,9 +107,7 @@
 </style>
 
 <script>
-import _ from 'lodash'
 import $ from 'jquery'
-import ChartWidget from '../modules/chart-widget'
 import {initEmbedJolecule} from '../../../../src/main'
 import * as util from '../../../../src/util'
 
@@ -120,15 +122,13 @@ export default {
     }
   },
   async mounted () {
-    this.chartWidget = new ChartWidget('#charts')
-
     this.joleculeWidget = initEmbedJolecule({
       divTag: '#jolecule',
       isGrid: true,
       isEditable: true,
       isPlayable: true,
       isSequenceBar: true,
-      backgroundColor: 0x000000
+      backgroundColor: 0xCCCCCC
     })
 
     const dataServer7 = require('../../../dataservers/1mbo-data-server')
@@ -152,7 +152,7 @@ export default {
     // const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
     // await this.joleculeWidget.asyncAddDataServer(dataServer3)
 
-    this.changeGraph()
+    this.structureIds = this.joleculeWidget.display.soup.structureIds
   },
   methods: {
     async deleteProtein (i) {
@@ -161,17 +161,17 @@ export default {
       this.joleculeWidget.controller.zoomOut()
       this.changeGraph()
     },
-    async toggleWater () {
-      this.joleculeWidget.controller.toggleShowOption('water')
+    async toggleOption (option) {
+      this.joleculeWidget.controller.toggleShowOption(option)
     },
     async loadFromPdbId () {
       await util.delay(100)
       this.error = ''
       this.isDownloading = true
-      let dataServer0 = this.makeDataServer(this.pdbId)
-      await this.joleculeWidget.asyncAddDataServer(dataServer0)
+      let dataServer = this.makeDataServer(this.pdbId)
+      await this.joleculeWidget.asyncAddDataServer(dataServer)
+      this.structureIds = this.joleculeWidget.display.soup.structureIds
       this.joleculeWidget.controller.zoomOut()
-      this.changeGraph()
     },
     makeDataServer (pdbId) {
       let _this = this
@@ -179,7 +179,6 @@ export default {
         pdb_id: pdbId,
         get_protein_data: function (parsePdb) {
           let url = `https://files.rcsb.org/download/${pdbId}.pdb1`
-          console.log('makeDataServer', url)
           $.get(url, (pdbText) => {
             parsePdb({pdb_id: pdbId, pdb_text: pdbText})
             _this.isDownloading = false
@@ -192,47 +191,6 @@ export default {
         save_views: function (views, success) { success() },
         delete_protein_view: function (viewId, success) { success() }
       }
-    },
-    changeGraph () {
-      let soup = this.joleculeWidget.soup
-      let atom = soup.getAtomProxy()
-      let n = soup.getAtomCount()
-      let bfactors = []
-      for (let i = 0; i < n; i += 1) {
-        atom.load(i)
-        if (atom.resType === 'XXX') {
-          bfactors.push(-atom.bfactor)
-        }
-      }
-      let max = _.max(bfactors)
-      let min = _.min(bfactors)
-      let nBox = 20
-      let d = (max - min) / nBox
-      let bins = []
-      let xvals = []
-      for (let i = 0; i < nBox; i += 1) {
-        bins[i] = 0
-        xvals[i] = i * d + min
-        // console.log(i, xvals[i])
-      }
-      for (let b of bfactors) {
-        let i = parseInt((b - min) / d)
-        bins[i] += 1
-      }
-      this.chartWidget.setTitle('')
-      this.chartWidget.setXLabel('energy')
-      this.chartWidget.setYLabel('count')
-      this.chartWidget.addDataset('sample')
-      this.chartWidget.updateDataset(0, _.range(1, n + 1), bfactors)
-      this.chartWidget.updateDataset(0, xvals, bins)
-
-      this.structureIds = _.clone(soup.structureIds)
-    },
-    randomizeGraph () {
-      for (let slider of this.sliders) {
-        slider.value = Math.random() * slider.max
-      }
-      this.changeGraph()
     }
   }
 }

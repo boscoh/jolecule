@@ -373,7 +373,6 @@ class FullPageJolecule {
     if (exists(params)) {
       this.params = _.assign(this.params, params)
     }
-    console.log('FullPageJolecule.constructor params', this.params)
     this.embedJolecule = new EmbedJolecule(this.params)
     this.embedJolecule.display.addObserver(this)
     document.oncontextmenu = _.noop
@@ -445,8 +444,10 @@ class FullPageJolecule {
         this.viewPanelList.gotoPrevView()
       } else if (c === ' ' || event.keyCode === 40) {
         this.viewPanelList.gotoNextView()
+      } else if (c === 'S') {
+        this.controller.toggleShowOption('sphere')
       } else if (c === 'B') {
-        this.controller.toggleShowOption('backboneAtom')
+        this.controller.toggleShowOption('backbone')
       } else if (c === 'R') {
         this.controller.toggleShowOption('ribbon')
       } else if (c === 'L') {
