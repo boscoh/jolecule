@@ -13,7 +13,7 @@ let pickingMaterial = new THREE.MeshBasicMaterial({
   vertexColors: THREE.VertexColors
 })
 let phongMaterial = new THREE.MeshPhongMaterial({
-  vertexColors: THREE.VertexColors
+  vertexColors: THREE.VertexColors,
 })
 let transparentMaterial = new THREE.MeshPhongMaterial( {
   opacity: 0.3,
@@ -27,7 +27,7 @@ function getIndexColor (i) {
 }
 
 function transferObjects(fromObj, toObj) {
-  for (let child of fromObj.children) {
+  for (let child of _.values(fromObj.children)) {
     toObj.add(child)
   }
 }
@@ -37,14 +37,34 @@ function transferObjects(fromObj, toObj) {
  *  1. a displayGeom
  *  2. a pickingGeom
  */
-class ArrowRepresentation {
+
+class Representation {
   constructor (soup) {
     this.soup = soup
-    this.traces = soup.traces
     this.displayObj = new THREE.Object3D()
     this.displayMaterial = phongMaterial
     this.pickingMaterial = pickingMaterial
     this.pickingObj = new THREE.Object3D()
+    this.isTransparent = false
+  }
+
+  setTransparent (isTransparent) {
+    this.isTransparent = isTransparent
+    if (this.isTransparent) {
+      this.displayMaterial = transparentMaterial
+    } else {
+      this.displayMaterial = phongMaterial
+    }
+  }
+
+  build () {
+  }
+
+}
+
+class ArrowRepresentation extends Representation {
+  constructor (soup) {
+    super(soup)
     this.build()
   }
 
@@ -52,7 +72,7 @@ class ArrowRepresentation {
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
     let nCopy = 0
-    for (let trace of this.traces) {
+    for (let trace of this.soup.traces) {
       nCopy += trace.points.length
     }
 
@@ -65,7 +85,7 @@ class ArrowRepresentation {
     let obj = new THREE.Object3D()
 
     let iCopy = 0
-    for (let trace of this.traces) {
+    for (let trace of this.soup.traces) {
       let n = trace.points.length
       for (let i of _.range(n)) {
         let point = trace.points[i]
@@ -96,7 +116,7 @@ class ArrowRepresentation {
   recolor () {
     let iCopy = 0
     let residue = this.soup.getResidueProxy()
-    for (let trace of this.traces) {
+    for (let trace of this.soup.traces) {
       let n = trace.points.length
       for (let i of _.range(n)) {
         let iRes = trace.refIndices[i]
@@ -109,30 +129,20 @@ class ArrowRepresentation {
   }
 }
 
-class RibbonRepresentation {
+class RibbonRepresentation extends Representation {
   constructor (soup) {
-    this.soup = soup
-    this.traces = soup.traces
-    this.displayObj = new THREE.Object3D()
-    this.pickingObj = new THREE.Object3D()
-    this.displayMaterial = phongMaterial
-    this.pickingMaterial = pickingMaterial
+    super(soup)
     this.build()
   }
 
-  setTransparent (isTransparent) {
-    if (isTransparent) {
-      this.displayMaterial = transparentMaterial
-    }
-  }
-
   build () {
+    this.displayGeom = new glgeom.BufferRibbonGeometry(
+      this.soup.traces, data.coilFace)
+    this.pickingGeom = new glgeom.BufferRibbonGeometry(
+      this.soup.traces, data.coilFace, true)
+
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
-    this.displayGeom = new glgeom.BufferRibbonGeometry(
-      this.traces, data.coilFace)
-    this.pickingGeom = new glgeom.BufferRibbonGeometry(
-      this.traces, data.coilFace, true)
     let displayMesh = new THREE.Mesh(this.displayGeom, this.displayMaterial)
     let pickingMesh = new THREE.Mesh(this.pickingGeom, this.pickingMaterial)
     this.displayObj.add(displayMesh)
@@ -142,7 +152,7 @@ class RibbonRepresentation {
 
   recolor () {
     let residue = this.soup.getResidueProxy()
-    for (let trace of this.traces) {
+    for (let trace of this.soup.traces) {
       for (let iTrace of _.range(trace.points.length)) {
         let iRes = trace.refIndices[iTrace]
         trace.colors[iTrace] = residue.load(iRes).activeColor
@@ -152,19 +162,17 @@ class RibbonRepresentation {
   }
 }
 
-class NucleotideRepresentation {
+class NucleotideRepresentation extends Representation {
   constructor (soup) {
-    this.displayObj = new THREE.Object3D()
-    this.pickingObj = new THREE.Object3D()
-    this.displayMaterial = phongMaterial
-    this.pickingMaterial = pickingMaterial
-    this.soup = soup
+    super(soup)
     this.build()
   }
 
   build () {
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
+
+    this.displayObj.name = 'NucleotideRepresentation'
 
     let residue = this.soup.getResidueProxy()
     let atom = this.soup.getAtomProxy()
@@ -219,6 +227,7 @@ class NucleotideRepresentation {
       this.nucleotideConnectorGeom.applyColorToCopy(color, iBond)
     }
     let mesh = new THREE.Mesh(this.nucleotideConnectorGeom, this.displayMaterial)
+    mesh.name = 'nucleotideConnector'
     this.displayObj.add(mesh)
   }
 
@@ -243,30 +252,46 @@ class NucleotideRepresentation {
   }
 }
 
-class CartoonRepresentation {
+class CartoonRepresentation extends Representation {
   constructor (soup) {
-    this.soup = soup
-    this.displayObj = new THREE.Object3D()
-    this.pickingObj = new THREE.Object3D()
+    super(soup)
     this.build()
   }
 
+  setTransparent(isTransparent) {
+    super.setTransparent(isTransparent)
+    this.ribbonRepr.setTransparent(isTransparent)
+    this.arrowRepr.setTransparent(isTransparent)
+  }
+
   build () {
+    this.ribbonRepr = new RibbonRepresentation(this.soup)
+    this.arrowRepr = new ArrowRepresentation(this.soup)
+    this.nucRepr = new NucleotideRepresentation(this.soup)
+
+    this.ribbonRepr.setTransparent(this.isTransparent)
+    this.ribbonRepr.build()
+    this.arrowRepr.setTransparent(this.isTransparent)
+    this.arrowRepr.build()
+    this.nucRepr.setTransparent(this.isTransparent)
+    this.nucRepr.build()
+
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
 
-    this.ribbonRepr = new RibbonRepresentation(this.soup)
-    this.arrowRepr = new ArrowRepresentation(this.soup)
-
+    this.displayObj.name = 'CartoonRepr'
     transferObjects(this.ribbonRepr.displayObj, this.displayObj)
     transferObjects(this.arrowRepr.displayObj, this.displayObj)
+    transferObjects(this.nucRepr.displayObj, this.displayObj)
     transferObjects(this.ribbonRepr.pickingObj, this.pickingObj)
     transferObjects(this.arrowRepr.pickingObj, this.pickingObj)
+    transferObjects(this.nucRepr.pickingObj, this.pickingObj)
   }
 
   recolor () {
     this.ribbonRepr.recolor()
     this.arrowRepr.recolor()
+    this.nucRepr.recolor()
   }
 }
 

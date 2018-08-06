@@ -1440,6 +1440,7 @@ class View {
       backbone: false,
       ribbon: true,
       sphere: false,
+      transparent: false,
     },
     this.pdb_id = ''
   }

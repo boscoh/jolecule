@@ -163,11 +163,14 @@ export default {
       // const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
       // await this.joleculeWidget.asyncAddDataServer(dataServer3)
 
+      const dataServer7 = require('../../../dataservers/1mbo-data-server')
+      await this.joleculeWidget.asyncAddDataServer(dataServer7)
+
       // const dataServer8 = require('../../../dataservers/1u6b-data-server')
       // await this.joleculeWidget.asyncAddDataServer(dataServer8)
 
-      const dataServer9 = require('../../../dataservers/1be9-data-server')
-      await this.joleculeWidget.asyncAddDataServer(dataServer9)
+      // const dataServer9 = require('../../../dataservers/1be9-data-server')
+      // await this.joleculeWidget.asyncAddDataServer(dataServer9)
 
       // const dataServer10 = require('../../../dataservers/1ubq-data-server')
       // await this.joleculeWidget.asyncAddDataServer(dataServer10)

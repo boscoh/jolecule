@@ -194,10 +194,13 @@ class EmbedJolecule {
       this.footerDiv
         .append($('<div id="sphere">'))
         .append($('<div id="backbone">'))
+        .append($('<div id="transparent">'))
       this.spherWidget = new widgets.ToggleButtonWidget(
         this.display, '#sphere', 'sphere')
       this.backboneWidget = new widgets.ToggleButtonWidget(
         this.display, '#backbone', 'backbone')
+      this.transparentWidget = new widgets.ToggleButtonWidget(
+        this.display, '#transparent', 'transparent')
     }
 
   }

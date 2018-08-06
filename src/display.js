@@ -408,6 +408,8 @@ class Display extends WebglWidget {
     this.atomRadius = 0.35
     this.gridAtomRadius = 1.0
 
+    this.isHighlightChain = false
+
     // Cross-hairs to identify centered atom
     this.buildCrossHairs()
 
@@ -465,13 +467,10 @@ class Display extends WebglWidget {
     }
 
     this.addRepresentation(
-      'ribbons',
+      'ribbon',
       new representation.CartoonRepresentation(this.soup))
     this.addRepresentation(
-      'nucleotides',
-      new representation.NucleotideRepresentation(this.soup))
-    this.addRepresentation(
-      'ligands',
+      'ligand',
       new representation.LigandRepresentation(this.soup, this.atomRadius))
     if (this.isGrid) {
       this.addRepresentation(
@@ -719,12 +718,19 @@ class Display extends WebglWidget {
         new representation.SphereRepresentation(this.soup, this.atomRadius))
     }
 
-    this.setMeshVisible('ribbons', show.ribbon)
-    this.setMeshVisible('nucleotides', show.ribbon)
+    this.setMeshVisible('ribbon', show.ribbon)
     this.setMeshVisible('water', show.water)
     this.setMeshVisible('backbone', show.backbone)
-    this.setMeshVisible('ligands', show.ligands)
+    this.setMeshVisible('ligand', show.ligands)
     this.setMeshVisible('sphere', show.sphere)
+
+    if (this.representations.ribbon) {
+      if (this.representations.ribbon.isTransparent !== show.transparent) {
+        this.representations.ribbon.setTransparent(show.transparent)
+        this.representations.ribbon.build()
+        this.updateMeshesInScene = true
+      }
+    }
 
     if (this.isGrid) {
       if (this.soupView.soup.grid.changed) {
@@ -764,8 +770,6 @@ class Display extends WebglWidget {
     // needs to be observers.updated before render
     // as lines must be placed in THREE.js scene
     this.distanceMeasuresWidget.drawFrame()
-
-    // console.log('Display.drawFrame', this.displayScene.children)
 
     this.render()
 
