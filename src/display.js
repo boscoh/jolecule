@@ -466,10 +466,7 @@ class Display extends WebglWidget {
 
     this.addRepresentation(
       'ribbons',
-      new representation.RibbonRepresentation(this.soup))
-    this.addRepresentation(
-      'arrows',
-      new representation.ArrowRepresentation(this.soup))
+      new representation.CartoonRepresentation(this.soup))
     this.addRepresentation(
       'nucleotides',
       new representation.NucleotideRepresentation(this.soup))
@@ -500,7 +497,7 @@ class Display extends WebglWidget {
   }
 
   buildCrossHairs () {
-    let radius = 1.2
+    let radius = 2.0
     let segments = 60
     let material = new THREE.LineBasicMaterial({color: 0xFF5555})
     let geometry = new THREE.CircleGeometry(radius, segments)
@@ -723,7 +720,7 @@ class Display extends WebglWidget {
     }
 
     this.setMeshVisible('ribbons', show.ribbon)
-    this.setMeshVisible('arrows', show.ribbon)
+    this.setMeshVisible('nucleotides', show.ribbon)
     this.setMeshVisible('water', show.water)
     this.setMeshVisible('backbone', show.backbone)
     this.setMeshVisible('ligands', show.ligands)
@@ -747,18 +744,12 @@ class Display extends WebglWidget {
     }
 
     if (this.soupView.updateSelection) {
-      this.representations.ribbons.recolor()
-      this.representations.arrows.recolor()
-      this.representations.nucleotides.recolor()
-      this.representations.sidechain.build()
-      if (this.representations.backbone) {
-        this.representations.backbone.recolor()
-      }
-      if (this.representations.sphere) {
-        this.representations.sphere.recolor()
+      for (let repr of _.values(this.representations)) {
+        if ('recolor' in repr) {
+          repr.recolor()
+        }
       }
       this.soupView.updateSelection = false
-      this.updateMeshesInScene = true
       this.soupView.updateObservers = true
     }
 
@@ -839,7 +830,7 @@ class Display extends WebglWidget {
         this.atomLabelDialog()
       } else {
         let iRes = this.soup.getAtomProxy(this.iAtomHover).iRes
-        this.controller.selectResidue(iRes)
+        this.controller.selectResidue(iRes, true)
         this.setTargetViewByIAtom(this.iAtomHover)
       }
       this.isDraggingCentralAtom = false

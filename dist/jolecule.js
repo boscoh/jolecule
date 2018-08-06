@@ -83175,6 +83175,7 @@ var AtomLabelsWidget = function () {
 
       var popup = new PopupText(this.display.divTag);
       popup.i = i;
+      popup.div.css('pointer-events', 'auto');
       popup.div.click(function () {
         _this3.removePopup(popup.i);
       });
@@ -89952,7 +89953,7 @@ function initFullPageJolecule() {
   return new (Function.prototype.bind.apply(_fullpagejolecule.FullPageJolecule, [null].concat(args)))();
 }
 
-function remoteDataServer(pdbId) {
+function remoteDataServer(pdbId, userId) {
   return {
     pdb_id: pdbId,
     get_protein_data: function get_protein_data(processProteinData) {
@@ -89968,8 +89969,12 @@ function remoteDataServer(pdbId) {
       });
     },
     get_views: function get_views(processViews) {
-      console.log('remoteDataServer.get_views', '/pdb/' + pdbId + '.views.json');
-      _jquery2.default.getJSON('/pdb/' + pdbId + '.views.json', processViews);
+      var url = '/pdb/' + pdbId + '.views.json';
+      if (userId) {
+        url += '?user_id=' + userId;
+      }
+      console.log('remoteDataServer.get_views', url);
+      _jquery2.default.getJSON(url, processViews);
     },
     save_views: function save_views(views, success) {
       console.log('remoteDataServer.save_views', '/save/views', views);
@@ -91791,7 +91796,7 @@ var Display = function (_WebglWidget) {
   }, {
     key: 'buildCrossHairs',
     value: function buildCrossHairs() {
-      var radius = 1.2;
+      var radius = 2.0;
       var segments = 60;
       var material = new THREE.LineBasicMaterial({ color: 0xFF5555 });
       var geometry = new THREE.CircleGeometry(radius, segments);

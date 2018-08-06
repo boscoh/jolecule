@@ -33,7 +33,7 @@ function initFullPageJolecule (...args) {
   return new FullPageJolecule(...args)
 }
 
-function remoteDataServer (pdbId) {
+function remoteDataServer (pdbId, userId) {
   return {
     pdb_id: pdbId,
     get_protein_data: function (processProteinData) {
@@ -49,8 +49,12 @@ function remoteDataServer (pdbId) {
       })
     },
     get_views: function (processViews) {
-      console.log('remoteDataServer.get_views', `/pdb/${pdbId}.views.json`)
-      $.getJSON(`/pdb/${pdbId}.views.json`, processViews)
+      let url = `/pdb/${pdbId}.views.json`
+      if (userId) {
+        url += `?user_id=${userId}`
+      }
+      console.log('remoteDataServer.get_views', url)
+      $.getJSON(url, processViews)
     },
     save_views: function (views, success) {
       console.log('remoteDataServer.save_views', '/save/views', views)

@@ -378,6 +378,7 @@ class AtomLabelsWidget {
   createPopup (i) {
     let popup = new PopupText(this.display.divTag)
     popup.i = i
+    popup.div.css('pointer-events', 'auto')
     popup.div.click(() => { this.removePopup(popup.i) })
     return popup
   }

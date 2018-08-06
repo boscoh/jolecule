@@ -4,6 +4,7 @@ const fs = require('fs-extra')
 
 const config = require('./config')
 const dbmodel = require('./dbmodel')
+const conn = require('./conn')
 
 /**
  *
@@ -151,10 +152,104 @@ async function publicUploadFiles (fileList) {
   return { files: targetPaths }
 }
 
+function parsetTitleFromPdbText (text) {
+  let result = ''
+  let lines = text.split(/\r?\n/)
+  for (let line of lines) {
+    if (line.substring(0, 5) === 'TITLE') {
+      result += line.substring(10)
+    }
+  }
+  return result
+}
+
+function isDirectory (f) {
+  try {
+    return fs.statSync(f).isDirectory()
+  } catch (e) {
+  }
+  return false
+}
+
+async function publicGetInit () {
+  let payload = {
+    initDir: conn.initDir,
+    initFile: conn.initFile,
+  }
+  console.log('publicGetInit', payload)
+  return payload
+}
+
+async function publicGetFiles (dirname) {
+  let files = fs.readdirSync(dirname)
+  let payload = {
+    dirname,
+    files: [],
+    directories: [],
+    time: ''
+  }
+  payload.directories.push('..')
+  for (let filename of files) {
+    if (isDirectory(path.join(dirname, filename))) {
+      payload.directories.push(filename)
+    } else if (_.endsWith(filename, '.pdb')) {
+      try {
+        const pdbText = fs.readFileSync(path.join(dirname, filename), 'utf8')
+        payload.files.push({
+          title: parsetTitleFromPdbText(pdbText),
+          filename: path.join(dirname, filename),
+          name: filename
+        })
+      } catch (error) {}
+    }
+  } 
+  return payload
+}
+
+async function publicGetProteinText(pdb) {
+  const pdbText = fs.readFileSync(pdb, 'utf8')
+  return { pdbText}
+}
+
+async function publicGetViewDicts (pdb) {
+  let viewJson = getViewsJson(pdb)
+  let views = {}
+  let text = ''
+  if (fs.existsSync(viewJson)) {
+    text = fs.readFileSync(viewJson, 'utf8')
+    views = JSON.parse(text)
+  }
+  return {views}
+}
+
+async function publicSaveViewDicts(pdb, views) {
+  let viewJson = getViewsJson(pdb)
+  fs.writeFileSync(viewJson, JSON.stringify(views, null, 2))
+  return {success: True}
+}
+
+async function publicDeleteView(pdb, viewId) {
+  let viewJson = getViewsJson(pdb)
+  if (fs.existsSync(viewJson)) {
+    let text = fs.readFileSync(viewJson, 'utf8')
+    let views = JSON.parse(text)
+    _.remove(views, v => v.view_id === viewId)
+    fs.writeFileSync(viewJson, JSON.stringify(views, null, 2))
+  }
+  return {success: True}
+}
+
+
 module.exports = {
   publicRegisterUser,
   loginUpdateUser,
   publicGetText,
   publicDownloadGetReadme,
-  publicUploadFiles
+  publicUploadFiles,
+  publicGetInit,
+  publicGetFiles,
+  publicGetProteinText,
+  publicGetViewDicts,
+  publicSaveViewDicts,
+  publicDeleteView
 }

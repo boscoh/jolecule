@@ -193,12 +193,9 @@ class EmbedJolecule {
     if (this.params.isEditable) {
       this.footerDiv
         .append($('<div id="sphere">'))
-        .append($('<div id="ribbon">'))
         .append($('<div id="backbone">'))
       this.spherWidget = new widgets.ToggleButtonWidget(
         this.display, '#sphere', 'sphere')
-      this.ribbonWidget = new widgets.ToggleButtonWidget(
-        this.display, '#ribbon', 'ribbon')
       this.backboneWidget = new widgets.ToggleButtonWidget(
         this.display, '#backbone', 'backbone')
     }

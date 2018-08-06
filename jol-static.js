@@ -120,7 +120,6 @@ const fullPageIndexHtmlMustache = `
       <script>
         (function() {
           require(['jolecule'], function(jolecule) {
-            window.user = '{{user_nickname}}';
             var j = jolecule.initFullPageJolecule(
               '#jolecule-protein-container',
               '#jolecule-views-container',

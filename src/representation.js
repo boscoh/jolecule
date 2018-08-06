@@ -9,8 +9,18 @@ import * as glgeom from './glgeom'
  *******************************************************
  */
 
-let pickingMaterial = new THREE.MeshBasicMaterial({vertexColors: THREE.VertexColors})
-let displayMaterial = new THREE.MeshPhongMaterial({vertexColors: THREE.VertexColors})
+let pickingMaterial = new THREE.MeshBasicMaterial({
+  vertexColors: THREE.VertexColors
+})
+let phongMaterial = new THREE.MeshPhongMaterial({
+  vertexColors: THREE.VertexColors
+})
+let transparentMaterial = new THREE.MeshPhongMaterial( {
+  opacity: 0.3,
+  premultipliedAlpha: true,
+  vertexColors: THREE.VertexColors,
+  transparent: true
+})
 
 function getIndexColor (i) {
   return new THREE.Color().setHex(i + 1)
@@ -32,19 +42,13 @@ class ArrowRepresentation {
     this.soup = soup
     this.traces = soup.traces
     this.displayObj = new THREE.Object3D()
-    this.displayMaterial = displayMaterial
+    this.displayMaterial = phongMaterial
     this.pickingMaterial = pickingMaterial
     this.pickingObj = new THREE.Object3D()
     this.build()
   }
 
   build () {
-    // this.displayMaterial = new THREE.MeshPhongMaterial( {
-    //   opacity: 0.3,
-    //   premultipliedAlpha: true,
-    //   vertexColors: THREE.VertexColors,
-    //   transparent: true
-    // } )
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
     let nCopy = 0
@@ -111,18 +115,18 @@ class RibbonRepresentation {
     this.traces = soup.traces
     this.displayObj = new THREE.Object3D()
     this.pickingObj = new THREE.Object3D()
-    this.displayMaterial = displayMaterial
+    this.displayMaterial = phongMaterial
     this.pickingMaterial = pickingMaterial
     this.build()
   }
 
+  setTransparent (isTransparent) {
+    if (isTransparent) {
+      this.displayMaterial = transparentMaterial
+    }
+  }
+
   build () {
-    // this.displayMaterial = new THREE.MeshPhongMaterial( {
-    //   opacity: 0.3,
-    //   premultipliedAlpha: true,
-    //   vertexColors: THREE.VertexColors,
-    //   transparent: true
-    // } )
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
     this.displayGeom = new glgeom.BufferRibbonGeometry(
@@ -148,6 +152,124 @@ class RibbonRepresentation {
   }
 }
 
+class NucleotideRepresentation {
+  constructor (soup) {
+    this.displayObj = new THREE.Object3D()
+    this.pickingObj = new THREE.Object3D()
+    this.displayMaterial = phongMaterial
+    this.pickingMaterial = pickingMaterial
+    this.soup = soup
+    this.build()
+  }
+
+  build () {
+    glgeom.clearObject3D(this.displayObj)
+    glgeom.clearObject3D(this.pickingObj)
+
+    let residue = this.soup.getResidueProxy()
+    let atom = this.soup.getAtomProxy()
+    let getVecFromAtomType = a => atom.load(residue.getIAtom(a)).pos.clone()
+
+    let verticesList = []
+    this.nucleotideColorList = []
+    let indexColorList = []
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      residue.iRes = iRes
+      if (residue.ss === 'D' && residue.isPolymer) {
+        this.nucleotideColorList.push(residue.activeColor)
+        indexColorList.push(getIndexColor(residue.iAtom))
+        let atomTypes = data.getNucleotideBaseAtomTypes(residue.resType)
+        verticesList.push(_.map(atomTypes, getVecFromAtomType))
+      }
+    }
+
+    this.nucleotideGeom = new glgeom.BufferRaisedShapesGeometry(
+      verticesList, this.nucleotideColorList, 0.2)
+    let displayMesh = new THREE.Mesh(this.nucleotideGeom, this.displayMaterial)
+    this.displayObj.add(displayMesh)
+
+    let pickingGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, indexColorList, 0.2)
+    let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
+    this.pickingObj.add(pickingMesh)
+
+    this.nucleotideConnectList = []
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      residue.iRes = iRes
+      if (residue.ss === 'D' && residue.isPolymer) {
+        for (let bond of data.getNucleotideConnectorBondAtomTypes(residue.resType)) {
+          this.nucleotideConnectList.push([
+            getVecFromAtomType(bond[0]),
+            getVecFromAtomType(bond[1]),
+            iRes])
+        }
+      }
+    }
+
+    let nBond = this.nucleotideConnectList.length
+    let cylinderBufferGeometry = glgeom.makeBufferZCylinderGeometry(0.4)
+    this.nucleotideConnectorGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nBond)
+    for (let iBond = 0; iBond < nBond; iBond += 1) {
+      let [p1, p2, iRes] = this.nucleotideConnectList[iBond]
+      this.nucleotideConnectorGeom.applyMatrixToCopy(
+        glgeom.getCylinderMatrix(p1, p2, 0.3), iBond)
+    }
+    for (let iBond = 0; iBond < nBond; iBond += 1) {
+      let [p1, p2, iRes] = this.nucleotideConnectList[iBond]
+      let color = residue.load(iRes).activeColor
+      this.nucleotideConnectorGeom.applyColorToCopy(color, iBond)
+    }
+    let mesh = new THREE.Mesh(this.nucleotideConnectorGeom, this.displayMaterial)
+    this.displayObj.add(mesh)
+  }
+
+  recolor () {
+    this.nucleotideColorList = []
+    let residue = this.soup.getResidueProxy()
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      residue.iRes = iRes
+      if (residue.ss === 'D' && residue.isPolymer) {
+        this.nucleotideColorList.push(residue.activeColor)
+      }
+    }
+    this.nucleotideGeom.recolor(this.nucleotideColorList)
+
+    let nBond = this.nucleotideConnectList.length
+    for (let iBond = 0; iBond < nBond; iBond += 1) {
+      let [p1, p2, iRes] = this.nucleotideConnectList[iBond]
+      let color = residue.load(iRes).activeColor
+      this.nucleotideConnectorGeom.applyColorToCopy(color, iBond)
+    }
+    this.nucleotideConnectorGeom.attributes.color.needsUpdate = true
+  }
+}
+
+class CartoonRepresentation {
+  constructor (soup) {
+    this.soup = soup
+    this.displayObj = new THREE.Object3D()
+    this.pickingObj = new THREE.Object3D()
+    this.build()
+  }
+
+  build () {
+    glgeom.clearObject3D(this.displayObj)
+    glgeom.clearObject3D(this.pickingObj)
+
+    this.ribbonRepr = new RibbonRepresentation(this.soup)
+    this.arrowRepr = new ArrowRepresentation(this.soup)
+
+    transferObjects(this.ribbonRepr.displayObj, this.displayObj)
+    transferObjects(this.arrowRepr.displayObj, this.displayObj)
+    transferObjects(this.ribbonRepr.pickingObj, this.pickingObj)
+    transferObjects(this.arrowRepr.pickingObj, this.pickingObj)
+  }
+
+  recolor () {
+    this.ribbonRepr.recolor()
+    this.arrowRepr.recolor()
+  }
+}
+
 class AtomsRepresentation {
   constructor (soup, atomIndices, atomRadius) {
     this.soup = soup
@@ -155,7 +277,7 @@ class AtomsRepresentation {
     this.pickingObj = new THREE.Object3D()
     this.atomIndices = atomIndices
     this.atomRadius = atomRadius
-    this.displayMaterial = displayMaterial
+    this.displayMaterial = phongMaterial
     this.pickingMaterial = pickingMaterial
     this.build()
   }
@@ -252,7 +374,7 @@ class BondRepresentation {
     this.bondIndices = bondIndices
     this.displayObj = new THREE.Object3D()
     this.pickingObj = new THREE.Object3D()
-    this.displayMaterial = displayMaterial
+    this.displayMaterial = phongMaterial
     this.pickingMaterial = pickingMaterial
     this.build()
   }
@@ -387,97 +509,6 @@ class WaterRepresentation extends AtomsRepresentation {
   }
 }
 
-class NucleotideRepresentation {
-  constructor (soup) {
-    this.displayObj = new THREE.Object3D()
-    this.pickingObj = new THREE.Object3D()
-    this.displayMaterial = displayMaterial
-    this.pickingMaterial = pickingMaterial
-    this.soup = soup
-    this.build()
-  }
-
-  build () {
-    glgeom.clearObject3D(this.displayObj)
-    glgeom.clearObject3D(this.pickingObj)
-
-    let residue = this.soup.getResidueProxy()
-    let atom = this.soup.getAtomProxy()
-    let getVecFromAtomType = a => atom.load(residue.getIAtom(a)).pos.clone()
-
-    let verticesList = []
-    this.nucleotideColorList = []
-    let indexColorList = []
-    for (let iRes of _.range(this.soup.getResidueCount())) {
-      residue.iRes = iRes
-      if (residue.ss === 'D' && residue.isPolymer) {
-        this.nucleotideColorList.push(residue.activeColor)
-        indexColorList.push(getIndexColor(residue.iAtom))
-        let atomTypes = data.getNucleotideBaseAtomTypes(residue.resType)
-        verticesList.push(_.map(atomTypes, getVecFromAtomType))
-      }
-    }
-
-    this.nucleotideGeom = new glgeom.BufferRaisedShapesGeometry(
-      verticesList, this.nucleotideColorList, 0.2)
-    let displayMesh = new THREE.Mesh(this.nucleotideGeom, this.displayMaterial)
-    this.displayObj.add(displayMesh)
-
-    let pickingGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, indexColorList, 0.2)
-    let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
-    this.pickingObj.add(pickingMesh)
-
-    this.nucleotideConnectList = []
-    for (let iRes of _.range(this.soup.getResidueCount())) {
-      residue.iRes = iRes
-      if (residue.ss === 'D' && residue.isPolymer) {
-        for (let bond of data.getNucleotideConnectorBondAtomTypes(residue.resType)) {
-          this.nucleotideConnectList.push([
-            getVecFromAtomType(bond[0]),
-            getVecFromAtomType(bond[1]),
-            iRes])
-        }
-      }
-    }
-
-    let nBond = this.nucleotideConnectList.length
-    let cylinderBufferGeometry = glgeom.makeBufferZCylinderGeometry(0.4)
-    this.nucleotideConnectorGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nBond)
-    for (let iBond = 0; iBond < nBond; iBond += 1) {
-      let [p1, p2, iRes] = this.nucleotideConnectList[iBond]
-      this.nucleotideConnectorGeom.applyMatrixToCopy(
-        glgeom.getCylinderMatrix(p1, p2, 0.3), iBond)
-    }
-    for (let iBond = 0; iBond < nBond; iBond += 1) {
-      let [p1, p2, iRes] = this.nucleotideConnectList[iBond]
-      let color = residue.load(iRes).activeColor
-      this.nucleotideConnectorGeom.applyColorToCopy(color, iBond)
-    }
-    let mesh = new THREE.Mesh(this.nucleotideConnectorGeom, this.displayMaterial)
-    this.displayObj.add(mesh)
-  }
-
-  recolor () {
-    this.nucleotideColorList = []
-    let residue = this.soup.getResidueProxy()
-    for (let iRes of _.range(this.soup.getResidueCount())) {
-      residue.iRes = iRes
-      if (residue.ss === 'D' && residue.isPolymer) {
-        this.nucleotideColorList.push(residue.activeColor)
-      }
-    }
-    this.nucleotideGeom.recolor(this.nucleotideColorList)
-
-    let nBond = this.nucleotideConnectList.length
-    for (let iBond = 0; iBond < nBond; iBond += 1) {
-      let [p1, p2, iRes] = this.nucleotideConnectList[iBond]
-      let color = residue.load(iRes).activeColor
-      this.nucleotideConnectorGeom.applyColorToCopy(color, iBond)
-    }
-    this.nucleotideConnectorGeom.attributes.color.needsUpdate = true
-  }
-}
-
 class SidechainRepresentation {
   constructor (soup, radius) {
     this.soup = soup
@@ -522,6 +553,11 @@ class SidechainRepresentation {
     transferObjects(this.atomRepr.displayObj, this.displayObj)
     transferObjects(this.bondRepr.displayObj, this.displayObj)
     transferObjects(this.atomRepr.pickingObj, this.pickingObj)
+  }
+
+  recolor () {
+    this.atomRepr.recolor()
+    this.bondRepr.recolor()
   }
 }
 
@@ -575,6 +611,7 @@ class BackboneRepresentation {
 export {
   ArrowRepresentation,
   RibbonRepresentation,
+  CartoonRepresentation,
   AtomsRepresentation,
   GridRepresentation,
   SphereRepresentation,

@@ -1948,9 +1948,11 @@ class Controller {
     this.soupView.changed = true
   }
 
-  selectResidue (iRes) {
+  selectResidue (iRes, val) {
     let res = this.soup.getResidueProxy(iRes)
-    let val = !res.selected
+    if (_.isUndefined(val)) {
+      val = !res.selected
+    }
     this.clearSelectedResidues()
     this.setResidueSelect(iRes, val)
     this.iResLastSelected = val ? iRes : null

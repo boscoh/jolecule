@@ -21,4 +21,47 @@ const db = new Sequelize(
 // Wipes database if `force: true`
 db.sync({force: false})
 
-module.exports = {app, db}
+// Parse command line
+
+const nopt = require('nopt')
+const path = require('path')
+
+let knownOpts = {debug: [Boolean, false]}
+let shortHands = {d: ['--debug']}
+let parsed = nopt(knownOpts, shortHands, process.argv, 2)
+let remain = parsed.argv.remain
+
+isDebug = !!parsed.debug
+
+let initDir
+
+if (remain.length > 0) {
+  testPdb = remain[0]
+
+  initPdb = testPdb
+  initDir = path.dirname(initPdb)
+
+  if (isDirectory(testPdb)) {
+    initDir = testPdb
+    initPdb = ''
+  } else if (!fs.existsSync(testPdb)) {
+    let testInitPdb = testPdb + '.pdb'
+    if (fs.existsSync(testInitPdb)) {
+      initPdb = testInitPdb
+      initDir = path.dirname(initPdb)
+    }
+  }
+  if (initPdb && !fs.existsSync(initPdb)) {
+    console.log('file not found', initPdb)
+    process.exit(1);
+  }
+  if (!isDirectory(initDir)) {
+    console.log('directory not found', initDir)
+    process.exit(1);
+  }
+} else {
+  initPdb = path.join(__dirname, '../../../examples/1mbo.pdb')
+  initDir = path.dirname(initPdb)
+}
+
+module.exports = {app, db, initPdb, initDir}
