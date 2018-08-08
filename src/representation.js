@@ -12,10 +12,12 @@ import * as glgeom from './glgeom'
 let pickingMaterial = new THREE.MeshBasicMaterial({
   vertexColors: THREE.VertexColors
 })
+
 let phongMaterial = new THREE.MeshPhongMaterial({
   vertexColors: THREE.VertexColors,
 })
-let transparentMaterial = new THREE.MeshPhongMaterial( {
+
+let transparentMaterial = new THREE.MeshPhongMaterial({
   opacity: 0.3,
   premultipliedAlpha: true,
   vertexColors: THREE.VertexColors,
@@ -26,7 +28,7 @@ function getIndexColor (i) {
   return new THREE.Color().setHex(i + 1)
 }
 
-function transferObjects(fromObj, toObj) {
+function transferObjects (fromObj, toObj) {
   for (let child of _.values(fromObj.children)) {
     toObj.add(child)
   }
@@ -63,8 +65,11 @@ class Representation {
 }
 
 class ArrowRepresentation extends Representation {
-  constructor (soup) {
+  constructor (soup, isTransparent = false, selectedTraces = []) {
     super(soup)
+    this.selectedTraces = selectedTraces
+    this.setTransparent(isTransparent)
+    this.traces = []
     this.build()
   }
 
@@ -84,8 +89,19 @@ class ArrowRepresentation extends Representation {
 
     let obj = new THREE.Object3D()
 
+    this.traces = this.soup.traces
+    if (this.selectedTraces.length > 0) {
+      let newTraces = []
+      for (let [i, trace] of this.traces.entries()) {
+        if (_.includes(this.selectedTraces, i)) {
+          newTraces.push(trace)
+        }
+      }
+      this.traces = newTraces
+    }
+
     let iCopy = 0
-    for (let trace of this.soup.traces) {
+    for (let trace of this.traces) {
       let n = trace.points.length
       for (let i of _.range(n)) {
         let point = trace.points[i]
@@ -116,7 +132,8 @@ class ArrowRepresentation extends Representation {
   recolor () {
     let iCopy = 0
     let residue = this.soup.getResidueProxy()
-    for (let trace of this.soup.traces) {
+
+    for (let trace of this.traces) {
       let n = trace.points.length
       for (let i of _.range(n)) {
         let iRes = trace.refIndices[i]
@@ -130,17 +147,29 @@ class ArrowRepresentation extends Representation {
 }
 
 class RibbonRepresentation extends Representation {
-  constructor (soup) {
+  constructor (soup, isTransparent = false, selectedTraces = []) {
     super(soup)
+    this.selectedTraces = selectedTraces
+    this.traces = []
+    this.setTransparent(isTransparent)
     this.build()
   }
 
   build () {
+    this.traces = this.soup.traces
+    if (this.selectedTraces.length > 0) {
+      let newTraces = []
+      for (let [i, trace] of this.traces.entries()) {
+        if (_.includes(this.selectedTraces, i)) {
+          newTraces.push(trace)
+        }
+      }
+      this.traces = newTraces
+    }
     this.displayGeom = new glgeom.BufferRibbonGeometry(
-      this.soup.traces, data.coilFace)
+      this.traces, data.coilFace, false)
     this.pickingGeom = new glgeom.BufferRibbonGeometry(
-      this.soup.traces, data.coilFace, true)
-
+      this.traces, data.coilFace, true)
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
     let displayMesh = new THREE.Mesh(this.displayGeom, this.displayMaterial)
@@ -152,7 +181,7 @@ class RibbonRepresentation extends Representation {
 
   recolor () {
     let residue = this.soup.getResidueProxy()
-    for (let trace of this.soup.traces) {
+    for (let trace of this.traces) {
       for (let iTrace of _.range(trace.points.length)) {
         let iRes = trace.refIndices[iTrace]
         trace.colors[iTrace] = residue.load(iRes).activeColor
@@ -163,8 +192,11 @@ class RibbonRepresentation extends Representation {
 }
 
 class NucleotideRepresentation extends Representation {
-  constructor (soup) {
+  constructor (soup, isTransparent = false, selectedTraces = null) {
     super(soup)
+    this.selectedTraces = selectedTraces
+    this.setTransparent(isTransparent)
+    this.traces = []
     this.build()
   }
 
@@ -181,13 +213,28 @@ class NucleotideRepresentation extends Representation {
     let verticesList = []
     this.nucleotideColorList = []
     let indexColorList = []
-    for (let iRes of _.range(this.soup.getResidueCount())) {
-      residue.iRes = iRes
-      if (residue.ss === 'D' && residue.isPolymer) {
-        this.nucleotideColorList.push(residue.activeColor)
-        indexColorList.push(getIndexColor(residue.iAtom))
-        let atomTypes = data.getNucleotideBaseAtomTypes(residue.resType)
-        verticesList.push(_.map(atomTypes, getVecFromAtomType))
+
+    this.traces = this.soup.traces
+    if (this.selectedTraces.length > 0) {
+      let newTraces = []
+      for (let [i, trace] of this.traces.entries()) {
+        if (_.includes(this.selectedTraces, i)) {
+          newTraces.push(trace)
+        }
+      }
+      this.traces = newTraces
+    }
+
+    for (let trace of this.traces) {
+      for (let iRes of trace.indices) {
+        // for (let iRes of _.range(this.soup.getResidueCount())) {
+        residue.iRes = iRes
+        if (residue.ss === 'D' && residue.isPolymer) {
+          this.nucleotideColorList.push(residue.activeColor)
+          indexColorList.push(getIndexColor(residue.iAtom))
+          let atomTypes = data.getNucleotideBaseAtomTypes(residue.resType)
+          verticesList.push(_.map(atomTypes, getVecFromAtomType))
+        }
       }
     }
 
@@ -201,14 +248,16 @@ class NucleotideRepresentation extends Representation {
     this.pickingObj.add(pickingMesh)
 
     this.nucleotideConnectList = []
-    for (let iRes of _.range(this.soup.getResidueCount())) {
-      residue.iRes = iRes
-      if (residue.ss === 'D' && residue.isPolymer) {
-        for (let bond of data.getNucleotideConnectorBondAtomTypes(residue.resType)) {
-          this.nucleotideConnectList.push([
-            getVecFromAtomType(bond[0]),
-            getVecFromAtomType(bond[1]),
-            iRes])
+    for (let trace of this.traces) {
+      for (let iRes of trace.indices) {
+        residue.iRes = iRes
+        if (residue.ss === 'D' && residue.isPolymer) {
+          for (let bond of data.getNucleotideConnectorBondAtomTypes(residue.resType)) {
+            this.nucleotideConnectList.push([
+              getVecFromAtomType(bond[0]),
+              getVecFromAtomType(bond[1]),
+              iRes])
+          }
         }
       }
     }
@@ -234,10 +283,12 @@ class NucleotideRepresentation extends Representation {
   recolor () {
     this.nucleotideColorList = []
     let residue = this.soup.getResidueProxy()
-    for (let iRes of _.range(this.soup.getResidueCount())) {
-      residue.iRes = iRes
-      if (residue.ss === 'D' && residue.isPolymer) {
-        this.nucleotideColorList.push(residue.activeColor)
+    for (let trace of this.traces) {
+      for (let iRes of trace.indices) {
+        residue.iRes = iRes
+        if (residue.ss === 'D' && residue.isPolymer) {
+          this.nucleotideColorList.push(residue.activeColor)
+        }
       }
     }
     this.nucleotideGeom.recolor(this.nucleotideColorList)
@@ -253,28 +304,24 @@ class NucleotideRepresentation extends Representation {
 }
 
 class CartoonRepresentation extends Representation {
-  constructor (soup) {
+  constructor (soup, isTransparent = false, selectedTraces = []) {
     super(soup)
+    super.setTransparent(isTransparent)
+    this.selectedTraces = selectedTraces
     this.build()
   }
 
-  setTransparent(isTransparent) {
+  setTransparent (isTransparent) {
     super.setTransparent(isTransparent)
     this.ribbonRepr.setTransparent(isTransparent)
     this.arrowRepr.setTransparent(isTransparent)
+    this.nucRepr.setTransparent(isTransparent)
   }
 
   build () {
-    this.ribbonRepr = new RibbonRepresentation(this.soup)
-    this.arrowRepr = new ArrowRepresentation(this.soup)
-    this.nucRepr = new NucleotideRepresentation(this.soup)
-
-    this.ribbonRepr.setTransparent(this.isTransparent)
-    this.ribbonRepr.build()
-    this.arrowRepr.setTransparent(this.isTransparent)
-    this.arrowRepr.build()
-    this.nucRepr.setTransparent(this.isTransparent)
-    this.nucRepr.build()
+    this.ribbonRepr = new RibbonRepresentation(this.soup, this.isTransparent, this.selectedTraces)
+    this.arrowRepr = new ArrowRepresentation(this.soup, this.isTransparent, this.selectedTraces)
+    this.nucRepr = new NucleotideRepresentation(this.soup, this.isTransparent, this.selectedTraces)
 
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)

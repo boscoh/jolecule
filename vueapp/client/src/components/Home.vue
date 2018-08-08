@@ -141,6 +141,7 @@ export default {
   async mounted () {
     this.joleculeWidget = initEmbedJolecule({
       divTag: '#jolecule',
+      viewId: 'view:45c4gq',
       isGrid: true,
       isEditable: true,
       isPlayable: true,
@@ -153,8 +154,11 @@ export default {
       const dataServer7 = require('../../../dataservers/1mbo-data-server')
       await this.joleculeWidget.asyncAddDataServer(dataServer7)
     } else {
-      const dataServer0 = require('../../../dataservers/1a0a-data-server')
-      await this.joleculeWidget.asyncAddDataServer(dataServer0)
+      const dataServer7 = require('../../../dataservers/1mbo-data-server')
+      await this.joleculeWidget.asyncAddDataServer(dataServer7)
+
+      // const dataServer0 = require('../../../dataservers/1a0a-data-server')
+      // await this.joleculeWidget.asyncAddDataServer(dataServer0)
 
       // const dataServer1 = require('../../../dataservers/1a0a-Ar-data-server')
       // await this.joleculeWidget.asyncAddDataServer(dataServer1)
@@ -162,9 +166,6 @@ export default {
       // await this.joleculeWidget.asyncAddDataServer(dataServer2)
       // const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
       // await this.joleculeWidget.asyncAddDataServer(dataServer3)
-
-      const dataServer7 = require('../../../dataservers/1mbo-data-server')
-      await this.joleculeWidget.asyncAddDataServer(dataServer7)
 
       // const dataServer8 = require('../../../dataservers/1u6b-data-server')
       // await this.joleculeWidget.asyncAddDataServer(dataServer8)

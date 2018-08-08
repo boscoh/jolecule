@@ -59,41 +59,58 @@ class EmbedJolecule {
   };
 
   async asyncAddDataServer (dataServer) {
-    console.log('EmbedJolecule.asyncAddDataServer')
-
     while (this.isProcessing.flag) {
       await delay(100)
     }
 
+    console.log('EmbedJolecule.asyncAddDataServer')
+
     this.isProcessing.flag = true
 
     await this.display.asyncSetMesssage('Loading structure...')
+
+    let asyncSetMessageFn = m => {
+      this.display.asyncSetMesssage(m)
+    }
+
     await new Promise(resolve => {
       dataServer.get_protein_data(async (proteinData) => {
         await this.controller.asyncLoadProteinData(
-          proteinData, m => this.display.asyncSetMesssage(m))
-        if (this.params.bCutoff !== null) {
-          this.soup.grid.bCutoff = this.params.bCutoff
-        }
-        this.display.buildScene()
-        this.resize()
+          proteinData, asyncSetMessageFn)
         resolve()
       })
     })
 
-    await this.display.asyncSetMesssage('Loading views...')
-    dataServer.get_views(viewDicts => {
-      this.controller.loadViewsFromViewDicts(viewDicts)
-      if (this.params.viewId in this.soupView.savedViewsByViewId) {
-        this.controller.setTargetViewByViewId(this.params.viewId)
-      }
-    })
+    if (this.params.bCutoff !== null) {
+      this.soup.grid.bCutoff = this.params.bCutoff
+    }
 
-    this.display.dataServer = dataServer
+    this.display.buildScene()
+
+    this.resize()
 
     this.controller.zoomOut()
 
-    this.display.observers.rebuilt.dispatch()
+    await this.display.asyncSetMesssage('Loading views...')
+
+    if (this.soupView.nDataServer === 1) {
+      // save only first loaded dataServer for saving and deleting
+      this.display.dataServer = dataServer
+
+      await new Promise(resolve => {
+        dataServer.get_views(viewDicts => {
+          this.controller.loadViewsFromViewDicts(viewDicts)
+          resolve()
+        })
+      })
+
+      let isDefaultViewId = this.params.viewId in this.soupView.savedViewsByViewId
+      if (isDefaultViewId) {
+        this.controller.setTargetViewByViewId(this.params.viewId)
+      }
+      this.soupView.updateObservers = true
+    }
+
     this.display.cleanupMessage()
 
     this.isProcessing.flag = false

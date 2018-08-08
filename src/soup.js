@@ -1229,6 +1229,34 @@ class Soup {
     return indices
   }
 
+  isResCloseToPoint (iRes0, pos1) {
+    let atom0 = this.getAtomProxy()
+
+    let res0 = this.getResidueProxy(iRes0)
+    let pos0 = atom0.load(res0.iAtom).pos.clone()
+    if (v3.distance(pos0, pos1) > 17) {
+      return false
+    }
+
+    let atomIndices0 = res0.getAtomIndices()
+    for (let iAtom0 of atomIndices0) {
+      if (v3.distance(atom0.load(iAtom0).pos, pos1) < 5) {
+        return true
+      }
+    }
+    return false
+  }
+
+  getNeighboursOfPoint (pos) {
+    let indices = []
+    for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
+      if (this.isResCloseToPoint(jRes, pos)) {
+        indices.push(jRes)
+      }
+    }
+    return indices
+  }
+
   setSidechainOfNeighborResidues (iRes, isSidechain) {
     this.setSidechainOfResidues(
       this.getNeighbours(iRes), isSidechain)
@@ -2016,13 +2044,23 @@ class Controller {
 
   toggleResidueNeighbors () {
     let indices = []
+
+    let nSelected = 0
     let residue = this.soup.getResidueProxy()
     for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
       residue.load(iRes)
       if (residue.selected) {
         indices = _.concat(indices, this.soup.getNeighbours(iRes))
+        nSelected += 1
       }
     }
+
+    if (nSelected === 0) {
+      console.log('Controller.toggleResidueNeighbors none selected')
+      let pos = this.soupView.currentView.cameraParams.focus
+      indices = this.soup.getNeighboursOfPoint(pos)
+    }
+
     if (indices.length === 0) {
       let iAtom = this.soupView.currentView.iAtom
       let iRes = this.soup.getAtomProxy(iAtom).iRes
@@ -2082,9 +2120,6 @@ class Controller {
   }
 
   loadViewsFromViewDicts (viewDicts) {
-    if (this.nDataServer > 1) {
-      return
-    }
     for (let i = 0; i < viewDicts.length; i += 1) {
       let view = new View()
       view.setFromDict(viewDicts[i])
@@ -2097,9 +2132,10 @@ class Controller {
   }
 
   async asyncLoadProteinData (proteinData, asyncSetMessageFn) {
-    this.nDataServer += 1
+    this.soupView.nDataServer += 1
     await this.soup.asyncLoadProteinData(proteinData, asyncSetMessageFn)
     this.soupView.changed = true
+    this.soupView.updateObservers = true
   }
 
   setShowOption (option, bool) {
@@ -2181,7 +2217,7 @@ class Controller {
 
   deleteStructure (iStructure) {
     this.soup.deleteStructure(iStructure)
-    this.nDataServer -= 1
+    this.soupView.nDataServer -= 1
     if (this.soup.isEmpty()) {
       this.soupView.savedViews.length = 0
       for (let id of _.keys(this.soupView.savedViewsByViewId)) {

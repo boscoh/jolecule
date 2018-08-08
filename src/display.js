@@ -408,8 +408,6 @@ class Display extends WebglWidget {
     this.atomRadius = 0.35
     this.gridAtomRadius = 1.0
 
-    this.isHighlightChain = false
-
     // Cross-hairs to identify centered atom
     this.buildCrossHairs()
 
@@ -428,6 +426,9 @@ class Display extends WebglWidget {
     // draw onscreen line for mouse dragging between atoms
     this.lineElement = new widgets.LineElement(this, '#FF7777')
 
+    // index of traces to show selected
+    this.selectedTraces = [0]
+
     registerGlobalAnimationLoop(this)
   }
 
@@ -441,58 +442,6 @@ class Display extends WebglWidget {
     if ('resize' in observer) {
       this.observers.resized.add(() => { observer.resize() })
     }
-  }
-
-  /**
-   **********************************************************
-   * Mesh-building methods
-   *
-   * Routines to build meshes that will be incorporated into
-   * scenes, and to be used for gpu-picking.
-   *
-   * Meshes are stored in a dictionary: this.displayMeshes &
-   * this.pickingMeshes
-   **********************************************************
-   */
-
-  buildScene () {
-    // pre-calculations needed before building meshes
-    this.soupView.build()
-
-    for (let key of _.keys(this.displayMeshes)) {
-      _.unset(this.displayMeshes, key)
-    }
-    for (let key of _.keys(this.pickingMeshes)) {
-      _.unset(this.pickingMeshes, key)
-    }
-
-    this.addRepresentation(
-      'ribbon',
-      new representation.CartoonRepresentation(this.soup))
-    this.addRepresentation(
-      'ligand',
-      new representation.LigandRepresentation(this.soup, this.atomRadius))
-    if (this.isGrid) {
-      this.addRepresentation(
-        'grid',
-        new representation.GridRepresentation(this.soup, this.gridAtomRadius))
-    }
-    this.addRepresentation(
-      'sidechain',
-      new representation.SidechainRepresentation(this.soup, this.atomRadius))
-
-    this.rebuildSceneFromMeshes()
-
-    this.observers.rebuilt.dispatch()
-
-    this.soupView.changed = true
-    this.soupView.updateObservers = true
-  }
-
-  deleteStructure (iStructure) {
-    this.controller.deleteStructure(iStructure)
-    this.buildScene()
-    this.observers.rebuilt.dispatch()
   }
 
   buildCrossHairs () {
@@ -666,11 +615,71 @@ class Display extends WebglWidget {
   }
 
   /**
+   **********************************************************
+   * Mesh-building methods
+   *
+   * Routines to build meshes that will be incorporated into
+   * scenes, and to be used for gpu-picking.
+   *
+   * Meshes are stored in a dictionary: this.displayMeshes &
+   * this.pickingMeshes
+   **********************************************************
+   */
+
+  buildScene () {
+    // pre-calculations needed before building meshes
+    this.soupView.build()
+
+    // clear this.displayMeshes and this.pickingMeshes
+    for (let key of _.keys(this.displayMeshes)) {
+      _.unset(this.displayMeshes, key)
+    }
+    for (let key of _.keys(this.pickingMeshes)) {
+      _.unset(this.pickingMeshes, key)
+    }
+
+    this.addRepresentation(
+      'ribbon',
+      new representation.CartoonRepresentation(this.soup, true))
+    this.addRepresentation(
+      'selectRibbon',
+      new representation.CartoonRepresentation(this.soup, false, this.selectedTraces))
+    this.addRepresentation(
+      'ligand',
+      new representation.LigandRepresentation(this.soup, this.atomRadius))
+    if (this.isGrid) {
+      this.addRepresentation(
+        'grid',
+        new representation.GridRepresentation(this.soup, this.gridAtomRadius))
+    }
+    this.addRepresentation(
+      'sidechain',
+      new representation.SidechainRepresentation(this.soup, this.atomRadius))
+
+    this.rebuildSceneFromMeshes()
+
+    this.observers.rebuilt.dispatch()
+
+    this.soupView.changed = true
+    this.soupView.updateObservers = true
+  }
+
+  deleteStructure (iStructure) {
+    this.controller.deleteStructure(iStructure)
+    this.buildScene()
+    this.observers.rebuilt.dispatch()
+  }
+
+  /**
    ********************************************
    * Main event loop methods
    ********************************************
    */
 
+  /**
+   * Status function to work with registerAnimation Loop
+   * @returns Boolean
+   */
   isChanged () {
     return this.soupView.changed
   }
@@ -724,11 +733,22 @@ class Display extends WebglWidget {
     this.setMeshVisible('ligand', show.ligands)
     this.setMeshVisible('sphere', show.sphere)
 
-    if (this.representations.ribbon) {
-      if (this.representations.ribbon.isTransparent !== show.transparent) {
-        this.representations.ribbon.setTransparent(show.transparent)
-        this.representations.ribbon.build()
-        this.updateMeshesInScene = true
+    let iAtom = this.soupView.currentView.iAtom
+    let iRes = this.soup.getAtomProxy(iAtom).iRes
+    if (!_.isNil(iRes)) {
+      let selectedTraces = []
+      for (let [iTrace, trace] of this.soup.traces.entries()) {
+        if (_.includes(trace.indices, iRes)) {
+          selectedTraces.push(iTrace)
+          break
+        }
+      }
+      if (selectedTraces.length > 0) {
+        if (!_.isEqual(selectedTraces, this.representations.selectRibbon.selectedTraces)) {
+          this.representations.selectRibbon.selectedTraces = selectedTraces
+          this.representations.selectRibbon.build()
+          this.updateMeshesInScene = true
+        }
       }
     }
 

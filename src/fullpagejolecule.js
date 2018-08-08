@@ -373,11 +373,17 @@ class FullPageJolecule {
     if (exists(params)) {
       this.params = _.assign(this.params, params)
     }
+    if (!this.params.viewId) {
+      let hashTag = getWindowUrl().split('#')[1]
+      if (hashTag) {
+        this.params.viewId = hashTag
+        console.log(`FullPageJolecule.constructor viewId=${this.params.viewId}`)
+      }
+    }
     this.embedJolecule = new EmbedJolecule(this.params)
     this.embedJolecule.display.addObserver(this)
     document.oncontextmenu = _.noop
     document.onkeydown = (e) => { this.onkeydown(e) }
-    this.noData = true
   }
 
   clear () {
@@ -385,35 +391,21 @@ class FullPageJolecule {
   }
 
   async asyncAddDataServer (dataServer) {
-    console.log('FullPageJolecule.asyncAddDataServer', dataServer.id)
+    console.log('FullPageJolecule.asyncAddDataServer')
     await this.embedJolecule.asyncAddDataServer(dataServer)
-    this.initViewsDisplay(dataServer)
-  }
-
-  initViewsDisplay (dataServer) {
-    if (this.noData) {
-      this.noData = false
-
+    if (!this.viewPanelList) {
       this.soupView = this.embedJolecule.soupView
       this.controller = this.embedJolecule.controller
       this.display = this.embedJolecule.display
-
       this.viewPanelList = new ViewPanelList(
         this.viewsDisplayTag,
         this.display,
         this.params.isEditable)
 
       this.viewPanelList.makeAllViews()
-      let hashTag = getWindowUrl().split('#')[1]
-      if (hashTag in this.soupView.savedViewsByViewId) {
-        this.viewPanelList.setTargetByViewId(hashTag)
-      } else {
-        this.viewPanelList.setTargetByViewId('view:000000')
-      }
-      this.viewPanelList.update()
-
-      this.embedJolecule.resize()
     }
+    this.viewPanelList.update()
+    this.embedJolecule.resize()
   }
 
   update () {
