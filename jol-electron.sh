@@ -11,6 +11,6 @@ if [ $# -eq 0 ]
   then
     electron .
   else
-    electron . "$targetdir"/"$@"
+    electron . -f "$targetdir" "$@"
 fi
 

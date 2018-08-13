@@ -194,28 +194,27 @@ class EmbedJolecule {
     if (this.params.isEditable) {
       this.footerDiv
         .append(linkButton(
-          '', 'Clear', 'jolecule-button', () => { this.controller.clear() })
-        )
+          '', 'Clear', 'jolecule-button', () => { this.controller.clear() }))
         .append(linkButton(
-          '', 'Sidechains', 'jolecule-button', () => { this.controller.toggleSelectedSidechains() })
-        )
+          '', 'Sidechains', 'jolecule-button', () => { this.controller.toggleSelectedSidechains() }))
         .append(linkButton(
-          '', 'Neighbors', 'jolecule-button', () => { this.controller.toggleResidueNeighbors() })
-        )
-        .append($('<div id="ligand">'))
+          '', 'Neighbors', 'jolecule-button', () => { this.controller.toggleResidueNeighbors() }))
+
+      this.footerDiv.append($('<div id="ligand">'))
       this.ligandWidget = new widgets.ToggleButtonWidget(
         this.display, '#ligand', 'ligands')
     }
 
     if (this.params.isEditable) {
-      this.footerDiv
-        .append($('<div id="sphere">'))
-        .append($('<div id="backbone">'))
-        .append($('<div id="transparent">'))
+      this.footerDiv.append($('<div id="sphere">'))
       this.spherWidget = new widgets.ToggleButtonWidget(
         this.display, '#sphere', 'sphere')
+
+      this.footerDiv.append($('<div id="backbone">'))
       this.backboneWidget = new widgets.ToggleButtonWidget(
         this.display, '#backbone', 'backbone')
+
+      this.footerDiv.append($('<div id="transparent">'))
       this.transparentWidget = new widgets.ToggleButtonWidget(
         this.display, '#transparent', 'transparent')
     }

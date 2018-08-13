@@ -18,7 +18,12 @@ const _ = require('lodash')
 let lastWindowId
 let windows = {}
 let isDebug = false
+
+let initDirs = []
+let initDir
+let initPdbs = []
 let initPdb
+
 
 function createWindow (pdb) {
   console.log('createWindow', pdb)
@@ -131,10 +136,18 @@ function isDirectory (f) {
   return false
 }
 
+function isFile (f) {
+  try {
+    return fs.statSync(f).isFile()
+  } catch (e) {
+  }
+  return false
+}
+
 function addHandlers () {
   ipcMain.on('get-init', event => {
-    console.log('ipcMain:get-init', initDir, initPdb)
-    event.sender.send('get-init', initDir, initPdb)
+    console.log('ipcMain:get-init', initDir, initPdbs)
+    event.sender.send('get-init', initDir, initPdbs)
   })
 
   ipcMain.on('get-files', (event, dirname) => {
@@ -209,9 +222,20 @@ function init () {
   createWindow(initPdb)
 }
 
+function parsePdb (f) {
+  if (isFile(f)) {
+    return f
+  }
+  let g = f + '.pdb'
+  if (isFile(g)) {
+    return g
+  }
+  return null
+}
 
-let knownOpts = {debug: [Boolean, false]}
-let shortHands = {d: ['--debug']}
+
+let knownOpts = {debug: [Boolean, false], fileDir: [String, '']}
+let shortHands = {d: ['--debug'], f: ['--fileDir']}
 let parsed = nopt(knownOpts, shortHands, process.argv, 2)
 let remain = parsed.argv.remain
 
@@ -219,38 +243,29 @@ let remain = parsed.argv.remain
 
 isDebug = !!parsed.debug
 
-let initDir
+if (parsed.fileDir) {
+  remain = _.map(remain, f => path.resolve(parsed.fileDir, f))
+}
+initPdbs = _.filter(_.map(remain, parsePdb))
+initDirs = _.filter(remain, isDirectory)
 
-if (remain.length > 0) {
-  testPdb = remain[0]
-
-  initPdb = testPdb
-  initDir = path.dirname(initPdb)
-
-  if (isDirectory(testPdb)) {
-    initDir = testPdb
-    initPdb = ''
-  } else if (!fs.existsSync(testPdb)) {
-    let testInitPdb = testPdb + '.pdb'
-    if (fs.existsSync(testInitPdb)) {
-      initPdb = testInitPdb
-      initDir = path.dirname(initPdb)
-    }
-  }
-  if (initPdb && !fs.existsSync(initPdb)) {
-    console.log('file not found', initPdb)
-    process.exit(1);
-  }
-  if (!isDirectory(initDir)) {
-    console.log('directory not found', initDir)
-    process.exit(1);
-  }
-} else {
-  initPdb = path.join(__dirname, '../examples/1mbo.pdb')
-  initDir = path.dirname(initPdb)
+if ((initPdbs.length === 0) && (initDirs.length === 0)) {
+  initPdbs.push(path.join(__dirname, '../examples/1mbo.pdb'))
 }
 
-console.log('init', initDir, initPdb)
+if ((initPdbs.length > 0) && (initDirs.length == 0)) {
+  initDirs.push(path.dirname(initPdbs[0]))
+}
+
+if (initPdbs.length > 0) {
+  initPdb = initPdbs[0]
+}
+
+if (initDirs.length > 0) {
+  initDir = initDirs[0]
+}
+
+console.log('init', initDir, initPdbs)
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

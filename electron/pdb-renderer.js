@@ -77,10 +77,10 @@ function loadPdb(pdb) {
 }
 
 ipcRenderer.send("get-init");
-ipcRenderer.on("get-init", (event, dirname, pdb) => {
-  console.log('ipcRenderer:get-init', dirname, pdb)
+ipcRenderer.on("get-init", (event, dirname, pdbs) => {
+  console.log('ipcRenderer:get-init', dirname, pdbs)
   joleculeInstance.clear();
-  if (pdb) {
+  for (let pdb of pdbs) {
     loadPdb(pdb);
   }
   ipcRenderer.send("get-files", dirname);

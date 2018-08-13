@@ -79703,15 +79703,22 @@ var EmbedJolecule = function () {
           _this3.controller.toggleSelectedSidechains();
         })).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
           _this3.controller.toggleResidueNeighbors();
-        })).append((0, _jquery2.default)('<div id="ligand">'));
+        }));
+
+        this.footerDiv.append((0, _jquery2.default)('<div id="ligand">'));
         this.ligandWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#ligand', 'ligands');
       }
 
       if (this.params.isEditable) {
-        this.footerDiv.append((0, _jquery2.default)('<div id="sphere">')).append((0, _jquery2.default)('<div id="backbone">')).append((0, _jquery2.default)('<div id="transparent">'));
+        this.footerDiv.append((0, _jquery2.default)('<div id="sphere">'));
         this.spherWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#sphere', 'sphere');
+
+        this.footerDiv.append((0, _jquery2.default)('<div id="backbone">'));
         this.backboneWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#backbone', 'backbone');
-        this.transparentWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#transparent', 'transparent');
+
+        // this.footerDiv.append($('<div id="transparent">'))
+        // this.transparentWidget = new widgets.ToggleButtonWidget(
+        //   this.display, '#transparent', 'transparent')
       }
     }
   }, {
@@ -81513,6 +81520,58 @@ var Soup = function () {
       return indices;
     }
   }, {
+    key: 'isResCloseToPoint',
+    value: function isResCloseToPoint(iRes0, pos1) {
+      var atom0 = this.getAtomProxy();
+
+      var res0 = this.getResidueProxy(iRes0);
+      var pos0 = atom0.load(res0.iAtom).pos.clone();
+      if (_v2.default.distance(pos0, pos1) > 17) {
+        return false;
+      }
+
+      var atomIndices0 = res0.getAtomIndices();
+      var _iteratorNormalCompletion19 = true;
+      var _didIteratorError19 = false;
+      var _iteratorError19 = undefined;
+
+      try {
+        for (var _iterator19 = atomIndices0[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+          var iAtom0 = _step19.value;
+
+          if (_v2.default.distance(atom0.load(iAtom0).pos, pos1) < 5) {
+            return true;
+          }
+        }
+      } catch (err) {
+        _didIteratorError19 = true;
+        _iteratorError19 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion19 && _iterator19.return) {
+            _iterator19.return();
+          }
+        } finally {
+          if (_didIteratorError19) {
+            throw _iteratorError19;
+          }
+        }
+      }
+
+      return false;
+    }
+  }, {
+    key: 'getNeighboursOfPoint',
+    value: function getNeighboursOfPoint(pos) {
+      var indices = [];
+      for (var jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
+        if (this.isResCloseToPoint(jRes, pos)) {
+          indices.push(jRes);
+        }
+      }
+      return indices;
+    }
+  }, {
     key: 'setSidechainOfNeighborResidues',
     value: function setSidechainOfNeighborResidues(iRes, isSidechain) {
       this.setSidechainOfResidues(this.getNeighbours(iRes), isSidechain);
@@ -81526,28 +81585,28 @@ var Soup = function () {
       });
       // pre-calculations needed before building meshes
       var residue = this.getResidueProxy();
-      var _iteratorNormalCompletion19 = true;
-      var _didIteratorError19 = false;
-      var _iteratorError19 = undefined;
+      var _iteratorNormalCompletion20 = true;
+      var _didIteratorError20 = false;
+      var _iteratorError20 = undefined;
 
       try {
-        for (var _iterator19 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-          var iRes = _step19.value;
+        for (var _iterator20 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+          var iRes = _step20.value;
 
           residue.iRes = iRes;
           residue.color = showSecondary ? data.getSsColor(residue.ss) : residue.color = data.darkGrey;
         }
       } catch (err) {
-        _didIteratorError19 = true;
-        _iteratorError19 = err;
+        _didIteratorError20 = true;
+        _iteratorError20 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion19 && _iterator19.return) {
-            _iterator19.return();
+          if (!_iteratorNormalCompletion20 && _iterator20.return) {
+            _iterator20.return();
           }
         } finally {
-          if (_didIteratorError19) {
-            throw _iteratorError19;
+          if (_didIteratorError20) {
+            throw _iteratorError20;
           }
         }
       }
@@ -81857,13 +81916,13 @@ var View = function () {
       this.selected = flatDict.selected;
       this.distances = flatDict.distances;
 
-      var _iteratorNormalCompletion20 = true;
-      var _didIteratorError20 = false;
-      var _iteratorError20 = undefined;
+      var _iteratorNormalCompletion21 = true;
+      var _didIteratorError21 = false;
+      var _iteratorError21 = undefined;
 
       try {
-        for (var _iterator20 = _lodash2.default.keys(flatDict.show)[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-          var key = _step20.value;
+        for (var _iterator21 = _lodash2.default.keys(flatDict.show)[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+          var key = _step21.value;
 
           if (key in this.show) {
             this.show[key] = !!flatDict.show[key];
@@ -81873,16 +81932,16 @@ var View = function () {
           }
         }
       } catch (err) {
-        _didIteratorError20 = true;
-        _iteratorError20 = err;
+        _didIteratorError21 = true;
+        _iteratorError21 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion20 && _iterator20.return) {
-            _iterator20.return();
+          if (!_iteratorNormalCompletion21 && _iterator21.return) {
+            _iterator21.return();
           }
         } finally {
-          if (_didIteratorError20) {
-            throw _iteratorError20;
+          if (_didIteratorError21) {
+            throw _iteratorError21;
           }
         }
       }
@@ -82364,63 +82423,16 @@ var Controller = function () {
       if (nSidechain === indices.length) {
         isSidechain = false;
       }
-      var _iteratorNormalCompletion21 = true;
-      var _didIteratorError21 = false;
-      var _iteratorError21 = undefined;
-
-      try {
-        for (var _iterator21 = indices[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-          var _iRes9 = _step21.value;
-
-          residue.load(_iRes9);
-          residue.sidechain = isSidechain;
-        }
-      } catch (err) {
-        _didIteratorError21 = true;
-        _iteratorError21 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion21 && _iterator21.return) {
-            _iterator21.return();
-          }
-        } finally {
-          if (_didIteratorError21) {
-            throw _iteratorError21;
-          }
-        }
-      }
-
-      this.soupView.updateSidechain = true;
-      this.soupView.changed = true;
-    }
-  }, {
-    key: 'toggleResidueNeighbors',
-    value: function toggleResidueNeighbors() {
-      var indices = [];
-      var residue = this.soup.getResidueProxy();
-      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
-        residue.load(iRes);
-        if (residue.selected) {
-          indices = _lodash2.default.concat(indices, this.soup.getNeighbours(iRes));
-        }
-      }
-      if (indices.length === 0) {
-        var iAtom = this.soupView.currentView.iAtom;
-        var _iRes10 = this.soup.getAtomProxy(iAtom).iRes;
-        indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes10));
-      }
-      var nSidechain = 0;
       var _iteratorNormalCompletion22 = true;
       var _didIteratorError22 = false;
       var _iteratorError22 = undefined;
 
       try {
         for (var _iterator22 = indices[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-          var _iRes11 = _step22.value;
+          var _iRes9 = _step22.value;
 
-          if (residue.load(_iRes11).sidechain) {
-            nSidechain += 1;
-          }
+          residue.load(_iRes9);
+          residue.sidechain = isSidechain;
         }
       } catch (err) {
         _didIteratorError22 = true;
@@ -82433,6 +82445,63 @@ var Controller = function () {
         } finally {
           if (_didIteratorError22) {
             throw _iteratorError22;
+          }
+        }
+      }
+
+      this.soupView.updateSidechain = true;
+      this.soupView.changed = true;
+    }
+  }, {
+    key: 'toggleResidueNeighbors',
+    value: function toggleResidueNeighbors() {
+      var indices = [];
+
+      var nSelected = 0;
+      var residue = this.soup.getResidueProxy();
+      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+        residue.load(iRes);
+        if (residue.selected) {
+          indices = _lodash2.default.concat(indices, this.soup.getNeighbours(iRes));
+          nSelected += 1;
+        }
+      }
+
+      if (nSelected === 0) {
+        console.log('Controller.toggleResidueNeighbors none selected');
+        var pos = this.soupView.currentView.cameraParams.focus;
+        indices = this.soup.getNeighboursOfPoint(pos);
+      }
+
+      if (indices.length === 0) {
+        var iAtom = this.soupView.currentView.iAtom;
+        var _iRes10 = this.soup.getAtomProxy(iAtom).iRes;
+        indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes10));
+      }
+      var nSidechain = 0;
+      var _iteratorNormalCompletion23 = true;
+      var _didIteratorError23 = false;
+      var _iteratorError23 = undefined;
+
+      try {
+        for (var _iterator23 = indices[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+          var _iRes11 = _step23.value;
+
+          if (residue.load(_iRes11).sidechain) {
+            nSidechain += 1;
+          }
+        }
+      } catch (err) {
+        _didIteratorError23 = true;
+        _iteratorError23 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion23 && _iterator23.return) {
+            _iterator23.return();
+          }
+        } finally {
+          if (_didIteratorError23) {
+            throw _iteratorError23;
           }
         }
       }
@@ -82595,41 +82664,15 @@ var Controller = function () {
     key: 'clear',
     value: function clear() {
       var distances = this.soupView.currentView.distances;
-      var _iteratorNormalCompletion23 = true;
-      var _didIteratorError23 = false;
-      var _iteratorError23 = undefined;
-
-      try {
-        for (var _iterator23 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-          var i = _step23.value;
-
-          this.deleteDistance(i);
-        }
-      } catch (err) {
-        _didIteratorError23 = true;
-        _iteratorError23 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion23 && _iterator23.return) {
-            _iterator23.return();
-          }
-        } finally {
-          if (_didIteratorError23) {
-            throw _iteratorError23;
-          }
-        }
-      }
-
-      var labels = this.soupView.currentView.labels;
       var _iteratorNormalCompletion24 = true;
       var _didIteratorError24 = false;
       var _iteratorError24 = undefined;
 
       try {
-        for (var _iterator24 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-          var _i2 = _step24.value;
+        for (var _iterator24 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
+          var i = _step24.value;
 
-          this.deleteAtomLabel(_i2);
+          this.deleteDistance(i);
         }
       } catch (err) {
         _didIteratorError24 = true;
@@ -82642,6 +82685,32 @@ var Controller = function () {
         } finally {
           if (_didIteratorError24) {
             throw _iteratorError24;
+          }
+        }
+      }
+
+      var labels = this.soupView.currentView.labels;
+      var _iteratorNormalCompletion25 = true;
+      var _didIteratorError25 = false;
+      var _iteratorError25 = undefined;
+
+      try {
+        for (var _iterator25 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
+          var _i2 = _step25.value;
+
+          this.deleteAtomLabel(_i2);
+        }
+      } catch (err) {
+        _didIteratorError25 = true;
+        _iteratorError25 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion25 && _iterator25.return) {
+            _iterator25.return();
+          }
+        } finally {
+          if (_didIteratorError25) {
+            throw _iteratorError25;
           }
         }
       }
@@ -82668,27 +82737,27 @@ var Controller = function () {
       this.soupView.nDataServer -= 1;
       if (this.soup.isEmpty()) {
         this.soupView.savedViews.length = 0;
-        var _iteratorNormalCompletion25 = true;
-        var _didIteratorError25 = false;
-        var _iteratorError25 = undefined;
+        var _iteratorNormalCompletion26 = true;
+        var _didIteratorError26 = false;
+        var _iteratorError26 = undefined;
 
         try {
-          for (var _iterator25 = _lodash2.default.keys(this.soupView.savedViewsByViewId)[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
-            var id = _step25.value;
+          for (var _iterator26 = _lodash2.default.keys(this.soupView.savedViewsByViewId)[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
+            var id = _step26.value;
 
             delete this.soupView.savedViewsByViewId[id];
           }
         } catch (err) {
-          _didIteratorError25 = true;
-          _iteratorError25 = err;
+          _didIteratorError26 = true;
+          _iteratorError26 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion25 && _iterator25.return) {
-              _iterator25.return();
+            if (!_iteratorNormalCompletion26 && _iterator26.return) {
+              _iterator26.return();
             }
           } finally {
-            if (_didIteratorError25) {
-              throw _iteratorError25;
+            if (_didIteratorError26) {
+              throw _iteratorError26;
             }
           }
         }
@@ -91125,8 +91194,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.Display = undefined;
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -91969,8 +92036,10 @@ var Display = function (_WebglWidget) {
         }
       }
 
-      this.addRepresentation('ribbon', new representation.CartoonRepresentation(this.soup, true));
-      this.addRepresentation('selectRibbon', new representation.CartoonRepresentation(this.soup, false, this.selectedTraces));
+      this.addRepresentation('ribbon', new representation.CartoonRepresentation(this.soup, false));
+      // this.addRepresentation(
+      //   'selectRibbon',
+      //   new representation.CartoonRepresentation(this.soup, false, this.selectedTraces))
       this.addRepresentation('ligand', new representation.LigandRepresentation(this.soup, this.atomRadius));
       if (this.isGrid) {
         this.addRepresentation('grid', new representation.GridRepresentation(this.soup, this.gridAtomRadius));
@@ -92052,48 +92121,24 @@ var Display = function (_WebglWidget) {
       this.setMeshVisible('ligand', show.ligands);
       this.setMeshVisible('sphere', show.sphere);
 
-      var iAtom = this.soupView.currentView.iAtom;
-      var iRes = this.soup.getAtomProxy(iAtom).iRes;
-      if (!_lodash2.default.isNil(iRes)) {
-        var selectedTraces = [];
-        var _iteratorNormalCompletion5 = true;
-        var _didIteratorError5 = false;
-        var _iteratorError5 = undefined;
-
-        try {
-          for (var _iterator5 = this.soup.traces.entries()[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-            var _step5$value = _slicedToArray(_step5.value, 2),
-                iTrace = _step5$value[0],
-                trace = _step5$value[1];
-
-            if (_lodash2.default.includes(trace.indices, iRes)) {
-              selectedTraces.push(iTrace);
-              break;
-            }
-          }
-        } catch (err) {
-          _didIteratorError5 = true;
-          _iteratorError5 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion5 && _iterator5.return) {
-              _iterator5.return();
-            }
-          } finally {
-            if (_didIteratorError5) {
-              throw _iteratorError5;
-            }
-          }
-        }
-
-        if (selectedTraces.length > 0) {
-          if (!_lodash2.default.isEqual(selectedTraces, this.representations.selectRibbon.selectedTraces)) {
-            this.representations.selectRibbon.selectedTraces = selectedTraces;
-            this.representations.selectRibbon.build();
-            this.updateMeshesInScene = true;
-          }
-        }
-      }
+      // let iAtom = this.soupView.currentView.iAtom
+      // let iRes = this.soup.getAtomProxy(iAtom).iRes
+      // if (!_.isNil(iRes)) {
+      //   let selectedTraces = []
+      //   for (let [iTrace, trace] of this.soup.traces.entries()) {
+      //     if (_.includes(trace.indices, iRes)) {
+      //       selectedTraces.push(iTrace)
+      //       break
+      //     }
+      //   }
+      //   if (selectedTraces.length > 0) {
+      //     if (!_.isEqual(selectedTraces, this.representations.selectRibbon.selectedTraces)) {
+      //       this.representations.selectRibbon.selectedTraces = selectedTraces
+      //       this.representations.selectRibbon.build()
+      //       this.updateMeshesInScene = true
+      //     }
+      //   }
+      // }
 
       if (this.isGrid) {
         if (this.soupView.soup.grid.changed) {
@@ -92113,29 +92158,29 @@ var Display = function (_WebglWidget) {
       }
 
       if (this.soupView.updateSelection) {
-        var _iteratorNormalCompletion6 = true;
-        var _didIteratorError6 = false;
-        var _iteratorError6 = undefined;
+        var _iteratorNormalCompletion5 = true;
+        var _didIteratorError5 = false;
+        var _iteratorError5 = undefined;
 
         try {
-          for (var _iterator6 = _lodash2.default.values(this.representations)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-            var repr = _step6.value;
+          for (var _iterator5 = _lodash2.default.values(this.representations)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+            var repr = _step5.value;
 
             if ('recolor' in repr) {
               repr.recolor();
             }
           }
         } catch (err) {
-          _didIteratorError6 = true;
-          _iteratorError6 = err;
+          _didIteratorError5 = true;
+          _iteratorError5 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion6 && _iterator6.return) {
-              _iterator6.return();
+            if (!_iteratorNormalCompletion5 && _iterator5.return) {
+              _iterator5.return();
             }
           } finally {
-            if (_didIteratorError6) {
-              throw _iteratorError6;
+            if (_didIteratorError5) {
+              throw _iteratorError5;
             }
           }
         }
@@ -98786,9 +98831,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var pickingMaterial = new THREE.MeshBasicMaterial({
   vertexColors: THREE.VertexColors
 });
+
 var phongMaterial = new THREE.MeshPhongMaterial({
   vertexColors: THREE.VertexColors
 });
+
 var transparentMaterial = new THREE.MeshPhongMaterial({
   opacity: 0.3,
   premultipliedAlpha: true,

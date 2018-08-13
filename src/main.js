@@ -39,7 +39,7 @@ function remoteDataServer (pdbId, userId) {
     get_protein_data: function (processProteinData) {
       let url
       if (pdbId.length === 4) {
-        url = `https://files.rcsb.org/download/${pdbId}.pdb1`
+        url = `https://files.rcsb.org/download/${pdbId}.pdb`
       } else {
         url = `/pdb/${pdbId}.txt`
       }
