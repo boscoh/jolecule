@@ -5,14 +5,14 @@ const $ = require("jquery");
 const shortid = require("shortid");
 
 function makeDataServer(pdb) {
-  let id = shortid.generate();
+  let messageId = shortid.generate();
   return {
-    id,
+    id: messageId,
     get_protein_data: function(loadProteinData) {
-      console.log("ipcRenderer:get-protein-text", id, pdb);
-      ipcRenderer.send("get-protein-text", id, pdb);
+      console.log("ipcRenderer:get-protein-text", messageId, pdb);
+      ipcRenderer.send("get-protein-text", messageId, pdb);
       ipcRenderer.once("get-protein-text", (event, returnId, pdbText) => {
-        if (id !== returnId) {
+        if (messageId !== returnId) {
           return;
         }
         let pdbId = path.basename(pdb).replace(".pdb", "");
@@ -21,10 +21,10 @@ function makeDataServer(pdb) {
       });
     },
     get_views: function(loadViewDicts) {
-      ipcRenderer.send("get-view-dicts", id, pdb);
-      console.log("ipcRenderer:get_views", id, pdb);
+      ipcRenderer.send("get-view-dicts", messageId, pdb);
+      console.log("ipcRenderer:get_views", messageId, pdb);
       ipcRenderer.once("get-view-dicts", (event, returnId, viewDicts) => {
-        if (id !== returnId) {
+        if (messageId !== returnId) {
           return;
         }
         console.log("ipcRenderer:get_views", viewDicts);
@@ -32,10 +32,10 @@ function makeDataServer(pdb) {
       });
     },
     save_views: function(views, success) {
-      ipcRenderer.send("save-view-dicts", id, pdb, views);
-      console.log("ipcRenderer:save_views", id, pdb);
+      ipcRenderer.send("save-view-dicts", messageId, pdb, views);
+      console.log("ipcRenderer:save_views", messageId, pdb);
       ipcRenderer.once("save-view-dicts", (event, returnId) => {
-        if (id !== returnId) {
+        if (messageId !== returnId) {
           return;
         }
         console.log("ipcRenderer:save-view-dicts", returnId, pdb);
@@ -43,9 +43,9 @@ function makeDataServer(pdb) {
       });
     },
     delete_protein_view: function(viewId, success) {
-      ipcRenderer.send("delete-protein-view", id, pdb, viewId);
+      ipcRenderer.send("delete-protein-view", messageId, pdb, viewId);
       ipcRenderer.once("delete-protein-view", (event, returnId) => {
-        if (id !== returnId) {
+        if (messageId !== returnId) {
           return;
         }
         console.log("ipcRenderer:delete_protein_view", returnId, pdb);

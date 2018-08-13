@@ -1457,7 +1457,7 @@ class View {
     this.labels = []
     this.distances = []
     this.text = 'Default view of PDB file'
-    this.creator = ''
+    this.user_id = ''
     this.url = getWindowUrl()
     this.show = {
       sidechain: true,
@@ -1471,6 +1471,10 @@ class View {
       sphere: false,
       transparent: false,
     },
+    this.grid = {
+      isElem: {},
+      bCutoff: null
+    }
     this.pdb_id = ''
   }
 
@@ -1500,6 +1504,7 @@ class View {
     v.url = this.url
     v.cameraParams = _.cloneDeep(this.cameraParams)
     v.show = _.cloneDeep(this.show)
+    v.grid = _.cloneDeep(this.grid)
     return v
   }
 
@@ -1526,10 +1531,11 @@ class View {
     return {
       version: 2,
       view_id: this.id,
-      creator: this.creator,
+      user_id: this.user_id,
       pdb_id: this.pdb_id,
       order: this.order,
       show: show,
+      grid: _.cloneDeep(this.grid),
       text: this.text,
       i_atom: this.iAtom,
       labels: this.labels,
@@ -1554,7 +1560,7 @@ class View {
     this.pdb_id = flatDict.pdb_id
     this.lock = flatDict.lock
     this.text = flatDict.text
-    this.creator = flatDict.creator
+    this.user_id = flatDict.user_id
     this.order = flatDict.order
     this.res_id = flatDict.res_id
     this.iAtom = flatDict.i_atom
@@ -1578,6 +1584,10 @@ class View {
 
     if (!(this.show.all_atom || this.show.trace || this.show.ribbon)) {
       this.show.backbone = true
+    }
+
+    if ('grid' in flatDict) {
+      this.grid = flatDict.grid
     }
 
     let pos = v3.create(
@@ -1717,8 +1727,20 @@ class SoupView {
       this.setCurrentViewToDefaultAndSave()
     }
     this.soup.findGridLimits()
+    this.saveGridToCurrentView()
     this.soup.colorResidues()
     this.soup.calculateTracesForRibbons()
+  }
+
+  saveGridToCurrentView () {
+    for (let elem in this.soup.grid.isElem) {
+      if (elem in this.soup.grid.isElem) {
+        this.currentView.grid.isElem[elem] = this.soup.grid.isElem[elem]
+      }
+    }
+    if (!_.isNil(this.soup.grid.bCutoff)) {
+      this.currentView.grid.bCutoff = this.soup.grid.bCutoff
+    }
   }
 
   setCurrentViewToDefaultAndSave () {
@@ -1942,7 +1964,6 @@ class Controller {
     for (let i = 1; i < this.soupView.savedViews.length; i += 1) {
       viewDicts.push(this.soupView.savedViews[i].getDict())
     }
-    console.log('Controller.getViewDicts', this.soupView.savedViews, viewDicts)
     return viewDicts
   }
 
@@ -2088,17 +2109,10 @@ class Controller {
     newView.text = 'Click edit to change this text.'
     newView.pdb_id = this.soup.structureIds[0]
     let time = getCurrentDateStr()
-    if (user === '' || typeof user === 'undefined') {
-      newView.creator = '~ [public] @' + time
-    } else {
-      newView.creator = '~ ' + user + ' @' + time
-    }
     newView.id = newViewId
     newView.selected = this.makeSelectedResidueList()
     this.soupView.insertView(iNewView, newViewId, newView)
-
     this.setTargetViewByViewId(newViewId)
-
     this.soupView.changed = true
     this.soupView.updateSelection = true
 
@@ -2162,10 +2176,27 @@ class Controller {
     let oldViewSelected = this.soupView.currentView.selected
     this.soupView.currentView = view.clone()
     if (!_.isEqual(oldViewSelected.sort(), view.selected.sort())) {
-      this.soupView.soup.clearSidechainResidues()
-      this.soupView.soup.setSidechainOfResidues(view.selected, true)
+      this.soup.clearSidechainResidues()
+      this.soup.setSidechainOfResidues(view.selected, true)
       this.soupView.updateSidechain = true
     }
+
+    // use view.grid parameters to reset soup.grid
+    for (let elem in view.grid.isElem) {
+      if (elem in this.soup.grid.isElem) {
+        if (view.grid.isElem[elem] !== this.soup.grid.isElem[elem]) {
+          this.soup.grid.isElem[elem] = view.grid.isElem[elem]
+          this.soup.grid.changed = true
+        }
+      }
+    }
+    if (!_.isNil(view.grid.bCutoff)) {
+      if (this.soup.grid.bCutoff !== view.grid.bCutoff) {
+        this.soup.grid.bCutoff = view.grid.bCutoff
+        this.soup.grid.changed = true
+      }
+    }
+
     this.soupView.changed = true
   }
 
@@ -2180,6 +2211,7 @@ class Controller {
     let b = this.soupView.soup.grid.isElem[elem]
     this.soupView.soup.grid.isElem[elem] = !b
     this.soupView.soup.grid.changed = true
+    this.soupView.currentView.grid.isElem = _.cloneDeep(this.soupView.soup.grid.isElem)
     this.soupView.changed = true
 
     this.soupView.soup.colorResidues()
@@ -2187,9 +2219,10 @@ class Controller {
     this.soupView.updateSelection = true
   }
 
-  setGridCutoff (cutoff) {
-    this.soupView.soup.grid.bCutoff = cutoff
+  setGridCutoff (bCutoff) {
+    this.soupView.soup.grid.bCutoff = bCutoff
     this.soupView.soup.grid.changed = true
+    this.soupView.currentView.grid.bCutoff = bCutoff
     this.soupView.changed = true
   }
 

@@ -155,7 +155,7 @@ class RibbonRepresentation extends Representation {
     this.build()
   }
 
-  build () {
+  build () {4
     this.traces = this.soup.traces
     if (this.selectedTraces.length > 0) {
       let newTraces = []

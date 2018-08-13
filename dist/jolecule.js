@@ -81806,7 +81806,7 @@ var View = function () {
     this.labels = [];
     this.distances = [];
     this.text = 'Default view of PDB file';
-    this.creator = '';
+    this.user_id = '';
     this.url = (0, _util.getWindowUrl)();
     this.show = {
       sidechain: true,
@@ -81819,7 +81819,11 @@ var View = function () {
       ribbon: true,
       sphere: false,
       transparent: false
-    }, this.pdb_id = '';
+    }, this.grid = {
+      isElem: {},
+      bCutoff: null
+    };
+    this.pdb_id = '';
   }
 
   _createClass(View, [{
@@ -81852,6 +81856,7 @@ var View = function () {
       v.url = this.url;
       v.cameraParams = _lodash2.default.cloneDeep(this.cameraParams);
       v.show = _lodash2.default.cloneDeep(this.show);
+      v.grid = _lodash2.default.cloneDeep(this.grid);
       return v;
     }
   }, {
@@ -81878,10 +81883,11 @@ var View = function () {
       return {
         version: 2,
         view_id: this.id,
-        creator: this.creator,
+        user_id: this.user_id,
         pdb_id: this.pdb_id,
         order: this.order,
         show: show,
+        grid: _lodash2.default.cloneDeep(this.grid),
         text: this.text,
         i_atom: this.iAtom,
         labels: this.labels,
@@ -81907,7 +81913,7 @@ var View = function () {
       this.pdb_id = flatDict.pdb_id;
       this.lock = flatDict.lock;
       this.text = flatDict.text;
-      this.creator = flatDict.creator;
+      this.user_id = flatDict.user_id;
       this.order = flatDict.order;
       this.res_id = flatDict.res_id;
       this.iAtom = flatDict.i_atom;
@@ -81952,6 +81958,10 @@ var View = function () {
 
       if (!(this.show.all_atom || this.show.trace || this.show.ribbon)) {
         this.show.backbone = true;
+      }
+
+      if ('grid' in flatDict) {
+        this.grid = flatDict.grid;
       }
 
       var pos = _v2.default.create(flatDict.camera.pos[0], flatDict.camera.pos[1], flatDict.camera.pos[2]);
@@ -82071,8 +82081,21 @@ var SoupView = function () {
         this.setCurrentViewToDefaultAndSave();
       }
       this.soup.findGridLimits();
+      this.saveGridToCurrentView();
       this.soup.colorResidues();
       this.soup.calculateTracesForRibbons();
+    }
+  }, {
+    key: 'saveGridToCurrentView',
+    value: function saveGridToCurrentView() {
+      for (var elem in this.soup.grid.isElem) {
+        if (elem in this.soup.grid.isElem) {
+          this.currentView.grid.isElem[elem] = this.soup.grid.isElem[elem];
+        }
+      }
+      if (!_lodash2.default.isNil(this.soup.grid.bCutoff)) {
+        this.currentView.grid.bCutoff = this.soup.grid.bCutoff;
+      }
     }
   }, {
     key: 'setCurrentViewToDefaultAndSave',
@@ -82323,7 +82346,6 @@ var Controller = function () {
       for (var i = 1; i < this.soupView.savedViews.length; i += 1) {
         viewDicts.push(this.soupView.savedViews[i].getDict());
       }
-      console.log('Controller.getViewDicts', this.soupView.savedViews, viewDicts);
       return viewDicts;
     }
   }, {
@@ -82522,17 +82544,10 @@ var Controller = function () {
       newView.text = 'Click edit to change this text.';
       newView.pdb_id = this.soup.structureIds[0];
       var time = (0, _util.getCurrentDateStr)();
-      if (user === '' || typeof user === 'undefined') {
-        newView.creator = '~ [public] @' + time;
-      } else {
-        newView.creator = '~ ' + user + ' @' + time;
-      }
       newView.id = newViewId;
       newView.selected = this.makeSelectedResidueList();
       this.soupView.insertView(iNewView, newViewId, newView);
-
       this.setTargetViewByViewId(newViewId);
-
       this.soupView.changed = true;
       this.soupView.updateSelection = true;
 
@@ -82627,10 +82642,27 @@ var Controller = function () {
       var oldViewSelected = this.soupView.currentView.selected;
       this.soupView.currentView = view.clone();
       if (!_lodash2.default.isEqual(oldViewSelected.sort(), view.selected.sort())) {
-        this.soupView.soup.clearSidechainResidues();
-        this.soupView.soup.setSidechainOfResidues(view.selected, true);
+        this.soup.clearSidechainResidues();
+        this.soup.setSidechainOfResidues(view.selected, true);
         this.soupView.updateSidechain = true;
       }
+
+      // use view.grid parameters to reset soup.grid
+      for (var elem in view.grid.isElem) {
+        if (elem in this.soup.grid.isElem) {
+          if (view.grid.isElem[elem] !== this.soup.grid.isElem[elem]) {
+            this.soup.grid.isElem[elem] = view.grid.isElem[elem];
+            this.soup.grid.changed = true;
+          }
+        }
+      }
+      if (!_lodash2.default.isNil(view.grid.bCutoff)) {
+        if (this.soup.grid.bCutoff !== view.grid.bCutoff) {
+          this.soup.grid.bCutoff = view.grid.bCutoff;
+          this.soup.grid.changed = true;
+        }
+      }
+
       this.soupView.changed = true;
     }
   }, {
@@ -82647,6 +82679,7 @@ var Controller = function () {
       var b = this.soupView.soup.grid.isElem[elem];
       this.soupView.soup.grid.isElem[elem] = !b;
       this.soupView.soup.grid.changed = true;
+      this.soupView.currentView.grid.isElem = _lodash2.default.cloneDeep(this.soupView.soup.grid.isElem);
       this.soupView.changed = true;
 
       this.soupView.soup.colorResidues();
@@ -82655,9 +82688,10 @@ var Controller = function () {
     }
   }, {
     key: 'setGridCutoff',
-    value: function setGridCutoff(cutoff) {
-      this.soupView.soup.grid.bCutoff = cutoff;
+    value: function setGridCutoff(bCutoff) {
+      this.soupView.soup.grid.bCutoff = bCutoff;
       this.soupView.soup.grid.changed = true;
+      this.soupView.currentView.grid.bCutoff = bCutoff;
       this.soupView.changed = true;
     }
   }, {
@@ -92175,7 +92209,9 @@ var Display = function (_WebglWidget) {
 
       if (this.isGrid) {
         if (this.soupView.soup.grid.changed) {
+          console.log('Display.drawFrame grid.changed');
           if (!_lodash2.default.isUndefined(this.representations.grid)) {
+            this.soup.colorResidues();
             this.representations.grid.build();
           }
           this.soupView.soup.grid.changed = false;
@@ -99191,6 +99227,7 @@ var RibbonRepresentation = function (_Representation2) {
   _createClass(RibbonRepresentation, [{
     key: 'build',
     value: function build() {
+      4;
       this.traces = this.soup.traces;
       if (this.selectedTraces.length > 0) {
         var newTraces = [];

@@ -763,7 +763,9 @@ class Display extends WebglWidget {
 
     if (this.isGrid) {
       if (this.soupView.soup.grid.changed) {
+        console.log('Display.drawFrame grid.changed')
         if (!_.isUndefined(this.representations.grid)) {
+          this.soup.colorResidues()
           this.representations.grid.build()
         }
         this.soupView.soup.grid.changed = false
