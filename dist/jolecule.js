@@ -91773,7 +91773,7 @@ var Display = function (_WebglWidget) {
     _this2.lineElement = new _widgets2.default.LineElement(_this2, '#FF7777');
 
     // index of traces to show selected
-    _this2.selectedTraces = [0];
+    _this2.selectedTraces = [];
 
     (0, _animation.registerGlobalAnimationLoop)(_this2);
     return _this2;
@@ -92038,8 +92038,8 @@ var Display = function (_WebglWidget) {
         }
       }
 
-      this.addRepresentation('ribbon', new representation.CartoonRepresentation(this.soup, true));
-      this.addRepresentation('selectRibbon', new representation.CartoonRepresentation(this.soup, false, this.selectedTraces));
+      this.addRepresentation('transparentRibbon', new representation.CartoonRepresentation(this.soup, true));
+      this.addRepresentation('ribbon', new representation.CartoonRepresentation(this.soup, false, this.selectedTraces));
       this.addRepresentation('ligand', new representation.LigandRepresentation(this.soup, this.atomRadius));
       if (this.isGrid) {
         this.addRepresentation('grid', new representation.GridRepresentation(this.soup, this.gridAtomRadius));
@@ -92116,51 +92116,60 @@ var Display = function (_WebglWidget) {
       }
 
       this.setMeshVisible('ribbon', show.ribbon);
+      this.setMeshVisible('transparentRibbon', show.ribbon && show.transparent);
       this.setMeshVisible('water', show.water);
       this.setMeshVisible('backbone', show.backbone);
       this.setMeshVisible('ligand', show.ligands);
       this.setMeshVisible('sphere', show.sphere);
 
-      var iAtom = this.soupView.currentView.iAtom;
-      var iRes = this.soup.getAtomProxy(iAtom).iRes;
-      if (!_lodash2.default.isNil(iRes)) {
-        var selectedTraces = [];
-        var _iteratorNormalCompletion5 = true;
-        var _didIteratorError5 = false;
-        var _iteratorError5 = undefined;
+      if (show.transparent) {
+        var iAtom = this.soupView.currentView.iAtom;
+        var iRes = this.soup.getAtomProxy(iAtom).iRes;
+        if (!_lodash2.default.isNil(iRes)) {
+          var selectedTraces = [];
+          var _iteratorNormalCompletion5 = true;
+          var _didIteratorError5 = false;
+          var _iteratorError5 = undefined;
 
-        try {
-          for (var _iterator5 = this.soup.traces.entries()[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-            var _step5$value = _slicedToArray(_step5.value, 2),
-                iTrace = _step5$value[0],
-                trace = _step5$value[1];
+          try {
+            for (var _iterator5 = this.soup.traces.entries()[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+              var _step5$value = _slicedToArray(_step5.value, 2),
+                  iTrace = _step5$value[0],
+                  trace = _step5$value[1];
 
-            if (_lodash2.default.includes(trace.indices, iRes)) {
-              selectedTraces.push(iTrace);
-              break;
+              if (_lodash2.default.includes(trace.indices, iRes)) {
+                selectedTraces.push(iTrace);
+                break;
+              }
+            }
+          } catch (err) {
+            _didIteratorError5 = true;
+            _iteratorError5 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                _iterator5.return();
+              }
+            } finally {
+              if (_didIteratorError5) {
+                throw _iteratorError5;
+              }
             }
           }
-        } catch (err) {
-          _didIteratorError5 = true;
-          _iteratorError5 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion5 && _iterator5.return) {
-              _iterator5.return();
-            }
-          } finally {
-            if (_didIteratorError5) {
-              throw _iteratorError5;
+
+          if (selectedTraces.length > 0) {
+            if (!_lodash2.default.isEqual(selectedTraces, this.representations.ribbon.selectedTraces)) {
+              this.representations.ribbon.selectedTraces = selectedTraces;
+              this.representations.ribbon.build();
+              this.updateMeshesInScene = true;
             }
           }
         }
-
-        if (selectedTraces.length > 0) {
-          if (!_lodash2.default.isEqual(selectedTraces, this.representations.selectRibbon.selectedTraces)) {
-            this.representations.selectRibbon.selectedTraces = selectedTraces;
-            this.representations.selectRibbon.build();
-            this.updateMeshesInScene = true;
-          }
+      } else {
+        if (this.representations.ribbon.selectedTraces.length > 0) {
+          this.representations.ribbon.selectedTraces.length = 0;
+          this.representations.ribbon.build();
+          this.updateMeshesInScene = true;
         }
       }
 

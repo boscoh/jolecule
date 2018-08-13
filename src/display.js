@@ -427,7 +427,7 @@ class Display extends WebglWidget {
     this.lineElement = new widgets.LineElement(this, '#FF7777')
 
     // index of traces to show selected
-    this.selectedTraces = [0]
+    this.selectedTraces = []
 
     registerGlobalAnimationLoop(this)
   }
@@ -639,10 +639,10 @@ class Display extends WebglWidget {
     }
 
     this.addRepresentation(
-      'ribbon',
+      'transparentRibbon',
       new representation.CartoonRepresentation(this.soup, true))
     this.addRepresentation(
-      'selectRibbon',
+      'ribbon',
       new representation.CartoonRepresentation(this.soup, false, this.selectedTraces))
     this.addRepresentation(
       'ligand',
@@ -728,27 +728,36 @@ class Display extends WebglWidget {
     }
 
     this.setMeshVisible('ribbon', show.ribbon)
+    this.setMeshVisible('transparentRibbon', show.ribbon && show.transparent)
     this.setMeshVisible('water', show.water)
     this.setMeshVisible('backbone', show.backbone)
     this.setMeshVisible('ligand', show.ligands)
     this.setMeshVisible('sphere', show.sphere)
 
-    let iAtom = this.soupView.currentView.iAtom
-    let iRes = this.soup.getAtomProxy(iAtom).iRes
-    if (!_.isNil(iRes)) {
-      let selectedTraces = []
-      for (let [iTrace, trace] of this.soup.traces.entries()) {
-        if (_.includes(trace.indices, iRes)) {
-          selectedTraces.push(iTrace)
-          break
+    if (show.transparent) {
+      let iAtom = this.soupView.currentView.iAtom
+      let iRes = this.soup.getAtomProxy(iAtom).iRes
+      if (!_.isNil(iRes)) {
+        let selectedTraces = []
+        for (let [iTrace, trace] of this.soup.traces.entries()) {
+          if (_.includes(trace.indices, iRes)) {
+            selectedTraces.push(iTrace)
+            break
+          }
+        }
+        if (selectedTraces.length > 0) {
+          if (!_.isEqual(selectedTraces, this.representations.ribbon.selectedTraces)) {
+            this.representations.ribbon.selectedTraces = selectedTraces
+            this.representations.ribbon.build()
+            this.updateMeshesInScene = true
+          }
         }
       }
-      if (selectedTraces.length > 0) {
-        if (!_.isEqual(selectedTraces, this.representations.selectRibbon.selectedTraces)) {
-          this.representations.selectRibbon.selectedTraces = selectedTraces
-          this.representations.selectRibbon.build()
-          this.updateMeshesInScene = true
-        }
+    } else {
+      if (this.representations.ribbon.selectedTraces.length > 0) {
+        this.representations.ribbon.selectedTraces.length = 0
+        this.representations.ribbon.build()
+        this.updateMeshesInScene = true
       }
     }
 
