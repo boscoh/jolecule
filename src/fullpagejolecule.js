@@ -214,24 +214,33 @@ class ViewPanelList {
       let a = viewPiece.div.find('a').eq(0)
       a.text(view.order + 1)
     }
+
+    if (lastId) {
+      if (history.pushState) {
+        let query = `?view_id=${lastId}`
+        let newPath = window.location.protocol
+          + '//'
+          + window.location.host
+          + window.location.pathname
+          + query
+        window.history.pushState({path: newPath}, '', newPath)
+      }
+    }
   }
 
   setTargetByViewId (id) {
     this.controller.setTargetViewByViewId(id)
     this.update()
-    window.location.hash = id
   }
 
   gotoPrevView () {
     let id = this.controller.setTargetToPrevView()
     this.update()
-    window.location.hash = id
   }
 
   gotoNextView () {
     let id = this.controller.setTargetToNextView()
     this.update()
-    window.location.hash = id
   }
 
   removeView (id) {
@@ -347,6 +356,16 @@ class ViewPanelList {
 }
 
 /**
+ * Get URL query parameter https://stackoverflow.com/a/5158301
+ * @param name
+ * @returns {RegExpExecArray | string}
+ */
+function getParameterByName(name) {
+  let match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+  return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+/**
  * FullPageJolecule - full page wrapper around an embedded EmbedJolecule
  * widget. Handles keypresses and urls and adds a view list side-panel
  * FullPageJolecule satisfies the interface for animation.js
@@ -374,9 +393,9 @@ class FullPageJolecule {
       this.params = _.assign(this.params, params)
     }
     if (!this.params.viewId) {
-      let hashTag = getWindowUrl().split('#')[1]
-      if (hashTag) {
-        this.params.viewId = hashTag
+      let viewId = getParameterByName('view_id')
+      if (viewId) {
+        this.params.viewId = viewId
         console.log(`FullPageJolecule.constructor viewId=${this.params.viewId}`)
       }
     }
