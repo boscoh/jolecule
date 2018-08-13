@@ -1279,6 +1279,7 @@ class Soup {
   findGridLimits () {
     let residue = this.getResidueProxy()
     let atom = this.getAtomProxy()
+    this.grid.isElem = {}
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
       residue.iRes = iRes
       if (residue.ss === 'G') {
@@ -1715,8 +1716,8 @@ class SoupView {
     if ((this.savedViews.length === 0) && (!this.soup.isEmpty())) {
       this.setCurrentViewToDefaultAndSave()
     }
-    this.soup.colorResidues()
     this.soup.findGridLimits()
+    this.soup.colorResidues()
     this.soup.calculateTracesForRibbons()
   }
 
