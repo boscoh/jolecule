@@ -1,18 +1,31 @@
 /**
  * Widget interface
  *
- * decorated graphical objects on top of ProteinDisplay that are a hybrid
- * of HTML DOM elements and WebGL elements such as lines, atom labels,
- * distance measures, sequence bars, z-slab control, grid controls
+ * Widgets - abstact data structures for decorators to
+ * be displayed on the DOM to support the main
+ * embeddged widget of Jolecule.
+  *
+ * The structure of a Widget takes a Display object
+ * in the constructor, which allows access to a full
+ * SoupView object, with its attendant Controller.
  *
- * this.observerReset - called after model rebuild
- * this.draw - called at every draw event
- * this.resize - called after every resize of window
+ * props:
+ *   div: a Jquery DOM element where the Widget is attached
+ *        could be a Canvas or a Div etc.
+ *
+ * methods
+ *   resize (): called when the browser window changes
+ *   rebuild (): called when underlying Soup is modified
+ *   update (): called when the 3D Display goes
+ *      through a view change
+ *   drawFrame (): called every animation frame
  */
 
 import $ from 'jquery'
 import * as THREE from 'three'
 import _ from 'lodash'
+
+// to support cross-browser styled drop-down selectors
 import select2 from 'select2' // eslint-disable-line no-alert
 
 import * as data from './data'
@@ -163,10 +176,10 @@ class CanvasWidget {
   }
 
   line (x1, y1, x2, y2, lineWidth, color) {
-    this.drawContext.fillStyle = 'none'
+    this.drawContext.fillStyle = color
     this.drawContext.strokeStyle = color
-    this.drawContext.lineWidth = lineWidth
     this.drawContext.beginPath()
+    this.drawContext.lineWidth = lineWidth
     this.drawContext.moveTo(x1, y1)
     this.drawContext.lineTo(x2, y2)
     this.drawContext.stroke()
@@ -568,10 +581,10 @@ class SequenceWidget extends CanvasWidget {
     this.yBottom = this.yTopSequence + + this.spacingY*2.7 + this.charHeight
     this.yMidSequence = this.yTopSequence + this.spacingY*1.2 + this.charHeight / 2
 
-    this.backColor = '#CCC'
-    this.selectColor = '#FFF'
+    this.structBarBgroundColor = '#CCC'
+    this.seqBarBgroundColor = '#FFF'
     this.highlightColor = 'red'
-    this.borderColor = '#888'
+    this.borderColor = '#999'
 
     this.div.attr('id', 'sequence-widget')
     this.div.css({
@@ -736,17 +749,17 @@ class SequenceWidget extends CanvasWidget {
 
     // draw background
     this.fillRect(
-      0, 0, this.width(), this.height(), this.backColor)
+      0, 0, this.width(), this.height(), this.structBarBgroundColor)
 
     // draw sequence bar background
     this.fillRect(
-      0, this.yTopSequence, this.width(), heightSequence, this.selectColor)
+      0, this.yTopSequence, this.width(), heightSequence, this.seqBarBgroundColor)
 
     // draw border around sequence bar
     this.line(
-      0, this.yTopSequence, this.width(), this.yTopSequence, this.borderColor)
+      0, this.yTopSequence, this.width(), this.yTopSequence, 1, this.borderColor)
     this.line(
-      0, this.yBottom, this.width(), this.yBottom, this.borderColor)
+      0, this.yBottom, this.width(), this.yBottom, 1, this.borderColor)
 
     if (!util.exists(this.soupView)) {
       return
@@ -774,10 +787,10 @@ class SequenceWidget extends CanvasWidget {
 
     // draw selected part of structure bar
     this.fillRect(
-      x1, yTopStructure, x2 - x1, heightStructure, 1, this.selectColor)
+      x1, yTopStructure, x2 - x1, heightStructure, this.seqBarBgroundColor)
 
     // draw line through structure bar
-    this.line(0, yMidStructure, this.width(), yMidStructure, 1, '#999')
+    this.line(0, yMidStructure, this.width(), yMidStructure, 1, this.borderColor)
 
     let colorStyle
 
@@ -816,7 +829,7 @@ class SequenceWidget extends CanvasWidget {
     }
 
     // draw line through sequence bar
-    this.line(0, this.yMidSequence, this.width(), this.yMidSequence, 1, '#999')
+    this.line(0, this.yMidSequence, this.width(), this.yMidSequence, 1, this.borderColor)
 
     // draw characters for sequence
     for (let iChar = this.iCharDisplayStart; iChar < this.iCharDisplayEnd; iChar += 1) {
