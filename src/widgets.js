@@ -16,8 +16,7 @@
  * methods
  *   resize (): called when the browser window changes
  *   rebuild (): called when underlying Soup is modified
- *   update (): called when the 3D Display goes
- *      through a view change
+ *   update (): called when Display goes through a rendering change
  *   drawFrame (): called every animation frame
  */
 

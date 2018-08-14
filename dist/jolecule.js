@@ -82842,15 +82842,26 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * Widget interface
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       *
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * decorated graphical objects on top of ProteinDisplay that are a hybrid
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * of HTML DOM elements and WebGL elements such as lines, atom labels,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distance measures, sequence bars, z-slab control, grid controls
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Widgets - abstact data structures for decorators to
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * be displayed on the DOM to support the main
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * embeddged widget of Jolecule.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * The structure of a Widget takes a Display object
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * in the constructor, which allows access to a full
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * SoupView object, with its attendant Controller.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       *
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * this.observerReset - called after model rebuild
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * this.draw - called at every draw event
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * this.resize - called after every resize of window
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * props:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *   div: a Jquery DOM element where the Widget is attached
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *        could be a Canvas or a Div etc.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * methods
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *   resize (): called when the browser window changes
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *   rebuild (): called when underlying Soup is modified
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *   update (): called when Display goes through a rendering change
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *   drawFrame (): called every animation frame
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       */
 
+// to support cross-browser styled drop-down selectors
 // eslint-disable-line no-alert
 
 var _jquery = __webpack_require__(32);
@@ -83058,10 +83069,10 @@ var CanvasWidget = function () {
   }, {
     key: 'line',
     value: function line(x1, y1, x2, y2, lineWidth, color) {
-      this.drawContext.fillStyle = 'none';
+      this.drawContext.fillStyle = color;
       this.drawContext.strokeStyle = color;
-      this.drawContext.lineWidth = lineWidth;
       this.drawContext.beginPath();
+      this.drawContext.lineWidth = lineWidth;
       this.drawContext.moveTo(x1, y1);
       this.drawContext.lineTo(x2, y2);
       this.drawContext.stroke();
@@ -83516,10 +83527,10 @@ var SequenceWidget = function (_CanvasWidget) {
     _this5.yBottom = _this5.yTopSequence + +_this5.spacingY * 2.7 + _this5.charHeight;
     _this5.yMidSequence = _this5.yTopSequence + _this5.spacingY * 1.2 + _this5.charHeight / 2;
 
-    _this5.backColor = '#CCC';
-    _this5.selectColor = '#FFF';
+    _this5.structBarBgroundColor = '#CCC';
+    _this5.seqBarBgroundColor = '#FFF';
     _this5.highlightColor = 'red';
-    _this5.borderColor = '#888';
+    _this5.borderColor = '#999';
 
     _this5.div.attr('id', 'sequence-widget');
     _this5.div.css({
@@ -83782,14 +83793,14 @@ var SequenceWidget = function (_CanvasWidget) {
       var heightSequence = this.yBottom - this.yTopSequence;
 
       // draw background
-      this.fillRect(0, 0, this.width(), this.height(), this.backColor);
+      this.fillRect(0, 0, this.width(), this.height(), this.structBarBgroundColor);
 
       // draw sequence bar background
-      this.fillRect(0, this.yTopSequence, this.width(), heightSequence, this.selectColor);
+      this.fillRect(0, this.yTopSequence, this.width(), heightSequence, this.seqBarBgroundColor);
 
       // draw border around sequence bar
-      this.line(0, this.yTopSequence, this.width(), this.yTopSequence, this.borderColor);
-      this.line(0, this.yBottom, this.width(), this.yBottom, this.borderColor);
+      this.line(0, this.yTopSequence, this.width(), this.yTopSequence, 1, this.borderColor);
+      this.line(0, this.yBottom, this.width(), this.yBottom, 1, this.borderColor);
 
       if (!util.exists(this.soupView)) {
         return;
@@ -83816,10 +83827,10 @@ var SequenceWidget = function (_CanvasWidget) {
       var x2 = this.iToX(this.iCharDisplayEnd);
 
       // draw selected part of structure bar
-      this.fillRect(x1, yTopStructure, x2 - x1, heightStructure, 1, this.selectColor);
+      this.fillRect(x1, yTopStructure, x2 - x1, heightStructure, this.seqBarBgroundColor);
 
       // draw line through structure bar
-      this.line(0, yMidStructure, this.width(), yMidStructure, 1, '#999');
+      this.line(0, yMidStructure, this.width(), yMidStructure, 1, this.borderColor);
 
       var colorStyle = void 0;
 
@@ -83855,7 +83866,7 @@ var SequenceWidget = function (_CanvasWidget) {
       }
 
       // draw line through sequence bar
-      this.line(0, this.yMidSequence, this.width(), this.yMidSequence, 1, '#999');
+      this.line(0, this.yMidSequence, this.width(), this.yMidSequence, 1, this.borderColor);
 
       // draw characters for sequence
       for (var _iChar = this.iCharDisplayStart; _iChar < this.iCharDisplayEnd; _iChar += 1) {

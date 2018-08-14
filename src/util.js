@@ -133,6 +133,7 @@ function textEntryDialog (parentDiv, label, callback) {
 
   let textarea = $('<textarea>')
     .css('width', '100%')
+    .css('margin-bottom', '0.5em')
     .addClass('jolecule-view-text')
     .keydown(
       function (e) {
