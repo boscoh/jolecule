@@ -153,10 +153,17 @@ class AtomProxy {
   }
 
   get color () {
-    if (this.elem === 'C' || this.elem === 'H') {
-      let residue = this.soup.getResidueProxy(this.iRes)
-      return residue.activeColor
-    } else if (this.elem in data.ElementColors) {
+    let residue = this.soup.getResidueProxy(this.iRes)
+    if (residue.isPolymer) {
+      let resColor = residue.activeColor
+      if (this.elem === 'C' || this.elem === 'H') {
+        return resColor
+      } else if (this.elem in data.ElementColors) {
+        let elemColor = data.ElementColors[this.elem].clone().offsetHSL(0, -0.2, -0.3)
+        return new THREE.Color().addColors(resColor, elemColor)
+      }
+    }
+    if (this.elem in data.ElementColors) {
       return data.ElementColors[this.elem]
     }
     return data.darkGrey

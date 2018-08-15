@@ -218,6 +218,9 @@ class ViewPanelList {
     if (lastId) {
       if (history.pushState) {
         let query = `?view_id=${lastId}`
+        if (lastId === 'view:000000') {
+          query = ''
+        }
         let newPath = window.location.protocol
           + '//'
           + window.location.host

@@ -25,11 +25,9 @@ let initPdbs = []
 let initPdb
 
 
-function createWindow (pdb) {
-  console.log('createWindow', pdb)
-
+function createWindow (windowId) {
   // Create the browser window.
-  windows[pdb] = new BrowserWindow({
+  windows[windowId] = new BrowserWindow({
     width: 1000,
     height: 800,
     webPreferences: {
@@ -37,7 +35,7 @@ function createWindow (pdb) {
     }
   })
 
-  windows[pdb].loadURL(
+  windows[windowId].loadURL(
     url.format({
       pathname: path.join(__dirname, 'pdb-index.html'),
       protocol: 'file:',
@@ -47,17 +45,17 @@ function createWindow (pdb) {
 
   // Open the DevTools.
   if (isDebug) {
-    windows[pdb].webContents.openDevTools()
+    windows[windowId].webContents.openDevTools()
   }
 
   // Emitted when the window is closed.
-  windows[pdb].on('closed', function () {
+  windows[windowId].on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    console.log('close', pdb)
+    console.log('close', windowId)
     // windows[pdbId].close()
-    windows[pdb] = null
+    windows[windowId] = null
   })
 
   if (windows[lastWindowId]) {
@@ -66,7 +64,7 @@ function createWindow (pdb) {
     delete windows[lastWindowId]
   }
 
-  lastWindowId = pdb
+  lastWindowId = windowId
 }
 
 function getViewsJson (pdb) {
@@ -81,7 +79,7 @@ function showOpen () {
   })
   console.log('showOpen', files)
   let pdb = files[0]
-  createWindow(pdb)
+  createWindow('jolecule')
 }
 
 const menuTemplate = [
@@ -219,7 +217,7 @@ function init () {
   const menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
   addHandlers()
-  createWindow(initPdb)
+  createWindow('jolecule')
 }
 
 function parsePdb (f) {
@@ -265,8 +263,6 @@ if (initDirs.length > 0) {
   initDir = initDirs[0]
 }
 
-console.log('init', initDir, initPdbs)
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -283,7 +279,7 @@ app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
-    createWindow()
+    createWindow('jolecule')
   }
 })
 

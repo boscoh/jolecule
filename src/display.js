@@ -115,7 +115,6 @@ class WebglWidget {
     bind('mouseup', e => this.mouseup(e))
     bind('mouseleave', e => this.mouseout(e))
     bind('mousewheel', e => this.mousewheel(e))
-    // bind('dblclick', e => this.doubleclick(e))
     bind('DOMMouseScroll', e => this.mousewheel(e))
     bind('touchstart', e => this.mousedown(e))
     bind('touchmove', e => this.mousemove(e))

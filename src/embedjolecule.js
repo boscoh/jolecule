@@ -174,6 +174,12 @@ class EmbedJolecule {
         $('<div id="view-text" class="jolecule-button" style="background-color: #BBB; flex: 1 1; box-sizing: content-box; white-space: nowrap; overflow: hidden; text-align: left">'))
       this.viewTextWidget = new widgets.ViewTextWidget(
         this.display, '#view-text')
+
+      if (this.params.isEditable) {
+        this.playableDiv.append(linkButton(
+          '', 'save', 'jolecule-button',
+          () => { this.controller.saveCurrentView() }))
+      }
     }
 
     if (this.params.isEditable) {

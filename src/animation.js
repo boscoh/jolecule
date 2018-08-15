@@ -4,11 +4,15 @@
  * the interface to a widget is:
  *
  * class Widget {
- *   animate() {}
- *   isChanged: boolean
- *   draw() {}
+ *   animate(elapsedTime) - calculates any changes due to animation
+ *   isChanged() -> Boolean - check if needs to be drawn
+ *   drawFrame() -> draws the actue frame
  * }
  *
+ * The widgets are stored on the global window object so that
+ * potentially multiple different instances will hit the 
+ * same copy of the function
+ * 
  * Global storage
  * - window.globalWidgets
  * - window.lastTime
@@ -43,7 +47,8 @@ function loop () {
  * window space to lock one single copy of loop
  */
 function registerGlobalAnimationLoop (widget) {
-  console.log('registerGlobalAnimationLoop window', window)
+  // only set once by checking the global window variable
+
   if (typeof window.globalWidgets === 'undefined') {
     window.globalWidgets = []
     loop()

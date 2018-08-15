@@ -55,17 +55,6 @@ function makeDataServer(pdb) {
   };
 }
 
-let joleculeInstance = jolecule.initFullPageJolecule(
-  "#jolecule-protein-container",
-  "#jolecule-views-container",
-  {
-    isEditable: true,
-    isGrid: true,
-    isPlayable: true,
-    backgroundColor: 0x000000
-  }
-);
-
 function getPdbId (pdb) {
   return path.basename(pdb).replace('.pdb', '')
 }
@@ -75,16 +64,6 @@ function loadPdb(pdb) {
   joleculeInstance.clear();
   joleculeInstance.asyncAddDataServer(makeDataServer(pdb));
 }
-
-ipcRenderer.send("get-init");
-ipcRenderer.on("get-init", (event, dirname, pdbs) => {
-  console.log('ipcRenderer:get-init', dirname, pdbs)
-  joleculeInstance.clear();
-  for (let pdb of pdbs) {
-    loadPdb(pdb);
-  }
-  ipcRenderer.send("get-files", dirname);
-});
 
 function buildFileDiv(entry) {
   let s = entry.name
@@ -109,14 +88,40 @@ function buildDirDiv(entry, directory) {
   return entryDiv;
 }
 
-ipcRenderer.on("get-files", (event, payload) => {
-  console.log('ipcRenderer:get-files', payload)
-  let div = $("#files");
-  div.empty();
-  for (let entry of payload.directories) {
-    div.append(buildDirDiv(entry, payload.dirname));
+function registerHandlers () {
+  ipcRenderer.on("get-init", (event, dirname, pdbs) => {
+    console.log('ipcRenderer:get-init', dirname, pdbs)
+    joleculeInstance.clear();
+    for (let pdb of pdbs) {
+      loadPdb(pdb);
+    }
+    ipcRenderer.send("get-files", dirname);
+  });
+
+  ipcRenderer.on("get-files", (event, payload) => {
+    console.log('ipcRenderer:get-files', payload)
+    let div = $("#files");
+    div.empty();
+    for (let entry of payload.directories) {
+      div.append(buildDirDiv(entry, payload.dirname));
+    }
+    for (let entry of payload.files) {
+      div.append(buildFileDiv(entry));
+    }
+  });
+}
+
+registerHandlers()
+
+let joleculeInstance = jolecule.initFullPageJolecule(
+  "#jolecule-protein-container",
+  "#jolecule-views-container",
+  {
+    isEditable: true,
+    isGrid: true,
+    isPlayable: true,
+    backgroundColor: 0x000000
   }
-  for (let entry of payload.files) {
-    div.append(buildFileDiv(entry));
-  }
-});
+);
+
+ipcRenderer.send("get-init");
