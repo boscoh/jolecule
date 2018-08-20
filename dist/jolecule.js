@@ -99972,7 +99972,7 @@ var GridRepresentation = function (_AtomsRepresentation) {
 var SphereRepresentation = function (_AtomsRepresentation2) {
   _inherits(SphereRepresentation, _AtomsRepresentation2);
 
-  function SphereRepresentation(soup, radius) {
+  function SphereRepresentation(soup) {
     _classCallCheck(this, SphereRepresentation);
 
     return _possibleConstructorReturn(this, (SphereRepresentation.__proto__ || Object.getPrototypeOf(SphereRepresentation)).call(this, soup, [], 1.7, true));
