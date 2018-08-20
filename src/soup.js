@@ -4,7 +4,6 @@ import { randomId, getWindowUrl, inArray, getCurrentDateStr } from './util.js'
 import * as glgeom from './glgeom'
 import { SpaceHash } from './pairs.js'
 import Store from './store.js'
-import BitArray from './bitarray.js'
 import * as data from './data'
 import * as THREE from 'three'
 
@@ -179,7 +178,10 @@ const residueStoreFields = [
   ['insCode', 1, 'uint8'],
   ['sstruc', 1, 'uint8'],
   ['iColor', 1, 'uint8'],
-  ['isPolymer', 1, 'uint8']
+  ['isPolymer', 1, 'uint8'],
+  ['selected', 1, 'uint8'],
+  ['sidechain', 1, 'uint8'],
+  ['iChain', 1, 'uint8'],
 ]
 
 class ResidueProxy {
@@ -239,6 +241,22 @@ class ResidueProxy {
     this.soup.residueStore.isPolymer[this.iRes] = boolToInt(v)
   }
 
+  get sidechain () {
+    return intToBool(this.soup.residueStore.sidechain[this.iRes])
+  }
+
+  set sidechain (v) {
+    this.soup.residueStore.sidechain[this.iRes] = boolToInt(v)
+  }
+
+  get selected () {
+    return intToBool(this.soup.residueStore.selected[this.iRes])
+  }
+
+  set selected (v) {
+    this.soup.residueStore.selected[this.iRes] = boolToInt(v)
+  }
+
   get color () {
     let iColor = this.soup.residueStore.iColor[this.iRes]
     return this.soup.colorTable[iColor]
@@ -252,34 +270,10 @@ class ResidueProxy {
   get activeColor () {
     let iColor = this.soup.residueStore.iColor[this.iRes]
     let color = this.soup.colorTable[iColor]
-    if (this.soup.residueSelect.get(this.iRes)) {
+    if (this.selected) {
       color = color.clone().offsetHSL(0, 0, +0.3)
     }
     return color
-  }
-
-  get selected () {
-    return this.soup.residueSelect.get(this.iRes)
-  }
-
-  set selected (v) {
-    if (v) {
-      this.soup.residueSelect.set(this.iRes)
-    } else {
-      this.soup.residueSelect.clear(this.iRes)
-    }
-  }
-
-  get sidechain () {
-    return this.soup.residueSidechain.get(this.iRes)
-  }
-
-  set sidechain (v) {
-    if (v) {
-      this.soup.residueSidechain.set(this.iRes)
-    } else {
-      this.soup.residueSidechain.clear(this.iRes)
-    }
   }
 
   get resType () {
@@ -461,11 +455,6 @@ class Soup {
 
     this.residueProxy = new ResidueProxy(this)
     this.atomProxy = new AtomProxy(this)
-
-    this.atomSelect = new BitArray(0)
-    this.residueSelect = new BitArray(0)
-    this.residueSidechain = new BitArray(0)
-    this.bondSelect = new BitArray(0)
 
     this.elemTable = []
     this.atomTypeTable = []
@@ -710,9 +699,6 @@ class Soup {
         res.iAtom = this.getIAtomClosest(center, res.getAtomIndices())
       }
     }
-    this.atomSelect = new BitArray(this.getAtomCount())
-    this.residueSelect = new BitArray(this.getResidueCount())
-    this.residueSidechain = new BitArray(this.getResidueCount())
   }
 
   getIAtomClosest (pos, atomIndices) {
@@ -902,7 +888,7 @@ class Soup {
       this.atomStore.bondCount[iAtom1] += 1
     }
 
-    this.bondSelect = new BitArray(this.getBondCount())
+    // this.bondSelect = new BitArray(this.getBondCount())
   }
 
   /**
@@ -1210,11 +1196,17 @@ class Soup {
   }
 
   clearSelectedResidues () {
-    this.residueSelect.clearAll()
+    let residue = this.getResidueProxy()
+    for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
+      residue.load(iRes).selected = false
+    }
   }
 
   clearSidechainResidues () {
-    this.residueSidechain.clearAll()
+    let residue = this.getResidueProxy()
+    for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
+      residue.load(iRes).sidechain = false
+    }
   }
 
   setSidechainOfResidues (residueIndices, isSidechain) {
@@ -1362,27 +1354,11 @@ class Soup {
       }
     }
 
-    let newResidueSelect = new BitArray(nResNew)
-    let newResidueSidechain = new BitArray(nResNew)
-
     for (let iRes = 0; iRes < nResNew; iRes += 1) {
       if (iRes >= iResStart) {
         let iResOld = iRes + nResOffset
         if (iResOld in this.residueNormal) {
           this.residueNormal[iRes] = this.residueNormal[iResOld].clone()
-        }
-        if (this.residueSelect.get(iResOld)) {
-          newResidueSelect.set(iRes)
-        }
-        if (this.residueSidechain.get(iResOld)) {
-          newResidueSidechain.set(iRes)
-        }
-      } else {
-        if (this.residueSelect.get(iRes)) {
-          newResidueSelect.set(iRes)
-        }
-        if (this.residueSidechain.get(iRes)) {
-          newResidueSidechain.set(iRes)
         }
       }
     }
@@ -1390,9 +1366,6 @@ class Soup {
     for (let iRes = nResNew; iRes < nRes; iRes += 1) {
       delete this.residueNormal[iRes]
     }
-
-    this.residueSelect = newResidueSelect
-    this.residueSidechain = newResidueSidechain
 
     this.residueStore.copyWithin(iResStart, iResEnd, nResCopy)
     this.residueStore.count -= nResOffset

@@ -154,8 +154,8 @@ export default {
       const dataServer7 = require('../../../dataservers/1mbo-data-server')
       await this.joleculeWidget.asyncAddDataServer(dataServer7)
     } else {
-      const dataServer0 = require('../../../dataservers/1a0a-data-server')
-      await this.joleculeWidget.asyncAddDataServer(dataServer0)
+      // const dataServer0 = require('../../../dataservers/1a0a-data-server')
+      // await this.joleculeWidget.asyncAddDataServer(dataServer0)
       // const dataServer1 = require('../../../dataservers/1a0a-Ar-data-server')
       // await this.joleculeWidget.asyncAddDataServer(dataServer1)
       // const dataServer2 = require('../../../dataservers/1a0a-Kr-data-server')
@@ -163,8 +163,8 @@ export default {
       // const dataServer3 = require('../../../dataservers/1a0a-Xe-data-server')
       // await this.joleculeWidget.asyncAddDataServer(dataServer3)
 
-      // const dataServer7 = require('../../../dataservers/1mbo-data-server')
-      // await this.joleculeWidget.asyncAddDataServer(dataServer7)
+      const dataServer7 = require('../../../dataservers/1mbo-data-server')
+      await this.joleculeWidget.asyncAddDataServer(dataServer7)
 
       // const dataServer8 = require('../../../dataservers/1u6b-data-server')
       // await this.joleculeWidget.asyncAddDataServer(dataServer8)
