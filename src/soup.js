@@ -8,8 +8,6 @@ import BitArray from './bitarray.js'
 import * as data from './data'
 import * as THREE from 'three'
 
-let user = 'public' // will be overriden by server
-
 function deleteNumbers (text) {
   return text.replace(/\d+/, '')
 }
@@ -159,7 +157,7 @@ class AtomProxy {
       if (this.elem === 'C' || this.elem === 'H') {
         return resColor
       } else if (this.elem in data.ElementColors) {
-        let elemColor = data.ElementColors[this.elem].clone().offsetHSL(0, -0.2, -0.3)
+        let elemColor = data.ElementColors[this.elem].clone().offsetHSL(0, -0.3, -0.3)
         return new THREE.Color().addColors(resColor, elemColor)
       }
     }

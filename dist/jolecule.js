@@ -79822,12 +79822,6 @@ var EmbedJolecule = function () {
 
         this.playableDiv.append((0, _jquery2.default)('<div id="view-text" class="jolecule-button" style="background-color: #BBB; flex: 1 1; box-sizing: content-box; white-space: nowrap; overflow: hidden; text-align: left">'));
         this.viewTextWidget = new _widgets2.default.ViewTextWidget(this.display, '#view-text');
-
-        if (this.params.isEditable) {
-          this.playableDiv.append((0, _util.linkButton)('', 'save', 'jolecule-button', function () {
-            _this3.controller.saveCurrentView();
-          }));
-        }
       }
 
       if (this.params.isEditable) {
@@ -79943,8 +79937,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var user = 'public'; // will be overriden by server
 
 function deleteNumbers(text) {
   return text.replace(/\d+/, '');
@@ -80116,7 +80108,7 @@ var AtomProxy = function () {
         if (this.elem === 'C' || this.elem === 'H') {
           return resColor;
         } else if (this.elem in data.ElementColors) {
-          var elemColor = data.ElementColors[this.elem].clone().offsetHSL(0, -0.2, -0.3);
+          var elemColor = data.ElementColors[this.elem].clone().offsetHSL(0, -0.3, -0.3);
           return new THREE.Color().addColors(resColor, elemColor);
         }
       }
@@ -91454,7 +91446,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  *  - camera object
  *  - display scene
  *  - picking scene, with helpful picking functions
- *  - a status messaging in the div
+ *  - a status messaging div
+ *  - lights
  *  - input handlers for mouse
  */
 var WebglWidget = function () {
@@ -91815,14 +91808,6 @@ var WebglWidget = function () {
         }
       }
     }
-  }, {
-    key: 'addRepresentation',
-    value: function addRepresentation(name, repr) {
-      this.representations[name] = repr;
-      this.displayMeshes[name] = repr.displayObj;
-      this.pickingMeshes[name] = repr.pickingObj;
-      this.updateMeshesInScene = true;
-    }
 
     /**
      * Sets the visibility of a mesh this.displayMeshes & this.pickingMeshes.
@@ -92176,6 +92161,14 @@ var Display = function (_WebglWidget) {
      */
 
   }, {
+    key: 'addRepresentation',
+    value: function addRepresentation(name, repr) {
+      this.representations[name] = repr;
+      this.displayMeshes[name] = repr.displayObj;
+      this.pickingMeshes[name] = repr.pickingObj;
+      this.updateMeshesInScene = true;
+    }
+  }, {
     key: 'buildScene',
     value: function buildScene() {
       // pre-calculations needed before building meshes
@@ -92306,7 +92299,7 @@ var Display = function (_WebglWidget) {
       }
 
       if (isNewTrigger('sphere', show.sphere)) {
-        this.addRepresentation('sphere', new representation.SphereRepresentation(this.soup, this.atomRadius));
+        this.addRepresentation('sphere', new representation.SphereRepresentation(this.soup));
       }
 
       this.setMeshVisible('ribbon', show.ribbon);
@@ -99853,6 +99846,8 @@ var CartoonRepresentation = function (_Representation4) {
 
 var AtomsRepresentation = function () {
   function AtomsRepresentation(soup, atomIndices, atomRadius) {
+    var isElementRadius = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+
     _classCallCheck(this, AtomsRepresentation);
 
     this.soup = soup;
@@ -99862,6 +99857,7 @@ var AtomsRepresentation = function () {
     this.atomRadius = atomRadius;
     this.displayMaterial = phongMaterial;
     this.pickingMaterial = pickingMaterial;
+    this.isElementRadius = isElementRadius;
     this.build();
   }
 
@@ -99879,10 +99875,18 @@ var AtomsRepresentation = function () {
       var pickingGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy);
 
       var atom = this.soup.getAtomProxy();
+      var radius = this.atomRadius;
       for (var iCopy = 0; iCopy < nCopy; iCopy += 1) {
         var iAtom = this.atomIndices[iCopy];
         atom.iAtom = iAtom;
-        var matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius);
+        if (this.isElementRadius) {
+          if (atom.elem === "H") {
+            radius = 1.2;
+          } else {
+            radius = 1.7;
+          }
+        }
+        var matrix = glgeom.getSphereMatrix(atom.pos, radius);
         this.displayGeom.applyMatrixToCopy(matrix, iCopy);
         pickingGeom.applyMatrixToCopy(matrix, iCopy);
         this.displayGeom.applyColorToCopy(atom.color, iCopy);
@@ -99971,7 +99975,7 @@ var SphereRepresentation = function (_AtomsRepresentation2) {
   function SphereRepresentation(soup, radius) {
     _classCallCheck(this, SphereRepresentation);
 
-    return _possibleConstructorReturn(this, (SphereRepresentation.__proto__ || Object.getPrototypeOf(SphereRepresentation)).call(this, soup, [], 1.7));
+    return _possibleConstructorReturn(this, (SphereRepresentation.__proto__ || Object.getPrototypeOf(SphereRepresentation)).call(this, soup, [], 1.7, true));
   }
 
   _createClass(SphereRepresentation, [{
@@ -100033,6 +100037,7 @@ var SphereRepresentation = function (_AtomsRepresentation2) {
         }
       }
 
+      this.isElementRadius = true;
       _get(SphereRepresentation.prototype.__proto__ || Object.getPrototypeOf(SphereRepresentation.prototype), 'build', this).call(this);
     }
   }]);
@@ -100768,9 +100773,6 @@ var ViewPanelList = function () {
         if (view.text !== viewPiece.showTextDiv.html()) {
           viewPiece.showTextDiv.html(view.order + 1 + "/" + nView + ": " + view.text);
         }
-
-        var a = viewPiece.div.find('a').eq(0);
-        a.text(view.order + 1);
       }
 
       if (lastId) {

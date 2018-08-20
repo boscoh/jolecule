@@ -343,7 +343,7 @@ class CartoonRepresentation extends Representation {
 }
 
 class AtomsRepresentation {
-  constructor (soup, atomIndices, atomRadius) {
+  constructor (soup, atomIndices, atomRadius, isElementRadius=false) {
     this.soup = soup
     this.displayObj = new THREE.Object3D()
     this.pickingObj = new THREE.Object3D()
@@ -351,6 +351,7 @@ class AtomsRepresentation {
     this.atomRadius = atomRadius
     this.displayMaterial = phongMaterial
     this.pickingMaterial = pickingMaterial
+    this.isElementRadius = isElementRadius
     this.build()
   }
 
@@ -366,10 +367,18 @@ class AtomsRepresentation {
     let pickingGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy)
 
     let atom = this.soup.getAtomProxy()
+    let radius = this.atomRadius
     for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
       let iAtom = this.atomIndices[iCopy]
       atom.iAtom = iAtom
-      let matrix = glgeom.getSphereMatrix(atom.pos, this.atomRadius)
+      if (this.isElementRadius) {
+        if (atom.elem === "H") {
+          radius = 1.2
+        } else {
+          radius = 1.7
+        }
+      }
+      let matrix = glgeom.getSphereMatrix(atom.pos, radius)
       this.displayGeom.applyMatrixToCopy(matrix, iCopy)
       pickingGeom.applyMatrixToCopy(matrix, iCopy)
       this.displayGeom.applyColorToCopy(atom.color, iCopy)
@@ -418,8 +427,8 @@ class GridRepresentation extends AtomsRepresentation {
 }
 
 class SphereRepresentation extends AtomsRepresentation {
-  constructor (soup, radius) {
-    super(soup, [], 1.7)
+  constructor (soup) {
+    super(soup, [], 1.7, true)
   }
 
   build () {
@@ -436,6 +445,7 @@ class SphereRepresentation extends AtomsRepresentation {
         }
       }
     }
+    this.isElementRadius = true
     super.build()
   }
 }

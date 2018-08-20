@@ -18,7 +18,8 @@ import { registerGlobalAnimationLoop } from './animation'
  *  - camera object
  *  - display scene
  *  - picking scene, with helpful picking functions
- *  - a status messaging in the div
+ *  - a status messaging div
+ *  - lights
  *  - input handlers for mouse
  */
 class WebglWidget {
@@ -290,13 +291,6 @@ class WebglWidget {
         this.pickingScene.add(mesh)
       }
     }
-  }
-
-  addRepresentation (name, repr) {
-    this.representations[name] = repr
-    this.displayMeshes[name] = repr.displayObj
-    this.pickingMeshes[name] = repr.pickingObj
-    this.updateMeshesInScene = true
   }
 
   /**
@@ -625,6 +619,13 @@ class Display extends WebglWidget {
    **********************************************************
    */
 
+  addRepresentation (name, repr) {
+    this.representations[name] = repr
+    this.displayMeshes[name] = repr.displayObj
+    this.pickingMeshes[name] = repr.pickingObj
+    this.updateMeshesInScene = true
+  }
+
   buildScene () {
     // pre-calculations needed before building meshes
     this.soupView.build()
@@ -723,7 +724,7 @@ class Display extends WebglWidget {
     if (isNewTrigger('sphere', show.sphere)) {
       this.addRepresentation(
         'sphere',
-        new representation.SphereRepresentation(this.soup, this.atomRadius))
+        new representation.SphereRepresentation(this.soup))
     }
 
     this.setMeshVisible('ribbon', show.ribbon)

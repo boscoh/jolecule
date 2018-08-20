@@ -210,9 +210,6 @@ class ViewPanelList {
       if (view.text !== viewPiece.showTextDiv.html()) {
         viewPiece.showTextDiv.html((view.order + 1) + "/" + nView + ": " + view.text)
       }
-
-      let a = viewPiece.div.find('a').eq(0)
-      a.text(view.order + 1)
     }
 
     if (lastId) {
