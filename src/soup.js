@@ -1108,11 +1108,27 @@ class Soup {
 
     let lastTrace
     let residue = this.getResidueProxy()
+    let prevResidue = this.getResidueProxy()
+    let nextResidue = this.getResidueProxy()
     let atom = this.getAtomProxy()
-    for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
+    let nRes = this.getResidueCount()
+    let isConnected = false
+    for (let iRes = 0; iRes < nRes; iRes += 1) {
       residue.iRes = iRes
+      if (iRes < nRes - 1) {
+        nextResidue.iRes = iRes + 1
+        isConnected = nextResidue.isConnectedToPrev()
+        if (isConnected) {
+          // set for non-standard DNA or protein residues
+          residue.isPolymer = true
+          nextResidue.isPolymer = true
+        }
+      }
       if (residue.isPolymer) {
-        if (_.isUndefined(lastTrace) || (iRes === 0) || !residue.isConnectedToPrev()) {
+        if (_.isUndefined(lastTrace)
+            || (iRes === 0)
+            // || !prevResidue.load(iRes - 1).isPolymer
+            || !residue.isConnectedToPrev()) {
           let newTrace = new glgeom.Trace()
           newTrace.getReference = i => {
             residue.iRes = newTrace.indices[i]
@@ -1123,7 +1139,14 @@ class Soup {
         }
         lastTrace.indices.push(iRes)
 
-        atom.iAtom = residue.iAtom
+        if (residue.getIAtom('CA')) {
+          atom.iAtom = residue.getIAtom('CA')
+        } else if (residue.getIAtom('C3\'')) {
+          atom.iAtom = residue.getIAtom('C3\'')
+        } else {
+          atom.iAtom = residue.iAtom
+        }
+
         lastTrace.refIndices.push(residue.iRes)
         lastTrace.points.push(atom.pos.clone())
         lastTrace.colors.push(residue.activeColor)

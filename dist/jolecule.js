@@ -79573,7 +79573,7 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var _soup = __webpack_require__(134);
 
-var _display = __webpack_require__(344);
+var _display = __webpack_require__(343);
 
 var _util = __webpack_require__(45);
 
@@ -79918,10 +79918,6 @@ var _store = __webpack_require__(342);
 
 var _store2 = _interopRequireDefault(_store);
 
-var _bitarray = __webpack_require__(343);
-
-var _bitarray2 = _interopRequireDefault(_bitarray);
-
 var _data = __webpack_require__(97);
 
 var data = _interopRequireWildcard(_data);
@@ -80122,7 +80118,7 @@ var AtomProxy = function () {
   return AtomProxy;
 }();
 
-var residueStoreFields = [['atomOffset', 1, 'uint32'], ['atomCount', 1, 'uint16'], ['iCentralAtom', 1, 'uint32'], ['iResType', 1, 'uint16'], ['iChain', 1, 'uint8'], ['iStructure', 1, 'uint8'], ['resNum', 1, 'int32'], ['insCode', 1, 'uint8'], ['sstruc', 1, 'uint8'], ['iColor', 1, 'uint8'], ['isPolymer', 1, 'uint8']];
+var residueStoreFields = [['atomOffset', 1, 'uint32'], ['atomCount', 1, 'uint16'], ['iCentralAtom', 1, 'uint32'], ['iResType', 1, 'uint16'], ['iChain', 1, 'uint8'], ['iStructure', 1, 'uint8'], ['resNum', 1, 'int32'], ['insCode', 1, 'uint8'], ['sstruc', 1, 'uint8'], ['iColor', 1, 'uint8'], ['isPolymer', 1, 'uint8'], ['selected', 1, 'uint8'], ['sidechain', 1, 'uint8'], ['iChain', 1, 'uint8']];
 
 var ResidueProxy = function () {
   function ResidueProxy(soup, iRes) {
@@ -80353,6 +80349,22 @@ var ResidueProxy = function () {
       this.soup.residueStore.isPolymer[this.iRes] = boolToInt(v);
     }
   }, {
+    key: 'sidechain',
+    get: function get() {
+      return intToBool(this.soup.residueStore.sidechain[this.iRes]);
+    },
+    set: function set(v) {
+      this.soup.residueStore.sidechain[this.iRes] = boolToInt(v);
+    }
+  }, {
+    key: 'selected',
+    get: function get() {
+      return intToBool(this.soup.residueStore.selected[this.iRes]);
+    },
+    set: function set(v) {
+      this.soup.residueStore.selected[this.iRes] = boolToInt(v);
+    }
+  }, {
     key: 'color',
     get: function get() {
       var iColor = this.soup.residueStore.iColor[this.iRes];
@@ -80367,34 +80379,10 @@ var ResidueProxy = function () {
     get: function get() {
       var iColor = this.soup.residueStore.iColor[this.iRes];
       var color = this.soup.colorTable[iColor];
-      if (this.soup.residueSelect.get(this.iRes)) {
+      if (this.selected) {
         color = color.clone().offsetHSL(0, 0, +0.3);
       }
       return color;
-    }
-  }, {
-    key: 'selected',
-    get: function get() {
-      return this.soup.residueSelect.get(this.iRes);
-    },
-    set: function set(v) {
-      if (v) {
-        this.soup.residueSelect.set(this.iRes);
-      } else {
-        this.soup.residueSelect.clear(this.iRes);
-      }
-    }
-  }, {
-    key: 'sidechain',
-    get: function get() {
-      return this.soup.residueSidechain.get(this.iRes);
-    },
-    set: function set(v) {
-      if (v) {
-        this.soup.residueSidechain.set(this.iRes);
-      } else {
-        this.soup.residueSidechain.clear(this.iRes);
-      }
     }
   }, {
     key: 'resType',
@@ -80497,11 +80485,6 @@ var Soup = function () {
 
     this.residueProxy = new ResidueProxy(this);
     this.atomProxy = new AtomProxy(this);
-
-    this.atomSelect = new _bitarray2.default(0);
-    this.residueSelect = new _bitarray2.default(0);
-    this.residueSidechain = new _bitarray2.default(0);
-    this.bondSelect = new _bitarray2.default(0);
 
     this.elemTable = [];
     this.atomTypeTable = [];
@@ -80821,9 +80804,6 @@ var Soup = function () {
           res.iAtom = this.getIAtomClosest(center, res.getAtomIndices());
         }
       }
-      this.atomSelect = new _bitarray2.default(this.getAtomCount());
-      this.residueSelect = new _bitarray2.default(this.getResidueCount());
-      this.residueSidechain = new _bitarray2.default(this.getResidueCount());
     }
   }, {
     key: 'getIAtomClosest',
@@ -81129,7 +81109,7 @@ var Soup = function () {
         this.atomStore.bondCount[iAtom1] += 1;
       }
 
-      this.bondSelect = new _bitarray2.default(this.getBondCount());
+      // this.bondSelect = new BitArray(this.getBondCount())
     }
 
     /**
@@ -81451,11 +81431,26 @@ var Soup = function () {
 
       var lastTrace = void 0;
       var residue = this.getResidueProxy();
+      var prevResidue = this.getResidueProxy();
+      var nextResidue = this.getResidueProxy();
       var atom = this.getAtomProxy();
-      for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
+      var nRes = this.getResidueCount();
+      var isConnected = false;
+      for (var iRes = 0; iRes < nRes; iRes += 1) {
         residue.iRes = iRes;
+        if (iRes < nRes - 1) {
+          nextResidue.iRes = iRes + 1;
+          isConnected = nextResidue.isConnectedToPrev();
+          if (isConnected) {
+            // set for non-standard DNA or protein residues
+            residue.isPolymer = true;
+            nextResidue.isPolymer = true;
+          }
+        }
         if (residue.isPolymer) {
-          if (_lodash2.default.isUndefined(lastTrace) || iRes === 0 || !residue.isConnectedToPrev()) {
+          if (_lodash2.default.isUndefined(lastTrace) || iRes === 0
+          // || !prevResidue.load(iRes - 1).isPolymer
+          || !residue.isConnectedToPrev()) {
             (function () {
               var newTrace = new glgeom.Trace();
               newTrace.getReference = function (i) {
@@ -81468,7 +81463,14 @@ var Soup = function () {
           }
           lastTrace.indices.push(iRes);
 
-          atom.iAtom = residue.iAtom;
+          if (residue.getIAtom('CA')) {
+            atom.iAtom = residue.getIAtom('CA');
+          } else if (residue.getIAtom('C3\'')) {
+            atom.iAtom = residue.getIAtom('C3\'');
+          } else {
+            atom.iAtom = residue.iAtom;
+          }
+
           lastTrace.refIndices.push(residue.iRes);
           lastTrace.points.push(atom.pos.clone());
           lastTrace.colors.push(residue.activeColor);
@@ -81613,12 +81615,18 @@ var Soup = function () {
   }, {
     key: 'clearSelectedResidues',
     value: function clearSelectedResidues() {
-      this.residueSelect.clearAll();
+      var residue = this.getResidueProxy();
+      for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
+        residue.load(iRes).selected = false;
+      }
     }
   }, {
     key: 'clearSidechainResidues',
     value: function clearSidechainResidues() {
-      this.residueSidechain.clearAll();
+      var residue = this.getResidueProxy();
+      for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
+        residue.load(iRes).sidechain = false;
+      }
     }
   }, {
     key: 'setSidechainOfResidues',
@@ -81841,27 +81849,11 @@ var Soup = function () {
         }
       }
 
-      var newResidueSelect = new _bitarray2.default(nResNew);
-      var newResidueSidechain = new _bitarray2.default(nResNew);
-
       for (var iRes = 0; iRes < nResNew; iRes += 1) {
         if (iRes >= iResStart) {
           var iResOld = iRes + nResOffset;
           if (iResOld in this.residueNormal) {
             this.residueNormal[iRes] = this.residueNormal[iResOld].clone();
-          }
-          if (this.residueSelect.get(iResOld)) {
-            newResidueSelect.set(iRes);
-          }
-          if (this.residueSidechain.get(iResOld)) {
-            newResidueSidechain.set(iRes);
-          }
-        } else {
-          if (this.residueSelect.get(iRes)) {
-            newResidueSelect.set(iRes);
-          }
-          if (this.residueSidechain.get(iRes)) {
-            newResidueSidechain.set(iRes);
           }
         }
       }
@@ -81869,9 +81861,6 @@ var Soup = function () {
       for (var _iRes7 = nResNew; _iRes7 < nRes; _iRes7 += 1) {
         delete this.residueNormal[_iRes7];
       }
-
-      this.residueSelect = newResidueSelect;
-      this.residueSidechain = newResidueSidechain;
 
       this.residueStore.copyWithin(iResStart, iResEnd, nResCopy);
       this.residueStore.count -= nResOffset;
@@ -83018,7 +83007,7 @@ var _lodash = __webpack_require__(27);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _select = __webpack_require__(346);
+var _select = __webpack_require__(345);
 
 var _select2 = _interopRequireDefault(_select);
 
@@ -90187,7 +90176,7 @@ var _animation = __webpack_require__(132);
 
 var _embedjolecule = __webpack_require__(133);
 
-var _fullpagejolecule = __webpack_require__(348);
+var _fullpagejolecule = __webpack_require__(347);
 
 var _lodash = __webpack_require__(27);
 
@@ -90774,611 +90763,6 @@ exports.default = Store;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * @file Bit array
- * @author Alexander Rose <alexander.rose@weirdbyte.de>
- * @author Paul Pillot <paulpillot@gmail.com>
- * @private
- */
-
-/**
- * Compute the Hamming weight of a 32-bit unsigned integer
- * @param  {Integer} v - a 32-bit unsigned integer
- * @return {Integer} the Hamming weight
- */
-function hammingWeight(v) {
-  // works with signed or unsigned shifts
-  v -= v >>> 1 & 0x55555555;
-  v = (v & 0x33333333) + (v >>> 2 & 0x33333333);
-  return (v + (v >>> 4) & 0xF0F0F0F) * 0x1010101 >>> 24;
-}
-
-/**
- * Bit array
- *
- * Based heavily on https://github.com/lemire/FastBitSet.js
- * which is licensed under the Apache License, Version 2.0.
- */
-
-var BitArray = function () {
-  /**
-   * @param  {Integer} length - array length
-   * @param  {Boolean} [setAll] - initialize with true
-   */
-  function BitArray(length, setAll) {
-    _classCallCheck(this, BitArray);
-
-    this.length = length;
-    this._words = new Uint32Array(length + 32 >>> 5);
-    if (setAll === true) {
-      this.setAll();
-    }
-  }
-
-  /**
-   * Get value at index
-   * @param  {Integer} index - the index
-   * @return {Boolean} value
-   */
-
-
-  _createClass(BitArray, [{
-    key: 'get',
-    value: function get(index) {
-      return (this._words[index >>> 5] & 1 << index) !== 0;
-    }
-
-    /**
-     * Set value at index to true
-     * @param  {Integer} index - the index
-     * @return {undefined}
-     */
-
-  }, {
-    key: 'set',
-    value: function set(index) {
-      this._words[index >>> 5] |= 1 << index;
-    }
-
-    /**
-     * Set value at index to false
-     * @param  {Integer} index - the index
-     * @return {undefined}
-     */
-
-  }, {
-    key: 'clear',
-    value: function clear(index) {
-      this._words[index >>> 5] &= ~(1 << index);
-    }
-
-    /**
-     * Flip value at index
-     * @param  {Integer} index - the index
-     * @return {undefined}
-     */
-
-  }, {
-    key: 'flip',
-    value: function flip(index) {
-      this._words[index >>> 5] ^= 1 << index;
-    }
-  }, {
-    key: '_assignRange',
-    value: function _assignRange(start, end, value) {
-      var words = this._words;
-      var wordValue = value === true ? 0xFFFFFFFF : 0;
-      var wordStart = start >>> 5;
-      var wordEnd = end >>> 5;
-      // set complete words when applicable
-      for (var k = wordStart; k < wordEnd; ++k) {
-        words[k] = wordValue;
-      }
-      // set parts of the range not spanning complete words
-      var startWord = wordStart << 5;
-      var endWord = wordEnd << 5;
-      if (value === true) {
-        if (end - start < 32) {
-          for (var i = start, n = end + 1; i < n; ++i) {
-            words[i >>> 5] |= 1 << i;
-          }
-        } else {
-          for (var _i = start, _n = startWord; _i < _n; ++_i) {
-            words[_i >>> 5] |= 1 << _i;
-          }
-          for (var _i2 = endWord, _n2 = end + 1; _i2 < _n2; ++_i2) {
-            words[_i2 >>> 5] |= 1 << _i2;
-          }
-        }
-      } else {
-        if (end - start < 32) {
-          for (var _i3 = start, _n3 = end + 1; _i3 < _n3; ++_i3) {
-            words[_i3 >>> 5] &= ~(1 << _i3);
-          }
-        } else {
-          for (var _i4 = start, _n4 = startWord; _i4 < _n4; ++_i4) {
-            words[_i4 >>> 5] &= ~(1 << _i4);
-          }
-          for (var _i5 = endWord, _n5 = end + 1; _i5 < _n5; ++_i5) {
-            words[_i5 >>> 5] &= ~(1 << _i5);
-          }
-        }
-      }
-      return this;
-    }
-
-    /**
-     * Set bits of the given range
-     * @param {Integer} start - start index
-     * @param {Integer} end - end index
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'setRange',
-    value: function setRange(start, end) {
-      return this._assignRange(start, end, true);
-    }
-
-    /**
-     * Clear bits of the given range
-     * @param {Integer} start - start index
-     * @param {Integer} end - end index
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'clearRange',
-    value: function clearRange(start, end) {
-      return this._assignRange(start, end, false);
-    }
-
-    /**
-     * Set bits at all given indices
-     * @param {...Integer} arguments - indices
-     * @return {Boolean} this object
-     */
-
-  }, {
-    key: 'setBits',
-    value: function setBits() {
-      var words = this._words;
-      var n = arguments.length;
-      for (var i = 0; i < n; ++i) {
-        var index = arguments[i];
-        words[index >>> 5] |= 1 << index;
-      }
-      return this;
-    }
-
-    /**
-     * Clear bits at all given indices
-     * @param {...Integer} arguments - indices
-     * @return {Boolean} this object
-     */
-
-  }, {
-    key: 'clearBits',
-    value: function clearBits() {
-      var words = this._words;
-      var n = arguments.length;
-      for (var i = 0; i < n; ++i) {
-        var index = arguments[i];
-        words[index >>> 5] &= ~(1 << index);
-      }
-      return this;
-    }
-
-    /**
-     * Set all bits of the array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'setAll',
-    value: function setAll() {
-      return this._assignRange(0, this.length - 1, true);
-    }
-
-    /**
-     * Clear all bits of the array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'clearAll',
-    value: function clearAll() {
-      return this._assignRange(0, this.length - 1, false);
-    }
-
-    /**
-     * Flip all the values in the array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'flipAll',
-    value: function flipAll() {
-      var count = this._words.length;
-      var words = this._words;
-      var bs = 32 - this.length % 32;
-      for (var k = 0; k < count - 1; ++k) {
-        words[k] = ~words[k];
-      }
-      words[count - 1] = ~(words[count - 1] << bs) >>> bs;
-      return this;
-    }
-  }, {
-    key: '_isRangeValue',
-    value: function _isRangeValue(start, end, value) {
-      var words = this._words;
-      var wordValue = value === true ? 0xFFFFFFFF : 0;
-      var wordStart = start >>> 5;
-      var wordEnd = end >>> 5;
-      // set complete words when applicable
-      for (var k = wordStart; k < wordEnd; ++k) {
-        if (words[k] !== wordValue) return false;
-      }
-      // set parts of the range not spanning complete words
-      if (end - start < 32) {
-        for (var i = start, n = end + 1; i < n; ++i) {
-          if (!!(words[i >>> 5] & 1 << i) !== value) return false;
-        }
-      } else {
-        var startWord = wordStart << 5;
-        var endWord = wordEnd << 5;
-        for (var _i6 = start, _n6 = startWord << 5; _i6 < _n6; ++_i6) {
-          if (!!(words[_i6 >>> 5] & 1 << _i6) !== value) return false;
-        }
-        for (var _i7 = endWord, _n7 = end + 1; _i7 < _n7; ++_i7) {
-          if (!!(words[_i7 >>> 5] & 1 << _i7) !== value) return false;
-        }
-      }
-      return true;
-    }
-
-    /**
-     * Test if bits in given range are set
-     * @param {Integer} start - start index
-     * @param {Integer} end - end index
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'isRangeSet',
-    value: function isRangeSet(start, end) {
-      return this._isRangeValue(start, end, true);
-    }
-
-    /**
-     * Test if bits in given range are clear
-     * @param {Integer} start - start index
-     * @param {Integer} end - end index
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'isRangeClear',
-    value: function isRangeClear(start, end) {
-      return this._isRangeValue(start, end, false);
-    }
-
-    /**
-     * Test if all bits in the array are set
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isAllSet',
-    value: function isAllSet() {
-      return this._isRangeValue(0, this.length - 1, true);
-    }
-
-    /**
-     * Test if all bits in the array are clear
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isAllClear',
-    value: function isAllClear() {
-      return this._isRangeValue(0, this.length - 1, false);
-    }
-
-    /**
-     * Test if bits at all given indices are set
-     * @param {...Integer} arguments - indices
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isSet',
-    value: function isSet() {
-      var words = this._words;
-      var n = arguments.length;
-      for (var i = 0; i < n; ++i) {
-        var index = arguments[i];
-        if ((words[index >>> 5] & 1 << index) === 0) return false;
-      }
-      return true;
-    }
-
-    /**
-     * Test if bits at all given indices are clear
-     * @param {...Integer} arguments - indices
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isClear',
-    value: function isClear() {
-      var words = this._words;
-      var n = arguments.length;
-      for (var i = 0; i < n; ++i) {
-        var index = arguments[i];
-        if ((words[index >>> 5] & 1 << index) !== 0) return false;
-      }
-      return true;
-    }
-
-    /**
-     * Test if two BitArrays are identical in all their values
-     * @param {BitArray} otherBitarray - the other BitArray
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'isEqualTo',
-    value: function isEqualTo(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        if (words1[k] !== words2[k]) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    /**
-     * How many set bits?
-     * @return {Integer} number of set bits
-     */
-
-  }, {
-    key: 'getSize',
-    value: function getSize() {
-      var count = this._words.length;
-      var words = this._words;
-      var size = 0;
-      for (var i = 0; i < count; ++i) {
-        size += hammingWeight(words[i]);
-      }
-      return size;
-    }
-
-    /**
-     * Calculate difference betwen this and another bit array.
-     * Store result in this object.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'difference',
-    value: function difference(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        words1[k] = words1[k] & ~words2[k];
-      }
-      for (var _k = words1.length; _k < count; ++_k) {
-        words1[_k] = 0;
-      }
-      return this;
-    }
-
-    /**
-     * Calculate union betwen this and another bit array.
-     * Store result in this object.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'union',
-    value: function union(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        words1[k] |= words2[k];
-      }
-      for (var _k2 = words1.length; _k2 < count; ++_k2) {
-        words1[_k2] = 0;
-      }
-      return this;
-    }
-
-    /**
-     * Calculate intersection betwen this and another bit array.
-     * Store result in this object.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {BitArray} this object
-     */
-
-  }, {
-    key: 'intersection',
-    value: function intersection(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        words1[k] &= words2[k];
-      }
-      for (var _k3 = words1.length; _k3 < count; ++_k3) {
-        words1[_k3] = 0;
-      }
-      return this;
-    }
-
-    /**
-     * Test if there is any intersection betwen this and another bit array.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {Boolean} test result
-     */
-
-  }, {
-    key: 'intersects',
-    value: function intersects(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      for (var k = 0; k < count; ++k) {
-        if ((words1[k] & words2[k]) !== 0) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    /**
-     * Calculate the number of bits in common betwen this and another bit array.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {Integer} size
-     */
-
-  }, {
-    key: 'getIntersectionSize',
-    value: function getIntersectionSize(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      var size = 0;
-      for (var k = 0; k < count; ++k) {
-        size += hammingWeight(words1[k] & words2[k]);
-      }
-      return size;
-    }
-
-    /**
-     * Calculate intersection betwen this and another bit array.
-     * Store result in a new bit array.
-     * @param  {BitArray} otherBitarray - the other bit array
-     * @return {BitArray} the new bit array
-     */
-
-  }, {
-    key: 'makeIntersection',
-    value: function makeIntersection(otherBitarray) {
-      var words1 = this._words;
-      var words2 = otherBitarray._words;
-      var count = Math.min(words1.length, words2.length);
-      var wordsA = new Uint32Array(count);
-      var intersection = Object.create(BitArray.prototype);
-      intersection._words = wordsA;
-      intersection.length = Math.min(this.length, otherBitarray.length);
-      for (var k = 0; k < count; ++k) {
-        wordsA[k] = words1[k] & words2[k];
-      }
-      return intersection;
-    }
-
-    /**
-     * Iterate over all set bits in the array
-     * @param  {function( index: Integer, i: Integer )} callback - the callback
-     * @return {undefined}
-     */
-
-  }, {
-    key: 'forEach',
-    value: function forEach(callback) {
-      var count = this._words.length;
-      var words = this._words;
-      var i = 0;
-      for (var k = 0; k < count; ++k) {
-        var w = words[k];
-        while (w !== 0) {
-          var t = w & -w;
-          var index = (k << 5) + hammingWeight(t - 1);
-          callback(index, i);
-          w ^= t;
-          ++i;
-        }
-      }
-    }
-
-    /**
-     * Get an array with the set bits
-     * @return {Array} bit indices
-     */
-
-  }, {
-    key: 'toArray',
-    value: function toArray() {
-      var words = this._words;
-      var answer = new Array(this.getSize());
-      var count = this._words.length;
-      var pos = 0;
-      for (var k = 0; k < count; ++k) {
-        var w = words[k];
-        while (w !== 0) {
-          var t = w & -w;
-          answer[pos++] = (k << 5) + hammingWeight(t - 1);
-          w ^= t;
-        }
-      }
-      return answer;
-    }
-  }, {
-    key: 'toString',
-    value: function toString() {
-      return '{' + this.toArray().join(',') + '}';
-    }
-  }, {
-    key: 'toSeleString',
-    value: function toSeleString() {
-      var sele = this.toArray().join(',');
-      return sele ? '@' + sele : 'NONE';
-    }
-
-    /**
-     * Clone this object
-     * @return {BitArray} the cloned object
-     */
-
-  }, {
-    key: 'clone',
-    value: function clone() {
-      var clone = Object.create(BitArray.prototype);
-      clone.length = this.length;
-      clone._words = new Uint32Array(this._words);
-      return clone;
-    }
-  }]);
-
-  return BitArray;
-}();
-
-exports.default = BitArray;
-
-/***/ }),
-/* 344 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 exports.Display = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -91399,7 +90783,7 @@ var _three = __webpack_require__(44);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _signals = __webpack_require__(345);
+var _signals = __webpack_require__(344);
 
 var _signals2 = _interopRequireDefault(_signals);
 
@@ -91419,7 +90803,7 @@ var _widgets = __webpack_require__(135);
 
 var _widgets2 = _interopRequireDefault(_widgets);
 
-var _representation = __webpack_require__(347);
+var _representation = __webpack_require__(346);
 
 var representation = _interopRequireWildcard(_representation);
 
@@ -92690,7 +92074,7 @@ var Display = function (_WebglWidget) {
 exports.Display = Display;
 
 /***/ }),
-/* 345 */
+/* 344 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_RESULT__;/*jslint onevar:true, undef:true, newcap:true, regexp:true, bitwise:true, maxerr:50, indent:4, white:false, nomen:false, plusplus:false */
@@ -93142,7 +92526,7 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/*jslint onevar:true, undef:true, newcap:true,
 
 
 /***/ }),
-/* 346 */
+/* 345 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var require;var require;/*!
@@ -98998,7 +98382,7 @@ S2.define('jquery.select2',[
 
 
 /***/ }),
-/* 347 */
+/* 346 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -100546,7 +99930,7 @@ exports.SidechainRepresentation = SidechainRepresentation;
 exports.BackboneRepresentation = BackboneRepresentation;
 
 /***/ }),
-/* 348 */
+/* 347 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -100564,7 +99948,7 @@ var _jquery = __webpack_require__(32);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _jquery3 = __webpack_require__(349);
+var _jquery3 = __webpack_require__(348);
 
 var _jquery4 = _interopRequireDefault(_jquery3);
 
@@ -101101,7 +100485,7 @@ var FullPageJolecule = function () {
 exports.FullPageJolecule = FullPageJolecule;
 
 /***/ }),
-/* 349 */
+/* 348 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
