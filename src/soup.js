@@ -1108,17 +1108,14 @@ class Soup {
 
     let lastTrace
     let residue = this.getResidueProxy()
-    let prevResidue = this.getResidueProxy()
     let nextResidue = this.getResidueProxy()
     let atom = this.getAtomProxy()
     let nRes = this.getResidueCount()
-    let isConnected = false
     for (let iRes = 0; iRes < nRes; iRes += 1) {
       residue.iRes = iRes
       if (iRes < nRes - 1) {
         nextResidue.iRes = iRes + 1
-        isConnected = nextResidue.isConnectedToPrev()
-        if (isConnected) {
+        if (nextResidue.isConnectedToPrev()) {
           // set for non-standard DNA or protein residues
           residue.isPolymer = true
           nextResidue.isPolymer = true
@@ -1127,7 +1124,6 @@ class Soup {
       if (residue.isPolymer) {
         if (_.isUndefined(lastTrace)
             || (iRes === 0)
-            // || !prevResidue.load(iRes - 1).isPolymer
             || !residue.isConnectedToPrev()) {
           let newTrace = new glgeom.Trace()
           newTrace.getReference = i => {

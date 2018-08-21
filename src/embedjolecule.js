@@ -69,14 +69,12 @@ class EmbedJolecule {
 
     await this.display.asyncSetMesssage('Loading structure...')
 
-    let asyncSetMessageFn = m => {
-      this.display.asyncSetMesssage(m)
-    }
+    let asyncSetMesssage = m => this.display.asyncSetMesssage(m)
 
     await new Promise(resolve => {
       dataServer.get_protein_data(async (proteinData) => {
         await this.controller.asyncLoadProteinData(
-          proteinData, asyncSetMessageFn)
+          proteinData, asyncSetMesssage)
         resolve()
       })
     })

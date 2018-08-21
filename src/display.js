@@ -754,7 +754,7 @@ class Display extends WebglWidget {
         }
       }
     } else {
-      if (this.representations.ribbon.selectedTraces.length > 0) {
+      if (this.representations.ribbon && (this.representations.ribbon.selectedTraces.length > 0)) {
         this.representations.ribbon.selectedTraces.length = 0
         this.representations.ribbon.build()
         this.updateMeshesInScene = true

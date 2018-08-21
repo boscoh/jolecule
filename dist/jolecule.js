@@ -79656,7 +79656,7 @@ var EmbedJolecule = function () {
       var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(dataServer) {
         var _this2 = this;
 
-        var asyncSetMessageFn, isDefaultViewId;
+        var asyncSetMesssage, isDefaultViewId;
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -79683,8 +79683,8 @@ var EmbedJolecule = function () {
                 return this.display.asyncSetMesssage('Loading structure...');
 
               case 9:
-                asyncSetMessageFn = function asyncSetMessageFn(m) {
-                  _this2.display.asyncSetMesssage(m);
+                asyncSetMesssage = function asyncSetMesssage(m) {
+                  return _this2.display.asyncSetMesssage(m);
                 };
 
                 _context2.next = 12;
@@ -79696,7 +79696,7 @@ var EmbedJolecule = function () {
                           switch (_context.prev = _context.next) {
                             case 0:
                               _context.next = 2;
-                              return _this2.controller.asyncLoadProteinData(proteinData, asyncSetMessageFn);
+                              return _this2.controller.asyncLoadProteinData(proteinData, asyncSetMesssage);
 
                             case 2:
                               resolve();
@@ -81431,26 +81431,21 @@ var Soup = function () {
 
       var lastTrace = void 0;
       var residue = this.getResidueProxy();
-      var prevResidue = this.getResidueProxy();
       var nextResidue = this.getResidueProxy();
       var atom = this.getAtomProxy();
       var nRes = this.getResidueCount();
-      var isConnected = false;
       for (var iRes = 0; iRes < nRes; iRes += 1) {
         residue.iRes = iRes;
         if (iRes < nRes - 1) {
           nextResidue.iRes = iRes + 1;
-          isConnected = nextResidue.isConnectedToPrev();
-          if (isConnected) {
+          if (nextResidue.isConnectedToPrev()) {
             // set for non-standard DNA or protein residues
             residue.isPolymer = true;
             nextResidue.isPolymer = true;
           }
         }
         if (residue.isPolymer) {
-          if (_lodash2.default.isUndefined(lastTrace) || iRes === 0
-          // || !prevResidue.load(iRes - 1).isPolymer
-          || !residue.isConnectedToPrev()) {
+          if (_lodash2.default.isUndefined(lastTrace) || iRes === 0 || !residue.isConnectedToPrev()) {
             (function () {
               var newTrace = new glgeom.Trace();
               newTrace.getReference = function (i) {
@@ -91737,7 +91732,7 @@ var Display = function (_WebglWidget) {
           }
         }
       } else {
-        if (this.representations.ribbon.selectedTraces.length > 0) {
+        if (this.representations.ribbon && this.representations.ribbon.selectedTraces.length > 0) {
           this.representations.ribbon.selectedTraces.length = 0;
           this.representations.ribbon.build();
           this.updateMeshesInScene = true;
