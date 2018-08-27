@@ -491,8 +491,6 @@ class Soup {
 
     console.log(`Soup.load calculated ${this.getBondCount()} bonds`)
 
-    this.calcMaxLength()
-
     this.findSecondaryStructure()
     console.log(`Soup.load calculated secondary-structure`)
   }
@@ -578,7 +576,6 @@ class Soup {
     }
 
     this.assignResidueProperties()
-    this.calcMaxLength()
 
     let nAtom = this.getAtomCount()
     let nRes = this.getResidueCount()
@@ -757,7 +754,7 @@ class Soup {
   /**
    * TODO: replace with bounding box?
    */
-  calcMaxLength () {
+  calcMaxLength (atomIndices = null) {
     let maxima = [0.0, 0.0, 0.0]
     let minima = [0.0, 0.0, 0.0]
     let spans = [0.0, 0.0, 0.0]
@@ -768,9 +765,12 @@ class Soup {
       if (i === 2) return v.z
     }
 
+    if (_.isNull(atomIndices)) {
+      atomIndices = _.range(this.getAtomCount())
+    }
     let atom = this.getAtomProxy()
     for (let iDim = 0; iDim < 3; iDim++) {
-      for (let iAtom = 0; iAtom < this.getAtomCount(); iAtom += 1) {
+      for (let iAtom of atomIndices) {
         let pos = atom.load(iAtom).pos
         if (minima[iDim] > comp(pos, iDim)) {
           minima[iDim] = comp(pos, iDim)
@@ -781,7 +781,7 @@ class Soup {
       }
       spans[iDim] = maxima[iDim] - minima[iDim]
     }
-    this.maxLength = Math.max(spans[0], spans[1], spans[2])
+    return Math.max(spans[0], spans[1], spans[2])
   }
 
   calcBondsStrategic () {
@@ -1408,7 +1408,6 @@ class Soup {
     this.iStructure -= 1
 
     this.calcBondsStrategic()
-    this.calcMaxLength()
   }
 }
 
@@ -1811,22 +1810,62 @@ class SoupView {
   }
 
   getZoomedOutViewOfCurrentView () {
-    this.soup.calcMaxLength()
+    let maxLength = this.soup.calcMaxLength()
 
     let newView = this.currentView.clone()
 
-    if (this.soup.maxLength === 0) {
+    if (maxLength === 0) {
       return newView
     }
 
     let cameraParams = newView.cameraParams
 
-    cameraParams.zFront = -this.soup.maxLength / 2
-    cameraParams.zBack = this.soup.maxLength / 2
-    cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75
+    cameraParams.zFront = -maxLength / 2
+    cameraParams.zBack = maxLength / 2
+    cameraParams.zoom = Math.abs(maxLength) * 1.75
 
     let atomIndices = _.range(this.soup.getAtomCount())
     let center = this.soup.getCenter(atomIndices)
+
+    let look = cameraParams.position.clone()
+      .sub(cameraParams.focus)
+      .normalize()
+    cameraParams.focus.copy(center)
+    cameraParams.position = cameraParams.focus.clone()
+      .add(look.multiplyScalar(cameraParams.zoom))
+
+    newView.iAtom = this.soup.getIAtomAtPosition(center)
+    return newView
+  }
+
+  getZoomedOutViewOfSelection () {
+
+    let newView = this.currentView.clone()
+
+    console.log('Soupview.getZoomedOutViewOfSelection')
+    let atomIndices = []
+    let atom = this.soup.getAtomProxy()
+    let residue = this.soup.getResidueProxy()
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      residue.load(iRes)
+      if (residue.selected) {
+        atomIndices.push(residue.iAtom)
+      }
+    }
+    let center = this.soup.getCenter(atomIndices)
+    let maxLength = this.soup.calcMaxLength(atomIndices)
+
+    if (maxLength === 0) {
+      return newView
+    }
+
+    let cameraParams = newView.cameraParams
+
+    cameraParams.zFront = -maxLength / 2
+    cameraParams.zBack = maxLength / 2
+    cameraParams.zoom = Math.abs(maxLength)
+
+    console.log('Soupview.getZoomedOutViewOfSelection', atomIndices, center)
 
     let look = cameraParams.position.clone()
       .sub(cameraParams.focus)
@@ -2269,6 +2308,13 @@ class Controller {
   zoomOut () {
     if (!this.soup.isEmpty()) {
       this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView())
+      this.soupView.changed = true
+    }
+  }
+
+  zoomToSelection () {
+    if (!this.soup.isEmpty()) {
+      this.setTargetView(this.soupView.getZoomedOutViewOfSelection())
       this.soupView.changed = true
     }
   }

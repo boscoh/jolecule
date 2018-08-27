@@ -23,15 +23,25 @@ Download the [zipped-package](https://github.com/boscoh/jolecule/archive/master.
 
 In the Jolecule directory, to install the required modules:
 
-```
+```bash
 > npm install
 ```
+
+## Explore PDB structures on the website
+
+## Explore PDB structures on your computer
+
+## Make an animated slide-show
+
+## Embed on your own web-page, remotely 
+
+## Embed on your own web-page, locally
 
 ## Create a local static web-app
 
 A good way to start with Jolecule is to create a static web page that automatically displays a PDB file `your.pdb`:
 
-```
+```bash
 > ./jol-static.js your.pdb
 ```
 
@@ -43,7 +53,7 @@ If there also exists a `your.views.json`, these will also be built statically in
 
 If you want to run the electron-version of the app, then you must first install [electron](https://electronjs.org/). To do this, go to the `jolecule/electron` directory:
 
- ```
+ ```bash
  npm install
  ```
 

@@ -98,6 +98,7 @@ class LineElement {
 class CanvasWidget {
   constructor (selector) {
     this.parentDiv = $(selector)
+    this.parentDivId = this.parentDiv.attr('id')
 
     this.div = $('<div>')
       .css('position', 'absolute')
@@ -585,7 +586,7 @@ class SequenceWidget extends CanvasWidget {
     this.highlightColor = 'red'
     this.borderColor = '#999'
 
-    this.div.attr('id', 'sequence-widget')
+    this.div.attr('id', `${this.parentDivId}-sequence-widget`)
     this.div.css({
       'width': this.parentDiv.width(),
       'height': this.height(),
@@ -600,7 +601,7 @@ class SequenceWidget extends CanvasWidget {
     this.iCharDisplayEnd = null
     this.nCharDisplay = null
 
-    this.hover = new PopupText('#sequence-widget', 15)
+    this.hover = new PopupText(`#${this.parentDivId}-sequence-widget`, 15)
 
     this.pressSection = 'none'
   }
@@ -1412,14 +1413,15 @@ class ResidueSelectorWidget {
     this.display.addObserver(this)
 
     this.div = $(selector)
-    this.divTag = '#residue-select'
-    let $elem = $('<select id="residue-select">')
-    this.div.append($elem)
-    $elem.select2()
+    this.divId = this.div.attr('id')
+    this.selectDivTag = `#${this.divId}-residue-select`
+    this.$select = $('<select>').attr('id', `${this.divId}-residue-select`)
+    this.div.append(this.$select)
+    this.$select.select2()
   }
 
   change () {
-    let iRes = parseInt(this.$elem.select2('val'))
+    let iRes = parseInt(this.$select.select2('val'))
     let residue = this.soupView.soup.getResidueProxy(iRes)
     this.controller.clearSelectedResidues()
     this.controller.setResidueSelect(iRes, true)
@@ -1427,9 +1429,7 @@ class ResidueSelectorWidget {
   }
 
   rebuild () {
-    // clear selector
-    this.$elem = $(this.divTag)
-    this.$elem.empty()
+    this.$select.empty()
 
     // rebuild selector
     this.soup = this.soupView.soup
@@ -1437,19 +1437,19 @@ class ResidueSelectorWidget {
     for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
       let text = residue.resId + '-' + residue.resType
-      this.$elem.append(new Option(text, `${iRes}`))
+      this.$select.append(new Option(text, `${iRes}`))
     }
 
     // observerReset using select2
-    this.$elem.select2({width: '150px'})
-    this.$elem.on('select2:select', () => { this.change() })
+    this.$select.select2({width: '150px'})
+    this.$select.on('select2:select', () => { this.change() })
   }
 
   update () {
-    if (this.$elem) {
+    if (this.$select) {
       let iAtom = this.soupView.currentView.iAtom
       let iRes = this.soupView.soup.getAtomProxy(iAtom).iRes
-      this.$elem.val(`${iRes}`).trigger('change')
+      this.$select.val(`${iRes}`).trigger('change')
     }
   }
 }

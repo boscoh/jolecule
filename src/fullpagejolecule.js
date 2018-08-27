@@ -475,6 +475,8 @@ class FullPageJolecule {
         this.display.controller.toggleResidueNeighbors()
       } else if (c === 'A') {
         this.display.atomLabelDialog()
+      } else if (event.keyCode === 13) {
+        this.controller.zoomToSelection()
       } else {
         let i = parseInt(c) - 1
         if ((i || i === 0) && (i < this.soupView.savedViews.length)) {

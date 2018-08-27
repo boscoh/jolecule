@@ -9,8 +9,8 @@ cd $DIR/electron
 
 if [ $# -eq 0 ]
   then
-    ./node_modules/electron/dist/Electron.app/Contents/MacOS/Electron .
+    ../node_modules/electron/dist/Electron.app/Contents/MacOS/Electron .
   else
-    ./node_modules/electron/dist/Electron.app/Contents/MacOS/Electron . -f "$targetdir" "$@"
+    ../node_modules/electron/dist/Electron.app/Contents/MacOS/Electron . -f "$targetdir" "$@"
 fi
 

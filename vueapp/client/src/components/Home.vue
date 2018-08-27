@@ -14,6 +14,10 @@
             id="jolecule"
             style="width: calc(100vw - 350px); height: 100%">
           </div>
+          <!--<div-->
+            <!--id="jolecule2"-->
+            <!--style="width: calc(100vw - 350px); height: 50%">-->
+          <!--</div>-->
         </md-whiteframe>
       </div>
 
@@ -149,6 +153,16 @@ export default {
       backgroundColor: 0x000000
     })
 
+    // this.joleculeWidget2 = initEmbedJolecule({
+    //   divTag: '#jolecule2',
+    //   viewId: 'view:45c4gq',
+    //   isGrid: true,
+    //   isEditable: true,
+    //   isPlayable: true,
+    //   isSequenceBar: true,
+    //   backgroundColor: 0x000000
+    // })
+
     let res = await rpc.rpcRun('publicGetInit')
     if (_.get(res, 'result.initFile')) {
       const dataServer7 = require('../../../dataservers/1mbo-data-server')
@@ -165,6 +179,8 @@ export default {
 
       const dataServer7 = require('../../../dataservers/1mbo-data-server')
       await this.joleculeWidget.asyncAddDataServer(dataServer7)
+
+      // await this.joleculeWidget2.asyncAddDataServer(dataServer7)
 
       // const dataServer8 = require('../../../dataservers/1u6b-data-server')
       // await this.joleculeWidget.asyncAddDataServer(dataServer8)

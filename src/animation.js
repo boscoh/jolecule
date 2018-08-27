@@ -55,6 +55,7 @@ function registerGlobalAnimationLoop (widget) {
     window.lastTime = new Date().getTime()
   }
   window.globalWidgets.push(widget)
+  console.log('> registerGlobalAnimationLoop', widget, window.globalWidgets)
 }
 
 export { registerGlobalAnimationLoop }

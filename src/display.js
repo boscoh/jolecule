@@ -870,6 +870,7 @@ class Display extends WebglWidget {
       }
       this.isDraggingCentralAtom = false
     } else {
+      this.controller.clearSelectedResidues()
       this.controller.zoomOut()
     }
     this.iAtomPressed = null
