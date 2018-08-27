@@ -831,6 +831,8 @@ class Display extends WebglWidget {
           if (this.soupView.nUpdateStep < -this.soupView.maxWaitStep) {
             this.controller.setTargetToNextView()
           }
+        } else if (this.soupView.isEternalRotate) {
+          this.adjustCamera(0.0, 0.002, 0, 1)
         }
       }
     } else if (this.soupView.nUpdateStep >= 1) {

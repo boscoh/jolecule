@@ -588,6 +588,8 @@ class Soup {
     await asyncSetMessageFn(`Calculated ${nBond} bonds. Assigning secondary structure...`)
 
     this.findSecondaryStructure()
+
+    this.maxLength = this.calcMaxLength()
   }
 
   addAtom (x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain) {
@@ -1695,6 +1697,7 @@ class SoupView {
     this.nDataServer = 0
 
     this.isLoop = false
+    this.isEternalRotate = false
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -1839,10 +1842,8 @@ class SoupView {
   }
 
   getZoomedOutViewOfSelection () {
-
     let newView = this.currentView.clone()
 
-    console.log('Soupview.getZoomedOutViewOfSelection')
     let atomIndices = []
     let atom = this.soup.getAtomProxy()
     let residue = this.soup.getResidueProxy()
@@ -1865,8 +1866,6 @@ class SoupView {
     cameraParams.zBack = maxLength / 2
     cameraParams.zoom = Math.abs(maxLength) * 1.2
 
-    console.log('Soupview.getZoomedOutViewOfSelection', atomIndices, center)
-
     let look = cameraParams.position.clone()
       .sub(cameraParams.focus)
       .normalize()
@@ -1884,9 +1883,9 @@ class SoupView {
  * to a Soup and its Views go through here.
  */
 class Controller {
-  constructor (scene) {
-    this.soup = scene.soup
-    this.soupView = scene
+  constructor (soupView) {
+    this.soup = soupView.soup
+    this.soupView = soupView
     this.iResLastSelected = null
   }
 
@@ -1961,7 +1960,7 @@ class Controller {
 
   setTargetToPrevView () {
     let soupView = this.soupView
-    if (soupView.savedViews.length == 0) {
+    if (soupView.savedViews.length === 0) {
       return ''
     }
     soupView.iLastViewSelected -= 1
@@ -1975,7 +1974,7 @@ class Controller {
 
   setTargetToNextView () {
     let soupView = this.soupView
-    if (soupView.savedViews.length == 0) {
+    if (soupView.savedViews.length === 0) {
       return ''
     }
     soupView.iLastViewSelected += 1

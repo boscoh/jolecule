@@ -149,6 +149,7 @@ export default {
       isGrid: true,
       isEditable: true,
       isPlayable: true,
+      isEternalRotate: true,
       isSequenceBar: true,
       backgroundColor: 0x000000
     })

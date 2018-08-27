@@ -388,7 +388,7 @@ class WebglWidget extends Widget {
     this.setCameraZoomFromScene(2.5 * this.sceneRadius)
   }
 
-  rotateCameraAroundScene (xRotAngle, yRotAngle, zRotAngle, isRotateLights = true) {
+  rotateCameraAroundScene (xRotAngle, yRotAngle, zRotAngle, isEternalRotateLights = true) {
     let y = this.camera.up
 
     let cameraDiff = this.camera.position.clone()
@@ -427,7 +427,7 @@ class WebglWidget extends Widget {
 
     this.camera.up.applyQuaternion(rotation)
 
-    if (isRotateLights) {
+    if (isEternalRotateLights) {
       for (let light of this.lights) {
         light.position.applyQuaternion(rotation)
       }

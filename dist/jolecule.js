@@ -79603,6 +79603,7 @@ var defaultArgs = {
   isEditable: true,
   isExtraEditable: false,
   isLoop: false,
+  isEternalRotate: false,
   isGrid: false,
   bCutoff: 0.5,
   isPlayable: false,
@@ -79630,6 +79631,7 @@ var EmbedJolecule = function () {
     this.soup = new _soup.Soup();
     this.soupView = new _soup.SoupView(this.soup);
     this.soupView.isLoop = this.params.isLoop;
+    this.soupView.isEternalRotate = this.params.isEternalRotate;
     this.soupView.maxUpdateStep = this.params.maxUpdateStep;
     this.soupView.msPerStep = this.params.msPerStep;
     this.soupView.maxWaitStep = this.params.maxWaitStep;
@@ -80706,7 +80708,9 @@ var Soup = function () {
 
                 this.findSecondaryStructure();
 
-              case 24:
+                this.maxLength = this.calcMaxLength();
+
+              case 25:
               case 'end':
                 return _context.stop();
             }
@@ -82226,6 +82230,7 @@ var SoupView = function () {
     this.nDataServer = 0;
 
     this.isLoop = false;
+    this.isEternalRotate = false;
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -82380,10 +82385,8 @@ var SoupView = function () {
   }, {
     key: 'getZoomedOutViewOfSelection',
     value: function getZoomedOutViewOfSelection() {
-
       var newView = this.currentView.clone();
 
-      console.log('Soupview.getZoomedOutViewOfSelection');
       var atomIndices = [];
       var atom = this.soup.getAtomProxy();
       var residue = this.soup.getResidueProxy();
@@ -82428,8 +82431,6 @@ var SoupView = function () {
       cameraParams.zBack = maxLength / 2;
       cameraParams.zoom = Math.abs(maxLength) * 1.2;
 
-      console.log('Soupview.getZoomedOutViewOfSelection', atomIndices, center);
-
       var look = cameraParams.position.clone().sub(cameraParams.focus).normalize();
       cameraParams.focus.copy(center);
       cameraParams.position = cameraParams.focus.clone().add(look.multiplyScalar(cameraParams.zoom));
@@ -82449,11 +82450,11 @@ var SoupView = function () {
 
 
 var Controller = function () {
-  function Controller(scene) {
+  function Controller(soupView) {
     _classCallCheck(this, Controller);
 
-    this.soup = scene.soup;
-    this.soupView = scene;
+    this.soup = soupView.soup;
+    this.soupView = soupView;
     this.iResLastSelected = null;
   }
 
@@ -82539,7 +82540,7 @@ var Controller = function () {
     key: 'setTargetToPrevView',
     value: function setTargetToPrevView() {
       var soupView = this.soupView;
-      if (soupView.savedViews.length == 0) {
+      if (soupView.savedViews.length === 0) {
         return '';
       }
       soupView.iLastViewSelected -= 1;
@@ -82554,7 +82555,7 @@ var Controller = function () {
     key: 'setTargetToNextView',
     value: function setTargetToNextView() {
       var soupView = this.soupView;
-      if (soupView.savedViews.length == 0) {
+      if (soupView.savedViews.length === 0) {
         return '';
       }
       soupView.iLastViewSelected += 1;
@@ -91981,6 +91982,8 @@ var Display = function (_WebglWidget) {
             if (this.soupView.nUpdateStep < -this.soupView.maxWaitStep) {
               this.controller.setTargetToNextView();
             }
+          } else if (this.soupView.isEternalRotate) {
+            this.adjustCamera(0.0, 0.002, 0, 1);
           }
         }
       } else if (this.soupView.nUpdateStep >= 1) {

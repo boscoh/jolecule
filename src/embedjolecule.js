@@ -20,6 +20,7 @@ let defaultArgs = {
   isEditable: true,
   isExtraEditable: false,
   isLoop: false,
+  isEternalRotate: false,
   isGrid: false,
   bCutoff: 0.5,
   isPlayable: false,
@@ -43,6 +44,7 @@ class EmbedJolecule {
     this.soup = new Soup()
     this.soupView = new SoupView(this.soup)
     this.soupView.isLoop = this.params.isLoop
+    this.soupView.isEternalRotate = this.params.isEternalRotate
     this.soupView.maxUpdateStep = this.params.maxUpdateStep
     this.soupView.msPerStep = this.params.msPerStep
     this.soupView.maxWaitStep = this.params.maxWaitStep
