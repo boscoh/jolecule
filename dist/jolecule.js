@@ -82426,7 +82426,7 @@ var SoupView = function () {
 
       cameraParams.zFront = -maxLength / 2;
       cameraParams.zBack = maxLength / 2;
-      cameraParams.zoom = Math.abs(maxLength);
+      cameraParams.zoom = Math.abs(maxLength) * 1.2;
 
       console.log('Soupview.getZoomedOutViewOfSelection', atomIndices, center);
 
@@ -82620,8 +82620,8 @@ var Controller = function () {
       this.soupView.changed = true;
     }
   }, {
-    key: 'selectAllResidues',
-    value: function selectAllResidues() {
+    key: 'showAllSidechains',
+    value: function showAllSidechains() {
       var res = this.soup.getResidueProxy();
       var _iteratorNormalCompletion24 = true;
       var _didIteratorError24 = false;
@@ -82631,7 +82631,7 @@ var Controller = function () {
         for (var _iterator24 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
           var iRes = _step24.value;
 
-          res.load(iRes).selected = true;
+          res.load(iRes).sidechain = true;
         }
       } catch (err) {
         _didIteratorError24 = true;
@@ -82648,7 +82648,7 @@ var Controller = function () {
         }
       }
 
-      this.soupView.updateSelection = true;
+      this.soupView.updateSidechain = true;
       this.soupView.changed = true;
     }
   }, {
@@ -100613,7 +100613,7 @@ var FullPageJolecule = function () {
         } else if (c === 'A') {
           if (event.metaKey) {
             console.log('FullPageJolecule.onkeydown cmd-a');
-            this.controller.selectAllResidues();
+            this.controller.showAllSidechains();
           } else {
             this.display.atomLabelDialog();
           }

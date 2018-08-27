@@ -1863,7 +1863,7 @@ class SoupView {
 
     cameraParams.zFront = -maxLength / 2
     cameraParams.zBack = maxLength / 2
-    cameraParams.zoom = Math.abs(maxLength)
+    cameraParams.zoom = Math.abs(maxLength) * 1.2
 
     console.log('Soupview.getZoomedOutViewOfSelection', atomIndices, center)
 
@@ -2035,12 +2035,12 @@ class Controller {
     this.soupView.changed = true
   }
 
-  selectAllResidues () {
+  showAllSidechains () {
     let res = this.soup.getResidueProxy()
     for (let iRes of _.range(this.soup.getResidueCount())) {
-      res.load(iRes).selected = true
+      res.load(iRes).sidechain = true
     }
-    this.soupView.updateSelection = true
+    this.soupView.updateSidechain = true
     this.soupView.changed = true
   }
 

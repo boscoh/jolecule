@@ -476,7 +476,7 @@ class FullPageJolecule {
       } else if (c === 'A') {
         if (event.metaKey) {
           console.log('FullPageJolecule.onkeydown cmd-a')
-          this.controller.selectAllResidues()
+          this.controller.showAllSidechains()
         } else {
           this.display.atomLabelDialog()
         }
