@@ -474,7 +474,12 @@ class FullPageJolecule {
       } else if (c === 'N') {
         this.display.controller.toggleResidueNeighbors()
       } else if (c === 'A') {
-        this.display.atomLabelDialog()
+        if (event.metaKey) {
+          console.log('FullPageJolecule.onkeydown cmd-a')
+          this.controller.selectAllResidues()
+        } else {
+          this.display.atomLabelDialog()
+        }
       } else if (event.keyCode === 13) {
         this.controller.zoomToSelection()
       } else {
@@ -485,6 +490,7 @@ class FullPageJolecule {
         }
       }
       this.display.soupView.changed = true
+      event.preventDefault()
     }
   }
 }

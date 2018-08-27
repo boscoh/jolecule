@@ -80550,8 +80550,6 @@ var Soup = function () {
 
       console.log('Soup.load calculated ' + this.getBondCount() + ' bonds');
 
-      this.calcMaxLength();
-
       this.findSecondaryStructure();
       console.log('Soup.load calculated secondary-structure');
     }
@@ -80690,26 +80688,25 @@ var Soup = function () {
               case 14:
 
                 this.assignResidueProperties();
-                this.calcMaxLength();
 
                 nAtom = this.getAtomCount();
                 nRes = this.getResidueCount();
-                _context.next = 20;
+                _context.next = 19;
                 return asyncSetMessageFn('Calculating bonds for ' + nAtom + ' atoms, ' + nRes + ' residues...');
 
-              case 20:
+              case 19:
 
                 this.calcBondsStrategic();
 
                 nBond = this.getBondCount();
-                _context.next = 24;
+                _context.next = 23;
                 return asyncSetMessageFn('Calculated ' + nBond + ' bonds. Assigning secondary structure...');
 
-              case 24:
+              case 23:
 
                 this.findSecondaryStructure();
 
-              case 25:
+              case 24:
               case 'end':
                 return _context.stop();
             }
@@ -81011,7 +81008,7 @@ var Soup = function () {
 
         spans[iDim] = maxima[iDim] - minima[iDim];
       }
-      this.maxLength = Math.max(spans[0], spans[1], spans[2]);
+      return Math.max(spans[0], spans[1], spans[2]);
     }
   }, {
     key: 'calcBondsStrategic',
@@ -81932,7 +81929,6 @@ var Soup = function () {
       this.iStructure -= 1;
 
       this.calcBondsStrategic();
-      this.calcMaxLength();
     }
   }]);
 
@@ -82357,19 +82353,19 @@ var SoupView = function () {
   }, {
     key: 'getZoomedOutViewOfCurrentView',
     value: function getZoomedOutViewOfCurrentView() {
-      this.soup.calcMaxLength();
+      var maxLength = this.soup.calcMaxLength();
 
       var newView = this.currentView.clone();
 
-      if (this.soup.maxLength === 0) {
+      if (maxLength === 0) {
         return newView;
       }
 
       var cameraParams = newView.cameraParams;
 
-      cameraParams.zFront = -this.soup.maxLength / 2;
-      cameraParams.zBack = this.soup.maxLength / 2;
-      cameraParams.zoom = Math.abs(this.soup.maxLength) * 1.75;
+      cameraParams.zFront = -maxLength / 2;
+      cameraParams.zBack = maxLength / 2;
+      cameraParams.zoom = Math.abs(maxLength) * 1.75;
 
       var atomIndices = _lodash2.default.range(this.soup.getAtomCount());
       var center = this.soup.getCenter(atomIndices);
@@ -82386,10 +82382,6 @@ var SoupView = function () {
     value: function getZoomedOutViewOfSelection() {
 
       var newView = this.currentView.clone();
-
-      if (this.soup.maxLength === 0) {
-        return newView;
-      }
 
       console.log('Soupview.getZoomedOutViewOfSelection');
       var atomIndices = [];
@@ -82424,13 +82416,17 @@ var SoupView = function () {
       }
 
       var center = this.soup.getCenter(atomIndices);
-      this.soup.calcMaxLength(atomIndices);
+      var maxLength = this.soup.calcMaxLength(atomIndices);
+
+      if (maxLength === 0) {
+        return newView;
+      }
 
       var cameraParams = newView.cameraParams;
 
-      cameraParams.zFront = -this.soup.maxLength / 2;
-      cameraParams.zBack = this.soup.maxLength / 2;
-      cameraParams.zoom = Math.abs(this.soup.maxLength);
+      cameraParams.zFront = -maxLength / 2;
+      cameraParams.zBack = maxLength / 2;
+      cameraParams.zoom = Math.abs(maxLength);
 
       console.log('Soupview.getZoomedOutViewOfSelection', atomIndices, center);
 
@@ -82624,6 +82620,38 @@ var Controller = function () {
       this.soupView.changed = true;
     }
   }, {
+    key: 'selectAllResidues',
+    value: function selectAllResidues() {
+      var res = this.soup.getResidueProxy();
+      var _iteratorNormalCompletion24 = true;
+      var _didIteratorError24 = false;
+      var _iteratorError24 = undefined;
+
+      try {
+        for (var _iterator24 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
+          var iRes = _step24.value;
+
+          res.load(iRes).selected = true;
+        }
+      } catch (err) {
+        _didIteratorError24 = true;
+        _iteratorError24 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion24 && _iterator24.return) {
+            _iterator24.return();
+          }
+        } finally {
+          if (_didIteratorError24) {
+            throw _iteratorError24;
+          }
+        }
+      }
+
+      this.soupView.updateSelection = true;
+      this.soupView.changed = true;
+    }
+  }, {
     key: 'selectResidue',
     value: function selectResidue(iRes, val) {
       var res = this.soup.getResidueProxy(iRes);
@@ -82684,28 +82712,28 @@ var Controller = function () {
       if (nSidechain === indices.length) {
         isSidechain = false;
       }
-      var _iteratorNormalCompletion24 = true;
-      var _didIteratorError24 = false;
-      var _iteratorError24 = undefined;
+      var _iteratorNormalCompletion25 = true;
+      var _didIteratorError25 = false;
+      var _iteratorError25 = undefined;
 
       try {
-        for (var _iterator24 = indices[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-          var _iRes9 = _step24.value;
+        for (var _iterator25 = indices[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
+          var _iRes9 = _step25.value;
 
           residue.load(_iRes9);
           residue.sidechain = isSidechain;
         }
       } catch (err) {
-        _didIteratorError24 = true;
-        _iteratorError24 = err;
+        _didIteratorError25 = true;
+        _iteratorError25 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion24 && _iterator24.return) {
-            _iterator24.return();
+          if (!_iteratorNormalCompletion25 && _iterator25.return) {
+            _iterator25.return();
           }
         } finally {
-          if (_didIteratorError24) {
-            throw _iteratorError24;
+          if (_didIteratorError25) {
+            throw _iteratorError25;
           }
         }
       }
@@ -82740,29 +82768,29 @@ var Controller = function () {
         indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes10));
       }
       var nSidechain = 0;
-      var _iteratorNormalCompletion25 = true;
-      var _didIteratorError25 = false;
-      var _iteratorError25 = undefined;
+      var _iteratorNormalCompletion26 = true;
+      var _didIteratorError26 = false;
+      var _iteratorError26 = undefined;
 
       try {
-        for (var _iterator25 = indices[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
-          var _iRes11 = _step25.value;
+        for (var _iterator26 = indices[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
+          var _iRes11 = _step26.value;
 
           if (residue.load(_iRes11).sidechain) {
             nSidechain += 1;
           }
         }
       } catch (err) {
-        _didIteratorError25 = true;
-        _iteratorError25 = err;
+        _didIteratorError26 = true;
+        _iteratorError26 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion25 && _iterator25.return) {
-            _iterator25.return();
+          if (!_iteratorNormalCompletion26 && _iterator26.return) {
+            _iterator26.return();
           }
         } finally {
-          if (_didIteratorError25) {
-            throw _iteratorError25;
+          if (_didIteratorError26) {
+            throw _iteratorError26;
           }
         }
       }
@@ -82937,41 +82965,15 @@ var Controller = function () {
     key: 'clear',
     value: function clear() {
       var distances = this.soupView.currentView.distances;
-      var _iteratorNormalCompletion26 = true;
-      var _didIteratorError26 = false;
-      var _iteratorError26 = undefined;
-
-      try {
-        for (var _iterator26 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
-          var i = _step26.value;
-
-          this.deleteDistance(i);
-        }
-      } catch (err) {
-        _didIteratorError26 = true;
-        _iteratorError26 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion26 && _iterator26.return) {
-            _iterator26.return();
-          }
-        } finally {
-          if (_didIteratorError26) {
-            throw _iteratorError26;
-          }
-        }
-      }
-
-      var labels = this.soupView.currentView.labels;
       var _iteratorNormalCompletion27 = true;
       var _didIteratorError27 = false;
       var _iteratorError27 = undefined;
 
       try {
-        for (var _iterator27 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
-          var _i2 = _step27.value;
+        for (var _iterator27 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
+          var i = _step27.value;
 
-          this.deleteAtomLabel(_i2);
+          this.deleteDistance(i);
         }
       } catch (err) {
         _didIteratorError27 = true;
@@ -82984,6 +82986,32 @@ var Controller = function () {
         } finally {
           if (_didIteratorError27) {
             throw _iteratorError27;
+          }
+        }
+      }
+
+      var labels = this.soupView.currentView.labels;
+      var _iteratorNormalCompletion28 = true;
+      var _didIteratorError28 = false;
+      var _iteratorError28 = undefined;
+
+      try {
+        for (var _iterator28 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
+          var _i2 = _step28.value;
+
+          this.deleteAtomLabel(_i2);
+        }
+      } catch (err) {
+        _didIteratorError28 = true;
+        _iteratorError28 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion28 && _iterator28.return) {
+            _iterator28.return();
+          }
+        } finally {
+          if (_didIteratorError28) {
+            throw _iteratorError28;
           }
         }
       }
@@ -83010,27 +83038,27 @@ var Controller = function () {
       this.soupView.nDataServer -= 1;
       if (this.soup.isEmpty()) {
         this.soupView.savedViews.length = 0;
-        var _iteratorNormalCompletion28 = true;
-        var _didIteratorError28 = false;
-        var _iteratorError28 = undefined;
+        var _iteratorNormalCompletion29 = true;
+        var _didIteratorError29 = false;
+        var _iteratorError29 = undefined;
 
         try {
-          for (var _iterator28 = _lodash2.default.keys(this.soupView.savedViewsByViewId)[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
-            var id = _step28.value;
+          for (var _iterator29 = _lodash2.default.keys(this.soupView.savedViewsByViewId)[Symbol.iterator](), _step29; !(_iteratorNormalCompletion29 = (_step29 = _iterator29.next()).done); _iteratorNormalCompletion29 = true) {
+            var id = _step29.value;
 
             delete this.soupView.savedViewsByViewId[id];
           }
         } catch (err) {
-          _didIteratorError28 = true;
-          _iteratorError28 = err;
+          _didIteratorError29 = true;
+          _iteratorError29 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion28 && _iterator28.return) {
-              _iterator28.return();
+            if (!_iteratorNormalCompletion29 && _iterator29.return) {
+              _iterator29.return();
             }
           } finally {
-            if (_didIteratorError28) {
-              throw _iteratorError28;
+            if (_didIteratorError29) {
+              throw _iteratorError29;
             }
           }
         }
@@ -100583,7 +100611,12 @@ var FullPageJolecule = function () {
         } else if (c === 'N') {
           this.display.controller.toggleResidueNeighbors();
         } else if (c === 'A') {
-          this.display.atomLabelDialog();
+          if (event.metaKey) {
+            console.log('FullPageJolecule.onkeydown cmd-a');
+            this.controller.selectAllResidues();
+          } else {
+            this.display.atomLabelDialog();
+          }
         } else if (event.keyCode === 13) {
           this.controller.zoomToSelection();
         } else {
@@ -100594,6 +100627,7 @@ var FullPageJolecule = function () {
           }
         }
         this.display.soupView.changed = true;
+        event.preventDefault();
       }
     }
   }]);

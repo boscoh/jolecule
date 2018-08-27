@@ -2035,6 +2035,15 @@ class Controller {
     this.soupView.changed = true
   }
 
+  selectAllResidues () {
+    let res = this.soup.getResidueProxy()
+    for (let iRes of _.range(this.soup.getResidueCount())) {
+      res.load(iRes).selected = true
+    }
+    this.soupView.updateSelection = true
+    this.soupView.changed = true
+  }
+
   selectResidue (iRes, val) {
     let res = this.soup.getResidueProxy(iRes)
     if (_.isUndefined(val)) {
