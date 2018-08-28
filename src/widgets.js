@@ -102,7 +102,6 @@ class CanvasWidget {
 
     this.div = $('<div>')
       .css('position', 'absolute')
-      .css('position', 'absolute')
       .css('z-index', 100)
       .css('user-select', 'none')
 
@@ -586,7 +585,7 @@ class SequenceWidget extends CanvasWidget {
     this.highlightColor = 'red'
     this.borderColor = '#999'
 
-    this.div.attr('id', `${this.parentDivId}-sequence-widget`)
+    this.div.attr('id', `${this.parentDivId}-inner`)
     this.div.css({
       'width': this.parentDiv.width(),
       'height': this.height(),
@@ -601,7 +600,7 @@ class SequenceWidget extends CanvasWidget {
     this.iCharDisplayEnd = null
     this.nCharDisplay = null
 
-    this.hover = new PopupText(`#${this.parentDivId}-sequence-widget`, 15)
+    this.hover = new PopupText(`#${this.parentDivId}`, 15)
 
     this.pressSection = 'none'
   }
@@ -1502,17 +1501,28 @@ class TogglePlayButtonWidget {
       .attr('href', '')
       .html('Play')
       .addClass('jolecule-button')
-      .on('click touch', (e) => { this.callback(e) })
+      .on('click touch', (e) => {
+        this.toggle()
+        this.update()
+        e.preventDefault()
+      })
     this.display.addObserver(this)
   }
 
-  callback (e) {
-    e.preventDefault()
-    this.controller.setLoop(!this.controller.getLoop())
+  get () {
+    return this.controller.getLoop()
+  }
+
+  set (val) {
+    this.controller.setLoop(val)
+  }
+
+  toggle () {
+    this.set(!this.get())
   }
 
   update () {
-    if (this.controller.getLoop()) {
+    if (this.get()) {
       if (!this.div.hasClass('jolecule-button-toggle-on')) {
         this.div.addClass('jolecule-button-toggle-on')
       }
@@ -1521,6 +1531,21 @@ class TogglePlayButtonWidget {
         this.div.removeClass('jolecule-button-toggle-on')
       }
     }
+  }
+}
+
+class ToggleRotateButtonWidget extends TogglePlayButtonWidget {
+  constructor (display, selector) {
+    super(display, selector)
+    this.div = $(selector).html('&orarr;')
+  }
+
+  get () {
+    return this.controller.getRotate()
+  }
+
+  set (val) {
+    this.controller.setRotate(val)
   }
 }
 
@@ -1555,5 +1580,6 @@ export default {
   ResidueSelectorWidget,
   ToggleButtonWidget,
   TogglePlayButtonWidget,
+  ToggleRotateButtonWidget,
   ViewTextWidget
 }

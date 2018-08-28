@@ -2293,6 +2293,16 @@ class Controller {
     this.soupView.changed = true
   }
 
+  getRotate () {
+    return this.soupView.isEternalRotate
+  }
+
+  setRotate (v) {
+    this.soupView.isEternalRotate = v
+    this.soupView.updateObservers = true
+    this.soupView.changed = true
+  }
+
   deleteStructure (iStructure) {
     this.soup.deleteStructure(iStructure)
     this.soupView.nDataServer -= 1

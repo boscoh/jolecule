@@ -51,6 +51,8 @@ class EmbedJolecule {
 
     this.controller = new Controller(this.soupView)
 
+    this.widget = {}
+
     this.createDivs()
 
     let resizeFn = () => this.resize()
@@ -153,7 +155,7 @@ class EmbedJolecule {
     }
 
     if (this.params.isGrid) {
-      this.gridControlWidget = new widgets.GridControlWidget(this.display)
+      this.widget.grid = new widgets.GridControlWidget(this.display)
     }
 
     this.footerDiv = $('<div>')
@@ -168,13 +170,19 @@ class EmbedJolecule {
     if (this.params.isPlayable) {
       this.playableDiv = $('<div>')
         .attr('id', `${this.divId}-playable`)
-        .addClass('jolecule-embed-footer')
         .css({
           width: '100%',
           display: 'flex',
           'flex-direction': 'row'
         })
       this.footerDiv.append(this.playableDiv)
+
+      this.playableDiv.append($(`<div id="${this.divId}-rotate">`))
+      this.widget.rotate = new widgets.ToggleRotateButtonWidget(
+        this.display,
+        `#${this.divId}-rotate`
+      )
+
       this.playableDiv.append(
         linkButton('', '<', 'jolecule-button', () => {
           this.controller.setTargetToPrevView()
@@ -182,7 +190,7 @@ class EmbedJolecule {
       )
 
       this.playableDiv.append($(`<div id="${this.divId}-loop">`))
-      this.loopToggleWidget = new widgets.TogglePlayButtonWidget(
+      this.widget.loop = new widgets.TogglePlayButtonWidget(
         this.display,
         `#${this.divId}-loop`
       )
@@ -190,12 +198,6 @@ class EmbedJolecule {
       this.playableDiv.append(
         linkButton('', '>', 'jolecule-button', () => {
           this.controller.setTargetToNextView()
-        })
-      )
-
-      this.playableDiv.append(
-        linkButton('', '&odot;', 'jolecule-button', () => {
-          this.controller.zoomToSelection()
         })
       )
 
@@ -212,7 +214,7 @@ class EmbedJolecule {
             'text-align': 'left'
           })
       )
-      this.viewTextWidget = new widgets.ViewTextWidget(
+      this.widget.view = new widgets.ViewTextWidget(
         this.display,
         `#${this.divId}-view-text`
       )
@@ -229,14 +231,14 @@ class EmbedJolecule {
             'box-sizing': 'content-box'
           })
       )
-      this.residueSelectorWidget = new widgets.ResidueSelectorWidget(
+      this.widget.residueSelect = new widgets.ResidueSelectorWidget(
         this.display,
         `#${this.divId}-res-selector`
       )
 
       this.footerDiv.append(
         $('<div>')
-          .attr('id', `${this.divId}-zslab`)
+          .attr('id', `${this.divId}-clipping-plane`)
           .addClass('jolecule-button')
           .css({
             flex: '1 0 120px',
@@ -245,13 +247,19 @@ class EmbedJolecule {
             'justify-content': 'center'
           })
       )
-      this.clippingPlaneWidget = new widgets.ClippingPlaneWidget(
+      this.widget.clippingPlane = new widgets.ClippingPlaneWidget(
         this.display,
-        `#${this.divId}-zslab`
+        `#${this.divId}-clipping-plane`
       )
     }
 
     if (this.params.isEditable) {
+      this.footerDiv.append(
+        linkButton('', 'Zoom', 'jolecule-button', () => {
+          this.controller.zoomToSelection()
+        })
+      )
+
       this.footerDiv
         .append(
           linkButton('', 'Clear', 'jolecule-button', () => {
@@ -270,7 +278,7 @@ class EmbedJolecule {
         )
 
       this.footerDiv.append($(`<div id="${this.divId}-ligand">`))
-      this.ligandWidget = new widgets.ToggleButtonWidget(
+      this.widget.ligand = new widgets.ToggleButtonWidget(
         this.display,
         `#${this.divId}-ligand`,
         'ligands'
@@ -279,21 +287,21 @@ class EmbedJolecule {
 
     if (this.params.isEditable) {
       this.footerDiv.append($(`<div id="${this.divId}-sphere">`))
-      this.sphereWidget = new widgets.ToggleButtonWidget(
+      this.widget.sphere = new widgets.ToggleButtonWidget(
         this.display,
         `#${this.divId}-sphere`,
         'sphere'
       )
 
       this.footerDiv.append($(`<div id="${this.divId}-backbone">`))
-      this.backboneWidget = new widgets.ToggleButtonWidget(
+      this.widget.backbone = new widgets.ToggleButtonWidget(
         this.display,
         `#${this.divId}-backbone`,
         'backbone'
       )
 
       this.footerDiv.append($(`<div id="${this.divId}-transparent">`))
-      this.transparentWidget = new widgets.ToggleButtonWidget(
+      this.widget.transparent = new widgets.ToggleButtonWidget(
         this.display,
         `#${this.divId}-transparent`,
         'transparent'

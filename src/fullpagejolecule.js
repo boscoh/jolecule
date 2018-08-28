@@ -2,7 +2,7 @@ import $ from 'jquery'
 import scrollTo from 'jquery.scrollto' // eslint-disable-line
 import _ from 'lodash'
 import { EmbedJolecule } from './embedjolecule'
-import { getWindowUrl, linkButton, randomId, exists } from './util'
+import { linkButton, exists } from './util'
 
 class ViewPanel {
   /**
@@ -37,7 +37,9 @@ class ViewPanel {
     this.editDiv.show()
     this.showDiv.hide()
     let textarea = this.editTextArea.find('textarea')
-    setTimeout(function () { textarea.focus() }, 100)
+    setTimeout(function () {
+      textarea.focus()
+    }, 100)
     window.keyboardLock = true
   }
 
@@ -59,14 +61,16 @@ class ViewPanel {
       .click(_.noop)
       .append(this.editTextArea)
       .append(
-        linkButton(
-          '', 'save', 'jolecule-small-button',
-          (event) => { this.saveChange() }))
+        linkButton('', 'save', 'jolecule-small-button', event => {
+          this.saveChange()
+        })
+      )
       .append(' &nbsp; ')
       .append(
-        linkButton(
-          '', 'discard', 'jolecule-small-button',
-          (event) => { this.discardChange() }))
+        linkButton('', 'discard', 'jolecule-small-button', event => {
+          this.discardChange()
+        })
+      )
       .hide()
 
     this.div.append(this.editDiv)
@@ -75,9 +79,9 @@ class ViewPanel {
   makeShowDiv () {
     let view = this.params.view
 
-    let editButton = linkButton(
-      '', 'edit', 'jolecule-small-button',
-      () => { this.startEdit() })
+    let editButton = linkButton('', 'edit', 'jolecule-small-button', () => {
+      this.startEdit()
+    })
 
     this.showTextDiv = $('<div>')
       .addClass('jolecule-button')
@@ -85,20 +89,17 @@ class ViewPanel {
       .css('padding', '0')
       .css('background-color', '#BBB')
       .css('text-align', 'left')
-      .on('click touch',
-        (e) => {
-          e.preventDefault()
-          this.params.pick()
-        }
-      )
+      .on('click touch', e => {
+        e.preventDefault()
+        this.params.pick()
+      })
 
     this.showDiv = $('<div>')
       .css('width', '100%')
       .append(this.showTextDiv)
 
-    let isEditable = this.params.isEditable &&
-      (!view.lock) &&
-      (view.id !== 'view:000000')
+    let isEditable =
+      this.params.isEditable && !view.lock && view.id !== 'view:000000'
 
     if (isEditable) {
       this.showTextDiv.css('margin-bottom', '7px')
@@ -106,35 +107,32 @@ class ViewPanel {
       this.showDiv.append(editButton)
 
       if (exists(this.params.swapUp) && this.params.swapUp) {
-        this.showDiv
-          .append(' ')
-          .append(
-            linkButton(
-              '', 'up', 'jolecule-small-button',
-              () => { this.params.swapUp() }))
+        this.showDiv.append(' ').append(
+          linkButton('', 'up', 'jolecule-small-button', () => {
+            this.params.swapUp()
+          })
+        )
       }
 
       if (exists(this.params.swapUp) && this.params.swapDown) {
-        this.showDiv
-          .append(' ')
-          .append(
-            linkButton(
-              '', 'down', 'jolecule-small-button',
-              () => { this.params.swapDown() }))
+        this.showDiv.append(' ').append(
+          linkButton('', 'down', 'jolecule-small-button', () => {
+            this.params.swapDown()
+          })
+        )
       }
 
       if (exists(this.params.deleteView)) {
-        this.showDiv
-          .append(
-            $('<div>')
-              .css('float', 'right')
-              .append(
-                linkButton(
-                  '', 'delete', 'jolecule-small-button',
-                  () => {
-                    console.log('ViewPiece.deleteButton')
-                    this.params.deleteView()
-                  })))
+        this.showDiv.append(
+          $('<div>')
+            .css('float', 'right')
+            .append(
+              linkButton('', 'delete', 'jolecule-small-button', () => {
+                console.log('ViewPiece.deleteButton')
+                this.params.deleteView()
+              })
+            )
+        )
       }
     }
 
@@ -161,7 +159,10 @@ class ViewPanelList {
       .append($('<div id="jolecule-views">'))
     if (this.isEditable) {
       this.subheaderDiv.append(
-        linkButton('', 'Save', 'jolecule-button', () => { this.saveCurrentView() }))
+        linkButton('', 'Save', 'jolecule-button', () => {
+          this.saveCurrentView()
+        })
+      )
     }
   }
 
@@ -208,7 +209,9 @@ class ViewPanelList {
 
       let viewPiece = this.viewPiece[id]
       if (view.text !== viewPiece.showTextDiv.html()) {
-        viewPiece.showTextDiv.html((view.order + 1) + "/" + nView + ": " + view.text)
+        viewPiece.showTextDiv.html(
+          view.order + 1 + '/' + nView + ': ' + view.text
+        )
       }
     }
 
@@ -218,12 +221,13 @@ class ViewPanelList {
         if (lastId === 'view:000000') {
           query = ''
         }
-        let newPath = window.location.protocol
-          + '//'
-          + window.location.host
-          + window.location.pathname
-          + query
-        window.history.pushState({path: newPath}, '', newPath)
+        let newPath =
+          window.location.protocol +
+          '//' +
+          window.location.host +
+          window.location.pathname +
+          query
+        window.history.pushState({ path: newPath }, '', newPath)
       }
     }
   }
@@ -287,6 +291,7 @@ class ViewPanelList {
     this.swapViews(i, i + 1)
   }
 
+
   makeViewDiv (id) {
     let view = this.soupView.savedViewsByViewId[id]
     this.viewPiece[id] = new ViewPanel({
@@ -295,7 +300,12 @@ class ViewPanelList {
       deleteView: () => {
         this.removeView(id)
       },
-      saveChange: (changedText) => {
+      saveChange: changedText => {
+        const
+          SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi
+        while (SCRIPT_REGEX.test(changedText)) {
+          changedText = changedText.replace(SCRIPT_REGEX, '')
+        }
         view.text = changedText
         this.viewPiece[id].div.css('background-color', 'lightgray')
         this.saveViewsToDataServer(() => {
@@ -312,7 +322,7 @@ class ViewPanelList {
       },
       swapDown: () => {
         this.swapDown(id)
-      },
+      }
     })
     return this.viewPiece[id].div
   }
@@ -327,8 +337,10 @@ class ViewPanelList {
 
   insertNewViewDiv (newId) {
     let div = this.makeViewDiv(newId)
-    if ((this.soupView.iLastViewSelected === 0) ||
-        (this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1)) {
+    if (
+      this.soupView.iLastViewSelected === 0 ||
+      this.soupView.iLastViewSelected === this.soupView.savedViews.length - 1
+    ) {
       $('#jolecule-views').append(div)
     } else {
       let j = this.soupView.iLastViewSelected - 1
@@ -350,7 +362,7 @@ class ViewPanelList {
       div.css('background-color', '')
       $('#jolecule-views')
         .stop()
-        .scrollTo(div, 1000, {offset: {top: -80}})
+        .scrollTo(div, 1000, { offset: { top: -80 } })
     })
   }
 }
@@ -360,9 +372,9 @@ class ViewPanelList {
  * @param name
  * @returns {RegExpExecArray | string}
  */
-function getParameterByName(name) {
-  let match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
-  return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+function getParameterByName (name) {
+  let match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search)
+  return match && decodeURIComponent(match[1].replace(/\+/g, ' '))
 }
 
 /**
@@ -371,14 +383,11 @@ function getParameterByName(name) {
  * FullPageJolecule satisfies the interface for animation.js
  */
 class FullPageJolecule {
-  constructor (
-    proteinDisplayTag,
-    viewsDisplayTag,
-    params) {
+  constructor (proteinDisplayTag, viewsDisplayTag, params) {
     this.viewsDisplayTag = viewsDisplayTag
     this.params = {
       divTag: proteinDisplayTag,
-      backgroundColor: 0xCCCCCC,
+      backgroundColor: 0xcccccc,
       viewId: '',
       viewHeight: 170,
       isViewTextShown: false,
@@ -387,7 +396,7 @@ class FullPageJolecule {
       isLoop: false,
       isGrid: true,
       bCutoff: 0.5,
-      isPlayable: false,
+      isPlayable: false
     }
     if (exists(params)) {
       this.params = _.assign(this.params, params)
@@ -402,7 +411,9 @@ class FullPageJolecule {
     this.embedJolecule = new EmbedJolecule(this.params)
     this.embedJolecule.display.addObserver(this)
     document.oncontextmenu = _.noop
-    document.onkeydown = (e) => { this.onkeydown(e) }
+    document.onkeydown = e => {
+      this.onkeydown(e)
+    }
   }
 
   clear () {
@@ -419,7 +430,8 @@ class FullPageJolecule {
       this.viewPanelList = new ViewPanelList(
         this.viewsDisplayTag,
         this.display,
-        this.params.isEditable)
+        this.params.isEditable
+      )
 
       this.viewPanelList.makeAllViews()
     }
@@ -447,9 +459,9 @@ class FullPageJolecule {
       if (c === 'V') {
         this.viewPanelList.saveCurrentView()
         return
-      } else if ((c === 'K') || (event.keyCode === 37)) {
+      } else if (c === 'K' || event.keyCode === 37) {
         this.gotoPrevResidue()
-      } else if ((c === 'J') || (event.keyCode === 39)) {
+      } else if (c === 'J' || event.keyCode === 39) {
         this.gotoNextResidue()
       } else if (event.keyCode === 38) {
         this.viewPanelList.gotoPrevView()
@@ -475,8 +487,8 @@ class FullPageJolecule {
         this.display.controller.toggleResidueNeighbors()
       } else if (c === 'A') {
         if (event.metaKey) {
-          console.log('FullPageJolecule.onkeydown cmd-a')
           this.controller.showAllSidechains()
+          event.preventDefault()
         } else {
           this.display.atomLabelDialog()
         }
@@ -484,13 +496,12 @@ class FullPageJolecule {
         this.controller.zoomToSelection()
       } else {
         let i = parseInt(c) - 1
-        if ((i || i === 0) && (i < this.soupView.savedViews.length)) {
+        if ((i || i === 0) && i < this.soupView.savedViews.length) {
           let id = this.soupView.savedViews[i].id
           this.viewPanelList.setTargetByViewId(id)
         }
       }
       this.display.soupView.changed = true
-      event.preventDefault()
     }
   }
 }

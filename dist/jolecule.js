@@ -79545,7 +79545,6 @@ function registerGlobalAnimationLoop(widget) {
     window.lastTime = new Date().getTime();
   }
   window.globalWidgets.push(widget);
-  console.log('> registerGlobalAnimationLoop', widget, window.globalWidgets);
 }
 
 exports.registerGlobalAnimationLoop = registerGlobalAnimationLoop;
@@ -79637,6 +79636,8 @@ var EmbedJolecule = function () {
     this.soupView.maxWaitStep = this.params.maxWaitStep;
 
     this.controller = new _soup.Controller(this.soupView);
+
+    this.widget = {};
 
     this.createDivs();
 
@@ -79801,7 +79802,7 @@ var EmbedJolecule = function () {
       }
 
       if (this.params.isGrid) {
-        this.gridControlWidget = new _widgets2.default.GridControlWidget(this.display);
+        this.widget.grid = new _widgets2.default.GridControlWidget(this.display);
       }
 
       this.footerDiv = (0, _jquery2.default)('<div>').addClass('jolecule-embed-footer').css({
@@ -79812,25 +79813,25 @@ var EmbedJolecule = function () {
       this.div.append(this.footerDiv);
 
       if (this.params.isPlayable) {
-        this.playableDiv = (0, _jquery2.default)('<div>').attr('id', this.divId + '-playable').addClass('jolecule-embed-footer').css({
+        this.playableDiv = (0, _jquery2.default)('<div>').attr('id', this.divId + '-playable').css({
           width: '100%',
           display: 'flex',
           'flex-direction': 'row'
         });
         this.footerDiv.append(this.playableDiv);
+
+        this.playableDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-rotate">'));
+        this.widget.rotate = new _widgets2.default.ToggleRotateButtonWidget(this.display, '#' + this.divId + '-rotate');
+
         this.playableDiv.append((0, _util.linkButton)('', '<', 'jolecule-button', function () {
           _this3.controller.setTargetToPrevView();
         }));
 
         this.playableDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-loop">'));
-        this.loopToggleWidget = new _widgets2.default.TogglePlayButtonWidget(this.display, '#' + this.divId + '-loop');
+        this.widget.loop = new _widgets2.default.TogglePlayButtonWidget(this.display, '#' + this.divId + '-loop');
 
         this.playableDiv.append((0, _util.linkButton)('', '>', 'jolecule-button', function () {
           _this3.controller.setTargetToNextView();
-        }));
-
-        this.playableDiv.append((0, _util.linkButton)('', '&odot;', 'jolecule-button', function () {
-          _this3.controller.zoomToSelection();
         }));
 
         this.playableDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-view-text').addClass('jolecule-button').css({
@@ -79841,7 +79842,7 @@ var EmbedJolecule = function () {
           overflow: 'hidden',
           'text-align': 'left'
         }));
-        this.viewTextWidget = new _widgets2.default.ViewTextWidget(this.display, '#' + this.divId + '-view-text');
+        this.widget.view = new _widgets2.default.ViewTextWidget(this.display, '#' + this.divId + '-view-text');
       }
 
       if (this.params.isEditable) {
@@ -79850,18 +79851,22 @@ var EmbedJolecule = function () {
           height: '24px',
           'box-sizing': 'content-box'
         }));
-        this.residueSelectorWidget = new _widgets2.default.ResidueSelectorWidget(this.display, '#' + this.divId + '-res-selector');
+        this.widget.residueSelect = new _widgets2.default.ResidueSelectorWidget(this.display, '#' + this.divId + '-res-selector');
 
-        this.footerDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-zslab').addClass('jolecule-button').css({
+        this.footerDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-clipping-plane').addClass('jolecule-button').css({
           flex: '1 0 120px',
           display: 'flex',
           'flex-diretion': 'row',
           'justify-content': 'center'
         }));
-        this.clippingPlaneWidget = new _widgets2.default.ClippingPlaneWidget(this.display, '#' + this.divId + '-zslab');
+        this.widget.clippingPlane = new _widgets2.default.ClippingPlaneWidget(this.display, '#' + this.divId + '-clipping-plane');
       }
 
       if (this.params.isEditable) {
+        this.footerDiv.append((0, _util.linkButton)('', 'Zoom', 'jolecule-button', function () {
+          _this3.controller.zoomToSelection();
+        }));
+
         this.footerDiv.append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
           _this3.controller.clear();
         })).append((0, _util.linkButton)('', 'Sidechains', 'jolecule-button', function () {
@@ -79871,18 +79876,18 @@ var EmbedJolecule = function () {
         }));
 
         this.footerDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-ligand">'));
-        this.ligandWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#' + this.divId + '-ligand', 'ligands');
+        this.widget.ligand = new _widgets2.default.ToggleButtonWidget(this.display, '#' + this.divId + '-ligand', 'ligands');
       }
 
       if (this.params.isEditable) {
         this.footerDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-sphere">'));
-        this.sphereWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#' + this.divId + '-sphere', 'sphere');
+        this.widget.sphere = new _widgets2.default.ToggleButtonWidget(this.display, '#' + this.divId + '-sphere', 'sphere');
 
         this.footerDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-backbone">'));
-        this.backboneWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#' + this.divId + '-backbone', 'backbone');
+        this.widget.backbone = new _widgets2.default.ToggleButtonWidget(this.display, '#' + this.divId + '-backbone', 'backbone');
 
         this.footerDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-transparent">'));
-        this.transparentWidget = new _widgets2.default.ToggleButtonWidget(this.display, '#' + this.divId + '-transparent', 'transparent');
+        this.widget.transparent = new _widgets2.default.ToggleButtonWidget(this.display, '#' + this.divId + '-transparent', 'transparent');
       }
     }
   }, {
@@ -83033,6 +83038,18 @@ var Controller = function () {
       this.soupView.changed = true;
     }
   }, {
+    key: 'getRotate',
+    value: function getRotate() {
+      return this.soupView.isEternalRotate;
+    }
+  }, {
+    key: 'setRotate',
+    value: function setRotate(v) {
+      this.soupView.isEternalRotate = v;
+      this.soupView.updateObservers = true;
+      this.soupView.changed = true;
+    }
+  }, {
     key: 'deleteStructure',
     value: function deleteStructure(iStructure) {
       this.soup.deleteStructure(iStructure);
@@ -83252,7 +83269,7 @@ var CanvasWidget = function () {
     this.parentDiv = (0, _jquery2.default)(selector);
     this.parentDivId = this.parentDiv.attr('id');
 
-    this.div = (0, _jquery2.default)('<div>').css('position', 'absolute').css('position', 'absolute').css('z-index', 100).css('user-select', 'none');
+    this.div = (0, _jquery2.default)('<div>').css('position', 'absolute').css('z-index', 100).css('user-select', 'none');
 
     this.parentDiv.append(this.div);
 
@@ -83809,7 +83826,7 @@ var SequenceWidget = function (_CanvasWidget) {
     _this5.highlightColor = 'red';
     _this5.borderColor = '#999';
 
-    _this5.div.attr('id', _this5.parentDivId + '-sequence-widget');
+    _this5.div.attr('id', _this5.parentDivId + '-inner');
     _this5.div.css({
       'width': _this5.parentDiv.width(),
       'height': _this5.height(),
@@ -83824,7 +83841,7 @@ var SequenceWidget = function (_CanvasWidget) {
     _this5.iCharDisplayEnd = null;
     _this5.nCharDisplay = null;
 
-    _this5.hover = new PopupText('#' + _this5.parentDivId + '-sequence-widget', 15);
+    _this5.hover = new PopupText('#' + _this5.parentDivId, 15);
 
     _this5.pressSection = 'none';
     return _this5;
@@ -84921,21 +84938,32 @@ var TogglePlayButtonWidget = function () {
     this.controller = display.controller;
     this.display = display;
     this.div = (0, _jquery2.default)(selector).attr('href', '').html('Play').addClass('jolecule-button').on('click touch', function (e) {
-      _this12.callback(e);
+      _this12.toggle();
+      _this12.update();
+      e.preventDefault();
     });
     this.display.addObserver(this);
   }
 
   _createClass(TogglePlayButtonWidget, [{
-    key: 'callback',
-    value: function callback(e) {
-      e.preventDefault();
-      this.controller.setLoop(!this.controller.getLoop());
+    key: 'get',
+    value: function get() {
+      return this.controller.getLoop();
+    }
+  }, {
+    key: 'set',
+    value: function set(val) {
+      this.controller.setLoop(val);
+    }
+  }, {
+    key: 'toggle',
+    value: function toggle() {
+      this.set(!this.get());
     }
   }, {
     key: 'update',
     value: function update() {
-      if (this.controller.getLoop()) {
+      if (this.get()) {
         if (!this.div.hasClass('jolecule-button-toggle-on')) {
           this.div.addClass('jolecule-button-toggle-on');
         }
@@ -84949,6 +84977,33 @@ var TogglePlayButtonWidget = function () {
 
   return TogglePlayButtonWidget;
 }();
+
+var ToggleRotateButtonWidget = function (_TogglePlayButtonWidg) {
+  _inherits(ToggleRotateButtonWidget, _TogglePlayButtonWidg);
+
+  function ToggleRotateButtonWidget(display, selector) {
+    _classCallCheck(this, ToggleRotateButtonWidget);
+
+    var _this13 = _possibleConstructorReturn(this, (ToggleRotateButtonWidget.__proto__ || Object.getPrototypeOf(ToggleRotateButtonWidget)).call(this, display, selector));
+
+    _this13.div = (0, _jquery2.default)(selector).html('&orarr;');
+    return _this13;
+  }
+
+  _createClass(ToggleRotateButtonWidget, [{
+    key: 'get',
+    value: function get() {
+      return this.controller.getRotate();
+    }
+  }, {
+    key: 'set',
+    value: function set(val) {
+      this.controller.setRotate(val);
+    }
+  }]);
+
+  return ToggleRotateButtonWidget;
+}(TogglePlayButtonWidget);
 
 var ViewTextWidget = function () {
   function ViewTextWidget(display, selector) {
@@ -84988,6 +85043,7 @@ exports.default = {
   ResidueSelectorWidget: ResidueSelectorWidget,
   ToggleButtonWidget: ToggleButtonWidget,
   TogglePlayButtonWidget: TogglePlayButtonWidget,
+  ToggleRotateButtonWidget: ToggleRotateButtonWidget,
   ViewTextWidget: ViewTextWidget
 };
 
@@ -91891,7 +91947,6 @@ var Display = function (_WebglWidget) {
 
       if (this.isGrid) {
         if (this.soupView.soup.grid.changed) {
-          console.log('Display.drawFrame grid.changed');
           if (!_lodash2.default.isUndefined(this.representations.grid)) {
             this.soup.colorResidues();
             this.representations.grid.build();
@@ -100303,7 +100358,7 @@ var ViewPanelList = function () {
 
         var viewPiece = this.viewPiece[_id];
         if (view.text !== viewPiece.showTextDiv.html()) {
-          viewPiece.showTextDiv.html(view.order + 1 + "/" + nView + ": " + view.text);
+          viewPiece.showTextDiv.html(view.order + 1 + '/' + nView + ': ' + view.text);
         }
       }
 
@@ -100401,6 +100456,10 @@ var ViewPanelList = function () {
           _this6.removeView(id);
         },
         saveChange: function saveChange(changedText) {
+          var SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+          while (SCRIPT_REGEX.test(changedText)) {
+            changedText = changedText.replace(SCRIPT_REGEX, '');
+          }
           view.text = changedText;
           _this6.viewPiece[id].div.css('background-color', 'lightgray');
           _this6.saveViewsToDataServer(function () {
@@ -100490,7 +100549,7 @@ var FullPageJolecule = function () {
     this.viewsDisplayTag = viewsDisplayTag;
     this.params = {
       divTag: proteinDisplayTag,
-      backgroundColor: 0xCCCCCC,
+      backgroundColor: 0xcccccc,
       viewId: '',
       viewHeight: 170,
       isViewTextShown: false,
@@ -100615,8 +100674,8 @@ var FullPageJolecule = function () {
           this.display.controller.toggleResidueNeighbors();
         } else if (c === 'A') {
           if (event.metaKey) {
-            console.log('FullPageJolecule.onkeydown cmd-a');
             this.controller.showAllSidechains();
+            event.preventDefault();
           } else {
             this.display.atomLabelDialog();
           }
@@ -100630,7 +100689,6 @@ var FullPageJolecule = function () {
           }
         }
         this.display.soupView.changed = true;
-        event.preventDefault();
       }
     }
   }]);
