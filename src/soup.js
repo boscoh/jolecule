@@ -475,26 +475,6 @@ class Soup {
     return this.getAtomCount() == 0
   }
 
-  load (pdbData) {
-    console.log(`Soup.load parse ${this.structureId}...`)
-
-    this.parsePdbData(pdbData.pdb_text, this.structureId)
-
-    this.assignResidueProperties()
-
-    console.log(
-      `Soup.load processed ${this.getAtomCount()} atoms, ` +
-      `${this.getResidueCount()} residues`)
-
-    console.log('Soup.load finding bonds...')
-    this.calcBondsStrategic()
-
-    console.log(`Soup.load calculated ${this.getBondCount()} bonds`)
-
-    this.findSecondaryStructure()
-    console.log(`Soup.load calculated secondary-structure`)
-  }
-
   parsePdbData (pdbText, pdbId) {
     this.structureId = pdbId
     this.structureIds.push(pdbId)
@@ -555,6 +535,26 @@ class Soup {
           resType, resNum, insCode, chain)
       }
     }
+  }
+
+  load (pdbData) {
+    console.log(`Soup.load parse ${this.structureId}...`)
+
+    this.parsePdbData(pdbData.pdb_text, this.structureId)
+
+    this.assignResidueProperties()
+
+    console.log(
+      `Soup.load processed ${this.getAtomCount()} atoms, ` +
+      `${this.getResidueCount()} residues`)
+
+    console.log('Soup.load finding bonds...')
+    this.calcBondsStrategic()
+
+    console.log(`Soup.load calculated ${this.getBondCount()} bonds`)
+
+    this.findSecondaryStructure()
+    console.log(`Soup.load calculated secondary-structure`)
   }
 
   async asyncLoadProteinData (proteinData, asyncSetMessageFn) {
@@ -662,13 +662,6 @@ class Soup {
     this.residueStore.iStructure[iRes] = this.iStructure
   }
 
-  getAtomProxyOfCenter () {
-    let atomIndices = _.range(this.getAtomCount())
-    let center = this.getCenter(atomIndices)
-    let iAtom = this.getIAtomClosest(center, atomIndices)
-    return this.getAtomProxy(iAtom)
-  }
-
   assignResidueProperties () {
     let res = this.getResidueProxy()
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
@@ -753,9 +746,6 @@ class Soup {
     return result
   }
 
-  /**
-   * TODO: replace with bounding box?
-   */
   calcMaxLength (atomIndices = null) {
     let maxima = [0.0, 0.0, 0.0]
     let minima = [0.0, 0.0, 0.0]
@@ -1174,10 +1164,6 @@ class Soup {
     return new ResidueProxy(this, iRes)
   }
 
-  getCurrentResidueProxy (iRes) {
-    return this.residueProxy.load(iRes)
-  }
-
   getBondProxy (iBond) {
     return new BondProxy(this, iBond)
   }
@@ -1273,11 +1259,6 @@ class Soup {
       }
     }
     return indices
-  }
-
-  setSidechainOfNeighborResidues (iRes, isSidechain) {
-    this.setSidechainOfResidues(
-      this.getNeighbours(iRes), isSidechain)
   }
 
   colorResidues () {
@@ -1697,7 +1678,7 @@ class SoupView {
     this.nDataServer = 0
 
     this.isLoop = false
-    this.isEternalRotate = false
+    this.isRotate = false
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -2294,11 +2275,11 @@ class Controller {
   }
 
   getRotate () {
-    return this.soupView.isEternalRotate
+    return this.soupView.isRotate
   }
 
   setRotate (v) {
-    this.soupView.isEternalRotate = v
+    this.soupView.isRotate = v
     this.soupView.updateObservers = true
     this.soupView.changed = true
   }

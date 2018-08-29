@@ -1,7 +1,7 @@
 import $ from 'jquery'
 import _ from 'lodash'
 import { Soup, Controller, SoupView } from './soup'
-import { Display } from './display'
+import { SoupWidget } from './soupWidget'
 import { linkButton, delay } from './util.js'
 import widgets from './widgets'
 
@@ -20,7 +20,7 @@ let defaultArgs = {
   isEditable: true,
   isExtraEditable: false,
   isLoop: false,
-  isEternalRotate: false,
+  isRotate: false,
   isGrid: false,
   bCutoff: 0.5,
   isPlayable: false,
@@ -44,7 +44,7 @@ class EmbedJolecule {
     this.soup = new Soup()
     this.soupView = new SoupView(this.soup)
     this.soupView.isLoop = this.params.isLoop
-    this.soupView.isEternalRotate = this.params.isEternalRotate
+    this.soupView.isRotate = this.params.isRotate
     this.soupView.maxUpdateStep = this.params.maxUpdateStep
     this.soupView.msPerStep = this.params.msPerStep
     this.soupView.maxWaitStep = this.params.maxWaitStep
@@ -70,9 +70,9 @@ class EmbedJolecule {
 
     this.isProcessing.flag = true
 
-    await this.display.asyncSetMesssage('Loading structure...')
+    await this.soupWidget.asyncSetMesssage('Loading structure...')
 
-    let asyncSetMesssage = m => this.display.asyncSetMesssage(m)
+    let asyncSetMesssage = m => this.soupWidget.asyncSetMesssage(m)
 
     await new Promise(resolve => {
       dataServer.get_protein_data(async proteinData => {
@@ -88,17 +88,17 @@ class EmbedJolecule {
       this.soup.grid.bCutoff = this.params.bCutoff
     }
 
-    this.display.buildScene()
+    this.soupWidget.buildScene()
 
     this.resize()
 
     this.controller.zoomOut()
 
-    await this.display.asyncSetMesssage('Loading views...')
+    await this.soupWidget.asyncSetMesssage('Loading views...')
 
     if (this.soupView.nDataServer === 1) {
       // save only first loaded dataServer for saving and deleting
-      this.display.dataServer = dataServer
+      this.soupWidget.dataServer = dataServer
 
       await new Promise(resolve => {
         dataServer.get_views(viewDicts => {
@@ -115,14 +115,14 @@ class EmbedJolecule {
       this.soupView.updateObservers = true
     }
 
-    this.display.cleanupMessage()
+    this.soupWidget.cleanupMessage()
 
     this.isProcessing.flag = false
   }
 
   clear () {
-    while (this.display.soup.structureIds.length > 0) {
-      this.display.deleteStructure(0)
+    while (this.soupWidget.soup.structureIds.length > 0) {
+      this.soupWidget.deleteStructure(0)
     }
   }
 
@@ -139,7 +139,7 @@ class EmbedJolecule {
 
     this.div.append(this.headerDiv).append(this.bodyDiv)
 
-    this.display = new Display(
+    this.soupWidget = new SoupWidget(
       this.soupView,
       `#${this.divId}-jolecule-soup-display`,
       this.controller,
@@ -150,12 +150,20 @@ class EmbedJolecule {
     if (this.params.isSequenceBar) {
       this.sequenceWidget = new widgets.SequenceWidget(
         `#${this.divId}-sequence-widget`,
-        this.display
+        this.soupWidget
       )
     }
 
     if (this.params.isGrid) {
-      this.widget.grid = new widgets.GridControlWidget(this.display)
+      this.widget.grid = new widgets.GridControlWidget(this.soupWidget)
+    }
+
+    let isFooter = this.params.isPlayable
+      || this.params.isEditable
+      || this.params.isExtraEditable
+
+    if (!isFooter) {
+      return
     }
 
     this.footerDiv = $('<div>')
@@ -179,7 +187,7 @@ class EmbedJolecule {
 
       this.playableDiv.append($(`<div id="${this.divId}-rotate">`))
       this.widget.rotate = new widgets.ToggleRotateButtonWidget(
-        this.display,
+        this.soupWidget,
         `#${this.divId}-rotate`
       )
 
@@ -191,7 +199,7 @@ class EmbedJolecule {
 
       this.playableDiv.append($(`<div id="${this.divId}-loop">`))
       this.widget.loop = new widgets.TogglePlayButtonWidget(
-        this.display,
+        this.soupWidget,
         `#${this.divId}-loop`
       )
 
@@ -215,7 +223,7 @@ class EmbedJolecule {
           })
       )
       this.widget.view = new widgets.ViewTextWidget(
-        this.display,
+        this.soupWidget,
         `#${this.divId}-view-text`
       )
     }
@@ -232,7 +240,7 @@ class EmbedJolecule {
           })
       )
       this.widget.residueSelect = new widgets.ResidueSelectorWidget(
-        this.display,
+        this.soupWidget,
         `#${this.divId}-res-selector`
       )
 
@@ -248,7 +256,7 @@ class EmbedJolecule {
           })
       )
       this.widget.clippingPlane = new widgets.ClippingPlaneWidget(
-        this.display,
+        this.soupWidget,
         `#${this.divId}-clipping-plane`
       )
     }
@@ -279,30 +287,30 @@ class EmbedJolecule {
 
       this.footerDiv.append($(`<div id="${this.divId}-ligand">`))
       this.widget.ligand = new widgets.ToggleButtonWidget(
-        this.display,
+        this.soupWidget,
         `#${this.divId}-ligand`,
         'ligands'
       )
     }
 
-    if (this.params.isEditable) {
+    if (this.params.isExtraEditable) {
       this.footerDiv.append($(`<div id="${this.divId}-sphere">`))
       this.widget.sphere = new widgets.ToggleButtonWidget(
-        this.display,
+        this.soupWidget,
         `#${this.divId}-sphere`,
         'sphere'
       )
 
       this.footerDiv.append($(`<div id="${this.divId}-backbone">`))
       this.widget.backbone = new widgets.ToggleButtonWidget(
-        this.display,
+        this.soupWidget,
         `#${this.divId}-backbone`,
         'backbone'
       )
 
       this.footerDiv.append($(`<div id="${this.divId}-transparent">`))
       this.widget.transparent = new widgets.ToggleButtonWidget(
-        this.display,
+        this.soupWidget,
         `#${this.divId}-transparent`,
         'transparent'
       )
@@ -322,7 +330,7 @@ class EmbedJolecule {
     }
     this.bodyDiv.css('height', height)
 
-    this.display.resize()
+    this.soupWidget.resize()
   }
 }
 

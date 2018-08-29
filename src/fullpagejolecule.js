@@ -144,11 +144,11 @@ class ViewPanel {
  * ViewPanelList keeps track of the ViewPanel's
  */
 class ViewPanelList {
-  constructor (divTag, soupDisplay, isEditable) {
+  constructor (divTag, soupWidget, isEditable) {
     this.divTag = divTag
-    this.display = soupDisplay
-    this.soupView = soupDisplay.soupView
-    this.controller = soupDisplay.controller
+    this.soupWidget = soupWidget
+    this.soupView = soupWidget.soupView
+    this.controller = soupWidget.controller
     this.isEditable = isEditable
     this.viewPiece = {}
     this.subheaderDiv = $('<div>')
@@ -168,7 +168,7 @@ class ViewPanelList {
 
   saveViewsToDataServer (success) {
     console.log('ViewPanelList.saveViewsToDataServer')
-    this.display.dataServer.save_views(this.controller.getViewDicts(), success)
+    this.soupWidget.dataServer.save_views(this.controller.getViewDicts(), success)
   }
 
   update () {
@@ -250,7 +250,7 @@ class ViewPanelList {
   removeView (id) {
     console.log('ViewPanelList.removeView')
     this.viewPiece[id].div.css('background-color', 'lightgray')
-    this.display.dataServer.delete_protein_view(id, () => {
+    this.soupWidget.dataServer.delete_protein_view(id, () => {
       this.controller.deleteView(id)
       this.update()
     })
@@ -409,7 +409,7 @@ class FullPageJolecule {
       }
     }
     this.embedJolecule = new EmbedJolecule(this.params)
-    this.embedJolecule.display.addObserver(this)
+    this.embedJolecule.soupWidget.addObserver(this)
     document.oncontextmenu = _.noop
     document.onkeydown = e => {
       this.onkeydown(e)
@@ -426,10 +426,10 @@ class FullPageJolecule {
     if (!this.viewPanelList) {
       this.soupView = this.embedJolecule.soupView
       this.controller = this.embedJolecule.controller
-      this.display = this.embedJolecule.display
+      this.soupWidget = this.embedJolecule.soupWidget
       this.viewPanelList = new ViewPanelList(
         this.viewsDisplayTag,
-        this.display,
+        this.soupWidget,
         this.params.isEditable
       )
 
@@ -445,14 +445,6 @@ class FullPageJolecule {
     }
   }
 
-  gotoPrevResidue () {
-    this.controller.setTargetToPrevResidue()
-  }
-
-  gotoNextResidue () {
-    this.controller.setTargetToNextResidue()
-  }
-
   onkeydown (event) {
     if (!window.keyboardLock) {
       let c = String.fromCharCode(event.keyCode).toUpperCase()
@@ -460,9 +452,9 @@ class FullPageJolecule {
         this.viewPanelList.saveCurrentView()
         return
       } else if (c === 'K' || event.keyCode === 37) {
-        this.gotoPrevResidue()
+        this.controller.setTargetToPrevResidue()
       } else if (c === 'J' || event.keyCode === 39) {
-        this.gotoNextResidue()
+        this.controller.setTargetToNextResidue()
       } else if (event.keyCode === 38) {
         this.viewPanelList.gotoPrevView()
       } else if (c === ' ' || event.keyCode === 40) {
@@ -478,19 +470,19 @@ class FullPageJolecule {
       } else if (c === 'W') {
         this.controller.toggleShowOption('water')
       } else if (c === 'E') {
-        let iView = this.display.soupView.iLastViewSelected
+        let iView = this.soupWidget.soupView.iLastViewSelected
         if (iView > 0) {
-          let viewId = this.display.soupView.savedViews[iView].id
+          let viewId = this.soupWidget.soupView.savedViews[iView].id
           this.viewPanelList.div[viewId].edit_fn()
         }
       } else if (c === 'N') {
-        this.display.controller.toggleResidueNeighbors()
+        this.controller.toggleResidueNeighbors()
       } else if (c === 'A') {
         if (event.metaKey) {
           this.controller.showAllSidechains()
           event.preventDefault()
         } else {
-          this.display.atomLabelDialog()
+          this.soupWidget.atomLabelDialog()
         }
       } else if (event.keyCode === 13) {
         this.controller.zoomToSelection()
@@ -501,7 +493,7 @@ class FullPageJolecule {
           this.viewPanelList.setTargetByViewId(id)
         }
       }
-      this.display.soupView.changed = true
+      this.soupView.changed = true
     }
   }
 }

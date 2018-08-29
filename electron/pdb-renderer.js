@@ -120,6 +120,7 @@ let joleculeInstance = jolecule.initFullPageJolecule(
     isEditable: true,
     isGrid: true,
     isPlayable: true,
+    isExtraEditable: true,
     backgroundColor: 0x000000
   }
 );

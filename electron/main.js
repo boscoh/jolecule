@@ -11,7 +11,6 @@ const url = require('url')
 const fs = require('fs')
 const nopt = require('nopt')
 
-const mustache = require('mustache')
 const _ = require('lodash')
 
 // Global reference of the window to avoid garbage collection
@@ -19,10 +18,10 @@ let lastWindowId
 let windows = {}
 let isDebug = false
 
-let initDirs = []
+let initDirs
 let initDir
-let initPdbs = []
 let initPdb
+let initPdbs = []
 
 
 function createWindow (windowId) {

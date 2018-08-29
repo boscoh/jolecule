@@ -200,7 +200,7 @@ export default {
       }
     }
 
-    this.structureIds = this.joleculeWidget.display.soup.structureIds
+    this.structureIds = this.joleculeWidget.soupWidget.soup.structureIds
   },
   methods: {
     async deleteProtein (i) {

@@ -78331,7 +78331,7 @@ var rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
 
 var green = new THREE.Color(0x639941);
 var blue = new THREE.Color(0x568AB5);
-var yellow = new THREE.Color(0xEBBC14);
+var yellow = new THREE.Color(0xE8AC41);
 var purple = new THREE.Color(0x9578AA);
 var grey = new THREE.Color(0xBBBBBB);
 var red = new THREE.Color(0x993333);
@@ -79573,7 +79573,7 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var _soup = __webpack_require__(134);
 
-var _display = __webpack_require__(343);
+var _soupWidget = __webpack_require__(343);
 
 var _util = __webpack_require__(49);
 
@@ -79602,7 +79602,7 @@ var defaultArgs = {
   isEditable: true,
   isExtraEditable: false,
   isLoop: false,
-  isEternalRotate: false,
+  isRotate: false,
   isGrid: false,
   bCutoff: 0.5,
   isPlayable: false,
@@ -79630,7 +79630,7 @@ var EmbedJolecule = function () {
     this.soup = new _soup.Soup();
     this.soupView = new _soup.SoupView(this.soup);
     this.soupView.isLoop = this.params.isLoop;
-    this.soupView.isEternalRotate = this.params.isEternalRotate;
+    this.soupView.isRotate = this.params.isRotate;
     this.soupView.maxUpdateStep = this.params.maxUpdateStep;
     this.soupView.msPerStep = this.params.msPerStep;
     this.soupView.maxWaitStep = this.params.maxWaitStep;
@@ -79679,11 +79679,11 @@ var EmbedJolecule = function () {
                 this.isProcessing.flag = true;
 
                 _context2.next = 9;
-                return this.display.asyncSetMesssage('Loading structure...');
+                return this.soupWidget.asyncSetMesssage('Loading structure...');
 
               case 9:
                 asyncSetMesssage = function asyncSetMesssage(m) {
-                  return _this2.display.asyncSetMesssage(m);
+                  return _this2.soupWidget.asyncSetMesssage(m);
                 };
 
                 _context2.next = 12;
@@ -79720,14 +79720,14 @@ var EmbedJolecule = function () {
                   this.soup.grid.bCutoff = this.params.bCutoff;
                 }
 
-                this.display.buildScene();
+                this.soupWidget.buildScene();
 
                 this.resize();
 
                 this.controller.zoomOut();
 
                 _context2.next = 18;
-                return this.display.asyncSetMesssage('Loading views...');
+                return this.soupWidget.asyncSetMesssage('Loading views...');
 
               case 18:
                 if (!(this.soupView.nDataServer === 1)) {
@@ -79736,7 +79736,7 @@ var EmbedJolecule = function () {
                 }
 
                 // save only first loaded dataServer for saving and deleting
-                this.display.dataServer = dataServer;
+                this.soupWidget.dataServer = dataServer;
 
                 _context2.next = 22;
                 return new Promise(function (resolve) {
@@ -79756,7 +79756,7 @@ var EmbedJolecule = function () {
 
               case 25:
 
-                this.display.cleanupMessage();
+                this.soupWidget.cleanupMessage();
 
                 this.isProcessing.flag = false;
 
@@ -79777,8 +79777,8 @@ var EmbedJolecule = function () {
   }, {
     key: 'clear',
     value: function clear() {
-      while (this.display.soup.structureIds.length > 0) {
-        this.display.deleteStructure(0);
+      while (this.soupWidget.soup.structureIds.length > 0) {
+        this.soupWidget.deleteStructure(0);
       }
     }
   }, {
@@ -79795,14 +79795,20 @@ var EmbedJolecule = function () {
 
       this.div.append(this.headerDiv).append(this.bodyDiv);
 
-      this.display = new _display.Display(this.soupView, '#' + this.divId + '-jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
+      this.soupWidget = new _soupWidget.SoupWidget(this.soupView, '#' + this.divId + '-jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
 
       if (this.params.isSequenceBar) {
-        this.sequenceWidget = new _widgets2.default.SequenceWidget('#' + this.divId + '-sequence-widget', this.display);
+        this.sequenceWidget = new _widgets2.default.SequenceWidget('#' + this.divId + '-sequence-widget', this.soupWidget);
       }
 
       if (this.params.isGrid) {
-        this.widget.grid = new _widgets2.default.GridControlWidget(this.display);
+        this.widget.grid = new _widgets2.default.GridControlWidget(this.soupWidget);
+      }
+
+      var isFooter = this.params.isPlayable || this.params.isEditable || this.params.isExtraEditable;
+
+      if (!isFooter) {
+        return;
       }
 
       this.footerDiv = (0, _jquery2.default)('<div>').addClass('jolecule-embed-footer').css({
@@ -79821,14 +79827,14 @@ var EmbedJolecule = function () {
         this.footerDiv.append(this.playableDiv);
 
         this.playableDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-rotate">'));
-        this.widget.rotate = new _widgets2.default.ToggleRotateButtonWidget(this.display, '#' + this.divId + '-rotate');
+        this.widget.rotate = new _widgets2.default.ToggleRotateButtonWidget(this.soupWidget, '#' + this.divId + '-rotate');
 
         this.playableDiv.append((0, _util.linkButton)('', '<', 'jolecule-button', function () {
           _this3.controller.setTargetToPrevView();
         }));
 
         this.playableDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-loop">'));
-        this.widget.loop = new _widgets2.default.TogglePlayButtonWidget(this.display, '#' + this.divId + '-loop');
+        this.widget.loop = new _widgets2.default.TogglePlayButtonWidget(this.soupWidget, '#' + this.divId + '-loop');
 
         this.playableDiv.append((0, _util.linkButton)('', '>', 'jolecule-button', function () {
           _this3.controller.setTargetToNextView();
@@ -79842,7 +79848,7 @@ var EmbedJolecule = function () {
           overflow: 'hidden',
           'text-align': 'left'
         }));
-        this.widget.view = new _widgets2.default.ViewTextWidget(this.display, '#' + this.divId + '-view-text');
+        this.widget.view = new _widgets2.default.ViewTextWidget(this.soupWidget, '#' + this.divId + '-view-text');
       }
 
       if (this.params.isEditable) {
@@ -79851,7 +79857,7 @@ var EmbedJolecule = function () {
           height: '24px',
           'box-sizing': 'content-box'
         }));
-        this.widget.residueSelect = new _widgets2.default.ResidueSelectorWidget(this.display, '#' + this.divId + '-res-selector');
+        this.widget.residueSelect = new _widgets2.default.ResidueSelectorWidget(this.soupWidget, '#' + this.divId + '-res-selector');
 
         this.footerDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-clipping-plane').addClass('jolecule-button').css({
           flex: '1 0 120px',
@@ -79859,7 +79865,7 @@ var EmbedJolecule = function () {
           'flex-diretion': 'row',
           'justify-content': 'center'
         }));
-        this.widget.clippingPlane = new _widgets2.default.ClippingPlaneWidget(this.display, '#' + this.divId + '-clipping-plane');
+        this.widget.clippingPlane = new _widgets2.default.ClippingPlaneWidget(this.soupWidget, '#' + this.divId + '-clipping-plane');
       }
 
       if (this.params.isEditable) {
@@ -79876,18 +79882,18 @@ var EmbedJolecule = function () {
         }));
 
         this.footerDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-ligand">'));
-        this.widget.ligand = new _widgets2.default.ToggleButtonWidget(this.display, '#' + this.divId + '-ligand', 'ligands');
+        this.widget.ligand = new _widgets2.default.ToggleButtonWidget(this.soupWidget, '#' + this.divId + '-ligand', 'ligands');
       }
 
-      if (this.params.isEditable) {
+      if (this.params.isExtraEditable) {
         this.footerDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-sphere">'));
-        this.widget.sphere = new _widgets2.default.ToggleButtonWidget(this.display, '#' + this.divId + '-sphere', 'sphere');
+        this.widget.sphere = new _widgets2.default.ToggleButtonWidget(this.soupWidget, '#' + this.divId + '-sphere', 'sphere');
 
         this.footerDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-backbone">'));
-        this.widget.backbone = new _widgets2.default.ToggleButtonWidget(this.display, '#' + this.divId + '-backbone', 'backbone');
+        this.widget.backbone = new _widgets2.default.ToggleButtonWidget(this.soupWidget, '#' + this.divId + '-backbone', 'backbone');
 
         this.footerDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-transparent">'));
-        this.widget.transparent = new _widgets2.default.ToggleButtonWidget(this.display, '#' + this.divId + '-transparent', 'transparent');
+        this.widget.transparent = new _widgets2.default.ToggleButtonWidget(this.soupWidget, '#' + this.divId + '-transparent', 'transparent');
       }
     }
   }, {
@@ -79905,7 +79911,7 @@ var EmbedJolecule = function () {
       }
       this.bodyDiv.css('height', height);
 
-      this.display.resize();
+      this.soupWidget.resize();
     }
   }]);
 
@@ -80542,25 +80548,6 @@ var Soup = function () {
       return this.getAtomCount() == 0;
     }
   }, {
-    key: 'load',
-    value: function load(pdbData) {
-      console.log('Soup.load parse ' + this.structureId + '...');
-
-      this.parsePdbData(pdbData.pdb_text, this.structureId);
-
-      this.assignResidueProperties();
-
-      console.log('Soup.load processed ' + this.getAtomCount() + ' atoms, ' + (this.getResidueCount() + ' residues'));
-
-      console.log('Soup.load finding bonds...');
-      this.calcBondsStrategic();
-
-      console.log('Soup.load calculated ' + this.getBondCount() + ' bonds');
-
-      this.findSecondaryStructure();
-      console.log('Soup.load calculated secondary-structure');
-    }
-  }, {
     key: 'parsePdbData',
     value: function parsePdbData(pdbText, pdbId) {
       this.structureId = pdbId;
@@ -80649,6 +80636,25 @@ var Soup = function () {
           this.addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain);
         }
       }
+    }
+  }, {
+    key: 'load',
+    value: function load(pdbData) {
+      console.log('Soup.load parse ' + this.structureId + '...');
+
+      this.parsePdbData(pdbData.pdb_text, this.structureId);
+
+      this.assignResidueProperties();
+
+      console.log('Soup.load processed ' + this.getAtomCount() + ' atoms, ' + (this.getResidueCount() + ' residues'));
+
+      console.log('Soup.load finding bonds...');
+      this.calcBondsStrategic();
+
+      console.log('Soup.load calculated ' + this.getBondCount() + ' bonds');
+
+      this.findSecondaryStructure();
+      console.log('Soup.load calculated secondary-structure');
     }
   }, {
     key: 'asyncLoadProteinData',
@@ -80797,14 +80803,6 @@ var Soup = function () {
       this.residueStore.atomCount[iRes] = 0;
 
       this.residueStore.iStructure[iRes] = this.iStructure;
-    }
-  }, {
-    key: 'getAtomProxyOfCenter',
-    value: function getAtomProxyOfCenter() {
-      var atomIndices = _lodash2.default.range(this.getAtomCount());
-      var center = this.getCenter(atomIndices);
-      var iAtom = this.getIAtomClosest(center, atomIndices);
-      return this.getAtomProxy(iAtom);
     }
   }, {
     key: 'assignResidueProperties',
@@ -80959,11 +80957,6 @@ var Soup = function () {
       result.divideScalar(atomIndices.length);
       return result;
     }
-
-    /**
-     * TODO: replace with bounding box?
-     */
-
   }, {
     key: 'calcMaxLength',
     value: function calcMaxLength() {
@@ -81578,11 +81571,6 @@ var Soup = function () {
       return new ResidueProxy(this, iRes);
     }
   }, {
-    key: 'getCurrentResidueProxy',
-    value: function getCurrentResidueProxy(iRes) {
-      return this.residueProxy.load(iRes);
-    }
-  }, {
     key: 'getBondProxy',
     value: function getBondProxy(iBond) {
       return new BondProxy(this, iBond);
@@ -81773,11 +81761,6 @@ var Soup = function () {
         }
       }
       return indices;
-    }
-  }, {
-    key: 'setSidechainOfNeighborResidues',
-    value: function setSidechainOfNeighborResidues(iRes, isSidechain) {
-      this.setSidechainOfResidues(this.getNeighbours(iRes), isSidechain);
     }
   }, {
     key: 'colorResidues',
@@ -82235,7 +82218,7 @@ var SoupView = function () {
     this.nDataServer = 0;
 
     this.isLoop = false;
-    this.isEternalRotate = false;
+    this.isRotate = false;
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -83040,12 +83023,12 @@ var Controller = function () {
   }, {
     key: 'getRotate',
     value: function getRotate() {
-      return this.soupView.isEternalRotate;
+      return this.soupView.isRotate;
     }
   }, {
     key: 'setRotate',
     value: function setRotate(v) {
-      this.soupView.isEternalRotate = v;
+      this.soupView.isRotate = v;
       this.soupView.updateObservers = true;
       this.soupView.changed = true;
     }
@@ -83198,7 +83181,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * - used to display the mouse tool for making distance labels
  */
 var LineElement = function () {
-  function LineElement(display, color) {
+  function LineElement(soupWidget, color) {
     _classCallCheck(this, LineElement);
 
     this.color = color;
@@ -83213,7 +83196,7 @@ var LineElement = function () {
     this.canvas = this.div[0];
     this.context2d = this.canvas.getContext('2d');
 
-    this.parentDiv = (0, _jquery2.default)(display.divTag);
+    this.parentDiv = (0, _jquery2.default)(soupWidget.divTag);
     this.parentDiv.append(this.div);
   }
 
@@ -83583,12 +83566,12 @@ var PopupText = function () {
 
 
 var AtomLabelsWidget = function () {
-  function AtomLabelsWidget(display) {
+  function AtomLabelsWidget(soupWidget) {
     _classCallCheck(this, AtomLabelsWidget);
 
-    this.display = display;
-    this.soupView = display.soupView;
-    this.controller = display.controller;
+    this.soupWidget = soupWidget;
+    this.soupView = soupWidget.soupView;
+    this.controller = soupWidget.controller;
     this.popups = [];
   }
 
@@ -83604,7 +83587,7 @@ var AtomLabelsWidget = function () {
     value: function createPopup(i) {
       var _this3 = this;
 
-      var popup = new PopupText(this.display.divTag);
+      var popup = new PopupText(this.soupWidget.divTag);
       popup.i = i;
       popup.div.css('pointer-events', 'auto');
       popup.div.click(function () {
@@ -83637,14 +83620,14 @@ var AtomLabelsWidget = function () {
 
         this.popups[_i2].html(labels[_i2].text);
 
-        var opacity = 0.7 * this.display.opacity(atom.pos) + 0.2;
+        var opacity = 0.7 * this.soupWidget.opacity(atom.pos) + 0.2;
         this.popups[_i2].div.css('opacity', opacity);
         this.popups[_i2].arrow.css('opacity', opacity);
 
-        var v = this.display.getPosXY(atom.pos);
+        var v = this.soupWidget.getPosXY(atom.pos);
         this.popups[_i2].move(v.x, v.y);
 
-        if (!this.display.inZlab(atom.pos)) {
+        if (!this.soupWidget.inZlab(atom.pos)) {
           this.popups[_i2].div.css('display', 'none');
           this.popups[_i2].arrow.css('display', 'none');
         }
@@ -83663,15 +83646,15 @@ var AtomLabelsWidget = function () {
 
 
 var DistanceMeasuresWidget = function () {
-  function DistanceMeasuresWidget(display) {
+  function DistanceMeasuresWidget(soupWidget) {
     _classCallCheck(this, DistanceMeasuresWidget);
 
     this.distanceMeasures = [];
-    this.scene = display.displayScene;
-    this.soupView = display.soupView;
-    this.controller = display.controller;
-    this.display = display;
-    this.parentDiv = (0, _jquery2.default)(this.display.divTag);
+    this.scene = soupWidget.soupWidgetScene;
+    this.soupView = soupWidget.soupView;
+    this.controller = soupWidget.controller;
+    this.soupWidget = soupWidget;
+    this.parentDiv = (0, _jquery2.default)(this.soupWidget.divTag);
     this.divs = [];
   }
 
@@ -83752,9 +83735,9 @@ var DistanceMeasuresWidget = function () {
         distanceMeasure.div.text(text);
 
         var m = p1.clone().add(p2).multiplyScalar(0.5);
-        var opacity = 0.7 * this.display.opacity(m) + 0.3;
+        var opacity = 0.7 * this.soupWidget.opacity(m) + 0.3;
 
-        var v = this.display.getPosXY(m);
+        var v = this.soupWidget.getPosXY(m);
         var x = v.x;
         var y = v.y;
 
@@ -83776,7 +83759,7 @@ var DistanceMeasuresWidget = function () {
         distanceMeasure.line.geometry.vertices[0].copy(p1);
         distanceMeasure.line.geometry.vertices[1].copy(p2);
 
-        if (!this.display.inZlab(m)) {
+        if (!this.soupWidget.inZlab(m)) {
           distanceMeasure.div.css('display', 'none');
         }
       }
@@ -83799,16 +83782,16 @@ var DistanceMeasuresWidget = function () {
 var SequenceWidget = function (_CanvasWidget) {
   _inherits(SequenceWidget, _CanvasWidget);
 
-  function SequenceWidget(selector, display) {
+  function SequenceWidget(selector, soupWidget) {
     _classCallCheck(this, SequenceWidget);
 
     var _this5 = _possibleConstructorReturn(this, (SequenceWidget.__proto__ || Object.getPrototypeOf(SequenceWidget)).call(this, selector));
 
-    _this5.display = display;
-    _this5.soupView = display.soupView;
-    _this5.soup = display.soup;
-    _this5.controller = display.controller;
-    _this5.display.addObserver(_this5);
+    _this5.soupWidget = soupWidget;
+    _this5.soupView = soupWidget.soupView;
+    _this5.soup = soupWidget.soup;
+    _this5.controller = soupWidget.controller;
+    _this5.soupWidget.addObserver(_this5);
     _this5.residue = _this5.soup.getResidueProxy();
 
     _this5.charWidth = 14;
@@ -84381,14 +84364,14 @@ var SequenceWidget = function (_CanvasWidget) {
 var ClippingPlaneWidget = function (_CanvasWidget2) {
   _inherits(ClippingPlaneWidget, _CanvasWidget2);
 
-  function ClippingPlaneWidget(display, selector) {
+  function ClippingPlaneWidget(soupWidget, selector) {
     _classCallCheck(this, ClippingPlaneWidget);
 
     var _this7 = _possibleConstructorReturn(this, (ClippingPlaneWidget.__proto__ || Object.getPrototypeOf(ClippingPlaneWidget)).call(this, selector));
 
-    _this7.soupView = display.soupView;
-    _this7.controller = display.controller;
-    display.addObserver(_this7);
+    _this7.soupView = soupWidget.soupView;
+    _this7.controller = soupWidget.controller;
+    soupWidget.addObserver(_this7);
     _this7.maxZLength = 0.0;
     _this7.div.css('box-sizing', 'border-box');
     _this7.zFrontColor = 'rgb(150, 90, 90)';
@@ -84525,13 +84508,13 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
 }(CanvasWidget);
 
 var GridToggleButtonWidget = function () {
-  function GridToggleButtonWidget(display, selector, elem, x, y, color) {
+  function GridToggleButtonWidget(soupWidget, selector, elem, x, y, color) {
     var _this8 = this;
 
     _classCallCheck(this, GridToggleButtonWidget);
 
-    this.soupView = display.soupView;
-    this.controller = display.controller;
+    this.soupView = soupWidget.soupView;
+    this.controller = soupWidget.controller;
     this.elem = elem;
     this.color = color;
     this.div = (0, _jquery2.default)(selector).text(elem).addClass('jolecule-button').css('position', 'absolute').css('top', y + 'px').css('left', x + 'px').css('height', '15px').css('width', '20px').on('click touch', function (e) {
@@ -84539,7 +84522,7 @@ var GridToggleButtonWidget = function () {
       _this8.toggle();
     });
     this.update();
-    display.addObserver(this);
+    soupWidget.addObserver(this);
   }
 
   _createClass(GridToggleButtonWidget, [{
@@ -84583,20 +84566,20 @@ var GridToggleButtonWidget = function () {
 var GridControlWidget = function (_CanvasWidget3) {
   _inherits(GridControlWidget, _CanvasWidget3);
 
-  function GridControlWidget(display) {
+  function GridControlWidget(soupWidget) {
     _classCallCheck(this, GridControlWidget);
 
-    var _this9 = _possibleConstructorReturn(this, (GridControlWidget.__proto__ || Object.getPrototypeOf(GridControlWidget)).call(this, display.divTag));
+    var _this9 = _possibleConstructorReturn(this, (GridControlWidget.__proto__ || Object.getPrototypeOf(GridControlWidget)).call(this, soupWidget.divTag));
 
-    _this9.display = display;
-    _this9.soupView = display.soupView;
-    _this9.controller = display.controller;
-    display.addObserver(_this9);
+    _this9.soupWidget = soupWidget;
+    _this9.soupView = soupWidget.soupView;
+    _this9.controller = soupWidget.controller;
+    soupWidget.addObserver(_this9);
 
     _this9.backgroundColor = '#999';
     _this9.buttonHeight = 40;
     _this9.sliderHeight = _this9.buttonHeight * 6 - 30;
-    _this9.isGrid = display.isGrid;
+    _this9.isGrid = soupWidget.isGrid;
 
     _this9.div.css('display', 'none');
     _this9.div.attr('id', 'grid-control');
@@ -84657,7 +84640,7 @@ var GridControlWidget = function (_CanvasWidget3) {
       var id = 'grid-button-' + elem.toLowerCase();
       var selector = '#' + id;
       this.buttonsDiv.append((0, _jquery2.default)('<div id="' + id + '">'));
-      new GridToggleButtonWidget(this.display, selector, elem, 50, y, colorHexStr);
+      new GridToggleButtonWidget(this.soupWidget, selector, elem, 50, y, colorHexStr);
     }
   }, {
     key: 'resize',
@@ -84799,14 +84782,14 @@ var GridControlWidget = function (_CanvasWidget3) {
 }(CanvasWidget);
 
 var ResidueSelectorWidget = function () {
-  function ResidueSelectorWidget(display, selector) {
+  function ResidueSelectorWidget(soupWidget, selector) {
     _classCallCheck(this, ResidueSelectorWidget);
 
-    this.scene = display.displayScene;
-    this.controller = display.controller;
-    this.soupView = display.soupView;
-    this.display = display;
-    this.display.addObserver(this);
+    this.scene = soupWidget.soupWidgetScene;
+    this.controller = soupWidget.controller;
+    this.soupView = soupWidget.soupView;
+    this.soupWidget = soupWidget;
+    this.soupWidget.addObserver(this);
 
     this.div = (0, _jquery2.default)(selector);
     this.divId = this.div.attr('id');
@@ -84884,13 +84867,13 @@ var ResidueSelectorWidget = function () {
 }();
 
 var ToggleButtonWidget = function () {
-  function ToggleButtonWidget(display, selector, option) {
+  function ToggleButtonWidget(soupWidget, selector, option) {
     var _this11 = this;
 
     _classCallCheck(this, ToggleButtonWidget);
 
-    this.controller = display.controller;
-    this.display = display;
+    this.controller = soupWidget.controller;
+    this.soupWidget = soupWidget;
     if (option) {
       this.option = option;
     }
@@ -84898,7 +84881,7 @@ var ToggleButtonWidget = function () {
       e.preventDefault();
       _this11.callback();
     });
-    this.display.addObserver(this);
+    this.soupWidget.addObserver(this);
   }
 
   _createClass(ToggleButtonWidget, [{
@@ -84930,19 +84913,19 @@ var ToggleButtonWidget = function () {
 }();
 
 var TogglePlayButtonWidget = function () {
-  function TogglePlayButtonWidget(display, selector) {
+  function TogglePlayButtonWidget(soupWidget, selector) {
     var _this12 = this;
 
     _classCallCheck(this, TogglePlayButtonWidget);
 
-    this.controller = display.controller;
-    this.display = display;
+    this.controller = soupWidget.controller;
+    this.soupWidget = soupWidget;
     this.div = (0, _jquery2.default)(selector).attr('href', '').html('Play').addClass('jolecule-button').on('click touch', function (e) {
       _this12.toggle();
       _this12.update();
       e.preventDefault();
     });
-    this.display.addObserver(this);
+    this.soupWidget.addObserver(this);
   }
 
   _createClass(TogglePlayButtonWidget, [{
@@ -84981,10 +84964,10 @@ var TogglePlayButtonWidget = function () {
 var ToggleRotateButtonWidget = function (_TogglePlayButtonWidg) {
   _inherits(ToggleRotateButtonWidget, _TogglePlayButtonWidg);
 
-  function ToggleRotateButtonWidget(display, selector) {
+  function ToggleRotateButtonWidget(soupWidget, selector) {
     _classCallCheck(this, ToggleRotateButtonWidget);
 
-    var _this13 = _possibleConstructorReturn(this, (ToggleRotateButtonWidget.__proto__ || Object.getPrototypeOf(ToggleRotateButtonWidget)).call(this, display, selector));
+    var _this13 = _possibleConstructorReturn(this, (ToggleRotateButtonWidget.__proto__ || Object.getPrototypeOf(ToggleRotateButtonWidget)).call(this, soupWidget, selector));
 
     _this13.div = (0, _jquery2.default)(selector).html('&orarr;');
     return _this13;
@@ -85006,12 +84989,12 @@ var ToggleRotateButtonWidget = function (_TogglePlayButtonWidg) {
 }(TogglePlayButtonWidget);
 
 var ViewTextWidget = function () {
-  function ViewTextWidget(display, selector) {
+  function ViewTextWidget(soupWidget, selector) {
     _classCallCheck(this, ViewTextWidget);
 
-    this.soupView = display.soupView;
+    this.soupView = soupWidget.soupView;
     this.div = (0, _jquery2.default)(selector);
-    display.addObserver(this);
+    soupWidget.addObserver(this);
     this.update();
   }
 
@@ -90964,7 +90947,7 @@ exports.default = Store;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Display = undefined;
+exports.SoupWidget = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -91489,8 +91472,8 @@ var WebglWidget = function () {
  */
 
 
-var Display = function (_WebglWidget) {
-  _inherits(Display, _WebglWidget);
+var SoupWidget = function (_WebglWidget) {
+  _inherits(SoupWidget, _WebglWidget);
 
   /**
    * @param soupView - SoupView object that holds a soup and views
@@ -91499,10 +91482,10 @@ var Display = function (_WebglWidget) {
    * @param isGrid - flat to show autodock 3D grid control panel
    * @param backgroundColor - the background color of canvas and webgl
    */
-  function Display(soupView, divTag, controller, isGrid, backgroundColor) {
-    _classCallCheck(this, Display);
+  function SoupWidget(soupView, divTag, controller, isGrid, backgroundColor) {
+    _classCallCheck(this, SoupWidget);
 
-    var _this2 = _possibleConstructorReturn(this, (Display.__proto__ || Object.getPrototypeOf(Display)).call(this, divTag, backgroundColor));
+    var _this2 = _possibleConstructorReturn(this, (SoupWidget.__proto__ || Object.getPrototypeOf(SoupWidget)).call(this, divTag, backgroundColor));
 
     _this2.observers = {
       rebuilt: new _signals2.default(),
@@ -91543,7 +91526,7 @@ var Display = function (_WebglWidget) {
     return _this2;
   }
 
-  _createClass(Display, [{
+  _createClass(SoupWidget, [{
     key: 'addObserver',
     value: function addObserver(observer) {
       if ('update' in observer) {
@@ -92037,7 +92020,7 @@ var Display = function (_WebglWidget) {
             if (this.soupView.nUpdateStep < -this.soupView.maxWaitStep) {
               this.controller.setTargetToNextView();
             }
-          } else if (this.soupView.isEternalRotate) {
+          } else if (this.soupView.isRotate) {
             this.adjustCamera(0.0, 0.002, 0, 1);
           }
         }
@@ -92061,7 +92044,7 @@ var Display = function (_WebglWidget) {
     key: 'resize',
     value: function resize() {
       this.observers.resized.dispatch();
-      _get(Display.prototype.__proto__ || Object.getPrototypeOf(Display.prototype), 'resize', this).call(this);
+      _get(SoupWidget.prototype.__proto__ || Object.getPrototypeOf(SoupWidget.prototype), 'resize', this).call(this);
       this.soupView.updateObservers = true;
       this.controller.setChangeFlag();
     }
@@ -92271,10 +92254,10 @@ var Display = function (_WebglWidget) {
     }
   }]);
 
-  return Display;
+  return SoupWidget;
 }(WebglWidget);
 
-exports.Display = Display;
+exports.SoupWidget = SoupWidget;
 
 /***/ }),
 /* 344 */
@@ -100292,15 +100275,15 @@ var ViewPanel = function () {
 
 
 var ViewPanelList = function () {
-  function ViewPanelList(divTag, soupDisplay, isEditable) {
+  function ViewPanelList(divTag, soupWidget, isEditable) {
     var _this3 = this;
 
     _classCallCheck(this, ViewPanelList);
 
     this.divTag = divTag;
-    this.display = soupDisplay;
-    this.soupView = soupDisplay.soupView;
-    this.controller = soupDisplay.controller;
+    this.soupWidget = soupWidget;
+    this.soupView = soupWidget.soupView;
+    this.controller = soupWidget.controller;
     this.isEditable = isEditable;
     this.viewPiece = {};
     this.subheaderDiv = (0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('SAVED VIEWS &nbsp;');
@@ -100316,7 +100299,7 @@ var ViewPanelList = function () {
     key: 'saveViewsToDataServer',
     value: function saveViewsToDataServer(success) {
       console.log('ViewPanelList.saveViewsToDataServer');
-      this.display.dataServer.save_views(this.controller.getViewDicts(), success);
+      this.soupWidget.dataServer.save_views(this.controller.getViewDicts(), success);
     }
   }, {
     key: 'update',
@@ -100398,7 +100381,7 @@ var ViewPanelList = function () {
 
       console.log('ViewPanelList.removeView');
       this.viewPiece[id].div.css('background-color', 'lightgray');
-      this.display.dataServer.delete_protein_view(id, function () {
+      this.soupWidget.dataServer.delete_protein_view(id, function () {
         _this4.controller.deleteView(id);
         _this4.update();
       });
@@ -100571,7 +100554,7 @@ var FullPageJolecule = function () {
       }
     }
     this.embedJolecule = new _embedjolecule.EmbedJolecule(this.params);
-    this.embedJolecule.display.addObserver(this);
+    this.embedJolecule.soupWidget.addObserver(this);
     document.oncontextmenu = _lodash2.default.noop;
     document.onkeydown = function (e) {
       _this7.onkeydown(e);
@@ -100599,8 +100582,8 @@ var FullPageJolecule = function () {
                 if (!this.viewPanelList) {
                   this.soupView = this.embedJolecule.soupView;
                   this.controller = this.embedJolecule.controller;
-                  this.display = this.embedJolecule.display;
-                  this.viewPanelList = new ViewPanelList(this.viewsDisplayTag, this.display, this.params.isEditable);
+                  this.soupWidget = this.embedJolecule.soupWidget;
+                  this.viewPanelList = new ViewPanelList(this.viewsDisplayTag, this.soupWidget, this.params.isEditable);
 
                   this.viewPanelList.makeAllViews();
                 }
@@ -100629,16 +100612,6 @@ var FullPageJolecule = function () {
       }
     }
   }, {
-    key: 'gotoPrevResidue',
-    value: function gotoPrevResidue() {
-      this.controller.setTargetToPrevResidue();
-    }
-  }, {
-    key: 'gotoNextResidue',
-    value: function gotoNextResidue() {
-      this.controller.setTargetToNextResidue();
-    }
-  }, {
     key: 'onkeydown',
     value: function onkeydown(event) {
       if (!window.keyboardLock) {
@@ -100647,9 +100620,9 @@ var FullPageJolecule = function () {
           this.viewPanelList.saveCurrentView();
           return;
         } else if (c === 'K' || event.keyCode === 37) {
-          this.gotoPrevResidue();
+          this.controller.setTargetToPrevResidue();
         } else if (c === 'J' || event.keyCode === 39) {
-          this.gotoNextResidue();
+          this.controller.setTargetToNextResidue();
         } else if (event.keyCode === 38) {
           this.viewPanelList.gotoPrevView();
         } else if (c === ' ' || event.keyCode === 40) {
@@ -100665,19 +100638,19 @@ var FullPageJolecule = function () {
         } else if (c === 'W') {
           this.controller.toggleShowOption('water');
         } else if (c === 'E') {
-          var iView = this.display.soupView.iLastViewSelected;
+          var iView = this.soupWidget.soupView.iLastViewSelected;
           if (iView > 0) {
-            var viewId = this.display.soupView.savedViews[iView].id;
+            var viewId = this.soupWidget.soupView.savedViews[iView].id;
             this.viewPanelList.div[viewId].edit_fn();
           }
         } else if (c === 'N') {
-          this.display.controller.toggleResidueNeighbors();
+          this.controller.toggleResidueNeighbors();
         } else if (c === 'A') {
           if (event.metaKey) {
             this.controller.showAllSidechains();
             event.preventDefault();
           } else {
-            this.display.atomLabelDialog();
+            this.soupWidget.atomLabelDialog();
           }
         } else if (event.keyCode === 13) {
           this.controller.zoomToSelection();
@@ -100688,7 +100661,7 @@ var FullPageJolecule = function () {
             this.viewPanelList.setTargetByViewId(id);
           }
         }
-        this.display.soupView.changed = true;
+        this.soupView.changed = true;
       }
     }
   }]);

@@ -37,7 +37,7 @@ import * as util from './util'
  * - used to display the mouse tool for making distance labels
  */
 class LineElement {
-  constructor (display, color) {
+  constructor (soupWidget, color) {
     this.color = color
 
     this.div = $('<canvas>')
@@ -51,7 +51,7 @@ class LineElement {
     this.canvas = this.div[0]
     this.context2d = this.canvas.getContext('2d')
 
-    this.parentDiv = $(display.divTag)
+    this.parentDiv = $(soupWidget.divTag)
     this.parentDiv.append(this.div)
   }
 
@@ -374,10 +374,10 @@ class PopupText {
  * of the given z position of the associated atoms
  */
 class AtomLabelsWidget {
-  constructor (display) {
-    this.display = display
-    this.soupView = display.soupView
-    this.controller = display.controller
+  constructor (soupWidget) {
+    this.soupWidget = soupWidget
+    this.soupView = soupWidget.soupView
+    this.controller = soupWidget.controller
     this.popups = []
   }
 
@@ -388,7 +388,7 @@ class AtomLabelsWidget {
   }
 
   createPopup (i) {
-    let popup = new PopupText(this.display.divTag)
+    let popup = new PopupText(this.soupWidget.divTag)
     popup.i = i
     popup.div.css('pointer-events', 'auto')
     popup.div.click(() => { this.removePopup(popup.i) })
@@ -418,14 +418,14 @@ class AtomLabelsWidget {
 
       this.popups[i].html(labels[i].text)
 
-      let opacity = 0.7 * this.display.opacity(atom.pos) + 0.2
+      let opacity = 0.7 * this.soupWidget.opacity(atom.pos) + 0.2
       this.popups[i].div.css('opacity', opacity)
       this.popups[i].arrow.css('opacity', opacity)
 
-      let v = this.display.getPosXY(atom.pos)
+      let v = this.soupWidget.getPosXY(atom.pos)
       this.popups[i].move(v.x, v.y)
 
-      if (!this.display.inZlab(atom.pos)) {
+      if (!this.soupWidget.inZlab(atom.pos)) {
         this.popups[i].div.css('display', 'none')
         this.popups[i].arrow.css('display', 'none')
       }
@@ -439,13 +439,13 @@ class AtomLabelsWidget {
  * tags
  */
 class DistanceMeasuresWidget {
-  constructor (display) {
+  constructor (soupWidget) {
     this.distanceMeasures = []
-    this.scene = display.displayScene
-    this.soupView = display.soupView
-    this.controller = display.controller
-    this.display = display
-    this.parentDiv = $(this.display.divTag)
+    this.scene = soupWidget.soupWidgetScene
+    this.soupView = soupWidget.soupView
+    this.controller = soupWidget.controller
+    this.soupWidget = soupWidget
+    this.parentDiv = $(this.soupWidget.divTag)
     this.divs = []
   }
 
@@ -519,9 +519,9 @@ class DistanceMeasuresWidget {
       distanceMeasure.div.text(text)
 
       let m = p1.clone().add(p2).multiplyScalar(0.5)
-      let opacity = 0.7 * this.display.opacity(m) + 0.3
+      let opacity = 0.7 * this.soupWidget.opacity(m) + 0.3
 
-      let v = this.display.getPosXY(m)
+      let v = this.soupWidget.getPosXY(m)
       let x = v.x
       let y = v.y
 
@@ -544,7 +544,7 @@ class DistanceMeasuresWidget {
       distanceMeasure.line.geometry.vertices[0].copy(p1)
       distanceMeasure.line.geometry.vertices[1].copy(p2)
 
-      if (!this.display.inZlab(m)) {
+      if (!this.soupWidget.inZlab(m)) {
         distanceMeasure.div.css('display', 'none')
       }
     }
@@ -560,14 +560,14 @@ class DistanceMeasuresWidget {
  *   - these two are integrated so that they share state
  */
 class SequenceWidget extends CanvasWidget {
-  constructor (selector, display) {
+  constructor (selector, soupWidget) {
     super(selector)
 
-    this.display = display
-    this.soupView = display.soupView
-    this.soup = display.soup
-    this.controller = display.controller
-    this.display.addObserver(this)
+    this.soupWidget = soupWidget
+    this.soupView = soupWidget.soupView
+    this.soup = soupWidget.soup
+    this.controller = soupWidget.controller
+    this.soupWidget.addObserver(this)
     this.residue = this.soup.getResidueProxy()
 
     this.charWidth = 14
@@ -1050,11 +1050,11 @@ class SequenceWidget extends CanvasWidget {
  * ClippingPlaneWidget
  */
 class ClippingPlaneWidget extends CanvasWidget {
-  constructor (display, selector) {
+  constructor (soupWidget, selector) {
     super(selector)
-    this.soupView = display.soupView
-    this.controller = display.controller
-    display.addObserver(this)
+    this.soupView = soupWidget.soupView
+    this.controller = soupWidget.controller
+    soupWidget.addObserver(this)
     this.maxZLength = 0.0
     this.div.css('box-sizing', 'border-box')
     this.zFrontColor = 'rgb(150, 90, 90)'
@@ -1175,9 +1175,9 @@ class ClippingPlaneWidget extends CanvasWidget {
 }
 
 class GridToggleButtonWidget {
-  constructor (display, selector, elem, x, y, color) {
-    this.soupView = display.soupView
-    this.controller = display.controller
+  constructor (soupWidget, selector, elem, x, y, color) {
+    this.soupView = soupWidget.soupView
+    this.controller = soupWidget.controller
     this.elem = elem
     this.color = color
     this.div = $(selector)
@@ -1193,7 +1193,7 @@ class GridToggleButtonWidget {
         this.toggle()
       })
     this.update()
-    display.addObserver(this)
+    soupWidget.addObserver(this)
   }
 
   getToggle () {
@@ -1226,18 +1226,18 @@ class GridToggleButtonWidget {
  * GridControlWidget
  */
 class GridControlWidget extends CanvasWidget {
-  constructor (display) {
-    super(display.divTag)
+  constructor (soupWidget) {
+    super(soupWidget.divTag)
 
-    this.display = display
-    this.soupView = display.soupView
-    this.controller = display.controller
-    display.addObserver(this)
+    this.soupWidget = soupWidget
+    this.soupView = soupWidget.soupView
+    this.controller = soupWidget.controller
+    soupWidget.addObserver(this)
 
     this.backgroundColor = '#999'
     this.buttonHeight = 40
     this.sliderHeight = this.buttonHeight * 6 - 30
-    this.isGrid = display.isGrid
+    this.isGrid = soupWidget.isGrid
 
     this.div.css('display', 'none')
     this.div.attr('id', 'grid-control')
@@ -1274,7 +1274,7 @@ class GridControlWidget extends CanvasWidget {
     let selector = `#${id}`
     this.buttonsDiv.append($(`<div id="${id}">`))
     new GridToggleButtonWidget(
-      this.display, selector, elem, 50, y, colorHexStr)
+      this.soupWidget, selector, elem, 50, y, colorHexStr)
   }
 
   resize () {
@@ -1404,12 +1404,12 @@ class GridControlWidget extends CanvasWidget {
 }
 
 class ResidueSelectorWidget {
-  constructor (display, selector) {
-    this.scene = display.displayScene
-    this.controller = display.controller
-    this.soupView = display.soupView
-    this.display = display
-    this.display.addObserver(this)
+  constructor (soupWidget, selector) {
+    this.scene = soupWidget.soupWidgetScene
+    this.controller = soupWidget.controller
+    this.soupView = soupWidget.soupView
+    this.soupWidget = soupWidget
+    this.soupWidget.addObserver(this)
 
     this.div = $(selector)
     this.divId = this.div.attr('id')
@@ -1454,9 +1454,9 @@ class ResidueSelectorWidget {
 }
 
 class ToggleButtonWidget {
-  constructor (display, selector, option) {
-    this.controller = display.controller
-    this.display = display
+  constructor (soupWidget, selector, option) {
+    this.controller = soupWidget.controller
+    this.soupWidget = soupWidget
     if (option) {
       this.option = option
     }
@@ -1468,7 +1468,7 @@ class ToggleButtonWidget {
         e.preventDefault()
         this.callback()
       })
-    this.display.addObserver(this)
+    this.soupWidget.addObserver(this)
   }
 
   callback () {
@@ -1494,9 +1494,9 @@ class ToggleButtonWidget {
 }
 
 class TogglePlayButtonWidget {
-  constructor (display, selector) {
-    this.controller = display.controller
-    this.display = display
+  constructor (soupWidget, selector) {
+    this.controller = soupWidget.controller
+    this.soupWidget = soupWidget
     this.div = $(selector)
       .attr('href', '')
       .html('Play')
@@ -1506,7 +1506,7 @@ class TogglePlayButtonWidget {
         this.update()
         e.preventDefault()
       })
-    this.display.addObserver(this)
+    this.soupWidget.addObserver(this)
   }
 
   get () {
@@ -1535,8 +1535,8 @@ class TogglePlayButtonWidget {
 }
 
 class ToggleRotateButtonWidget extends TogglePlayButtonWidget {
-  constructor (display, selector) {
-    super(display, selector)
+  constructor (soupWidget, selector) {
+    super(soupWidget, selector)
     this.div = $(selector).html('&orarr;')
   }
 
@@ -1550,10 +1550,10 @@ class ToggleRotateButtonWidget extends TogglePlayButtonWidget {
 }
 
 class ViewTextWidget {
-  constructor (display, selector) {
-    this.soupView = display.soupView
+  constructor (soupWidget, selector) {
+    this.soupView = soupWidget.soupView
     this.div = $(selector)
-    display.addObserver(this)
+    soupWidget.addObserver(this)
     this.update()
   }
 

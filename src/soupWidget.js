@@ -375,7 +375,7 @@ class WebglWidget {
  * uses controller to make changes to the underlying soup
  * and their associated views
  */
-class Display extends WebglWidget {
+class SoupWidget extends WebglWidget {
   /**
    * @param soupView - SoupView object that holds a soup and views
    * @param divTag - a selector tag for a DOM element
@@ -830,7 +830,7 @@ class Display extends WebglWidget {
           if (this.soupView.nUpdateStep < -this.soupView.maxWaitStep) {
             this.controller.setTargetToNextView()
           }
-        } else if (this.soupView.isEternalRotate) {
+        } else if (this.soupView.isRotate) {
           this.adjustCamera(0.0, 0.002, 0, 1)
         }
       }
@@ -1060,4 +1060,4 @@ class Display extends WebglWidget {
   }
 }
 
-export { Display }
+export { SoupWidget }
