@@ -79798,14 +79798,14 @@ var EmbedJolecule = function () {
         this.footerDiv.append(this.playableDiv);
 
         this.playableDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-rotate">'));
-        this.widget.rotate = new _widgets2.default.ToggleRotateButtonWidget(this.soupWidget, '#' + this.divId + '-rotate');
+        this.widget.rotate = new _widgets2.default.ToggleRotateWidget(this.soupWidget, '#' + this.divId + '-rotate');
 
         this.playableDiv.append((0, _util.linkButton)('<', 'jolecule-button', function () {
           _this3.controller.setTargetToPrevView();
         }));
 
         this.playableDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-loop">'));
-        this.widget.loop = new _widgets2.default.TogglePlayButtonWidget(this.soupWidget, '#' + this.divId + '-loop');
+        this.widget.loop = new _widgets2.default.TogglePlayWidget(this.soupWidget, '#' + this.divId + '-loop');
 
         this.playableDiv.append((0, _util.linkButton)('>', 'jolecule-button', function () {
           _this3.controller.setTargetToNextView();
@@ -79853,18 +79853,18 @@ var EmbedJolecule = function () {
         }));
 
         this.footerDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-ligand">'));
-        this.widget.ligand = new _widgets2.default.ToggleButtonWidget(this.soupWidget, '#' + this.divId + '-ligand', 'ligands');
+        this.widget.ligand = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-ligand', 'ligands');
       }
 
       if (this.params.isExtraEditable) {
         this.footerDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-sphere">'));
-        this.widget.sphere = new _widgets2.default.ToggleButtonWidget(this.soupWidget, '#' + this.divId + '-sphere', 'sphere');
+        this.widget.sphere = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-sphere', 'sphere');
 
         this.footerDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-backbone">'));
-        this.widget.backbone = new _widgets2.default.ToggleButtonWidget(this.soupWidget, '#' + this.divId + '-backbone', 'backbone');
+        this.widget.backbone = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-backbone', 'backbone');
 
         this.footerDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-transparent">'));
-        this.widget.transparent = new _widgets2.default.ToggleButtonWidget(this.soupWidget, '#' + this.divId + '-transparent', 'transparent');
+        this.widget.transparent = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-transparent', 'transparent');
       }
     }
   }, {
@@ -84876,20 +84876,20 @@ var ToggleWidget = function () {
   return ToggleWidget;
 }();
 
-var ToggleButtonWidget = function (_ToggleWidget) {
-  _inherits(ToggleButtonWidget, _ToggleWidget);
+var ToggleOptionWidget = function (_ToggleWidget) {
+  _inherits(ToggleOptionWidget, _ToggleWidget);
 
-  function ToggleButtonWidget(soupWidget, selector, option) {
-    _classCallCheck(this, ToggleButtonWidget);
+  function ToggleOptionWidget(soupWidget, selector, option) {
+    _classCallCheck(this, ToggleOptionWidget);
 
-    var _this12 = _possibleConstructorReturn(this, (ToggleButtonWidget.__proto__ || Object.getPrototypeOf(ToggleButtonWidget)).call(this, soupWidget, selector));
+    var _this12 = _possibleConstructorReturn(this, (ToggleOptionWidget.__proto__ || Object.getPrototypeOf(ToggleOptionWidget)).call(this, soupWidget, selector));
 
     _this12.option = option;
     _this12.div.html(_this12.html());
     return _this12;
   }
 
-  _createClass(ToggleButtonWidget, [{
+  _createClass(ToggleOptionWidget, [{
     key: 'html',
     value: function html() {
       return _lodash2.default.capitalize(this.option);
@@ -84909,19 +84909,19 @@ var ToggleButtonWidget = function (_ToggleWidget) {
     }
   }]);
 
-  return ToggleButtonWidget;
+  return ToggleOptionWidget;
 }(ToggleWidget);
 
-var TogglePlayButtonWidget = function (_ToggleWidget2) {
-  _inherits(TogglePlayButtonWidget, _ToggleWidget2);
+var TogglePlayWidget = function (_ToggleWidget2) {
+  _inherits(TogglePlayWidget, _ToggleWidget2);
 
-  function TogglePlayButtonWidget() {
-    _classCallCheck(this, TogglePlayButtonWidget);
+  function TogglePlayWidget() {
+    _classCallCheck(this, TogglePlayWidget);
 
-    return _possibleConstructorReturn(this, (TogglePlayButtonWidget.__proto__ || Object.getPrototypeOf(TogglePlayButtonWidget)).apply(this, arguments));
+    return _possibleConstructorReturn(this, (TogglePlayWidget.__proto__ || Object.getPrototypeOf(TogglePlayWidget)).apply(this, arguments));
   }
 
-  _createClass(TogglePlayButtonWidget, [{
+  _createClass(TogglePlayWidget, [{
     key: 'html',
     value: function html() {
       return 'Play';
@@ -84938,19 +84938,19 @@ var TogglePlayButtonWidget = function (_ToggleWidget2) {
     }
   }]);
 
-  return TogglePlayButtonWidget;
+  return TogglePlayWidget;
 }(ToggleWidget);
 
-var ToggleRotateButtonWidget = function (_TogglePlayButtonWidg) {
-  _inherits(ToggleRotateButtonWidget, _TogglePlayButtonWidg);
+var ToggleRotateWidget = function (_TogglePlayWidget) {
+  _inherits(ToggleRotateWidget, _TogglePlayWidget);
 
-  function ToggleRotateButtonWidget() {
-    _classCallCheck(this, ToggleRotateButtonWidget);
+  function ToggleRotateWidget() {
+    _classCallCheck(this, ToggleRotateWidget);
 
-    return _possibleConstructorReturn(this, (ToggleRotateButtonWidget.__proto__ || Object.getPrototypeOf(ToggleRotateButtonWidget)).apply(this, arguments));
+    return _possibleConstructorReturn(this, (ToggleRotateWidget.__proto__ || Object.getPrototypeOf(ToggleRotateWidget)).apply(this, arguments));
   }
 
-  _createClass(ToggleRotateButtonWidget, [{
+  _createClass(ToggleRotateWidget, [{
     key: 'html',
     value: function html() {
       return '&orarr;';
@@ -84967,8 +84967,8 @@ var ToggleRotateButtonWidget = function (_TogglePlayButtonWidg) {
     }
   }]);
 
-  return ToggleRotateButtonWidget;
-}(TogglePlayButtonWidget);
+  return ToggleRotateWidget;
+}(TogglePlayWidget);
 
 var ViewTextWidget = function () {
   function ViewTextWidget(soupWidget, selector) {
@@ -85006,9 +85006,9 @@ exports.default = {
   ClippingPlaneWidget: ClippingPlaneWidget,
   GridControlWidget: GridControlWidget,
   ResidueSelectorWidget: ResidueSelectorWidget,
-  ToggleButtonWidget: ToggleButtonWidget,
-  TogglePlayButtonWidget: TogglePlayButtonWidget,
-  ToggleRotateButtonWidget: ToggleRotateButtonWidget,
+  ToggleOptionWidget: ToggleOptionWidget,
+  TogglePlayWidget: TogglePlayWidget,
+  ToggleRotateWidget: ToggleRotateWidget,
   ViewTextWidget: ViewTextWidget
 };
 

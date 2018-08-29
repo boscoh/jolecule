@@ -1486,7 +1486,7 @@ class ToggleWidget {
   }
 }
 
-class ToggleButtonWidget extends ToggleWidget {
+class ToggleOptionWidget extends ToggleWidget {
   constructor (soupWidget, selector, option) {
     super(soupWidget, selector)
     this.option = option
@@ -1509,7 +1509,7 @@ class ToggleButtonWidget extends ToggleWidget {
   }
 }
 
-class TogglePlayButtonWidget extends ToggleWidget {
+class TogglePlayWidget extends ToggleWidget {
   html () {
     return 'Play'
   }
@@ -1523,7 +1523,7 @@ class TogglePlayButtonWidget extends ToggleWidget {
   }
 }
 
-class ToggleRotateButtonWidget extends TogglePlayButtonWidget {
+class ToggleRotateWidget extends TogglePlayWidget {
   html () {
     return '&orarr;'
   }
@@ -1566,8 +1566,8 @@ export default {
   ClippingPlaneWidget,
   GridControlWidget,
   ResidueSelectorWidget,
-  ToggleButtonWidget,
-  TogglePlayButtonWidget,
-  ToggleRotateButtonWidget,
+  ToggleOptionWidget,
+  TogglePlayWidget,
+  ToggleRotateWidget,
   ViewTextWidget
 }

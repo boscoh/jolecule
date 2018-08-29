@@ -186,7 +186,7 @@ class EmbedJolecule {
       this.footerDiv.append(this.playableDiv)
 
       this.playableDiv.append($(`<div id="${this.divId}-rotate">`))
-      this.widget.rotate = new widgets.ToggleRotateButtonWidget(
+      this.widget.rotate = new widgets.ToggleRotateWidget(
         this.soupWidget,
         `#${this.divId}-rotate`
       )
@@ -198,7 +198,7 @@ class EmbedJolecule {
       )
 
       this.playableDiv.append($(`<div id="${this.divId}-loop">`))
-      this.widget.loop = new widgets.TogglePlayButtonWidget(
+      this.widget.loop = new widgets.TogglePlayWidget(
         this.soupWidget,
         `#${this.divId}-loop`
       )
@@ -286,7 +286,7 @@ class EmbedJolecule {
         )
 
       this.footerDiv.append($(`<div id="${this.divId}-ligand">`))
-      this.widget.ligand = new widgets.ToggleButtonWidget(
+      this.widget.ligand = new widgets.ToggleOptionWidget(
         this.soupWidget,
         `#${this.divId}-ligand`,
         'ligands'
@@ -295,21 +295,21 @@ class EmbedJolecule {
 
     if (this.params.isExtraEditable) {
       this.footerDiv.append($(`<div id="${this.divId}-sphere">`))
-      this.widget.sphere = new widgets.ToggleButtonWidget(
+      this.widget.sphere = new widgets.ToggleOptionWidget(
         this.soupWidget,
         `#${this.divId}-sphere`,
         'sphere'
       )
 
       this.footerDiv.append($(`<div id="${this.divId}-backbone">`))
-      this.widget.backbone = new widgets.ToggleButtonWidget(
+      this.widget.backbone = new widgets.ToggleOptionWidget(
         this.soupWidget,
         `#${this.divId}-backbone`,
         'backbone'
       )
 
       this.footerDiv.append($(`<div id="${this.divId}-transparent">`))
-      this.widget.transparent = new widgets.ToggleButtonWidget(
+      this.widget.transparent = new widgets.ToggleOptionWidget(
         this.soupWidget,
         `#${this.divId}-transparent`,
         'transparent'
