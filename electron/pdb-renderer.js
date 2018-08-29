@@ -118,9 +118,9 @@ let joleculeInstance = jolecule.initFullPageJolecule(
   "#jolecule-views-container",
   {
     isEditable: true,
+    isExtraEditable: true,
     isGrid: true,
     isPlayable: true,
-    isExtraEditable: true,
     backgroundColor: 0x000000
   }
 );

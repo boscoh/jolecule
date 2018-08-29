@@ -75188,7 +75188,7 @@ module.exports = function (it, TYPE) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.delay = exports.textEntryDialog = exports.getCurrentDateStr = exports.randomId = exports.inArray = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.linkButton = exports.getWindowUrl = exports.exists = exports.jstr = undefined;
+exports.delay = exports.textEntryDialog = exports.randomId = exports.inArray = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.linkButton = exports.exists = undefined;
 
 var _jquery = __webpack_require__(32);
 
@@ -75207,33 +75207,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  *
  */
 
-function jstr(s) {
-  return JSON.stringify(s, null, 2);
-}
-
 function exists(x) {
-  return !_lodash2.default.isUndefined(x) && x !== null;
+  return !_lodash2.default.isNil(x);
 }
 
-function getWindowUrl() {
-  return '' + window.location;
-}
-
-function linkButton(idTag, text, classTag, callback) {
-  var item = (0, _jquery2.default)('<span>').attr('id', idTag).attr('href', '').html(text);
-
-  if (classTag) {
-    item.addClass(classTag);
-  }
-
-  if (callback) {
-    item.on(' click touch ', function (e) {
-      e.preventDefault();
-      callback();
-    });
-  }
-
-  return item;
+function linkButton(text, classTag, callback) {
+  return (0, _jquery2.default)('<span>').html(text).addClass(classTag).on('click touch', function (e) {
+    e.preventDefault();
+    callback();
+  });
 }
 
 function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
@@ -75286,14 +75268,6 @@ function randomId() {
   return 'view:' + randomString(6);
 }
 
-function getCurrentDateStr() {
-  var now = new Date();
-  var month = now.getMonth() + 1;
-  var day = now.getDate();
-  var year = now.getFullYear();
-  return day + '/' + month + '/' + year;
-}
-
 function textEntryDialog(parentDiv, label, callback) {
   if (!label) {
     label = '';
@@ -75317,9 +75291,9 @@ function textEntryDialog(parentDiv, label, callback) {
     window.keyboardLock = false;
   }
 
-  var saveButton = linkButton('okay', 'okay', 'jolecule-small-button', accept);
+  var saveButton = linkButton('okay', 'jolecule-small-button', accept);
 
-  var discardButton = linkButton('discard', 'discard', 'jolecule-small-button', discard);
+  var discardButton = linkButton('discard', 'jolecule-small-button', discard);
 
   var textarea = (0, _jquery2.default)('<textarea>').css('width', '100%').css('margin-bottom', '0.5em').addClass('jolecule-view-text').keydown(function (e) {
     if (e.keyCode === 27) {
@@ -75345,15 +75319,12 @@ function delay(timeMs) {
   });
 }
 
-exports.jstr = jstr;
 exports.exists = exists;
-exports.getWindowUrl = getWindowUrl;
 exports.linkButton = linkButton;
 exports.stickJqueryDivInCenter = stickJqueryDivInCenter;
 exports.stickJqueryDivInTopLeft = stickJqueryDivInTopLeft;
 exports.inArray = inArray;
 exports.randomId = randomId;
-exports.getCurrentDateStr = getCurrentDateStr;
 exports.textEntryDialog = textEntryDialog;
 exports.delay = delay;
 
@@ -79573,7 +79544,7 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var _soup = __webpack_require__(134);
 
-var _soupWidget = __webpack_require__(343);
+var _soupWidget = __webpack_require__(349);
 
 var _util = __webpack_require__(49);
 
@@ -79829,14 +79800,14 @@ var EmbedJolecule = function () {
         this.playableDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-rotate">'));
         this.widget.rotate = new _widgets2.default.ToggleRotateButtonWidget(this.soupWidget, '#' + this.divId + '-rotate');
 
-        this.playableDiv.append((0, _util.linkButton)('', '<', 'jolecule-button', function () {
+        this.playableDiv.append((0, _util.linkButton)('<', 'jolecule-button', function () {
           _this3.controller.setTargetToPrevView();
         }));
 
         this.playableDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-loop">'));
         this.widget.loop = new _widgets2.default.TogglePlayButtonWidget(this.soupWidget, '#' + this.divId + '-loop');
 
-        this.playableDiv.append((0, _util.linkButton)('', '>', 'jolecule-button', function () {
+        this.playableDiv.append((0, _util.linkButton)('>', 'jolecule-button', function () {
           _this3.controller.setTargetToNextView();
         }));
 
@@ -79869,15 +79840,15 @@ var EmbedJolecule = function () {
       }
 
       if (this.params.isEditable) {
-        this.footerDiv.append((0, _util.linkButton)('', 'Zoom', 'jolecule-button', function () {
+        this.footerDiv.append((0, _util.linkButton)('Zoom', 'jolecule-button', function () {
           _this3.controller.zoomToSelection();
         }));
 
-        this.footerDiv.append((0, _util.linkButton)('', 'Clear', 'jolecule-button', function () {
+        this.footerDiv.append((0, _util.linkButton)('Clear', 'jolecule-button', function () {
           _this3.controller.clear();
-        })).append((0, _util.linkButton)('', 'Sidechains', 'jolecule-button', function () {
+        })).append((0, _util.linkButton)('Sidechains', 'jolecule-button', function () {
           _this3.controller.toggleSelectedSidechains();
-        })).append((0, _util.linkButton)('', 'Neighbors', 'jolecule-button', function () {
+        })).append((0, _util.linkButton)('Neighbors', 'jolecule-button', function () {
           _this3.controller.toggleResidueNeighbors();
         }));
 
@@ -81974,7 +81945,6 @@ var View = function () {
     this.distances = [];
     this.text = 'Default view of PDB file';
     this.user_id = '';
-    this.url = (0, _util.getWindowUrl)();
     this.show = {
       sidechain: true,
       peptide: true,
@@ -82020,7 +81990,6 @@ var View = function () {
       v.order = this.order;
       v.text = this.text;
       v.time = this.time;
-      v.url = this.url;
       v.cameraParams = _lodash2.default.cloneDeep(this.cameraParams);
       v.show = _lodash2.default.cloneDeep(this.show);
       v.grid = _lodash2.default.cloneDeep(this.grid);
@@ -82799,7 +82768,6 @@ var Controller = function () {
       var newView = this.soupView.currentView.clone();
       newView.text = 'Click edit to change this text.';
       newView.pdb_id = this.soup.structureIds[0];
-      var time = (0, _util.getCurrentDateStr)();
       newView.id = newViewId;
       newView.selected = this.makeSelectedResidueList();
       this.soupView.insertView(iNewView, newViewId, newView);
@@ -84113,8 +84081,7 @@ var SequenceWidget = function (_CanvasWidget) {
 
       // draw structure color bars
       var ss = this.charEntries[0].ss;
-      var color = data.getSsColor(ss).getStyle();
-      color = this.getColorStyle(0);
+      var color = this.getColorStyle(0);
       var endColor = void 0;
       var iStart = 0;
       var iEnd = 0;
@@ -84866,83 +84833,31 @@ var ResidueSelectorWidget = function () {
   return ResidueSelectorWidget;
 }();
 
-var ToggleButtonWidget = function () {
-  function ToggleButtonWidget(soupWidget, selector, option) {
+var ToggleWidget = function () {
+  function ToggleWidget(soupWidget, selector) {
     var _this11 = this;
 
-    _classCallCheck(this, ToggleButtonWidget);
+    _classCallCheck(this, ToggleWidget);
 
-    this.controller = soupWidget.controller;
     this.soupWidget = soupWidget;
-    if (option) {
-      this.option = option;
-    }
-    this.div = (0, _jquery2.default)(selector).attr('href', '').html(_lodash2.default.capitalize(option)).addClass('jolecule-button').on('click touch', function (e) {
+    this.controller = soupWidget.controller;
+    this.div = (0, _jquery2.default)(selector).html(this.html()).addClass('jolecule-button').on('click touch', function (e) {
+      _this11.set(!_this11.get());
+      _this11.update();
       e.preventDefault();
-      _this11.callback();
     });
     this.soupWidget.addObserver(this);
   }
 
-  _createClass(ToggleButtonWidget, [{
-    key: 'callback',
-    value: function callback() {
-      var newOptionVal = !this.controller.getShowOption(this.option);
-      this.controller.setShowOption(this.option, newOptionVal);
-      if (this.option === 'sidechains' && newOptionVal === false) {
-        this.controller.clearSidechainResidues();
-      }
-      this.update();
-    }
+  _createClass(ToggleWidget, [{
+    key: 'html',
+    value: function html() {}
   }, {
-    key: 'update',
-    value: function update() {
-      if (this.controller.getShowOption(this.option)) {
-        if (!this.div.hasClass('jolecule-button-toggle-on')) {
-          this.div.addClass('jolecule-button-toggle-on');
-        }
-      } else {
-        if (this.div.hasClass('jolecule-button-toggle-on')) {
-          this.div.removeClass('jolecule-button-toggle-on');
-        }
-      }
-    }
-  }]);
-
-  return ToggleButtonWidget;
-}();
-
-var TogglePlayButtonWidget = function () {
-  function TogglePlayButtonWidget(soupWidget, selector) {
-    var _this12 = this;
-
-    _classCallCheck(this, TogglePlayButtonWidget);
-
-    this.controller = soupWidget.controller;
-    this.soupWidget = soupWidget;
-    this.div = (0, _jquery2.default)(selector).attr('href', '').html('Play').addClass('jolecule-button').on('click touch', function (e) {
-      _this12.toggle();
-      _this12.update();
-      e.preventDefault();
-    });
-    this.soupWidget.addObserver(this);
-  }
-
-  _createClass(TogglePlayButtonWidget, [{
     key: 'get',
-    value: function get() {
-      return this.controller.getLoop();
-    }
+    value: function get() {}
   }, {
     key: 'set',
-    value: function set(val) {
-      this.controller.setLoop(val);
-    }
-  }, {
-    key: 'toggle',
-    value: function toggle() {
-      this.set(!this.get());
-    }
+    value: function set(val) {}
   }, {
     key: 'update',
     value: function update() {
@@ -84958,22 +84873,89 @@ var TogglePlayButtonWidget = function () {
     }
   }]);
 
-  return TogglePlayButtonWidget;
+  return ToggleWidget;
 }();
+
+var ToggleButtonWidget = function (_ToggleWidget) {
+  _inherits(ToggleButtonWidget, _ToggleWidget);
+
+  function ToggleButtonWidget(soupWidget, selector, option) {
+    _classCallCheck(this, ToggleButtonWidget);
+
+    var _this12 = _possibleConstructorReturn(this, (ToggleButtonWidget.__proto__ || Object.getPrototypeOf(ToggleButtonWidget)).call(this, soupWidget, selector));
+
+    _this12.option = option;
+    _this12.div.html(_this12.html());
+    return _this12;
+  }
+
+  _createClass(ToggleButtonWidget, [{
+    key: 'html',
+    value: function html() {
+      return _lodash2.default.capitalize(this.option);
+    }
+  }, {
+    key: 'get',
+    value: function get() {
+      return this.controller.getShowOption(this.option);
+    }
+  }, {
+    key: 'set',
+    value: function set(val) {
+      this.controller.setShowOption(this.option, val);
+      if (this.option === 'sidechains' && val === false) {
+        this.controller.clearSidechainResidues();
+      }
+    }
+  }]);
+
+  return ToggleButtonWidget;
+}(ToggleWidget);
+
+var TogglePlayButtonWidget = function (_ToggleWidget2) {
+  _inherits(TogglePlayButtonWidget, _ToggleWidget2);
+
+  function TogglePlayButtonWidget() {
+    _classCallCheck(this, TogglePlayButtonWidget);
+
+    return _possibleConstructorReturn(this, (TogglePlayButtonWidget.__proto__ || Object.getPrototypeOf(TogglePlayButtonWidget)).apply(this, arguments));
+  }
+
+  _createClass(TogglePlayButtonWidget, [{
+    key: 'html',
+    value: function html() {
+      return 'Play';
+    }
+  }, {
+    key: 'get',
+    value: function get() {
+      return this.controller.getLoop();
+    }
+  }, {
+    key: 'set',
+    value: function set(val) {
+      this.controller.setLoop(val);
+    }
+  }]);
+
+  return TogglePlayButtonWidget;
+}(ToggleWidget);
 
 var ToggleRotateButtonWidget = function (_TogglePlayButtonWidg) {
   _inherits(ToggleRotateButtonWidget, _TogglePlayButtonWidg);
 
-  function ToggleRotateButtonWidget(soupWidget, selector) {
+  function ToggleRotateButtonWidget() {
     _classCallCheck(this, ToggleRotateButtonWidget);
 
-    var _this13 = _possibleConstructorReturn(this, (ToggleRotateButtonWidget.__proto__ || Object.getPrototypeOf(ToggleRotateButtonWidget)).call(this, soupWidget, selector));
-
-    _this13.div = (0, _jquery2.default)(selector).html('&orarr;');
-    return _this13;
+    return _possibleConstructorReturn(this, (ToggleRotateButtonWidget.__proto__ || Object.getPrototypeOf(ToggleRotateButtonWidget)).apply(this, arguments));
   }
 
   _createClass(ToggleRotateButtonWidget, [{
+    key: 'html',
+    value: function html() {
+      return '&orarr;';
+    }
+  }, {
     key: 'get',
     value: function get() {
       return this.controller.getRotate();
@@ -90938,1328 +90920,7 @@ var Store = function () {
 exports.default = Store;
 
 /***/ }),
-/* 343 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.SoupWidget = undefined;
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _jquery = __webpack_require__(32);
-
-var _jquery2 = _interopRequireDefault(_jquery);
-
-var _lodash = __webpack_require__(27);
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-var _three = __webpack_require__(44);
-
-var THREE = _interopRequireWildcard(_three);
-
-var _signals = __webpack_require__(344);
-
-var _signals2 = _interopRequireDefault(_signals);
-
-var _v = __webpack_require__(95);
-
-var _v2 = _interopRequireDefault(_v);
-
-var _util = __webpack_require__(49);
-
-var util = _interopRequireWildcard(_util);
-
-var _glgeom = __webpack_require__(96);
-
-var glgeom = _interopRequireWildcard(_glgeom);
-
-var _widgets = __webpack_require__(135);
-
-var _widgets2 = _interopRequireDefault(_widgets);
-
-var _representation = __webpack_require__(346);
-
-var representation = _interopRequireWildcard(_representation);
-
-var _soup = __webpack_require__(134);
-
-var _animation = __webpack_require__(132);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * Utility class to handle a three.js HTML object with
- * a standard set of features:
- *  - instantiate a <div> and <canvas> element
- *  - camera object
- *  - display scene
- *  - picking scene, with helpful picking functions
- *  - a status messaging div
- *  - lights
- *  - input handlers for mouse
- */
-var WebglWidget = function () {
-  function WebglWidget(divTag, backgroundColor) {
-    _classCallCheck(this, WebglWidget);
-
-    this.divTag = divTag;
-    this.div = (0, _jquery2.default)(this.divTag);
-    this.div.css('overflow', 'hidden');
-
-    this.backgroundColor = backgroundColor;
-    this.div.css('background-color', this.backgroundColor);
-
-    // WebGL related properties
-    // div to instantiate WebGL renderer
-    this.webglDivId = this.div.attr('id') + '-canvas-wrapper';
-    this.webglDiv = (0, _jquery2.default)('<div>').attr('id', this.webglDivId).css('overflow', 'hidden').css('z-index', '0').css('background-color', '#CCC').css('position', 'absolute');
-    this.webglDiv.contextmenu(function () {
-      return false;
-    });
-    this.div.append(this.webglDiv);
-
-    // Params that will be used to set the camera below
-    this.cameraParams = {
-      focus: new THREE.Vector3(0, 0, 0),
-      position: new THREE.Vector3(0, 0, -1),
-      up: new THREE.Vector3(0, 1, 0),
-      // clipping planes relative to focus
-      zFront: -40,
-      zBack: 20,
-      // distance of focus from position
-      zoom: 1.0
-
-      // a THREE.js camera, will be set properly before draw
-    };this.camera = new THREE.PerspectiveCamera(45, this.width() / this.height());
-
-    this.displayScene = new THREE.Scene();
-    this.displayScene.background = new THREE.Color(this.backgroundColor);
-    this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100);
-
-    // this.representations is a dictionary that holds representations
-    // that transform this.soup into meshes that will be inserted into
-    // this.displayMeshes and this.pickingMeshes at draw time
-    this.representations = {};
-
-    // this.displayMeshes is a dictionary that holds THREE.Object3D
-    // collections of meshes. This allows collections to be collectively
-    // turned on and off. The meshes will be regenerated into this.displayScene
-    // if the underlying data changes. The convenience function
-    // will send geometries into the displayMeshes, using this.displayMaterial
-    // as the default. This assumes vertexColors are used, allowing multiple
-    // colors within the same geometry.
-    this.displayMeshes = {};
-    this.pickingMeshes = {};
-
-    this.pickingScene = new THREE.Scene();
-    this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height());
-    this.pickingTexture.texture.minFilter = THREE.LinearFilter;
-
-    this.lights = [];
-    this.buildLights();
-
-    // div to display processing messages
-    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
-    this.setMesssage('Initialized jolecule.');
-
-    // input control parameters
-    this.saveMouseX = null;
-    this.saveMouseY = null;
-    this.saveMouseR = null;
-    this.saveMouseT = null;
-    this.mouseX = null;
-    this.mouseY = null;
-    this.mouseR = null;
-    this.mouseT = null;
-  }
-
-  _createClass(WebglWidget, [{
-    key: 'initWebglRenderer',
-    value: function initWebglRenderer() {
-      var _this = this;
-
-      this.renderer = new THREE.WebGLRenderer({ antialias: true });
-      this.renderer.setClearColor(this.backgroundColor);
-      this.renderer.setSize(this.width(), this.height());
-
-      var dom = this.renderer.domElement;
-      this.webglDiv[0].appendChild(dom);
-
-      var bind = function bind(w, fn) {
-        dom.addEventListener(w, fn);
-      };
-      bind('mousedown', function (e) {
-        return _this.mousedown(e);
-      });
-      bind('mousemove', function (e) {
-        return _this.mousemove(e);
-      });
-      bind('mouseup', function (e) {
-        return _this.mouseup(e);
-      });
-      bind('mouseleave', function (e) {
-        return _this.mouseout(e);
-      });
-      bind('mousewheel', function (e) {
-        return _this.mousewheel(e);
-      });
-      bind('DOMMouseScroll', function (e) {
-        return _this.mousewheel(e);
-      });
-      bind('touchstart', function (e) {
-        return _this.mousedown(e);
-      });
-      bind('touchmove', function (e) {
-        return _this.mousemove(e);
-      });
-      bind('touchend', function (e) {
-        return _this.mouseup(e);
-      });
-      bind('touchcancel', function (e) {
-        return _this.mouseup(e);
-      });
-      bind('gesturestart', function (e) {
-        return _this.gesturestart(e);
-      });
-      bind('gesturechange', function (e) {
-        return _this.gesturechange(e);
-      });
-      bind('gestureend', function (e) {
-        return _this.gestureend(e);
-      });
-    }
-  }, {
-    key: 'render',
-    value: function render() {
-      // leave this to the very last moment
-      // to avoid the dreaded black canvas
-      if (!util.exists(this.renderer)) {
-        this.initWebglRenderer();
-      }
-
-      // renders visible meshes to the gpu
-      this.renderer.render(this.displayScene, this.camera);
-    }
-  }, {
-    key: 'getPosXY',
-    value: function getPosXY(pos) {
-      var widthHalf = 0.5 * this.width();
-      var heightHalf = 0.5 * this.height();
-
-      var vector = pos.clone().project(this.camera);
-
-      return {
-        x: vector.x * widthHalf + widthHalf + this.x(),
-        y: -(vector.y * heightHalf) + heightHalf + this.y()
-      };
-    }
-  }, {
-    key: 'getPickColorFromMouse',
-    value: function getPickColorFromMouse() {
-      var x = this.mouseX;
-      var y = this.mouseY;
-
-      if (x === null || y === null) {
-        return null;
-      }
-
-      // create buffer for reading single pixel
-      var pixelBuffer = new Uint8Array(4);
-
-      // render the picking soupView off-screen
-      this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
-
-      // read the pixel under the mouse from the texture
-      this.renderer.readRenderTargetPixels(this.pickingTexture, this.mouseX, this.pickingTexture.height - y, 1, 1, pixelBuffer);
-
-      // interpret the color as an Uint8 integer
-      return pixelBuffer[0] << 16 | pixelBuffer[1] << 8 | pixelBuffer[2];
-    }
-  }, {
-    key: 'setCameraParams',
-    value: function setCameraParams(cameraParams) {
-      // rotate lights to soupView orientation
-      var cameraDirection = this.cameraParams.position.clone().sub(this.cameraParams.focus).normalize();
-      var viewCameraDirection = cameraParams.position.clone().sub(cameraParams.focus);
-      viewCameraDirection.normalize();
-      var rotation = glgeom.getUnitVectorRotation(cameraDirection, viewCameraDirection);
-      for (var i = 0; i < this.lights.length; i += 1) {
-        this.lights[i].position.applyQuaternion(rotation);
-      }
-
-      this.cameraParams = cameraParams;
-
-      var far = this.cameraParams.zoom + this.cameraParams.zBack;
-      var near = this.cameraParams.zoom + this.cameraParams.zFront;
-      if (near < 1) {
-        near = 1;
-      }
-
-      this.camera.position.copy(this.cameraParams.position);
-      this.camera.up.copy(this.cameraParams.up);
-      this.camera.lookAt(this.cameraParams.focus);
-      this.camera.near = near;
-      this.camera.far = far;
-      this.camera.updateProjectionMatrix();
-
-      this.displayScene.fog.near = this.cameraParams.zoom;
-      this.displayScene.fog.far = far;
-    }
-  }, {
-    key: 'buildLights',
-    value: function buildLights() {
-      this.lights.length = 0;
-
-      var directedLight = new THREE.DirectionalLight(0xFFFFFF);
-      directedLight.position.copy(_v2.default.create(0.2, 0.2, -100).normalize());
-      directedLight.dontDelete = true;
-      this.lights.push(directedLight);
-
-      var ambientLight = new THREE.AmbientLight(0x606060, 1);
-      ambientLight.dontDelete = true;
-      this.lights.push(ambientLight);
-
-      for (var i = 0; i < this.lights.length; i += 1) {
-        this.displayScene.add(this.lights[i]);
-      }
-    }
-  }, {
-    key: 'resize',
-    value: function resize() {
-      var position = this.div.position();
-      this.webglDiv.css('left', this.x() + position.left);
-      this.webglDiv.css('top', this.y() + position.top);
-
-      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 20);
-      this.messageDiv.width(this.div.width() - 200);
-
-      this.camera.aspect = this.width() / this.height();
-      this.camera.updateProjectionMatrix();
-
-      this.pickingTexture.setSize(this.width(), this.height());
-
-      if (util.exists(this.renderer)) {
-        this.renderer.setSize(this.width(), this.height());
-      }
-    }
-  }, {
-    key: 'setMesssage',
-    value: function setMesssage(message) {
-      console.log('Display.setMesssage:', message);
-      this.messageDiv.html(message).show();
-    }
-  }, {
-    key: 'asyncSetMesssage',
-    value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(message) {
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                this.setMesssage(message);
-                _context.next = 3;
-                return util.delay(0);
-
-              case 3:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function asyncSetMesssage(_x) {
-        return _ref.apply(this, arguments);
-      }
-
-      return asyncSetMesssage;
-    }()
-  }, {
-    key: 'cleanupMessage',
-    value: function cleanupMessage() {
-      this.messageDiv.hide();
-    }
-  }, {
-    key: 'rebuildSceneFromMeshes',
-
-
-    /**
-     **********************************************************
-     * Mesh-building methods
-     *
-     * Routines to build meshes that will be incorporated into
-     * scenes, and to be used for gpu-picking.
-     *
-     * Meshes are stored in a dictionary: this.displayMeshes &
-     * this.pickingMeshes
-     **********************************************************
-     */
-
-    /**
-     * Rebuild soupView from meshes in this.displayMeshes &
-     * this.pickingMeshes
-     */
-    value: function rebuildSceneFromMeshes() {
-      glgeom.clearObject3D(this.displayScene);
-      glgeom.clearObject3D(this.pickingScene);
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = _lodash2.default.values(this.displayMeshes)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var mesh = _step.value;
-
-          if (mesh.children.length > 0) {
-            this.displayScene.add(mesh);
-          }
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-      }
-
-      var _iteratorNormalCompletion2 = true;
-      var _didIteratorError2 = false;
-      var _iteratorError2 = undefined;
-
-      try {
-        for (var _iterator2 = _lodash2.default.values(this.pickingMeshes)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-          var _mesh = _step2.value;
-
-          if (_mesh.children.length > 0) {
-            this.pickingScene.add(_mesh);
-          }
-        }
-      } catch (err) {
-        _didIteratorError2 = true;
-        _iteratorError2 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-            _iterator2.return();
-          }
-        } finally {
-          if (_didIteratorError2) {
-            throw _iteratorError2;
-          }
-        }
-      }
-    }
-
-    /**
-     * Sets the visibility of a mesh this.displayMeshes & this.pickingMeshes.
-     * If it does not exist, create it, and look for the corresponding method
-     * to build the mesh this.build<CaptializaedMeshName>
-     *
-     * @param meshName
-     * @param visible
-     */
-
-  }, {
-    key: 'setMeshVisible',
-    value: function setMeshVisible(meshName, visible) {
-      if (meshName in this.displayMeshes) {
-        glgeom.setVisible(this.displayMeshes[meshName], visible);
-      }
-      if (meshName in this.pickingMeshes) {
-        glgeom.setVisible(this.pickingMeshes[meshName], visible);
-      }
-    }
-  }, {
-    key: 'x',
-    value: function x() {
-      return 0;
-    }
-  }, {
-    key: 'y',
-    value: function y() {
-      return 0;
-    }
-  }, {
-    key: 'width',
-    value: function width() {
-      var width = this.div.width() - this.x();
-      return width;
-    }
-  }, {
-    key: 'height',
-    value: function height() {
-      var height = this.div.height() - this.y();
-      return height;
-    }
-  }, {
-    key: 'getPointer',
-    value: function getPointer(event) {
-      if (util.exists(event.touches) && event.touches.length > 0) {
-        this.eventX = event.touches[0].clientX;
-        this.eventY = event.touches[0].clientY;
-      } else {
-        this.eventX = event.clientX;
-        this.eventY = event.clientY;
-      }
-
-      var rect = event.target.getBoundingClientRect();
-      this.mouseX = this.eventX - rect.left;
-      this.mouseY = this.eventY - rect.top;
-
-      var x = this.mouseX - this.width() / 2;
-      var y = this.mouseY - this.height() / 2;
-
-      this.mouseR = Math.sqrt(x * x + y * y);
-
-      this.mouseT = Math.atan(y / x);
-      if (x < 0) {
-        if (y > 0) {
-          this.mouseT += Math.PI;
-        } else {
-          this.mouseT -= Math.PI;
-        }
-      }
-    }
-  }, {
-    key: 'savePointer',
-    value: function savePointer() {
-      this.saveMouseX = this.mouseX;
-      this.saveMouseY = this.mouseY;
-      this.saveMouseR = this.mouseR;
-      this.saveMouseT = this.mouseT;
-    }
-  }]);
-
-  return WebglWidget;
-}();
-
-/**
- * Display is the main window for drawing the soup
- * in a WebGL HTML5 canvas, includes various widgets that
- * are described in widgets.js.
- *
- * Display takes a soup, and builds three.js from
- * it. Display also handles mouse input and
- * uses controller to make changes to the underlying soup
- * and their associated views
- */
-
-
-var SoupWidget = function (_WebglWidget) {
-  _inherits(SoupWidget, _WebglWidget);
-
-  /**
-   * @param soupView - SoupView object that holds a soup and views
-   * @param divTag - a selector tag for a DOM element
-   * @param controller - the controller for the soupView
-   * @param isGrid - flat to show autodock 3D grid control panel
-   * @param backgroundColor - the background color of canvas and webgl
-   */
-  function SoupWidget(soupView, divTag, controller, isGrid, backgroundColor) {
-    _classCallCheck(this, SoupWidget);
-
-    var _this2 = _possibleConstructorReturn(this, (SoupWidget.__proto__ || Object.getPrototypeOf(SoupWidget)).call(this, divTag, backgroundColor));
-
-    _this2.observers = {
-      rebuilt: new _signals2.default(),
-      updated: new _signals2.default(),
-      resized: new _signals2.default()
-
-      // Hooks to protein data
-    };_this2.soupView = soupView;
-    _this2.soup = soupView.soup;
-    _this2.controller = controller;
-
-    // screen atom radius
-    _this2.atomRadius = 0.35;
-    _this2.gridAtomRadius = 1.0;
-
-    // Cross-hairs to identify centered atom
-    _this2.buildCrossHairs();
-
-    // popup hover box over the mouse position
-    _this2.hover = new _widgets2.default.PopupText(_this2.divTag, 50);
-    _this2.iAtomHover = null;
-
-    // Docking display control
-    _this2.isGrid = isGrid;
-
-    // Widgets that decorate the display
-    // display distance measures between atoms
-    _this2.distanceMeasuresWidget = new _widgets2.default.DistanceMeasuresWidget(_this2);
-    // display atom labels
-    _this2.atomLabelsWidget = new _widgets2.default.AtomLabelsWidget(_this2);
-    // draw onscreen line for mouse dragging between atoms
-    _this2.lineElement = new _widgets2.default.LineElement(_this2, '#FF7777');
-
-    // index of traces to show selected
-    _this2.selectedTraces = [];
-
-    (0, _animation.registerGlobalAnimationLoop)(_this2);
-    return _this2;
-  }
-
-  _createClass(SoupWidget, [{
-    key: 'addObserver',
-    value: function addObserver(observer) {
-      if ('update' in observer) {
-        this.observers.updated.add(function () {
-          observer.update();
-        });
-      }
-      if ('rebuild' in observer) {
-        this.observers.rebuilt.add(function () {
-          observer.rebuild();
-        });
-      }
-      if ('resize' in observer) {
-        this.observers.resized.add(function () {
-          observer.resize();
-        });
-      }
-    }
-  }, {
-    key: 'buildCrossHairs',
-    value: function buildCrossHairs() {
-      var radius = 2.0;
-      var segments = 60;
-      var material = new THREE.LineBasicMaterial({ color: 0xFF5555 });
-      var geometry = new THREE.CircleGeometry(radius, segments);
-
-      // Remove center vertex
-      geometry.vertices.shift();
-
-      this.crossHairs = new THREE.LineLoop(geometry, material);
-      this.crossHairs.dontDelete = true;
-      this.displayScene.add(this.crossHairs);
-    }
-
-    /**
-     ******************************************
-     * Handle cameraParams
-     ******************************************
-     */
-
-  }, {
-    key: 'setTargetViewByIAtom',
-    value: function setTargetViewByIAtom(iAtom) {
-      this.controller.setTargetViewByIAtom(iAtom);
-    }
-  }, {
-    key: 'getCameraOfCurrentView',
-    value: function getCameraOfCurrentView() {
-      return this.soupView.currentView.cameraParams;
-    }
-  }, {
-    key: 'rotateCameraParamsToCurrentView',
-    value: function rotateCameraParamsToCurrentView() {
-      this.setCameraParams(this.getCameraOfCurrentView());
-    }
-  }, {
-    key: 'adjustCamera',
-    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-      var cameraParams = this.getCameraOfCurrentView();
-
-      var y = cameraParams.up;
-      var z = cameraParams.position.clone().sub(cameraParams.focus).normalize();
-      var x = _v2.default.create().crossVectors(y, z).normalize();
-
-      var rotZ = new THREE.Quaternion().setFromAxisAngle(z, zRotationAngle);
-
-      var rotY = new THREE.Quaternion().setFromAxisAngle(y, -yRotationAngle);
-
-      var rotX = new THREE.Quaternion().setFromAxisAngle(x, -xRotationAngle);
-
-      var rotation = new THREE.Quaternion().multiply(rotZ).multiply(rotY).multiply(rotX);
-
-      var newZoom = zoomRatio * cameraParams.zoom;
-
-      if (newZoom < 2) {
-        newZoom = 2;
-      }
-
-      var position = cameraParams.position.clone().sub(cameraParams.focus).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(cameraParams.focus);
-
-      var view = this.soupView.currentView.clone();
-      view.cameraParams.focus = cameraParams.focus.clone();
-      view.cameraParams.position = position;
-      view.cameraParams.up = cameraParams.up.clone().applyQuaternion(rotation);
-      view.cameraParams.zoom = newZoom;
-
-      this.controller.setCurrentView(view);
-    }
-  }, {
-    key: 'getZ',
-    value: function getZ(pos) {
-      var cameraParams = this.getCameraOfCurrentView();
-      var cameraDir = cameraParams.focus.clone().sub(cameraParams.position).normalize();
-      var posRelativeToOrigin = pos.clone().sub(cameraParams.focus);
-      return posRelativeToOrigin.dot(cameraDir);
-    }
-  }, {
-    key: 'inZlab',
-    value: function inZlab(pos) {
-      var z = this.getZ(pos);
-      var cameraParams = this.getCameraOfCurrentView();
-      return z >= cameraParams.zFront && z <= cameraParams.zBack;
-    }
-  }, {
-    key: 'opacity',
-    value: function opacity(pos) {
-      var z = this.getZ(pos);
-
-      var cameraParams = this.getCameraOfCurrentView();
-
-      if (z < cameraParams.zFront) {
-        return 1.0;
-      }
-
-      if (z > cameraParams.zBack) {
-        return 0.0;
-      }
-
-      return 1 - (z - cameraParams.zFront) / (cameraParams.zBack - cameraParams.zFront);
-    }
-
-    /**
-     ******************************************
-     * Draw & Animate Graphical objects
-     ******************************************
-     */
-
-  }, {
-    key: 'updateCrossHairs',
-    value: function updateCrossHairs() {
-      var cameraParams = this.getCameraOfCurrentView();
-      this.crossHairs.position.copy(cameraParams.focus);
-      this.crossHairs.lookAt(cameraParams.position);
-      this.crossHairs.updateMatrix();
-    }
-  }, {
-    key: 'atomLabelDialog',
-    value: function atomLabelDialog() {
-      var _this3 = this;
-
-      var iAtom = this.soupView.currentView.iAtom;
-      if (iAtom >= 0) {
-        var atom = this.soup.getAtomProxy(iAtom);
-        var label = 'Label atom : ' + atom.label;
-        var success = function success(text) {
-          _this3.controller.makeAtomLabel(iAtom, text);
-        };
-        util.textEntryDialog(this.div, label, success);
-      }
-    }
-  }, {
-    key: 'getIAtomHover',
-    value: function getIAtomHover() {
-      var i = this.getPickColorFromMouse();
-      if (i > 0 && i < this.soup.getAtomCount() + 1) {
-        return i - 1;
-      }
-      return null;
-    }
-  }, {
-    key: 'updateHover',
-    value: function updateHover() {
-      this.iAtomHover = this.getIAtomHover();
-      if (this.iAtomHover) {
-        var atom = this.soup.getAtomProxy(this.iAtomHover);
-        var label = atom.label;
-        var iAtom = atom.iAtom;
-        var pos = atom.pos.clone();
-        if (atom.resType === 'XXX') {
-          label += ':' + 'E=' + this.soup.grid.convertB(atom.bfactor);
-        }
-        var text = '';
-        if (iAtom === this.soupView.getICenteredAtom()) {
-          text = '<div style="text-align: center">';
-          text += label;
-          text += '<br>[drag distances]<br>';
-          text += '[double-click labels]';
-          text += '</div>';
-        } else {
-          text = label;
-        }
-        this.hover.html(text);
-        var vector = this.getPosXY(pos);
-        this.hover.move(vector.x, vector.y);
-      } else {
-        this.hover.hide();
-      }
-    }
-
-    /**
-     **********************************************************
-     * Mesh-building methods
-     *
-     * Routines to build meshes that will be incorporated into
-     * scenes, and to be used for gpu-picking.
-     *
-     * Meshes are stored in a dictionary: this.displayMeshes &
-     * this.pickingMeshes
-     **********************************************************
-     */
-
-  }, {
-    key: 'addRepresentation',
-    value: function addRepresentation(name, repr) {
-      this.representations[name] = repr;
-      this.displayMeshes[name] = repr.displayObj;
-      this.pickingMeshes[name] = repr.pickingObj;
-      this.updateMeshesInScene = true;
-    }
-  }, {
-    key: 'buildScene',
-    value: function buildScene() {
-      // pre-calculations needed before building meshes
-      this.soupView.build();
-
-      // clear this.displayMeshes and this.pickingMeshes
-      var _iteratorNormalCompletion3 = true;
-      var _didIteratorError3 = false;
-      var _iteratorError3 = undefined;
-
-      try {
-        for (var _iterator3 = _lodash2.default.keys(this.displayMeshes)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-          var key = _step3.value;
-
-          _lodash2.default.unset(this.displayMeshes, key);
-        }
-      } catch (err) {
-        _didIteratorError3 = true;
-        _iteratorError3 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion3 && _iterator3.return) {
-            _iterator3.return();
-          }
-        } finally {
-          if (_didIteratorError3) {
-            throw _iteratorError3;
-          }
-        }
-      }
-
-      var _iteratorNormalCompletion4 = true;
-      var _didIteratorError4 = false;
-      var _iteratorError4 = undefined;
-
-      try {
-        for (var _iterator4 = _lodash2.default.keys(this.pickingMeshes)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-          var _key = _step4.value;
-
-          _lodash2.default.unset(this.pickingMeshes, _key);
-        }
-      } catch (err) {
-        _didIteratorError4 = true;
-        _iteratorError4 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-            _iterator4.return();
-          }
-        } finally {
-          if (_didIteratorError4) {
-            throw _iteratorError4;
-          }
-        }
-      }
-
-      this.addRepresentation('transparentRibbon', new representation.CartoonRepresentation(this.soup, true));
-      this.addRepresentation('ribbon', new representation.CartoonRepresentation(this.soup, false, this.selectedTraces));
-      this.addRepresentation('ligand', new representation.LigandRepresentation(this.soup, this.atomRadius));
-      if (this.isGrid) {
-        this.addRepresentation('grid', new representation.GridRepresentation(this.soup, this.gridAtomRadius));
-      }
-      this.addRepresentation('sidechain', new representation.SidechainRepresentation(this.soup, this.atomRadius));
-
-      this.rebuildSceneFromMeshes();
-
-      this.observers.rebuilt.dispatch();
-
-      this.soupView.changed = true;
-      this.soupView.updateObservers = true;
-    }
-  }, {
-    key: 'deleteStructure',
-    value: function deleteStructure(iStructure) {
-      this.controller.deleteStructure(iStructure);
-      this.buildScene();
-      this.observers.rebuilt.dispatch();
-    }
-
-    /**
-     ********************************************
-     * Main event loop methods
-     ********************************************
-     */
-
-    /**
-     * Status function to work with registerAnimation Loop
-     * @returns Boolean
-     */
-
-  }, {
-    key: 'isChanged',
-    value: function isChanged() {
-      return this.soupView.changed;
-    }
-  }, {
-    key: 'drawFrame',
-    value: function drawFrame() {
-      var _this4 = this;
-
-      if (!this.isChanged()) {
-        return;
-      }
-
-      var isNoMoreChanges = !this.soupView.soup.grid.changed && !this.soupView.updateSidechain && !this.soupView.updateSelection;
-
-      if (this.soupView.startTargetAfterRender) {
-        // set target only AFTER all changes have been applied in previous tick
-        if (isNoMoreChanges) {
-          this.soupView.startTargetView();
-          this.soupView.nUpdateStep = this.soupView.maxUpdateStep;
-        }
-      }
-
-      this.updateMeshesInScene = false;
-
-      var isNewTrigger = function isNewTrigger(meshName, visible) {
-        return visible && !(meshName in _this4.displayMeshes);
-      };
-
-      var show = this.soupView.currentView.show;
-      if (isNewTrigger('water', show.water)) {
-        this.addRepresentation('water', new representation.WaterRepresentation(this.soup, this.atomRadius));
-      }
-
-      if (isNewTrigger('backbone', show.backbone)) {
-        this.addRepresentation('backbone', new representation.BackboneRepresentation(this.soup, this.atomRadius));
-      }
-
-      if (isNewTrigger('sphere', show.sphere)) {
-        this.addRepresentation('sphere', new representation.SphereRepresentation(this.soup));
-      }
-
-      this.setMeshVisible('ribbon', show.ribbon);
-      this.setMeshVisible('transparentRibbon', show.ribbon && show.transparent);
-      this.setMeshVisible('water', show.water);
-      this.setMeshVisible('backbone', show.backbone);
-      this.setMeshVisible('ligand', show.ligands);
-      this.setMeshVisible('sphere', show.sphere);
-
-      if (show.transparent) {
-        var iAtom = this.soupView.currentView.iAtom;
-        var iRes = this.soup.getAtomProxy(iAtom).iRes;
-        if (!_lodash2.default.isNil(iRes)) {
-          var selectedTraces = [];
-          var _iteratorNormalCompletion5 = true;
-          var _didIteratorError5 = false;
-          var _iteratorError5 = undefined;
-
-          try {
-            for (var _iterator5 = this.soup.traces.entries()[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-              var _step5$value = _slicedToArray(_step5.value, 2),
-                  iTrace = _step5$value[0],
-                  trace = _step5$value[1];
-
-              if (_lodash2.default.includes(trace.indices, iRes)) {
-                selectedTraces.push(iTrace);
-                break;
-              }
-            }
-          } catch (err) {
-            _didIteratorError5 = true;
-            _iteratorError5 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                _iterator5.return();
-              }
-            } finally {
-              if (_didIteratorError5) {
-                throw _iteratorError5;
-              }
-            }
-          }
-
-          if (selectedTraces.length > 0) {
-            if (!_lodash2.default.isEqual(selectedTraces, this.representations.ribbon.selectedTraces)) {
-              this.representations.ribbon.selectedTraces = selectedTraces;
-              this.representations.ribbon.build();
-              this.updateMeshesInScene = true;
-            }
-          }
-        }
-      } else {
-        if (this.representations.ribbon && this.representations.ribbon.selectedTraces.length > 0) {
-          this.representations.ribbon.selectedTraces.length = 0;
-          this.representations.ribbon.build();
-          this.updateMeshesInScene = true;
-        }
-      }
-
-      if (this.isGrid) {
-        if (this.soupView.soup.grid.changed) {
-          if (!_lodash2.default.isUndefined(this.representations.grid)) {
-            this.soup.colorResidues();
-            this.representations.grid.build();
-          }
-          this.soupView.soup.grid.changed = false;
-        }
-      } else {
-        this.soupView.soup.grid.changed = false;
-      }
-
-      if (this.soupView.updateSidechain) {
-        this.representations.sidechain.build();
-        this.soupView.updateSidechain = false;
-        this.updateMeshesInScene = true;
-      }
-
-      if (this.soupView.updateSelection) {
-        var _iteratorNormalCompletion6 = true;
-        var _didIteratorError6 = false;
-        var _iteratorError6 = undefined;
-
-        try {
-          for (var _iterator6 = _lodash2.default.values(this.representations)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-            var repr = _step6.value;
-
-            if ('recolor' in repr) {
-              repr.recolor();
-            }
-          }
-        } catch (err) {
-          _didIteratorError6 = true;
-          _iteratorError6 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion6 && _iterator6.return) {
-              _iterator6.return();
-            }
-          } finally {
-            if (_didIteratorError6) {
-              throw _iteratorError6;
-            }
-          }
-        }
-
-        this.soupView.updateSelection = false;
-        this.soupView.updateObservers = true;
-      }
-
-      if (this.updateMeshesInScene) {
-        this.rebuildSceneFromMeshes();
-      }
-
-      this.updateCrossHairs();
-
-      this.rotateCameraParamsToCurrentView();
-
-      // needs to be observers.updated before render
-      // as lines must be placed in THREE.js scene
-      this.distanceMeasuresWidget.drawFrame();
-
-      this.render();
-
-      if (this.soupView.updateObservers) {
-        this.observers.updated.dispatch();
-        this.soupView.updateObservers = false;
-      }
-
-      // needs to be observers.updated after render
-      this.atomLabelsWidget.drawFrame();
-
-      this.soupView.changed = false;
-    }
-  }, {
-    key: 'animate',
-    value: function animate(elapsedTime) {
-      this.soupView.nUpdateStep -= elapsedTime / this.soupView.msPerStep;
-      if (this.soupView.nUpdateStep < 0) {
-        if (this.soupView.targetView !== null) {
-          this.controller.setCurrentView(this.soupView.targetView);
-          this.soupView.updateObservers = true;
-          this.soupView.changed = true;
-          this.soupView.targetView = null;
-          this.soupView.nUpdateStep = this.soupView.maxUpdateStep;
-        } else {
-          if (this.soupView.startTargetAfterRender) {
-            this.soupView.changed = true;
-          } else if (this.soupView.isLoop) {
-            if (this.soupView.nUpdateStep < -this.soupView.maxWaitStep) {
-              this.controller.setTargetToNextView();
-            }
-          } else if (this.soupView.isRotate) {
-            this.adjustCamera(0.0, 0.002, 0, 1);
-          }
-        }
-      } else if (this.soupView.nUpdateStep >= 1) {
-        if (this.soupView.targetView != null) {
-          var view = this.soupView.currentView.clone();
-          view.setCamera((0, _soup.interpolateCameras)(this.soupView.currentView.cameraParams, this.soupView.targetView.cameraParams, 1.0 / this.soupView.nUpdateStep));
-          this.controller.setCurrentView(view);
-        }
-      }
-      this.updateHover();
-    }
-
-    /**
-     ********************************************
-     * Standard DOM methods
-     ********************************************
-     */
-
-  }, {
-    key: 'resize',
-    value: function resize() {
-      this.observers.resized.dispatch();
-      _get(SoupWidget.prototype.__proto__ || Object.getPrototypeOf(SoupWidget.prototype), 'resize', this).call(this);
-      this.soupView.updateObservers = true;
-      this.controller.setChangeFlag();
-    }
-  }, {
-    key: 'doubleclick',
-    value: function doubleclick(event) {
-      if (this.iAtomHover !== null) {
-        if (this.iAtomHover === this.soupView.getICenteredAtom()) {
-          this.atomLabelDialog();
-        } else {
-          var iRes = this.soup.getAtomProxy(this.iAtomHover).iRes;
-          this.controller.selectResidue(iRes, true);
-          this.setTargetViewByIAtom(this.iAtomHover);
-        }
-        this.isDraggingCentralAtom = false;
-      } else {
-        this.controller.clearSelectedResidues();
-        this.controller.zoomOut();
-      }
-      this.iAtomPressed = null;
-      this.iResClick = null;
-    }
-  }, {
-    key: 'click',
-    value: function click(event) {
-      if (!_lodash2.default.isUndefined(this.iResClick) && this.iResClick !== null) {
-        if (!event.metaKey && !event.shiftKey) {
-          this.controller.selectResidue(this.iResClick);
-        } else if (event.shiftKey) {
-          this.controller.selectAdditionalRangeToResidue(this.iResClick);
-        } else {
-          this.controller.selectAdditionalResidue(this.iResClick);
-        }
-      }
-      this.iAtomPressed = null;
-      this.iResClick = null;
-      this.clickTimer = null;
-      this.timePressed = null;
-    }
-  }, {
-    key: 'mousedown',
-    value: function mousedown(event) {
-      var _this5 = this;
-
-      if (this.isGesture) {
-        return;
-      }
-
-      event.preventDefault();
-
-      this.getPointer(event);
-      this.updateHover();
-      this.iAtomPressed = this.iAtomHover;
-      this.iResClick = this.soup.getAtomProxy(this.iAtomPressed).iRes;
-
-      if (this.iAtomPressed === this.soupView.getICenteredAtom()) {
-        this.isDraggingCentralAtom = this.iAtomPressed !== null;
-      }
-
-      var now = new Date().getTime();
-      var elapsedTime = this.timePressed ? now - this.timePressed : 0;
-
-      if (this.clickTimer === null) {
-        this.clickTimer = setTimeout(function () {
-          return _this5.click(event);
-        }, 250);
-      } else if (elapsedTime < 600) {
-        clearTimeout(this.clickTimer);
-        this.doubleclick(event);
-        this.clickTimer = null;
-      }
-
-      this.getPointer(event);
-      this.savePointer();
-      this.timePressed = new Date().getTime();
-      this.pointerPressed = true;
-    }
-  }, {
-    key: 'mousemove',
-    value: function mousemove(event) {
-      event.preventDefault();
-      if (this.isGesture) {
-        return;
-      }
-
-      this.getPointer(event);
-
-      this.updateHover();
-
-      if (this.isDraggingCentralAtom) {
-        var pos = this.soup.getAtomProxy(this.soupView.getICenteredAtom()).pos;
-        var v = this.getPosXY(pos);
-        this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y);
-      } else {
-        var shiftDown = event.shiftKey === 1;
-
-        var rightMouse = event.button === 2 || event.which === 3;
-
-        if (this.pointerPressed) {
-          var zoomRatio = 1.0;
-          var zRotationAngle = 0;
-          var yRotationAngle = 0;
-          var xRotationAngle = 0;
-
-          if (rightMouse || shiftDown) {
-            zRotationAngle = this.mouseT - this.saveMouseT;
-
-            if (this.mouseR > 0.0) {
-              zoomRatio = this.saveMouseR / this.mouseR;
-            }
-          } else {
-            yRotationAngle = _v2.default.degToRad(this.mouseX - this.saveMouseX);
-            xRotationAngle = _v2.default.degToRad(this.mouseY - this.saveMouseY);
-          }
-
-          this.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio);
-
-          this.savePointer();
-        }
-      }
-    }
-  }, {
-    key: 'mouseout',
-    value: function mouseout(event) {
-      this.hover.hide();
-      this.pointerPressed = false;
-    }
-  }, {
-    key: 'mouseup',
-    value: function mouseup(event) {
-      this.getPointer(event);
-
-      event.preventDefault();
-
-      if (this.isDraggingCentralAtom) {
-        if (this.iAtomHover !== null) {
-          var iAtomCentre = this.soupView.getICenteredAtom();
-          if (this.iAtomHover !== iAtomCentre) {
-            this.controller.makeDistance(this.iAtomHover, iAtomCentre);
-          }
-        }
-        this.lineElement.hide();
-        this.isDraggingCentralAtom = false;
-      }
-
-      if (util.exists(event.touches)) {
-        this.hover.hide();
-      }
-
-      this.pointerPressed = false;
-    }
-  }, {
-    key: 'mousewheel',
-    value: function mousewheel(event) {
-      if (this.isGesture) {
-        return;
-      }
-
-      event.preventDefault();
-
-      var wheel = void 0;
-      if (util.exists(event.wheelDelta)) {
-        wheel = event.wheelDelta / 120;
-      } else {
-        // for Firefox
-        wheel = -event.detail / 12;
-      }
-
-      // converted from pinch-zoom on mac
-      if (event.ctrlKey) {
-        wheel /= 10;
-        wheel *= -1;
-      }
-
-      var zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1);
-
-      this.adjustCamera(0, 0, 0, zoom);
-    }
-  }, {
-    key: 'gesturestart',
-    value: function gesturestart(event) {
-      event.preventDefault();
-      this.isGesture = true;
-      this.lastPinchRotation = 0;
-      this.lastScale = event.scale * event.scale;
-    }
-  }, {
-    key: 'gesturechange',
-    value: function gesturechange(event) {
-      event.preventDefault();
-      this.adjustCamera(0, 0, _v2.default.degToRad(event.rotation * 2 - this.lastPinchRotation), this.lastScale / (event.scale * event.scale));
-      this.lastPinchRotation = event.rotation * 2;
-      this.lastScale = event.scale * event.scale;
-    }
-  }, {
-    key: 'gestureend',
-    value: function gestureend(event) {
-      event.preventDefault();
-      this.isGesture = false;
-      this.iAtomPressed = null;
-      this.iResClick = null;
-      if (this.clickTimer !== null) {
-        clearTimeout(this.clickTimer);
-        this.clickTimer = null;
-      }
-      this.pointerPressed = false;
-    }
-  }]);
-
-  return SoupWidget;
-}(WebglWidget);
-
-exports.SoupWidget = SoupWidget;
-
-/***/ }),
+/* 343 */,
 /* 344 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -100209,9 +98870,9 @@ var ViewPanel = function () {
 
       this.editTextArea = (0, _jquery2.default)('<textarea>').addClass('jolecule-view-text').css('width', '100%').css('height', '5em').click(_lodash2.default.noop);
 
-      this.editDiv = (0, _jquery2.default)('<div>').css('width', '100%').click(_lodash2.default.noop).append(this.editTextArea).append((0, _util.linkButton)('', 'save', 'jolecule-small-button', function (event) {
+      this.editDiv = (0, _jquery2.default)('<div>').css('width', '100%').click(_lodash2.default.noop).append(this.editTextArea).append((0, _util.linkButton)('save', 'jolecule-small-button', function (event) {
         _this.saveChange();
-      })).append(' &nbsp; ').append((0, _util.linkButton)('', 'discard', 'jolecule-small-button', function (event) {
+      })).append(' &nbsp; ').append((0, _util.linkButton)('discard', 'jolecule-small-button', function (event) {
         _this.discardChange();
       })).hide();
 
@@ -100224,7 +98885,7 @@ var ViewPanel = function () {
 
       var view = this.params.view;
 
-      var editButton = (0, _util.linkButton)('', 'edit', 'jolecule-small-button', function () {
+      var editButton = (0, _util.linkButton)('edit', 'jolecule-small-button', function () {
         _this2.startEdit();
       });
 
@@ -100242,20 +98903,20 @@ var ViewPanel = function () {
 
         this.showDiv.append(editButton);
 
-        if ((0, _util.exists)(this.params.swapUp) && this.params.swapUp) {
-          this.showDiv.append(' ').append((0, _util.linkButton)('', 'up', 'jolecule-small-button', function () {
+        if ((0, _util.exists)(this.params.swapUp)) {
+          this.showDiv.append(' ').append((0, _util.linkButton)('up', 'jolecule-small-button', function () {
             _this2.params.swapUp();
           }));
         }
 
-        if ((0, _util.exists)(this.params.swapUp) && this.params.swapDown) {
-          this.showDiv.append(' ').append((0, _util.linkButton)('', 'down', 'jolecule-small-button', function () {
+        if ((0, _util.exists)(this.params.swapUp)) {
+          this.showDiv.append(' ').append((0, _util.linkButton)('down', 'jolecule-small-button', function () {
             _this2.params.swapDown();
           }));
         }
 
         if ((0, _util.exists)(this.params.deleteView)) {
-          this.showDiv.append((0, _jquery2.default)('<div>').css('float', 'right').append((0, _util.linkButton)('', 'delete', 'jolecule-small-button', function () {
+          this.showDiv.append((0, _jquery2.default)('<div>').css('float', 'right').append((0, _util.linkButton)('delete', 'jolecule-small-button', function () {
             console.log('ViewPiece.deleteButton');
             _this2.params.deleteView();
           })));
@@ -100289,7 +98950,7 @@ var ViewPanelList = function () {
     this.subheaderDiv = (0, _jquery2.default)('<div>').addClass('jolecule-sub-header').append('SAVED VIEWS &nbsp;');
     this.div = (0, _jquery2.default)(this.divTag).append(this.subheaderDiv).append((0, _jquery2.default)('<div id="jolecule-views">'));
     if (this.isEditable) {
-      this.subheaderDiv.append((0, _util.linkButton)('', 'Save', 'jolecule-button', function () {
+      this.subheaderDiv.append((0, _util.linkButton)('Save', 'jolecule-button', function () {
         _this3.saveCurrentView();
       }));
     }
@@ -100889,6 +99550,1328 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 	return $scrollTo;
 });
 
+
+/***/ }),
+/* 349 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.SoupWidget = undefined;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _jquery = __webpack_require__(32);
+
+var _jquery2 = _interopRequireDefault(_jquery);
+
+var _lodash = __webpack_require__(27);
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _three = __webpack_require__(44);
+
+var THREE = _interopRequireWildcard(_three);
+
+var _signals = __webpack_require__(344);
+
+var _signals2 = _interopRequireDefault(_signals);
+
+var _v = __webpack_require__(95);
+
+var _v2 = _interopRequireDefault(_v);
+
+var _util = __webpack_require__(49);
+
+var util = _interopRequireWildcard(_util);
+
+var _glgeom = __webpack_require__(96);
+
+var glgeom = _interopRequireWildcard(_glgeom);
+
+var _widgets = __webpack_require__(135);
+
+var _widgets2 = _interopRequireDefault(_widgets);
+
+var _representation = __webpack_require__(346);
+
+var representation = _interopRequireWildcard(_representation);
+
+var _soup = __webpack_require__(134);
+
+var _animation = __webpack_require__(132);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * Utility class to handle a three.js HTML object with
+ * a standard set of features:
+ *  - instantiate a <div> and <canvas> element
+ *  - camera object
+ *  - display scene
+ *  - picking scene, with helpful picking functions
+ *  - a status messaging div
+ *  - lights
+ *  - input handlers for mouse
+ */
+var WebglWidget = function () {
+  function WebglWidget(divTag, backgroundColor) {
+    _classCallCheck(this, WebglWidget);
+
+    this.divTag = divTag;
+    this.div = (0, _jquery2.default)(this.divTag);
+    this.div.css('overflow', 'hidden');
+
+    this.backgroundColor = backgroundColor;
+    this.div.css('background-color', this.backgroundColor);
+
+    // WebGL related properties
+    // div to instantiate WebGL renderer
+    this.webglDivId = this.div.attr('id') + '-canvas-wrapper';
+    this.webglDiv = (0, _jquery2.default)('<div>').attr('id', this.webglDivId).css('overflow', 'hidden').css('z-index', '0').css('background-color', '#CCC').css('position', 'absolute');
+    this.webglDiv.contextmenu(function () {
+      return false;
+    });
+    this.div.append(this.webglDiv);
+
+    // Params that will be used to set the camera below
+    this.cameraParams = {
+      focus: new THREE.Vector3(0, 0, 0),
+      position: new THREE.Vector3(0, 0, -1),
+      up: new THREE.Vector3(0, 1, 0),
+      // clipping planes relative to focus
+      zFront: -40,
+      zBack: 20,
+      // distance of focus from position
+      zoom: 1.0
+
+      // a THREE.js camera, will be set properly before draw
+    };this.camera = new THREE.PerspectiveCamera(45, this.width() / this.height());
+
+    this.displayScene = new THREE.Scene();
+    this.displayScene.background = new THREE.Color(this.backgroundColor);
+    this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100);
+
+    // this.representations is a dictionary that holds representations
+    // that transform this.soup into meshes that will be inserted into
+    // this.displayMeshes and this.pickingMeshes at draw time
+    this.representations = {};
+
+    // this.displayMeshes is a dictionary that holds THREE.Object3D
+    // collections of meshes. This allows collections to be collectively
+    // turned on and off. The meshes will be regenerated into this.displayScene
+    // if the underlying data changes. The convenience function
+    // will send geometries into the displayMeshes, using this.displayMaterial
+    // as the default. This assumes vertexColors are used, allowing multiple
+    // colors within the same geometry.
+    this.displayMeshes = {};
+    this.pickingMeshes = {};
+
+    this.pickingScene = new THREE.Scene();
+    this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height());
+    this.pickingTexture.texture.minFilter = THREE.LinearFilter;
+
+    this.lights = [];
+    this.buildLights();
+
+    // div to display processing messages
+    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
+    this.setMesssage('Initialized jolecule.');
+
+    // input control parameters
+    this.saveMouseX = null;
+    this.saveMouseY = null;
+    this.saveMouseR = null;
+    this.saveMouseT = null;
+    this.mouseX = null;
+    this.mouseY = null;
+    this.mouseR = null;
+    this.mouseT = null;
+  }
+
+  _createClass(WebglWidget, [{
+    key: 'initWebglRenderer',
+    value: function initWebglRenderer() {
+      var _this = this;
+
+      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+      this.renderer.setClearColor(this.backgroundColor);
+      this.renderer.setSize(this.width(), this.height());
+
+      var dom = this.renderer.domElement;
+      this.webglDiv[0].appendChild(dom);
+
+      var bind = function bind(w, fn) {
+        dom.addEventListener(w, fn);
+      };
+      bind('mousedown', function (e) {
+        return _this.mousedown(e);
+      });
+      bind('mousemove', function (e) {
+        return _this.mousemove(e);
+      });
+      bind('mouseup', function (e) {
+        return _this.mouseup(e);
+      });
+      bind('mouseleave', function (e) {
+        return _this.mouseout(e);
+      });
+      bind('mousewheel', function (e) {
+        return _this.mousewheel(e);
+      });
+      bind('DOMMouseScroll', function (e) {
+        return _this.mousewheel(e);
+      });
+      bind('touchstart', function (e) {
+        return _this.mousedown(e);
+      });
+      bind('touchmove', function (e) {
+        return _this.mousemove(e);
+      });
+      bind('touchend', function (e) {
+        return _this.mouseup(e);
+      });
+      bind('touchcancel', function (e) {
+        return _this.mouseup(e);
+      });
+      bind('gesturestart', function (e) {
+        return _this.gesturestart(e);
+      });
+      bind('gesturechange', function (e) {
+        return _this.gesturechange(e);
+      });
+      bind('gestureend', function (e) {
+        return _this.gestureend(e);
+      });
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      // leave this to the very last moment
+      // to avoid the dreaded black canvas
+      if (!util.exists(this.renderer)) {
+        this.initWebglRenderer();
+      }
+
+      // renders visible meshes to the gpu
+      this.renderer.render(this.displayScene, this.camera);
+    }
+  }, {
+    key: 'getPosXY',
+    value: function getPosXY(pos) {
+      var widthHalf = 0.5 * this.width();
+      var heightHalf = 0.5 * this.height();
+
+      var vector = pos.clone().project(this.camera);
+
+      return {
+        x: vector.x * widthHalf + widthHalf + this.x(),
+        y: -(vector.y * heightHalf) + heightHalf + this.y()
+      };
+    }
+  }, {
+    key: 'getPickColorFromMouse',
+    value: function getPickColorFromMouse() {
+      var x = this.mouseX;
+      var y = this.mouseY;
+
+      if (x === null || y === null) {
+        return null;
+      }
+
+      // create buffer for reading single pixel
+      var pixelBuffer = new Uint8Array(4);
+
+      // render the picking soupView off-screen
+      this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
+
+      // read the pixel under the mouse from the texture
+      this.renderer.readRenderTargetPixels(this.pickingTexture, this.mouseX, this.pickingTexture.height - y, 1, 1, pixelBuffer);
+
+      // interpret the color as an Uint8 integer
+      return pixelBuffer[0] << 16 | pixelBuffer[1] << 8 | pixelBuffer[2];
+    }
+  }, {
+    key: 'setCameraParams',
+    value: function setCameraParams(cameraParams) {
+      // rotate lights to soupView orientation
+      var cameraDirection = this.cameraParams.position.clone().sub(this.cameraParams.focus).normalize();
+      var viewCameraDirection = cameraParams.position.clone().sub(cameraParams.focus);
+      viewCameraDirection.normalize();
+      var rotation = glgeom.getUnitVectorRotation(cameraDirection, viewCameraDirection);
+      for (var i = 0; i < this.lights.length; i += 1) {
+        this.lights[i].position.applyQuaternion(rotation);
+      }
+
+      this.cameraParams = cameraParams;
+
+      var far = this.cameraParams.zoom + this.cameraParams.zBack;
+      var near = this.cameraParams.zoom + this.cameraParams.zFront;
+      if (near < 1) {
+        near = 1;
+      }
+
+      this.camera.position.copy(this.cameraParams.position);
+      this.camera.up.copy(this.cameraParams.up);
+      this.camera.lookAt(this.cameraParams.focus);
+      this.camera.near = near;
+      this.camera.far = far;
+      this.camera.updateProjectionMatrix();
+
+      this.displayScene.fog.near = this.cameraParams.zoom;
+      this.displayScene.fog.far = far;
+    }
+  }, {
+    key: 'buildLights',
+    value: function buildLights() {
+      this.lights.length = 0;
+
+      var directedLight = new THREE.DirectionalLight(0xFFFFFF);
+      directedLight.position.copy(_v2.default.create(0.2, 0.2, -100).normalize());
+      directedLight.dontDelete = true;
+      this.lights.push(directedLight);
+
+      var ambientLight = new THREE.AmbientLight(0x606060, 1);
+      ambientLight.dontDelete = true;
+      this.lights.push(ambientLight);
+
+      for (var i = 0; i < this.lights.length; i += 1) {
+        this.displayScene.add(this.lights[i]);
+      }
+    }
+  }, {
+    key: 'resize',
+    value: function resize() {
+      var position = this.div.position();
+      this.webglDiv.css('left', this.x() + position.left);
+      this.webglDiv.css('top', this.y() + position.top);
+
+      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 20);
+      this.messageDiv.width(this.div.width() - 200);
+
+      this.camera.aspect = this.width() / this.height();
+      this.camera.updateProjectionMatrix();
+
+      this.pickingTexture.setSize(this.width(), this.height());
+
+      if (util.exists(this.renderer)) {
+        this.renderer.setSize(this.width(), this.height());
+      }
+    }
+  }, {
+    key: 'setMesssage',
+    value: function setMesssage(message) {
+      console.log('Display.setMesssage:', message);
+      this.messageDiv.html(message).show();
+    }
+  }, {
+    key: 'asyncSetMesssage',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(message) {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                this.setMesssage(message);
+                _context.next = 3;
+                return util.delay(0);
+
+              case 3:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function asyncSetMesssage(_x) {
+        return _ref.apply(this, arguments);
+      }
+
+      return asyncSetMesssage;
+    }()
+  }, {
+    key: 'cleanupMessage',
+    value: function cleanupMessage() {
+      this.messageDiv.hide();
+    }
+  }, {
+    key: 'rebuildSceneFromMeshes',
+
+
+    /**
+     **********************************************************
+     * Mesh-building methods
+     *
+     * Routines to build meshes that will be incorporated into
+     * scenes, and to be used for gpu-picking.
+     *
+     * Meshes are stored in a dictionary: this.displayMeshes &
+     * this.pickingMeshes
+     **********************************************************
+     */
+
+    /**
+     * Rebuild soupView from meshes in this.displayMeshes &
+     * this.pickingMeshes
+     */
+    value: function rebuildSceneFromMeshes() {
+      glgeom.clearObject3D(this.displayScene);
+      glgeom.clearObject3D(this.pickingScene);
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = _lodash2.default.values(this.displayMeshes)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var mesh = _step.value;
+
+          if (mesh.children.length > 0) {
+            this.displayScene.add(mesh);
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
+        for (var _iterator2 = _lodash2.default.values(this.pickingMeshes)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var _mesh = _step2.value;
+
+          if (_mesh.children.length > 0) {
+            this.pickingScene.add(_mesh);
+          }
+        }
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
+        }
+      }
+    }
+
+    /**
+     * Sets the visibility of a mesh this.displayMeshes & this.pickingMeshes.
+     * If it does not exist, create it, and look for the corresponding method
+     * to build the mesh this.build<CaptializaedMeshName>
+     *
+     * @param meshName
+     * @param visible
+     */
+
+  }, {
+    key: 'setMeshVisible',
+    value: function setMeshVisible(meshName, visible) {
+      if (meshName in this.displayMeshes) {
+        glgeom.setVisible(this.displayMeshes[meshName], visible);
+      }
+      if (meshName in this.pickingMeshes) {
+        glgeom.setVisible(this.pickingMeshes[meshName], visible);
+      }
+    }
+  }, {
+    key: 'x',
+    value: function x() {
+      return 0;
+    }
+  }, {
+    key: 'y',
+    value: function y() {
+      return 0;
+    }
+  }, {
+    key: 'width',
+    value: function width() {
+      var width = this.div.width() - this.x();
+      return width;
+    }
+  }, {
+    key: 'height',
+    value: function height() {
+      var height = this.div.height() - this.y();
+      return height;
+    }
+  }, {
+    key: 'getPointer',
+    value: function getPointer(event) {
+      if (util.exists(event.touches) && event.touches.length > 0) {
+        this.eventX = event.touches[0].clientX;
+        this.eventY = event.touches[0].clientY;
+      } else {
+        this.eventX = event.clientX;
+        this.eventY = event.clientY;
+      }
+
+      var rect = event.target.getBoundingClientRect();
+      this.mouseX = this.eventX - rect.left;
+      this.mouseY = this.eventY - rect.top;
+
+      var x = this.mouseX - this.width() / 2;
+      var y = this.mouseY - this.height() / 2;
+
+      this.mouseR = Math.sqrt(x * x + y * y);
+
+      this.mouseT = Math.atan(y / x);
+      if (x < 0) {
+        if (y > 0) {
+          this.mouseT += Math.PI;
+        } else {
+          this.mouseT -= Math.PI;
+        }
+      }
+    }
+  }, {
+    key: 'savePointer',
+    value: function savePointer() {
+      this.saveMouseX = this.mouseX;
+      this.saveMouseY = this.mouseY;
+      this.saveMouseR = this.mouseR;
+      this.saveMouseT = this.mouseT;
+    }
+  }]);
+
+  return WebglWidget;
+}();
+
+/**
+ * Display is the main window for drawing the soup
+ * in a WebGL HTML5 canvas, includes various widgets that
+ * are described in widgets.js.
+ *
+ * Display takes a soup, and builds three.js from
+ * it. Display also handles mouse input and
+ * uses controller to make changes to the underlying soup
+ * and their associated views
+ */
+
+
+var SoupWidget = function (_WebglWidget) {
+  _inherits(SoupWidget, _WebglWidget);
+
+  /**
+   * @param soupView - SoupView object that holds a soup and views
+   * @param divTag - a selector tag for a DOM element
+   * @param controller - the controller for the soupView
+   * @param isGrid - flat to show autodock 3D grid control panel
+   * @param backgroundColor - the background color of canvas and webgl
+   */
+  function SoupWidget(soupView, divTag, controller, isGrid, backgroundColor) {
+    _classCallCheck(this, SoupWidget);
+
+    var _this2 = _possibleConstructorReturn(this, (SoupWidget.__proto__ || Object.getPrototypeOf(SoupWidget)).call(this, divTag, backgroundColor));
+
+    _this2.observers = {
+      rebuilt: new _signals2.default(),
+      updated: new _signals2.default(),
+      resized: new _signals2.default()
+
+      // Hooks to protein data
+    };_this2.soupView = soupView;
+    _this2.soup = soupView.soup;
+    _this2.controller = controller;
+
+    // screen atom radius
+    _this2.atomRadius = 0.35;
+    _this2.gridAtomRadius = 1.0;
+
+    // Cross-hairs to identify centered atom
+    _this2.buildCrossHairs();
+
+    // popup hover box over the mouse position
+    _this2.hover = new _widgets2.default.PopupText(_this2.divTag, 50);
+    _this2.iAtomHover = null;
+
+    // Docking display control
+    _this2.isGrid = isGrid;
+
+    // Widgets that decorate the display
+    // display distance measures between atoms
+    _this2.distanceMeasuresWidget = new _widgets2.default.DistanceMeasuresWidget(_this2);
+    // display atom labels
+    _this2.atomLabelsWidget = new _widgets2.default.AtomLabelsWidget(_this2);
+    // draw onscreen line for mouse dragging between atoms
+    _this2.lineElement = new _widgets2.default.LineElement(_this2, '#FF7777');
+
+    // index of traces to show selected
+    _this2.selectedTraces = [];
+
+    (0, _animation.registerGlobalAnimationLoop)(_this2);
+    return _this2;
+  }
+
+  _createClass(SoupWidget, [{
+    key: 'addObserver',
+    value: function addObserver(observer) {
+      if ('update' in observer) {
+        this.observers.updated.add(function () {
+          observer.update();
+        });
+      }
+      if ('rebuild' in observer) {
+        this.observers.rebuilt.add(function () {
+          observer.rebuild();
+        });
+      }
+      if ('resize' in observer) {
+        this.observers.resized.add(function () {
+          observer.resize();
+        });
+      }
+    }
+  }, {
+    key: 'buildCrossHairs',
+    value: function buildCrossHairs() {
+      var radius = 2.0;
+      var segments = 60;
+      var material = new THREE.LineBasicMaterial({ color: 0xFF5555 });
+      var geometry = new THREE.CircleGeometry(radius, segments);
+
+      // Remove center vertex
+      geometry.vertices.shift();
+
+      this.crossHairs = new THREE.LineLoop(geometry, material);
+      this.crossHairs.dontDelete = true;
+      this.displayScene.add(this.crossHairs);
+    }
+
+    /**
+     ******************************************
+     * Handle cameraParams
+     ******************************************
+     */
+
+  }, {
+    key: 'setTargetViewByIAtom',
+    value: function setTargetViewByIAtom(iAtom) {
+      this.controller.setTargetViewByIAtom(iAtom);
+    }
+  }, {
+    key: 'getCameraOfCurrentView',
+    value: function getCameraOfCurrentView() {
+      return this.soupView.currentView.cameraParams;
+    }
+  }, {
+    key: 'rotateCameraParamsToCurrentView',
+    value: function rotateCameraParamsToCurrentView() {
+      this.setCameraParams(this.getCameraOfCurrentView());
+    }
+  }, {
+    key: 'adjustCamera',
+    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
+      var cameraParams = this.getCameraOfCurrentView();
+
+      var y = cameraParams.up;
+      var z = cameraParams.position.clone().sub(cameraParams.focus).normalize();
+      var x = _v2.default.create().crossVectors(y, z).normalize();
+
+      var rotZ = new THREE.Quaternion().setFromAxisAngle(z, zRotationAngle);
+
+      var rotY = new THREE.Quaternion().setFromAxisAngle(y, -yRotationAngle);
+
+      var rotX = new THREE.Quaternion().setFromAxisAngle(x, -xRotationAngle);
+
+      var rotation = new THREE.Quaternion().multiply(rotZ).multiply(rotY).multiply(rotX);
+
+      var newZoom = zoomRatio * cameraParams.zoom;
+
+      if (newZoom < 2) {
+        newZoom = 2;
+      }
+
+      var position = cameraParams.position.clone().sub(cameraParams.focus).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(cameraParams.focus);
+
+      var view = this.soupView.currentView.clone();
+      view.cameraParams.focus = cameraParams.focus.clone();
+      view.cameraParams.position = position;
+      view.cameraParams.up = cameraParams.up.clone().applyQuaternion(rotation);
+      view.cameraParams.zoom = newZoom;
+
+      this.controller.setCurrentView(view);
+    }
+  }, {
+    key: 'getZ',
+    value: function getZ(pos) {
+      var cameraParams = this.getCameraOfCurrentView();
+      var cameraDir = cameraParams.focus.clone().sub(cameraParams.position).normalize();
+      var posRelativeToOrigin = pos.clone().sub(cameraParams.focus);
+      return posRelativeToOrigin.dot(cameraDir);
+    }
+  }, {
+    key: 'inZlab',
+    value: function inZlab(pos) {
+      var z = this.getZ(pos);
+      var cameraParams = this.getCameraOfCurrentView();
+      return z >= cameraParams.zFront && z <= cameraParams.zBack;
+    }
+  }, {
+    key: 'opacity',
+    value: function opacity(pos) {
+      var z = this.getZ(pos);
+
+      var cameraParams = this.getCameraOfCurrentView();
+
+      if (z < cameraParams.zFront) {
+        return 1.0;
+      }
+
+      if (z > cameraParams.zBack) {
+        return 0.0;
+      }
+
+      return 1 - (z - cameraParams.zFront) / (cameraParams.zBack - cameraParams.zFront);
+    }
+
+    /**
+     ******************************************
+     * Draw & Animate Graphical objects
+     ******************************************
+     */
+
+  }, {
+    key: 'updateCrossHairs',
+    value: function updateCrossHairs() {
+      var cameraParams = this.getCameraOfCurrentView();
+      this.crossHairs.position.copy(cameraParams.focus);
+      this.crossHairs.lookAt(cameraParams.position);
+      this.crossHairs.updateMatrix();
+    }
+  }, {
+    key: 'atomLabelDialog',
+    value: function atomLabelDialog() {
+      var _this3 = this;
+
+      var iAtom = this.soupView.currentView.iAtom;
+      if (iAtom >= 0) {
+        var atom = this.soup.getAtomProxy(iAtom);
+        var label = 'Label atom : ' + atom.label;
+        var success = function success(text) {
+          _this3.controller.makeAtomLabel(iAtom, text);
+        };
+        util.textEntryDialog(this.div, label, success);
+      }
+    }
+  }, {
+    key: 'getIAtomHover',
+    value: function getIAtomHover() {
+      var i = this.getPickColorFromMouse();
+      if (i > 0 && i < this.soup.getAtomCount() + 1) {
+        return i - 1;
+      }
+      return null;
+    }
+  }, {
+    key: 'updateHover',
+    value: function updateHover() {
+      this.iAtomHover = this.getIAtomHover();
+      if (this.iAtomHover) {
+        var atom = this.soup.getAtomProxy(this.iAtomHover);
+        var label = atom.label;
+        var iAtom = atom.iAtom;
+        var pos = atom.pos.clone();
+        if (atom.resType === 'XXX') {
+          label += ':' + 'E=' + this.soup.grid.convertB(atom.bfactor);
+        }
+        var text = '';
+        if (iAtom === this.soupView.getICenteredAtom()) {
+          text = '<div style="text-align: center">';
+          text += label;
+          text += '<br>[drag distances]<br>';
+          text += '[double-click labels]';
+          text += '</div>';
+        } else {
+          text = label;
+        }
+        this.hover.html(text);
+        var vector = this.getPosXY(pos);
+        this.hover.move(vector.x, vector.y);
+      } else {
+        this.hover.hide();
+      }
+    }
+
+    /**
+     **********************************************************
+     * Mesh-building methods
+     *
+     * Routines to build meshes that will be incorporated into
+     * scenes, and to be used for gpu-picking.
+     *
+     * Meshes are stored in a dictionary: this.displayMeshes &
+     * this.pickingMeshes
+     **********************************************************
+     */
+
+  }, {
+    key: 'addRepresentation',
+    value: function addRepresentation(name, repr) {
+      this.representations[name] = repr;
+      this.displayMeshes[name] = repr.displayObj;
+      this.pickingMeshes[name] = repr.pickingObj;
+      this.updateMeshesInScene = true;
+    }
+  }, {
+    key: 'buildScene',
+    value: function buildScene() {
+      // pre-calculations needed before building meshes
+      this.soupView.build();
+
+      // clear this.displayMeshes and this.pickingMeshes
+      var _iteratorNormalCompletion3 = true;
+      var _didIteratorError3 = false;
+      var _iteratorError3 = undefined;
+
+      try {
+        for (var _iterator3 = _lodash2.default.keys(this.displayMeshes)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          var key = _step3.value;
+
+          _lodash2.default.unset(this.displayMeshes, key);
+        }
+      } catch (err) {
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion3 && _iterator3.return) {
+            _iterator3.return();
+          }
+        } finally {
+          if (_didIteratorError3) {
+            throw _iteratorError3;
+          }
+        }
+      }
+
+      var _iteratorNormalCompletion4 = true;
+      var _didIteratorError4 = false;
+      var _iteratorError4 = undefined;
+
+      try {
+        for (var _iterator4 = _lodash2.default.keys(this.pickingMeshes)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+          var _key = _step4.value;
+
+          _lodash2.default.unset(this.pickingMeshes, _key);
+        }
+      } catch (err) {
+        _didIteratorError4 = true;
+        _iteratorError4 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion4 && _iterator4.return) {
+            _iterator4.return();
+          }
+        } finally {
+          if (_didIteratorError4) {
+            throw _iteratorError4;
+          }
+        }
+      }
+
+      this.addRepresentation('transparentRibbon', new representation.CartoonRepresentation(this.soup, true));
+      this.addRepresentation('ribbon', new representation.CartoonRepresentation(this.soup, false, this.selectedTraces));
+      this.addRepresentation('ligand', new representation.LigandRepresentation(this.soup, this.atomRadius));
+      if (this.isGrid) {
+        this.addRepresentation('grid', new representation.GridRepresentation(this.soup, this.gridAtomRadius));
+      }
+      this.addRepresentation('sidechain', new representation.SidechainRepresentation(this.soup, this.atomRadius));
+
+      this.rebuildSceneFromMeshes();
+
+      this.observers.rebuilt.dispatch();
+
+      this.soupView.changed = true;
+      this.soupView.updateObservers = true;
+    }
+  }, {
+    key: 'deleteStructure',
+    value: function deleteStructure(iStructure) {
+      this.controller.deleteStructure(iStructure);
+      this.buildScene();
+      this.observers.rebuilt.dispatch();
+    }
+
+    /**
+     ********************************************
+     * Main event loop methods
+     ********************************************
+     */
+
+    /**
+     * Status function to work with registerAnimation Loop
+     * @returns Boolean
+     */
+
+  }, {
+    key: 'isChanged',
+    value: function isChanged() {
+      return this.soupView.changed;
+    }
+  }, {
+    key: 'drawFrame',
+    value: function drawFrame() {
+      var _this4 = this;
+
+      if (!this.isChanged()) {
+        return;
+      }
+
+      var isNoMoreChanges = !this.soupView.soup.grid.changed && !this.soupView.updateSidechain && !this.soupView.updateSelection;
+
+      if (this.soupView.startTargetAfterRender) {
+        // set target only AFTER all changes have been applied in previous tick
+        if (isNoMoreChanges) {
+          this.soupView.startTargetView();
+          this.soupView.nUpdateStep = this.soupView.maxUpdateStep;
+        }
+      }
+
+      this.updateMeshesInScene = false;
+
+      var isNewTrigger = function isNewTrigger(meshName, visible) {
+        return visible && !(meshName in _this4.displayMeshes);
+      };
+
+      var show = this.soupView.currentView.show;
+      if (isNewTrigger('water', show.water)) {
+        this.addRepresentation('water', new representation.WaterRepresentation(this.soup, this.atomRadius));
+      }
+
+      if (isNewTrigger('backbone', show.backbone)) {
+        this.addRepresentation('backbone', new representation.BackboneRepresentation(this.soup, this.atomRadius));
+      }
+
+      if (isNewTrigger('sphere', show.sphere)) {
+        this.addRepresentation('sphere', new representation.SphereRepresentation(this.soup));
+      }
+
+      this.setMeshVisible('ribbon', show.ribbon);
+      this.setMeshVisible('transparentRibbon', show.ribbon && show.transparent);
+      this.setMeshVisible('water', show.water);
+      this.setMeshVisible('backbone', show.backbone);
+      this.setMeshVisible('ligand', show.ligands);
+      this.setMeshVisible('sphere', show.sphere);
+
+      if (show.transparent) {
+        var iAtom = this.soupView.currentView.iAtom;
+        var iRes = this.soup.getAtomProxy(iAtom).iRes;
+        if (!_lodash2.default.isNil(iRes)) {
+          var selectedTraces = [];
+          var _iteratorNormalCompletion5 = true;
+          var _didIteratorError5 = false;
+          var _iteratorError5 = undefined;
+
+          try {
+            for (var _iterator5 = this.soup.traces.entries()[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+              var _step5$value = _slicedToArray(_step5.value, 2),
+                  iTrace = _step5$value[0],
+                  trace = _step5$value[1];
+
+              if (_lodash2.default.includes(trace.indices, iRes)) {
+                selectedTraces.push(iTrace);
+                break;
+              }
+            }
+          } catch (err) {
+            _didIteratorError5 = true;
+            _iteratorError5 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                _iterator5.return();
+              }
+            } finally {
+              if (_didIteratorError5) {
+                throw _iteratorError5;
+              }
+            }
+          }
+
+          if (selectedTraces.length > 0) {
+            if (!_lodash2.default.isEqual(selectedTraces, this.representations.ribbon.selectedTraces)) {
+              this.representations.ribbon.selectedTraces = selectedTraces;
+              this.representations.ribbon.build();
+              this.updateMeshesInScene = true;
+            }
+          }
+        }
+      } else {
+        if (this.representations.ribbon && this.representations.ribbon.selectedTraces.length > 0) {
+          this.representations.ribbon.selectedTraces.length = 0;
+          this.representations.ribbon.build();
+          this.updateMeshesInScene = true;
+        }
+      }
+
+      if (this.isGrid) {
+        if (this.soupView.soup.grid.changed) {
+          if (!_lodash2.default.isUndefined(this.representations.grid)) {
+            this.soup.colorResidues();
+            this.representations.grid.build();
+          }
+          this.soupView.soup.grid.changed = false;
+        }
+      } else {
+        this.soupView.soup.grid.changed = false;
+      }
+
+      if (this.soupView.updateSidechain) {
+        this.representations.sidechain.build();
+        this.soupView.updateSidechain = false;
+        this.updateMeshesInScene = true;
+      }
+
+      if (this.soupView.updateSelection) {
+        var _iteratorNormalCompletion6 = true;
+        var _didIteratorError6 = false;
+        var _iteratorError6 = undefined;
+
+        try {
+          for (var _iterator6 = _lodash2.default.values(this.representations)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+            var repr = _step6.value;
+
+            if ('recolor' in repr) {
+              repr.recolor();
+            }
+          }
+        } catch (err) {
+          _didIteratorError6 = true;
+          _iteratorError6 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion6 && _iterator6.return) {
+              _iterator6.return();
+            }
+          } finally {
+            if (_didIteratorError6) {
+              throw _iteratorError6;
+            }
+          }
+        }
+
+        this.soupView.updateSelection = false;
+        this.soupView.updateObservers = true;
+      }
+
+      if (this.updateMeshesInScene) {
+        this.rebuildSceneFromMeshes();
+      }
+
+      this.updateCrossHairs();
+
+      this.rotateCameraParamsToCurrentView();
+
+      // needs to be observers.updated before render
+      // as lines must be placed in THREE.js scene
+      this.distanceMeasuresWidget.drawFrame();
+
+      this.render();
+
+      if (this.soupView.updateObservers) {
+        this.observers.updated.dispatch();
+        this.soupView.updateObservers = false;
+      }
+
+      // needs to be observers.updated after render
+      this.atomLabelsWidget.drawFrame();
+
+      this.soupView.changed = false;
+    }
+  }, {
+    key: 'animate',
+    value: function animate(elapsedTime) {
+      this.soupView.nUpdateStep -= elapsedTime / this.soupView.msPerStep;
+      if (this.soupView.nUpdateStep < 0) {
+        if (this.soupView.targetView !== null) {
+          this.controller.setCurrentView(this.soupView.targetView);
+          this.soupView.updateObservers = true;
+          this.soupView.changed = true;
+          this.soupView.targetView = null;
+          this.soupView.nUpdateStep = this.soupView.maxUpdateStep;
+        } else {
+          if (this.soupView.startTargetAfterRender) {
+            this.soupView.changed = true;
+          } else if (this.soupView.isLoop) {
+            if (this.soupView.nUpdateStep < -this.soupView.maxWaitStep) {
+              this.controller.setTargetToNextView();
+            }
+          } else if (this.soupView.isRotate) {
+            this.adjustCamera(0.0, 0.002, 0, 1);
+          }
+        }
+      } else if (this.soupView.nUpdateStep >= 1) {
+        if (this.soupView.targetView != null) {
+          var view = this.soupView.currentView.clone();
+          view.setCamera((0, _soup.interpolateCameras)(this.soupView.currentView.cameraParams, this.soupView.targetView.cameraParams, 1.0 / this.soupView.nUpdateStep));
+          this.controller.setCurrentView(view);
+        }
+      }
+      this.updateHover();
+    }
+
+    /**
+     ********************************************
+     * Standard DOM methods
+     ********************************************
+     */
+
+  }, {
+    key: 'resize',
+    value: function resize() {
+      this.observers.resized.dispatch();
+      _get(SoupWidget.prototype.__proto__ || Object.getPrototypeOf(SoupWidget.prototype), 'resize', this).call(this);
+      this.soupView.updateObservers = true;
+      this.controller.setChangeFlag();
+    }
+  }, {
+    key: 'doubleclick',
+    value: function doubleclick(event) {
+      if (this.iAtomHover !== null) {
+        if (this.iAtomHover === this.soupView.getICenteredAtom()) {
+          this.atomLabelDialog();
+        } else {
+          var iRes = this.soup.getAtomProxy(this.iAtomHover).iRes;
+          this.controller.selectResidue(iRes, true);
+          this.setTargetViewByIAtom(this.iAtomHover);
+        }
+        this.isDraggingCentralAtom = false;
+      } else {
+        this.controller.clearSelectedResidues();
+        this.controller.zoomOut();
+      }
+      this.iAtomPressed = null;
+      this.iResClick = null;
+    }
+  }, {
+    key: 'click',
+    value: function click(event) {
+      if (!_lodash2.default.isUndefined(this.iResClick) && this.iResClick !== null) {
+        if (!event.metaKey && !event.shiftKey) {
+          this.controller.selectResidue(this.iResClick);
+        } else if (event.shiftKey) {
+          this.controller.selectAdditionalRangeToResidue(this.iResClick);
+        } else {
+          this.controller.selectAdditionalResidue(this.iResClick);
+        }
+      }
+      this.iAtomPressed = null;
+      this.iResClick = null;
+      this.clickTimer = null;
+      this.timePressed = null;
+    }
+  }, {
+    key: 'mousedown',
+    value: function mousedown(event) {
+      var _this5 = this;
+
+      if (this.isGesture) {
+        return;
+      }
+
+      event.preventDefault();
+
+      this.getPointer(event);
+      this.updateHover();
+      this.iAtomPressed = this.iAtomHover;
+      this.iResClick = this.soup.getAtomProxy(this.iAtomPressed).iRes;
+
+      if (this.iAtomPressed === this.soupView.getICenteredAtom()) {
+        this.isDraggingCentralAtom = this.iAtomPressed !== null;
+      }
+
+      var now = new Date().getTime();
+      var elapsedTime = this.timePressed ? now - this.timePressed : 0;
+
+      if (this.clickTimer === null) {
+        this.clickTimer = setTimeout(function () {
+          return _this5.click(event);
+        }, 250);
+      } else if (elapsedTime < 600) {
+        clearTimeout(this.clickTimer);
+        this.doubleclick(event);
+        this.clickTimer = null;
+      }
+
+      this.getPointer(event);
+      this.savePointer();
+      this.timePressed = new Date().getTime();
+      this.pointerPressed = true;
+    }
+  }, {
+    key: 'mousemove',
+    value: function mousemove(event) {
+      event.preventDefault();
+      if (this.isGesture) {
+        return;
+      }
+
+      this.getPointer(event);
+
+      this.updateHover();
+
+      if (this.isDraggingCentralAtom) {
+        var pos = this.soup.getAtomProxy(this.soupView.getICenteredAtom()).pos;
+        var v = this.getPosXY(pos);
+        this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y);
+      } else {
+        var shiftDown = event.shiftKey === 1;
+
+        var rightMouse = event.button === 2 || event.which === 3;
+
+        if (this.pointerPressed) {
+          var zoomRatio = 1.0;
+          var zRotationAngle = 0;
+          var yRotationAngle = 0;
+          var xRotationAngle = 0;
+
+          if (rightMouse || shiftDown) {
+            zRotationAngle = this.mouseT - this.saveMouseT;
+
+            if (this.mouseR > 0.0) {
+              zoomRatio = this.saveMouseR / this.mouseR;
+            }
+          } else {
+            yRotationAngle = _v2.default.degToRad(this.mouseX - this.saveMouseX);
+            xRotationAngle = _v2.default.degToRad(this.mouseY - this.saveMouseY);
+          }
+
+          this.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio);
+
+          this.savePointer();
+        }
+      }
+    }
+  }, {
+    key: 'mouseout',
+    value: function mouseout(event) {
+      this.hover.hide();
+      this.pointerPressed = false;
+    }
+  }, {
+    key: 'mouseup',
+    value: function mouseup(event) {
+      this.getPointer(event);
+
+      event.preventDefault();
+
+      if (this.isDraggingCentralAtom) {
+        if (this.iAtomHover !== null) {
+          var iAtomCentre = this.soupView.getICenteredAtom();
+          if (this.iAtomHover !== iAtomCentre) {
+            this.controller.makeDistance(this.iAtomHover, iAtomCentre);
+          }
+        }
+        this.lineElement.hide();
+        this.isDraggingCentralAtom = false;
+      }
+
+      if (util.exists(event.touches)) {
+        this.hover.hide();
+      }
+
+      this.pointerPressed = false;
+    }
+  }, {
+    key: 'mousewheel',
+    value: function mousewheel(event) {
+      if (this.isGesture) {
+        return;
+      }
+
+      event.preventDefault();
+
+      var wheel = void 0;
+      if (util.exists(event.wheelDelta)) {
+        wheel = event.wheelDelta / 120;
+      } else {
+        // for Firefox
+        wheel = -event.detail / 12;
+      }
+
+      // converted from pinch-zoom on mac
+      if (event.ctrlKey) {
+        wheel /= 10;
+        wheel *= -1;
+      }
+
+      var zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1);
+
+      this.adjustCamera(0, 0, 0, zoom);
+    }
+  }, {
+    key: 'gesturestart',
+    value: function gesturestart(event) {
+      event.preventDefault();
+      this.isGesture = true;
+      this.lastPinchRotation = 0;
+      this.lastScale = event.scale * event.scale;
+    }
+  }, {
+    key: 'gesturechange',
+    value: function gesturechange(event) {
+      event.preventDefault();
+      this.adjustCamera(0, 0, _v2.default.degToRad(event.rotation * 2 - this.lastPinchRotation), this.lastScale / (event.scale * event.scale));
+      this.lastPinchRotation = event.rotation * 2;
+      this.lastScale = event.scale * event.scale;
+    }
+  }, {
+    key: 'gestureend',
+    value: function gestureend(event) {
+      event.preventDefault();
+      this.isGesture = false;
+      this.iAtomPressed = null;
+      this.iResClick = null;
+      if (this.clickTimer !== null) {
+        clearTimeout(this.clickTimer);
+        this.clickTimer = null;
+      }
+      this.pointerPressed = false;
+    }
+  }]);
+
+  return SoupWidget;
+}(WebglWidget);
+
+exports.SoupWidget = SoupWidget;
 
 /***/ })
 /******/ ]);

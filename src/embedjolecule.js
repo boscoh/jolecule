@@ -192,7 +192,7 @@ class EmbedJolecule {
       )
 
       this.playableDiv.append(
-        linkButton('', '<', 'jolecule-button', () => {
+        linkButton('<', 'jolecule-button', () => {
           this.controller.setTargetToPrevView()
         })
       )
@@ -204,7 +204,7 @@ class EmbedJolecule {
       )
 
       this.playableDiv.append(
-        linkButton('', '>', 'jolecule-button', () => {
+        linkButton('>', 'jolecule-button', () => {
           this.controller.setTargetToNextView()
         })
       )
@@ -263,24 +263,24 @@ class EmbedJolecule {
 
     if (this.params.isEditable) {
       this.footerDiv.append(
-        linkButton('', 'Zoom', 'jolecule-button', () => {
+        linkButton('Zoom', 'jolecule-button', () => {
           this.controller.zoomToSelection()
         })
       )
 
       this.footerDiv
         .append(
-          linkButton('', 'Clear', 'jolecule-button', () => {
+          linkButton('Clear', 'jolecule-button', () => {
             this.controller.clear()
           })
         )
         .append(
-          linkButton('', 'Sidechains', 'jolecule-button', () => {
+          linkButton('Sidechains', 'jolecule-button', () => {
             this.controller.toggleSelectedSidechains()
           })
         )
         .append(
-          linkButton('', 'Neighbors', 'jolecule-button', () => {
+          linkButton('Neighbors', 'jolecule-button', () => {
             this.controller.toggleResidueNeighbors()
           })
         )

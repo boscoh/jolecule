@@ -61,13 +61,13 @@ class ViewPanel {
       .click(_.noop)
       .append(this.editTextArea)
       .append(
-        linkButton('', 'save', 'jolecule-small-button', event => {
+        linkButton('save', 'jolecule-small-button', event => {
           this.saveChange()
         })
       )
       .append(' &nbsp; ')
       .append(
-        linkButton('', 'discard', 'jolecule-small-button', event => {
+        linkButton('discard', 'jolecule-small-button', event => {
           this.discardChange()
         })
       )
@@ -79,7 +79,7 @@ class ViewPanel {
   makeShowDiv () {
     let view = this.params.view
 
-    let editButton = linkButton('', 'edit', 'jolecule-small-button', () => {
+    let editButton = linkButton('edit', 'jolecule-small-button', () => {
       this.startEdit()
     })
 
@@ -106,17 +106,17 @@ class ViewPanel {
 
       this.showDiv.append(editButton)
 
-      if (exists(this.params.swapUp) && this.params.swapUp) {
+      if (exists(this.params.swapUp)) {
         this.showDiv.append(' ').append(
-          linkButton('', 'up', 'jolecule-small-button', () => {
+          linkButton('up', 'jolecule-small-button', () => {
             this.params.swapUp()
           })
         )
       }
 
-      if (exists(this.params.swapUp) && this.params.swapDown) {
+      if (exists(this.params.swapUp)) {
         this.showDiv.append(' ').append(
-          linkButton('', 'down', 'jolecule-small-button', () => {
+          linkButton('down', 'jolecule-small-button', () => {
             this.params.swapDown()
           })
         )
@@ -127,7 +127,7 @@ class ViewPanel {
           $('<div>')
             .css('float', 'right')
             .append(
-              linkButton('', 'delete', 'jolecule-small-button', () => {
+              linkButton('delete', 'jolecule-small-button', () => {
                 console.log('ViewPiece.deleteButton')
                 this.params.deleteView()
               })
@@ -159,7 +159,7 @@ class ViewPanelList {
       .append($('<div id="jolecule-views">'))
     if (this.isEditable) {
       this.subheaderDiv.append(
-        linkButton('', 'Save', 'jolecule-button', () => {
+        linkButton('Save', 'jolecule-button', () => {
           this.saveCurrentView()
         })
       )

@@ -795,8 +795,7 @@ class SequenceWidget extends CanvasWidget {
 
     // draw structure color bars
     let ss = this.charEntries[0].ss
-    let color = data.getSsColor(ss).getStyle()
-    color = this.getColorStyle(0)
+    let color = this.getColorStyle(0)
     let endColor
     let iStart = 0
     let iEnd = 0
@@ -1453,73 +1452,26 @@ class ResidueSelectorWidget {
   }
 }
 
-class ToggleButtonWidget {
-  constructor (soupWidget, selector, option) {
-    this.controller = soupWidget.controller
-    this.soupWidget = soupWidget
-    if (option) {
-      this.option = option
-    }
-    this.div = $(selector)
-      .attr('href', '')
-      .html(_.capitalize(option))
-      .addClass('jolecule-button')
-      .on('click touch', (e) => {
-        e.preventDefault()
-        this.callback()
-      })
-    this.soupWidget.addObserver(this)
-  }
-
-  callback () {
-    let newOptionVal = !this.controller.getShowOption(this.option)
-    this.controller.setShowOption(this.option, newOptionVal)
-    if ((this.option === 'sidechains') && (newOptionVal === false)) {
-      this.controller.clearSidechainResidues()
-    }
-    this.update()
-  }
-
-  update () {
-    if (this.controller.getShowOption(this.option)) {
-      if (!this.div.hasClass('jolecule-button-toggle-on')) {
-        this.div.addClass('jolecule-button-toggle-on')
-      }
-    } else {
-      if (this.div.hasClass('jolecule-button-toggle-on')) {
-        this.div.removeClass('jolecule-button-toggle-on')
-      }
-    }
-  }
-}
-
-class TogglePlayButtonWidget {
+class ToggleWidget {
   constructor (soupWidget, selector) {
-    this.controller = soupWidget.controller
     this.soupWidget = soupWidget
+    this.controller = soupWidget.controller
     this.div = $(selector)
-      .attr('href', '')
-      .html('Play')
+      .html(this.html())
       .addClass('jolecule-button')
       .on('click touch', (e) => {
-        this.toggle()
+        this.set(!this.get())
         this.update()
         e.preventDefault()
       })
     this.soupWidget.addObserver(this)
   }
 
-  get () {
-    return this.controller.getLoop()
-  }
+  html () {}
 
-  set (val) {
-    this.controller.setLoop(val)
-  }
+  get () {}
 
-  toggle () {
-    this.set(!this.get())
-  }
+  set (val) {}
 
   update () {
     if (this.get()) {
@@ -1534,10 +1486,46 @@ class TogglePlayButtonWidget {
   }
 }
 
-class ToggleRotateButtonWidget extends TogglePlayButtonWidget {
-  constructor (soupWidget, selector) {
+class ToggleButtonWidget extends ToggleWidget {
+  constructor (soupWidget, selector, option) {
     super(soupWidget, selector)
-    this.div = $(selector).html('&orarr;')
+    this.option = option
+    this.div.html(this.html())
+  }
+
+  html () {
+    return _.capitalize(this.option)
+  }
+
+  get () {
+    return this.controller.getShowOption(this.option)
+  }
+
+  set (val) {
+    this.controller.setShowOption(this.option, val)
+    if ((this.option === 'sidechains') && (val === false)) {
+      this.controller.clearSidechainResidues()
+    }
+  }
+}
+
+class TogglePlayButtonWidget extends ToggleWidget {
+  html () {
+    return 'Play'
+  }
+
+  get () {
+    return this.controller.getLoop()
+  }
+
+  set (val) {
+    this.controller.setLoop(val)
+  }
+}
+
+class ToggleRotateButtonWidget extends TogglePlayButtonWidget {
+  html () {
+    return '&orarr;'
   }
 
   get () {

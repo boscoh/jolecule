@@ -8,39 +8,18 @@
 import $ from 'jquery'
 import _ from 'lodash'
 
-function jstr (s) {
-  return JSON.stringify(s, null, 2)
-}
-
 function exists (x) {
-  return !(_.isUndefined(x)) && (x !== null)
+  return !(_.isNil(x))
 }
 
-function getWindowUrl () {
-  return '' + window.location
-}
-
-function linkButton (idTag, text, classTag, callback) {
-  let item =
-    $('<span>')
-      .attr('id', idTag)
-      .attr('href', '')
-      .html(text)
-
-  if (classTag) {
-    item.addClass(classTag)
-  }
-
-  if (callback) {
-    item.on(' click touch ',
-      function (e) {
-        e.preventDefault()
-        callback()
-      }
-    )
-  }
-
-  return item
+function linkButton (text, classTag, callback) {
+  return $('<span>')
+    .html(text)
+    .addClass(classTag)
+    .on('click touch', function (e) {
+      e.preventDefault()
+      callback()
+    })
 }
 
 function stickJqueryDivInTopLeft (parent, target, xOffset, yOffset) {
@@ -94,14 +73,6 @@ function randomId () {
   return 'view:' + randomString(6)
 }
 
-function getCurrentDateStr () {
-  let now = new Date()
-  let month = now.getMonth() + 1
-  let day = now.getDate()
-  let year = now.getFullYear()
-  return day + '/' + month + '/' + year
-}
-
 function textEntryDialog (parentDiv, label, callback) {
   if (!label) {
     label = ''
@@ -126,10 +97,10 @@ function textEntryDialog (parentDiv, label, callback) {
   }
 
   let saveButton = linkButton(
-    'okay', 'okay', 'jolecule-small-button', accept)
+    'okay', 'jolecule-small-button', accept)
 
   let discardButton = linkButton(
-    'discard', 'discard', 'jolecule-small-button', discard)
+    'discard', 'jolecule-small-button', discard)
 
   let textarea = $('<textarea>')
     .css('width', '100%')
@@ -170,15 +141,12 @@ function delay (timeMs) {
 }
 
 export {
-  jstr,
   exists,
-  getWindowUrl,
   linkButton,
   stickJqueryDivInCenter,
   stickJqueryDivInTopLeft,
   inArray,
   randomId,
-  getCurrentDateStr,
   textEntryDialog,
   delay
 }

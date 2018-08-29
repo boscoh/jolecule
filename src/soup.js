@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import v3 from './v3'
-import { randomId, getWindowUrl, inArray, getCurrentDateStr } from './util.js'
+import { randomId, inArray } from './util.js'
 import * as glgeom from './glgeom'
 import { SpaceHash } from './pairs.js'
 import Store from './store.js'
@@ -1437,7 +1437,6 @@ class View {
     this.distances = []
     this.text = 'Default view of PDB file'
     this.user_id = ''
-    this.url = getWindowUrl()
     this.show = {
       sidechain: true,
       peptide: true,
@@ -1480,7 +1479,6 @@ class View {
     v.order = this.order
     v.text = this.text
     v.time = this.time
-    v.url = this.url
     v.cameraParams = _.cloneDeep(this.cameraParams)
     v.show = _.cloneDeep(this.show)
     v.grid = _.cloneDeep(this.grid)
@@ -2133,7 +2131,6 @@ class Controller {
     let newView = this.soupView.currentView.clone()
     newView.text = 'Click edit to change this text.'
     newView.pdb_id = this.soup.structureIds[0]
-    let time = getCurrentDateStr()
     newView.id = newViewId
     newView.selected = this.makeSelectedResidueList()
     this.soupView.insertView(iNewView, newViewId, newView)
