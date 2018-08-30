@@ -46,6 +46,7 @@ class EmbedJolecule {
     this.soupView = new SoupView(this.soup)
     this.soupView.isLoop = this.params.isLoop
     this.soupView.isRotate = this.params.isRotate
+    this.soupView.isRock = this.params.isRock
     this.soupView.maxUpdateStep = this.params.maxUpdateStep
     this.soupView.msPerStep = this.params.msPerStep
     this.soupView.maxWaitStep = this.params.maxWaitStep

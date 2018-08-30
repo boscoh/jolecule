@@ -1677,6 +1677,7 @@ class SoupView {
 
     this.isLoop = false
     this.isRotate = false
+    this.isRock = false
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -2277,6 +2278,9 @@ class Controller {
 
   setRotate (v) {
     this.soupView.isRotate = v
+    if (this.soupView.isRotate) {
+      this.soupView.isRock = false
+    }
     this.soupView.updateObservers = true
     this.soupView.changed = true
   }
@@ -2287,6 +2291,9 @@ class Controller {
 
   setRock (v) {
     this.soupView.isRock = v
+    if (this.soupView.isRock) {
+      this.soupView.isRotate = false
+    }
     this.soupView.updateObservers = true
     this.soupView.changed = true
   }
