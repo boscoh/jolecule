@@ -1537,6 +1537,20 @@ class ToggleRotateWidget extends TogglePlayWidget {
   }
 }
 
+class ToggleRockWidget extends TogglePlayWidget {
+  html () {
+    return '&harr;'
+  }
+
+  get () {
+    return this.controller.getRock()
+  }
+
+  set (val) {
+    this.controller.setRock(val)
+  }
+}
+
 class ViewTextWidget {
   constructor (soupWidget, selector) {
     this.soupView = soupWidget.soupView
@@ -1569,5 +1583,6 @@ export default {
   ToggleOptionWidget,
   TogglePlayWidget,
   ToggleRotateWidget,
+  ToggleRockWidget,
   ViewTextWidget
 }

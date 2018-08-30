@@ -21,6 +21,7 @@ let defaultArgs = {
   isExtraEditable: false,
   isLoop: false,
   isRotate: false,
+  isRock: false,
   isGrid: false,
   bCutoff: 0.5,
   isPlayable: false,
@@ -189,6 +190,12 @@ class EmbedJolecule {
       this.widget.rotate = new widgets.ToggleRotateWidget(
         this.soupWidget,
         `#${this.divId}-rotate`
+      )
+
+      this.playableDiv.append($(`<div id="${this.divId}-rock">`))
+      this.widget.rotate = new widgets.ToggleRockWidget(
+        this.soupWidget,
+        `#${this.divId}-rock`
       )
 
       this.playableDiv.append(

@@ -2281,6 +2281,16 @@ class Controller {
     this.soupView.changed = true
   }
 
+  getRock () {
+    return this.soupView.isRock
+  }
+
+  setRock (v) {
+    this.soupView.isRock = v
+    this.soupView.updateObservers = true
+    this.soupView.changed = true
+  }
+
   deleteStructure (iStructure) {
     this.soup.deleteStructure(iStructure)
     this.soupView.nDataServer -= 1

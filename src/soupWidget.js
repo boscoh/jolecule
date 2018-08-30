@@ -832,6 +832,17 @@ class SoupWidget extends WebglWidget {
           }
         } else if (this.soupView.isRotate) {
           this.adjustCamera(0.0, 0.002, 0, 1)
+        } else if (this.soupView.isRock) {
+          let nStepRock = 18
+          if (this.soupView.nUpdateStep > -nStepRock) {
+            this.adjustCamera(0.0, 0.002, 0, 1)
+          } else if (this.soupView.nUpdateStep > -3*nStepRock) {
+            this.adjustCamera(0.0, -0.002, 0, 1)
+          } else if (this.soupView.nUpdateStep > -4*nStepRock) {
+            this.adjustCamera(0.0, +0.002, 0, 1)
+          } else {
+            this.soupView.nUpdateStep = 0
+          }
         }
       }
     } else if (this.soupView.nUpdateStep >= 1) {
