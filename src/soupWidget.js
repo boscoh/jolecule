@@ -405,6 +405,7 @@ class SoupWidget extends WebglWidget {
     this.buildCrossHairs()
 
     // popup hover box over the mouse position
+    this.clickTimer = null
     this.hover = new widgets.PopupText(this.divTag, 50)
     this.iAtomHover = null
 

@@ -78302,7 +78302,7 @@ var rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
 
 var green = new THREE.Color(0x639941);
 var blue = new THREE.Color(0x568AB5);
-var yellow = new THREE.Color(0xE8AC41);
+var yellow = new THREE.Color(0xBF9D13);
 var purple = new THREE.Color(0x9578AA);
 var grey = new THREE.Color(0xBBBBBB);
 var red = new THREE.Color(0x993333);
@@ -91541,6 +91541,7 @@ var SoupWidget = function (_WebglWidget) {
     _this2.buildCrossHairs();
 
     // popup hover box over the mouse position
+    _this2.clickTimer = null;
     _this2.hover = new _widgets2.default.PopupText(_this2.divTag, 50);
     _this2.iAtomHover = null;
 
