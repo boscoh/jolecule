@@ -1675,9 +1675,7 @@ class SoupView {
 
     this.nDataServer = 0
 
-    this.isLoop = false
-    this.isRotate = false
-    this.isRock = false
+    this.animateState = 'loop'
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -2262,38 +2260,12 @@ class Controller {
     this.clearSelectedResidues()
   }
 
-  getLoop () {
-    return this.soupView.isLoop
+  getAnimateState () {
+    return this.soupView.animateState
   }
 
-  setLoop (v) {
-    this.soupView.isLoop = v
-    this.soupView.updateObservers = true
-    this.soupView.changed = true
-  }
-
-  getRotate () {
-    return this.soupView.isRotate
-  }
-
-  setRotate (v) {
-    this.soupView.isRotate = v
-    if (this.soupView.isRotate) {
-      this.soupView.isRock = false
-    }
-    this.soupView.updateObservers = true
-    this.soupView.changed = true
-  }
-
-  getRock () {
-    return this.soupView.isRock
-  }
-
-  setRock (v) {
-    this.soupView.isRock = v
-    if (this.soupView.isRock) {
-      this.soupView.isRotate = false
-    }
+  setAnimateState (v) {
+    this.soupView.animateState = v
     this.soupView.updateObservers = true
     this.soupView.changed = true
   }

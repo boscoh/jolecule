@@ -79572,9 +79572,7 @@ var defaultArgs = {
   isSequenceBar: true,
   isEditable: true,
   isExtraEditable: false,
-  isLoop: false,
-  isRotate: false,
-  isRock: false,
+  animateState: 'none', // 'loop', 'rotate', 'rock'
   isGrid: false,
   bCutoff: 0.5,
   isPlayable: false,
@@ -79601,9 +79599,7 @@ var EmbedJolecule = function () {
 
     this.soup = new _soup.Soup();
     this.soupView = new _soup.SoupView(this.soup);
-    this.soupView.isLoop = this.params.isLoop;
-    this.soupView.isRotate = this.params.isRotate;
-    this.soupView.isRock = this.params.isRock;
+    this.soupView.animateState = this.params.animateState;
     this.soupView.maxUpdateStep = this.params.maxUpdateStep;
     this.soupView.msPerStep = this.params.msPerStep;
     this.soupView.maxWaitStep = this.params.maxWaitStep;
@@ -79800,17 +79796,17 @@ var EmbedJolecule = function () {
         this.footerDiv.append(this.playableDiv);
 
         this.playableDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-rotate">'));
-        this.widget.rotate = new _widgets2.default.ToggleRotateWidget(this.soupWidget, '#' + this.divId + '-rotate');
+        this.widget.rotate = new _widgets2.default.ToggleAnimateWidget(this.soupWidget, '#' + this.divId + '-rotate', 'rotate', '&orarr;');
 
         this.playableDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-rock">'));
-        this.widget.rotate = new _widgets2.default.ToggleRockWidget(this.soupWidget, '#' + this.divId + '-rock');
+        this.widget.rotate = new _widgets2.default.ToggleAnimateWidget(this.soupWidget, '#' + this.divId + '-rock', 'rock', '&harr;');
 
         this.playableDiv.append((0, _util.linkButton)('<', 'jolecule-button', function () {
           _this3.controller.setTargetToPrevView();
         }));
 
         this.playableDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-loop">'));
-        this.widget.loop = new _widgets2.default.TogglePlayWidget(this.soupWidget, '#' + this.divId + '-loop');
+        this.widget.loop = new _widgets2.default.ToggleAnimateWidget(this.soupWidget, '#' + this.divId + '-loop', 'loop', 'Play');
 
         this.playableDiv.append((0, _util.linkButton)('>', 'jolecule-button', function () {
           _this3.controller.setTargetToNextView();
@@ -82191,9 +82187,7 @@ var SoupView = function () {
 
     this.nDataServer = 0;
 
-    this.isLoop = false;
-    this.isRotate = false;
-    this.isRock = false;
+    this.animateState = 'loop';
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -82983,44 +82977,14 @@ var Controller = function () {
       this.clearSelectedResidues();
     }
   }, {
-    key: 'getLoop',
-    value: function getLoop() {
-      return this.soupView.isLoop;
+    key: 'getAnimateState',
+    value: function getAnimateState() {
+      return this.soupView.animateState;
     }
   }, {
-    key: 'setLoop',
-    value: function setLoop(v) {
-      this.soupView.isLoop = v;
-      this.soupView.updateObservers = true;
-      this.soupView.changed = true;
-    }
-  }, {
-    key: 'getRotate',
-    value: function getRotate() {
-      return this.soupView.isRotate;
-    }
-  }, {
-    key: 'setRotate',
-    value: function setRotate(v) {
-      this.soupView.isRotate = v;
-      if (this.soupView.isRotate) {
-        this.soupView.isRock = false;
-      }
-      this.soupView.updateObservers = true;
-      this.soupView.changed = true;
-    }
-  }, {
-    key: 'getRock',
-    value: function getRock() {
-      return this.soupView.isRock;
-    }
-  }, {
-    key: 'setRock',
-    value: function setRock(v) {
-      this.soupView.isRock = v;
-      if (this.soupView.isRock) {
-        this.soupView.isRotate = false;
-      }
+    key: 'setAnimateState',
+    value: function setAnimateState(v) {
+      this.soupView.animateState = v;
       this.soupView.updateObservers = true;
       this.soupView.changed = true;
     }
@@ -84936,92 +84900,43 @@ var ToggleOptionWidget = function (_ToggleWidget) {
   return ToggleOptionWidget;
 }(ToggleWidget);
 
-var TogglePlayWidget = function (_ToggleWidget2) {
-  _inherits(TogglePlayWidget, _ToggleWidget2);
+var ToggleAnimateWidget = function (_ToggleWidget2) {
+  _inherits(ToggleAnimateWidget, _ToggleWidget2);
 
-  function TogglePlayWidget() {
-    _classCallCheck(this, TogglePlayWidget);
+  function ToggleAnimateWidget(soupWidget, selector, state, text) {
+    _classCallCheck(this, ToggleAnimateWidget);
 
-    return _possibleConstructorReturn(this, (TogglePlayWidget.__proto__ || Object.getPrototypeOf(TogglePlayWidget)).apply(this, arguments));
+    var _this13 = _possibleConstructorReturn(this, (ToggleAnimateWidget.__proto__ || Object.getPrototypeOf(ToggleAnimateWidget)).call(this, soupWidget, selector));
+
+    _this13.state = state;
+    _this13.text = text;
+    _this13.div.html(_this13.html());
+    return _this13;
   }
 
-  _createClass(TogglePlayWidget, [{
+  _createClass(ToggleAnimateWidget, [{
     key: 'html',
     value: function html() {
-      return 'Play';
+      return this.text;
     }
   }, {
     key: 'get',
     value: function get() {
-      return this.controller.getLoop();
+      return this.controller.getAnimateState() === this.state;
     }
   }, {
     key: 'set',
     value: function set(val) {
-      this.controller.setLoop(val);
+      if (val) {
+        this.controller.setAnimateState(this.state);
+      } else {
+        this.controller.setAnimateState('none');
+      }
     }
   }]);
 
-  return TogglePlayWidget;
+  return ToggleAnimateWidget;
 }(ToggleWidget);
-
-var ToggleRotateWidget = function (_TogglePlayWidget) {
-  _inherits(ToggleRotateWidget, _TogglePlayWidget);
-
-  function ToggleRotateWidget() {
-    _classCallCheck(this, ToggleRotateWidget);
-
-    return _possibleConstructorReturn(this, (ToggleRotateWidget.__proto__ || Object.getPrototypeOf(ToggleRotateWidget)).apply(this, arguments));
-  }
-
-  _createClass(ToggleRotateWidget, [{
-    key: 'html',
-    value: function html() {
-      return '&orarr;';
-    }
-  }, {
-    key: 'get',
-    value: function get() {
-      return this.controller.getRotate();
-    }
-  }, {
-    key: 'set',
-    value: function set(val) {
-      this.controller.setRotate(val);
-    }
-  }]);
-
-  return ToggleRotateWidget;
-}(TogglePlayWidget);
-
-var ToggleRockWidget = function (_TogglePlayWidget2) {
-  _inherits(ToggleRockWidget, _TogglePlayWidget2);
-
-  function ToggleRockWidget() {
-    _classCallCheck(this, ToggleRockWidget);
-
-    return _possibleConstructorReturn(this, (ToggleRockWidget.__proto__ || Object.getPrototypeOf(ToggleRockWidget)).apply(this, arguments));
-  }
-
-  _createClass(ToggleRockWidget, [{
-    key: 'html',
-    value: function html() {
-      return '&harr;';
-    }
-  }, {
-    key: 'get',
-    value: function get() {
-      return this.controller.getRock();
-    }
-  }, {
-    key: 'set',
-    value: function set(val) {
-      this.controller.setRock(val);
-    }
-  }]);
-
-  return ToggleRockWidget;
-}(TogglePlayWidget);
 
 var ViewTextWidget = function () {
   function ViewTextWidget(soupWidget, selector) {
@@ -85060,9 +84975,7 @@ exports.default = {
   GridControlWidget: GridControlWidget,
   ResidueSelectorWidget: ResidueSelectorWidget,
   ToggleOptionWidget: ToggleOptionWidget,
-  TogglePlayWidget: TogglePlayWidget,
-  ToggleRotateWidget: ToggleRotateWidget,
-  ToggleRockWidget: ToggleRockWidget,
+  ToggleAnimateWidget: ToggleAnimateWidget,
   ViewTextWidget: ViewTextWidget
 };
 
@@ -90416,7 +90329,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  *   viewHeight: 170,
  *   isViewTextShown: false,
  *   isEditable: true,
- *   isLoop: false,
+ *   animateState: 'none',
  *   onload: onload,
  *   isGrid: false
  * }
@@ -92053,13 +91966,13 @@ var SoupWidget = function (_WebglWidget) {
         } else {
           if (this.soupView.startTargetAfterRender) {
             this.soupView.changed = true;
-          } else if (this.soupView.isLoop) {
+          } else if (this.soupView.animateState === 'loop') {
             if (this.soupView.nUpdateStep < -this.soupView.maxWaitStep) {
               this.controller.setTargetToNextView();
             }
-          } else if (this.soupView.isRotate) {
+          } else if (this.soupView.animateState === 'rotate') {
             this.adjustCamera(0.0, 0.002, 0, 1);
-          } else if (this.soupView.isRock) {
+          } else if (this.soupView.animateState === 'rock') {
             var nStepRock = 18;
             if (this.soupView.nUpdateStep > -nStepRock) {
               this.adjustCamera(0.0, 0.002, 0, 1);
@@ -92155,7 +92068,7 @@ var SoupWidget = function (_WebglWidget) {
       var now = new Date().getTime();
       var elapsedTime = this.timePressed ? now - this.timePressed : 0;
 
-      if (this.clickTimer === null) {
+      if (_lodash2.default.isNil(this.clickTimer)) {
         this.clickTimer = setTimeout(function () {
           return _this5.click(event);
         }, 250);
@@ -100586,7 +100499,6 @@ var FullPageJolecule = function () {
       isViewTextShown: false,
       isSequenceBar: true,
       isEditable: true,
-      isLoop: false,
       isGrid: true,
       bCutoff: 0.5,
       isPlayable: false

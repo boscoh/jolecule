@@ -827,13 +827,13 @@ class SoupWidget extends WebglWidget {
       } else {
         if (this.soupView.startTargetAfterRender) {
           this.soupView.changed = true
-        } else if (this.soupView.isLoop) {
+        } else if (this.soupView.animateState === 'loop') {
           if (this.soupView.nUpdateStep < -this.soupView.maxWaitStep) {
             this.controller.setTargetToNextView()
           }
-        } else if (this.soupView.isRotate) {
+        } else if (this.soupView.animateState === 'rotate') {
           this.adjustCamera(0.0, 0.002, 0, 1)
-        } else if (this.soupView.isRock) {
+        } else if (this.soupView.animateState === 'rock') {
           let nStepRock = 18
           if (this.soupView.nUpdateStep > -nStepRock) {
             this.adjustCamera(0.0, 0.002, 0, 1)
@@ -925,7 +925,7 @@ class SoupWidget extends WebglWidget {
     let now = (new Date()).getTime()
     let elapsedTime = this.timePressed ? now - this.timePressed : 0
 
-    if (this.clickTimer === null) {
+    if (_.isNil(this.clickTimer)) {
       this.clickTimer = setTimeout(() => this.click(event), 250)
     } else if (elapsedTime < 600) {
       clearTimeout(this.clickTimer)

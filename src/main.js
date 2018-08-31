@@ -12,7 +12,7 @@ import $ from 'jquery'
  *   viewHeight: 170,
  *   isViewTextShown: false,
  *   isEditable: true,
- *   isLoop: false,
+ *   animateState: 'none',
  *   onload: onload,
  *   isGrid: false
  * }

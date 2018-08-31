@@ -19,9 +19,7 @@ let defaultArgs = {
   isSequenceBar: true,
   isEditable: true,
   isExtraEditable: false,
-  isLoop: false,
-  isRotate: false,
-  isRock: false,
+  animateState: 'none', // 'loop', 'rotate', 'rock'
   isGrid: false,
   bCutoff: 0.5,
   isPlayable: false,
@@ -44,9 +42,7 @@ class EmbedJolecule {
 
     this.soup = new Soup()
     this.soupView = new SoupView(this.soup)
-    this.soupView.isLoop = this.params.isLoop
-    this.soupView.isRotate = this.params.isRotate
-    this.soupView.isRock = this.params.isRock
+    this.soupView.animateState = this.params.animateState
     this.soupView.maxUpdateStep = this.params.maxUpdateStep
     this.soupView.msPerStep = this.params.msPerStep
     this.soupView.maxWaitStep = this.params.maxWaitStep
@@ -188,15 +184,19 @@ class EmbedJolecule {
       this.footerDiv.append(this.playableDiv)
 
       this.playableDiv.append($(`<div id="${this.divId}-rotate">`))
-      this.widget.rotate = new widgets.ToggleRotateWidget(
+      this.widget.rotate = new widgets.ToggleAnimateWidget(
         this.soupWidget,
-        `#${this.divId}-rotate`
+        `#${this.divId}-rotate`,
+        'rotate',
+        '&orarr;'
       )
 
       this.playableDiv.append($(`<div id="${this.divId}-rock">`))
-      this.widget.rotate = new widgets.ToggleRockWidget(
+      this.widget.rotate = new widgets.ToggleAnimateWidget(
         this.soupWidget,
-        `#${this.divId}-rock`
+        `#${this.divId}-rock`,
+        'rock',
+        '&harr;'
       )
 
       this.playableDiv.append(
@@ -206,9 +206,11 @@ class EmbedJolecule {
       )
 
       this.playableDiv.append($(`<div id="${this.divId}-loop">`))
-      this.widget.loop = new widgets.TogglePlayWidget(
+      this.widget.loop = new widgets.ToggleAnimateWidget(
         this.soupWidget,
-        `#${this.divId}-loop`
+        `#${this.divId}-loop`,
+        'loop',
+        'Play'
       )
 
       this.playableDiv.append(

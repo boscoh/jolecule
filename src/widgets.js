@@ -1509,47 +1509,31 @@ class ToggleOptionWidget extends ToggleWidget {
   }
 }
 
-class TogglePlayWidget extends ToggleWidget {
+class ToggleAnimateWidget extends ToggleWidget {
+  constructor (soupWidget, selector, state, text) {
+    super(soupWidget, selector)
+    this.state = state
+    this.text = text
+    this.div.html(this.html())
+  }
+
   html () {
-    return 'Play'
+    return this.text
   }
 
   get () {
-    return this.controller.getLoop()
+    return this.controller.getAnimateState() === this.state
   }
 
   set (val) {
-    this.controller.setLoop(val)
+    if (val) {
+      this.controller.setAnimateState(this.state)
+    } else {
+      this.controller.setAnimateState('none')
+    }
   }
 }
 
-class ToggleRotateWidget extends TogglePlayWidget {
-  html () {
-    return '&orarr;'
-  }
-
-  get () {
-    return this.controller.getRotate()
-  }
-
-  set (val) {
-    this.controller.setRotate(val)
-  }
-}
-
-class ToggleRockWidget extends TogglePlayWidget {
-  html () {
-    return '&harr;'
-  }
-
-  get () {
-    return this.controller.getRock()
-  }
-
-  set (val) {
-    this.controller.setRock(val)
-  }
-}
 
 class ViewTextWidget {
   constructor (soupWidget, selector) {
@@ -1581,8 +1565,6 @@ export default {
   GridControlWidget,
   ResidueSelectorWidget,
   ToggleOptionWidget,
-  TogglePlayWidget,
-  ToggleRotateWidget,
-  ToggleRockWidget,
+  ToggleAnimateWidget,
   ViewTextWidget
 }

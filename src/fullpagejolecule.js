@@ -393,7 +393,6 @@ class FullPageJolecule {
       isViewTextShown: false,
       isSequenceBar: true,
       isEditable: true,
-      isLoop: false,
       isGrid: true,
       bCutoff: 0.5,
       isPlayable: false
