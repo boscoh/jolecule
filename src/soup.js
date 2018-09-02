@@ -1668,14 +1668,19 @@ class SoupView {
     this.soup = soup
 
     this.changed = true
+
+    // indicates when sidechains need to be rebuilt
     this.updateSidechain = false
+
+    // indicates when colors need to be updated
     this.updateSelection = false
+
+    // delayed flag to change rendering after
+    // rotations have been done
     this.startTargetAfterRender = false
+
+    // indicates when decorators/widgets need to be redrawn
     this.updateObservers = true
-
-    this.nDataServer = 0
-
-    this.animateState = 'loop'
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -1686,6 +1691,13 @@ class SoupView {
     this.savedViewsByViewId = {}
     this.savedViews = []
     this.iLastViewSelected = 0
+
+    // Animation variables store here so
+    // that Controller can get access to them
+
+    // the current animation state -
+    // 'none', 'loop', 'rock', 'rotate'
+    this.animateState = 'none'
 
     // stores a target view for animation
     this.targetView = null
@@ -2168,7 +2180,6 @@ class Controller {
   }
 
   async asyncLoadProteinData (proteinData, asyncSetMessageFn) {
-    this.soupView.nDataServer += 1
     await this.soup.asyncLoadProteinData(proteinData, asyncSetMessageFn)
     this.soupView.changed = true
     this.soupView.updateObservers = true
@@ -2272,7 +2283,6 @@ class Controller {
 
   deleteStructure (iStructure) {
     this.soup.deleteStructure(iStructure)
-    this.soupView.nDataServer -= 1
     if (this.soup.isEmpty()) {
       this.soupView.savedViews.length = 0
       for (let id of _.keys(this.soupView.savedViewsByViewId)) {

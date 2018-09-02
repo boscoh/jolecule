@@ -392,6 +392,9 @@ class SoupWidget extends WebglWidget {
       resized: new Signal()
     }
 
+    // DataServer is needed to save views
+    this.dataServer = null
+
     // Hooks to protein data
     this.soupView = soupView
     this.soup = soupView.soup

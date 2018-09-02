@@ -79699,7 +79699,7 @@ var EmbedJolecule = function () {
                 return this.soupWidget.asyncSetMesssage('Loading views...');
 
               case 18:
-                if (!(this.soupView.nDataServer === 1)) {
+                if (!_lodash2.default.isNil(this.soupView.dataServer)) {
                   _context2.next = 25;
                   break;
                 }
@@ -82180,14 +82180,19 @@ var SoupView = function () {
     this.soup = soup;
 
     this.changed = true;
+
+    // indicates when sidechains need to be rebuilt
     this.updateSidechain = false;
+
+    // indicates when colors need to be updated
     this.updateSelection = false;
+
+    // delayed flag to change rendering after
+    // rotations have been done
     this.startTargetAfterRender = false;
+
+    // indicates when decorators/widgets need to be redrawn
     this.updateObservers = true;
-
-    this.nDataServer = 0;
-
-    this.animateState = 'loop';
 
     // stores the current cameraParams, display
     // options, distances, labels, selected
@@ -82198,6 +82203,13 @@ var SoupView = function () {
     this.savedViewsByViewId = {};
     this.savedViews = [];
     this.iLastViewSelected = 0;
+
+    // Animation variables store here so
+    // that Controller can get access to them
+
+    // the current animation state -
+    // 'none', 'loop', 'rock', 'rotate'
+    this.animateState = 'none';
 
     // stores a target view for animation
     this.targetView = null;
@@ -82815,15 +82827,14 @@ var Controller = function () {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                this.soupView.nDataServer += 1;
-                _context2.next = 3;
+                _context2.next = 2;
                 return this.soup.asyncLoadProteinData(proteinData, asyncSetMessageFn);
 
-              case 3:
+              case 2:
                 this.soupView.changed = true;
                 this.soupView.updateObservers = true;
 
-              case 5:
+              case 4:
               case 'end':
                 return _context2.stop();
             }
@@ -82992,7 +83003,6 @@ var Controller = function () {
     key: 'deleteStructure',
     value: function deleteStructure(iStructure) {
       this.soup.deleteStructure(iStructure);
-      this.soupView.nDataServer -= 1;
       if (this.soup.isEmpty()) {
         this.soupView.savedViews.length = 0;
         var _iteratorNormalCompletion29 = true;
@@ -91441,8 +91451,11 @@ var SoupWidget = function (_WebglWidget) {
       updated: new _signals2.default(),
       resized: new _signals2.default()
 
-      // Hooks to protein data
-    };_this2.soupView = soupView;
+      // DataServer is needed to save views
+    };_this2.dataServer = null;
+
+    // Hooks to protein data
+    _this2.soupView = soupView;
     _this2.soup = soupView.soup;
     _this2.controller = controller;
 

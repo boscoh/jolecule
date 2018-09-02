@@ -94,7 +94,7 @@ class EmbedJolecule {
 
     await this.soupWidget.asyncSetMesssage('Loading views...')
 
-    if (this.soupView.nDataServer === 1) {
+    if (_.isNil(this.soupView.dataServer)) {
       // save only first loaded dataServer for saving and deleting
       this.soupWidget.dataServer = dataServer
 
