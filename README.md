@@ -2,7 +2,11 @@
 
 # jolecule - WebGL viewer for proteins/DNA with annotated views
 
-Jolecule is a WebGL protein viewer for proteins and DNA with an interface that also works well on touch interfaces. The viewer has views and animated slide-show as a core feature. The core jolecule package is a javascript module that can display PDB structures in a web-browser. There are several ways that you can use Jolecule:
+Jolecule is a WebGL viewer for proteins and DNA, with an interface that also works well on touch interfaces. The viewer has views and animated slide-show as a core feature. 
+
+The core jolecule package is a javascript module that can display PDB structures in a web-browser. 
+
+However, jolecule has been configured to allow usage in several ways:
 
 0. On the website <http://jolecule.com>
 1. As a native desktop electron app
@@ -10,16 +14,14 @@ Jolecule is a WebGL protein viewer for proteins and DNA with an interface that a
 3. Embedded in other web-pages locally
 4. Embedbed from the remote the website <http://jolecule.com/embed>
 
-The download here is for using Jolecule as a local webapp, or building embedded Jolecule widgets in  your website.
-
 ## Installation
+
+To use Jolecule on your local web-site, or to build webaps. You can download the [zipped-package](https://github.com/boscoh/jolecule/archive/master.zip).
 
 The requirements are:
 
 - a modern webbrowser - Chrome, Safari, Firefox
 - [node.js](https://nodejs.org/en/download/) - the javascript runtime
-
-Download the [zipped-package](https://github.com/boscoh/jolecule/archive/master.zip).
 
 In the Jolecule directory, to install the required modules:
 
@@ -29,27 +31,13 @@ In the Jolecule directory, to install the required modules:
 
 ## Explore PDB structures on the website
 
-## Explore PDB structures on your computer
+The easiest way to try Jolecule is to go to <http://jolecule.com>. 
 
-## Make an animated slide-show
+If you know the PDB id of your protein structure, just type in <http://jolecule.com/pdb/<your_pdb_id>>
 
-## Embed on your own web-page, remotely 
+## Desktop App: Explore PDB structures on your computer
 
-## Embed on your own web-page, locally
-
-## Create a local static web-app
-
-A good way to start with Jolecule is to create a static web page that automatically displays a PDB file `your.pdb`:
-
-```bash
-> ./jol-static.js your.pdb
-```
-
-This will create a directory `your-jol` and a completely contained web-page is available at `your-jol/pdb-index.html`.
-
-If there also exists a `your.views.json`, these will also be built statically in the webpage
-
-## Desktop app 
+An [electron](electronjs.org) app is provided that provides a useful sidebar for local PDB files. 
 
 If you want to run the electron-version of the app, then you must first install [electron](https://electronjs.org/). To do this, go to the `jolecule/electron` directory:
 
@@ -63,9 +51,15 @@ Then, to run a native-GUI electron app to open PDB files:
 
 The desktop app will have a file browser for PDB files, and the creation/saving of annotated views in the file `your.views.json`. This `your.views.json` can also be used to generate slide shows in your local static web-app from the previous section.
 
+On the command-line, run `./jol-electron.sh [pdb] [directory]`
+
+If a specified PDB is given, the PDB will be loaded. As well, all other PDB structures in the directory will be listed in a left-handed side-bar. This is file-browser that is designed as a conveniently quick way to look at PDB structures.
+
 ## Views and Animated Slideshows
 
-An importnat element of Jolecule is the ability to save and re-display views of the molecule. An animated slide-show can then be displayed by cycling smoothly through these views. A view is a JSON data structure with the schema (comments are added for clarity, but cannot be placed in the JSON files):
+An key component of Jolecule is the ability to save and re-display views of a molecule. An animated slide-show can then be displayed by cycling smoothly through these views. 
+
+The particular view of a molecular is saves as a list of JSON data structure, with the following structure:
 
 ```json
 {
@@ -121,34 +115,33 @@ An importnat element of Jolecule is the ability to save and re-display views of 
 }
 ```
 
-A view is stored in a Json file with the same basename as the associated PDB file. For instance, `1mbo.pdb` will have a view file in `1mbo.views.json`. On the public server, the views of <http://jolecule.com/pdb/1mbo> will be accessible at <http://jolecule.com/pdb/1mbo.views.json>.
+The views are in a Json file with the same basename as the associated PDB file. For instance, `1mbo.pdb` will have a view file in `1mbo.views.json`. 
 
-Jolecule knows how to animate smoothly between views. A slide-show between the views by clicking on `Play`. To create a view, it's best to do this in the `jol-electron` app. Then if you want to distribute it, create a static web-page app with `jol-static`, which will automatically read in the views.json file with the pdb file with the same base name.
+On the public server, the views of a PDB structure <http://jolecule.com/pdb/1mbo> will be accessible at <http://jolecule.com/pdb/1mbo.views.json>. You can download and modify these files.
 
-## Developing jolecule
+Jolecule knows how to animate smoothly between views. This will create a slide-show of your structure. Press `Play` in the bottom-left hand to start the slideshow. 
 
-If you want to edit the source code to jolecule, the source code is in `jolecule/src`. It is written in ES6 and needs to be compiled. The compiled module is found in `jolecule/dist/jolecule.js`. To compile the source code, in the Jolecule directory, run:
-
-    ./node_modules/.bin/webpack
-
-Alternatively, to create a watcher for changes, run:
-
-    ./node_modules/.bin/webpack -w
-
-In the watch mode, open the static web-app in `dist/index.html`, and reload the web-page after the compilation is finished.
-
-## Visual Graphic Design 
-
-Jolecule has a focused design for rendering proteins and DNA. The visual design focuses on being able to transition between an overall cartoon view with detailed stereochemical views of bonds and atoms. To enable that, ribbons are drawn through the C-alpha atoms in the backbone chain. This gives a pleated look to the beta-sheets, but has the advantage that sidechains can be draw to protrube clearly from the ribbon in both helices and sidechains.
-
-The author has found that sidechains protruding from ribbons provides an excellent intermediate representation that can show a good intermediate level of details between protein architecture and direct atomic interaction between sidechains.
-
-The cartoon view uses a flat ribbon for alpha-helices and beta-sheets, with a distinct thin tube for coils. C-alpha atoms are shown as arrows to indicate chain direction, and this can make it easy to determine parallel from antiparallel beta-sheets and helical alignments.
-
-In the display of nucleotides, the cartoon tube shows the bases as a well-defined object. This is done to indicate the importance of base-stacking as an ordering principle in nucleotide structure.
+A slide-show between the views by clicking on `Play`. It's easiest to create the `views.json` file using the electron app. 
 
 
-## Embedding jolecule widgets
+## Make an animated slide-show; local static web-app
+
+A good way to start with Jolecule is to create a static web page that automatically displays a PDB file `your.pdb`:
+
+```bash
+> ./jol-static.js your.pdb
+```
+
+This will create a directory `your-jol` and a completely contained web-page is available at `your-jol/pdb-index.html`.
+
+If there also exists a `your.views.json`, these will also be built statically in the webpage
+
+Then, use the `jol-static.js` to create a local web-app, which will incorporate the `views.json` file into the web-app.
+
+
+## Embed on your own web-page, remotely 
+
+The local web-app created by `jol-static.js` uses the embedded mode of Jolecule. The widget can be easily resized and inserted in other web-pages. The embeding follows the form in the resultant web-app. Alternatively, if your target is an internet site, you can embed directly against the `http://jolecule.com`. For examples, for 1MBO, see <http://jolecule.com/embed/pdb?pdb_id=1mbo>.
 
 Jolecule is designed to be easily embeddable as widgets in an external web-page. You can link to the public website or create a self-contained local version that can zipped and stuffed into an email attachment.
 
@@ -203,8 +196,41 @@ The parameters in `initEmbedJolecule` controls how the widget is displayed:
 - `isPlayable`: shows the buttons to move through annotated view slide-show
 - `backgroundColor`: the color in hex for the background e.g. 0xFFFFFF 0x000000
 
-## Changelog
+## Developing jolecule
 
+If you want to edit the source code to jolecule, the source code is in `jolecule/src`. It is written in ES6 and needs to be compiled. The compiled module is found in `jolecule/dist/jolecule.js`. To compile the source code, in the Jolecule directory, run:
+
+    ./node_modules/.bin/webpack
+
+Alternatively, to create a watcher for changes, run:
+
+    ./node_modules/.bin/webpack -w
+
+In the watch mode, open the static web-app in `dist/index.html`, and reload the web-page after the compilation is finished.
+
+
+## Visual Graphic Design 
+
+Jolecule has a focused design for rendering proteins and DNA. The visual design focuses on being able to transition between an overall cartoon view with detailed stereochemical views of bonds and atoms. To enable that, ribbons are drawn through the C-alpha atoms in the backbone chain. This gives a pleated look to the beta-sheets, but has the advantage that sidechains can be draw to protrube clearly from the ribbon in both helices and sidechains.
+
+The author has found that sidechains protruding from ribbons provides an excellent intermediate representation that can show a good intermediate level of details between protein architecture and direct atomic interaction between sidechains.
+
+The cartoon view uses a flat ribbon for alpha-helices and beta-sheets, with a distinct thin tube for coils. C-alpha atoms are shown as arrows to indicate chain direction, and this can make it easy to determine parallel from antiparallel beta-sheets and helical alignments.
+
+In the display of nucleotides, the cartoon tube shows the bases as a well-defined object. This is done to indicate the importance of base-stacking as an ordering principle in nucleotide structure.
+
+## Changelog
+- 5.0 (Sep 2016)
+    - Proper fly-weight for loading data structures
+    - Drawing uses only typed-arrays 
+    - colors implemented on residue level
+    - spherical views
+    - transparent chain mode
+    - embedded works a lot more flexibly
+    - file-browser sidebar for electron app
+    - slideshow modes with rock and rotate
+    - select residue selector
+    - improved sequence bar (with help from Sean O'Donoghue)
 - 4.0 (Dec 2016)
     - converted to ES6 using import/export
     - webpack to transpile to bundled ES5 UMD module

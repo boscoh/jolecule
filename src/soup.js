@@ -445,6 +445,8 @@ class Soup {
 
     // stores trace of protein/nucleotide backbones for ribbons
     this.traces = []
+    // stores selected chain
+    this.selectedTraces = []
 
     this.atomStore = new Store(atomStoreFields)
     this.residueStore = new Store(residueStoreFields)
@@ -1392,6 +1394,18 @@ class Soup {
 
     this.calcBondsStrategic()
   }
+
+  makeSelectedResidueList () {
+    let result = []
+    let residue = this.getResidueProxy()
+    for (let i = 0; i < this.getResidueCount(); i += 1) {
+      if (residue.load(i).sidechain) {
+        result.push(i)
+      }
+    }
+    return result
+  }
+
 }
 
 /**
@@ -1435,8 +1449,10 @@ class View {
     this.selected = []
     this.labels = []
     this.distances = []
+    this.selectedTraces = []
     this.text = 'Default view of PDB file'
     this.user_id = ''
+    this.pdb_id = ''
     this.show = {
       sidechain: true,
       peptide: true,
@@ -1453,7 +1469,6 @@ class View {
       isElem: {},
       bCutoff: null
     }
-    this.pdb_id = ''
   }
 
   setCamera (cameraParams) {
@@ -1474,6 +1489,7 @@ class View {
     v.pdb_id = this.pdb_id
     v.iAtom = this.iAtom
     v.selected = this.selected
+    v.selectedTraces = _.cloneDeep(this.selectedTraces)
     v.labels = _.cloneDeep(this.labels)
     v.distances = _.cloneDeep(this.distances)
     v.order = this.order
@@ -1517,6 +1533,7 @@ class View {
       i_atom: this.iAtom,
       labels: this.labels,
       selected: this.selected,
+      selected_traces: this.selectedTraces,
       distances: this.distances,
       camera: {
         slab: {
@@ -1533,7 +1550,6 @@ class View {
 
   setFromDict (flatDict) {
     this.id = flatDict.view_id
-    this.view_id = flatDict.view_id
     this.pdb_id = flatDict.pdb_id
     this.lock = flatDict.lock
     this.text = flatDict.text
@@ -1565,6 +1581,10 @@ class View {
 
     if ('grid' in flatDict) {
       this.grid = flatDict.grid
+    }
+
+    if ('selected_traces' in flatDict) {
+      this.selectedTraces = _.cloneDeep(flatDict['selected_traces'])
     }
 
     let pos = v3.create(
@@ -1831,6 +1851,26 @@ class SoupView {
     return newView
   }
 
+  setTargetViewByViewId (viewId) {
+    let view = this.savedViewsByViewId[viewId]
+    this.iLastViewSelected = this.savedViewsByViewId[viewId].order
+    this.setTargetView(view)
+  }
+
+  setTargetViewByIAtom (iAtom) {
+    let atom = this.soup.getAtomProxy(iAtom)
+    let view = this.currentView.getViewTranslatedTo(atom.pos)
+    view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus)
+    view.selectedTraces = []
+    for (let [iTrace, trace] of this.soup.traces.entries()) {
+      if (_.includes(trace.indices, atom.iRes)) {
+        view.selectedTraces.push(iTrace)
+      }
+    }
+    console.log('SoupView.setTargetViewByIAtom new trace', view.selectedTraces)
+    this.setTargetView(view)
+  }
+
   getZoomedOutViewOfSelection () {
     let newView = this.currentView.clone()
 
@@ -1865,6 +1905,209 @@ class SoupView {
 
     newView.iAtom = this.soup.getIAtomAtPosition(center)
     return newView
+  }
+
+  saveCurrentView () {
+    let newView = this.currentView.clone()
+    newView.id = randomId()
+    newView.text = 'Click edit to change this text.'
+    newView.pdb_id = this.soup.structureIds[0]
+    newView.selected = this.soup.makeSelectedResidueList()
+    newView.selectedTraces = _.cloneDeep(this.soup.selectedTraces)
+
+    let iNewView = this.iLastViewSelected + 1
+    this.insertView(iNewView, newView.id, newView)
+    this.setTargetViewByViewId(newView.id)
+    this.changed = true
+    this.updateSelection = true
+    console.log('Soupview.saveCurrentView', newView)
+
+    return newView.id
+  }
+
+  setCurrentView (view) {
+    let oldViewSelected = this.currentView.selected
+    this.currentView = view.clone()
+    this.soup.selectedTraces = _.cloneDeep(view.selectedTraces)
+    if (!_.isEqual(oldViewSelected.sort(), view.selected.sort())) {
+      this.soup.clearSidechainResidues()
+      this.soup.setSidechainOfResidues(view.selected, true)
+      this.updateSidechain = true
+    }
+
+    // use view.grid parameters to reset soup.grid
+    for (let elem in view.grid.isElem) {
+      if (elem in this.soup.grid.isElem) {
+        if (view.grid.isElem[elem] !== this.soup.grid.isElem[elem]) {
+          this.soup.grid.isElem[elem] = view.grid.isElem[elem]
+          this.soup.grid.changed = true
+        }
+      }
+    }
+    if (!_.isNil(view.grid.bCutoff)) {
+      if (this.soup.grid.bCutoff !== view.grid.bCutoff) {
+        this.soup.grid.bCutoff = view.grid.bCutoff
+        this.soup.grid.changed = true
+      }
+    }
+
+    this.changed = true
+  }
+
+  setTargetToPrevView () {
+    if (this.savedViews.length === 0) {
+      return ''
+    }
+    this.iLastViewSelected -= 1
+    if (this.iLastViewSelected < 0) {
+      this.iLastViewSelected = this.savedViews.length - 1
+    }
+    let id = this.savedViews[this.iLastViewSelected].id
+    this.setTargetViewByViewId(id)
+    return id
+  }
+
+  setTargetToNextView () {
+    if (this.savedViews.length === 0) {
+      return ''
+    }
+    this.iLastViewSelected += 1
+    if (this.iLastViewSelected >= this.savedViews.length) {
+      this.iLastViewSelected = 0
+    }
+    let id = this.savedViews[this.iLastViewSelected].id
+    this.setTargetViewByViewId(id)
+    return id
+  }
+
+  setTargetToPrevResidue () {
+    let iAtom = _.get(this.targetView, 'iAtom')
+    if (exists(iAtom)) {
+      iAtom = this.targetView.iAtom
+    } else {
+      iAtom = this.currentView.iAtom
+    }
+    if (iAtom < 0) {
+      iAtom = 0
+    }
+    let iRes = this.soup.getAtomProxy(iAtom).iRes
+    if (iRes <= 0) {
+      iRes = this.soup.getResidueCount() - 1
+    } else {
+      iRes -= 1
+    }
+    iAtom = this.soup.getResidueProxy(iRes).iAtom
+    this.setTargetViewByIAtom(iAtom)
+  }
+
+  setTargetToNextResidue () {
+    let iAtom = _.get(this.targetView, 'iAtom')
+    if (exists(iAtom)) {
+      iAtom = this.targetView.iAtom
+    } else {
+      iAtom = this.currentView.iAtom
+    }
+    if (iAtom < 0) {
+      iAtom = 0
+    }
+    let iRes = this.soup.getAtomProxy(iAtom).iRes
+    if (iRes >= this.soup.getResidueCount() - 1) {
+      iRes = 0
+    } else {
+      iRes += 1
+    }
+    iAtom = this.soup.getResidueProxy(iRes).iAtom
+    this.setTargetViewByIAtom(iAtom)
+  }
+
+  adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
+    let cameraParams = this.currentView.cameraParams
+
+    let y = cameraParams.up
+    let z = cameraParams.position.clone()
+      .sub(cameraParams.focus)
+      .normalize()
+    let x = (v3.create())
+      .crossVectors(y, z)
+      .normalize()
+
+    let rotZ = new THREE.Quaternion()
+      .setFromAxisAngle(z, zRotationAngle)
+
+    let rotY = new THREE.Quaternion()
+      .setFromAxisAngle(y, -yRotationAngle)
+
+    let rotX = new THREE.Quaternion()
+      .setFromAxisAngle(x, -xRotationAngle)
+
+    let rotation = new THREE.Quaternion()
+      .multiply(rotZ)
+      .multiply(rotY)
+      .multiply(rotX)
+
+    let newZoom = zoomRatio * cameraParams.zoom
+
+    if (newZoom < 2) {
+      newZoom = 2
+    }
+
+    let position = cameraParams.position.clone()
+      .sub(cameraParams.focus)
+      .applyQuaternion(rotation)
+      .normalize()
+      .multiplyScalar(newZoom)
+      .add(cameraParams.focus)
+
+    let view = this.currentView.clone()
+    view.cameraParams.focus = cameraParams.focus.clone()
+    view.cameraParams.position = position
+    view.cameraParams.up = cameraParams.up.clone().applyQuaternion(rotation)
+    view.cameraParams.zoom = newZoom
+
+    this.setCurrentView(view)
+  }
+
+  animate (elapsedTime) {
+    this.nUpdateStep -= elapsedTime / this.msPerStep
+    if (this.nUpdateStep < 0) {
+      if (this.targetView !== null) {
+        this.setCurrentView(this.targetView)
+        this.updateObservers = true
+        this.changed = true
+        this.targetView = null
+        this.nUpdateStep = this.maxUpdateStep
+      } else {
+        if (this.startTargetAfterRender) {
+          this.changed = true
+        } else if (this.animateState === 'loop') {
+          if (this.nUpdateStep < -this.maxWaitStep) {
+            this.setTargetToNextView()
+          }
+        } else if (this.animateState === 'rotate') {
+          this.adjustCamera(0.0, 0.002, 0, 1)
+        } else if (this.animateState === 'rock') {
+          let nStepRock = 18
+          if (this.nUpdateStep > -nStepRock) {
+            this.adjustCamera(0.0, 0.002, 0, 1)
+          } else if (this.nUpdateStep > -3 * nStepRock) {
+            this.adjustCamera(0.0, -0.002, 0, 1)
+          } else if (this.nUpdateStep > -4 * nStepRock) {
+            this.adjustCamera(0.0, +0.002, 0, 1)
+          } else {
+            this.nUpdateStep = 0
+          }
+        }
+      }
+    } else if (this.nUpdateStep >= 1) {
+      if (this.targetView != null) {
+        let view = this.currentView.clone()
+        view.setCamera(interpolateCameras(
+          this.currentView.cameraParams,
+          this.targetView.cameraParams,
+          1.0 / this.nUpdateStep))
+        this.setCurrentView(view)
+      }
+    }
   }
 }
 
@@ -1904,84 +2147,27 @@ class Controller {
   }
 
   setTargetViewByViewId (viewId) {
-    let view = this.soupView.savedViewsByViewId[viewId]
-    this.soupView.iLastViewSelected = this.soupView.savedViewsByViewId[viewId].order
-    this.setTargetView(view)
+    this.soupView.setTargetViewByViewId(viewId)
   }
 
   setTargetViewByIAtom (iAtom) {
-    let atom = this.soup.getAtomProxy(iAtom)
-    let view = this.soupView.currentView.getViewTranslatedTo(atom.pos)
-    view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus)
-    this.setTargetView(view)
+    this.soupView.setTargetViewByIAtom(iAtom)
   }
 
   setTargetToPrevResidue () {
-    let iAtom = _.get(this.soupView, 'targetView.iAtom')
-    if (exists(iAtom)) {
-      iAtom = this.soupView.targetView.iAtom
-    } else {
-      iAtom = this.soupView.currentView.iAtom
-    }
-    if (iAtom < 0) {
-      iAtom = 0
-    }
-    let iRes = this.soup.getAtomProxy(iAtom).iRes
-    if (iRes <= 0) {
-      iRes = this.soup.getResidueCount() - 1
-    } else {
-      iRes -= 1
-    }
-    iAtom = this.soup.getResidueProxy(iRes).iAtom
-    this.setTargetViewByIAtom(iAtom)
+    this.soupView.setTargetToPrevResidue()
   }
 
   setTargetToNextResidue () {
-    let iAtom = _.get(this.soupView, 'targetView.iAtom')
-    if (exists(iAtom)) {
-      iAtom = this.soupView.targetView.iAtom
-    } else {
-      iAtom = this.soupView.currentView.iAtom
-    }
-    if (iAtom < 0) {
-      iAtom = 0
-    }
-    let iRes = this.soup.getAtomProxy(iAtom).iRes
-    if (iRes >= this.soup.getResidueCount() - 1) {
-      iRes = 0
-    } else {
-      iRes += 1
-    }
-    iAtom = this.soup.getResidueProxy(iRes).iAtom
-    this.setTargetViewByIAtom(iAtom)
+    this.soupView.setTargetToNextResidue()
   }
 
   setTargetToPrevView () {
-    let soupView = this.soupView
-    if (soupView.savedViews.length === 0) {
-      return ''
-    }
-    soupView.iLastViewSelected -= 1
-    if (soupView.iLastViewSelected < 0) {
-      soupView.iLastViewSelected = soupView.savedViews.length - 1
-    }
-    let id = soupView.savedViews[soupView.iLastViewSelected].id
-    this.setTargetViewByViewId(id)
-    return id
+    return this.soupView.setTargetToPrevView()
   }
 
   setTargetToNextView () {
-    let soupView = this.soupView
-    if (soupView.savedViews.length === 0) {
-      return ''
-    }
-    soupView.iLastViewSelected += 1
-    if (soupView.iLastViewSelected >= soupView.savedViews.length) {
-      soupView.iLastViewSelected = 0
-    }
-    let id = soupView.savedViews[soupView.iLastViewSelected].id
-    this.setTargetViewByViewId(id)
-    return id
+    return this.soupView.setTargetToNextView()
   }
 
   swapViews (i, j) {
@@ -2000,27 +2186,16 @@ class Controller {
     return viewDicts
   }
 
-  makeSelectedResidueList () {
-    let result = []
-    let residue = this.soup.getResidueProxy()
-    for (let i = 0; i < this.soup.getResidueCount(); i += 1) {
-      if (residue.load(i).sidechain) {
-        result.push(i)
-      }
-    }
-    return result
-  }
-
   clearSidechainResidues () {
     this.soup.clearSidechainResidues()
-    this.soupView.currentView.selected = this.makeSelectedResidueList()
+    this.soupView.currentView.selected = this.soup.makeSelectedResidueList()
     this.soupView.updateSidechain = true
     this.soupView.changed = true
   }
 
   clearSelectedResidues () {
     this.soup.clearSelectedResidues()
-    this.soupView.currentView.selected = this.makeSelectedResidueList()
+    this.soupView.currentView.selected = this.soup.makeSelectedResidueList()
     this.soupView.updateSelection = true
     this.soupView.changed = true
   }
@@ -2139,25 +2314,13 @@ class Controller {
     let isSidechain = nSidechain < indices.length
 
     this.soup.setSidechainOfResidues(indices, isSidechain)
-    this.soupView.currentView.selected = this.makeSelectedResidueList()
+    this.soupView.currentView.selected = this.soup.makeSelectedResidueList()
     this.soupView.changed = true
     this.soupView.updateSidechain = true
   }
 
   saveCurrentView () {
-    let newViewId = randomId()
-    let iNewView = this.soupView.iLastViewSelected + 1
-    let newView = this.soupView.currentView.clone()
-    newView.text = 'Click edit to change this text.'
-    newView.pdb_id = this.soup.structureIds[0]
-    newView.id = newViewId
-    newView.selected = this.makeSelectedResidueList()
-    this.soupView.insertView(iNewView, newViewId, newView)
-    this.setTargetViewByViewId(newViewId)
-    this.soupView.changed = true
-    this.soupView.updateSelection = true
-
-    return newViewId
+    return this.soupView.saveCurrentView()
   }
 
   deleteView (viewId) {
@@ -2209,34 +2372,6 @@ class Controller {
   }
 
   setChangeFlag () {
-    this.soupView.changed = true
-  }
-
-  setCurrentView (view) {
-    let oldViewSelected = this.soupView.currentView.selected
-    this.soupView.currentView = view.clone()
-    if (!_.isEqual(oldViewSelected.sort(), view.selected.sort())) {
-      this.soup.clearSidechainResidues()
-      this.soup.setSidechainOfResidues(view.selected, true)
-      this.soupView.updateSidechain = true
-    }
-
-    // use view.grid parameters to reset soup.grid
-    for (let elem in view.grid.isElem) {
-      if (elem in this.soup.grid.isElem) {
-        if (view.grid.isElem[elem] !== this.soup.grid.isElem[elem]) {
-          this.soup.grid.isElem[elem] = view.grid.isElem[elem]
-          this.soup.grid.changed = true
-        }
-      }
-    }
-    if (!_.isNil(view.grid.bCutoff)) {
-      if (this.soup.grid.bCutoff !== view.grid.bCutoff) {
-        this.soup.grid.bCutoff = view.grid.bCutoff
-        this.soup.grid.changed = true
-      }
-    }
-
     this.soupView.changed = true
   }
 
@@ -2320,6 +2455,10 @@ class Controller {
       this.setTargetView(this.soupView.getZoomedOutViewOfSelection())
       this.soupView.changed = true
     }
+  }
+
+  adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
+    this.soupView.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio)
   }
 }
 

@@ -423,9 +423,6 @@ class SoupWidget extends WebglWidget {
     // draw onscreen line for mouse dragging between atoms
     this.lineElement = new widgets.LineElement(this, '#FF7777')
 
-    // index of traces to show selected
-    this.selectedTraces = []
-
     registerGlobalAnimationLoop(this)
   }
 
@@ -469,57 +466,6 @@ class SoupWidget extends WebglWidget {
     return this.soupView.currentView.cameraParams
   }
   
-  rotateCameraParamsToCurrentView () {
-    this.setCameraParams(this.getCameraOfCurrentView())
-  }
-
-  adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-    let cameraParams = this.getCameraOfCurrentView()
-
-    let y = cameraParams.up
-    let z = cameraParams.position.clone()
-      .sub(cameraParams.focus)
-      .normalize()
-    let x = (v3.create())
-      .crossVectors(y, z)
-      .normalize()
-
-    let rotZ = new THREE.Quaternion()
-      .setFromAxisAngle(z, zRotationAngle)
-
-    let rotY = new THREE.Quaternion()
-      .setFromAxisAngle(y, -yRotationAngle)
-
-    let rotX = new THREE.Quaternion()
-      .setFromAxisAngle(x, -xRotationAngle)
-
-    let rotation = new THREE.Quaternion()
-      .multiply(rotZ)
-      .multiply(rotY)
-      .multiply(rotX)
-
-    let newZoom = zoomRatio * cameraParams.zoom
-
-    if (newZoom < 2) {
-      newZoom = 2
-    }
-
-    let position = cameraParams.position.clone()
-      .sub(cameraParams.focus)
-      .applyQuaternion(rotation)
-      .normalize()
-      .multiplyScalar(newZoom)
-      .add(cameraParams.focus)
-
-    let view = this.soupView.currentView.clone()
-    view.cameraParams.focus = cameraParams.focus.clone()
-    view.cameraParams.position = position
-    view.cameraParams.up = cameraParams.up.clone().applyQuaternion(rotation)
-    view.cameraParams.zoom = newZoom
-
-    this.controller.setCurrentView(view)
-  }
-
   getZ (pos) {
     let cameraParams = this.getCameraOfCurrentView()
     let cameraDir = cameraParams.focus.clone()
@@ -647,7 +593,7 @@ class SoupWidget extends WebglWidget {
       new representation.CartoonRepresentation(this.soup, true))
     this.addRepresentation(
       'ribbon',
-      new representation.CartoonRepresentation(this.soup, false, this.selectedTraces))
+      new representation.CartoonRepresentation(this.soup, false, this.soup.selectedTraces))
     this.addRepresentation(
       'ligand',
       new representation.LigandRepresentation(this.soup, this.atomRadius))
@@ -739,23 +685,11 @@ class SoupWidget extends WebglWidget {
     this.setMeshVisible('sphere', show.sphere)
 
     if (show.transparent) {
-      let iAtom = this.soupView.currentView.iAtom
-      let iRes = this.soup.getAtomProxy(iAtom).iRes
-      if (!_.isNil(iRes)) {
-        let selectedTraces = []
-        for (let [iTrace, trace] of this.soup.traces.entries()) {
-          if (_.includes(trace.indices, iRes)) {
-            selectedTraces.push(iTrace)
-            break
-          }
-        }
-        if (selectedTraces.length > 0) {
-          if (!_.isEqual(selectedTraces, this.representations.ribbon.selectedTraces)) {
-            this.representations.ribbon.selectedTraces = selectedTraces
-            this.representations.ribbon.build()
-            this.updateMeshesInScene = true
-          }
-        }
+      if (!_.isEqual(this.soup.selectedTraces, this.representations.ribbon.selectedTraces)) {
+        console.log('SoupWidget.drawFrame new soup.selectedTraces', this.soup.selectedTraces)
+        this.representations.ribbon.selectedTraces = this.soup.selectedTraces
+        this.representations.ribbon.build()
+        this.updateMeshesInScene = true
       }
     } else {
       if (this.representations.ribbon && (this.representations.ribbon.selectedTraces.length > 0)) {
@@ -799,7 +733,7 @@ class SoupWidget extends WebglWidget {
 
     this.updateCrossHairs()
 
-    this.rotateCameraParamsToCurrentView()
+    this.setCameraParams(this.getCameraOfCurrentView())
 
     // needs to be observers.updated before render
     // as lines must be placed in THREE.js scene
@@ -819,46 +753,7 @@ class SoupWidget extends WebglWidget {
   }
 
   animate (elapsedTime) {
-    this.soupView.nUpdateStep -= elapsedTime / this.soupView.msPerStep
-    if (this.soupView.nUpdateStep < 0) {
-      if (this.soupView.targetView !== null) {
-        this.controller.setCurrentView(this.soupView.targetView)
-        this.soupView.updateObservers = true
-        this.soupView.changed = true
-        this.soupView.targetView = null
-        this.soupView.nUpdateStep = this.soupView.maxUpdateStep
-      } else {
-        if (this.soupView.startTargetAfterRender) {
-          this.soupView.changed = true
-        } else if (this.soupView.animateState === 'loop') {
-          if (this.soupView.nUpdateStep < -this.soupView.maxWaitStep) {
-            this.controller.setTargetToNextView()
-          }
-        } else if (this.soupView.animateState === 'rotate') {
-          this.adjustCamera(0.0, 0.002, 0, 1)
-        } else if (this.soupView.animateState === 'rock') {
-          let nStepRock = 18
-          if (this.soupView.nUpdateStep > -nStepRock) {
-            this.adjustCamera(0.0, 0.002, 0, 1)
-          } else if (this.soupView.nUpdateStep > -3*nStepRock) {
-            this.adjustCamera(0.0, -0.002, 0, 1)
-          } else if (this.soupView.nUpdateStep > -4*nStepRock) {
-            this.adjustCamera(0.0, +0.002, 0, 1)
-          } else {
-            this.soupView.nUpdateStep = 0
-          }
-        }
-      }
-    } else if (this.soupView.nUpdateStep >= 1) {
-      if (this.soupView.targetView != null) {
-        let view = this.soupView.currentView.clone()
-        view.setCamera(interpolateCameras(
-          this.soupView.currentView.cameraParams,
-          this.soupView.targetView.cameraParams,
-          1.0 / this.soupView.nUpdateStep))
-        this.controller.setCurrentView(view)
-      }
-    }
+    this.soupView.animate(elapsedTime)
     this.updateHover()
   }
 
@@ -979,7 +874,7 @@ class SoupWidget extends WebglWidget {
           xRotationAngle = v3.degToRad(this.mouseY - this.saveMouseY)
         }
 
-        this.adjustCamera(
+        this.controller.adjustCamera(
           xRotationAngle,
           yRotationAngle,
           zRotationAngle,
@@ -1041,7 +936,7 @@ class SoupWidget extends WebglWidget {
 
     let zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1)
 
-    this.adjustCamera(0, 0, 0, zoom)
+    this.controller.adjustCamera(0, 0, 0, zoom)
   }
 
   gesturestart (event) {
@@ -1053,7 +948,7 @@ class SoupWidget extends WebglWidget {
 
   gesturechange (event) {
     event.preventDefault()
-    this.adjustCamera(
+    this.controller.adjustCamera(
       0,
       0,
       v3.degToRad(event.rotation * 2 - this.lastPinchRotation),

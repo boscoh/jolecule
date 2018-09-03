@@ -80486,6 +80486,8 @@ var Soup = function () {
 
     // stores trace of protein/nucleotide backbones for ribbons
     this.traces = [];
+    // stores selected chain
+    this.selectedTraces = [];
 
     this.atomStore = new _store2.default(atomStoreFields);
     this.residueStore = new _store2.default(residueStoreFields);
@@ -81894,6 +81896,18 @@ var Soup = function () {
 
       this.calcBondsStrategic();
     }
+  }, {
+    key: 'makeSelectedResidueList',
+    value: function makeSelectedResidueList() {
+      var result = [];
+      var residue = this.getResidueProxy();
+      for (var i = 0; i < this.getResidueCount(); i += 1) {
+        if (residue.load(i).sidechain) {
+          result.push(i);
+        }
+      }
+      return result;
+    }
   }]);
 
   return Soup;
@@ -81944,8 +81958,10 @@ var View = function () {
     this.selected = [];
     this.labels = [];
     this.distances = [];
+    this.selectedTraces = [];
     this.text = 'Default view of PDB file';
     this.user_id = '';
+    this.pdb_id = '';
     this.show = {
       sidechain: true,
       peptide: true,
@@ -81961,7 +81977,6 @@ var View = function () {
       isElem: {},
       bCutoff: null
     };
-    this.pdb_id = '';
   }
 
   _createClass(View, [{
@@ -81986,6 +82001,7 @@ var View = function () {
       v.pdb_id = this.pdb_id;
       v.iAtom = this.iAtom;
       v.selected = this.selected;
+      v.selectedTraces = _lodash2.default.cloneDeep(this.selectedTraces);
       v.labels = _lodash2.default.cloneDeep(this.labels);
       v.distances = _lodash2.default.cloneDeep(this.distances);
       v.order = this.order;
@@ -82029,6 +82045,7 @@ var View = function () {
         i_atom: this.iAtom,
         labels: this.labels,
         selected: this.selected,
+        selected_traces: this.selectedTraces,
         distances: this.distances,
         camera: {
           slab: {
@@ -82046,7 +82063,6 @@ var View = function () {
     key: 'setFromDict',
     value: function setFromDict(flatDict) {
       this.id = flatDict.view_id;
-      this.view_id = flatDict.view_id;
       this.pdb_id = flatDict.pdb_id;
       this.lock = flatDict.lock;
       this.text = flatDict.text;
@@ -82099,6 +82115,10 @@ var View = function () {
 
       if ('grid' in flatDict) {
         this.grid = flatDict.grid;
+      }
+
+      if ('selected_traces' in flatDict) {
+        this.selectedTraces = _lodash2.default.cloneDeep(flatDict['selected_traces']);
       }
 
       var pos = _v2.default.create(flatDict.camera.pos[0], flatDict.camera.pos[1], flatDict.camera.pos[2]);
@@ -82352,24 +82372,31 @@ var SoupView = function () {
       return newView;
     }
   }, {
-    key: 'getZoomedOutViewOfSelection',
-    value: function getZoomedOutViewOfSelection() {
-      var newView = this.currentView.clone();
-
-      var atomIndices = [];
-      var atom = this.soup.getAtomProxy();
-      var residue = this.soup.getResidueProxy();
+    key: 'setTargetViewByViewId',
+    value: function setTargetViewByViewId(viewId) {
+      var view = this.savedViewsByViewId[viewId];
+      this.iLastViewSelected = this.savedViewsByViewId[viewId].order;
+      this.setTargetView(view);
+    }
+  }, {
+    key: 'setTargetViewByIAtom',
+    value: function setTargetViewByIAtom(iAtom) {
+      var atom = this.soup.getAtomProxy(iAtom);
+      var view = this.currentView.getViewTranslatedTo(atom.pos);
+      view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
+      view.selectedTraces = [];
       var _iteratorNormalCompletion23 = true;
       var _didIteratorError23 = false;
       var _iteratorError23 = undefined;
 
       try {
-        for (var _iterator23 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-          var iRes = _step23.value;
+        for (var _iterator23 = this.soup.traces.entries()[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+          var _step23$value = _slicedToArray(_step23.value, 2),
+              iTrace = _step23$value[0],
+              trace = _step23$value[1];
 
-          residue.load(iRes);
-          if (residue.selected) {
-            atomIndices.push(residue.iAtom);
+          if (_lodash2.default.includes(trace.indices, atom.iRes)) {
+            view.selectedTraces.push(iTrace);
           }
         }
       } catch (err) {
@@ -82383,6 +82410,45 @@ var SoupView = function () {
         } finally {
           if (_didIteratorError23) {
             throw _iteratorError23;
+          }
+        }
+      }
+
+      console.log('SoupView.setTargetViewByIAtom new trace', view.selectedTraces);
+      this.setTargetView(view);
+    }
+  }, {
+    key: 'getZoomedOutViewOfSelection',
+    value: function getZoomedOutViewOfSelection() {
+      var newView = this.currentView.clone();
+
+      var atomIndices = [];
+      var atom = this.soup.getAtomProxy();
+      var residue = this.soup.getResidueProxy();
+      var _iteratorNormalCompletion24 = true;
+      var _didIteratorError24 = false;
+      var _iteratorError24 = undefined;
+
+      try {
+        for (var _iterator24 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
+          var iRes = _step24.value;
+
+          residue.load(iRes);
+          if (residue.selected) {
+            atomIndices.push(residue.iAtom);
+          }
+        }
+      } catch (err) {
+        _didIteratorError24 = true;
+        _iteratorError24 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion24 && _iterator24.return) {
+            _iterator24.return();
+          }
+        } finally {
+          if (_didIteratorError24) {
+            throw _iteratorError24;
           }
         }
       }
@@ -82406,6 +82472,199 @@ var SoupView = function () {
 
       newView.iAtom = this.soup.getIAtomAtPosition(center);
       return newView;
+    }
+  }, {
+    key: 'saveCurrentView',
+    value: function saveCurrentView() {
+      var newView = this.currentView.clone();
+      newView.id = (0, _util.randomId)();
+      newView.text = 'Click edit to change this text.';
+      newView.pdb_id = this.soup.structureIds[0];
+      newView.selected = this.soup.makeSelectedResidueList();
+      newView.selectedTraces = _lodash2.default.cloneDeep(this.soup.selectedTraces);
+
+      var iNewView = this.iLastViewSelected + 1;
+      this.insertView(iNewView, newView.id, newView);
+      this.setTargetViewByViewId(newView.id);
+      this.changed = true;
+      this.updateSelection = true;
+      console.log('Soupview.saveCurrentView', newView);
+
+      return newView.id;
+    }
+  }, {
+    key: 'setCurrentView',
+    value: function setCurrentView(view) {
+      var oldViewSelected = this.currentView.selected;
+      this.currentView = view.clone();
+      this.soup.selectedTraces = _lodash2.default.cloneDeep(view.selectedTraces);
+      if (!_lodash2.default.isEqual(oldViewSelected.sort(), view.selected.sort())) {
+        this.soup.clearSidechainResidues();
+        this.soup.setSidechainOfResidues(view.selected, true);
+        this.updateSidechain = true;
+      }
+
+      // use view.grid parameters to reset soup.grid
+      for (var elem in view.grid.isElem) {
+        if (elem in this.soup.grid.isElem) {
+          if (view.grid.isElem[elem] !== this.soup.grid.isElem[elem]) {
+            this.soup.grid.isElem[elem] = view.grid.isElem[elem];
+            this.soup.grid.changed = true;
+          }
+        }
+      }
+      if (!_lodash2.default.isNil(view.grid.bCutoff)) {
+        if (this.soup.grid.bCutoff !== view.grid.bCutoff) {
+          this.soup.grid.bCutoff = view.grid.bCutoff;
+          this.soup.grid.changed = true;
+        }
+      }
+
+      this.changed = true;
+    }
+  }, {
+    key: 'setTargetToPrevView',
+    value: function setTargetToPrevView() {
+      if (this.savedViews.length === 0) {
+        return '';
+      }
+      this.iLastViewSelected -= 1;
+      if (this.iLastViewSelected < 0) {
+        this.iLastViewSelected = this.savedViews.length - 1;
+      }
+      var id = this.savedViews[this.iLastViewSelected].id;
+      this.setTargetViewByViewId(id);
+      return id;
+    }
+  }, {
+    key: 'setTargetToNextView',
+    value: function setTargetToNextView() {
+      if (this.savedViews.length === 0) {
+        return '';
+      }
+      this.iLastViewSelected += 1;
+      if (this.iLastViewSelected >= this.savedViews.length) {
+        this.iLastViewSelected = 0;
+      }
+      var id = this.savedViews[this.iLastViewSelected].id;
+      this.setTargetViewByViewId(id);
+      return id;
+    }
+  }, {
+    key: 'setTargetToPrevResidue',
+    value: function setTargetToPrevResidue() {
+      var iAtom = _lodash2.default.get(this.targetView, 'iAtom');
+      if ((0, _util.exists)(iAtom)) {
+        iAtom = this.targetView.iAtom;
+      } else {
+        iAtom = this.currentView.iAtom;
+      }
+      if (iAtom < 0) {
+        iAtom = 0;
+      }
+      var iRes = this.soup.getAtomProxy(iAtom).iRes;
+      if (iRes <= 0) {
+        iRes = this.soup.getResidueCount() - 1;
+      } else {
+        iRes -= 1;
+      }
+      iAtom = this.soup.getResidueProxy(iRes).iAtom;
+      this.setTargetViewByIAtom(iAtom);
+    }
+  }, {
+    key: 'setTargetToNextResidue',
+    value: function setTargetToNextResidue() {
+      var iAtom = _lodash2.default.get(this.targetView, 'iAtom');
+      if ((0, _util.exists)(iAtom)) {
+        iAtom = this.targetView.iAtom;
+      } else {
+        iAtom = this.currentView.iAtom;
+      }
+      if (iAtom < 0) {
+        iAtom = 0;
+      }
+      var iRes = this.soup.getAtomProxy(iAtom).iRes;
+      if (iRes >= this.soup.getResidueCount() - 1) {
+        iRes = 0;
+      } else {
+        iRes += 1;
+      }
+      iAtom = this.soup.getResidueProxy(iRes).iAtom;
+      this.setTargetViewByIAtom(iAtom);
+    }
+  }, {
+    key: 'adjustCamera',
+    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
+      var cameraParams = this.currentView.cameraParams;
+
+      var y = cameraParams.up;
+      var z = cameraParams.position.clone().sub(cameraParams.focus).normalize();
+      var x = _v2.default.create().crossVectors(y, z).normalize();
+
+      var rotZ = new THREE.Quaternion().setFromAxisAngle(z, zRotationAngle);
+
+      var rotY = new THREE.Quaternion().setFromAxisAngle(y, -yRotationAngle);
+
+      var rotX = new THREE.Quaternion().setFromAxisAngle(x, -xRotationAngle);
+
+      var rotation = new THREE.Quaternion().multiply(rotZ).multiply(rotY).multiply(rotX);
+
+      var newZoom = zoomRatio * cameraParams.zoom;
+
+      if (newZoom < 2) {
+        newZoom = 2;
+      }
+
+      var position = cameraParams.position.clone().sub(cameraParams.focus).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(cameraParams.focus);
+
+      var view = this.currentView.clone();
+      view.cameraParams.focus = cameraParams.focus.clone();
+      view.cameraParams.position = position;
+      view.cameraParams.up = cameraParams.up.clone().applyQuaternion(rotation);
+      view.cameraParams.zoom = newZoom;
+
+      this.setCurrentView(view);
+    }
+  }, {
+    key: 'animate',
+    value: function animate(elapsedTime) {
+      this.nUpdateStep -= elapsedTime / this.msPerStep;
+      if (this.nUpdateStep < 0) {
+        if (this.targetView !== null) {
+          this.setCurrentView(this.targetView);
+          this.updateObservers = true;
+          this.changed = true;
+          this.targetView = null;
+          this.nUpdateStep = this.maxUpdateStep;
+        } else {
+          if (this.startTargetAfterRender) {
+            this.changed = true;
+          } else if (this.animateState === 'loop') {
+            if (this.nUpdateStep < -this.maxWaitStep) {
+              this.setTargetToNextView();
+            }
+          } else if (this.animateState === 'rotate') {
+            this.adjustCamera(0.0, 0.002, 0, 1);
+          } else if (this.animateState === 'rock') {
+            var nStepRock = 18;
+            if (this.nUpdateStep > -nStepRock) {
+              this.adjustCamera(0.0, 0.002, 0, 1);
+            } else if (this.nUpdateStep > -3 * nStepRock) {
+              this.adjustCamera(0.0, -0.002, 0, 1);
+            } else if (this.nUpdateStep > -4 * nStepRock) {
+              this.adjustCamera(0.0, +0.002, 0, 1);
+            } else {
+              this.nUpdateStep = 0;
+            }
+          }
+        }
+      } else if (this.nUpdateStep >= 1) {
+        if (this.targetView != null) {
+          var view = this.currentView.clone();
+          view.setCamera(interpolateCameras(this.currentView.cameraParams, this.targetView.cameraParams, 1.0 / this.nUpdateStep));
+          this.setCurrentView(view);
+        }
+      }
     }
   }]);
 
@@ -82459,89 +82718,32 @@ var Controller = function () {
   }, {
     key: 'setTargetViewByViewId',
     value: function setTargetViewByViewId(viewId) {
-      var view = this.soupView.savedViewsByViewId[viewId];
-      this.soupView.iLastViewSelected = this.soupView.savedViewsByViewId[viewId].order;
-      this.setTargetView(view);
+      this.soupView.setTargetViewByViewId(viewId);
     }
   }, {
     key: 'setTargetViewByIAtom',
     value: function setTargetViewByIAtom(iAtom) {
-      var atom = this.soup.getAtomProxy(iAtom);
-      var view = this.soupView.currentView.getViewTranslatedTo(atom.pos);
-      view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
-      this.setTargetView(view);
+      this.soupView.setTargetViewByIAtom(iAtom);
     }
   }, {
     key: 'setTargetToPrevResidue',
     value: function setTargetToPrevResidue() {
-      var iAtom = _lodash2.default.get(this.soupView, 'targetView.iAtom');
-      if ((0, _util.exists)(iAtom)) {
-        iAtom = this.soupView.targetView.iAtom;
-      } else {
-        iAtom = this.soupView.currentView.iAtom;
-      }
-      if (iAtom < 0) {
-        iAtom = 0;
-      }
-      var iRes = this.soup.getAtomProxy(iAtom).iRes;
-      if (iRes <= 0) {
-        iRes = this.soup.getResidueCount() - 1;
-      } else {
-        iRes -= 1;
-      }
-      iAtom = this.soup.getResidueProxy(iRes).iAtom;
-      this.setTargetViewByIAtom(iAtom);
+      this.soupView.setTargetToPrevResidue();
     }
   }, {
     key: 'setTargetToNextResidue',
     value: function setTargetToNextResidue() {
-      var iAtom = _lodash2.default.get(this.soupView, 'targetView.iAtom');
-      if ((0, _util.exists)(iAtom)) {
-        iAtom = this.soupView.targetView.iAtom;
-      } else {
-        iAtom = this.soupView.currentView.iAtom;
-      }
-      if (iAtom < 0) {
-        iAtom = 0;
-      }
-      var iRes = this.soup.getAtomProxy(iAtom).iRes;
-      if (iRes >= this.soup.getResidueCount() - 1) {
-        iRes = 0;
-      } else {
-        iRes += 1;
-      }
-      iAtom = this.soup.getResidueProxy(iRes).iAtom;
-      this.setTargetViewByIAtom(iAtom);
+      this.soupView.setTargetToNextResidue();
     }
   }, {
     key: 'setTargetToPrevView',
     value: function setTargetToPrevView() {
-      var soupView = this.soupView;
-      if (soupView.savedViews.length === 0) {
-        return '';
-      }
-      soupView.iLastViewSelected -= 1;
-      if (soupView.iLastViewSelected < 0) {
-        soupView.iLastViewSelected = soupView.savedViews.length - 1;
-      }
-      var id = soupView.savedViews[soupView.iLastViewSelected].id;
-      this.setTargetViewByViewId(id);
-      return id;
+      return this.soupView.setTargetToPrevView();
     }
   }, {
     key: 'setTargetToNextView',
     value: function setTargetToNextView() {
-      var soupView = this.soupView;
-      if (soupView.savedViews.length === 0) {
-        return '';
-      }
-      soupView.iLastViewSelected += 1;
-      if (soupView.iLastViewSelected >= soupView.savedViews.length) {
-        soupView.iLastViewSelected = 0;
-      }
-      var id = soupView.savedViews[soupView.iLastViewSelected].id;
-      this.setTargetViewByViewId(id);
-      return id;
+      return this.soupView.setTargetToNextView();
     }
   }, {
     key: 'swapViews',
@@ -82562,22 +82764,10 @@ var Controller = function () {
       return viewDicts;
     }
   }, {
-    key: 'makeSelectedResidueList',
-    value: function makeSelectedResidueList() {
-      var result = [];
-      var residue = this.soup.getResidueProxy();
-      for (var i = 0; i < this.soup.getResidueCount(); i += 1) {
-        if (residue.load(i).sidechain) {
-          result.push(i);
-        }
-      }
-      return result;
-    }
-  }, {
     key: 'clearSidechainResidues',
     value: function clearSidechainResidues() {
       this.soup.clearSidechainResidues();
-      this.soupView.currentView.selected = this.makeSelectedResidueList();
+      this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
       this.soupView.updateSidechain = true;
       this.soupView.changed = true;
     }
@@ -82585,7 +82775,7 @@ var Controller = function () {
     key: 'clearSelectedResidues',
     value: function clearSelectedResidues() {
       this.soup.clearSelectedResidues();
-      this.soupView.currentView.selected = this.makeSelectedResidueList();
+      this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
       this.soupView.updateSelection = true;
       this.soupView.changed = true;
     }
@@ -82601,27 +82791,27 @@ var Controller = function () {
     key: 'showAllSidechains',
     value: function showAllSidechains() {
       var res = this.soup.getResidueProxy();
-      var _iteratorNormalCompletion24 = true;
-      var _didIteratorError24 = false;
-      var _iteratorError24 = undefined;
+      var _iteratorNormalCompletion25 = true;
+      var _didIteratorError25 = false;
+      var _iteratorError25 = undefined;
 
       try {
-        for (var _iterator24 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-          var iRes = _step24.value;
+        for (var _iterator25 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
+          var iRes = _step25.value;
 
           res.load(iRes).sidechain = true;
         }
       } catch (err) {
-        _didIteratorError24 = true;
-        _iteratorError24 = err;
+        _didIteratorError25 = true;
+        _iteratorError25 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion24 && _iterator24.return) {
-            _iterator24.return();
+          if (!_iteratorNormalCompletion25 && _iterator25.return) {
+            _iterator25.return();
           }
         } finally {
-          if (_didIteratorError24) {
-            throw _iteratorError24;
+          if (_didIteratorError25) {
+            throw _iteratorError25;
           }
         }
       }
@@ -82690,28 +82880,28 @@ var Controller = function () {
       if (nSidechain === indices.length) {
         isSidechain = false;
       }
-      var _iteratorNormalCompletion25 = true;
-      var _didIteratorError25 = false;
-      var _iteratorError25 = undefined;
+      var _iteratorNormalCompletion26 = true;
+      var _didIteratorError26 = false;
+      var _iteratorError26 = undefined;
 
       try {
-        for (var _iterator25 = indices[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
-          var _iRes9 = _step25.value;
+        for (var _iterator26 = indices[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
+          var _iRes9 = _step26.value;
 
           residue.load(_iRes9);
           residue.sidechain = isSidechain;
         }
       } catch (err) {
-        _didIteratorError25 = true;
-        _iteratorError25 = err;
+        _didIteratorError26 = true;
+        _iteratorError26 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion25 && _iterator25.return) {
-            _iterator25.return();
+          if (!_iteratorNormalCompletion26 && _iterator26.return) {
+            _iterator26.return();
           }
         } finally {
-          if (_didIteratorError25) {
-            throw _iteratorError25;
+          if (_didIteratorError26) {
+            throw _iteratorError26;
           }
         }
       }
@@ -82746,29 +82936,29 @@ var Controller = function () {
         indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes10));
       }
       var nSidechain = 0;
-      var _iteratorNormalCompletion26 = true;
-      var _didIteratorError26 = false;
-      var _iteratorError26 = undefined;
+      var _iteratorNormalCompletion27 = true;
+      var _didIteratorError27 = false;
+      var _iteratorError27 = undefined;
 
       try {
-        for (var _iterator26 = indices[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
-          var _iRes11 = _step26.value;
+        for (var _iterator27 = indices[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
+          var _iRes11 = _step27.value;
 
           if (residue.load(_iRes11).sidechain) {
             nSidechain += 1;
           }
         }
       } catch (err) {
-        _didIteratorError26 = true;
-        _iteratorError26 = err;
+        _didIteratorError27 = true;
+        _iteratorError27 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion26 && _iterator26.return) {
-            _iterator26.return();
+          if (!_iteratorNormalCompletion27 && _iterator27.return) {
+            _iterator27.return();
           }
         } finally {
-          if (_didIteratorError26) {
-            throw _iteratorError26;
+          if (_didIteratorError27) {
+            throw _iteratorError27;
           }
         }
       }
@@ -82776,26 +82966,14 @@ var Controller = function () {
       var isSidechain = nSidechain < indices.length;
 
       this.soup.setSidechainOfResidues(indices, isSidechain);
-      this.soupView.currentView.selected = this.makeSelectedResidueList();
+      this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
       this.soupView.changed = true;
       this.soupView.updateSidechain = true;
     }
   }, {
     key: 'saveCurrentView',
     value: function saveCurrentView() {
-      var newViewId = (0, _util.randomId)();
-      var iNewView = this.soupView.iLastViewSelected + 1;
-      var newView = this.soupView.currentView.clone();
-      newView.text = 'Click edit to change this text.';
-      newView.pdb_id = this.soup.structureIds[0];
-      newView.id = newViewId;
-      newView.selected = this.makeSelectedResidueList();
-      this.soupView.insertView(iNewView, newViewId, newView);
-      this.setTargetViewByViewId(newViewId);
-      this.soupView.changed = true;
-      this.soupView.updateSelection = true;
-
-      return newViewId;
+      return this.soupView.saveCurrentView();
     }
   }, {
     key: 'deleteView',
@@ -82880,35 +83058,6 @@ var Controller = function () {
       this.soupView.changed = true;
     }
   }, {
-    key: 'setCurrentView',
-    value: function setCurrentView(view) {
-      var oldViewSelected = this.soupView.currentView.selected;
-      this.soupView.currentView = view.clone();
-      if (!_lodash2.default.isEqual(oldViewSelected.sort(), view.selected.sort())) {
-        this.soup.clearSidechainResidues();
-        this.soup.setSidechainOfResidues(view.selected, true);
-        this.soupView.updateSidechain = true;
-      }
-
-      // use view.grid parameters to reset soup.grid
-      for (var elem in view.grid.isElem) {
-        if (elem in this.soup.grid.isElem) {
-          if (view.grid.isElem[elem] !== this.soup.grid.isElem[elem]) {
-            this.soup.grid.isElem[elem] = view.grid.isElem[elem];
-            this.soup.grid.changed = true;
-          }
-        }
-      }
-      if (!_lodash2.default.isNil(view.grid.bCutoff)) {
-        if (this.soup.grid.bCutoff !== view.grid.bCutoff) {
-          this.soup.grid.bCutoff = view.grid.bCutoff;
-          this.soup.grid.changed = true;
-        }
-      }
-
-      this.soupView.changed = true;
-    }
-  }, {
     key: 'setZoom',
     value: function setZoom(zBack, zFront) {
       var cameraParams = this.soupView.currentView.cameraParams;
@@ -82941,41 +83090,15 @@ var Controller = function () {
     key: 'clear',
     value: function clear() {
       var distances = this.soupView.currentView.distances;
-      var _iteratorNormalCompletion27 = true;
-      var _didIteratorError27 = false;
-      var _iteratorError27 = undefined;
-
-      try {
-        for (var _iterator27 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
-          var i = _step27.value;
-
-          this.deleteDistance(i);
-        }
-      } catch (err) {
-        _didIteratorError27 = true;
-        _iteratorError27 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion27 && _iterator27.return) {
-            _iterator27.return();
-          }
-        } finally {
-          if (_didIteratorError27) {
-            throw _iteratorError27;
-          }
-        }
-      }
-
-      var labels = this.soupView.currentView.labels;
       var _iteratorNormalCompletion28 = true;
       var _didIteratorError28 = false;
       var _iteratorError28 = undefined;
 
       try {
-        for (var _iterator28 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
-          var _i2 = _step28.value;
+        for (var _iterator28 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
+          var i = _step28.value;
 
-          this.deleteAtomLabel(_i2);
+          this.deleteDistance(i);
         }
       } catch (err) {
         _didIteratorError28 = true;
@@ -82988,6 +83111,32 @@ var Controller = function () {
         } finally {
           if (_didIteratorError28) {
             throw _iteratorError28;
+          }
+        }
+      }
+
+      var labels = this.soupView.currentView.labels;
+      var _iteratorNormalCompletion29 = true;
+      var _didIteratorError29 = false;
+      var _iteratorError29 = undefined;
+
+      try {
+        for (var _iterator29 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step29; !(_iteratorNormalCompletion29 = (_step29 = _iterator29.next()).done); _iteratorNormalCompletion29 = true) {
+          var _i2 = _step29.value;
+
+          this.deleteAtomLabel(_i2);
+        }
+      } catch (err) {
+        _didIteratorError29 = true;
+        _iteratorError29 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion29 && _iterator29.return) {
+            _iterator29.return();
+          }
+        } finally {
+          if (_didIteratorError29) {
+            throw _iteratorError29;
           }
         }
       }
@@ -83013,27 +83162,27 @@ var Controller = function () {
       this.soup.deleteStructure(iStructure);
       if (this.soup.isEmpty()) {
         this.soupView.savedViews.length = 0;
-        var _iteratorNormalCompletion29 = true;
-        var _didIteratorError29 = false;
-        var _iteratorError29 = undefined;
+        var _iteratorNormalCompletion30 = true;
+        var _didIteratorError30 = false;
+        var _iteratorError30 = undefined;
 
         try {
-          for (var _iterator29 = _lodash2.default.keys(this.soupView.savedViewsByViewId)[Symbol.iterator](), _step29; !(_iteratorNormalCompletion29 = (_step29 = _iterator29.next()).done); _iteratorNormalCompletion29 = true) {
-            var id = _step29.value;
+          for (var _iterator30 = _lodash2.default.keys(this.soupView.savedViewsByViewId)[Symbol.iterator](), _step30; !(_iteratorNormalCompletion30 = (_step30 = _iterator30.next()).done); _iteratorNormalCompletion30 = true) {
+            var id = _step30.value;
 
             delete this.soupView.savedViewsByViewId[id];
           }
         } catch (err) {
-          _didIteratorError29 = true;
-          _iteratorError29 = err;
+          _didIteratorError30 = true;
+          _iteratorError30 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion29 && _iterator29.return) {
-              _iterator29.return();
+            if (!_iteratorNormalCompletion30 && _iterator30.return) {
+              _iterator30.return();
             }
           } finally {
-            if (_didIteratorError29) {
-              throw _iteratorError29;
+            if (_didIteratorError30) {
+              throw _iteratorError30;
             }
           }
         }
@@ -83064,6 +83213,11 @@ var Controller = function () {
         this.setTargetView(this.soupView.getZoomedOutViewOfSelection());
         this.soupView.changed = true;
       }
+    }
+  }, {
+    key: 'adjustCamera',
+    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
+      this.soupView.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio);
     }
   }]);
 
@@ -90916,8 +91070,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.SoupWidget = undefined;
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -91490,9 +91642,6 @@ var SoupWidget = function (_WebglWidget) {
     // draw onscreen line for mouse dragging between atoms
     _this2.lineElement = new _widgets2.default.LineElement(_this2, '#FF7777');
 
-    // index of traces to show selected
-    _this2.selectedTraces = [];
-
     (0, _animation.registerGlobalAnimationLoop)(_this2);
     return _this2;
   }
@@ -91547,44 +91696,6 @@ var SoupWidget = function (_WebglWidget) {
     key: 'getCameraOfCurrentView',
     value: function getCameraOfCurrentView() {
       return this.soupView.currentView.cameraParams;
-    }
-  }, {
-    key: 'rotateCameraParamsToCurrentView',
-    value: function rotateCameraParamsToCurrentView() {
-      this.setCameraParams(this.getCameraOfCurrentView());
-    }
-  }, {
-    key: 'adjustCamera',
-    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-      var cameraParams = this.getCameraOfCurrentView();
-
-      var y = cameraParams.up;
-      var z = cameraParams.position.clone().sub(cameraParams.focus).normalize();
-      var x = _v2.default.create().crossVectors(y, z).normalize();
-
-      var rotZ = new THREE.Quaternion().setFromAxisAngle(z, zRotationAngle);
-
-      var rotY = new THREE.Quaternion().setFromAxisAngle(y, -yRotationAngle);
-
-      var rotX = new THREE.Quaternion().setFromAxisAngle(x, -xRotationAngle);
-
-      var rotation = new THREE.Quaternion().multiply(rotZ).multiply(rotY).multiply(rotX);
-
-      var newZoom = zoomRatio * cameraParams.zoom;
-
-      if (newZoom < 2) {
-        newZoom = 2;
-      }
-
-      var position = cameraParams.position.clone().sub(cameraParams.focus).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(cameraParams.focus);
-
-      var view = this.soupView.currentView.clone();
-      view.cameraParams.focus = cameraParams.focus.clone();
-      view.cameraParams.position = position;
-      view.cameraParams.up = cameraParams.up.clone().applyQuaternion(rotation);
-      view.cameraParams.zoom = newZoom;
-
-      this.controller.setCurrentView(view);
     }
   }, {
     key: 'getZ',
@@ -91765,7 +91876,7 @@ var SoupWidget = function (_WebglWidget) {
       }
 
       this.addRepresentation('transparentRibbon', new representation.CartoonRepresentation(this.soup, true));
-      this.addRepresentation('ribbon', new representation.CartoonRepresentation(this.soup, false, this.selectedTraces));
+      this.addRepresentation('ribbon', new representation.CartoonRepresentation(this.soup, false, this.soup.selectedTraces));
       this.addRepresentation('ligand', new representation.LigandRepresentation(this.soup, this.atomRadius));
       if (this.isGrid) {
         this.addRepresentation('grid', new representation.GridRepresentation(this.soup, this.gridAtomRadius));
@@ -91849,47 +91960,11 @@ var SoupWidget = function (_WebglWidget) {
       this.setMeshVisible('sphere', show.sphere);
 
       if (show.transparent) {
-        var iAtom = this.soupView.currentView.iAtom;
-        var iRes = this.soup.getAtomProxy(iAtom).iRes;
-        if (!_lodash2.default.isNil(iRes)) {
-          var selectedTraces = [];
-          var _iteratorNormalCompletion5 = true;
-          var _didIteratorError5 = false;
-          var _iteratorError5 = undefined;
-
-          try {
-            for (var _iterator5 = this.soup.traces.entries()[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-              var _step5$value = _slicedToArray(_step5.value, 2),
-                  iTrace = _step5$value[0],
-                  trace = _step5$value[1];
-
-              if (_lodash2.default.includes(trace.indices, iRes)) {
-                selectedTraces.push(iTrace);
-                break;
-              }
-            }
-          } catch (err) {
-            _didIteratorError5 = true;
-            _iteratorError5 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                _iterator5.return();
-              }
-            } finally {
-              if (_didIteratorError5) {
-                throw _iteratorError5;
-              }
-            }
-          }
-
-          if (selectedTraces.length > 0) {
-            if (!_lodash2.default.isEqual(selectedTraces, this.representations.ribbon.selectedTraces)) {
-              this.representations.ribbon.selectedTraces = selectedTraces;
-              this.representations.ribbon.build();
-              this.updateMeshesInScene = true;
-            }
-          }
+        if (!_lodash2.default.isEqual(this.soup.selectedTraces, this.representations.ribbon.selectedTraces)) {
+          console.log('SoupWidget.drawFrame new soup.selectedTraces', this.soup.selectedTraces);
+          this.representations.ribbon.selectedTraces = this.soup.selectedTraces;
+          this.representations.ribbon.build();
+          this.updateMeshesInScene = true;
         }
       } else {
         if (this.representations.ribbon && this.representations.ribbon.selectedTraces.length > 0) {
@@ -91918,29 +91993,29 @@ var SoupWidget = function (_WebglWidget) {
       }
 
       if (this.soupView.updateSelection) {
-        var _iteratorNormalCompletion6 = true;
-        var _didIteratorError6 = false;
-        var _iteratorError6 = undefined;
+        var _iteratorNormalCompletion5 = true;
+        var _didIteratorError5 = false;
+        var _iteratorError5 = undefined;
 
         try {
-          for (var _iterator6 = _lodash2.default.values(this.representations)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-            var repr = _step6.value;
+          for (var _iterator5 = _lodash2.default.values(this.representations)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+            var repr = _step5.value;
 
             if ('recolor' in repr) {
               repr.recolor();
             }
           }
         } catch (err) {
-          _didIteratorError6 = true;
-          _iteratorError6 = err;
+          _didIteratorError5 = true;
+          _iteratorError5 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion6 && _iterator6.return) {
-              _iterator6.return();
+            if (!_iteratorNormalCompletion5 && _iterator5.return) {
+              _iterator5.return();
             }
           } finally {
-            if (_didIteratorError6) {
-              throw _iteratorError6;
+            if (_didIteratorError5) {
+              throw _iteratorError5;
             }
           }
         }
@@ -91955,7 +92030,7 @@ var SoupWidget = function (_WebglWidget) {
 
       this.updateCrossHairs();
 
-      this.rotateCameraParamsToCurrentView();
+      this.setCameraParams(this.getCameraOfCurrentView());
 
       // needs to be observers.updated before render
       // as lines must be placed in THREE.js scene
@@ -91976,43 +92051,7 @@ var SoupWidget = function (_WebglWidget) {
   }, {
     key: 'animate',
     value: function animate(elapsedTime) {
-      this.soupView.nUpdateStep -= elapsedTime / this.soupView.msPerStep;
-      if (this.soupView.nUpdateStep < 0) {
-        if (this.soupView.targetView !== null) {
-          this.controller.setCurrentView(this.soupView.targetView);
-          this.soupView.updateObservers = true;
-          this.soupView.changed = true;
-          this.soupView.targetView = null;
-          this.soupView.nUpdateStep = this.soupView.maxUpdateStep;
-        } else {
-          if (this.soupView.startTargetAfterRender) {
-            this.soupView.changed = true;
-          } else if (this.soupView.animateState === 'loop') {
-            if (this.soupView.nUpdateStep < -this.soupView.maxWaitStep) {
-              this.controller.setTargetToNextView();
-            }
-          } else if (this.soupView.animateState === 'rotate') {
-            this.adjustCamera(0.0, 0.002, 0, 1);
-          } else if (this.soupView.animateState === 'rock') {
-            var nStepRock = 18;
-            if (this.soupView.nUpdateStep > -nStepRock) {
-              this.adjustCamera(0.0, 0.002, 0, 1);
-            } else if (this.soupView.nUpdateStep > -3 * nStepRock) {
-              this.adjustCamera(0.0, -0.002, 0, 1);
-            } else if (this.soupView.nUpdateStep > -4 * nStepRock) {
-              this.adjustCamera(0.0, +0.002, 0, 1);
-            } else {
-              this.soupView.nUpdateStep = 0;
-            }
-          }
-        }
-      } else if (this.soupView.nUpdateStep >= 1) {
-        if (this.soupView.targetView != null) {
-          var view = this.soupView.currentView.clone();
-          view.setCamera((0, _soup.interpolateCameras)(this.soupView.currentView.cameraParams, this.soupView.targetView.cameraParams, 1.0 / this.soupView.nUpdateStep));
-          this.controller.setCurrentView(view);
-        }
-      }
+      this.soupView.animate(elapsedTime);
       this.updateHover();
     }
 
@@ -92142,7 +92181,7 @@ var SoupWidget = function (_WebglWidget) {
             xRotationAngle = _v2.default.degToRad(this.mouseY - this.saveMouseY);
           }
 
-          this.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio);
+          this.controller.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio);
 
           this.savePointer();
         }
@@ -92203,7 +92242,7 @@ var SoupWidget = function (_WebglWidget) {
 
       var zoom = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1);
 
-      this.adjustCamera(0, 0, 0, zoom);
+      this.controller.adjustCamera(0, 0, 0, zoom);
     }
   }, {
     key: 'gesturestart',
@@ -92217,7 +92256,7 @@ var SoupWidget = function (_WebglWidget) {
     key: 'gesturechange',
     value: function gesturechange(event) {
       event.preventDefault();
-      this.adjustCamera(0, 0, _v2.default.degToRad(event.rotation * 2 - this.lastPinchRotation), this.lastScale / (event.scale * event.scale));
+      this.controller.adjustCamera(0, 0, _v2.default.degToRad(event.rotation * 2 - this.lastPinchRotation), this.lastScale / (event.scale * event.scale));
       this.lastPinchRotation = event.rotation * 2;
       this.lastScale = event.scale * event.scale;
     }
