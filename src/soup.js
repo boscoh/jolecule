@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import v3 from './v3'
-import { randomId, inArray } from './util.js'
+import { randomId, inArray, exists } from './util.js'
 import * as glgeom from './glgeom'
 import { SpaceHash } from './pairs.js'
 import Store from './store.js'
@@ -1917,7 +1917,12 @@ class Controller {
   }
 
   setTargetToPrevResidue () {
-    let iAtom = this.soupView.currentView.iAtom
+    let iAtom = _.get(this.soupView, 'targetView.iAtom')
+    if (exists(iAtom)) {
+      iAtom = this.soupView.targetView.iAtom
+    } else {
+      iAtom = this.soupView.currentView.iAtom
+    }
     if (iAtom < 0) {
       iAtom = 0
     }
@@ -1928,12 +1933,16 @@ class Controller {
       iRes -= 1
     }
     iAtom = this.soup.getResidueProxy(iRes).iAtom
-    console.log('Controller.setTargetToPrevResidue', iAtom, iRes)
     this.setTargetViewByIAtom(iAtom)
   }
 
   setTargetToNextResidue () {
-    let iAtom = this.soupView.currentView.iAtom
+    let iAtom = _.get(this.soupView, 'targetView.iAtom')
+    if (exists(iAtom)) {
+      iAtom = this.soupView.targetView.iAtom
+    } else {
+      iAtom = this.soupView.currentView.iAtom
+    }
     if (iAtom < 0) {
       iAtom = 0
     }
@@ -1944,7 +1953,6 @@ class Controller {
       iRes += 1
     }
     iAtom = this.soup.getResidueProxy(iRes).iAtom
-    console.log('Controller.setTargetToNextResidue', iAtom, iRes)
     this.setTargetViewByIAtom(iAtom)
   }
 

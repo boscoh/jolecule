@@ -82474,7 +82474,12 @@ var Controller = function () {
   }, {
     key: 'setTargetToPrevResidue',
     value: function setTargetToPrevResidue() {
-      var iAtom = this.soupView.currentView.iAtom;
+      var iAtom = _lodash2.default.get(this.soupView, 'targetView.iAtom');
+      if ((0, _util.exists)(iAtom)) {
+        iAtom = this.soupView.targetView.iAtom;
+      } else {
+        iAtom = this.soupView.currentView.iAtom;
+      }
       if (iAtom < 0) {
         iAtom = 0;
       }
@@ -82485,13 +82490,17 @@ var Controller = function () {
         iRes -= 1;
       }
       iAtom = this.soup.getResidueProxy(iRes).iAtom;
-      console.log('Controller.setTargetToPrevResidue', iAtom, iRes);
       this.setTargetViewByIAtom(iAtom);
     }
   }, {
     key: 'setTargetToNextResidue',
     value: function setTargetToNextResidue() {
-      var iAtom = this.soupView.currentView.iAtom;
+      var iAtom = _lodash2.default.get(this.soupView, 'targetView.iAtom');
+      if ((0, _util.exists)(iAtom)) {
+        iAtom = this.soupView.targetView.iAtom;
+      } else {
+        iAtom = this.soupView.currentView.iAtom;
+      }
       if (iAtom < 0) {
         iAtom = 0;
       }
@@ -82502,7 +82511,6 @@ var Controller = function () {
         iRes += 1;
       }
       iAtom = this.soup.getResidueProxy(iRes).iAtom;
-      console.log('Controller.setTargetToNextResidue', iAtom, iRes);
       this.setTargetViewByIAtom(iAtom);
     }
   }, {
