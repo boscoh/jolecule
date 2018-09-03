@@ -83616,7 +83616,7 @@ var DistanceMeasuresWidget = function () {
     _classCallCheck(this, DistanceMeasuresWidget);
 
     this.distanceMeasures = [];
-    this.scene = soupWidget.soupWidgetScene;
+    this.scene = soupWidget.displayScene;
     this.soupView = soupWidget.soupView;
     this.controller = soupWidget.controller;
     this.soupWidget = soupWidget;
@@ -84750,7 +84750,7 @@ var ResidueSelectorWidget = function () {
   function ResidueSelectorWidget(soupWidget, selector) {
     _classCallCheck(this, ResidueSelectorWidget);
 
-    this.scene = soupWidget.soupWidgetScene;
+    this.scene = soupWidget.displayScene;
     this.controller = soupWidget.controller;
     this.soupView = soupWidget.soupView;
     this.soupWidget = soupWidget;

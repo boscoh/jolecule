@@ -441,7 +441,7 @@ class AtomLabelsWidget {
 class DistanceMeasuresWidget {
   constructor (soupWidget) {
     this.distanceMeasures = []
-    this.scene = soupWidget.soupWidgetScene
+    this.scene = soupWidget.displayScene
     this.soupView = soupWidget.soupView
     this.controller = soupWidget.controller
     this.soupWidget = soupWidget
@@ -1404,7 +1404,7 @@ class GridControlWidget extends CanvasWidget {
 
 class ResidueSelectorWidget {
   constructor (soupWidget, selector) {
-    this.scene = soupWidget.soupWidgetScene
+    this.scene = soupWidget.displayScene
     this.controller = soupWidget.controller
     this.soupView = soupWidget.soupView
     this.soupWidget = soupWidget
