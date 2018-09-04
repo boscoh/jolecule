@@ -51,8 +51,7 @@ class WebglWidget {
     }
 
     // a THREE.js camera, will be set properly before draw
-    this.camera = new THREE.PerspectiveCamera(
-      45, this.width() / this.height())
+    this.camera = new THREE.PerspectiveCamera(45, this.width() / this.height())
 
     this.displayScene = new THREE.Scene()
     this.displayScene.background = new THREE.Color(this.backgroundColor)
@@ -74,7 +73,10 @@ class WebglWidget {
     this.pickingMeshes = {}
 
     this.pickingScene = new THREE.Scene()
-    this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height())
+    this.pickingTexture = new THREE.WebGLRenderTarget(
+      this.width(),
+      this.height()
+    )
     this.pickingTexture.texture.minFilter = THREE.LinearFilter
 
     this.lights = []
@@ -98,14 +100,16 @@ class WebglWidget {
   }
 
   initWebglRenderer () {
-    this.renderer = new THREE.WebGLRenderer({antialias: true})
+    this.renderer = new THREE.WebGLRenderer({ antialias: true })
     this.renderer.setClearColor(this.backgroundColor)
     this.renderer.setSize(this.width(), this.height())
 
     let dom = this.renderer.domElement
     this.webglDiv[0].appendChild(dom)
 
-    const bind = (w, fn) => { dom.addEventListener(w, fn) }
+    const bind = (w, fn) => {
+      dom.addEventListener(w, fn)
+    }
     bind('mousedown', e => this.mousedown(e))
     bind('mousemove', e => this.mousemove(e))
     bind('mouseup', e => this.mouseup(e))
@@ -139,7 +143,7 @@ class WebglWidget {
     let vector = pos.clone().project(this.camera)
 
     return {
-      x: (vector.x * widthHalf) + widthHalf + this.x(),
+      x: vector.x * widthHalf + widthHalf + this.x(),
       y: -(vector.y * heightHalf) + heightHalf + this.y()
     }
   }
@@ -148,7 +152,7 @@ class WebglWidget {
     let x = this.mouseX
     let y = this.mouseY
 
-    if ((x === null) || (y === null)) {
+    if (x === null || y === null) {
       return null
     }
 
@@ -156,34 +160,36 @@ class WebglWidget {
     let pixelBuffer = new Uint8Array(4)
 
     // render the picking soupView off-screen
-    this.renderer.render(
-      this.pickingScene, this.camera, this.pickingTexture)
+    this.renderer.render(this.pickingScene, this.camera, this.pickingTexture)
 
     // read the pixel under the mouse from the texture
     this.renderer.readRenderTargetPixels(
       this.pickingTexture,
-      this.mouseX, this.pickingTexture.height - y,
-      1, 1,
-      pixelBuffer)
+      this.mouseX,
+      this.pickingTexture.height - y,
+      1,
+      1,
+      pixelBuffer
+    )
 
     // interpret the color as an Uint8 integer
-    return (
-      (pixelBuffer[0] << 16) |
-      (pixelBuffer[1] << 8) |
-      (pixelBuffer[2])
-    )
+    return (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | pixelBuffer[2]
   }
 
   setCameraParams (cameraParams) {
     // rotate lights to soupView orientation
-    let cameraDirection = this.cameraParams.position.clone()
+    let cameraDirection = this.cameraParams.position
+      .clone()
       .sub(this.cameraParams.focus)
       .normalize()
-    let viewCameraDirection = cameraParams.position.clone()
+    let viewCameraDirection = cameraParams.position
+      .clone()
       .sub(cameraParams.focus)
     viewCameraDirection.normalize()
     let rotation = glgeom.getUnitVectorRotation(
-      cameraDirection, viewCameraDirection)
+      cameraDirection,
+      viewCameraDirection
+    )
     for (let i = 0; i < this.lights.length; i += 1) {
       this.lights[i].position.applyQuaternion(rotation)
     }
@@ -210,9 +216,8 @@ class WebglWidget {
   buildLights () {
     this.lights.length = 0
 
-    let directedLight = new THREE.DirectionalLight(0xFFFFFF)
-    directedLight.position.copy(
-      v3.create(0.2, 0.2, -100).normalize())
+    let directedLight = new THREE.DirectionalLight(0xffffff)
+    directedLight.position.copy(v3.create(0.2, 0.2, -100).normalize())
     directedLight.dontDelete = true
     this.lights.push(directedLight)
 
@@ -246,16 +251,16 @@ class WebglWidget {
   setMesssage (message) {
     console.log('SoupWidget.setMesssage:', message)
     this.messageDiv.html(message).show()
-  };
+  }
 
   async asyncSetMesssage (message) {
     this.setMesssage(message)
     await util.delay(0)
-  };
+  }
 
   cleanupMessage () {
     this.messageDiv.hide()
-  };
+  }
 
   /**
    **********************************************************
@@ -324,7 +329,7 @@ class WebglWidget {
   }
 
   getPointer (event) {
-    if (util.exists(event.touches) && (event.touches.length > 0)) {
+    if (util.exists(event.touches) && event.touches.length > 0) {
       this.eventX = event.touches[0].clientX
       this.eventY = event.touches[0].clientY
     } else {
@@ -357,7 +362,6 @@ class WebglWidget {
     this.saveMouseR = this.mouseR
     this.saveMouseT = this.mouseT
   }
-
 }
 
 export { WebglWidget }

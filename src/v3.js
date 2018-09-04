@@ -1,4 +1,3 @@
-
 /**
  *
  * v3.js - is a simple function based wrapper library around the vector
@@ -11,7 +10,7 @@
 
 import * as THREE from 'three'
 
-const SMALL = 1E-6
+const SMALL = 1e-6
 
 function isNearZero (a) {
   return Math.abs(a) < SMALL
@@ -106,8 +105,7 @@ function midPoint (p, q) {
 }
 
 function random () {
-  return create(
-    Math.random(), Math.random(), Math.random())
+  return create(Math.random(), Math.random(), Math.random())
 }
 
 function isEqual (v, w) {

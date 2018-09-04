@@ -44,8 +44,8 @@ function remoteDataServer (pdbId, userId) {
         url = `/pdb/${pdbId}.txt`
       }
       console.log('remoteDataServer.get_protein_data', url)
-      $.get(url, (pdbText) => {
-        processProteinData({pdb_id: pdbId, pdb_text: pdbText})
+      $.get(url, pdbText => {
+        processProteinData({ pdb_id: pdbId, pdb_text: pdbText })
       })
     },
     get_views: function (processViews) {
@@ -62,13 +62,9 @@ function remoteDataServer (pdbId, userId) {
     },
     delete_protein_view: function (viewId, success) {
       console.log('remoteDataServer.delete_protein_view', '/delete/view')
-      $.post('/delete/view', JSON.stringify({pdbId, viewId}), success)
+      $.post('/delete/view', JSON.stringify({ pdbId, viewId }), success)
     }
   }
 }
 
-export {
-  initEmbedJolecule,
-  initFullPageJolecule,
-  remoteDataServer
-}
+export { initEmbedJolecule, initFullPageJolecule, remoteDataServer }

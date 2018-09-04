@@ -82,7 +82,11 @@ class SpaceHash {
           let hash = this.getHashFromSpace([space0, space1, space2])
           if (hash in this.cells) {
             let cell = this.cells[hash]
-            for (let jVertexInCell = 0; jVertexInCell < cell.length; jVertexInCell++) {
+            for (
+              let jVertexInCell = 0;
+              jVertexInCell < cell.length;
+              jVertexInCell++
+            ) {
               let jVertex = cell[jVertexInCell]
               pairs.push([iVertex, jVertex])
             }

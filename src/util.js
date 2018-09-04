@@ -9,7 +9,7 @@ import $ from 'jquery'
 import _ from 'lodash'
 
 function exists (x) {
-  return !(_.isNil(x))
+  return !_.isNil(x)
 }
 
 function linkButton (text, classTag, callback) {
@@ -24,21 +24,21 @@ function linkButton (text, classTag, callback) {
 
 function stickJqueryDivInTopLeft (parent, target, xOffset, yOffset) {
   target.css({
-    'position': 'absolute',
+    position: 'absolute',
     'z-index': '9000'
   })
   let top = parent.position().top
   let left = parent.position().left
   parent.append(target)
   target.css({
-    'top': top + yOffset,
-    'left': left + xOffset
+    top: top + yOffset,
+    left: left + xOffset
   })
 }
 
 function stickJqueryDivInCenter (parent, target, xOffset, yOffset) {
   target.css({
-    'position': 'absolute',
+    position: 'absolute',
     'z-index': '9000'
   })
   let top = parent.position().top
@@ -49,8 +49,8 @@ function stickJqueryDivInCenter (parent, target, xOffset, yOffset) {
   let widthTarget = target.outerWidth()
   let heightTarget = target.outerHeight()
   target.css({
-    'top': top + heightParent / 2 - heightTarget / 2 - yOffset,
-    'left': left + widthParent / 2 - widthTarget / 2 - xOffset
+    top: top + heightParent / 2 - heightTarget / 2 - yOffset,
+    left: left + widthParent / 2 - widthTarget / 2 - xOffset
   })
 }
 
@@ -59,8 +59,7 @@ function inArray (v, aList) {
 }
 
 function randomString (nChar) {
-  let chars =
-    '0123456789abcdefghiklmnopqrstuvwxyz'
+  let chars = '0123456789abcdefghiklmnopqrstuvwxyz'
   let s = ''
   for (let i = 0; i < nChar; i++) {
     let j = Math.floor(Math.random() * chars.length)
@@ -96,23 +95,20 @@ function textEntryDialog (parentDiv, label, callback) {
     window.keyboardLock = false
   }
 
-  let saveButton = linkButton(
-    'okay', 'jolecule-small-button', accept)
+  let saveButton = linkButton('okay', 'jolecule-small-button', accept)
 
-  let discardButton = linkButton(
-    'discard', 'jolecule-small-button', discard)
+  let discardButton = linkButton('discard', 'jolecule-small-button', discard)
 
   let textarea = $('<textarea>')
     .css('width', '100%')
     .css('margin-bottom', '0.5em')
     .addClass('jolecule-view-text')
-    .keydown(
-      function (e) {
-        if (e.keyCode === 27) {
-          discard()
-          return true
-        }
-      })
+    .keydown(function (e) {
+      if (e.keyCode === 27) {
+        discard()
+        return true
+      }
+    })
 
   let editbox = $('<div>')
     .css('width', '100%')
@@ -137,7 +133,9 @@ function textEntryDialog (parentDiv, label, callback) {
 }
 
 function delay (timeMs) {
-  return new Promise(resolve => { setTimeout(resolve, timeMs) })
+  return new Promise(resolve => {
+    setTimeout(resolve, timeMs)
+  })
 }
 
 export {

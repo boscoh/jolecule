@@ -157,9 +157,10 @@ class EmbedJolecule {
       this.widget.grid = new widgets.GridControlWidget(this.soupWidget)
     }
 
-    let isFooter = this.params.isPlayable
-      || this.params.isEditable
-      || this.params.isExtraEditable
+    let isFooter =
+      this.params.isPlayable ||
+      this.params.isEditable ||
+      this.params.isExtraEditable
 
     if (!isFooter) {
       return

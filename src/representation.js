@@ -14,7 +14,7 @@ let pickingMaterial = new THREE.MeshBasicMaterial({
 })
 
 let phongMaterial = new THREE.MeshPhongMaterial({
-  vertexColors: THREE.VertexColors,
+  vertexColors: THREE.VertexColors
 })
 
 let transparentMaterial = new THREE.MeshPhongMaterial({
@@ -59,9 +59,7 @@ class Representation {
     }
   }
 
-  build () {
-  }
-
+  build () {}
 }
 
 class ArrowRepresentation extends Representation {
@@ -155,7 +153,8 @@ class RibbonRepresentation extends Representation {
     this.build()
   }
 
-  build () {4
+  build () {
+    4
     this.traces = this.soup.traces
     if (this.selectedTraces.length > 0) {
       let newTraces = []
@@ -167,9 +166,15 @@ class RibbonRepresentation extends Representation {
       this.traces = newTraces
     }
     this.displayGeom = new glgeom.BufferRibbonGeometry(
-      this.traces, data.coilFace, false)
+      this.traces,
+      data.coilFace,
+      false
+    )
     this.pickingGeom = new glgeom.BufferRibbonGeometry(
-      this.traces, data.coilFace, true)
+      this.traces,
+      data.coilFace,
+      true
+    )
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
     let displayMesh = new THREE.Mesh(this.displayGeom, this.displayMaterial)
@@ -239,11 +244,18 @@ class NucleotideRepresentation extends Representation {
     }
 
     this.nucleotideGeom = new glgeom.BufferRaisedShapesGeometry(
-      verticesList, this.nucleotideColorList, 0.2)
+      verticesList,
+      this.nucleotideColorList,
+      0.2
+    )
     let displayMesh = new THREE.Mesh(this.nucleotideGeom, this.displayMaterial)
     this.displayObj.add(displayMesh)
 
-    let pickingGeom = new glgeom.BufferRaisedShapesGeometry(verticesList, indexColorList, 0.2)
+    let pickingGeom = new glgeom.BufferRaisedShapesGeometry(
+      verticesList,
+      indexColorList,
+      0.2
+    )
     let pickingMesh = new THREE.Mesh(pickingGeom, this.pickingMaterial)
     this.pickingObj.add(pickingMesh)
 
@@ -252,11 +264,14 @@ class NucleotideRepresentation extends Representation {
       for (let iRes of trace.indices) {
         residue.iRes = iRes
         if (residue.ss === 'D' && residue.isPolymer) {
-          for (let bond of data.getNucleotideConnectorBondAtomTypes(residue.resType)) {
+          for (let bond of data.getNucleotideConnectorBondAtomTypes(
+            residue.resType
+          )) {
             this.nucleotideConnectList.push([
               getVecFromAtomType(bond[0]),
               getVecFromAtomType(bond[1]),
-              iRes])
+              iRes
+            ])
           }
         }
       }
@@ -264,18 +279,26 @@ class NucleotideRepresentation extends Representation {
 
     let nBond = this.nucleotideConnectList.length
     let cylinderBufferGeometry = glgeom.makeBufferZCylinderGeometry(0.4)
-    this.nucleotideConnectorGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nBond)
+    this.nucleotideConnectorGeom = new glgeom.CopyBufferGeometry(
+      cylinderBufferGeometry,
+      nBond
+    )
     for (let iBond = 0; iBond < nBond; iBond += 1) {
       let [p1, p2, iRes] = this.nucleotideConnectList[iBond]
       this.nucleotideConnectorGeom.applyMatrixToCopy(
-        glgeom.getCylinderMatrix(p1, p2, 0.3), iBond)
+        glgeom.getCylinderMatrix(p1, p2, 0.3),
+        iBond
+      )
     }
     for (let iBond = 0; iBond < nBond; iBond += 1) {
       let [p1, p2, iRes] = this.nucleotideConnectList[iBond]
       let color = residue.load(iRes).activeColor
       this.nucleotideConnectorGeom.applyColorToCopy(color, iBond)
     }
-    let mesh = new THREE.Mesh(this.nucleotideConnectorGeom, this.displayMaterial)
+    let mesh = new THREE.Mesh(
+      this.nucleotideConnectorGeom,
+      this.displayMaterial
+    )
     mesh.name = 'nucleotideConnector'
     this.displayObj.add(mesh)
   }
@@ -319,9 +342,21 @@ class CartoonRepresentation extends Representation {
   }
 
   build () {
-    this.ribbonRepr = new RibbonRepresentation(this.soup, this.isTransparent, this.selectedTraces)
-    this.arrowRepr = new ArrowRepresentation(this.soup, this.isTransparent, this.selectedTraces)
-    this.nucRepr = new NucleotideRepresentation(this.soup, this.isTransparent, this.selectedTraces)
+    this.ribbonRepr = new RibbonRepresentation(
+      this.soup,
+      this.isTransparent,
+      this.selectedTraces
+    )
+    this.arrowRepr = new ArrowRepresentation(
+      this.soup,
+      this.isTransparent,
+      this.selectedTraces
+    )
+    this.nucRepr = new NucleotideRepresentation(
+      this.soup,
+      this.isTransparent,
+      this.selectedTraces
+    )
 
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
@@ -343,7 +378,7 @@ class CartoonRepresentation extends Representation {
 }
 
 class AtomsRepresentation {
-  constructor (soup, atomIndices, atomRadius, isElementRadius=false) {
+  constructor (soup, atomIndices, atomRadius, isElementRadius = false) {
     this.soup = soup
     this.displayObj = new THREE.Object3D()
     this.pickingObj = new THREE.Object3D()
@@ -363,7 +398,10 @@ class AtomsRepresentation {
     }
     let nCopy = this.atomIndices.length
     let sphereBufferGeometry = new THREE.SphereBufferGeometry(1, 8, 8)
-    this.displayGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy)
+    this.displayGeom = new glgeom.CopyBufferGeometry(
+      sphereBufferGeometry,
+      nCopy
+    )
     let pickingGeom = new glgeom.CopyBufferGeometry(sphereBufferGeometry, nCopy)
 
     let atom = this.soup.getAtomProxy()
@@ -372,7 +410,7 @@ class AtomsRepresentation {
       let iAtom = this.atomIndices[iCopy]
       atom.iAtom = iAtom
       if (this.isElementRadius) {
-        if (atom.elem === "H") {
+        if (atom.elem === 'H') {
           radius = 1.2
         } else {
           radius = 1.7
@@ -417,7 +455,7 @@ class GridRepresentation extends AtomsRepresentation {
       residue.iRes = iRes
       if (residue.ss === 'G') {
         atom.iAtom = residue.iAtom
-        if ((atom.bfactor > grid.bCutoff) && grid.isElem[atom.elem]) {
+        if (atom.bfactor > grid.bCutoff && grid.isElem[atom.elem]) {
           this.atomIndices.push(atom.iAtom)
         }
       }
@@ -470,13 +508,24 @@ class BondRepresentation {
     }
     let nCopy = bondIndices.length
 
-    let cylinderBufferGeometry = new THREE.CylinderBufferGeometry(1, 1, 1, 4, 1, false)
+    let cylinderBufferGeometry = new THREE.CylinderBufferGeometry(
+      1,
+      1,
+      1,
+      4,
+      1,
+      false
+    )
     cylinderBufferGeometry.applyMatrix(
-      new THREE.Matrix4()
-        .makeRotationFromEuler(
-          new THREE.Euler(Math.PI / 2, Math.PI, 0)))
+      new THREE.Matrix4().makeRotationFromEuler(
+        new THREE.Euler(Math.PI / 2, Math.PI, 0)
+      )
+    )
 
-    this.displayGeom = new glgeom.CopyBufferGeometry(cylinderBufferGeometry, nCopy)
+    this.displayGeom = new glgeom.CopyBufferGeometry(
+      cylinderBufferGeometry,
+      nCopy
+    )
 
     let atom1 = this.soup.getAtomProxy()
     let atom2 = this.soup.getAtomProxy()
@@ -493,7 +542,10 @@ class BondRepresentation {
       let p2 = atom2.pos.clone()
 
       if (atom1.iRes !== atom2.iRes) {
-        let midpoint = p2.clone().add(p1).multiplyScalar(0.5)
+        let midpoint = p2
+          .clone()
+          .add(p1)
+          .multiplyScalar(0.5)
         if (atom1.iRes === residue.iRes) {
           p2 = midpoint
         } else if (atom2.iRes === residue.iRes) {

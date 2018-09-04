@@ -4,7 +4,7 @@
  * Widgets - abstact data structures for decorators to
  * be displayed on the DOM to support the main
  * embeddged widget of Jolecule.
-  *
+ *
  * The structure of a Widget takes a Display object
  * in the constructor, which allows access to a full
  * SoupView object, with its attendant Controller.
@@ -40,13 +40,12 @@ class LineElement {
   constructor (soupWidget, color) {
     this.color = color
 
-    this.div = $('<canvas>')
-      .css({
-        'position': 'absolute',
-        'z-index': '1000',
-        'display': 'none',
-        'pointer-events': 'none'
-      })
+    this.div = $('<canvas>').css({
+      position: 'absolute',
+      'z-index': '1000',
+      display: 'none',
+      'pointer-events': 'none'
+    })
 
     this.canvas = this.div[0]
     this.context2d = this.canvas.getContext('2d')
@@ -149,14 +148,14 @@ class CanvasWidget {
 
   inside (x, y) {
     return (
-      (x >= this.x()) &&
-      (x <= this.x() + this.width()) &&
-      (y >= this.y()) &&
-      (y <= this.y() + this.height()))
+      x >= this.x() &&
+      x <= this.x() + this.width() &&
+      y >= this.y() &&
+      y <= this.y() + this.height()
+    )
   }
 
-  update () {
-  }
+  update () {}
 
   resize () {
     this.canvasDom.width = this.width()
@@ -205,11 +204,9 @@ class CanvasWidget {
     this.saveMouseT = this.mouseT
   }
 
-  click (event) {
-  }
+  click (event) {}
 
-  doubleclick (event) {
-  }
+  doubleclick (event) {}
 
   mousedown (event) {
     event.preventDefault()
@@ -229,11 +226,9 @@ class CanvasWidget {
     this.mousemove(event)
   }
 
-  mousemove (event) {
-  }
+  mousemove (event) {}
 
-  mouseout (event) {
-  }
+  mouseout (event) {}
 
   mouseup (event) {
     event.preventDefault()
@@ -241,7 +236,7 @@ class CanvasWidget {
   }
 
   getPointer (event) {
-    if (util.exists(event.touches) && (event.touches.length > 0)) {
+    if (util.exists(event.touches) && event.touches.length > 0) {
       this.eventX = event.touches[0].clientX
       this.eventY = event.touches[0].clientY
     } else {
@@ -282,41 +277,39 @@ class PopupText {
       this.heightArrow = heightArrow
     }
 
-    this.div = $('<div>')
-      .css({
-        'position': 'absolute',
-        'top': 0,
-        'left': 0,
-        'background': 'white',
-        'box-sizing': 'border-box',
-        'font': '12px Helvetica',
-        'color': '#666',
-        'padding': '5',
-        'opacity': 0.8,
-        'display': 'none',
-        'z-index': 1000,
-        'cursor': 'pointer',
-        'user-select': 'none',
-        'pointer-events': 'none'
-      })
+    this.div = $('<div>').css({
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      background: 'white',
+      'box-sizing': 'border-box',
+      font: '12px Helvetica',
+      color: '#666',
+      padding: '5',
+      opacity: 0.8,
+      display: 'none',
+      'z-index': 1000,
+      cursor: 'pointer',
+      'user-select': 'none',
+      'pointer-events': 'none'
+    })
 
-    this.arrow = $('<div>')
-      .css({
-        'position': 'absolute',
-        'top': 0,
-        'left': 0,
-        'width': 0,
-        'height': 0,
-        'box-sizing': 'border-box',
-        'border-left': '5px solid transparent',
-        'border-right': '5px solid transparent',
-        'border-top': this.heightArrow + 'px solid white',
-        'opacity': 0.8,
-        'display': 'none',
-        'z-index': 1000,
-        'pointer-events': 'none',
-        'user-select': 'none'
-      })
+    this.arrow = $('<div>').css({
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0,
+      'box-sizing': 'border-box',
+      'border-left': '5px solid transparent',
+      'border-right': '5px solid transparent',
+      'border-top': this.heightArrow + 'px solid white',
+      opacity: 0.8,
+      display: 'none',
+      'z-index': 1000,
+      'pointer-events': 'none',
+      'user-select': 'none'
+    })
 
     this.parentDiv = $(divTag)
     this.parentDiv.append(this.div)
@@ -326,30 +319,31 @@ class PopupText {
   move (x, y) {
     let parentDivPos = this.parentDiv.position()
 
-    this.div.css({'display': 'block'})
+    this.div.css({ display: 'block' })
     let rect = this.div[0].getBoundingClientRect()
     let width = rect.width
     let height = rect.height
 
-    this.arrow.css({'display': 'block'})
+    this.arrow.css({ display: 'block' })
 
     if (
-      (x < 0) ||
-      (x > this.parentDiv.width()) ||
-      (y < 0) ||
-      (y > this.parentDiv.height())) {
+      x < 0 ||
+      x > this.parentDiv.width() ||
+      y < 0 ||
+      y > this.parentDiv.height()
+    ) {
       this.hide()
       return
     }
 
     this.arrow.css({
-      'top': y - this.heightArrow + parentDivPos.top,
-      'left': x - 5 + parentDivPos.left,
+      top: y - this.heightArrow + parentDivPos.top,
+      left: x - 5 + parentDivPos.left
     })
 
     this.div.css({
-      'top': y - this.heightArrow + parentDivPos.top - height,
-      'left': x + parentDivPos.left - width / 2,
+      top: y - this.heightArrow + parentDivPos.top - height,
+      left: x + parentDivPos.left - width / 2
     })
   }
 
@@ -391,7 +385,9 @@ class AtomLabelsWidget {
     let popup = new PopupText(this.soupWidget.divTag)
     popup.i = i
     popup.div.css('pointer-events', 'auto')
-    popup.div.click(() => { this.removePopup(popup.i) })
+    popup.div.click(() => {
+      this.removePopup(popup.i)
+    })
     return popup
   }
 
@@ -457,25 +453,26 @@ class DistanceMeasuresWidget {
   }
 
   createDistanceMeasure (i) {
-    let div = $('<div>')
-      .css({
-        'position': 'absolute',
-        'top': 0,
-        'left': 0,
-        'background-color': '#FFDDDD',
-        'padding': '5',
-        'opacity': 0.7,
-        'font-family': 'sans-serif'
-      })
+    let div = $('<div>').css({
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      'background-color': '#FFDDDD',
+      padding: '5',
+      opacity: 0.7,
+      'font-family': 'sans-serif'
+    })
     div.i = i
-    div.click(() => { this.removeDistance(div.i) })
+    div.click(() => {
+      this.removeDistance(div.i)
+    })
     this.parentDiv.append(div)
 
     let geometry = new THREE.Geometry()
     geometry.vertices.push(new THREE.Vector3(0, 0, 0))
     geometry.vertices.push(new THREE.Vector3(1, 1, 1))
     let material = new THREE.LineDashedMaterial({
-      color: 0xFF7777,
+      color: 0xff7777,
       dashSize: 3,
       gapSize: 4,
       linewidth: 1
@@ -497,7 +494,11 @@ class DistanceMeasuresWidget {
     }
 
     if (this.distanceMeasures.length > distances.length) {
-      for (let i = this.distanceMeasures.length - 1; i >= distances.length; i -= 1) {
+      for (
+        let i = this.distanceMeasures.length - 1;
+        i >= distances.length;
+        i -= 1
+      ) {
         this.removeDistance(i)
       }
     }
@@ -518,15 +519,22 @@ class DistanceMeasuresWidget {
       let text = p1.distanceTo(p2).toFixed(1)
       distanceMeasure.div.text(text)
 
-      let m = p1.clone().add(p2).multiplyScalar(0.5)
+      let m = p1
+        .clone()
+        .add(p2)
+        .multiplyScalar(0.5)
       let opacity = 0.7 * this.soupWidget.opacity(m) + 0.3
 
       let v = this.soupWidget.getPosXY(m)
       let x = v.x
       let y = v.y
 
-      if ((x < 0) || (x > this.parentDiv.width()) || (y < 0) ||
-        (y > this.parentDiv.height())) {
+      if (
+        x < 0 ||
+        x > this.parentDiv.width() ||
+        y < 0 ||
+        y > this.parentDiv.height()
+      ) {
         distanceMeasure.div.hide()
         continue
       }
@@ -534,11 +542,11 @@ class DistanceMeasuresWidget {
       let width = distanceMeasure.div.innerHeight()
       let height = distanceMeasure.div.innerWidth()
       distanceMeasure.div.css({
-        'top': y - width / 2 + parentDivPos.top,
-        'left': x - height / 2 + parentDivPos.left,
-        'display': 'block',
-        'cursor': 'pointer',
-        'opacity': opacity
+        top: y - width / 2 + parentDivPos.top,
+        left: x - height / 2 + parentDivPos.left,
+        display: 'block',
+        cursor: 'pointer',
+        opacity: opacity
       })
 
       distanceMeasure.line.geometry.vertices[0].copy(p1)
@@ -576,9 +584,11 @@ class SequenceWidget extends CanvasWidget {
     this.offsetY = 6
     this.heightStructureBar = 7
     this.spacingY = 12
-    this.yTopSequence = this.offsetY + this.heightStructureBar + this.spacingY * 2
-    this.yBottom = this.yTopSequence + + this.spacingY*2.7 + this.charHeight
-    this.yMidSequence = this.yTopSequence + this.spacingY*1.2 + this.charHeight / 2
+    this.yTopSequence =
+      this.offsetY + this.heightStructureBar + this.spacingY * 2
+    this.yBottom = this.yTopSequence + +this.spacingY * 2.7 + this.charHeight
+    this.yMidSequence =
+      this.yTopSequence + this.spacingY * 1.2 + this.charHeight / 2
 
     this.structBarBgroundColor = '#CCC'
     this.seqBarBgroundColor = '#FFF'
@@ -587,10 +597,10 @@ class SequenceWidget extends CanvasWidget {
 
     this.div.attr('id', `${this.parentDivId}-inner`)
     this.div.css({
-      'width': this.parentDiv.width(),
-      'height': this.height(),
-      'position': 'relative',
-      'background-color': '#CCC',
+      width: this.parentDiv.width(),
+      height: this.height(),
+      position: 'relative',
+      'background-color': '#CCC'
     })
 
     this.charEntries = []
@@ -631,15 +641,17 @@ class SequenceWidget extends CanvasWidget {
   }
 
   xToIChar (x) {
-    return parseInt((x - this.textXOffset) * this.nCharDisplay / this.textWidth()) + this.iCharDisplayStart
+    return (
+      parseInt((x - this.textXOffset) * this.nCharDisplay / this.textWidth()) +
+      this.iCharDisplayStart
+    )
   }
 
   iCharToX (iRes) {
     return parseInt(
-      (iRes - this.iCharDisplayStart) /
-        this.nCharDisplay *
-      this.textWidth() +
-      this.textXOffset)
+      (iRes - this.iCharDisplayStart) / this.nCharDisplay * this.textWidth() +
+        this.textXOffset
+    )
   }
 
   rebuild () {
@@ -671,7 +683,7 @@ class SequenceWidget extends CanvasWidget {
       }
 
       let start = false
-      if ((iStructure !== residue.iStructure) || (iChain !== residue.iChain)) {
+      if (iStructure !== residue.iStructure || iChain !== residue.iChain) {
         start = true
         iChain = residue.iChain
         iStructure = residue.iStructure
@@ -680,7 +692,7 @@ class SequenceWidget extends CanvasWidget {
             iChain,
             iStructure,
             c: '',
-            start: i == 0 ? true : false,
+            start: i == 0,
             ss: ''
           })
         }
@@ -714,7 +726,10 @@ class SequenceWidget extends CanvasWidget {
 
   checkDisplayLimits () {
     this.iCharDisplayStart = Math.max(this.iChar - 0.5 * this.nCharDisplay, 0)
-    this.iCharDisplayStart = Math.min(this.iCharDisplayStart, this.nChar - this.nCharDisplay)
+    this.iCharDisplayStart = Math.min(
+      this.iCharDisplayStart,
+      this.nChar - this.nCharDisplay
+    )
     this.iCharDisplayStart = parseInt(this.iCharDisplayStart)
   }
 
@@ -747,18 +762,27 @@ class SequenceWidget extends CanvasWidget {
     let heightSequence = this.yBottom - this.yTopSequence
 
     // draw background
-    this.fillRect(
-      0, 0, this.width(), this.height(), this.structBarBgroundColor)
+    this.fillRect(0, 0, this.width(), this.height(), this.structBarBgroundColor)
 
     // draw sequence bar background
     this.fillRect(
-      0, this.yTopSequence, this.width(), heightSequence, this.seqBarBgroundColor)
+      0,
+      this.yTopSequence,
+      this.width(),
+      heightSequence,
+      this.seqBarBgroundColor
+    )
 
     // draw border around sequence bar
     this.line(
-      0, this.yTopSequence, this.width(), this.yTopSequence, 1, this.borderColor)
-    this.line(
-      0, this.yBottom, this.width(), this.yBottom, 1, this.borderColor)
+      0,
+      this.yTopSequence,
+      this.width(),
+      this.yTopSequence,
+      1,
+      this.borderColor
+    )
+    this.line(0, this.yBottom, this.width(), this.yBottom, 1, this.borderColor)
 
     if (!util.exists(this.soupView)) {
       return
@@ -786,10 +810,22 @@ class SequenceWidget extends CanvasWidget {
 
     // draw selected part of structure bar
     this.fillRect(
-      x1, yTopStructure, x2 - x1, heightStructure, this.seqBarBgroundColor)
+      x1,
+      yTopStructure,
+      x2 - x1,
+      heightStructure,
+      this.seqBarBgroundColor
+    )
 
     // draw line through structure bar
-    this.line(0, yMidStructure, this.width(), yMidStructure, 1, this.borderColor)
+    this.line(
+      0,
+      yMidStructure,
+      this.width(),
+      yMidStructure,
+      1,
+      this.borderColor
+    )
 
     let colorStyle
 
@@ -803,9 +839,9 @@ class SequenceWidget extends CanvasWidget {
       iEnd += 1
       endColor = this.getColorStyle(iEnd)
       let isNotEnd =
-        (iEnd === this.nChar) ||
-        (this.charEntries[iEnd].ss !== ss) ||
-        (endColor !== color)
+        iEnd === this.nChar ||
+        this.charEntries[iEnd].ss !== ss ||
+        endColor !== color
       if (isNotEnd) {
         let x1 = this.iToX(iStart)
         let x2 = this.iToX(iEnd)
@@ -827,10 +863,21 @@ class SequenceWidget extends CanvasWidget {
     }
 
     // draw line through sequence bar
-    this.line(0, this.yMidSequence, this.width(), this.yMidSequence, 1, this.borderColor)
+    this.line(
+      0,
+      this.yMidSequence,
+      this.width(),
+      this.yMidSequence,
+      1,
+      this.borderColor
+    )
 
     // draw characters for sequence
-    for (let iChar = this.iCharDisplayStart; iChar < this.iCharDisplayEnd; iChar += 1) {
+    for (
+      let iChar = this.iCharDisplayStart;
+      iChar < this.iCharDisplayEnd;
+      iChar += 1
+    ) {
       let charEntry = this.charEntries[iChar]
       if (_.isUndefined(charEntry) || charEntry.c === '') {
         continue
@@ -845,11 +892,10 @@ class SequenceWidget extends CanvasWidget {
       let yTop = this.yMidSequence - height / 2
       if (charEntry.ss !== 'C') {
         yTop -= 4
-        height += 2*4
+        height += 2 * 4
       }
 
-      this.fillRect(
-        xLeft, yTop, width, height, colorStyle)
+      this.fillRect(xLeft, yTop, width, height, colorStyle)
 
       this.text(
         charEntry.c,
@@ -857,34 +903,58 @@ class SequenceWidget extends CanvasWidget {
         this.yMidSequence,
         '7pt Helvetica',
         'white',
-        'center')
+        'center'
+      )
 
       // draw highlight res box
-      if ((iResCurrent >= 0) && (iResCurrent === charEntry.iRes)) {
+      if (iResCurrent >= 0 && iResCurrent === charEntry.iRes) {
         this.strokeRect(
-          xLeft, yTop - 5, width, height + 10, this.highlightColor)
+          xLeft,
+          yTop - 5,
+          width,
+          height + 10,
+          this.highlightColor
+        )
       }
 
-      if ((charEntry.resNum % 20 === 0) || charEntry.start) {
+      if (charEntry.resNum % 20 === 0 || charEntry.start) {
         this.line(
-          xLeft, this.yBottom, xLeft, this.yBottom - 6, 1, this.borderColor)
+          xLeft,
+          this.yBottom,
+          xLeft,
+          this.yBottom - 6,
+          1,
+          this.borderColor
+        )
         this.text(
           '' + charEntry.resNum,
           xLeft + 3,
           this.yBottom - 6,
           '7pt Helvetica',
           this.borderColor,
-          'left')
+          'left'
+        )
       }
     }
 
     // draw border box around selected region in structure bar
+    this.line(x1 - 1, yTopStructure, x2 + 1, yTopStructure, 1, this.borderColor)
     this.line(
-      x1 - 1, yTopStructure, x2 + 1, yTopStructure, 1, this.borderColor)
+      x1 - 1,
+      yTopStructure,
+      x1 - 1,
+      this.yTopSequence + 1,
+      1,
+      this.borderColor
+    )
     this.line(
-      x1 - 1, yTopStructure, x1 - 1, this.yTopSequence + 1, 1, this.borderColor)
-    this.line(
-      x2 + 1, yTopStructure, x2 + 1, this.yTopSequence + 1, 1, this.borderColor)
+      x2 + 1,
+      yTopStructure,
+      x2 + 1,
+      this.yTopSequence + 1,
+      1,
+      this.borderColor
+    )
 
     // draw structure names
     let iChar = 0
@@ -914,8 +984,9 @@ class SequenceWidget extends CanvasWidget {
 
     if (iCharCurrent !== null) {
       if (
-        (iCharCurrent < this.iCharDisplayStart) ||
-        (iCharCurrent >= (this.iCharDisplayStart + this.nCharDisplay))) {
+        iCharCurrent < this.iCharDisplayStart ||
+        iCharCurrent >= this.iCharDisplayStart + this.nCharDisplay
+      ) {
         this.setIChar(iCharCurrent)
       }
     }
@@ -933,7 +1004,7 @@ class SequenceWidget extends CanvasWidget {
       this.hover.hide()
       let iChar = this.xToI(this.pointerX)
       let charEntry = this.charEntries[iChar]
-      if (!_.isUndefined(charEntry) && ('iRes' in charEntry)) {
+      if (!_.isUndefined(charEntry) && 'iRes' in charEntry) {
         let res = this.soup.getResidueProxy(charEntry.iRes)
         this.hover.html(res.resId + ':' + res.resType)
         this.hover.move(this.iToX(iChar), 25)
@@ -942,7 +1013,7 @@ class SequenceWidget extends CanvasWidget {
       this.hover.hide()
       let iChar = this.xToIChar(this.pointerX)
       let charEntry = this.charEntries[iChar]
-      if (!_.isUndefined(charEntry) && ('iRes' in charEntry)) {
+      if (!_.isUndefined(charEntry) && 'iRes' in charEntry) {
         let res = this.soup.getResidueProxy(charEntry.iRes)
         this.hover.html(res.resId + ':' + res.resType)
         let x = this.iCharToX(iChar) + this.charWidth / 2
@@ -1031,7 +1102,7 @@ class SequenceWidget extends CanvasWidget {
       this.pressSection = 'bottom'
     }
 
-    if ((this.downTimer !== null) && (this.iChar === this.iCharPressed)) {
+    if (this.downTimer !== null && this.iChar === this.iCharPressed) {
       clearTimeout(this.downTimer)
       this.doubleclick(event)
       this.downTimer = null
@@ -1061,8 +1132,8 @@ class ClippingPlaneWidget extends CanvasWidget {
 
   resize () {
     this.div.css({
-      'width': this.width(),
-      'height': this.height(),
+      width: this.width(),
+      height: this.height()
     })
     super.resize()
     this.update()
@@ -1117,7 +1188,13 @@ class ClippingPlaneWidget extends CanvasWidget {
 
     // back control
     let widthBackText = this.textWidth('back', font)
-    this.fillRect(xBack - 6 - widthBackText, 0, widthBackText + 6, this.height(), '#666')
+    this.fillRect(
+      xBack - 6 - widthBackText,
+      0,
+      widthBackText + 6,
+      this.height(),
+      '#666'
+    )
     this.text('back', xBack - 3 - widthBackText, yMid, font, '#AAA', 'left')
 
     // filled track to front
@@ -1187,7 +1264,7 @@ class GridToggleButtonWidget {
       .css('left', x + 'px')
       .css('height', '15px')
       .css('width', '20px')
-      .on('click touch', (e) => {
+      .on('click touch', e => {
         e.preventDefault()
         this.toggle()
       })
@@ -1274,7 +1351,13 @@ class GridControlWidget extends CanvasWidget {
     let selector = `#${id}`
     this.buttonsDiv.append($(`<div id="${id}">`))
     new GridToggleButtonWidget(
-      this.soupWidget, selector, elem, 50, y, colorHexStr)
+      this.soupWidget,
+      selector,
+      elem,
+      50,
+      y,
+      colorHexStr
+    )
   }
 
   resize () {
@@ -1282,10 +1365,10 @@ class GridControlWidget extends CanvasWidget {
       return
     }
     this.div.css({
-      'width': this.width(),
-      'height': this.height(),
-      'top': this.y(),
-      'left': this.x()
+      width: this.width(),
+      height: this.height(),
+      top: this.y(),
+      left: this.x()
     })
     this.canvasDom.width = this.width()
     this.canvasDom.height = this.height()
@@ -1344,12 +1427,13 @@ class GridControlWidget extends CanvasWidget {
     // middle track
     this.fillRect(xm - 3, yTop, 6, yBottom - yTop, '#AAB')
 
-
     let font = '10px sans-serif'
     let textColor = '#333'
 
     let y = this.zToY(this.soupView.soup.grid.bCutoff)
-    let text = this.soupView.soup.grid.convertB(this.soupView.soup.grid.bCutoff).toFixed(2)
+    let text = this.soupView.soup.grid
+      .convertB(this.soupView.soup.grid.bCutoff)
+      .toFixed(2)
 
     // fill to bottom
     this.fillRect(xm - 3, y, 6, yBottom - y, 'rgb(150, 90, 90)')
@@ -1361,9 +1445,10 @@ class GridControlWidget extends CanvasWidget {
     // bottom marker
     this.line(5, yBottom, 35, yBottom, 1, '#666')
 
-    text = this.soupView.soup.grid.convertB(this.soupView.soup.grid.bMax).toFixed(2)
+    text = this.soupView.soup.grid
+      .convertB(this.soupView.soup.grid.bMax)
+      .toFixed(2)
     this.text(text, xm, yBottom + 6, font, textColor, 'center')
-
   }
 
   getZ (event) {
@@ -1392,7 +1477,6 @@ class GridControlWidget extends CanvasWidget {
     this.getZ(event)
     this.controller.setGridCutoff(this.z)
     this.update()
-
   }
 
   mouseup (event) {
@@ -1433,7 +1517,7 @@ class ResidueSelectorWidget {
     let residue = this.soup.getResidueProxy()
     for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
-      if (residue.resType === "XXX") {
+      if (residue.resType === 'XXX') {
         continue
       }
       let text = residue.resId + '-' + residue.resType
@@ -1441,8 +1525,10 @@ class ResidueSelectorWidget {
     }
 
     // observerReset using select2
-    this.$select.select2({width: '150px'})
-    this.$select.on('select2:select', () => { this.change() })
+    this.$select.select2({ width: '150px' })
+    this.$select.on('select2:select', () => {
+      this.change()
+    })
     console.log('ResidueSelectorWidget rebuild done')
   }
 
@@ -1464,7 +1550,7 @@ class ToggleWidget {
     this.div = $(selector)
       .html(this.html())
       .addClass('jolecule-button')
-      .on('click touch', (e) => {
+      .on('click touch', e => {
         this.set(!this.get())
         this.update()
         e.preventDefault()
@@ -1508,7 +1594,7 @@ class ToggleOptionWidget extends ToggleWidget {
 
   set (val) {
     this.controller.setShowOption(this.option, val)
-    if ((this.option === 'sidechains') && (val === false)) {
+    if (this.option === 'sidechains' && val === false) {
       this.controller.clearSidechainResidues()
     }
   }
@@ -1538,7 +1624,6 @@ class ToggleAnimateWidget extends ToggleWidget {
     }
   }
 }
-
 
 class ViewTextWidget {
   constructor (soupWidget, selector) {

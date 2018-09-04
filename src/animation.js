@@ -10,15 +10,15 @@
  * }
  *
  * The widgets are stored on the global window object so that
- * potentially multiple different instances will hit the 
+ * potentially multiple different instances will hit the
  * same copy of the function
- * 
+ *
  * Global storage
  * - window.globalWidgets
  * - window.lastTime
+ *
+ * typically MS_PER_STEP = 17
  */
-
-const MS_PER_STEP = 17
 
 function loop () {
   requestAnimationFrame(loop)

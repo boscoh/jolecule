@@ -8,7 +8,7 @@ import widgets from './widgets'
 import * as representation from './representation'
 import { registerGlobalAnimationLoop } from './animation'
 
-import { WebglWidget} from './webgl-widget'
+import { WebglWidget } from './webgl-widget'
 
 /**
  * Display is the main window for drawing the soup
@@ -73,20 +73,26 @@ class SoupWidget extends WebglWidget {
 
   addObserver (observer) {
     if ('update' in observer) {
-      this.observers.updated.add(() => { observer.update() })
+      this.observers.updated.add(() => {
+        observer.update()
+      })
     }
     if ('rebuild' in observer) {
-      this.observers.rebuilt.add(() => { observer.rebuild() })
+      this.observers.rebuilt.add(() => {
+        observer.rebuild()
+      })
     }
     if ('resize' in observer) {
-      this.observers.resized.add(() => { observer.resize() })
+      this.observers.resized.add(() => {
+        observer.resize()
+      })
     }
   }
 
   buildCrossHairs () {
     let radius = 2.0
     let segments = 60
-    let material = new THREE.LineBasicMaterial({color: 0xFF5555})
+    let material = new THREE.LineBasicMaterial({ color: 0xff5555 })
     let geometry = new THREE.CircleGeometry(radius, segments)
 
     // Remove center vertex
@@ -110,21 +116,21 @@ class SoupWidget extends WebglWidget {
   getCameraOfCurrentView () {
     return this.soupView.currentView.cameraParams
   }
-  
+
   getZ (pos) {
     let cameraParams = this.getCameraOfCurrentView()
-    let cameraDir = cameraParams.focus.clone()
+    let cameraDir = cameraParams.focus
+      .clone()
       .sub(cameraParams.position)
       .normalize()
-    let posRelativeToOrigin = pos.clone()
-      .sub(cameraParams.focus)
+    let posRelativeToOrigin = pos.clone().sub(cameraParams.focus)
     return posRelativeToOrigin.dot(cameraDir)
   }
 
   inZlab (pos) {
     let z = this.getZ(pos)
     let cameraParams = this.getCameraOfCurrentView()
-    return ((z >= cameraParams.zFront) && (z <= cameraParams.zBack))
+    return z >= cameraParams.zFront && z <= cameraParams.zBack
   }
 
   opacity (pos) {
@@ -140,7 +146,9 @@ class SoupWidget extends WebglWidget {
       return 0.0
     }
 
-    return 1 - (z - cameraParams.zFront) / (cameraParams.zBack - cameraParams.zFront)
+    return (
+      1 - (z - cameraParams.zFront) / (cameraParams.zBack - cameraParams.zFront)
+    )
   }
 
   /**
@@ -161,14 +169,16 @@ class SoupWidget extends WebglWidget {
     if (iAtom >= 0) {
       let atom = this.soup.getAtomProxy(iAtom)
       let label = 'Label atom : ' + atom.label
-      let success = text => { this.controller.makeAtomLabel(iAtom, text) }
+      let success = text => {
+        this.controller.makeAtomLabel(iAtom, text)
+      }
       util.textEntryDialog(this.div, label, success)
     }
   }
 
   getIAtomHover () {
     let i = this.getPickColorFromMouse()
-    if ((i > 0) && (i < this.soup.getAtomCount() + 1)) {
+    if (i > 0 && i < this.soup.getAtomCount() + 1) {
       return i - 1
     }
     return null
@@ -232,21 +242,30 @@ class SoupWidget extends WebglWidget {
 
     this.addRepresentation(
       'transparentRibbon',
-      new representation.CartoonRepresentation(this.soup, true))
+      new representation.CartoonRepresentation(this.soup, true)
+    )
     this.addRepresentation(
       'ribbon',
-      new representation.CartoonRepresentation(this.soup, false, this.soup.selectedTraces))
+      new representation.CartoonRepresentation(
+        this.soup,
+        false,
+        this.soup.selectedTraces
+      )
+    )
     this.addRepresentation(
       'ligand',
-      new representation.LigandRepresentation(this.soup, this.atomRadius))
+      new representation.LigandRepresentation(this.soup, this.atomRadius)
+    )
     if (this.isGrid) {
       this.addRepresentation(
         'grid',
-        new representation.GridRepresentation(this.soup, this.gridAtomRadius))
+        new representation.GridRepresentation(this.soup, this.gridAtomRadius)
+      )
     }
     this.addRepresentation(
       'sidechain',
-      new representation.SidechainRepresentation(this.soup, this.atomRadius))
+      new representation.SidechainRepresentation(this.soup, this.atomRadius)
+    )
 
     this.rebuildSceneFromMeshes()
 
@@ -297,26 +316,29 @@ class SoupWidget extends WebglWidget {
     this.updateMeshesInScene = false
 
     let isNewTrigger = (meshName, visible) => {
-      return visible && (!(meshName in this.displayMeshes))
+      return visible && !(meshName in this.displayMeshes)
     }
 
     let show = this.soupView.currentView.show
     if (isNewTrigger('water', show.water)) {
       this.addRepresentation(
         'water',
-        new representation.WaterRepresentation(this.soup, this.atomRadius))
+        new representation.WaterRepresentation(this.soup, this.atomRadius)
+      )
     }
 
     if (isNewTrigger('backbone', show.backbone)) {
       this.addRepresentation(
         'backbone',
-        new representation.BackboneRepresentation(this.soup, this.atomRadius))
+        new representation.BackboneRepresentation(this.soup, this.atomRadius)
+      )
     }
 
     if (isNewTrigger('sphere', show.sphere)) {
       this.addRepresentation(
         'sphere',
-        new representation.SphereRepresentation(this.soup))
+        new representation.SphereRepresentation(this.soup)
+      )
     }
 
     this.setMeshVisible('ribbon', show.ribbon)
@@ -327,14 +349,25 @@ class SoupWidget extends WebglWidget {
     this.setMeshVisible('sphere', show.sphere)
 
     if (show.transparent) {
-      if (!_.isEqual(this.soup.selectedTraces, this.representations.ribbon.selectedTraces)) {
-        console.log('SoupWidget.drawFrame new soup.selectedTraces', this.soup.selectedTraces)
+      if (
+        !_.isEqual(
+          this.soup.selectedTraces,
+          this.representations.ribbon.selectedTraces
+        )
+      ) {
+        console.log(
+          'SoupWidget.drawFrame new soup.selectedTraces',
+          this.soup.selectedTraces
+        )
         this.representations.ribbon.selectedTraces = this.soup.selectedTraces
         this.representations.ribbon.build()
         this.updateMeshesInScene = true
       }
     } else {
-      if (this.representations.ribbon && (this.representations.ribbon.selectedTraces.length > 0)) {
+      if (
+        this.representations.ribbon &&
+        this.representations.ribbon.selectedTraces.length > 0
+      ) {
         this.representations.ribbon.selectedTraces.length = 0
         this.representations.ribbon.build()
         this.updateMeshesInScene = true
@@ -431,7 +464,7 @@ class SoupWidget extends WebglWidget {
   }
 
   click (event) {
-    if (!_.isUndefined(this.iResClick) && (this.iResClick !== null)) {
+    if (!_.isUndefined(this.iResClick) && this.iResClick !== null) {
       if (!event.metaKey && !event.shiftKey) {
         this.controller.selectResidue(this.iResClick)
       } else if (event.shiftKey) {
@@ -462,7 +495,7 @@ class SoupWidget extends WebglWidget {
       this.isDraggingCentralAtom = this.iAtomPressed !== null
     }
 
-    let now = (new Date()).getTime()
+    let now = new Date().getTime()
     let elapsedTime = this.timePressed ? now - this.timePressed : 0
 
     if (_.isNil(this.clickTimer)) {
@@ -475,7 +508,7 @@ class SoupWidget extends WebglWidget {
 
     this.getPointer(event)
     this.savePointer()
-    this.timePressed = (new Date()).getTime()
+    this.timePressed = new Date().getTime()
     this.pointerPressed = true
   }
 
@@ -492,12 +525,16 @@ class SoupWidget extends WebglWidget {
     if (this.isDraggingCentralAtom) {
       let pos = this.soup.getAtomProxy(this.soupView.getICenteredAtom()).pos
       let v = this.getPosXY(pos)
-      this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y)
+      this.lineElement.move(
+        this.mouseX + this.x(),
+        this.mouseY + this.y(),
+        v.x,
+        v.y
+      )
     } else {
-      let shiftDown = (event.shiftKey === 1)
+      let shiftDown = event.shiftKey === 1
 
-      let rightMouse =
-        (event.button === 2) || (event.which === 3)
+      let rightMouse = event.button === 2 || event.which === 3
 
       if (this.pointerPressed) {
         let zoomRatio = 1.0
@@ -520,7 +557,8 @@ class SoupWidget extends WebglWidget {
           xRotationAngle,
           yRotationAngle,
           zRotationAngle,
-          zoomRatio)
+          zoomRatio
+        )
 
         this.savePointer()
       }
@@ -594,7 +632,8 @@ class SoupWidget extends WebglWidget {
       0,
       0,
       v3.degToRad(event.rotation * 2 - this.lastPinchRotation),
-      this.lastScale / (event.scale * event.scale))
+      this.lastScale / (event.scale * event.scale)
+    )
     this.lastPinchRotation = event.rotation * 2
     this.lastScale = event.scale * event.scale
   }

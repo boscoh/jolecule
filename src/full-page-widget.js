@@ -168,7 +168,10 @@ class ViewPanelList {
 
   saveViewsToDataServer (success) {
     console.log('ViewPanelList.saveViewsToDataServer')
-    this.soupWidget.dataServer.save_views(this.controller.getViewDicts(), success)
+    this.soupWidget.dataServer.save_views(
+      this.controller.getViewDicts(),
+      success
+    )
   }
 
   update () {
@@ -291,7 +294,6 @@ class ViewPanelList {
     this.swapViews(i, i + 1)
   }
 
-
   makeViewDiv (id) {
     let view = this.soupView.savedViewsByViewId[id]
     this.viewPiece[id] = new ViewPanel({
@@ -301,8 +303,7 @@ class ViewPanelList {
         this.removeView(id)
       },
       saveChange: changedText => {
-        const
-          SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi
+        const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi
         while (SCRIPT_REGEX.test(changedText)) {
           changedText = changedText.replace(SCRIPT_REGEX, '')
         }

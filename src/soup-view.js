@@ -59,8 +59,8 @@ class View {
       backbone: false,
       ribbon: true,
       sphere: false,
-      transparent: false,
-    },
+      transparent: false
+    }
     this.grid = {
       isElem: {},
       bCutoff: null,
@@ -106,7 +106,8 @@ class View {
     //    zFront: clipping plane in front of the cameraParams focus
     //    zBack: clipping plane behind the cameraParams focus
     // }
-    let cameraDir = this.cameraParams.focus.clone()
+    let cameraDir = this.cameraParams.focus
+      .clone()
       .sub(this.cameraParams.position)
     let zoom = cameraDir.length()
     cameraDir.normalize()
@@ -187,17 +188,20 @@ class View {
     let pos = v3.create(
       flatDict.camera.pos[0],
       flatDict.camera.pos[1],
-      flatDict.camera.pos[2])
+      flatDict.camera.pos[2]
+    )
 
     let upV = v3.create(
       flatDict.camera.up[0],
       flatDict.camera.up[1],
-      flatDict.camera.up[2])
+      flatDict.camera.up[2]
+    )
 
     let inV = v3.create(
       flatDict.camera.in[0],
       flatDict.camera.in[1],
-      flatDict.camera.in[2])
+      flatDict.camera.in[2]
+    )
 
     let zoom = flatDict.camera.slab.zoom
 
@@ -209,8 +213,7 @@ class View {
       .multiplyScalar(zoom)
       .negate()
 
-    let position = v3
-      .clone(focus).add(cameraDirection)
+    let position = v3.clone(focus).add(cameraDirection)
 
     let up = v3
       .clone(upV)
@@ -229,30 +232,33 @@ class View {
 }
 
 function interpolateCameras (oldCamera, futureCamera, t) {
-  let oldCameraDirection = oldCamera.position.clone()
-    .sub(oldCamera.focus)
+  let oldCameraDirection = oldCamera.position.clone().sub(oldCamera.focus)
   let oldZoom = oldCameraDirection.length()
   oldCameraDirection.normalize()
 
-  let futureCameraDirection =
-    futureCamera.position.clone().sub(futureCamera.focus)
+  let futureCameraDirection = futureCamera.position
+    .clone()
+    .sub(futureCamera.focus)
 
   let futureZoom = futureCameraDirection.length()
   futureCameraDirection.normalize()
 
   let cameraDirRotation = glgeom.getUnitVectorRotation(
-    oldCameraDirection, futureCameraDirection)
+    oldCameraDirection,
+    futureCameraDirection
+  )
 
-  let partialRotatedCameraUp = oldCamera.up.clone()
+  let partialRotatedCameraUp = oldCamera.up
+    .clone()
     .applyQuaternion(cameraDirRotation)
 
   let fullCameraUpRotation = glgeom
     .getUnitVectorRotation(partialRotatedCameraUp, futureCamera.up)
     .multiply(cameraDirRotation)
-  let cameraUpRotation = glgeom.getFractionRotation(
-    fullCameraUpRotation, t)
+  let cameraUpRotation = glgeom.getFractionRotation(fullCameraUpRotation, t)
 
-  let focusDisp = futureCamera.focus.clone()
+  let focusDisp = futureCamera.focus
+    .clone()
     .sub(oldCamera.focus)
     .multiplyScalar(t)
 
@@ -260,7 +266,8 @@ function interpolateCameras (oldCamera, futureCamera, t) {
 
   let zoom = glgeom.fraction(oldZoom, futureZoom, t)
 
-  let focusToPosition = oldCameraDirection.clone()
+  let focusToPosition = oldCameraDirection
+    .clone()
     .applyQuaternion(cameraUpRotation)
     .multiplyScalar(zoom)
 
@@ -329,7 +336,7 @@ class SoupView {
   }
 
   build () {
-    if ((this.savedViews.length === 0) && (!this.soup.isEmpty())) {
+    if (this.savedViews.length === 0 && !this.soup.isEmpty()) {
       this.setCurrentViewToDefaultAndSave()
     }
     this.saveGridToCurrentView()
@@ -359,7 +366,9 @@ class SoupView {
   setTargetView (view) {
     this.isStartTargetAfterRender = true
     this.saveTargetView = view.clone()
-    this.saveTargetView.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus)
+    this.saveTargetView.iAtom = this.soup.getIAtomAtPosition(
+      view.cameraParams.focus
+    )
   }
 
   startTargetView () {
@@ -434,11 +443,13 @@ class SoupView {
     let atomIndices = _.range(this.soup.getAtomCount())
     let center = this.soup.getCenter(atomIndices)
 
-    let look = cameraParams.position.clone()
+    let look = cameraParams.position
+      .clone()
       .sub(cameraParams.focus)
       .normalize()
     cameraParams.focus.copy(center)
-    cameraParams.position = cameraParams.focus.clone()
+    cameraParams.position = cameraParams.focus
+      .clone()
       .add(look.multiplyScalar(cameraParams.zoom))
 
     newView.iAtom = this.soup.getIAtomAtPosition(center)
@@ -489,11 +500,13 @@ class SoupView {
     cameraParams.zBack = maxLength / 2
     cameraParams.zoom = Math.abs(maxLength) * 1.2
 
-    let look = cameraParams.position.clone()
+    let look = cameraParams.position
+      .clone()
       .sub(cameraParams.focus)
       .normalize()
     cameraParams.focus.copy(center)
-    cameraParams.position = cameraParams.focus.clone()
+    cameraParams.position = cameraParams.focus
+      .clone()
       .add(look.multiplyScalar(cameraParams.zoom))
 
     newView.iAtom = this.soup.getIAtomAtPosition(center)
@@ -619,21 +632,20 @@ class SoupView {
     let cameraParams = this.currentView.cameraParams
 
     let y = cameraParams.up
-    let z = cameraParams.position.clone()
+    let z = cameraParams.position
+      .clone()
       .sub(cameraParams.focus)
       .normalize()
-    let x = (v3.create())
+    let x = v3
+      .create()
       .crossVectors(y, z)
       .normalize()
 
-    let rotZ = new THREE.Quaternion()
-      .setFromAxisAngle(z, zRotationAngle)
+    let rotZ = new THREE.Quaternion().setFromAxisAngle(z, zRotationAngle)
 
-    let rotY = new THREE.Quaternion()
-      .setFromAxisAngle(y, -yRotationAngle)
+    let rotY = new THREE.Quaternion().setFromAxisAngle(y, -yRotationAngle)
 
-    let rotX = new THREE.Quaternion()
-      .setFromAxisAngle(x, -xRotationAngle)
+    let rotX = new THREE.Quaternion().setFromAxisAngle(x, -xRotationAngle)
 
     let rotation = new THREE.Quaternion()
       .multiply(rotZ)
@@ -646,7 +658,8 @@ class SoupView {
       newZoom = 2
     }
 
-    let position = cameraParams.position.clone()
+    let position = cameraParams.position
+      .clone()
       .sub(cameraParams.focus)
       .applyQuaternion(rotation)
       .normalize()
@@ -696,10 +709,13 @@ class SoupView {
     } else if (this.nUpdateStep >= 1) {
       if (this.targetView != null) {
         let view = this.currentView.clone()
-        view.setCamera(interpolateCameras(
-          this.currentView.cameraParams,
-          this.targetView.cameraParams,
-          1.0 / this.nUpdateStep))
+        view.setCamera(
+          interpolateCameras(
+            this.currentView.cameraParams,
+            this.targetView.cameraParams,
+            1.0 / this.nUpdateStep
+          )
+        )
         this.setCurrentView(view)
       }
     }
@@ -723,12 +739,15 @@ class SoupViewController {
   }
 
   makeDistance (iAtom1, iAtom2) {
-    this.soupView.currentView.distances.push({i_atom1: iAtom1, i_atom2: iAtom2})
+    this.soupView.currentView.distances.push({
+      i_atom1: iAtom1,
+      i_atom2: iAtom2
+    })
     this.soupView.isChanged = true
   }
 
   makeAtomLabel (iAtom, text) {
-    this.soupView.currentView.labels.push({i_atom: iAtom, text})
+    this.soupView.currentView.labels.push({ i_atom: iAtom, text })
     this.soupView.isChanged = true
   }
 
@@ -1064,7 +1083,12 @@ class SoupViewController {
   }
 
   adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-    this.soupView.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio)
+    this.soupView.adjustCamera(
+      xRotationAngle,
+      yRotationAngle,
+      zRotationAngle,
+      zoomRatio
+    )
   }
 }
 
