@@ -606,7 +606,7 @@ class SoupWidget extends WebglWidget {
 
     this.observers.rebuilt.dispatch()
 
-    this.soupView.changed = true
+    this.soupView.isChanged = true
     this.soupView.isUpdateObservers = true
   }
 
@@ -627,7 +627,7 @@ class SoupWidget extends WebglWidget {
    * @returns Boolean
    */
   isChanged () {
-    return this.soupView.changed
+    return this.soupView.isChanged
   }
 
   drawFrame () {
@@ -636,7 +636,7 @@ class SoupWidget extends WebglWidget {
     }
 
     let isNoMoreChanges =
-      !this.soupView.soup.grid.changed &&
+      !this.soupView.soup.grid.isChanged &&
       !this.soupView.isUpdateSidechain &&
       !this.soupView.isUpdateSelection
 
@@ -696,15 +696,15 @@ class SoupWidget extends WebglWidget {
     }
 
     if (this.isGrid) {
-      if (this.soupView.soup.grid.changed) {
+      if (this.soupView.soup.grid.isChanged) {
         if (!_.isUndefined(this.representations.grid)) {
           this.soup.colorResidues()
           this.representations.grid.build()
         }
-        this.soupView.soup.grid.changed = false
+        this.soupView.soup.grid.isChanged = false
       }
     } else {
-      this.soupView.soup.grid.changed = false
+      this.soupView.soup.grid.isChanged = false
     }
 
     if (this.soupView.isUpdateSidechain) {
@@ -745,7 +745,7 @@ class SoupWidget extends WebglWidget {
     // needs to be observers.updated after render
     this.atomLabelsWidget.drawFrame()
 
-    this.soupView.changed = false
+    this.soupView.isChanged = false
   }
 
   animate (elapsedTime) {

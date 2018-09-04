@@ -310,7 +310,7 @@ class ViewPanelList {
         this.viewPiece[id].div.css('background-color', 'lightgray')
         this.saveViewsToDataServer(() => {
           this.viewPiece[id].div.css('background-color', '')
-          this.soupView.changed = true
+          this.soupView.isChanged = true
           this.update()
         })
       },
@@ -492,7 +492,7 @@ class FullPageWidget {
           this.viewPanelList.setTargetByViewId(id)
         }
       }
-      this.soupView.changed = true
+      this.soupView.isChanged = true
     }
   }
 }

@@ -1475,7 +1475,8 @@ class View {
     },
     this.grid = {
       isElem: {},
-      bCutoff: null
+      bCutoff: null,
+      isChanged: false
     }
   }
 
@@ -1695,7 +1696,7 @@ class SoupView {
     // the soup data for the soupView
     this.soup = soup
 
-    this.changed = true
+    this.isChanged = true
 
     // indicates when sidechains need to be rebuilt
     this.isUpdateSidechain = false
@@ -1764,7 +1765,7 @@ class SoupView {
     this.currentView.pdb_id = this.soup.structureIds[0]
     this.currentView = this.getZoomedOutViewOfCurrentView()
     this.saveView(this.currentView)
-    this.changed = true
+    this.isChanged = true
   }
 
   setTargetView (view) {
@@ -1777,7 +1778,7 @@ class SoupView {
     this.targetView = this.saveTargetView
     this.isUpdateObservers = true
     this.isStartTargetAfterRender = false
-    this.changed = true
+    this.isChanged = true
   }
 
   getICenteredAtom () {
@@ -1819,7 +1820,7 @@ class SoupView {
     if (this.iLastViewSelected >= this.savedViews.length) {
       this.iLastViewSelected = this.savedViews.length - 1
     }
-    this.changed = true
+    this.isChanged = true
   }
 
   saveView (view) {
@@ -1922,7 +1923,7 @@ class SoupView {
     let iNewView = this.iLastViewSelected + 1
     this.insertView(iNewView, newView.id, newView)
     this.setTargetViewByViewId(newView.id)
-    this.changed = true
+    this.isChanged = true
     this.isUpdateSelection = true
     console.log('Soupview.saveCurrentView', newView)
 
@@ -1945,7 +1946,7 @@ class SoupView {
         if (view.grid.isElem[elem] !== this.soup.grid.isElem[elem]) {
           this.soup.grid.isElem[elem] = view.grid.isElem[elem]
           this.isUpdateObservers = true
-          this.soup.grid.changed = true
+          this.soup.grid.isChanged = true
         }
       }
     }
@@ -1953,11 +1954,11 @@ class SoupView {
       if (this.soup.grid.bCutoff !== view.grid.bCutoff) {
         this.soup.grid.bCutoff = view.grid.bCutoff
         this.isUpdateObservers = true
-        this.soup.grid.changed = true
+        this.soup.grid.isChanged = true
       }
     }
 
-    this.changed = true
+    this.isChanged = true
   }
 
   setTargetToPrevView () {
@@ -2079,12 +2080,12 @@ class SoupView {
       if (this.targetView !== null) {
         this.setCurrentView(this.targetView)
         this.isUpdateObservers = true
-        this.changed = true
+        this.isChanged = true
         this.targetView = null
         this.nUpdateStep = this.maxUpdateStep
       } else {
         if (this.isStartTargetAfterRender) {
-          this.changed = true
+          this.isChanged = true
         } else if (this.animateState === 'loop') {
           if (this.nUpdateStep < -this.maxWaitStep) {
             this.setTargetToNextView()
@@ -2130,22 +2131,22 @@ class Controller {
 
   deleteDistance (iDistance) {
     this.soupView.currentView.distances.splice(iDistance, 1)
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   makeDistance (iAtom1, iAtom2) {
     this.soupView.currentView.distances.push({i_atom1: iAtom1, i_atom2: iAtom2})
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   makeAtomLabel (iAtom, text) {
     this.soupView.currentView.labels.push({i_atom: iAtom, text})
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   deleteAtomLabel (iLabel) {
     this.soupView.currentView.labels.splice(iLabel, 1)
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   setTargetView (view) {
@@ -2196,21 +2197,21 @@ class Controller {
     this.soup.clearSidechainResidues()
     this.soupView.currentView.selected = this.soup.makeSelectedResidueList()
     this.soupView.isUpdateSidechain = true
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   clearSelectedResidues () {
     this.soup.clearSelectedResidues()
     this.soupView.currentView.selected = this.soup.makeSelectedResidueList()
     this.soupView.isUpdateSelection = true
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   setResidueSelect (iRes, val) {
     let res = this.soup.getResidueProxy(iRes)
     res.selected = val
     this.soupView.isUpdateSelection = true
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   showAllSidechains () {
@@ -2219,7 +2220,7 @@ class Controller {
       res.load(iRes).sidechain = true
     }
     this.soupView.isUpdateSidechain = true
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   selectResidue (iRes, val) {
@@ -2231,7 +2232,7 @@ class Controller {
     this.setResidueSelect(iRes, val)
     this.iResLastSelected = val ? iRes : null
     this.soupView.isUpdateSelection = true
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   selectAdditionalResidue (iRes) {
@@ -2240,7 +2241,7 @@ class Controller {
     this.setResidueSelect(iRes, val)
     this.iResLastSelected = val ? iRes : null
     this.soupView.isUpdateSelection = true
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   selectAdditionalRangeToResidue (iRes) {
@@ -2258,7 +2259,7 @@ class Controller {
     }
     this.iResLastSelected = val ? iRes : null
     this.soupView.isUpdateSelection = true
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   toggleSelectedSidechains () {
@@ -2284,7 +2285,7 @@ class Controller {
     }
 
     this.soupView.isUpdateSidechain = true
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   toggleResidueNeighbors () {
@@ -2321,7 +2322,7 @@ class Controller {
 
     this.soup.setSidechainOfResidues(indices, isSidechain)
     this.soupView.currentView.selected = this.soup.makeSelectedResidueList()
-    this.soupView.changed = true
+    this.soupView.isChanged = true
     this.soupView.isUpdateSidechain = true
   }
 
@@ -2360,14 +2361,14 @@ class Controller {
     await this.soup.asyncLoadProteinData(proteinData, asyncSetMessageFn)
     // pre-calculations needed before building meshes
     this.soupView.build()
-    this.soupView.changed = true
+    this.soupView.isChanged = true
     this.soupView.isUpdateObservers = true
   }
 
   setShowOption (option, bool) {
     console.log('Controller.setShowOption', option, bool)
     this.soupView.currentView.show[option] = bool
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   getShowOption (option) {
@@ -2380,7 +2381,7 @@ class Controller {
   }
 
   setChangeFlag () {
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   setZoom (zBack, zFront) {
@@ -2388,17 +2389,17 @@ class Controller {
     cameraParams.zBack = zBack
     cameraParams.zFront = zFront
     this.soupView.isUpdateObservers = true
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   toggleGridElem (elem) {
     let b = this.soup.grid.isElem[elem]
     this.soup.grid.isElem[elem] = !b
-    this.soup.grid.changed = true
+    this.soup.grid.isChanged = true
     this.soup.colorResidues()
 
     this.soupView.currentView.grid.isElem = _.cloneDeep(this.soup.grid.isElem)
-    this.soupView.changed = true
+    this.soupView.isChanged = true
 
     this.soupView.isUpdateObservers = true
     this.soupView.isUpdateSelection = true
@@ -2406,7 +2407,7 @@ class Controller {
 
   setGridCutoff (bCutoff) {
     this.soup.grid.bCutoff = bCutoff
-    this.soup.grid.changed = true
+    this.soup.grid.isChanged = true
     this.soupView.currentView.grid.bCutoff = bCutoff
     if (exists(this.soupView.targetView)) {
       this.soupView.targetView.grid.bCutoff = bCutoff
@@ -2415,7 +2416,7 @@ class Controller {
       this.soupView.saveTargetView.grid.bCutoff = bCutoff
     }
     this.soupView.isUpdateObservers = true
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   clear () {
@@ -2438,7 +2439,7 @@ class Controller {
   setAnimateState (v) {
     this.soupView.animateState = v
     this.soupView.isUpdateObservers = true
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   deleteStructure (iStructure) {
@@ -2457,20 +2458,20 @@ class Controller {
       this.soupView.isUpdateSelection = true
     }
     this.soupView.isUpdateObservers = true
-    this.soupView.changed = true
+    this.soupView.isChanged = true
   }
 
   zoomOut () {
     if (!this.soup.isEmpty()) {
       this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView())
-      this.soupView.changed = true
+      this.soupView.isChanged = true
     }
   }
 
   zoomToSelection () {
     if (!this.soup.isEmpty()) {
       this.setTargetView(this.soupView.getZoomedOutViewOfSelection())
-      this.soupView.changed = true
+      this.soupView.isChanged = true
     }
   }
 

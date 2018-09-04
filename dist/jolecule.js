@@ -89350,7 +89350,8 @@ var View = function () {
       transparent: false
     }, this.grid = {
       isElem: {},
-      bCutoff: null
+      bCutoff: null,
+      isChanged: false
     };
   }
 
@@ -89574,7 +89575,7 @@ var SoupView = function () {
     // the soup data for the soupView
     this.soup = soup;
 
-    this.changed = true;
+    this.isChanged = true;
 
     // indicates when sidechains need to be rebuilt
     this.isUpdateSidechain = false;
@@ -89647,7 +89648,7 @@ var SoupView = function () {
       this.currentView.pdb_id = this.soup.structureIds[0];
       this.currentView = this.getZoomedOutViewOfCurrentView();
       this.saveView(this.currentView);
-      this.changed = true;
+      this.isChanged = true;
     }
   }, {
     key: 'setTargetView',
@@ -89662,7 +89663,7 @@ var SoupView = function () {
       this.targetView = this.saveTargetView;
       this.isUpdateObservers = true;
       this.isStartTargetAfterRender = false;
-      this.changed = true;
+      this.isChanged = true;
     }
   }, {
     key: 'getICenteredAtom',
@@ -89708,7 +89709,7 @@ var SoupView = function () {
       if (this.iLastViewSelected >= this.savedViews.length) {
         this.iLastViewSelected = this.savedViews.length - 1;
       }
-      this.changed = true;
+      this.isChanged = true;
     }
   }, {
     key: 'saveView',
@@ -89857,7 +89858,7 @@ var SoupView = function () {
       var iNewView = this.iLastViewSelected + 1;
       this.insertView(iNewView, newView.id, newView);
       this.setTargetViewByViewId(newView.id);
-      this.changed = true;
+      this.isChanged = true;
       this.isUpdateSelection = true;
       console.log('Soupview.saveCurrentView', newView);
 
@@ -89881,7 +89882,7 @@ var SoupView = function () {
           if (view.grid.isElem[elem] !== this.soup.grid.isElem[elem]) {
             this.soup.grid.isElem[elem] = view.grid.isElem[elem];
             this.isUpdateObservers = true;
-            this.soup.grid.changed = true;
+            this.soup.grid.isChanged = true;
           }
         }
       }
@@ -89889,11 +89890,11 @@ var SoupView = function () {
         if (this.soup.grid.bCutoff !== view.grid.bCutoff) {
           this.soup.grid.bCutoff = view.grid.bCutoff;
           this.isUpdateObservers = true;
-          this.soup.grid.changed = true;
+          this.soup.grid.isChanged = true;
         }
       }
 
-      this.changed = true;
+      this.isChanged = true;
     }
   }, {
     key: 'setTargetToPrevView',
@@ -90006,12 +90007,12 @@ var SoupView = function () {
         if (this.targetView !== null) {
           this.setCurrentView(this.targetView);
           this.isUpdateObservers = true;
-          this.changed = true;
+          this.isChanged = true;
           this.targetView = null;
           this.nUpdateStep = this.maxUpdateStep;
         } else {
           if (this.isStartTargetAfterRender) {
-            this.changed = true;
+            this.isChanged = true;
           } else if (this.animateState === 'loop') {
             if (this.nUpdateStep < -this.maxWaitStep) {
               this.setTargetToNextView();
@@ -90063,25 +90064,25 @@ var Controller = function () {
     key: 'deleteDistance',
     value: function deleteDistance(iDistance) {
       this.soupView.currentView.distances.splice(iDistance, 1);
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'makeDistance',
     value: function makeDistance(iAtom1, iAtom2) {
       this.soupView.currentView.distances.push({ i_atom1: iAtom1, i_atom2: iAtom2 });
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'makeAtomLabel',
     value: function makeAtomLabel(iAtom, text) {
       this.soupView.currentView.labels.push({ i_atom: iAtom, text: text });
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'deleteAtomLabel',
     value: function deleteAtomLabel(iLabel) {
       this.soupView.currentView.labels.splice(iLabel, 1);
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'setTargetView',
@@ -90142,7 +90143,7 @@ var Controller = function () {
       this.soup.clearSidechainResidues();
       this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
       this.soupView.isUpdateSidechain = true;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'clearSelectedResidues',
@@ -90150,7 +90151,7 @@ var Controller = function () {
       this.soup.clearSelectedResidues();
       this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
       this.soupView.isUpdateSelection = true;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'setResidueSelect',
@@ -90158,7 +90159,7 @@ var Controller = function () {
       var res = this.soup.getResidueProxy(iRes);
       res.selected = val;
       this.soupView.isUpdateSelection = true;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'showAllSidechains',
@@ -90190,7 +90191,7 @@ var Controller = function () {
       }
 
       this.soupView.isUpdateSidechain = true;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'selectResidue',
@@ -90203,7 +90204,7 @@ var Controller = function () {
       this.setResidueSelect(iRes, val);
       this.iResLastSelected = val ? iRes : null;
       this.soupView.isUpdateSelection = true;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'selectAdditionalResidue',
@@ -90213,7 +90214,7 @@ var Controller = function () {
       this.setResidueSelect(iRes, val);
       this.iResLastSelected = val ? iRes : null;
       this.soupView.isUpdateSelection = true;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'selectAdditionalRangeToResidue',
@@ -90232,7 +90233,7 @@ var Controller = function () {
       }
       this.iResLastSelected = val ? iRes : null;
       this.soupView.isUpdateSelection = true;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'toggleSelectedSidechains',
@@ -90280,7 +90281,7 @@ var Controller = function () {
       }
 
       this.soupView.isUpdateSidechain = true;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'toggleResidueNeighbors',
@@ -90340,7 +90341,7 @@ var Controller = function () {
 
       this.soup.setSidechainOfResidues(indices, isSidechain);
       this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
       this.soupView.isUpdateSidechain = true;
     }
   }, {
@@ -90392,7 +90393,7 @@ var Controller = function () {
               case 2:
                 // pre-calculations needed before building meshes
                 this.soupView.build();
-                this.soupView.changed = true;
+                this.soupView.isChanged = true;
                 this.soupView.isUpdateObservers = true;
 
               case 5:
@@ -90414,7 +90415,7 @@ var Controller = function () {
     value: function setShowOption(option, bool) {
       console.log('Controller.setShowOption', option, bool);
       this.soupView.currentView.show[option] = bool;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'getShowOption',
@@ -90430,7 +90431,7 @@ var Controller = function () {
   }, {
     key: 'setChangeFlag',
     value: function setChangeFlag() {
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'setZoom',
@@ -90439,18 +90440,18 @@ var Controller = function () {
       cameraParams.zBack = zBack;
       cameraParams.zFront = zFront;
       this.soupView.isUpdateObservers = true;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'toggleGridElem',
     value: function toggleGridElem(elem) {
       var b = this.soup.grid.isElem[elem];
       this.soup.grid.isElem[elem] = !b;
-      this.soup.grid.changed = true;
+      this.soup.grid.isChanged = true;
       this.soup.colorResidues();
 
       this.soupView.currentView.grid.isElem = _lodash2.default.cloneDeep(this.soup.grid.isElem);
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
 
       this.soupView.isUpdateObservers = true;
       this.soupView.isUpdateSelection = true;
@@ -90459,7 +90460,7 @@ var Controller = function () {
     key: 'setGridCutoff',
     value: function setGridCutoff(bCutoff) {
       this.soup.grid.bCutoff = bCutoff;
-      this.soup.grid.changed = true;
+      this.soup.grid.isChanged = true;
       this.soupView.currentView.grid.bCutoff = bCutoff;
       if ((0, _util.exists)(this.soupView.targetView)) {
         this.soupView.targetView.grid.bCutoff = bCutoff;
@@ -90468,7 +90469,7 @@ var Controller = function () {
         this.soupView.saveTargetView.grid.bCutoff = bCutoff;
       }
       this.soupView.isUpdateObservers = true;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'clear',
@@ -90538,7 +90539,7 @@ var Controller = function () {
     value: function setAnimateState(v) {
       this.soupView.animateState = v;
       this.soupView.isUpdateObservers = true;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'deleteStructure',
@@ -90580,14 +90581,14 @@ var Controller = function () {
         this.soupView.isUpdateSelection = true;
       }
       this.soupView.isUpdateObservers = true;
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
     }
   }, {
     key: 'zoomOut',
     value: function zoomOut() {
       if (!this.soup.isEmpty()) {
         this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView());
-        this.soupView.changed = true;
+        this.soupView.isChanged = true;
       }
     }
   }, {
@@ -90595,7 +90596,7 @@ var Controller = function () {
     value: function zoomToSelection() {
       if (!this.soup.isEmpty()) {
         this.setTargetView(this.soupView.getZoomedOutViewOfSelection());
-        this.soupView.changed = true;
+        this.soupView.isChanged = true;
       }
     }
   }, {
@@ -91904,7 +91905,7 @@ var SoupWidget = function (_WebglWidget) {
 
       this.observers.rebuilt.dispatch();
 
-      this.soupView.changed = true;
+      this.soupView.isChanged = true;
       this.soupView.isUpdateObservers = true;
     }
   }, {
@@ -91929,7 +91930,7 @@ var SoupWidget = function (_WebglWidget) {
   }, {
     key: 'isChanged',
     value: function isChanged() {
-      return this.soupView.changed;
+      return this.soupView.isChanged;
     }
   }, {
     key: 'drawFrame',
@@ -91940,7 +91941,7 @@ var SoupWidget = function (_WebglWidget) {
         return;
       }
 
-      var isNoMoreChanges = !this.soupView.soup.grid.changed && !this.soupView.isUpdateSidechain && !this.soupView.isUpdateSelection;
+      var isNoMoreChanges = !this.soupView.soup.grid.isChanged && !this.soupView.isUpdateSidechain && !this.soupView.isUpdateSelection;
 
       if (this.soupView.isStartTargetAfterRender) {
         // set target only AFTER all changes have been applied in previous tick
@@ -91992,15 +91993,15 @@ var SoupWidget = function (_WebglWidget) {
       }
 
       if (this.isGrid) {
-        if (this.soupView.soup.grid.changed) {
+        if (this.soupView.soup.grid.isChanged) {
           if (!_lodash2.default.isUndefined(this.representations.grid)) {
             this.soup.colorResidues();
             this.representations.grid.build();
           }
-          this.soupView.soup.grid.changed = false;
+          this.soupView.soup.grid.isChanged = false;
         }
       } else {
-        this.soupView.soup.grid.changed = false;
+        this.soupView.soup.grid.isChanged = false;
       }
 
       if (this.soupView.isUpdateSidechain) {
@@ -92063,7 +92064,7 @@ var SoupWidget = function (_WebglWidget) {
       // needs to be observers.updated after render
       this.atomLabelsWidget.drawFrame();
 
-      this.soupView.changed = false;
+      this.soupView.isChanged = false;
     }
   }, {
     key: 'animate',
@@ -100485,7 +100486,7 @@ var ViewPanelList = function () {
           _this6.viewPiece[id].div.css('background-color', 'lightgray');
           _this6.saveViewsToDataServer(function () {
             _this6.viewPiece[id].div.css('background-color', '');
-            _this6.soupView.changed = true;
+            _this6.soupView.isChanged = true;
             _this6.update();
           });
         },
@@ -100698,7 +100699,7 @@ var FullPageWidget = function () {
             this.viewPanelList.setTargetByViewId(id);
           }
         }
-        this.soupView.changed = true;
+        this.soupView.isChanged = true;
       }
     }
   }]);
