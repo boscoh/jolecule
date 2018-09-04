@@ -1,6 +1,7 @@
 import $ from 'jquery'
 import _ from 'lodash'
-import { Soup, Controller, SoupView } from './soup'
+import { SoupViewController, SoupView } from './soup-view'
+import { Soup } from './soup'
 import { SoupWidget } from './soup-widget'
 import { linkButton, delay } from './util.js'
 import widgets from './widgets'
@@ -51,7 +52,7 @@ class EmbedJolecule {
       this.soup.grid.bCutoff = this.params.bCutoff
     }
 
-    this.controller = new Controller(this.soupView)
+    this.controller = new SoupViewController(this.soupView)
 
     this.widget = {}
 

@@ -79542,6 +79542,8 @@ var _lodash = __webpack_require__(27);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
+var _soupView = __webpack_require__(349);
+
 var _soup = __webpack_require__(340);
 
 var _soupWidget = __webpack_require__(343);
@@ -79598,7 +79600,7 @@ var EmbedJolecule = function () {
     this.div[0].oncontextmenu = _lodash2.default.noop;
 
     this.soup = new _soup.Soup();
-    this.soupView = new _soup.SoupView(this.soup);
+    this.soupView = new _soupView.SoupView(this.soup);
     this.soupView.animateState = this.params.animateState;
     this.soupView.maxUpdateStep = this.params.maxUpdateStep;
     this.soupView.msPerStep = this.params.msPerStep;
@@ -79608,7 +79610,7 @@ var EmbedJolecule = function () {
       this.soup.grid.bCutoff = this.params.bCutoff;
     }
 
-    this.controller = new _soup.Controller(this.soupView);
+    this.controller = new _soupView.SoupViewController(this.soupView);
 
     this.widget = {};
 
@@ -87270,7 +87272,7 @@ module.exports = function(module) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.View = exports.SoupView = exports.interpolateCameras = exports.Controller = exports.Soup = undefined;
+exports.Soup = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -87653,10 +87655,10 @@ var ResidueProxy = function () {
       var thisRes = this;
       var prevRes = new ResidueProxy(this.soup, this.iRes - 1);
 
-      var nucleicAtomTypes = ['C3\'', 'O3\''];
+      var nucleicAtomTypes = ["C3'", "O3'"];
 
       if (prevRes.checkAtomTypes(nucleicAtomTypes) && thisRes.checkAtomTypes(nucleicAtomTypes) && thisRes.checkAtomTypes(['P'])) {
-        var o3 = prevRes.getAtomProxy('O3\'').pos;
+        var o3 = prevRes.getAtomProxy("O3'").pos;
         var p = thisRes.getAtomProxy('P').pos;
         if (_v2.default.distance(o3, p) < 2.5) {
           return true;
@@ -87672,9 +87674,9 @@ var ResidueProxy = function () {
   }, {
     key: 'getNucleotideNormal',
     value: function getNucleotideNormal() {
-      var c3 = this.getAtomProxy('C3\'').pos;
-      var c5 = this.getAtomProxy('C5\'').pos;
-      var c1 = this.getAtomProxy('C1\'').pos;
+      var c3 = this.getAtomProxy("C3'").pos;
+      var c5 = this.getAtomProxy("C5'").pos;
+      var c1 = this.getAtomProxy("C1'").pos;
       var forward = _v2.default.diff(c3, c5);
       var up = _v2.default.diff(c1, c3);
       return _v2.default.crossProduct(forward, up);
@@ -88165,7 +88167,7 @@ var Soup = function () {
           res.ss = 'C';
           res.isPolymer = true;
         } else if (_lodash2.default.includes(data.dnaResTypes, res.resType) || _lodash2.default.includes(data.rnaResTypes, res.resType)) {
-          res.iAtom = res.getIAtom('C3\'');
+          res.iAtom = res.getIAtom("C3'");
           res.ss = 'D';
           res.isPolymer = true;
         } else {
@@ -88188,7 +88190,7 @@ var Soup = function () {
     key: 'getIAtomClosest',
     value: function getIAtomClosest(pos, atomIndices) {
       var iAtomClosest = null;
-      var minD = 1E6;
+      var minD = 1e6;
       var atom = this.getAtomProxy();
       var _iteratorNormalCompletion6 = true;
       var _didIteratorError6 = false;
@@ -88231,7 +88233,7 @@ var Soup = function () {
     value: function getIAtomAtPosition(pos) {
       var atomIndices = _lodash2.default.range(this.getAtomCount());
       var iAtomClosest = null;
-      var minD = 1E6;
+      var minD = 1e6;
       var atom = this.getAtomProxy();
       var _iteratorNormalCompletion7 = true;
       var _didIteratorError7 = false;
@@ -88565,7 +88567,7 @@ var Soup = function () {
             atom0.iAtom = atomIndices[pair[0]];
             atom1.iAtom = atomIndices[pair[1]];
             if (atom0.elem === 'O' && atom1.elem === 'N') {
-              var _ref2 = [atom1, atom0];
+              ;var _ref2 = [atom1, atom0];
               atom0 = _ref2[0];
               atom1 = _ref2[1];
             }
@@ -88861,8 +88863,8 @@ var Soup = function () {
 
           if (residue.getIAtom('CA')) {
             atom.iAtom = residue.getIAtom('CA');
-          } else if (residue.getIAtom('C3\'')) {
-            atom.iAtom = residue.getIAtom('C3\'');
+          } else if (residue.getIAtom("C3'")) {
+            atom.iAtom = residue.getIAtom("C3'");
           } else {
             atom.iAtom = residue.iAtom;
           }
@@ -89288,1332 +89290,7 @@ var Soup = function () {
   return Soup;
 }();
 
-/**
- * View
- * ----
- * A view includes all pertinent viewing options
- * needed to render the soup in the way
- * for the user.
- *
- * cameraParams stores the direction and zoom that a soup
- * should be viewed:
- * cameraParams {
- *   focus: position that cameraParams is looking at
- *   position: position of cameraParams - distance away gives zoom
- *   up: vector direction denoting the up direction of cameraParams
- *   zFront: clipping plane in front of the cameraParams focus
- *   zBack: clipping plane behind the cameraParams focus
- * }
- *
- * OpenGL notes:
- *   - box is -1 to 1 that gets projected on screen + perspective
- *   - x right -> left
- *   - y bottom -> top (inverse of classic 2D coordinate)
- *   - z far -> near
- *   - that is positive Z direction is out of the screen
- *   - box -1 to +1
- */
-
-
-var View = function () {
-  function View() {
-    _classCallCheck(this, View);
-
-    this.id = 'view:000000';
-    this.iAtom = -1;
-    this.order = 1;
-    this.cameraParams = {
-      focus: _v2.default.create(0, 0, 0),
-      position: _v2.default.create(0, 0, -1),
-      up: _v2.default.create(0, 1, 0),
-      zFront: 0,
-      zBack: 0,
-      zoom: 1
-    };
-    this.selected = [];
-    this.labels = [];
-    this.distances = [];
-    this.selectedTraces = [];
-    this.text = 'Default view of PDB file';
-    this.user_id = '';
-    this.pdb_id = '';
-    this.show = {
-      sidechain: true,
-      peptide: true,
-      hydrogen: false,
-      water: false,
-      ligands: true,
-      trace: true,
-      backbone: false,
-      ribbon: true,
-      sphere: false,
-      transparent: false
-    }, this.grid = {
-      isElem: {},
-      bCutoff: null,
-      isChanged: false
-    };
-  }
-
-  _createClass(View, [{
-    key: 'setCamera',
-    value: function setCamera(cameraParams) {
-      this.cameraParams = cameraParams;
-    }
-  }, {
-    key: 'getViewTranslatedTo',
-    value: function getViewTranslatedTo(pos) {
-      var view = this.clone();
-      var disp = pos.clone().sub(view.cameraParams.focus);
-      view.cameraParams.focus.copy(pos);
-      view.cameraParams.position.add(disp);
-      return view;
-    }
-  }, {
-    key: 'clone',
-    value: function clone() {
-      var v = new View();
-      v.id = this.id;
-      v.pdb_id = this.pdb_id;
-      v.iAtom = this.iAtom;
-      v.selected = this.selected;
-      v.selectedTraces = _lodash2.default.cloneDeep(this.selectedTraces);
-      v.labels = _lodash2.default.cloneDeep(this.labels);
-      v.distances = _lodash2.default.cloneDeep(this.distances);
-      v.order = this.order;
-      v.text = this.text;
-      v.time = this.time;
-      v.cameraParams = _lodash2.default.cloneDeep(this.cameraParams);
-      v.show = _lodash2.default.cloneDeep(this.show);
-      v.grid = _lodash2.default.cloneDeep(this.grid);
-      return v;
-    }
-  }, {
-    key: 'getDict',
-    value: function getDict() {
-      // version 2.0 camera dict structure {
-      //    pos: soupView center, cameraParams focus
-      //    up: gives the direction of the y vector from pos
-      //    in: gives the positive z-axis direction
-      //    zFront: clipping plane in front of the cameraParams focus
-      //    zBack: clipping plane behind the cameraParams focus
-      // }
-      var cameraDir = this.cameraParams.focus.clone().sub(this.cameraParams.position);
-      var zoom = cameraDir.length();
-      cameraDir.normalize();
-      var pos = this.cameraParams.focus;
-      var inV = pos.clone().add(cameraDir);
-      var upV = pos.clone().sub(this.cameraParams.up);
-
-      var show = _lodash2.default.clone(this.show);
-      show.all_atom = show.backbone;
-      delete show.backbone;
-
-      return {
-        version: 2,
-        view_id: this.id,
-        user_id: this.user_id,
-        pdb_id: this.pdb_id,
-        order: this.order,
-        show: show,
-        grid: _lodash2.default.cloneDeep(this.grid),
-        text: this.text,
-        i_atom: this.iAtom,
-        labels: this.labels,
-        selected: this.selected,
-        selected_traces: this.selectedTraces,
-        distances: this.distances,
-        camera: {
-          slab: {
-            z_front: this.cameraParams.zFront,
-            z_back: this.cameraParams.zBack,
-            zoom: zoom
-          },
-          pos: [pos.x, pos.y, pos.z],
-          up: [upV.x, upV.y, upV.z],
-          in: [inV.x, inV.y, inV.z]
-        }
-      };
-    }
-  }, {
-    key: 'setFromDict',
-    value: function setFromDict(flatDict) {
-      this.id = flatDict.view_id;
-      this.pdb_id = flatDict.pdb_id;
-      this.lock = flatDict.lock;
-      this.text = flatDict.text;
-      this.user_id = flatDict.user_id;
-      this.order = flatDict.order;
-      this.res_id = flatDict.res_id;
-      this.iAtom = flatDict.i_atom;
-
-      this.labels = flatDict.labels;
-      this.selected = flatDict.selected;
-      this.distances = flatDict.distances;
-
-      var _iteratorNormalCompletion22 = true;
-      var _didIteratorError22 = false;
-      var _iteratorError22 = undefined;
-
-      try {
-        for (var _iterator22 = _lodash2.default.keys(flatDict.show)[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-          var key = _step22.value;
-
-          if (key in this.show) {
-            this.show[key] = !!flatDict.show[key];
-          }
-          if (key === 'all_atom') {
-            this.show.backbone = !!flatDict.show.all_atom;
-          }
-        }
-      } catch (err) {
-        _didIteratorError22 = true;
-        _iteratorError22 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion22 && _iterator22.return) {
-            _iterator22.return();
-          }
-        } finally {
-          if (_didIteratorError22) {
-            throw _iteratorError22;
-          }
-        }
-      }
-
-      if (!(this.show.backbone || this.show.trace || this.show.ribbon)) {
-        this.show.ribbon = true;
-      }
-
-      if (!(this.show.all_atom || this.show.trace || this.show.ribbon)) {
-        this.show.backbone = true;
-      }
-
-      if ('grid' in flatDict) {
-        this.grid = flatDict.grid;
-      }
-
-      if ('selected_traces' in flatDict) {
-        this.selectedTraces = _lodash2.default.cloneDeep(flatDict['selected_traces']);
-      }
-
-      var pos = _v2.default.create(flatDict.camera.pos[0], flatDict.camera.pos[1], flatDict.camera.pos[2]);
-
-      var upV = _v2.default.create(flatDict.camera.up[0], flatDict.camera.up[1], flatDict.camera.up[2]);
-
-      var inV = _v2.default.create(flatDict.camera.in[0], flatDict.camera.in[1], flatDict.camera.in[2]);
-
-      var zoom = flatDict.camera.slab.zoom;
-
-      var focus = _v2.default.clone(pos);
-
-      var cameraDirection = _v2.default.clone(inV).sub(focus).multiplyScalar(zoom).negate();
-
-      var position = _v2.default.clone(focus).add(cameraDirection);
-
-      var up = _v2.default.clone(upV).sub(focus).negate();
-
-      this.cameraParams = {
-        focus: focus,
-        position: position,
-        up: up,
-        zFront: flatDict.camera.slab.z_front,
-        zBack: flatDict.camera.slab.z_back,
-        zoom: zoom
-      };
-    }
-  }]);
-
-  return View;
-}();
-
-function interpolateCameras(oldCamera, futureCamera, t) {
-  var oldCameraDirection = oldCamera.position.clone().sub(oldCamera.focus);
-  var oldZoom = oldCameraDirection.length();
-  oldCameraDirection.normalize();
-
-  var futureCameraDirection = futureCamera.position.clone().sub(futureCamera.focus);
-
-  var futureZoom = futureCameraDirection.length();
-  futureCameraDirection.normalize();
-
-  var cameraDirRotation = glgeom.getUnitVectorRotation(oldCameraDirection, futureCameraDirection);
-
-  var partialRotatedCameraUp = oldCamera.up.clone().applyQuaternion(cameraDirRotation);
-
-  var fullCameraUpRotation = glgeom.getUnitVectorRotation(partialRotatedCameraUp, futureCamera.up).multiply(cameraDirRotation);
-  var cameraUpRotation = glgeom.getFractionRotation(fullCameraUpRotation, t);
-
-  var focusDisp = futureCamera.focus.clone().sub(oldCamera.focus).multiplyScalar(t);
-
-  var focus = oldCamera.focus.clone().add(focusDisp);
-
-  var zoom = glgeom.fraction(oldZoom, futureZoom, t);
-
-  var focusToPosition = oldCameraDirection.clone().applyQuaternion(cameraUpRotation).multiplyScalar(zoom);
-
-  return {
-    focus: focus,
-    position: focus.clone().add(focusToPosition),
-    up: oldCamera.up.clone().applyQuaternion(cameraUpRotation),
-    zFront: glgeom.fraction(oldCamera.zFront, futureCamera.zFront, t),
-    zBack: glgeom.fraction(oldCamera.zBack, futureCamera.zBack, t),
-    zoom: zoom
-  };
-}
-
-/**
- * The SoupView contains a soup and a list of
- * views of the soup, including the current
- * view, and a target view for animation
- */
-
-var SoupView = function () {
-  function SoupView(soup) {
-    _classCallCheck(this, SoupView);
-
-    // the soup data for the soupView
-    this.soup = soup;
-
-    this.isChanged = true;
-
-    // indicates when sidechains need to be rebuilt
-    this.isUpdateSidechain = false;
-
-    // indicates when colors need to be updated
-    this.isUpdateSelection = false;
-
-    // delayed flag to change rendering after
-    // rotations have been done
-    this.isStartTargetAfterRender = false;
-
-    // indicates when decorators/widgets need to be redrawn
-    this.isUpdateObservers = true;
-
-    // stores the current cameraParams, display
-    // options, distances, labels, selected
-    // residues
-    this.currentView = new View();
-
-    // stores other views that can be reloaded
-    this.savedViewsByViewId = {};
-    this.savedViews = [];
-    this.iLastViewSelected = 0;
-
-    // Animation variables store here so
-    // that Controller can get access to them
-
-    // the current animation state -
-    // 'none', 'loop', 'rock', 'rotate'
-    this.animateState = 'none';
-
-    // stores a target view for animation
-    this.targetView = null;
-
-    // timing counter that is continually decremented
-    // until it becomes negative
-    this.nUpdateStep = -1;
-
-    // this is to set the time between transitions of views
-    this.maxUpdateStep = 70;
-    this.msPerStep = 17;
-  }
-
-  _createClass(SoupView, [{
-    key: 'build',
-    value: function build() {
-      if (this.savedViews.length === 0 && !this.soup.isEmpty()) {
-        this.setCurrentViewToDefaultAndSave();
-      }
-      this.saveGridToCurrentView();
-    }
-  }, {
-    key: 'saveGridToCurrentView',
-    value: function saveGridToCurrentView() {
-      for (var elem in this.soup.grid.isElem) {
-        if (elem in this.soup.grid.isElem) {
-          this.currentView.grid.isElem[elem] = this.soup.grid.isElem[elem];
-        }
-      }
-      if ((0, _util.exists)(this.soup.grid.bCutoff)) {
-        this.currentView.grid.bCutoff = this.soup.grid.bCutoff;
-      }
-    }
-  }, {
-    key: 'setCurrentViewToDefaultAndSave',
-    value: function setCurrentViewToDefaultAndSave() {
-      this.currentView.show.sidechain = false;
-      this.currentView.order = 0;
-      this.currentView.text = this.soup.title;
-      this.currentView.pdb_id = this.soup.structureIds[0];
-      this.currentView = this.getZoomedOutViewOfCurrentView();
-      this.saveView(this.currentView);
-      this.isChanged = true;
-    }
-  }, {
-    key: 'setTargetView',
-    value: function setTargetView(view) {
-      this.isStartTargetAfterRender = true;
-      this.saveTargetView = view.clone();
-      this.saveTargetView.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
-    }
-  }, {
-    key: 'startTargetView',
-    value: function startTargetView() {
-      this.targetView = this.saveTargetView;
-      this.isUpdateObservers = true;
-      this.isStartTargetAfterRender = false;
-      this.isChanged = true;
-    }
-  }, {
-    key: 'getICenteredAtom',
-    value: function getICenteredAtom() {
-      return this.currentView.iAtom;
-    }
-  }, {
-    key: 'getIViewFromViewId',
-    value: function getIViewFromViewId(viewId) {
-      for (var iView = 0; iView < this.savedViews.length; iView += 1) {
-        if (this.savedViews[iView].id === viewId) {
-          return iView;
-        }
-      }
-      return -1;
-    }
-  }, {
-    key: 'insertView',
-    value: function insertView(iView, newViewId, newView) {
-      this.savedViewsByViewId[newViewId] = newView;
-      if (iView >= this.savedViews.length) {
-        this.savedViews.push(newView);
-      } else {
-        this.savedViews.splice(iView, 0, newView);
-      }
-      this.iLastViewSelected = iView;
-      for (var i = 0; i < this.savedViews.length; i++) {
-        this.savedViews[i].order = i;
-      }
-    }
-  }, {
-    key: 'removeView',
-    value: function removeView(viewId) {
-      var iView = this.getIViewFromViewId(viewId);
-      if (iView < 0) {
-        return;
-      }
-      this.savedViews.splice(iView, 1);
-      delete this.savedViewsByViewId[viewId];
-      for (var j = 0; j < this.savedViews.length; j++) {
-        this.savedViews[j].order = j;
-      }
-      if (this.iLastViewSelected >= this.savedViews.length) {
-        this.iLastViewSelected = this.savedViews.length - 1;
-      }
-      this.isChanged = true;
-    }
-  }, {
-    key: 'saveView',
-    value: function saveView(view) {
-      this.savedViewsByViewId[view.id] = view;
-      this.savedViews.push(view);
-    }
-  }, {
-    key: 'getZoomedOutViewOfCurrentView',
-    value: function getZoomedOutViewOfCurrentView() {
-      var maxLength = this.soup.calcMaxLength();
-
-      var newView = this.currentView.clone();
-
-      if (maxLength === 0) {
-        return newView;
-      }
-
-      var cameraParams = newView.cameraParams;
-
-      cameraParams.zFront = -maxLength / 2;
-      cameraParams.zBack = maxLength / 2;
-      cameraParams.zoom = Math.abs(maxLength) * 1.75;
-
-      var atomIndices = _lodash2.default.range(this.soup.getAtomCount());
-      var center = this.soup.getCenter(atomIndices);
-
-      var look = cameraParams.position.clone().sub(cameraParams.focus).normalize();
-      cameraParams.focus.copy(center);
-      cameraParams.position = cameraParams.focus.clone().add(look.multiplyScalar(cameraParams.zoom));
-
-      newView.iAtom = this.soup.getIAtomAtPosition(center);
-      return newView;
-    }
-  }, {
-    key: 'setTargetViewByViewId',
-    value: function setTargetViewByViewId(viewId) {
-      var view = this.savedViewsByViewId[viewId];
-      this.iLastViewSelected = this.savedViewsByViewId[viewId].order;
-      this.setTargetView(view);
-    }
-  }, {
-    key: 'setTargetViewByIAtom',
-    value: function setTargetViewByIAtom(iAtom) {
-      var atom = this.soup.getAtomProxy(iAtom);
-      var view = this.currentView.getViewTranslatedTo(atom.pos);
-      view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
-      view.selectedTraces = [];
-      var _iteratorNormalCompletion23 = true;
-      var _didIteratorError23 = false;
-      var _iteratorError23 = undefined;
-
-      try {
-        for (var _iterator23 = this.soup.traces.entries()[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-          var _step23$value = _slicedToArray(_step23.value, 2),
-              iTrace = _step23$value[0],
-              trace = _step23$value[1];
-
-          if (_lodash2.default.includes(trace.indices, atom.iRes)) {
-            view.selectedTraces.push(iTrace);
-          }
-        }
-      } catch (err) {
-        _didIteratorError23 = true;
-        _iteratorError23 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion23 && _iterator23.return) {
-            _iterator23.return();
-          }
-        } finally {
-          if (_didIteratorError23) {
-            throw _iteratorError23;
-          }
-        }
-      }
-
-      console.log('SoupView.setTargetViewByIAtom new trace', view.selectedTraces);
-      this.setTargetView(view);
-    }
-  }, {
-    key: 'getZoomedOutViewOfSelection',
-    value: function getZoomedOutViewOfSelection() {
-      var newView = this.currentView.clone();
-
-      var atomIndices = [];
-      var residue = this.soup.getResidueProxy();
-      var _iteratorNormalCompletion24 = true;
-      var _didIteratorError24 = false;
-      var _iteratorError24 = undefined;
-
-      try {
-        for (var _iterator24 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-          var iRes = _step24.value;
-
-          residue.load(iRes);
-          if (residue.selected) {
-            atomIndices.push(residue.iAtom);
-          }
-        }
-      } catch (err) {
-        _didIteratorError24 = true;
-        _iteratorError24 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion24 && _iterator24.return) {
-            _iterator24.return();
-          }
-        } finally {
-          if (_didIteratorError24) {
-            throw _iteratorError24;
-          }
-        }
-      }
-
-      var center = this.soup.getCenter(atomIndices);
-      var maxLength = this.soup.calcMaxLength(atomIndices);
-
-      if (maxLength === 0) {
-        return newView;
-      }
-
-      var cameraParams = newView.cameraParams;
-
-      cameraParams.zFront = -maxLength / 2;
-      cameraParams.zBack = maxLength / 2;
-      cameraParams.zoom = Math.abs(maxLength) * 1.2;
-
-      var look = cameraParams.position.clone().sub(cameraParams.focus).normalize();
-      cameraParams.focus.copy(center);
-      cameraParams.position = cameraParams.focus.clone().add(look.multiplyScalar(cameraParams.zoom));
-
-      newView.iAtom = this.soup.getIAtomAtPosition(center);
-      return newView;
-    }
-  }, {
-    key: 'saveCurrentView',
-    value: function saveCurrentView() {
-      var newView = this.currentView.clone();
-      newView.id = (0, _util.randomId)();
-      newView.text = 'Click edit to change this text.';
-      newView.pdb_id = this.soup.structureIds[0];
-      newView.selected = this.soup.makeSelectedResidueList();
-      newView.selectedTraces = _lodash2.default.cloneDeep(this.soup.selectedTraces);
-
-      var iNewView = this.iLastViewSelected + 1;
-      this.insertView(iNewView, newView.id, newView);
-      this.setTargetViewByViewId(newView.id);
-      this.isChanged = true;
-      this.isUpdateSelection = true;
-      console.log('Soupview.saveCurrentView', newView);
-
-      return newView.id;
-    }
-  }, {
-    key: 'setCurrentView',
-    value: function setCurrentView(view) {
-      var oldViewSelected = this.currentView.selected;
-      this.currentView = view.clone();
-      this.soup.selectedTraces = _lodash2.default.cloneDeep(view.selectedTraces);
-      if (!_lodash2.default.isEqual(oldViewSelected.sort(), view.selected.sort())) {
-        this.soup.clearSidechainResidues();
-        this.soup.setSidechainOfResidues(view.selected, true);
-        this.isUpdateSidechain = true;
-      }
-
-      // use view.grid parameters to reset soup.grid
-      for (var elem in view.grid.isElem) {
-        if (elem in this.soup.grid.isElem) {
-          if (view.grid.isElem[elem] !== this.soup.grid.isElem[elem]) {
-            this.soup.grid.isElem[elem] = view.grid.isElem[elem];
-            this.isUpdateObservers = true;
-            this.soup.grid.isChanged = true;
-          }
-        }
-      }
-      if (!_lodash2.default.isNil(view.grid.bCutoff)) {
-        if (this.soup.grid.bCutoff !== view.grid.bCutoff) {
-          this.soup.grid.bCutoff = view.grid.bCutoff;
-          this.isUpdateObservers = true;
-          this.soup.grid.isChanged = true;
-        }
-      }
-
-      this.isChanged = true;
-    }
-  }, {
-    key: 'setTargetToPrevView',
-    value: function setTargetToPrevView() {
-      if (this.savedViews.length === 0) {
-        return '';
-      }
-      this.iLastViewSelected -= 1;
-      if (this.iLastViewSelected < 0) {
-        this.iLastViewSelected = this.savedViews.length - 1;
-      }
-      var id = this.savedViews[this.iLastViewSelected].id;
-      this.setTargetViewByViewId(id);
-      return id;
-    }
-  }, {
-    key: 'setTargetToNextView',
-    value: function setTargetToNextView() {
-      if (this.savedViews.length === 0) {
-        return '';
-      }
-      this.iLastViewSelected += 1;
-      if (this.iLastViewSelected >= this.savedViews.length) {
-        this.iLastViewSelected = 0;
-      }
-      var id = this.savedViews[this.iLastViewSelected].id;
-      this.setTargetViewByViewId(id);
-      return id;
-    }
-  }, {
-    key: 'setTargetToPrevResidue',
-    value: function setTargetToPrevResidue() {
-      var iAtom = _lodash2.default.get(this.targetView, 'iAtom');
-      if ((0, _util.exists)(iAtom)) {
-        iAtom = this.targetView.iAtom;
-      } else {
-        iAtom = this.currentView.iAtom;
-      }
-      if (iAtom < 0) {
-        iAtom = 0;
-      }
-      var iRes = this.soup.getAtomProxy(iAtom).iRes;
-      if (iRes <= 0) {
-        iRes = this.soup.getResidueCount() - 1;
-      } else {
-        iRes -= 1;
-      }
-      iAtom = this.soup.getResidueProxy(iRes).iAtom;
-      this.setTargetViewByIAtom(iAtom);
-    }
-  }, {
-    key: 'setTargetToNextResidue',
-    value: function setTargetToNextResidue() {
-      var iAtom = _lodash2.default.get(this.targetView, 'iAtom');
-      if ((0, _util.exists)(iAtom)) {
-        iAtom = this.targetView.iAtom;
-      } else {
-        iAtom = this.currentView.iAtom;
-      }
-      if (iAtom < 0) {
-        iAtom = 0;
-      }
-      var iRes = this.soup.getAtomProxy(iAtom).iRes;
-      if (iRes >= this.soup.getResidueCount() - 1) {
-        iRes = 0;
-      } else {
-        iRes += 1;
-      }
-      iAtom = this.soup.getResidueProxy(iRes).iAtom;
-      this.setTargetViewByIAtom(iAtom);
-    }
-  }, {
-    key: 'adjustCamera',
-    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-      var cameraParams = this.currentView.cameraParams;
-
-      var y = cameraParams.up;
-      var z = cameraParams.position.clone().sub(cameraParams.focus).normalize();
-      var x = _v2.default.create().crossVectors(y, z).normalize();
-
-      var rotZ = new THREE.Quaternion().setFromAxisAngle(z, zRotationAngle);
-
-      var rotY = new THREE.Quaternion().setFromAxisAngle(y, -yRotationAngle);
-
-      var rotX = new THREE.Quaternion().setFromAxisAngle(x, -xRotationAngle);
-
-      var rotation = new THREE.Quaternion().multiply(rotZ).multiply(rotY).multiply(rotX);
-
-      var newZoom = zoomRatio * cameraParams.zoom;
-
-      if (newZoom < 2) {
-        newZoom = 2;
-      }
-
-      var position = cameraParams.position.clone().sub(cameraParams.focus).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(cameraParams.focus);
-
-      var view = this.currentView.clone();
-      view.cameraParams.focus = cameraParams.focus.clone();
-      view.cameraParams.position = position;
-      view.cameraParams.up = cameraParams.up.clone().applyQuaternion(rotation);
-      view.cameraParams.zoom = newZoom;
-
-      this.setCurrentView(view);
-    }
-  }, {
-    key: 'animate',
-    value: function animate(elapsedTime) {
-      this.nUpdateStep -= elapsedTime / this.msPerStep;
-      if (this.nUpdateStep < 0) {
-        if (this.targetView !== null) {
-          this.setCurrentView(this.targetView);
-          this.isUpdateObservers = true;
-          this.isChanged = true;
-          this.targetView = null;
-          this.nUpdateStep = this.maxUpdateStep;
-        } else {
-          if (this.isStartTargetAfterRender) {
-            this.isChanged = true;
-          } else if (this.animateState === 'loop') {
-            if (this.nUpdateStep < -this.maxWaitStep) {
-              this.setTargetToNextView();
-            }
-          } else if (this.animateState === 'rotate') {
-            this.adjustCamera(0.0, 0.002, 0, 1);
-          } else if (this.animateState === 'rock') {
-            var nStepRock = 18;
-            if (this.nUpdateStep > -nStepRock) {
-              this.adjustCamera(0.0, 0.002, 0, 1);
-            } else if (this.nUpdateStep > -3 * nStepRock) {
-              this.adjustCamera(0.0, -0.002, 0, 1);
-            } else if (this.nUpdateStep > -4 * nStepRock) {
-              this.adjustCamera(0.0, +0.002, 0, 1);
-            } else {
-              this.nUpdateStep = 0;
-            }
-          }
-        }
-      } else if (this.nUpdateStep >= 1) {
-        if (this.targetView != null) {
-          var view = this.currentView.clone();
-          view.setCamera(interpolateCameras(this.currentView.cameraParams, this.targetView.cameraParams, 1.0 / this.nUpdateStep));
-          this.setCurrentView(view);
-        }
-      }
-    }
-  }]);
-
-  return SoupView;
-}();
-
-/**
- * The Controller for SoupView. All mutations
- * to a Soup and its Views go through here.
- */
-
-
-var Controller = function () {
-  function Controller(soupView) {
-    _classCallCheck(this, Controller);
-
-    this.soup = soupView.soup;
-    this.soupView = soupView;
-    this.iResLastSelected = null;
-  }
-
-  _createClass(Controller, [{
-    key: 'deleteDistance',
-    value: function deleteDistance(iDistance) {
-      this.soupView.currentView.distances.splice(iDistance, 1);
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'makeDistance',
-    value: function makeDistance(iAtom1, iAtom2) {
-      this.soupView.currentView.distances.push({ i_atom1: iAtom1, i_atom2: iAtom2 });
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'makeAtomLabel',
-    value: function makeAtomLabel(iAtom, text) {
-      this.soupView.currentView.labels.push({ i_atom: iAtom, text: text });
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'deleteAtomLabel',
-    value: function deleteAtomLabel(iLabel) {
-      this.soupView.currentView.labels.splice(iLabel, 1);
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'setTargetView',
-    value: function setTargetView(view) {
-      this.soupView.setTargetView(view);
-    }
-  }, {
-    key: 'setTargetViewByViewId',
-    value: function setTargetViewByViewId(viewId) {
-      this.soupView.setTargetViewByViewId(viewId);
-    }
-  }, {
-    key: 'setTargetViewByIAtom',
-    value: function setTargetViewByIAtom(iAtom) {
-      this.soupView.setTargetViewByIAtom(iAtom);
-    }
-  }, {
-    key: 'setTargetToPrevResidue',
-    value: function setTargetToPrevResidue() {
-      this.soupView.setTargetToPrevResidue();
-    }
-  }, {
-    key: 'setTargetToNextResidue',
-    value: function setTargetToNextResidue() {
-      this.soupView.setTargetToNextResidue();
-    }
-  }, {
-    key: 'setTargetToPrevView',
-    value: function setTargetToPrevView() {
-      return this.soupView.setTargetToPrevView();
-    }
-  }, {
-    key: 'setTargetToNextView',
-    value: function setTargetToNextView() {
-      return this.soupView.setTargetToNextView();
-    }
-  }, {
-    key: 'swapViews',
-    value: function swapViews(i, j) {
-      this.soupView.savedViews[j].order = i;
-      this.soupView.savedViews[i].order = j;
-      var dummy = this.soupView.savedViews[j];
-      this.soupView.savedViews[j] = this.soupView.savedViews[i];
-      this.soupView.savedViews[i] = dummy;
-    }
-  }, {
-    key: 'getViewDicts',
-    value: function getViewDicts() {
-      var viewDicts = [];
-      for (var i = 1; i < this.soupView.savedViews.length; i += 1) {
-        viewDicts.push(this.soupView.savedViews[i].getDict());
-      }
-      return viewDicts;
-    }
-  }, {
-    key: 'clearSidechainResidues',
-    value: function clearSidechainResidues() {
-      this.soup.clearSidechainResidues();
-      this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
-      this.soupView.isUpdateSidechain = true;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'clearSelectedResidues',
-    value: function clearSelectedResidues() {
-      this.soup.clearSelectedResidues();
-      this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
-      this.soupView.isUpdateSelection = true;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'setResidueSelect',
-    value: function setResidueSelect(iRes, val) {
-      var res = this.soup.getResidueProxy(iRes);
-      res.selected = val;
-      this.soupView.isUpdateSelection = true;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'showAllSidechains',
-    value: function showAllSidechains() {
-      var res = this.soup.getResidueProxy();
-      var _iteratorNormalCompletion25 = true;
-      var _didIteratorError25 = false;
-      var _iteratorError25 = undefined;
-
-      try {
-        for (var _iterator25 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
-          var iRes = _step25.value;
-
-          res.load(iRes).sidechain = true;
-        }
-      } catch (err) {
-        _didIteratorError25 = true;
-        _iteratorError25 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion25 && _iterator25.return) {
-            _iterator25.return();
-          }
-        } finally {
-          if (_didIteratorError25) {
-            throw _iteratorError25;
-          }
-        }
-      }
-
-      this.soupView.isUpdateSidechain = true;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'selectResidue',
-    value: function selectResidue(iRes, val) {
-      var res = this.soup.getResidueProxy(iRes);
-      if (_lodash2.default.isUndefined(val)) {
-        val = !res.selected;
-      }
-      this.clearSelectedResidues();
-      this.setResidueSelect(iRes, val);
-      this.iResLastSelected = val ? iRes : null;
-      this.soupView.isUpdateSelection = true;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'selectAdditionalResidue',
-    value: function selectAdditionalResidue(iRes) {
-      var res = this.soup.getResidueProxy(iRes);
-      var val = !res.selected;
-      this.setResidueSelect(iRes, val);
-      this.iResLastSelected = val ? iRes : null;
-      this.soupView.isUpdateSelection = true;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'selectAdditionalRangeToResidue',
-    value: function selectAdditionalRangeToResidue(iRes) {
-      var res = this.soup.getResidueProxy(iRes);
-      var val = !res.selected;
-      if (this.iResLastSelected !== null) {
-        var lastRes = this.soup.getResidueProxy(this.iResLastSelected);
-        if (res.iStructure === lastRes.iStructure) {
-          var iFirstRes = Math.min(this.iResLastSelected, iRes);
-          var iLastRes = Math.max(this.iResLastSelected, iRes);
-          for (var i = iFirstRes; i < iLastRes + 1; i += 1) {
-            this.setResidueSelect(i, true);
-          }
-        }
-      }
-      this.iResLastSelected = val ? iRes : null;
-      this.soupView.isUpdateSelection = true;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'toggleSelectedSidechains',
-    value: function toggleSelectedSidechains() {
-      var residue = this.soup.getResidueProxy();
-      var indices = [];
-      var nSidechain = 0;
-      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
-        residue.load(iRes);
-        if (residue.selected) {
-          indices.push(iRes);
-          if (residue.sidechain) {
-            nSidechain += 1;
-          }
-        }
-      }
-      var isSidechain = true;
-      if (nSidechain === indices.length) {
-        isSidechain = false;
-      }
-      var _iteratorNormalCompletion26 = true;
-      var _didIteratorError26 = false;
-      var _iteratorError26 = undefined;
-
-      try {
-        for (var _iterator26 = indices[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
-          var _iRes9 = _step26.value;
-
-          residue.load(_iRes9);
-          residue.sidechain = isSidechain;
-        }
-      } catch (err) {
-        _didIteratorError26 = true;
-        _iteratorError26 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion26 && _iterator26.return) {
-            _iterator26.return();
-          }
-        } finally {
-          if (_didIteratorError26) {
-            throw _iteratorError26;
-          }
-        }
-      }
-
-      this.soupView.isUpdateSidechain = true;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'toggleResidueNeighbors',
-    value: function toggleResidueNeighbors() {
-      var indices = [];
-
-      var nSelected = 0;
-      var residue = this.soup.getResidueProxy();
-      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
-        residue.load(iRes);
-        if (residue.selected) {
-          indices = _lodash2.default.concat(indices, this.soup.getNeighbours(iRes));
-          nSelected += 1;
-        }
-      }
-
-      if (nSelected === 0) {
-        console.log('Controller.toggleResidueNeighbors none selected');
-        var pos = this.soupView.currentView.cameraParams.focus;
-        indices = this.soup.getNeighboursOfPoint(pos);
-      }
-
-      if (indices.length === 0) {
-        var iAtom = this.soupView.currentView.iAtom;
-        var _iRes10 = this.soup.getAtomProxy(iAtom).iRes;
-        indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes10));
-      }
-      var nSidechain = 0;
-      var _iteratorNormalCompletion27 = true;
-      var _didIteratorError27 = false;
-      var _iteratorError27 = undefined;
-
-      try {
-        for (var _iterator27 = indices[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
-          var _iRes11 = _step27.value;
-
-          if (residue.load(_iRes11).sidechain) {
-            nSidechain += 1;
-          }
-        }
-      } catch (err) {
-        _didIteratorError27 = true;
-        _iteratorError27 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion27 && _iterator27.return) {
-            _iterator27.return();
-          }
-        } finally {
-          if (_didIteratorError27) {
-            throw _iteratorError27;
-          }
-        }
-      }
-
-      var isSidechain = nSidechain < indices.length;
-
-      this.soup.setSidechainOfResidues(indices, isSidechain);
-      this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
-      this.soupView.isChanged = true;
-      this.soupView.isUpdateSidechain = true;
-    }
-  }, {
-    key: 'saveCurrentView',
-    value: function saveCurrentView() {
-      return this.soupView.saveCurrentView();
-    }
-  }, {
-    key: 'deleteView',
-    value: function deleteView(viewId) {
-      this.soupView.removeView(viewId);
-    }
-  }, {
-    key: 'sortViewsByOrder',
-    value: function sortViewsByOrder() {
-      function orderSort(a, b) {
-        return a.order - b.order;
-      }
-
-      this.soupView.savedViews.sort(orderSort);
-      for (var i = 0; i < this.soupView.savedViews.length; i += 1) {
-        this.soupView.savedViews[i].order = i;
-      }
-    }
-  }, {
-    key: 'loadViewsFromViewDicts',
-    value: function loadViewsFromViewDicts(viewDicts) {
-      for (var i = 0; i < viewDicts.length; i += 1) {
-        var view = new View();
-        view.setFromDict(viewDicts[i]);
-        if (view.id === 'view:000000') {
-          continue;
-        }
-        this.soupView.saveView(view);
-      }
-      this.sortViewsByOrder();
-    }
-  }, {
-    key: 'asyncLoadProteinData',
-    value: function () {
-      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(proteinData, asyncSetMessageFn) {
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                _context2.next = 2;
-                return this.soup.asyncLoadProteinData(proteinData, asyncSetMessageFn);
-
-              case 2:
-                // pre-calculations needed before building meshes
-                this.soupView.build();
-                this.soupView.isChanged = true;
-                this.soupView.isUpdateObservers = true;
-
-              case 5:
-              case 'end':
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
-
-      function asyncLoadProteinData(_x4, _x5) {
-        return _ref3.apply(this, arguments);
-      }
-
-      return asyncLoadProteinData;
-    }()
-  }, {
-    key: 'setShowOption',
-    value: function setShowOption(option, bool) {
-      console.log('Controller.setShowOption', option, bool);
-      this.soupView.currentView.show[option] = bool;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'getShowOption',
-    value: function getShowOption(option) {
-      return this.soupView.currentView.show[option];
-    }
-  }, {
-    key: 'toggleShowOption',
-    value: function toggleShowOption(option) {
-      var val = this.getShowOption(option);
-      this.setShowOption(option, !val);
-    }
-  }, {
-    key: 'setChangeFlag',
-    value: function setChangeFlag() {
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'setZoom',
-    value: function setZoom(zBack, zFront) {
-      var cameraParams = this.soupView.currentView.cameraParams;
-      cameraParams.zBack = zBack;
-      cameraParams.zFront = zFront;
-      this.soupView.isUpdateObservers = true;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'toggleGridElem',
-    value: function toggleGridElem(elem) {
-      var b = this.soup.grid.isElem[elem];
-      this.soup.grid.isElem[elem] = !b;
-      this.soup.grid.isChanged = true;
-      this.soup.colorResidues();
-
-      this.soupView.currentView.grid.isElem = _lodash2.default.cloneDeep(this.soup.grid.isElem);
-      this.soupView.isChanged = true;
-
-      this.soupView.isUpdateObservers = true;
-      this.soupView.isUpdateSelection = true;
-    }
-  }, {
-    key: 'setGridCutoff',
-    value: function setGridCutoff(bCutoff) {
-      this.soup.grid.bCutoff = bCutoff;
-      this.soup.grid.isChanged = true;
-      this.soupView.currentView.grid.bCutoff = bCutoff;
-      if ((0, _util.exists)(this.soupView.targetView)) {
-        this.soupView.targetView.grid.bCutoff = bCutoff;
-      }
-      if ((0, _util.exists)(this.soupView.saveTargetView)) {
-        this.soupView.saveTargetView.grid.bCutoff = bCutoff;
-      }
-      this.soupView.isUpdateObservers = true;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'clear',
-    value: function clear() {
-      var distances = this.soupView.currentView.distances;
-      var _iteratorNormalCompletion28 = true;
-      var _didIteratorError28 = false;
-      var _iteratorError28 = undefined;
-
-      try {
-        for (var _iterator28 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
-          var i = _step28.value;
-
-          this.deleteDistance(i);
-        }
-      } catch (err) {
-        _didIteratorError28 = true;
-        _iteratorError28 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion28 && _iterator28.return) {
-            _iterator28.return();
-          }
-        } finally {
-          if (_didIteratorError28) {
-            throw _iteratorError28;
-          }
-        }
-      }
-
-      var labels = this.soupView.currentView.labels;
-      var _iteratorNormalCompletion29 = true;
-      var _didIteratorError29 = false;
-      var _iteratorError29 = undefined;
-
-      try {
-        for (var _iterator29 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step29; !(_iteratorNormalCompletion29 = (_step29 = _iterator29.next()).done); _iteratorNormalCompletion29 = true) {
-          var _i2 = _step29.value;
-
-          this.deleteAtomLabel(_i2);
-        }
-      } catch (err) {
-        _didIteratorError29 = true;
-        _iteratorError29 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion29 && _iterator29.return) {
-            _iterator29.return();
-          }
-        } finally {
-          if (_didIteratorError29) {
-            throw _iteratorError29;
-          }
-        }
-      }
-
-      this.clearSidechainResidues();
-      this.clearSelectedResidues();
-    }
-  }, {
-    key: 'getAnimateState',
-    value: function getAnimateState() {
-      return this.soupView.animateState;
-    }
-  }, {
-    key: 'setAnimateState',
-    value: function setAnimateState(v) {
-      this.soupView.animateState = v;
-      this.soupView.isUpdateObservers = true;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'deleteStructure',
-    value: function deleteStructure(iStructure) {
-      this.soup.deleteStructure(iStructure);
-      if (this.soup.isEmpty()) {
-        this.soupView.savedViews.length = 0;
-        var _iteratorNormalCompletion30 = true;
-        var _didIteratorError30 = false;
-        var _iteratorError30 = undefined;
-
-        try {
-          for (var _iterator30 = _lodash2.default.keys(this.soupView.savedViewsByViewId)[Symbol.iterator](), _step30; !(_iteratorNormalCompletion30 = (_step30 = _iterator30.next()).done); _iteratorNormalCompletion30 = true) {
-            var id = _step30.value;
-
-            delete this.soupView.savedViewsByViewId[id];
-          }
-        } catch (err) {
-          _didIteratorError30 = true;
-          _iteratorError30 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion30 && _iterator30.return) {
-              _iterator30.return();
-            }
-          } finally {
-            if (_didIteratorError30) {
-              throw _iteratorError30;
-            }
-          }
-        }
-
-        this.soupView.currentView = new View();
-        this.soupView.targetView = null;
-        this.soupView.isStartTargetAfterRender = false;
-        this.soupView.nUpdateStep = -1;
-      } else {
-        this.soupView.isUpdateSidechain = true;
-        this.soupView.isUpdateSelection = true;
-      }
-      this.soupView.isUpdateObservers = true;
-      this.soupView.isChanged = true;
-    }
-  }, {
-    key: 'zoomOut',
-    value: function zoomOut() {
-      if (!this.soup.isEmpty()) {
-        this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView());
-        this.soupView.isChanged = true;
-      }
-    }
-  }, {
-    key: 'zoomToSelection',
-    value: function zoomToSelection() {
-      if (!this.soup.isEmpty()) {
-        this.setTargetView(this.soupView.getZoomedOutViewOfSelection());
-        this.soupView.isChanged = true;
-      }
-    }
-  }, {
-    key: 'adjustCamera',
-    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
-      this.soupView.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio);
-    }
-  }]);
-
-  return Controller;
-}();
-
 exports.Soup = Soup;
-exports.Controller = Controller;
-exports.interpolateCameras = interpolateCameras;
-exports.SoupView = SoupView;
-exports.View = View;
 
 /***/ }),
 /* 341 */
@@ -91093,13 +89770,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.SoupWidget = undefined;
 
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _jquery = __webpack_require__(32);
-
-var _jquery2 = _interopRequireDefault(_jquery);
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 var _lodash = __webpack_require__(27);
 
@@ -91121,10 +89794,6 @@ var _util = __webpack_require__(49);
 
 var util = _interopRequireWildcard(_util);
 
-var _glgeom = __webpack_require__(96);
-
-var glgeom = _interopRequireWildcard(_glgeom);
-
 var _widgets = __webpack_require__(134);
 
 var _widgets2 = _interopRequireDefault(_widgets);
@@ -91135,470 +89804,17 @@ var representation = _interopRequireWildcard(_representation);
 
 var _animation = __webpack_require__(132);
 
+var _webglWidget = __webpack_require__(350);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * Utility class to handle a three.js HTML object with
- * a standard set of features:
- *  - instantiate a <div> and <canvas> element
- *  - camera object
- *  - display scene
- *  - picking scene, with helpful picking functions
- *  - a status messaging div
- *  - lights
- *  - input handlers for mouse
- */
-var WebglWidget = function () {
-  function WebglWidget(divTag, backgroundColor) {
-    _classCallCheck(this, WebglWidget);
-
-    this.divTag = divTag;
-    this.div = (0, _jquery2.default)(this.divTag);
-    this.div.css('overflow', 'hidden');
-
-    this.backgroundColor = backgroundColor;
-    this.div.css('background-color', this.backgroundColor);
-
-    // WebGL related properties
-    // div to instantiate WebGL renderer
-    this.webglDivId = this.div.attr('id') + '-canvas-wrapper';
-    this.webglDiv = (0, _jquery2.default)('<div>').attr('id', this.webglDivId).css('overflow', 'hidden').css('z-index', '0').css('background-color', '#CCC').css('position', 'absolute');
-    this.webglDiv.contextmenu(function () {
-      return false;
-    });
-    this.div.append(this.webglDiv);
-
-    // Params that will be used to set the camera below
-    this.cameraParams = {
-      focus: new THREE.Vector3(0, 0, 0),
-      position: new THREE.Vector3(0, 0, -1),
-      up: new THREE.Vector3(0, 1, 0),
-      // clipping planes relative to focus
-      zFront: -40,
-      zBack: 20,
-      // distance of focus from position
-      zoom: 1.0
-
-      // a THREE.js camera, will be set properly before draw
-    };this.camera = new THREE.PerspectiveCamera(45, this.width() / this.height());
-
-    this.displayScene = new THREE.Scene();
-    this.displayScene.background = new THREE.Color(this.backgroundColor);
-    this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100);
-
-    // this.representations is a dictionary that holds representations
-    // that transform this.soup into meshes that will be inserted into
-    // this.displayMeshes and this.pickingMeshes at draw time
-    this.representations = {};
-
-    // this.displayMeshes is a dictionary that holds THREE.Object3D
-    // collections of meshes. This allows collections to be collectively
-    // turned on and off. The meshes will be regenerated into this.displayScene
-    // if the underlying data changes. The convenience function
-    // will send geometries into the displayMeshes, using this.displayMaterial
-    // as the default. This assumes vertexColors are used, allowing multiple
-    // colors within the same geometry.
-    this.displayMeshes = {};
-    this.pickingMeshes = {};
-
-    this.pickingScene = new THREE.Scene();
-    this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height());
-    this.pickingTexture.texture.minFilter = THREE.LinearFilter;
-
-    this.lights = [];
-    this.buildLights();
-
-    // div to display processing messages
-    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
-    this.setMesssage('Initialized jolecule.');
-
-    // input control parameters
-    this.saveMouseX = null;
-    this.saveMouseY = null;
-    this.saveMouseR = null;
-    this.saveMouseT = null;
-    this.mouseX = null;
-    this.mouseY = null;
-    this.mouseR = null;
-    this.mouseT = null;
-  }
-
-  _createClass(WebglWidget, [{
-    key: 'initWebglRenderer',
-    value: function initWebglRenderer() {
-      var _this = this;
-
-      this.renderer = new THREE.WebGLRenderer({ antialias: true });
-      this.renderer.setClearColor(this.backgroundColor);
-      this.renderer.setSize(this.width(), this.height());
-
-      var dom = this.renderer.domElement;
-      this.webglDiv[0].appendChild(dom);
-
-      var bind = function bind(w, fn) {
-        dom.addEventListener(w, fn);
-      };
-      bind('mousedown', function (e) {
-        return _this.mousedown(e);
-      });
-      bind('mousemove', function (e) {
-        return _this.mousemove(e);
-      });
-      bind('mouseup', function (e) {
-        return _this.mouseup(e);
-      });
-      bind('mouseleave', function (e) {
-        return _this.mouseout(e);
-      });
-      bind('mousewheel', function (e) {
-        return _this.mousewheel(e);
-      });
-      bind('DOMMouseScroll', function (e) {
-        return _this.mousewheel(e);
-      });
-      bind('touchstart', function (e) {
-        return _this.mousedown(e);
-      });
-      bind('touchmove', function (e) {
-        return _this.mousemove(e);
-      });
-      bind('touchend', function (e) {
-        return _this.mouseup(e);
-      });
-      bind('touchcancel', function (e) {
-        return _this.mouseup(e);
-      });
-      bind('gesturestart', function (e) {
-        return _this.gesturestart(e);
-      });
-      bind('gesturechange', function (e) {
-        return _this.gesturechange(e);
-      });
-      bind('gestureend', function (e) {
-        return _this.gestureend(e);
-      });
-    }
-  }, {
-    key: 'render',
-    value: function render() {
-      // leave this to the very last moment
-      // to avoid the dreaded black canvas
-      if (!util.exists(this.renderer)) {
-        this.initWebglRenderer();
-      }
-
-      // renders visible meshes to the gpu
-      this.renderer.render(this.displayScene, this.camera);
-    }
-  }, {
-    key: 'getPosXY',
-    value: function getPosXY(pos) {
-      var widthHalf = 0.5 * this.width();
-      var heightHalf = 0.5 * this.height();
-
-      var vector = pos.clone().project(this.camera);
-
-      return {
-        x: vector.x * widthHalf + widthHalf + this.x(),
-        y: -(vector.y * heightHalf) + heightHalf + this.y()
-      };
-    }
-  }, {
-    key: 'getPickColorFromMouse',
-    value: function getPickColorFromMouse() {
-      var x = this.mouseX;
-      var y = this.mouseY;
-
-      if (x === null || y === null) {
-        return null;
-      }
-
-      // create buffer for reading single pixel
-      var pixelBuffer = new Uint8Array(4);
-
-      // render the picking soupView off-screen
-      this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
-
-      // read the pixel under the mouse from the texture
-      this.renderer.readRenderTargetPixels(this.pickingTexture, this.mouseX, this.pickingTexture.height - y, 1, 1, pixelBuffer);
-
-      // interpret the color as an Uint8 integer
-      return pixelBuffer[0] << 16 | pixelBuffer[1] << 8 | pixelBuffer[2];
-    }
-  }, {
-    key: 'setCameraParams',
-    value: function setCameraParams(cameraParams) {
-      // rotate lights to soupView orientation
-      var cameraDirection = this.cameraParams.position.clone().sub(this.cameraParams.focus).normalize();
-      var viewCameraDirection = cameraParams.position.clone().sub(cameraParams.focus);
-      viewCameraDirection.normalize();
-      var rotation = glgeom.getUnitVectorRotation(cameraDirection, viewCameraDirection);
-      for (var i = 0; i < this.lights.length; i += 1) {
-        this.lights[i].position.applyQuaternion(rotation);
-      }
-
-      this.cameraParams = cameraParams;
-
-      var far = this.cameraParams.zoom + this.cameraParams.zBack;
-      var near = this.cameraParams.zoom + this.cameraParams.zFront;
-      if (near < 1) {
-        near = 1;
-      }
-
-      this.camera.position.copy(this.cameraParams.position);
-      this.camera.up.copy(this.cameraParams.up);
-      this.camera.lookAt(this.cameraParams.focus);
-      this.camera.near = near;
-      this.camera.far = far;
-      this.camera.updateProjectionMatrix();
-
-      this.displayScene.fog.near = this.cameraParams.zoom;
-      this.displayScene.fog.far = far;
-    }
-  }, {
-    key: 'buildLights',
-    value: function buildLights() {
-      this.lights.length = 0;
-
-      var directedLight = new THREE.DirectionalLight(0xFFFFFF);
-      directedLight.position.copy(_v2.default.create(0.2, 0.2, -100).normalize());
-      directedLight.dontDelete = true;
-      this.lights.push(directedLight);
-
-      var ambientLight = new THREE.AmbientLight(0x606060, 1);
-      ambientLight.dontDelete = true;
-      this.lights.push(ambientLight);
-
-      for (var i = 0; i < this.lights.length; i += 1) {
-        this.displayScene.add(this.lights[i]);
-      }
-    }
-  }, {
-    key: 'resize',
-    value: function resize() {
-      var position = this.div.position();
-      this.webglDiv.css('left', this.x() + position.left);
-      this.webglDiv.css('top', this.y() + position.top);
-
-      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 20);
-      this.messageDiv.width(this.div.width() - 200);
-
-      this.camera.aspect = this.width() / this.height();
-      this.camera.updateProjectionMatrix();
-
-      this.pickingTexture.setSize(this.width(), this.height());
-
-      if (util.exists(this.renderer)) {
-        this.renderer.setSize(this.width(), this.height());
-      }
-    }
-  }, {
-    key: 'setMesssage',
-    value: function setMesssage(message) {
-      console.log('SoupWidget.setMesssage:', message);
-      this.messageDiv.html(message).show();
-    }
-  }, {
-    key: 'asyncSetMesssage',
-    value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(message) {
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                this.setMesssage(message);
-                _context.next = 3;
-                return util.delay(0);
-
-              case 3:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function asyncSetMesssage(_x) {
-        return _ref.apply(this, arguments);
-      }
-
-      return asyncSetMesssage;
-    }()
-  }, {
-    key: 'cleanupMessage',
-    value: function cleanupMessage() {
-      this.messageDiv.hide();
-    }
-  }, {
-    key: 'rebuildSceneFromMeshes',
-
-
-    /**
-     **********************************************************
-     * Mesh-building methods
-     *
-     * Routines to build meshes that will be incorporated into
-     * scenes, and to be used for gpu-picking.
-     *
-     * Meshes are stored in a dictionary: this.displayMeshes &
-     * this.pickingMeshes
-     **********************************************************
-     */
-
-    /**
-     * Rebuild soupView from meshes in this.displayMeshes &
-     * this.pickingMeshes
-     */
-    value: function rebuildSceneFromMeshes() {
-      glgeom.clearObject3D(this.displayScene);
-      glgeom.clearObject3D(this.pickingScene);
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = _lodash2.default.values(this.displayMeshes)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var mesh = _step.value;
-
-          if (mesh.children.length > 0) {
-            this.displayScene.add(mesh);
-          }
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-      }
-
-      var _iteratorNormalCompletion2 = true;
-      var _didIteratorError2 = false;
-      var _iteratorError2 = undefined;
-
-      try {
-        for (var _iterator2 = _lodash2.default.values(this.pickingMeshes)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-          var _mesh = _step2.value;
-
-          if (_mesh.children.length > 0) {
-            this.pickingScene.add(_mesh);
-          }
-        }
-      } catch (err) {
-        _didIteratorError2 = true;
-        _iteratorError2 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-            _iterator2.return();
-          }
-        } finally {
-          if (_didIteratorError2) {
-            throw _iteratorError2;
-          }
-        }
-      }
-    }
-
-    /**
-     * Sets the visibility of a mesh this.displayMeshes & this.pickingMeshes.
-     * If it does not exist, create it, and look for the corresponding method
-     * to build the mesh this.build<CaptializaedMeshName>
-     *
-     * @param meshName
-     * @param visible
-     */
-
-  }, {
-    key: 'setMeshVisible',
-    value: function setMeshVisible(meshName, visible) {
-      if (meshName in this.displayMeshes) {
-        glgeom.setVisible(this.displayMeshes[meshName], visible);
-      }
-      if (meshName in this.pickingMeshes) {
-        glgeom.setVisible(this.pickingMeshes[meshName], visible);
-      }
-    }
-  }, {
-    key: 'x',
-    value: function x() {
-      return 0;
-    }
-  }, {
-    key: 'y',
-    value: function y() {
-      return 0;
-    }
-  }, {
-    key: 'width',
-    value: function width() {
-      var width = this.div.width() - this.x();
-      return width;
-    }
-  }, {
-    key: 'height',
-    value: function height() {
-      var height = this.div.height() - this.y();
-      return height;
-    }
-  }, {
-    key: 'getPointer',
-    value: function getPointer(event) {
-      if (util.exists(event.touches) && event.touches.length > 0) {
-        this.eventX = event.touches[0].clientX;
-        this.eventY = event.touches[0].clientY;
-      } else {
-        this.eventX = event.clientX;
-        this.eventY = event.clientY;
-      }
-
-      var rect = event.target.getBoundingClientRect();
-      this.mouseX = this.eventX - rect.left;
-      this.mouseY = this.eventY - rect.top;
-
-      var x = this.mouseX - this.width() / 2;
-      var y = this.mouseY - this.height() / 2;
-
-      this.mouseR = Math.sqrt(x * x + y * y);
-
-      this.mouseT = Math.atan(y / x);
-      if (x < 0) {
-        if (y > 0) {
-          this.mouseT += Math.PI;
-        } else {
-          this.mouseT -= Math.PI;
-        }
-      }
-    }
-  }, {
-    key: 'savePointer',
-    value: function savePointer() {
-      this.saveMouseX = this.mouseX;
-      this.saveMouseY = this.mouseY;
-      this.saveMouseR = this.mouseR;
-      this.saveMouseT = this.mouseT;
-    }
-  }]);
-
-  return WebglWidget;
-}();
 
 /**
  * Display is the main window for drawing the soup
@@ -91610,8 +89826,6 @@ var WebglWidget = function () {
  * uses controller to make changes to the underlying soup
  * and their associated views
  */
-
-
 var SoupWidget = function (_WebglWidget) {
   _inherits(SoupWidget, _WebglWidget);
 
@@ -91625,46 +89839,46 @@ var SoupWidget = function (_WebglWidget) {
   function SoupWidget(soupView, divTag, controller, isGrid, backgroundColor) {
     _classCallCheck(this, SoupWidget);
 
-    var _this2 = _possibleConstructorReturn(this, (SoupWidget.__proto__ || Object.getPrototypeOf(SoupWidget)).call(this, divTag, backgroundColor));
+    var _this = _possibleConstructorReturn(this, (SoupWidget.__proto__ || Object.getPrototypeOf(SoupWidget)).call(this, divTag, backgroundColor));
 
-    _this2.observers = {
+    _this.observers = {
       rebuilt: new _signals2.default(),
       updated: new _signals2.default(),
       resized: new _signals2.default()
 
       // DataServer is needed to save views
-    };_this2.dataServer = null;
+    };_this.dataServer = null;
 
     // Hooks to protein data
-    _this2.soupView = soupView;
-    _this2.soup = soupView.soup;
-    _this2.controller = controller;
+    _this.soupView = soupView;
+    _this.soup = soupView.soup;
+    _this.controller = controller;
 
     // screen atom radius
-    _this2.atomRadius = 0.35;
-    _this2.gridAtomRadius = 1.0;
+    _this.atomRadius = 0.35;
+    _this.gridAtomRadius = 1.0;
 
     // Cross-hairs to identify centered atom
-    _this2.buildCrossHairs();
+    _this.buildCrossHairs();
 
     // popup hover box over the mouse position
-    _this2.clickTimer = null;
-    _this2.hover = new _widgets2.default.PopupText(_this2.divTag, 50);
-    _this2.iAtomHover = null;
+    _this.clickTimer = null;
+    _this.hover = new _widgets2.default.PopupText(_this.divTag, 50);
+    _this.iAtomHover = null;
 
     // Docking display control
-    _this2.isGrid = isGrid;
+    _this.isGrid = isGrid;
 
     // Widgets that decorate the display
     // display distance measures between atoms
-    _this2.distanceMeasuresWidget = new _widgets2.default.DistanceMeasuresWidget(_this2);
+    _this.distanceMeasuresWidget = new _widgets2.default.DistanceMeasuresWidget(_this);
     // display atom labels
-    _this2.atomLabelsWidget = new _widgets2.default.AtomLabelsWidget(_this2);
+    _this.atomLabelsWidget = new _widgets2.default.AtomLabelsWidget(_this);
     // draw onscreen line for mouse dragging between atoms
-    _this2.lineElement = new _widgets2.default.LineElement(_this2, '#FF7777');
+    _this.lineElement = new _widgets2.default.LineElement(_this, '#FF7777');
 
-    (0, _animation.registerGlobalAnimationLoop)(_this2);
-    return _this2;
+    (0, _animation.registerGlobalAnimationLoop)(_this);
+    return _this;
   }
 
   _createClass(SoupWidget, [{
@@ -91768,14 +89982,14 @@ var SoupWidget = function (_WebglWidget) {
   }, {
     key: 'atomLabelDialog',
     value: function atomLabelDialog() {
-      var _this3 = this;
+      var _this2 = this;
 
       var iAtom = this.soupView.currentView.iAtom;
       if (iAtom >= 0) {
         var atom = this.soup.getAtomProxy(iAtom);
         var label = 'Label atom : ' + atom.label;
         var success = function success(text) {
-          _this3.controller.makeAtomLabel(iAtom, text);
+          _this2.controller.makeAtomLabel(iAtom, text);
         };
         util.textEntryDialog(this.div, label, success);
       }
@@ -91843,52 +90057,52 @@ var SoupWidget = function (_WebglWidget) {
     key: 'buildScene',
     value: function buildScene() {
       // clear this.displayMeshes and this.pickingMeshes
-      var _iteratorNormalCompletion3 = true;
-      var _didIteratorError3 = false;
-      var _iteratorError3 = undefined;
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
 
       try {
-        for (var _iterator3 = _lodash2.default.keys(this.displayMeshes)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-          var key = _step3.value;
+        for (var _iterator = _lodash2.default.keys(this.displayMeshes)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var key = _step.value;
 
           _lodash2.default.unset(this.displayMeshes, key);
         }
       } catch (err) {
-        _didIteratorError3 = true;
-        _iteratorError3 = err;
+        _didIteratorError = true;
+        _iteratorError = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion3 && _iterator3.return) {
-            _iterator3.return();
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
           }
         } finally {
-          if (_didIteratorError3) {
-            throw _iteratorError3;
+          if (_didIteratorError) {
+            throw _iteratorError;
           }
         }
       }
 
-      var _iteratorNormalCompletion4 = true;
-      var _didIteratorError4 = false;
-      var _iteratorError4 = undefined;
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
 
       try {
-        for (var _iterator4 = _lodash2.default.keys(this.pickingMeshes)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-          var _key = _step4.value;
+        for (var _iterator2 = _lodash2.default.keys(this.pickingMeshes)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var _key = _step2.value;
 
           _lodash2.default.unset(this.pickingMeshes, _key);
         }
       } catch (err) {
-        _didIteratorError4 = true;
-        _iteratorError4 = err;
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-            _iterator4.return();
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
           }
         } finally {
-          if (_didIteratorError4) {
-            throw _iteratorError4;
+          if (_didIteratorError2) {
+            throw _iteratorError2;
           }
         }
       }
@@ -91935,7 +90149,7 @@ var SoupWidget = function (_WebglWidget) {
   }, {
     key: 'drawFrame',
     value: function drawFrame() {
-      var _this4 = this;
+      var _this3 = this;
 
       if (!this.isChanged()) {
         return;
@@ -91954,7 +90168,7 @@ var SoupWidget = function (_WebglWidget) {
       this.updateMeshesInScene = false;
 
       var isNewTrigger = function isNewTrigger(meshName, visible) {
-        return visible && !(meshName in _this4.displayMeshes);
+        return visible && !(meshName in _this3.displayMeshes);
       };
 
       var show = this.soupView.currentView.show;
@@ -92011,29 +90225,29 @@ var SoupWidget = function (_WebglWidget) {
       }
 
       if (this.soupView.isUpdateSelection) {
-        var _iteratorNormalCompletion5 = true;
-        var _didIteratorError5 = false;
-        var _iteratorError5 = undefined;
+        var _iteratorNormalCompletion3 = true;
+        var _didIteratorError3 = false;
+        var _iteratorError3 = undefined;
 
         try {
-          for (var _iterator5 = _lodash2.default.values(this.representations)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-            var repr = _step5.value;
+          for (var _iterator3 = _lodash2.default.values(this.representations)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+            var repr = _step3.value;
 
             if ('recolor' in repr) {
               repr.recolor();
             }
           }
         } catch (err) {
-          _didIteratorError5 = true;
-          _iteratorError5 = err;
+          _didIteratorError3 = true;
+          _iteratorError3 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion5 && _iterator5.return) {
-              _iterator5.return();
+            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+              _iterator3.return();
             }
           } finally {
-            if (_didIteratorError5) {
-              throw _iteratorError5;
+            if (_didIteratorError3) {
+              throw _iteratorError3;
             }
           }
         }
@@ -92126,7 +90340,7 @@ var SoupWidget = function (_WebglWidget) {
   }, {
     key: 'mousedown',
     value: function mousedown(event) {
-      var _this5 = this;
+      var _this4 = this;
 
       if (this.isGesture) {
         return;
@@ -92148,7 +90362,7 @@ var SoupWidget = function (_WebglWidget) {
 
       if (_lodash2.default.isNil(this.clickTimer)) {
         this.clickTimer = setTimeout(function () {
-          return _this5.click(event);
+          return _this4.click(event);
         }, 250);
       } else if (elapsedTime < 600) {
         clearTimeout(this.clickTimer);
@@ -92294,7 +90508,7 @@ var SoupWidget = function (_WebglWidget) {
   }]);
 
   return SoupWidget;
-}(WebglWidget);
+}(_webglWidget.WebglWidget);
 
 exports.SoupWidget = SoupWidget;
 
@@ -100927,6 +99141,1871 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 	return $scrollTo;
 });
 
+
+/***/ }),
+/* 349 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.SoupViewController = exports.SoupView = undefined;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _lodash = __webpack_require__(27);
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _v = __webpack_require__(95);
+
+var _v2 = _interopRequireDefault(_v);
+
+var _util = __webpack_require__(49);
+
+var _glgeom = __webpack_require__(96);
+
+var glgeom = _interopRequireWildcard(_glgeom);
+
+var _three = __webpack_require__(44);
+
+var THREE = _interopRequireWildcard(_three);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * View
+ * ----
+ * A view includes all pertinent viewing options
+ * needed to render the soup in the way
+ * for the user.
+ *
+ * cameraParams stores the direction and zoom that a soup
+ * should be viewed:
+ * cameraParams {
+ *   focus: position that cameraParams is looking at
+ *   position: position of cameraParams - distance away gives zoom
+ *   up: vector direction denoting the up direction of cameraParams
+ *   zFront: clipping plane in front of the cameraParams focus
+ *   zBack: clipping plane behind the cameraParams focus
+ * }
+ *
+ * OpenGL notes:
+ *   - box is -1 to 1 that gets projected on screen + perspective
+ *   - x right -> left
+ *   - y bottom -> top (inverse of classic 2D coordinate)
+ *   - z far -> near
+ *   - that is positive Z direction is out of the screen
+ *   - box -1 to +1
+ */
+var View = function () {
+  function View() {
+    _classCallCheck(this, View);
+
+    this.id = 'view:000000';
+    this.iAtom = -1;
+    this.order = 1;
+    this.cameraParams = {
+      focus: _v2.default.create(0, 0, 0),
+      position: _v2.default.create(0, 0, -1),
+      up: _v2.default.create(0, 1, 0),
+      zFront: 0,
+      zBack: 0,
+      zoom: 1
+    };
+    this.selected = [];
+    this.labels = [];
+    this.distances = [];
+    this.selectedTraces = [];
+    this.text = 'Default view of PDB file';
+    this.user_id = '';
+    this.pdb_id = '';
+    this.show = {
+      sidechain: true,
+      peptide: true,
+      hydrogen: false,
+      water: false,
+      ligands: true,
+      trace: true,
+      backbone: false,
+      ribbon: true,
+      sphere: false,
+      transparent: false
+    }, this.grid = {
+      isElem: {},
+      bCutoff: null,
+      isChanged: false
+    };
+  }
+
+  _createClass(View, [{
+    key: 'setCamera',
+    value: function setCamera(cameraParams) {
+      this.cameraParams = cameraParams;
+    }
+  }, {
+    key: 'getViewTranslatedTo',
+    value: function getViewTranslatedTo(pos) {
+      var view = this.clone();
+      var disp = pos.clone().sub(view.cameraParams.focus);
+      view.cameraParams.focus.copy(pos);
+      view.cameraParams.position.add(disp);
+      return view;
+    }
+  }, {
+    key: 'clone',
+    value: function clone() {
+      var v = new View();
+      v.id = this.id;
+      v.pdb_id = this.pdb_id;
+      v.iAtom = this.iAtom;
+      v.selected = this.selected;
+      v.selectedTraces = _lodash2.default.cloneDeep(this.selectedTraces);
+      v.labels = _lodash2.default.cloneDeep(this.labels);
+      v.distances = _lodash2.default.cloneDeep(this.distances);
+      v.order = this.order;
+      v.text = this.text;
+      v.time = this.time;
+      v.cameraParams = _lodash2.default.cloneDeep(this.cameraParams);
+      v.show = _lodash2.default.cloneDeep(this.show);
+      v.grid = _lodash2.default.cloneDeep(this.grid);
+      return v;
+    }
+  }, {
+    key: 'getDict',
+    value: function getDict() {
+      // version 2.0 camera dict structure {
+      //    pos: soupView center, cameraParams focus
+      //    up: gives the direction of the y vector from pos
+      //    in: gives the positive z-axis direction
+      //    zFront: clipping plane in front of the cameraParams focus
+      //    zBack: clipping plane behind the cameraParams focus
+      // }
+      var cameraDir = this.cameraParams.focus.clone().sub(this.cameraParams.position);
+      var zoom = cameraDir.length();
+      cameraDir.normalize();
+      var pos = this.cameraParams.focus;
+      var inV = pos.clone().add(cameraDir);
+      var upV = pos.clone().sub(this.cameraParams.up);
+
+      var show = _lodash2.default.clone(this.show);
+      show.all_atom = show.backbone;
+      delete show.backbone;
+
+      return {
+        version: 2,
+        view_id: this.id,
+        user_id: this.user_id,
+        pdb_id: this.pdb_id,
+        order: this.order,
+        show: show,
+        grid: _lodash2.default.cloneDeep(this.grid),
+        text: this.text,
+        i_atom: this.iAtom,
+        labels: this.labels,
+        selected: this.selected,
+        selected_traces: this.selectedTraces,
+        distances: this.distances,
+        camera: {
+          slab: {
+            z_front: this.cameraParams.zFront,
+            z_back: this.cameraParams.zBack,
+            zoom: zoom
+          },
+          pos: [pos.x, pos.y, pos.z],
+          up: [upV.x, upV.y, upV.z],
+          in: [inV.x, inV.y, inV.z]
+        }
+      };
+    }
+  }, {
+    key: 'setFromDict',
+    value: function setFromDict(flatDict) {
+      this.id = flatDict.view_id;
+      this.pdb_id = flatDict.pdb_id;
+      this.lock = flatDict.lock;
+      this.text = flatDict.text;
+      this.user_id = flatDict.user_id;
+      this.order = flatDict.order;
+      this.res_id = flatDict.res_id;
+      this.iAtom = flatDict.i_atom;
+
+      this.labels = flatDict.labels;
+      this.selected = flatDict.selected;
+      this.distances = flatDict.distances;
+
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = _lodash2.default.keys(flatDict.show)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var key = _step.value;
+
+          if (key in this.show) {
+            this.show[key] = !!flatDict.show[key];
+          }
+          if (key === 'all_atom') {
+            this.show.backbone = !!flatDict.show.all_atom;
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      if (!(this.show.backbone || this.show.trace || this.show.ribbon)) {
+        this.show.ribbon = true;
+      }
+
+      if (!(this.show.all_atom || this.show.trace || this.show.ribbon)) {
+        this.show.backbone = true;
+      }
+
+      if ('grid' in flatDict) {
+        this.grid = flatDict.grid;
+      }
+
+      if ('selected_traces' in flatDict) {
+        this.selectedTraces = _lodash2.default.cloneDeep(flatDict['selected_traces']);
+      }
+
+      var pos = _v2.default.create(flatDict.camera.pos[0], flatDict.camera.pos[1], flatDict.camera.pos[2]);
+
+      var upV = _v2.default.create(flatDict.camera.up[0], flatDict.camera.up[1], flatDict.camera.up[2]);
+
+      var inV = _v2.default.create(flatDict.camera.in[0], flatDict.camera.in[1], flatDict.camera.in[2]);
+
+      var zoom = flatDict.camera.slab.zoom;
+
+      var focus = _v2.default.clone(pos);
+
+      var cameraDirection = _v2.default.clone(inV).sub(focus).multiplyScalar(zoom).negate();
+
+      var position = _v2.default.clone(focus).add(cameraDirection);
+
+      var up = _v2.default.clone(upV).sub(focus).negate();
+
+      this.cameraParams = {
+        focus: focus,
+        position: position,
+        up: up,
+        zFront: flatDict.camera.slab.z_front,
+        zBack: flatDict.camera.slab.z_back,
+        zoom: zoom
+      };
+    }
+  }]);
+
+  return View;
+}();
+
+function interpolateCameras(oldCamera, futureCamera, t) {
+  var oldCameraDirection = oldCamera.position.clone().sub(oldCamera.focus);
+  var oldZoom = oldCameraDirection.length();
+  oldCameraDirection.normalize();
+
+  var futureCameraDirection = futureCamera.position.clone().sub(futureCamera.focus);
+
+  var futureZoom = futureCameraDirection.length();
+  futureCameraDirection.normalize();
+
+  var cameraDirRotation = glgeom.getUnitVectorRotation(oldCameraDirection, futureCameraDirection);
+
+  var partialRotatedCameraUp = oldCamera.up.clone().applyQuaternion(cameraDirRotation);
+
+  var fullCameraUpRotation = glgeom.getUnitVectorRotation(partialRotatedCameraUp, futureCamera.up).multiply(cameraDirRotation);
+  var cameraUpRotation = glgeom.getFractionRotation(fullCameraUpRotation, t);
+
+  var focusDisp = futureCamera.focus.clone().sub(oldCamera.focus).multiplyScalar(t);
+
+  var focus = oldCamera.focus.clone().add(focusDisp);
+
+  var zoom = glgeom.fraction(oldZoom, futureZoom, t);
+
+  var focusToPosition = oldCameraDirection.clone().applyQuaternion(cameraUpRotation).multiplyScalar(zoom);
+
+  return {
+    focus: focus,
+    position: focus.clone().add(focusToPosition),
+    up: oldCamera.up.clone().applyQuaternion(cameraUpRotation),
+    zFront: glgeom.fraction(oldCamera.zFront, futureCamera.zFront, t),
+    zBack: glgeom.fraction(oldCamera.zBack, futureCamera.zBack, t),
+    zoom: zoom
+  };
+}
+
+/**
+ * The SoupView contains a soup and a list of
+ * views of the soup, including the current
+ * view, and a target view for animation
+ */
+
+var SoupView = function () {
+  function SoupView(soup) {
+    _classCallCheck(this, SoupView);
+
+    // the soup data for the soupView
+    this.soup = soup;
+
+    this.isChanged = true;
+
+    // indicates when sidechains need to be rebuilt
+    this.isUpdateSidechain = false;
+
+    // indicates when colors need to be updated
+    this.isUpdateSelection = false;
+
+    // delayed flag to change rendering after
+    // rotations have been done
+    this.isStartTargetAfterRender = false;
+
+    // indicates when decorators/widgets need to be redrawn
+    this.isUpdateObservers = true;
+
+    // stores the current cameraParams, display
+    // options, distances, labels, selected
+    // residues
+    this.currentView = new View();
+
+    // stores other views that can be reloaded
+    this.savedViewsByViewId = {};
+    this.savedViews = [];
+    this.iLastViewSelected = 0;
+
+    // Animation variables store here so
+    // that Controller can get access to them
+
+    // the current animation state -
+    // 'none', 'loop', 'rock', 'rotate'
+    this.animateState = 'none';
+
+    // stores a target view for animation
+    this.targetView = null;
+
+    // timing counter that is continually decremented
+    // until it becomes negative
+    this.nUpdateStep = -1;
+
+    // this is to set the time between transitions of views
+    this.maxUpdateStep = 70;
+    this.msPerStep = 17;
+  }
+
+  _createClass(SoupView, [{
+    key: 'build',
+    value: function build() {
+      if (this.savedViews.length === 0 && !this.soup.isEmpty()) {
+        this.setCurrentViewToDefaultAndSave();
+      }
+      this.saveGridToCurrentView();
+    }
+  }, {
+    key: 'saveGridToCurrentView',
+    value: function saveGridToCurrentView() {
+      for (var elem in this.soup.grid.isElem) {
+        if (elem in this.soup.grid.isElem) {
+          this.currentView.grid.isElem[elem] = this.soup.grid.isElem[elem];
+        }
+      }
+      if ((0, _util.exists)(this.soup.grid.bCutoff)) {
+        this.currentView.grid.bCutoff = this.soup.grid.bCutoff;
+      }
+    }
+  }, {
+    key: 'setCurrentViewToDefaultAndSave',
+    value: function setCurrentViewToDefaultAndSave() {
+      this.currentView.show.sidechain = false;
+      this.currentView.order = 0;
+      this.currentView.text = this.soup.title;
+      this.currentView.pdb_id = this.soup.structureIds[0];
+      this.currentView = this.getZoomedOutViewOfCurrentView();
+      this.saveView(this.currentView);
+      this.isChanged = true;
+    }
+  }, {
+    key: 'setTargetView',
+    value: function setTargetView(view) {
+      this.isStartTargetAfterRender = true;
+      this.saveTargetView = view.clone();
+      this.saveTargetView.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
+    }
+  }, {
+    key: 'startTargetView',
+    value: function startTargetView() {
+      this.targetView = this.saveTargetView;
+      this.isUpdateObservers = true;
+      this.isStartTargetAfterRender = false;
+      this.isChanged = true;
+    }
+  }, {
+    key: 'getICenteredAtom',
+    value: function getICenteredAtom() {
+      return this.currentView.iAtom;
+    }
+  }, {
+    key: 'getIViewFromViewId',
+    value: function getIViewFromViewId(viewId) {
+      for (var iView = 0; iView < this.savedViews.length; iView += 1) {
+        if (this.savedViews[iView].id === viewId) {
+          return iView;
+        }
+      }
+      return -1;
+    }
+  }, {
+    key: 'insertView',
+    value: function insertView(iView, newViewId, newView) {
+      this.savedViewsByViewId[newViewId] = newView;
+      if (iView >= this.savedViews.length) {
+        this.savedViews.push(newView);
+      } else {
+        this.savedViews.splice(iView, 0, newView);
+      }
+      this.iLastViewSelected = iView;
+      for (var i = 0; i < this.savedViews.length; i++) {
+        this.savedViews[i].order = i;
+      }
+    }
+  }, {
+    key: 'removeView',
+    value: function removeView(viewId) {
+      var iView = this.getIViewFromViewId(viewId);
+      if (iView < 0) {
+        return;
+      }
+      this.savedViews.splice(iView, 1);
+      delete this.savedViewsByViewId[viewId];
+      for (var j = 0; j < this.savedViews.length; j++) {
+        this.savedViews[j].order = j;
+      }
+      if (this.iLastViewSelected >= this.savedViews.length) {
+        this.iLastViewSelected = this.savedViews.length - 1;
+      }
+      this.isChanged = true;
+    }
+  }, {
+    key: 'saveView',
+    value: function saveView(view) {
+      this.savedViewsByViewId[view.id] = view;
+      this.savedViews.push(view);
+    }
+  }, {
+    key: 'getZoomedOutViewOfCurrentView',
+    value: function getZoomedOutViewOfCurrentView() {
+      var maxLength = this.soup.calcMaxLength();
+
+      var newView = this.currentView.clone();
+
+      if (maxLength === 0) {
+        return newView;
+      }
+
+      var cameraParams = newView.cameraParams;
+
+      cameraParams.zFront = -maxLength / 2;
+      cameraParams.zBack = maxLength / 2;
+      cameraParams.zoom = Math.abs(maxLength) * 1.75;
+
+      var atomIndices = _lodash2.default.range(this.soup.getAtomCount());
+      var center = this.soup.getCenter(atomIndices);
+
+      var look = cameraParams.position.clone().sub(cameraParams.focus).normalize();
+      cameraParams.focus.copy(center);
+      cameraParams.position = cameraParams.focus.clone().add(look.multiplyScalar(cameraParams.zoom));
+
+      newView.iAtom = this.soup.getIAtomAtPosition(center);
+      return newView;
+    }
+  }, {
+    key: 'setTargetViewByViewId',
+    value: function setTargetViewByViewId(viewId) {
+      var view = this.savedViewsByViewId[viewId];
+      this.iLastViewSelected = this.savedViewsByViewId[viewId].order;
+      this.setTargetView(view);
+    }
+  }, {
+    key: 'setTargetViewByIAtom',
+    value: function setTargetViewByIAtom(iAtom) {
+      var atom = this.soup.getAtomProxy(iAtom);
+      var view = this.currentView.getViewTranslatedTo(atom.pos);
+      view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
+      view.selectedTraces = [];
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
+        for (var _iterator2 = this.soup.traces.entries()[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var _step2$value = _slicedToArray(_step2.value, 2),
+              iTrace = _step2$value[0],
+              trace = _step2$value[1];
+
+          if (_lodash2.default.includes(trace.indices, atom.iRes)) {
+            view.selectedTraces.push(iTrace);
+          }
+        }
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
+        }
+      }
+
+      console.log('SoupView.setTargetViewByIAtom new trace', view.selectedTraces);
+      this.setTargetView(view);
+    }
+  }, {
+    key: 'getZoomedOutViewOfSelection',
+    value: function getZoomedOutViewOfSelection() {
+      var newView = this.currentView.clone();
+
+      var atomIndices = [];
+      var residue = this.soup.getResidueProxy();
+      var _iteratorNormalCompletion3 = true;
+      var _didIteratorError3 = false;
+      var _iteratorError3 = undefined;
+
+      try {
+        for (var _iterator3 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          var iRes = _step3.value;
+
+          residue.load(iRes);
+          if (residue.selected) {
+            atomIndices.push(residue.iAtom);
+          }
+        }
+      } catch (err) {
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion3 && _iterator3.return) {
+            _iterator3.return();
+          }
+        } finally {
+          if (_didIteratorError3) {
+            throw _iteratorError3;
+          }
+        }
+      }
+
+      var center = this.soup.getCenter(atomIndices);
+      var maxLength = this.soup.calcMaxLength(atomIndices);
+
+      if (maxLength === 0) {
+        return newView;
+      }
+
+      var cameraParams = newView.cameraParams;
+
+      cameraParams.zFront = -maxLength / 2;
+      cameraParams.zBack = maxLength / 2;
+      cameraParams.zoom = Math.abs(maxLength) * 1.2;
+
+      var look = cameraParams.position.clone().sub(cameraParams.focus).normalize();
+      cameraParams.focus.copy(center);
+      cameraParams.position = cameraParams.focus.clone().add(look.multiplyScalar(cameraParams.zoom));
+
+      newView.iAtom = this.soup.getIAtomAtPosition(center);
+      return newView;
+    }
+  }, {
+    key: 'saveCurrentView',
+    value: function saveCurrentView() {
+      var newView = this.currentView.clone();
+      newView.id = (0, _util.randomId)();
+      newView.text = 'Click edit to change this text.';
+      newView.pdb_id = this.soup.structureIds[0];
+      newView.selected = this.soup.makeSelectedResidueList();
+      newView.selectedTraces = _lodash2.default.cloneDeep(this.soup.selectedTraces);
+
+      var iNewView = this.iLastViewSelected + 1;
+      this.insertView(iNewView, newView.id, newView);
+      this.setTargetViewByViewId(newView.id);
+      this.isChanged = true;
+      this.isUpdateSelection = true;
+      console.log('Soupview.saveCurrentView', newView);
+
+      return newView.id;
+    }
+  }, {
+    key: 'setCurrentView',
+    value: function setCurrentView(view) {
+      var oldViewSelected = this.currentView.selected;
+      this.currentView = view.clone();
+      this.soup.selectedTraces = _lodash2.default.cloneDeep(view.selectedTraces);
+      if (!_lodash2.default.isEqual(oldViewSelected.sort(), view.selected.sort())) {
+        this.soup.clearSidechainResidues();
+        this.soup.setSidechainOfResidues(view.selected, true);
+        this.isUpdateSidechain = true;
+      }
+
+      // use view.grid parameters to reset soup.grid
+      for (var elem in view.grid.isElem) {
+        if (elem in this.soup.grid.isElem) {
+          if (view.grid.isElem[elem] !== this.soup.grid.isElem[elem]) {
+            this.soup.grid.isElem[elem] = view.grid.isElem[elem];
+            this.isUpdateObservers = true;
+            this.soup.grid.isChanged = true;
+          }
+        }
+      }
+      if (!_lodash2.default.isNil(view.grid.bCutoff)) {
+        if (this.soup.grid.bCutoff !== view.grid.bCutoff) {
+          this.soup.grid.bCutoff = view.grid.bCutoff;
+          this.isUpdateObservers = true;
+          this.soup.grid.isChanged = true;
+        }
+      }
+
+      this.isChanged = true;
+    }
+  }, {
+    key: 'setTargetToPrevView',
+    value: function setTargetToPrevView() {
+      if (this.savedViews.length === 0) {
+        return '';
+      }
+      this.iLastViewSelected -= 1;
+      if (this.iLastViewSelected < 0) {
+        this.iLastViewSelected = this.savedViews.length - 1;
+      }
+      var id = this.savedViews[this.iLastViewSelected].id;
+      this.setTargetViewByViewId(id);
+      return id;
+    }
+  }, {
+    key: 'setTargetToNextView',
+    value: function setTargetToNextView() {
+      if (this.savedViews.length === 0) {
+        return '';
+      }
+      this.iLastViewSelected += 1;
+      if (this.iLastViewSelected >= this.savedViews.length) {
+        this.iLastViewSelected = 0;
+      }
+      var id = this.savedViews[this.iLastViewSelected].id;
+      this.setTargetViewByViewId(id);
+      return id;
+    }
+  }, {
+    key: 'setTargetToPrevResidue',
+    value: function setTargetToPrevResidue() {
+      var iAtom = _lodash2.default.get(this.targetView, 'iAtom');
+      if ((0, _util.exists)(iAtom)) {
+        iAtom = this.targetView.iAtom;
+      } else {
+        iAtom = this.currentView.iAtom;
+      }
+      if (iAtom < 0) {
+        iAtom = 0;
+      }
+      var iRes = this.soup.getAtomProxy(iAtom).iRes;
+      if (iRes <= 0) {
+        iRes = this.soup.getResidueCount() - 1;
+      } else {
+        iRes -= 1;
+      }
+      iAtom = this.soup.getResidueProxy(iRes).iAtom;
+      this.setTargetViewByIAtom(iAtom);
+    }
+  }, {
+    key: 'setTargetToNextResidue',
+    value: function setTargetToNextResidue() {
+      var iAtom = _lodash2.default.get(this.targetView, 'iAtom');
+      if ((0, _util.exists)(iAtom)) {
+        iAtom = this.targetView.iAtom;
+      } else {
+        iAtom = this.currentView.iAtom;
+      }
+      if (iAtom < 0) {
+        iAtom = 0;
+      }
+      var iRes = this.soup.getAtomProxy(iAtom).iRes;
+      if (iRes >= this.soup.getResidueCount() - 1) {
+        iRes = 0;
+      } else {
+        iRes += 1;
+      }
+      iAtom = this.soup.getResidueProxy(iRes).iAtom;
+      this.setTargetViewByIAtom(iAtom);
+    }
+  }, {
+    key: 'adjustCamera',
+    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
+      var cameraParams = this.currentView.cameraParams;
+
+      var y = cameraParams.up;
+      var z = cameraParams.position.clone().sub(cameraParams.focus).normalize();
+      var x = _v2.default.create().crossVectors(y, z).normalize();
+
+      var rotZ = new THREE.Quaternion().setFromAxisAngle(z, zRotationAngle);
+
+      var rotY = new THREE.Quaternion().setFromAxisAngle(y, -yRotationAngle);
+
+      var rotX = new THREE.Quaternion().setFromAxisAngle(x, -xRotationAngle);
+
+      var rotation = new THREE.Quaternion().multiply(rotZ).multiply(rotY).multiply(rotX);
+
+      var newZoom = zoomRatio * cameraParams.zoom;
+
+      if (newZoom < 2) {
+        newZoom = 2;
+      }
+
+      var position = cameraParams.position.clone().sub(cameraParams.focus).applyQuaternion(rotation).normalize().multiplyScalar(newZoom).add(cameraParams.focus);
+
+      var view = this.currentView.clone();
+      view.cameraParams.focus = cameraParams.focus.clone();
+      view.cameraParams.position = position;
+      view.cameraParams.up = cameraParams.up.clone().applyQuaternion(rotation);
+      view.cameraParams.zoom = newZoom;
+
+      this.setCurrentView(view);
+    }
+  }, {
+    key: 'animate',
+    value: function animate(elapsedTime) {
+      this.nUpdateStep -= elapsedTime / this.msPerStep;
+      if (this.nUpdateStep < 0) {
+        if (this.targetView !== null) {
+          this.setCurrentView(this.targetView);
+          this.isUpdateObservers = true;
+          this.isChanged = true;
+          this.targetView = null;
+          this.nUpdateStep = this.maxUpdateStep;
+        } else {
+          if (this.isStartTargetAfterRender) {
+            this.isChanged = true;
+          } else if (this.animateState === 'loop') {
+            if (this.nUpdateStep < -this.maxWaitStep) {
+              this.setTargetToNextView();
+            }
+          } else if (this.animateState === 'rotate') {
+            this.adjustCamera(0.0, 0.002, 0, 1);
+          } else if (this.animateState === 'rock') {
+            var nStepRock = 18;
+            if (this.nUpdateStep > -nStepRock) {
+              this.adjustCamera(0.0, 0.002, 0, 1);
+            } else if (this.nUpdateStep > -3 * nStepRock) {
+              this.adjustCamera(0.0, -0.002, 0, 1);
+            } else if (this.nUpdateStep > -4 * nStepRock) {
+              this.adjustCamera(0.0, +0.002, 0, 1);
+            } else {
+              this.nUpdateStep = 0;
+            }
+          }
+        }
+      } else if (this.nUpdateStep >= 1) {
+        if (this.targetView != null) {
+          var view = this.currentView.clone();
+          view.setCamera(interpolateCameras(this.currentView.cameraParams, this.targetView.cameraParams, 1.0 / this.nUpdateStep));
+          this.setCurrentView(view);
+        }
+      }
+    }
+  }]);
+
+  return SoupView;
+}();
+
+/**
+ * The Controller for SoupView. All mutations
+ * to a Soup and its Views go through here.
+ */
+
+
+var SoupViewController = function () {
+  function SoupViewController(soupView) {
+    _classCallCheck(this, SoupViewController);
+
+    this.soup = soupView.soup;
+    this.soupView = soupView;
+    this.iResLastSelected = null;
+  }
+
+  _createClass(SoupViewController, [{
+    key: 'deleteDistance',
+    value: function deleteDistance(iDistance) {
+      this.soupView.currentView.distances.splice(iDistance, 1);
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'makeDistance',
+    value: function makeDistance(iAtom1, iAtom2) {
+      this.soupView.currentView.distances.push({ i_atom1: iAtom1, i_atom2: iAtom2 });
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'makeAtomLabel',
+    value: function makeAtomLabel(iAtom, text) {
+      this.soupView.currentView.labels.push({ i_atom: iAtom, text: text });
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'deleteAtomLabel',
+    value: function deleteAtomLabel(iLabel) {
+      this.soupView.currentView.labels.splice(iLabel, 1);
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'setTargetView',
+    value: function setTargetView(view) {
+      this.soupView.setTargetView(view);
+    }
+  }, {
+    key: 'setTargetViewByViewId',
+    value: function setTargetViewByViewId(viewId) {
+      this.soupView.setTargetViewByViewId(viewId);
+    }
+  }, {
+    key: 'setTargetViewByIAtom',
+    value: function setTargetViewByIAtom(iAtom) {
+      this.soupView.setTargetViewByIAtom(iAtom);
+    }
+  }, {
+    key: 'setTargetToPrevResidue',
+    value: function setTargetToPrevResidue() {
+      this.soupView.setTargetToPrevResidue();
+    }
+  }, {
+    key: 'setTargetToNextResidue',
+    value: function setTargetToNextResidue() {
+      this.soupView.setTargetToNextResidue();
+    }
+  }, {
+    key: 'setTargetToPrevView',
+    value: function setTargetToPrevView() {
+      return this.soupView.setTargetToPrevView();
+    }
+  }, {
+    key: 'setTargetToNextView',
+    value: function setTargetToNextView() {
+      return this.soupView.setTargetToNextView();
+    }
+  }, {
+    key: 'swapViews',
+    value: function swapViews(i, j) {
+      this.soupView.savedViews[j].order = i;
+      this.soupView.savedViews[i].order = j;
+      var dummy = this.soupView.savedViews[j];
+      this.soupView.savedViews[j] = this.soupView.savedViews[i];
+      this.soupView.savedViews[i] = dummy;
+    }
+  }, {
+    key: 'getViewDicts',
+    value: function getViewDicts() {
+      var viewDicts = [];
+      for (var i = 1; i < this.soupView.savedViews.length; i += 1) {
+        viewDicts.push(this.soupView.savedViews[i].getDict());
+      }
+      return viewDicts;
+    }
+  }, {
+    key: 'clearSidechainResidues',
+    value: function clearSidechainResidues() {
+      this.soup.clearSidechainResidues();
+      this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
+      this.soupView.isUpdateSidechain = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'clearSelectedResidues',
+    value: function clearSelectedResidues() {
+      this.soup.clearSelectedResidues();
+      this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
+      this.soupView.isUpdateSelection = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'setResidueSelect',
+    value: function setResidueSelect(iRes, val) {
+      var res = this.soup.getResidueProxy(iRes);
+      res.selected = val;
+      this.soupView.isUpdateSelection = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'showAllSidechains',
+    value: function showAllSidechains() {
+      var res = this.soup.getResidueProxy();
+      var _iteratorNormalCompletion4 = true;
+      var _didIteratorError4 = false;
+      var _iteratorError4 = undefined;
+
+      try {
+        for (var _iterator4 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+          var iRes = _step4.value;
+
+          res.load(iRes).sidechain = true;
+        }
+      } catch (err) {
+        _didIteratorError4 = true;
+        _iteratorError4 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion4 && _iterator4.return) {
+            _iterator4.return();
+          }
+        } finally {
+          if (_didIteratorError4) {
+            throw _iteratorError4;
+          }
+        }
+      }
+
+      this.soupView.isUpdateSidechain = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'selectResidue',
+    value: function selectResidue(iRes, val) {
+      var res = this.soup.getResidueProxy(iRes);
+      if (_lodash2.default.isUndefined(val)) {
+        val = !res.selected;
+      }
+      this.clearSelectedResidues();
+      this.setResidueSelect(iRes, val);
+      this.iResLastSelected = val ? iRes : null;
+      this.soupView.isUpdateSelection = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'selectAdditionalResidue',
+    value: function selectAdditionalResidue(iRes) {
+      var res = this.soup.getResidueProxy(iRes);
+      var val = !res.selected;
+      this.setResidueSelect(iRes, val);
+      this.iResLastSelected = val ? iRes : null;
+      this.soupView.isUpdateSelection = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'selectAdditionalRangeToResidue',
+    value: function selectAdditionalRangeToResidue(iRes) {
+      var res = this.soup.getResidueProxy(iRes);
+      var val = !res.selected;
+      if (this.iResLastSelected !== null) {
+        var lastRes = this.soup.getResidueProxy(this.iResLastSelected);
+        if (res.iStructure === lastRes.iStructure) {
+          var iFirstRes = Math.min(this.iResLastSelected, iRes);
+          var iLastRes = Math.max(this.iResLastSelected, iRes);
+          for (var i = iFirstRes; i < iLastRes + 1; i += 1) {
+            this.setResidueSelect(i, true);
+          }
+        }
+      }
+      this.iResLastSelected = val ? iRes : null;
+      this.soupView.isUpdateSelection = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'toggleSelectedSidechains',
+    value: function toggleSelectedSidechains() {
+      var residue = this.soup.getResidueProxy();
+      var indices = [];
+      var nSidechain = 0;
+      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+        residue.load(iRes);
+        if (residue.selected) {
+          indices.push(iRes);
+          if (residue.sidechain) {
+            nSidechain += 1;
+          }
+        }
+      }
+      var isSidechain = true;
+      if (nSidechain === indices.length) {
+        isSidechain = false;
+      }
+      var _iteratorNormalCompletion5 = true;
+      var _didIteratorError5 = false;
+      var _iteratorError5 = undefined;
+
+      try {
+        for (var _iterator5 = indices[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+          var _iRes = _step5.value;
+
+          residue.load(_iRes);
+          residue.sidechain = isSidechain;
+        }
+      } catch (err) {
+        _didIteratorError5 = true;
+        _iteratorError5 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+            _iterator5.return();
+          }
+        } finally {
+          if (_didIteratorError5) {
+            throw _iteratorError5;
+          }
+        }
+      }
+
+      this.soupView.isUpdateSidechain = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'toggleResidueNeighbors',
+    value: function toggleResidueNeighbors() {
+      var indices = [];
+
+      var nSelected = 0;
+      var residue = this.soup.getResidueProxy();
+      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+        residue.load(iRes);
+        if (residue.selected) {
+          indices = _lodash2.default.concat(indices, this.soup.getNeighbours(iRes));
+          nSelected += 1;
+        }
+      }
+
+      if (nSelected === 0) {
+        console.log('Controller.toggleResidueNeighbors none selected');
+        var pos = this.soupView.currentView.cameraParams.focus;
+        indices = this.soup.getNeighboursOfPoint(pos);
+      }
+
+      if (indices.length === 0) {
+        var iAtom = this.soupView.currentView.iAtom;
+        var _iRes2 = this.soup.getAtomProxy(iAtom).iRes;
+        indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes2));
+      }
+      var nSidechain = 0;
+      var _iteratorNormalCompletion6 = true;
+      var _didIteratorError6 = false;
+      var _iteratorError6 = undefined;
+
+      try {
+        for (var _iterator6 = indices[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+          var _iRes3 = _step6.value;
+
+          if (residue.load(_iRes3).sidechain) {
+            nSidechain += 1;
+          }
+        }
+      } catch (err) {
+        _didIteratorError6 = true;
+        _iteratorError6 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion6 && _iterator6.return) {
+            _iterator6.return();
+          }
+        } finally {
+          if (_didIteratorError6) {
+            throw _iteratorError6;
+          }
+        }
+      }
+
+      var isSidechain = nSidechain < indices.length;
+
+      this.soup.setSidechainOfResidues(indices, isSidechain);
+      this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
+      this.soupView.isChanged = true;
+      this.soupView.isUpdateSidechain = true;
+    }
+  }, {
+    key: 'saveCurrentView',
+    value: function saveCurrentView() {
+      return this.soupView.saveCurrentView();
+    }
+  }, {
+    key: 'deleteView',
+    value: function deleteView(viewId) {
+      this.soupView.removeView(viewId);
+    }
+  }, {
+    key: 'sortViewsByOrder',
+    value: function sortViewsByOrder() {
+      function orderSort(a, b) {
+        return a.order - b.order;
+      }
+
+      this.soupView.savedViews.sort(orderSort);
+      for (var i = 0; i < this.soupView.savedViews.length; i += 1) {
+        this.soupView.savedViews[i].order = i;
+      }
+    }
+  }, {
+    key: 'loadViewsFromViewDicts',
+    value: function loadViewsFromViewDicts(viewDicts) {
+      for (var i = 0; i < viewDicts.length; i += 1) {
+        var view = new View();
+        view.setFromDict(viewDicts[i]);
+        if (view.id === 'view:000000') {
+          continue;
+        }
+        this.soupView.saveView(view);
+      }
+      this.sortViewsByOrder();
+    }
+  }, {
+    key: 'asyncLoadProteinData',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(proteinData, asyncSetMessageFn) {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.soup.asyncLoadProteinData(proteinData, asyncSetMessageFn);
+
+              case 2:
+                // pre-calculations needed before building meshes
+                this.soupView.build();
+                this.soupView.isChanged = true;
+                this.soupView.isUpdateObservers = true;
+
+              case 5:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function asyncLoadProteinData(_x, _x2) {
+        return _ref.apply(this, arguments);
+      }
+
+      return asyncLoadProteinData;
+    }()
+  }, {
+    key: 'setShowOption',
+    value: function setShowOption(option, bool) {
+      console.log('Controller.setShowOption', option, bool);
+      this.soupView.currentView.show[option] = bool;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'getShowOption',
+    value: function getShowOption(option) {
+      return this.soupView.currentView.show[option];
+    }
+  }, {
+    key: 'toggleShowOption',
+    value: function toggleShowOption(option) {
+      var val = this.getShowOption(option);
+      this.setShowOption(option, !val);
+    }
+  }, {
+    key: 'setChangeFlag',
+    value: function setChangeFlag() {
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'setZoom',
+    value: function setZoom(zBack, zFront) {
+      var cameraParams = this.soupView.currentView.cameraParams;
+      cameraParams.zBack = zBack;
+      cameraParams.zFront = zFront;
+      this.soupView.isUpdateObservers = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'toggleGridElem',
+    value: function toggleGridElem(elem) {
+      var b = this.soup.grid.isElem[elem];
+      this.soup.grid.isElem[elem] = !b;
+      this.soup.grid.isChanged = true;
+      this.soup.colorResidues();
+
+      this.soupView.currentView.grid.isElem = _lodash2.default.cloneDeep(this.soup.grid.isElem);
+      this.soupView.isChanged = true;
+
+      this.soupView.isUpdateObservers = true;
+      this.soupView.isUpdateSelection = true;
+    }
+  }, {
+    key: 'setGridCutoff',
+    value: function setGridCutoff(bCutoff) {
+      this.soup.grid.bCutoff = bCutoff;
+      this.soup.grid.isChanged = true;
+      this.soupView.currentView.grid.bCutoff = bCutoff;
+      if ((0, _util.exists)(this.soupView.targetView)) {
+        this.soupView.targetView.grid.bCutoff = bCutoff;
+      }
+      if ((0, _util.exists)(this.soupView.saveTargetView)) {
+        this.soupView.saveTargetView.grid.bCutoff = bCutoff;
+      }
+      this.soupView.isUpdateObservers = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'clear',
+    value: function clear() {
+      var distances = this.soupView.currentView.distances;
+      var _iteratorNormalCompletion7 = true;
+      var _didIteratorError7 = false;
+      var _iteratorError7 = undefined;
+
+      try {
+        for (var _iterator7 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          var i = _step7.value;
+
+          this.deleteDistance(i);
+        }
+      } catch (err) {
+        _didIteratorError7 = true;
+        _iteratorError7 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion7 && _iterator7.return) {
+            _iterator7.return();
+          }
+        } finally {
+          if (_didIteratorError7) {
+            throw _iteratorError7;
+          }
+        }
+      }
+
+      var labels = this.soupView.currentView.labels;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
+
+      try {
+        for (var _iterator8 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var _i = _step8.value;
+
+          this.deleteAtomLabel(_i);
+        }
+      } catch (err) {
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
+          }
+        } finally {
+          if (_didIteratorError8) {
+            throw _iteratorError8;
+          }
+        }
+      }
+
+      this.clearSidechainResidues();
+      this.clearSelectedResidues();
+    }
+  }, {
+    key: 'getAnimateState',
+    value: function getAnimateState() {
+      return this.soupView.animateState;
+    }
+  }, {
+    key: 'setAnimateState',
+    value: function setAnimateState(v) {
+      this.soupView.animateState = v;
+      this.soupView.isUpdateObservers = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'deleteStructure',
+    value: function deleteStructure(iStructure) {
+      this.soup.deleteStructure(iStructure);
+      if (this.soup.isEmpty()) {
+        this.soupView.savedViews.length = 0;
+        var _iteratorNormalCompletion9 = true;
+        var _didIteratorError9 = false;
+        var _iteratorError9 = undefined;
+
+        try {
+          for (var _iterator9 = _lodash2.default.keys(this.soupView.savedViewsByViewId)[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+            var id = _step9.value;
+
+            delete this.soupView.savedViewsByViewId[id];
+          }
+        } catch (err) {
+          _didIteratorError9 = true;
+          _iteratorError9 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion9 && _iterator9.return) {
+              _iterator9.return();
+            }
+          } finally {
+            if (_didIteratorError9) {
+              throw _iteratorError9;
+            }
+          }
+        }
+
+        this.soupView.currentView = new View();
+        this.soupView.targetView = null;
+        this.soupView.isStartTargetAfterRender = false;
+        this.soupView.nUpdateStep = -1;
+      } else {
+        this.soupView.isUpdateSidechain = true;
+        this.soupView.isUpdateSelection = true;
+      }
+      this.soupView.isUpdateObservers = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'zoomOut',
+    value: function zoomOut() {
+      if (!this.soup.isEmpty()) {
+        this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView());
+        this.soupView.isChanged = true;
+      }
+    }
+  }, {
+    key: 'zoomToSelection',
+    value: function zoomToSelection() {
+      if (!this.soup.isEmpty()) {
+        this.setTargetView(this.soupView.getZoomedOutViewOfSelection());
+        this.soupView.isChanged = true;
+      }
+    }
+  }, {
+    key: 'adjustCamera',
+    value: function adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
+      this.soupView.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio);
+    }
+  }]);
+
+  return SoupViewController;
+}();
+
+exports.SoupView = SoupView;
+exports.SoupViewController = SoupViewController;
+
+/***/ }),
+/* 350 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.WebglWidget = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _jquery = __webpack_require__(32);
+
+var _jquery2 = _interopRequireDefault(_jquery);
+
+var _lodash = __webpack_require__(27);
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _three = __webpack_require__(44);
+
+var THREE = _interopRequireWildcard(_three);
+
+var _v = __webpack_require__(95);
+
+var _v2 = _interopRequireDefault(_v);
+
+var _util = __webpack_require__(49);
+
+var util = _interopRequireWildcard(_util);
+
+var _glgeom = __webpack_require__(96);
+
+var glgeom = _interopRequireWildcard(_glgeom);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * Utility class to handle a three.js HTML object with
+ * a standard set of features:
+ *  - instantiate a <div> and <canvas> element
+ *  - camera object
+ *  - display scene
+ *  - picking scene, with helpful picking functions
+ *  - a status messaging div
+ *  - lights
+ *  - input handlers for mouse
+ */
+var WebglWidget = function () {
+  function WebglWidget(divTag, backgroundColor) {
+    _classCallCheck(this, WebglWidget);
+
+    this.divTag = divTag;
+    this.div = (0, _jquery2.default)(this.divTag);
+    this.div.css('overflow', 'hidden');
+
+    this.backgroundColor = backgroundColor;
+    this.div.css('background-color', this.backgroundColor);
+
+    // WebGL related properties
+    // div to instantiate WebGL renderer
+    this.webglDivId = this.div.attr('id') + '-canvas-wrapper';
+    this.webglDiv = (0, _jquery2.default)('<div>').attr('id', this.webglDivId).css('overflow', 'hidden').css('z-index', '0').css('background-color', '#CCC').css('position', 'absolute');
+    this.webglDiv.contextmenu(function () {
+      return false;
+    });
+    this.div.append(this.webglDiv);
+
+    // Params that will be used to set the camera below
+    this.cameraParams = {
+      focus: new THREE.Vector3(0, 0, 0),
+      position: new THREE.Vector3(0, 0, -1),
+      up: new THREE.Vector3(0, 1, 0),
+      // clipping planes relative to focus
+      zFront: -40,
+      zBack: 20,
+      // distance of focus from position
+      zoom: 1.0
+
+      // a THREE.js camera, will be set properly before draw
+    };this.camera = new THREE.PerspectiveCamera(45, this.width() / this.height());
+
+    this.displayScene = new THREE.Scene();
+    this.displayScene.background = new THREE.Color(this.backgroundColor);
+    this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100);
+
+    // this.representations is a dictionary that holds representations
+    // that transform this.soup into meshes that will be inserted into
+    // this.displayMeshes and this.pickingMeshes at draw time
+    this.representations = {};
+
+    // this.displayMeshes is a dictionary that holds THREE.Object3D
+    // collections of meshes. This allows collections to be collectively
+    // turned on and off. The meshes will be regenerated into this.displayScene
+    // if the underlying data changes. The convenience function
+    // will send geometries into the displayMeshes, using this.displayMaterial
+    // as the default. This assumes vertexColors are used, allowing multiple
+    // colors within the same geometry.
+    this.displayMeshes = {};
+    this.pickingMeshes = {};
+
+    this.pickingScene = new THREE.Scene();
+    this.pickingTexture = new THREE.WebGLRenderTarget(this.width(), this.height());
+    this.pickingTexture.texture.minFilter = THREE.LinearFilter;
+
+    this.lights = [];
+    this.buildLights();
+
+    // div to display processing messages
+    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
+    this.setMesssage('Initialized jolecule.');
+
+    // input control parameters
+    this.saveMouseX = null;
+    this.saveMouseY = null;
+    this.saveMouseR = null;
+    this.saveMouseT = null;
+    this.mouseX = null;
+    this.mouseY = null;
+    this.mouseR = null;
+    this.mouseT = null;
+  }
+
+  _createClass(WebglWidget, [{
+    key: 'initWebglRenderer',
+    value: function initWebglRenderer() {
+      var _this = this;
+
+      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+      this.renderer.setClearColor(this.backgroundColor);
+      this.renderer.setSize(this.width(), this.height());
+
+      var dom = this.renderer.domElement;
+      this.webglDiv[0].appendChild(dom);
+
+      var bind = function bind(w, fn) {
+        dom.addEventListener(w, fn);
+      };
+      bind('mousedown', function (e) {
+        return _this.mousedown(e);
+      });
+      bind('mousemove', function (e) {
+        return _this.mousemove(e);
+      });
+      bind('mouseup', function (e) {
+        return _this.mouseup(e);
+      });
+      bind('mouseleave', function (e) {
+        return _this.mouseout(e);
+      });
+      bind('mousewheel', function (e) {
+        return _this.mousewheel(e);
+      });
+      bind('DOMMouseScroll', function (e) {
+        return _this.mousewheel(e);
+      });
+      bind('touchstart', function (e) {
+        return _this.mousedown(e);
+      });
+      bind('touchmove', function (e) {
+        return _this.mousemove(e);
+      });
+      bind('touchend', function (e) {
+        return _this.mouseup(e);
+      });
+      bind('touchcancel', function (e) {
+        return _this.mouseup(e);
+      });
+      bind('gesturestart', function (e) {
+        return _this.gesturestart(e);
+      });
+      bind('gesturechange', function (e) {
+        return _this.gesturechange(e);
+      });
+      bind('gestureend', function (e) {
+        return _this.gestureend(e);
+      });
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      // leave this to the very last moment
+      // to avoid the dreaded black canvas
+      if (!util.exists(this.renderer)) {
+        this.initWebglRenderer();
+      }
+
+      // renders visible meshes to the gpu
+      this.renderer.render(this.displayScene, this.camera);
+    }
+  }, {
+    key: 'getPosXY',
+    value: function getPosXY(pos) {
+      var widthHalf = 0.5 * this.width();
+      var heightHalf = 0.5 * this.height();
+
+      var vector = pos.clone().project(this.camera);
+
+      return {
+        x: vector.x * widthHalf + widthHalf + this.x(),
+        y: -(vector.y * heightHalf) + heightHalf + this.y()
+      };
+    }
+  }, {
+    key: 'getPickColorFromMouse',
+    value: function getPickColorFromMouse() {
+      var x = this.mouseX;
+      var y = this.mouseY;
+
+      if (x === null || y === null) {
+        return null;
+      }
+
+      // create buffer for reading single pixel
+      var pixelBuffer = new Uint8Array(4);
+
+      // render the picking soupView off-screen
+      this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
+
+      // read the pixel under the mouse from the texture
+      this.renderer.readRenderTargetPixels(this.pickingTexture, this.mouseX, this.pickingTexture.height - y, 1, 1, pixelBuffer);
+
+      // interpret the color as an Uint8 integer
+      return pixelBuffer[0] << 16 | pixelBuffer[1] << 8 | pixelBuffer[2];
+    }
+  }, {
+    key: 'setCameraParams',
+    value: function setCameraParams(cameraParams) {
+      // rotate lights to soupView orientation
+      var cameraDirection = this.cameraParams.position.clone().sub(this.cameraParams.focus).normalize();
+      var viewCameraDirection = cameraParams.position.clone().sub(cameraParams.focus);
+      viewCameraDirection.normalize();
+      var rotation = glgeom.getUnitVectorRotation(cameraDirection, viewCameraDirection);
+      for (var i = 0; i < this.lights.length; i += 1) {
+        this.lights[i].position.applyQuaternion(rotation);
+      }
+
+      this.cameraParams = cameraParams;
+
+      var far = this.cameraParams.zoom + this.cameraParams.zBack;
+      var near = this.cameraParams.zoom + this.cameraParams.zFront;
+      if (near < 1) {
+        near = 1;
+      }
+
+      this.camera.position.copy(this.cameraParams.position);
+      this.camera.up.copy(this.cameraParams.up);
+      this.camera.lookAt(this.cameraParams.focus);
+      this.camera.near = near;
+      this.camera.far = far;
+      this.camera.updateProjectionMatrix();
+
+      this.displayScene.fog.near = this.cameraParams.zoom;
+      this.displayScene.fog.far = far;
+    }
+  }, {
+    key: 'buildLights',
+    value: function buildLights() {
+      this.lights.length = 0;
+
+      var directedLight = new THREE.DirectionalLight(0xFFFFFF);
+      directedLight.position.copy(_v2.default.create(0.2, 0.2, -100).normalize());
+      directedLight.dontDelete = true;
+      this.lights.push(directedLight);
+
+      var ambientLight = new THREE.AmbientLight(0x606060, 1);
+      ambientLight.dontDelete = true;
+      this.lights.push(ambientLight);
+
+      for (var i = 0; i < this.lights.length; i += 1) {
+        this.displayScene.add(this.lights[i]);
+      }
+    }
+  }, {
+    key: 'resize',
+    value: function resize() {
+      var position = this.div.position();
+      this.webglDiv.css('left', this.x() + position.left);
+      this.webglDiv.css('top', this.y() + position.top);
+
+      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 20);
+      this.messageDiv.width(this.div.width() - 200);
+
+      this.camera.aspect = this.width() / this.height();
+      this.camera.updateProjectionMatrix();
+
+      this.pickingTexture.setSize(this.width(), this.height());
+
+      if (util.exists(this.renderer)) {
+        this.renderer.setSize(this.width(), this.height());
+      }
+    }
+  }, {
+    key: 'setMesssage',
+    value: function setMesssage(message) {
+      console.log('SoupWidget.setMesssage:', message);
+      this.messageDiv.html(message).show();
+    }
+  }, {
+    key: 'asyncSetMesssage',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(message) {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                this.setMesssage(message);
+                _context.next = 3;
+                return util.delay(0);
+
+              case 3:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function asyncSetMesssage(_x) {
+        return _ref.apply(this, arguments);
+      }
+
+      return asyncSetMesssage;
+    }()
+  }, {
+    key: 'cleanupMessage',
+    value: function cleanupMessage() {
+      this.messageDiv.hide();
+    }
+  }, {
+    key: 'rebuildSceneFromMeshes',
+
+
+    /**
+     **********************************************************
+     * Mesh-building methods
+     *
+     * Routines to build meshes that will be incorporated into
+     * scenes, and to be used for gpu-picking.
+     *
+     * Meshes are stored in a dictionary: this.displayMeshes &
+     * this.pickingMeshes
+     **********************************************************
+     */
+
+    /**
+     * Rebuild soupView from meshes in this.displayMeshes &
+     * this.pickingMeshes
+     */
+    value: function rebuildSceneFromMeshes() {
+      glgeom.clearObject3D(this.displayScene);
+      glgeom.clearObject3D(this.pickingScene);
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = _lodash2.default.values(this.displayMeshes)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var mesh = _step.value;
+
+          if (mesh.children.length > 0) {
+            this.displayScene.add(mesh);
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
+        for (var _iterator2 = _lodash2.default.values(this.pickingMeshes)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var _mesh = _step2.value;
+
+          if (_mesh.children.length > 0) {
+            this.pickingScene.add(_mesh);
+          }
+        }
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
+        }
+      }
+    }
+
+    /**
+     * Sets the visibility of a mesh this.displayMeshes & this.pickingMeshes.
+     * If it does not exist, create it, and look for the corresponding method
+     * to build the mesh this.build<CaptializaedMeshName>
+     *
+     * @param meshName
+     * @param visible
+     */
+
+  }, {
+    key: 'setMeshVisible',
+    value: function setMeshVisible(meshName, visible) {
+      if (meshName in this.displayMeshes) {
+        glgeom.setVisible(this.displayMeshes[meshName], visible);
+      }
+      if (meshName in this.pickingMeshes) {
+        glgeom.setVisible(this.pickingMeshes[meshName], visible);
+      }
+    }
+  }, {
+    key: 'x',
+    value: function x() {
+      return 0;
+    }
+  }, {
+    key: 'y',
+    value: function y() {
+      return 0;
+    }
+  }, {
+    key: 'width',
+    value: function width() {
+      var width = this.div.width() - this.x();
+      return width;
+    }
+  }, {
+    key: 'height',
+    value: function height() {
+      var height = this.div.height() - this.y();
+      return height;
+    }
+  }, {
+    key: 'getPointer',
+    value: function getPointer(event) {
+      if (util.exists(event.touches) && event.touches.length > 0) {
+        this.eventX = event.touches[0].clientX;
+        this.eventY = event.touches[0].clientY;
+      } else {
+        this.eventX = event.clientX;
+        this.eventY = event.clientY;
+      }
+
+      var rect = event.target.getBoundingClientRect();
+      this.mouseX = this.eventX - rect.left;
+      this.mouseY = this.eventY - rect.top;
+
+      var x = this.mouseX - this.width() / 2;
+      var y = this.mouseY - this.height() / 2;
+
+      this.mouseR = Math.sqrt(x * x + y * y);
+
+      this.mouseT = Math.atan(y / x);
+      if (x < 0) {
+        if (y > 0) {
+          this.mouseT += Math.PI;
+        } else {
+          this.mouseT -= Math.PI;
+        }
+      }
+    }
+  }, {
+    key: 'savePointer',
+    value: function savePointer() {
+      this.saveMouseX = this.mouseX;
+      this.saveMouseY = this.mouseY;
+      this.saveMouseR = this.mouseR;
+      this.saveMouseT = this.mouseT;
+    }
+  }]);
+
+  return WebglWidget;
+}();
+
+exports.WebglWidget = WebglWidget;
 
 /***/ })
 /******/ ]);
