@@ -1,7 +1,7 @@
 import $ from 'jquery'
 import scrollTo from 'jquery.scrollto' // eslint-disable-line
 import _ from 'lodash'
-import { EmbedJolecule } from './embedjolecule'
+import { EmbedJolecule } from './embed-widget'
 import { linkButton, exists } from './util'
 
 class ViewPanel {
@@ -378,11 +378,11 @@ function getParameterByName (name) {
 }
 
 /**
- * FullPageJolecule - full page wrapper around an embedded EmbedJolecule
+ * FullPageWidget - full page wrapper around an embedded EmbedJolecule
  * widget. Handles keypresses and urls and adds a view list side-panel
- * FullPageJolecule satisfies the interface for animation.js
+ * FullPageWidget satisfies the interface for animation.js
  */
-class FullPageJolecule {
+class FullPageWidget {
   constructor (proteinDisplayTag, viewsDisplayTag, params) {
     this.viewsDisplayTag = viewsDisplayTag
     this.params = {
@@ -420,7 +420,7 @@ class FullPageJolecule {
   }
 
   async asyncAddDataServer (dataServer) {
-    console.log('FullPageJolecule.asyncAddDataServer')
+    console.log('FullPageWidget.asyncAddDataServer')
     await this.embedJolecule.asyncAddDataServer(dataServer)
     if (!this.viewPanelList) {
       this.soupView = this.embedJolecule.soupView
@@ -497,4 +497,4 @@ class FullPageJolecule {
   }
 }
 
-export { FullPageJolecule }
+export { FullPageWidget }

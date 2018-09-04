@@ -1,7 +1,7 @@
 import $ from 'jquery'
 import _ from 'lodash'
 import { Soup, Controller, SoupView } from './soup'
-import { SoupWidget } from './soupWidget'
+import { SoupWidget } from './soup-widget'
 import { linkButton, delay } from './util.js'
 import widgets from './widgets'
 
@@ -47,6 +47,10 @@ class EmbedJolecule {
     this.soupView.msPerStep = this.params.msPerStep
     this.soupView.maxWaitStep = this.params.maxWaitStep
 
+    if (this.params.bCutoff !== null) {
+      this.soup.grid.bCutoff = this.params.bCutoff
+    }
+
     this.controller = new Controller(this.soupView)
 
     this.widget = {}
@@ -82,10 +86,6 @@ class EmbedJolecule {
       })
     })
 
-    if (this.params.bCutoff !== null) {
-      this.soup.grid.bCutoff = this.params.bCutoff
-    }
-
     this.soupWidget.buildScene()
 
     this.resize()
@@ -110,7 +110,7 @@ class EmbedJolecule {
       if (isDefaultViewId) {
         this.controller.setTargetViewByViewId(this.params.viewId)
       }
-      this.soupView.updateObservers = true
+      this.soupView.isUpdateObservers = true
     }
 
     this.soupWidget.cleanupMessage()

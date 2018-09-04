@@ -1,6 +1,6 @@
 import { registerGlobalAnimationLoop } from './animation'
-import { EmbedJolecule, defaultArgs } from './embedjolecule.js'
-import { FullPageJolecule } from './fullpagejolecule.js'
+import { EmbedJolecule, defaultArgs } from './embed-widget.js'
+import { FullPageWidget } from './full-page-widget.js'
 import _ from 'lodash'
 import $ from 'jquery'
 
@@ -27,10 +27,10 @@ function initEmbedJolecule (userArgs) {
  * @param protein_display_tag
  * @param sequenceDisplayTag
  * @param views_display_tag
- * @returns {FullPageJolecule}
+ * @returns {FullPageWidget}
  */
 function initFullPageJolecule (...args) {
-  return new FullPageJolecule(...args)
+  return new FullPageWidget(...args)
 }
 
 function remoteDataServer (pdbId, userId) {

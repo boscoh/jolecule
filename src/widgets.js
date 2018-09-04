@@ -16,7 +16,7 @@
  * methods
  *   resize (): called when the browser window changes
  *   rebuild (): called when underlying Soup is modified
- *   update (): called when Display goes through a rendering change
+ *   update (): called when SoupWidget goes through a rendering change
  *   drawFrame (): called every animation frame
  */
 
@@ -1242,6 +1242,7 @@ class GridControlWidget extends CanvasWidget {
     this.div.attr('id', 'grid-control')
     this.div.css('height', this.height())
     this.div.addClass('jolecule-button')
+
     this.buttonsDiv = $('<div id="grid-control-buttons">')
     this.div.append(this.buttonsDiv)
   }
@@ -1337,7 +1338,6 @@ class GridControlWidget extends CanvasWidget {
 
     let xm = 20
 
-    let dark = 'rgb(100, 100, 100)'
     let yTop = this.zToY(this.soupView.soup.grid.bMin)
     let yBottom = this.zToY(this.soupView.soup.grid.bMax)
 
@@ -1404,7 +1404,6 @@ class GridControlWidget extends CanvasWidget {
 
 class ResidueSelectorWidget {
   constructor (soupWidget, selector) {
-    this.scene = soupWidget.displayScene
     this.controller = soupWidget.controller
     this.soupView = soupWidget.soupView
     this.soupWidget = soupWidget
@@ -1412,7 +1411,6 @@ class ResidueSelectorWidget {
 
     this.div = $(selector)
     this.divId = this.div.attr('id')
-    this.selectDivTag = `#${this.divId}-residue-select`
     this.$select = $('<select>').attr('id', `${this.divId}-residue-select`)
     this.div.append(this.$select)
     this.$select.select2()
@@ -1427,6 +1425,7 @@ class ResidueSelectorWidget {
   }
 
   rebuild () {
+    console.log('ResidueSelectorWidget rebuild start...')
     this.$select.empty()
 
     // rebuild selector
@@ -1434,6 +1433,9 @@ class ResidueSelectorWidget {
     let residue = this.soup.getResidueProxy()
     for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
+      if (residue.resType === "XXX") {
+        continue
+      }
       let text = residue.resId + '-' + residue.resType
       this.$select.append(new Option(text, `${iRes}`))
     }
@@ -1441,13 +1443,16 @@ class ResidueSelectorWidget {
     // observerReset using select2
     this.$select.select2({width: '150px'})
     this.$select.on('select2:select', () => { this.change() })
+    console.log('ResidueSelectorWidget rebuild done')
   }
 
   update () {
     if (this.$select) {
       let iAtom = this.soupView.currentView.iAtom
       let iRes = this.soupView.soup.getAtomProxy(iAtom).iRes
+      console.log('ResidueSelectorWidget update start...')
       this.$select.val(`${iRes}`).trigger('change')
+      console.log('ResidueSelectorWidget update done')
     }
   }
 }

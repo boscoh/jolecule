@@ -8,7 +8,6 @@ import * as util from './util'
 import * as glgeom from './glgeom'
 import widgets from './widgets'
 import * as representation from './representation'
-import { interpolateCameras } from './soup'
 import { registerGlobalAnimationLoop } from './animation'
 
 /**
@@ -249,7 +248,7 @@ class WebglWidget {
   }
 
   setMesssage (message) {
-    console.log('Display.setMesssage:', message)
+    console.log('SoupWidget.setMesssage:', message)
     this.messageDiv.html(message).show()
   };
 
@@ -577,9 +576,6 @@ class SoupWidget extends WebglWidget {
   }
 
   buildScene () {
-    // pre-calculations needed before building meshes
-    this.soupView.build()
-
     // clear this.displayMeshes and this.pickingMeshes
     for (let key of _.keys(this.displayMeshes)) {
       _.unset(this.displayMeshes, key)
@@ -611,7 +607,7 @@ class SoupWidget extends WebglWidget {
     this.observers.rebuilt.dispatch()
 
     this.soupView.changed = true
-    this.soupView.updateObservers = true
+    this.soupView.isUpdateObservers = true
   }
 
   deleteStructure (iStructure) {
@@ -641,10 +637,10 @@ class SoupWidget extends WebglWidget {
 
     let isNoMoreChanges =
       !this.soupView.soup.grid.changed &&
-      !this.soupView.updateSidechain &&
-      !this.soupView.updateSelection
+      !this.soupView.isUpdateSidechain &&
+      !this.soupView.isUpdateSelection
 
-    if (this.soupView.startTargetAfterRender) {
+    if (this.soupView.isStartTargetAfterRender) {
       // set target only AFTER all changes have been applied in previous tick
       if (isNoMoreChanges) {
         this.soupView.startTargetView()
@@ -711,20 +707,20 @@ class SoupWidget extends WebglWidget {
       this.soupView.soup.grid.changed = false
     }
 
-    if (this.soupView.updateSidechain) {
+    if (this.soupView.isUpdateSidechain) {
       this.representations.sidechain.build()
-      this.soupView.updateSidechain = false
+      this.soupView.isUpdateSidechain = false
       this.updateMeshesInScene = true
     }
 
-    if (this.soupView.updateSelection) {
+    if (this.soupView.isUpdateSelection) {
       for (let repr of _.values(this.representations)) {
         if ('recolor' in repr) {
           repr.recolor()
         }
       }
-      this.soupView.updateSelection = false
-      this.soupView.updateObservers = true
+      this.soupView.isUpdateSelection = false
+      this.soupView.isUpdateObservers = true
     }
 
     if (this.updateMeshesInScene) {
@@ -741,9 +737,9 @@ class SoupWidget extends WebglWidget {
 
     this.render()
 
-    if (this.soupView.updateObservers) {
+    if (this.soupView.isUpdateObservers) {
       this.observers.updated.dispatch()
-      this.soupView.updateObservers = false
+      this.soupView.isUpdateObservers = false
     }
 
     // needs to be observers.updated after render
@@ -766,7 +762,7 @@ class SoupWidget extends WebglWidget {
   resize () {
     this.observers.resized.dispatch()
     super.resize()
-    this.soupView.updateObservers = true
+    this.soupView.isUpdateObservers = true
     this.controller.setChangeFlag()
   }
 
