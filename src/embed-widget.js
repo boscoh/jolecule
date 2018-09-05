@@ -43,6 +43,8 @@ class EmbedJolecule {
 
     this.soup = new Soup()
     this.soupView = new SoupView(this.soup)
+    this.controller = new SoupViewController(this.soupView)
+
     this.soupView.animateState = this.params.animateState
     this.soupView.maxUpdateStep = this.params.maxUpdateStep
     this.soupView.msPerStep = this.params.msPerStep
@@ -51,8 +53,6 @@ class EmbedJolecule {
     if (this.params.bCutoff !== null) {
       this.soup.grid.bCutoff = this.params.bCutoff
     }
-
-    this.controller = new SoupViewController(this.soupView)
 
     this.widget = {}
 

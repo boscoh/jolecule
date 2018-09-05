@@ -16,6 +16,18 @@ import * as glgeom from './glgeom'
  *  - a status messaging div
  *  - lights
  *  - input handlers for mouse
+ *
+ * this.cameraParams = {
+ *    focus: new THREE.Vector3(0, 0, 0),
+ *    position: new THREE.Vector3(0, 0, -1),
+ *    up: new THREE.Vector3(0, 1, 0),
+ *    // clipping planes relative to focus
+ *    zFront: -40,
+ *    zBack: 20,
+ *    // distance of focus from position
+ *    zoom: 1.0
+ *  }
+ *
  */
 class WebglWidget {
   constructor (divTag, backgroundColor) {

@@ -660,6 +660,8 @@ class Soup {
         isNewRes = true
       } else if (this.residueProxy.insCode !== insCode) {
         isNewRes = true
+      } else if (this.chains[this.residueProxy.iChain] !== chain) {
+        isNewRes = true
       }
     }
 
