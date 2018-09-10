@@ -39,7 +39,16 @@ function makeDataServer (
   isView = true
 ) {
   return {
+
+    // Id of structure accessed by this DataServer
     pdbId: pdbId,
+
+    /**
+     * @param callback - function that takes a dictionary {
+     *   pdbId: Str - id/name of protein structure
+     *   pdbText: Str - text in PDB format of a protein structure
+     * }
+     */
     getProteinData: function (callback) {
       let url
       if (pdbId.length === 4) {
@@ -52,6 +61,12 @@ function makeDataServer (
         callback({ pdbId: pdbId, pdbText: pdbText })
       })
     },
+
+    /**
+     * @param callback - function that takes a list [
+     *   View dictionary as defined by View.getDict()
+     * ]
+     */
     getViews: function (callback) {
       if (!isView) {
         callback([])
@@ -64,6 +79,11 @@ function makeDataServer (
       console.log('makeDataServer.getViews', url)
       $.getJSON(url, callback)
     },
+
+    /**
+     * @param views - list of View.dicts to be saved
+     * @param callback - that is triggered on successful save
+     */
     saveViews: function (views, callback) {
       if (isReadOnly) {
         callback()
@@ -72,6 +92,11 @@ function makeDataServer (
       console.log('makeDataServer.saveViews', '/save/views', views)
       $.post('/save/views', JSON.stringify(views), callback)
     },
+
+    /**
+     * @param viewId - Str: id of view to be deleted
+     * @param callback - that is triggered on successful delete
+     */
     deleteView: function (viewId, callback) {
       if (isReadOnly) {
         callback()
