@@ -19,17 +19,17 @@ const dataServerMustache = `
 define(function() {
 
 var result = {
-  get_protein_data: function(loadProteinData) {
+  getProteinData: function(loadProteinData) {
     loadProteinData({
-      pdb_id: "{{pdbId}}",
-      pdb_text: getPdbLines(),
+      pdbId: "{{pdbId}}",
+      pdbText: getPdbLines(),
     });
   },
-  get_views: function(loadViewDicts) {
+  getViews: function(loadViewDicts) {
     loadViewDicts(getViewDicts());
   },
-  save_views: function(views, success) { success() },
-  delete_protein_view: function(viewId, success) { sucess() }, };
+  saveViews: function(views, success) { success() },
+  deleteView: function(viewId, success) { sucess() }, };
   
 function getPdbLines() {
     return pdbLines.join('\\n');

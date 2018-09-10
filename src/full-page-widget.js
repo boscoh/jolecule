@@ -168,7 +168,7 @@ class ViewPanelList {
 
   saveViewsToDataServer (success) {
     console.log('ViewPanelList.saveViewsToDataServer')
-    this.soupWidget.dataServer.save_views(
+    this.soupWidget.dataServer.saveViews(
       this.controller.getViewDicts(),
       success
     )
@@ -253,7 +253,7 @@ class ViewPanelList {
   removeView (id) {
     console.log('ViewPanelList.removeView')
     this.viewPiece[id].div.css('background-color', 'lightgray')
-    this.soupWidget.dataServer.delete_protein_view(id, () => {
+    this.soupWidget.dataServer.deleteView(id, () => {
       this.controller.deleteView(id)
       this.update()
     })

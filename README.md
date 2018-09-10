@@ -33,7 +33,7 @@ In the Jolecule directory, to install the required modules:
 
 The easiest way to try Jolecule is to go to <http://jolecule.com>. 
 
-If you know the PDB id of your protein structure, just type in <http://jolecule.com/pdb/<your_pdb_id>>
+If you know the PDB id of your protein structure, just type in <http://jolecule.com/pdb/<your_pdbId>>
 
 ## Desktop App: Explore PDB structures on your computer
 
@@ -90,7 +90,7 @@ The particular view of a molecular is saves as a list of JSON data structure, wi
   "i_atom": 1276,
   "labels": [],
   "order": 6,
-  "pdb_id": "1mbo",
+  "pdbId": "1mbo",
   "selected": [
     42,
     63,
@@ -141,7 +141,7 @@ Then, use the `jol-static.js` to create a local web-app, which will incorporate 
 
 ## Embed on your own web-page, remotely 
 
-The local web-app created by `jol-static.js` uses the embedded mode of Jolecule. The widget can be easily resized and inserted in other web-pages. The embeding follows the form in the resultant web-app. Alternatively, if your target is an internet site, you can embed directly against the `http://jolecule.com`. For examples, for 1MBO, see <http://jolecule.com/embed/pdb?pdb_id=1mbo>.
+The local web-app created by `jol-static.js` uses the embedded mode of Jolecule. The widget can be easily resized and inserted in other web-pages. The embeding follows the form in the resultant web-app. Alternatively, if your target is an internet site, you can embed directly against the `http://jolecule.com`. For examples, for 1MBO, see <http://jolecule.com/embed/pdb?pdbId=1mbo>.
 
 Jolecule is designed to be easily embeddable as widgets in an external web-page. You can link to the public website or create a self-contained local version that can zipped and stuffed into an email attachment.
 

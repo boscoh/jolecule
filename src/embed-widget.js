@@ -78,7 +78,7 @@ class EmbedJolecule {
     let asyncSetMesssage = m => this.soupWidget.asyncSetMesssage(m)
 
     await new Promise(resolve => {
-      dataServer.get_protein_data(async proteinData => {
+      dataServer.getProteinData(async proteinData => {
         await this.controller.asyncLoadProteinData(
           proteinData,
           asyncSetMesssage
@@ -100,7 +100,7 @@ class EmbedJolecule {
       this.soupWidget.dataServer = dataServer
 
       await new Promise(resolve => {
-        dataServer.get_views(viewDicts => {
+        dataServer.getViews(viewDicts => {
           this.controller.loadViewsFromViewDicts(viewDicts)
           resolve()
         })

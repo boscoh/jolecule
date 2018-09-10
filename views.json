@@ -11,7 +11,7 @@
     "lock": true, 
     "view_id": "view:z5dpfp", 
     "selected": [], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 1236, 
     "text": "This cavity is designed to bind a heme molecule.", 
@@ -24,7 +24,7 @@
       "ligands": true, 
       "ribbon": true
     }, 
-    "res_id": "A:155", 
+    "resId": "A:155",
     "camera": {
       "in": [
         16.335088270340503, 
@@ -61,7 +61,7 @@
     "lock": true, 
     "view_id": "view:cc8izq", 
     "selected": [], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 166, 
     "text": "The first alpha-helix is long with a large kink in the helix.", 
@@ -74,7 +74,7 @@
       "ligands": false, 
       "ribbon": true
     }, 
-    "res_id": "A:21", 
+    "resId": "A:21",
     "camera": {
       "in": [
         26.442510387563498, 
@@ -106,7 +106,7 @@
     "lock": false, 
     "view_id": "view:y2bvzk", 
     "selected": [], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 787, 
     "text": "Click edit to change this text.", 
@@ -120,7 +120,7 @@
       "ligands": true, 
       "ribbon": true
     }, 
-    "res_id": "1mbo:A:99", 
+    "resId": "1mbo:A:99",
     "camera": {
       "in": [
         10.45509940030324, 
@@ -157,7 +157,7 @@
     "lock": false, 
     "view_id": "view:lfidfp", 
     "selected": [], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 1236, 
     "text": "Click edit to change this text.", 
@@ -170,7 +170,7 @@
       "ligands": true, 
       "ribbon": true
     }, 
-    "res_id": "A:155", 
+    "resId": "A:155",
     "camera": {
       "in": [
         16.3350882703405, 
@@ -211,7 +211,7 @@
     "lock": true, 
     "view_id": "view:eagu1g", 
     "selected": [], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 873, 
     "text": "Myoglobin is a long single chain polymer of amino-acids that folds up into five \u03b1-helices.", 
@@ -224,7 +224,7 @@
       "ligands": false, 
       "ribbon": true
     }, 
-    "res_id": "A:109", 
+    "resId": "A:109",
     "camera": {
       "in": [
         14.144988425426066, 
@@ -269,7 +269,7 @@
     "lock": true, 
     "view_id": "view:l74skx", 
     "selected": [], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 1275, 
     "text": "The iron atom, in turn, has a high affinity for oxygen molecules.", 
@@ -282,7 +282,7 @@
       "ligands": true, 
       "ribbon": true
     }, 
-    "res_id": "A:555", 
+    "resId": "A:555",
     "camera": {
       "in": [
         16.15280442554322, 
@@ -314,7 +314,7 @@
     "lock": false, 
     "view_id": "view:000000", 
     "selected": [], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 1274, 
     "text": "STRUCTURE AND REFINEMENT OF OXYMYOGLOBIN AT 1.6 ANGSTROMS RESOLUTION ", 
@@ -328,7 +328,7 @@
       "ligands": true, 
       "ribbon": true
     }, 
-    "res_id": "A:155", 
+    "resId": "A:155",
     "camera": {
       "in": [
         15.359999656677246, 
@@ -365,7 +365,7 @@
     "lock": false, 
     "view_id": "view:2o2gn7", 
     "selected": [], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 547, 
     "text": "Click edit to change this text.", 
@@ -378,7 +378,7 @@
       "ligands": false, 
       "ribbon": true
     }, 
-    "res_id": "A:68", 
+    "resId": "A:68",
     "camera": {
       "in": [
         18.611626337046523, 
@@ -418,7 +418,7 @@
       155, 
       341
     ], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 1276, 
     "text": "The surrounding residues around the oxygen is crucial for oxygen molecule binding.", 
@@ -431,7 +431,7 @@
       "ligands": true, 
       "ribbon": true
     }, 
-    "res_id": "A:555", 
+    "resId": "A:555",
     "camera": {
       "in": [
         17.00123423615934, 
@@ -468,7 +468,7 @@
     "lock": true, 
     "view_id": "view:77smzs", 
     "selected": [], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 1274, 
     "text": "Specifically, the heme group traps an iron atom in its centre.\n", 
@@ -481,7 +481,7 @@
       "ligands": true, 
       "ribbon": true
     }, 
-    "res_id": "A:155", 
+    "resId": "A:155",
     "camera": {
       "in": [
         14.365440765250709, 
@@ -518,7 +518,7 @@
     "lock": true, 
     "view_id": "view:ekemch", 
     "selected": [], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 1274, 
     "text": "The heme group is the molecule responsible for binding oxygen to the molecule.", 
@@ -531,7 +531,7 @@
       "ligands": true, 
       "ribbon": true
     }, 
-    "res_id": "A:155", 
+    "resId": "A:155",
     "camera": {
       "in": [
         14.41946231879145, 
@@ -576,7 +576,7 @@
       155, 
       341
     ], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 525, 
     "text": "A crucial histidine makes contact with the oxygen molecule.", 
@@ -589,7 +589,7 @@
       "ligands": true, 
       "ribbon": true
     }, 
-    "res_id": "A:64", 
+    "resId": "A:64",
     "camera": {
       "in": [
         20.709588659445995, 
@@ -634,7 +634,7 @@
       155, 
       341
     ], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 527, 
     "text": "The histidine sits right on top of the oxygen atom. The reason is that carbon monoxide (C=O) also likes to bind to the iron atom. But this is prevented by the blocking histidine which sits exactly where the C of the carbon monoxide would like to sit. Therefore myoglobin binds oxygen molecules over carbon monoxide molecules.", 
@@ -647,7 +647,7 @@
       "ligands": true, 
       "ribbon": true
     }, 
-    "res_id": "A:64", 
+    "resId": "A:64",
     "camera": {
       "in": [
         19.787737884292653, 
@@ -684,7 +684,7 @@
     "lock": true, 
     "view_id": "view:coun7l", 
     "selected": [], 
-    "pdb_id": "1mbo", 
+    "pdbId": "1mbo",
     "version": 2, 
     "i_atom": 547, 
     "text": "The structure of the myoglobin provides a cavity in the middle of the protein.", 
@@ -697,7 +697,7 @@
       "ligands": false, 
       "ribbon": true
     }, 
-    "res_id": "A:68", 
+    "resId": "A:68",
     "camera": {
       "in": [
         18.61162633704652, 

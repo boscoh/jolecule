@@ -224,20 +224,20 @@ export default {
       this.error = ''
       let _this = this
       return {
-        pdb_id: pdbId,
-        get_protein_data: function (parsePdb) {
+        pdbId: pdbId,
+        getProteinData: function (parsePdb) {
           let url = `https://files.rcsb.org/download/${pdbId}.pdb1`
           $.get(url, (pdbText) => {
-            parsePdb({pdb_id: pdbId, pdb_text: pdbText})
+            parsePdb({pdbId: pdbId, pdbText: pdbText})
             _this.isDownloading = false
           }).fail(() => {
             _this.isDownloading = false
             _this.error = 'Error: failed to load'
           })
         },
-        get_views: function (processViews) { processViews({}) },
-        save_views: function (views, success) { success() },
-        delete_protein_view: function (viewId, success) { success() }
+        getViews: function (processViews) { processViews({}) },
+        saveViews: function (views, success) { success() },
+        deleteView: function (viewId, success) { success() }
       }
     },
     makeServerPdbDataServer (pdb) {
@@ -246,12 +246,12 @@ export default {
       let _this = this
       let pdbId = path.basename(pdb)
       return {
-        pdb_id: pdbId,
-        get_protein_data: function (parsePdb) {
+        pdbId: pdbId,
+        getProteinData: function (parsePdb) {
           rpc.rpcRun('publicGetProteinText', pdb)
             .then(res => {
               let pdbText = res.result.pdbText
-              parsePdb({pdb_id: pdbId, pdb_text: pdbText})
+              parsePdb({pdbId: pdbId, pdbText: pdbText})
               _this.isDownloading = false
             })
             .catch(() => {
@@ -259,9 +259,9 @@ export default {
               _this.error = 'Error: failed to load'
             })
         },
-        get_views: function (processViews) { processViews({}) },
-        save_views: function (views, success) { success() },
-        delete_protein_view: function (viewId, success) { success() }
+        getViews: function (processViews) { processViews({}) },
+        saveViews: function (views, success) { success() },
+        deleteView: function (viewId, success) { success() }
       }
     },
     openFile (file) {

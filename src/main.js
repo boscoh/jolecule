@@ -39,20 +39,20 @@ function makeDataServer (
   isView = true
 ) {
   return {
-    pdb_id: pdbId,
-    get_protein_data: function (processProteinData) {
+    pdbId: pdbId,
+    getProteinData: function (processProteinData) {
       let url
       if (pdbId.length === 4) {
         url = `https://files.rcsb.org/download/${pdbId}.pdb`
       } else {
         url = `/pdb/${pdbId}.txt`
       }
-      console.log('makeDataServer.get_protein_data', url)
+      console.log('makeDataServer.getProteinData', url)
       $.get(url, pdbText => {
-        processProteinData({ pdb_id: pdbId, pdb_text: pdbText })
+        processProteinData({ pdbId: pdbId, pdbText: pdbText })
       })
     },
-    get_views: function (processViews) {
+    getViews: function (processViews) {
       if (!isView) {
         processViews([])
         return
@@ -61,23 +61,23 @@ function makeDataServer (
       if (userId) {
         url += `?user_id=${userId}`
       }
-      console.log('makeDataServer.get_views', url)
+      console.log('makeDataServer.getViews', url)
       $.getJSON(url, processViews)
     },
-    save_views: function (views, success) {
+    saveViews: function (views, success) {
       if (isReadOnly) {
         success()
         return
       }
-      console.log('makeDataServer.save_views', '/save/views', views)
+      console.log('makeDataServer.saveViews', '/save/views', views)
       $.post('/save/views', JSON.stringify(views), success)
     },
-    delete_protein_view: function (viewId, success) {
+    deleteView: function (viewId, success) {
       if (isReadOnly) {
         success()
         return
       }
-      console.log('makeDataServer.delete_protein_view', '/delete/view')
+      console.log('makeDataServer.deleteView', '/delete/view')
       $.post('/delete/view', JSON.stringify({ pdbId, viewId }), success)
     }
   }

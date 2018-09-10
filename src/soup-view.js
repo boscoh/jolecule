@@ -47,8 +47,8 @@ class View {
     this.distances = []
     this.selectedTraces = []
     this.text = 'Default view of PDB file'
-    this.user_id = ''
-    this.pdb_id = ''
+    this.userId = ''
+    this.pdbId = ''
     this.show = {
       sidechain: true,
       peptide: true,
@@ -83,7 +83,7 @@ class View {
   clone () {
     let v = new View()
     v.id = this.id
-    v.pdb_id = this.pdb_id
+    v.pdbId = this.pdbId
     v.iAtom = this.iAtom
     v.selected = this.selected
     v.selectedTraces = _.cloneDeep(this.selectedTraces)
@@ -122,8 +122,8 @@ class View {
     return {
       version: 2,
       view_id: this.id,
-      user_id: this.user_id,
-      pdb_id: this.pdb_id,
+      user_id: this.userId,
+      pdb_id: this.pdbId,
       order: this.order,
       show: show,
       grid: _.cloneDeep(this.grid),
@@ -148,12 +148,12 @@ class View {
 
   setFromDict (flatDict) {
     this.id = flatDict.view_id
-    this.pdb_id = flatDict.pdb_id
+    this.pdbId = flatDict.pdb_id
     this.lock = flatDict.lock
     this.text = flatDict.text
-    this.user_id = flatDict.user_id
+    this.userId = flatDict.user_id
     this.order = flatDict.order
-    this.res_id = flatDict.res_id
+    this.resId = flatDict.resId
     this.iAtom = flatDict.i_atom
 
     this.labels = flatDict.labels
@@ -357,7 +357,7 @@ class SoupView {
     this.currentView.show.sidechain = false
     this.currentView.order = 0
     this.currentView.text = this.soup.title
-    this.currentView.pdb_id = this.soup.structureIds[0]
+    this.currentView.pdbId = this.soup.structureIds[0]
     this.currentView = this.getZoomedOutViewOfCurrentView()
     this.saveView(this.currentView)
     this.isChanged = true
@@ -517,7 +517,7 @@ class SoupView {
     let newView = this.currentView.clone()
     newView.id = randomId()
     newView.text = 'Click edit to change this text.'
-    newView.pdb_id = this.soup.structureIds[0]
+    newView.pdbId = this.soup.structureIds[0]
     newView.selected = this.soup.makeSelectedResidueList()
     newView.selectedTraces = _.cloneDeep(this.soup.selectedTraces)
 

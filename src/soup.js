@@ -554,7 +554,7 @@ class Soup {
   load (pdbData) {
     console.log(`Soup.load parse ${this.structureId}...`)
 
-    this.parsePdbData(pdbData.pdb_text, this.structureId)
+    this.parsePdbData(pdbData.pdbText, this.structureId)
 
     this.assignResidueProperties()
 
@@ -573,10 +573,10 @@ class Soup {
   }
 
   async asyncLoadProteinData (proteinData, asyncSetMessageFn) {
-    let pdbText = proteinData.pdb_text
-    let pdbId = proteinData.pdb_id
+    let pdbText = proteinData.pdbText
+    let pdbId = proteinData.pdbId
 
-    if (proteinData.pdb_text.length === 0) {
+    if (proteinData.pdbText.length === 0) {
       await asyncSetMessageFn('Error: no soup data')
       return
     }

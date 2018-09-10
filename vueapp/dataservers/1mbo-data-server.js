@@ -1,17 +1,17 @@
 
 define(function () {
   var result = {
-    get_protein_data: function (loadProteinData) {
+    getProteinData: function (loadProteinData) {
       loadProteinData({
-        pdb_id: '1mbo',
-        pdb_text: getPdbLines()
+        pdbId: '1mbo',
+        pdbText: getPdbLines()
       })
     },
-    get_views: function (loadViewDicts) {
+    getViews: function (loadViewDicts) {
       loadViewDicts(getViewDicts())
     },
-    save_views: function (views, success) { success() },
-    delete_protein_view: function (viewId, success) { sucess() } }
+    saveViews: function (views, success) { success() },
+    deleteView: function (viewId, success) { sucess() } }
 
   function getPdbLines () {
     return pdbLines.join('\n')
@@ -50,8 +50,8 @@ define(function () {
       'i_atom': 1252,
       'labels': [],
       'order': 1,
-      'pdb_id': '1mbo',
-      'res_id': '1mbo:A:155',
+      'pdbId': '1mbo',
+      'resId': '1mbo:A:155',
       'selected': [
         38,
         41,
@@ -131,8 +131,8 @@ define(function () {
         }
       ],
       'order': 2,
-      'pdb_id': '1mbo',
-      'res_id': 'A:109',
+      'pdbId': '1mbo',
+      'resId': 'A:109',
       'selected': [],
       'show': {
         'all_atom': false,
@@ -180,8 +180,8 @@ define(function () {
         }
       ],
       'order': 3,
-      'pdb_id': '1mbo',
-      'res_id': 'A:68',
+      'pdbId': '1mbo',
+      'resId': 'A:68',
       'selected': [],
       'show': {
         'all_atom': false,
@@ -229,8 +229,8 @@ define(function () {
         }
       ],
       'order': 4,
-      'pdb_id': '1mbo',
-      'res_id': 'A:155',
+      'pdbId': '1mbo',
+      'resId': 'A:155',
       'selected': [],
       'show': {
         'all_atom': false,
@@ -273,8 +273,8 @@ define(function () {
       'i_atom': 1276,
       'labels': [],
       'order': 5,
-      'pdb_id': '1mbo',
-      'res_id': 'A:555',
+      'pdbId': '1mbo',
+      'resId': 'A:555',
       'selected': [
         42,
         63,
@@ -330,8 +330,8 @@ define(function () {
         }
       ],
       'order': 6,
-      'pdb_id': '1mbo',
-      'res_id': 'A:155',
+      'pdbId': '1mbo',
+      'resId': 'A:155',
       'selected': [],
       'show': {
         'all_atom': false,
@@ -379,8 +379,8 @@ define(function () {
         }
       ],
       'order': 7,
-      'pdb_id': '1mbo',
-      'res_id': 'A:155',
+      'pdbId': '1mbo',
+      'resId': 'A:155',
       'selected': [],
       'show': {
         'all_atom': false,
@@ -436,8 +436,8 @@ define(function () {
         }
       ],
       'order': 8,
-      'pdb_id': '1mbo',
-      'res_id': 'A:555',
+      'pdbId': '1mbo',
+      'resId': 'A:555',
       'selected': [],
       'show': {
         'all_atom': false,
@@ -485,8 +485,8 @@ define(function () {
         }
       ],
       'order': 9,
-      'pdb_id': '1mbo',
-      'res_id': 'A:21',
+      'pdbId': '1mbo',
+      'resId': 'A:21',
       'selected': [],
       'show': {
         'all_atom': false,
@@ -534,8 +534,8 @@ define(function () {
         }
       ],
       'order': 10,
-      'pdb_id': '1mbo',
-      'res_id': 'A:64',
+      'pdbId': '1mbo',
+      'resId': 'A:64',
       'selected': [
         42,
         63,
@@ -591,8 +591,8 @@ define(function () {
         }
       ],
       'order': 11,
-      'pdb_id': '1mbo',
-      'res_id': 'A:64',
+      'pdbId': '1mbo',
+      'resId': 'A:64',
       'selected': [
         42,
         63,
