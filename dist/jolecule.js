@@ -87077,7 +87077,7 @@ function makeDataServer(pdbId) {
 
   return {
     pdbId: pdbId,
-    getProteinData: function getProteinData(processProteinData) {
+    getProteinData: function getProteinData(callback) {
       var url = void 0;
       if (pdbId.length === 4) {
         url = 'https://files.rcsb.org/download/' + pdbId + '.pdb';
@@ -87086,12 +87086,12 @@ function makeDataServer(pdbId) {
       }
       console.log('makeDataServer.getProteinData', url);
       _jquery2.default.get(url, function (pdbText) {
-        processProteinData({ pdbId: pdbId, pdbText: pdbText });
+        callback({ pdbId: pdbId, pdbText: pdbText });
       });
     },
-    getViews: function getViews(processViews) {
+    getViews: function getViews(callback) {
       if (!isView) {
-        processViews([]);
+        callback([]);
         return;
       }
       var url = '/pdb/' + pdbId + '.views.json';
@@ -87099,23 +87099,23 @@ function makeDataServer(pdbId) {
         url += '?user_id=' + userId;
       }
       console.log('makeDataServer.getViews', url);
-      _jquery2.default.getJSON(url, processViews);
+      _jquery2.default.getJSON(url, callback);
     },
-    saveViews: function saveViews(views, success) {
+    saveViews: function saveViews(views, callback) {
       if (isReadOnly) {
-        success();
+        callback();
         return;
       }
       console.log('makeDataServer.saveViews', '/save/views', views);
-      _jquery2.default.post('/save/views', JSON.stringify(views), success);
+      _jquery2.default.post('/save/views', JSON.stringify(views), callback);
     },
-    deleteView: function deleteView(viewId, success) {
+    deleteView: function deleteView(viewId, callback) {
       if (isReadOnly) {
-        success();
+        callback();
         return;
       }
       console.log('makeDataServer.deleteView', '/delete/view');
-      _jquery2.default.post('/delete/view', JSON.stringify({ pdbId: pdbId, viewId: viewId }), success);
+      _jquery2.default.post('/delete/view', JSON.stringify({ pdbId: pdbId, viewId: viewId }), callback);
     }
   };
 }
