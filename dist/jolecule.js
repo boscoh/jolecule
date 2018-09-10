@@ -87185,7 +87185,10 @@ function initFullPageJolecule() {
   return new (Function.prototype.bind.apply(_fullPageWidget.FullPageWidget, [null].concat(args)))();
 }
 
-function remoteDataServer(pdbId, userId) {
+function remoteDataServer(pdbId) {
+  var userId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+  var isReadOnly = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
   return {
     pdb_id: pdbId,
     get_protein_data: function get_protein_data(processProteinData) {
@@ -87209,10 +87212,18 @@ function remoteDataServer(pdbId, userId) {
       _jquery2.default.getJSON(url, processViews);
     },
     save_views: function save_views(views, success) {
+      if (isReadOnly) {
+        success();
+        return;
+      }
       console.log('remoteDataServer.save_views', '/save/views', views);
       _jquery2.default.post('/save/views', JSON.stringify(views), success);
     },
     delete_protein_view: function delete_protein_view(viewId, success) {
+      if (isReadOnly) {
+        success();
+        return;
+      }
       console.log('remoteDataServer.delete_protein_view', '/delete/view');
       _jquery2.default.post('/delete/view', JSON.stringify({ pdbId: pdbId, viewId: viewId }), success);
     }
