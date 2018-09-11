@@ -25,14 +25,11 @@ import * as THREE from 'three'
 import _ from 'lodash'
 
 // to support cross-browser styled drop-down selectors
+import 'select2' // eslint-disable-line no-alert
+import '../dist/select2.css' // eslint-disable-line no-alert
 
 import * as data from './data'
 import * as util from './util'
-
-window.$ = window.jQuery = require('jquery')
-// import select2 from 'select2' // eslint-disable-line no-alert
-// import selectize from 'selectize' // eslint-disable-line no-alert
-require('select2')
 
 /**
  * LineElement
@@ -323,12 +320,12 @@ class PopupText {
   move (x, y) {
     let parentDivPos = this.parentDiv.position()
 
-    this.div.css({ display: 'block' })
+    this.div.css({display: 'block'})
     let rect = this.div[0].getBoundingClientRect()
     let width = rect.width
     let height = rect.height
 
-    this.arrow.css({ display: 'block' })
+    this.arrow.css({display: 'block'})
 
     if (
       x < 0 ||
@@ -485,7 +482,7 @@ class DistanceMeasuresWidget {
     line.dontDelete = true
     this.scene.add(line)
 
-    return { line, div }
+    return {line, div}
   }
 
   drawFrame () {
@@ -654,7 +651,7 @@ class SequenceWidget extends CanvasWidget {
   iCharToX (iRes) {
     return parseInt(
       (iRes - this.iCharDisplayStart) / this.nCharDisplay * this.textWidth() +
-        this.textXOffset
+      this.textXOffset
     )
   }
 
@@ -1503,7 +1500,7 @@ class ResidueSelectorWidget {
     this.$select = $('<select>').attr('id', this.selectId)
     this.div.append(this.$select)
     this.$select.change(() => this.change())
-    this.$select.select2({ width: '150px' })
+    this.$select.select2({width: '150px'})
   }
 
   change () {
@@ -1543,7 +1540,7 @@ class ResidueSelectorWidget {
         let s = (new Date() - startTime) / 1000
         console.log(
           `ResidueSelectorWidget.update ${oldValue} -> ${newValue}` +
-            ` in ${s.toFixed(3)}s`
+          ` in ${s.toFixed(3)}s`
         )
       }
     }

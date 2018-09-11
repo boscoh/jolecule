@@ -127,26 +127,26 @@ const backboneAtomTypes = [
   'HA',
   'CA',
   'OXT',
-  "C3'",
+  'C3\'',
   'P',
   'OP1',
-  "O5'",
+  'O5\'',
   'OP2',
-  "C5'",
-  "O5'",
-  "O3'",
-  "C4'",
-  "O4'",
-  "C1'",
-  "C2'",
-  "O2'",
-  "H2'",
-  "H2''",
-  "H3'",
-  "H4'",
-  "H5'",
-  "H5''",
-  "HO3'"
+  'C5\'',
+  'O5\'',
+  'O3\'',
+  'C4\'',
+  'O4\'',
+  'C1\'',
+  'C2\'',
+  'O2\'',
+  'H2\'',
+  'H2\'\'',
+  'H3\'',
+  'H4\'',
+  'H5\'',
+  'H5\'\'',
+  'HO3\''
 ]
 
 // Cartoon cross-sections
@@ -195,13 +195,13 @@ function getNucleotideBaseAtomTypes (resType) {
 function getNucleotideConnectorBondAtomTypes (resType) {
   let bondTypes = []
   if (resType === 'DA' || resType === 'A') {
-    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']]
+    bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
   } else if (resType === 'DG' || resType === 'G') {
-    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']]
+    bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
   } else if (resType === 'DT' || resType === 'U') {
-    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']]
+    bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
   } else if (resType === 'DC' || resType === 'C') {
-    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']]
+    bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
   }
   return bondTypes
 }

@@ -18,7 +18,11 @@ module.exports = {
         query: {
           presets: 'stage-0'
         },
-      }
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
+      },
     ]
   },
 };

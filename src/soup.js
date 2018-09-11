@@ -486,7 +486,8 @@ class Soup {
     this.iStructure = this.structureIds.length - 1
 
     let title = parsetTitleFromPdbText(pdbText)
-    this.title = `[${this.structureId.toUpperCase()}] ` + title
+    let id = this.structureId.toUpperCase()
+    this.title = `[<a href="http://www.rcsb.org/structure/${id}">${id}</a>] ` + title
     console.log('Soup.parsePdbData', this.title)
 
     const pdbLines = pdbText.split(/\r?\n/)

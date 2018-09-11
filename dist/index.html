@@ -5,8 +5,6 @@
   <meta name="mobile-web-app-capable" content="yes"/> 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
   <link rel="stylesheet" type="text/css" href="full-page-jolecule.css" />
-  <link rel="stylesheet" type="text/css" href="jolecule.css"/>
-  <link rel="stylesheet" type="text/css" href="select2.css"/>
   <title>jolecule</title>
 </head>
 
@@ -29,8 +27,8 @@
                 isPlayable: true,
                 backgroundColor: 0x000000
               });
-            require(["data-server0"], function(dataServer0) {
-              var dataServers = [dataServer0];
+            require(["data-server0", "data-server1", "data-server2", "data-server3", "data-server4", "data-server5"], function(dataServer0, dataServer1, dataServer2, dataServer3, dataServer4, dataServer5) {
+              var dataServers = [dataServer0, dataServer1, dataServer2, dataServer3, dataServer4, dataServer5];
               for (var dataServer of dataServers) {
                 j.asyncAddDataServer(dataServer);
               }

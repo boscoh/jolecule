@@ -106,8 +106,6 @@ const fullPageIndexHtmlMustache = `
   <meta name="mobile-web-app-capable" content="yes"/> 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
   <link rel="stylesheet" type="text/css" href="full-page-jolecule.css" />
-  <link rel="stylesheet" type="text/css" href="jolecule.css"/>
-  <link rel="stylesheet" type="text/css" href="select2.css"/>
   <title>jolecule</title>
 </head>
 

@@ -6,6 +6,8 @@ import { SoupWidget } from './soup-widget'
 import { linkButton, delay } from './util.js'
 import widgets from './widgets'
 
+import '../dist/jolecule.css' // eslint-disable-line no-alert
+
 /**
  * EmbedJolecule - the widget that shows proteins and
  * annotations
@@ -34,7 +36,7 @@ class EmbedJolecule {
     this.params = _.cloneDeep(defaultArgs)
     _.assign(this.params, params)
     console.log('EmbedJolecule.constructor', this.params)
-    this.isProcessing = { flag: false }
+    this.isProcessing = {flag: false}
 
     this.divTag = this.params.divTag
     this.div = $(this.params.divTag)
@@ -198,7 +200,7 @@ class EmbedJolecule {
         this.soupWidget,
         `#${this.divId}-rock`,
         'rock',
-        '&harr;'
+        '&hArr;'
       )
 
       this.playableDiv.append(
@@ -346,4 +348,7 @@ class EmbedJolecule {
   }
 }
 
-export { EmbedJolecule, defaultArgs }
+export {
+  EmbedJolecule,
+  defaultArgs
+}
