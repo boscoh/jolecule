@@ -25,10 +25,14 @@ import * as THREE from 'three'
 import _ from 'lodash'
 
 // to support cross-browser styled drop-down selectors
-import select2 from 'select2' // eslint-disable-line no-alert
 
 import * as data from './data'
 import * as util from './util'
+
+window.$ = window.jQuery = require('jquery')
+// import select2 from 'select2' // eslint-disable-line no-alert
+// import selectize from 'selectize' // eslint-disable-line no-alert
+require('select2')
 
 /**
  * LineElement
@@ -1495,13 +1499,15 @@ class ResidueSelectorWidget {
 
     this.div = $(selector)
     this.divId = this.div.attr('id')
-    this.$select = $('<select>').attr('id', `${this.divId}-residue-select`)
+    this.selectId = `${this.divId}-residue-select`
+    this.$select = $('<select>').attr('id', this.selectId)
     this.div.append(this.$select)
-    this.$select.select2()
+    this.$select.change(() => this.change())
+    this.$select.select2({ width: '150px' })
   }
 
   change () {
-    let iRes = parseInt(this.$select.select2('val'))
+    let iRes = parseInt(this.$select.val())
     let residue = this.soupView.soup.getResidueProxy(iRes)
     this.controller.clearSelectedResidues()
     this.controller.setResidueSelect(iRes, true)
@@ -1511,7 +1517,6 @@ class ResidueSelectorWidget {
   rebuild () {
     console.log('ResidueSelectorWidget rebuild start...')
     this.$select.empty()
-
     // rebuild selector
     this.soup = this.soupView.soup
     let residue = this.soup.getResidueProxy()
@@ -1523,12 +1528,6 @@ class ResidueSelectorWidget {
       let text = residue.resId + '-' + residue.resType
       this.$select.append(new Option(text, `${iRes}`))
     }
-
-    // observerReset using select2
-    this.$select.select2({ width: '150px' })
-    this.$select.on('select2:select', () => {
-      this.change()
-    })
     console.log('ResidueSelectorWidget rebuild done')
   }
 
@@ -1536,9 +1535,17 @@ class ResidueSelectorWidget {
     if (this.$select) {
       let iAtom = this.soupView.currentView.iAtom
       let iRes = this.soupView.soup.getAtomProxy(iAtom).iRes
-      console.log('ResidueSelectorWidget update start...')
-      this.$select.val(`${iRes}`).trigger('change')
-      console.log('ResidueSelectorWidget update done')
+      let newValue = _.isNil(iRes) ? null : `${iRes}`
+      let oldValue = this.$select.val()
+      if (oldValue !== newValue) {
+        let startTime = new Date()
+        this.$select.val(newValue).trigger('change.select2')
+        let s = (new Date() - startTime) / 1000
+        console.log(
+          `ResidueSelectorWidget.update ${oldValue} -> ${newValue}` +
+            ` in ${s.toFixed(3)}s`
+        )
+      }
     }
   }
 }

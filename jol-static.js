@@ -64,7 +64,7 @@ const embedIndexHtmlMustache = `
     <meta name="mobile-web-app-capable" content="yes">
     <title>jolecule</title>
     <link rel="stylesheet" type="text/css" href="jolecule.css"/>
-    <link rel="stylesheet" type="text/css" href="select2.css"/>
+    <link rel="stylesheet" type="text/css" href="chosen.css"/>
     <style>
         body {
             margin: 0;
