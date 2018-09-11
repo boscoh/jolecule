@@ -17,25 +17,32 @@ import $ from 'jquery'
  * }
  * @returns {EmbedJolecule}
  */
-
 function initEmbedJolecule (args) {
   return new EmbedJolecule(_.merge(defaultArgs, args))
 }
 
 /**
- * @param protein_display_tag
- * @param sequenceDisplayTag
- * @param views_display_tag
- * @returns {FullPageWidget}
+ * @param proteinDisplayTag
+ * @param viewsDisplayTag
+ * @param params
  */
 function initFullPageJolecule (...args) {
   return new FullPageWidget(...args)
 }
 
+/**
+ * @param pdbId: Str - id of RCSB protein structure
+ * @param userId: Str - optional id of user on http://jolecule.com;
+ *                      default: ''
+ * @param isReadOnly: Bool - prevents save/delete to server
+ * @param saveUrl: Str - base URL of views server (e.g. "http://jolecule.com")
+ * @returns DataServer object
+ */
 function makeDataServer (
   pdbId,
   userId = null,
   isReadOnly = false,
+  saveUrl = '',
   isView = true
 ) {
   return {
@@ -54,7 +61,7 @@ function makeDataServer (
       if (pdbId.length === 4) {
         url = `https://files.rcsb.org/download/${pdbId}.pdb`
       } else {
-        url = `/pdb/${pdbId}.txt`
+        url = `${saveUrl}/pdb/${pdbId}.txt`
       }
       console.log('makeDataServer.getProteinData', url)
       $.get(url, pdbText => {
@@ -72,7 +79,7 @@ function makeDataServer (
         callback([])
         return
       }
-      let url = `/pdb/${pdbId}.views.json`
+      let url = `${saveUrl}/pdb/${pdbId}.views.json`
       if (userId) {
         url += `?user_id=${userId}`
       }
@@ -90,7 +97,7 @@ function makeDataServer (
         return
       }
       console.log('makeDataServer.saveViews', '/save/views', views)
-      $.post('/save/views', JSON.stringify(views), callback)
+      $.post(`${saveUrl}/save/views`, JSON.stringify(views), callback)
     },
 
     /**
@@ -103,9 +110,10 @@ function makeDataServer (
         return
       }
       console.log('makeDataServer.deleteView', '/delete/view')
-      $.post('/delete/view', JSON.stringify({ pdbId, viewId }), callback)
+      $.post(`${saveUrl}/delete/view`, JSON.stringify({ pdbId, viewId }), callback)
     }
   }
 }
+
 
 export { initEmbedJolecule, initFullPageJolecule, makeDataServer }

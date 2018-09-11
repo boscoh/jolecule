@@ -384,6 +384,11 @@ function getParameterByName (name) {
  * FullPageWidget satisfies the interface for animation.js
  */
 class FullPageWidget {
+  /**
+   * @param proteinDisplayTag
+   * @param viewsDisplayTag
+   * @param params
+   */
   constructor (proteinDisplayTag, viewsDisplayTag, params) {
     this.viewsDisplayTag = viewsDisplayTag
     this.params = {

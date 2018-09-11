@@ -87051,16 +87051,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * }
  * @returns {EmbedJolecule}
  */
-
 function initEmbedJolecule(args) {
   return new _embedWidget.EmbedJolecule(_lodash2.default.merge(_embedWidget.defaultArgs, args));
 }
 
 /**
- * @param protein_display_tag
- * @param sequenceDisplayTag
- * @param views_display_tag
- * @returns {FullPageWidget}
+ * @param proteinDisplayTag
+ * @param viewsDisplayTag
+ * @param params
  */
 function initFullPageJolecule() {
   for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
@@ -87070,10 +87068,19 @@ function initFullPageJolecule() {
   return new (Function.prototype.bind.apply(_fullPageWidget.FullPageWidget, [null].concat(args)))();
 }
 
+/**
+ * @param pdbId: Str - id of RCSB protein structure
+ * @param userId: Str - optional id of user on http://jolecule.com;
+ *                      default: ''
+ * @param isReadOnly: Bool - prevents save/delete to server
+ * @param saveUrl: Str - base URL of views server (e.g. "http://jolecule.com")
+ * @returns DataServer object
+ */
 function makeDataServer(pdbId) {
   var userId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
   var isReadOnly = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-  var isView = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
+  var saveUrl = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
+  var isView = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
 
   return {
 
@@ -87091,7 +87098,7 @@ function makeDataServer(pdbId) {
       if (pdbId.length === 4) {
         url = 'https://files.rcsb.org/download/' + pdbId + '.pdb';
       } else {
-        url = '/pdb/' + pdbId + '.txt';
+        url = saveUrl + '/pdb/' + pdbId + '.txt';
       }
       console.log('makeDataServer.getProteinData', url);
       _jquery2.default.get(url, function (pdbText) {
@@ -87109,7 +87116,7 @@ function makeDataServer(pdbId) {
         callback([]);
         return;
       }
-      var url = '/pdb/' + pdbId + '.views.json';
+      var url = saveUrl + '/pdb/' + pdbId + '.views.json';
       if (userId) {
         url += '?user_id=' + userId;
       }
@@ -87127,7 +87134,7 @@ function makeDataServer(pdbId) {
         return;
       }
       console.log('makeDataServer.saveViews', '/save/views', views);
-      _jquery2.default.post('/save/views', JSON.stringify(views), callback);
+      _jquery2.default.post(saveUrl + '/save/views', JSON.stringify(views), callback);
     },
 
     /**
@@ -87140,7 +87147,7 @@ function makeDataServer(pdbId) {
         return;
       }
       console.log('makeDataServer.deleteView', '/delete/view');
-      _jquery2.default.post('/delete/view', JSON.stringify({ pdbId: pdbId, viewId: viewId }), callback);
+      _jquery2.default.post(saveUrl + '/delete/view', JSON.stringify({ pdbId: pdbId, viewId: viewId }), callback);
     }
   };
 }
@@ -100688,6 +100695,11 @@ function getParameterByName(name) {
  */
 
 var FullPageWidget = function () {
+  /**
+   * @param proteinDisplayTag
+   * @param viewsDisplayTag
+   * @param params
+   */
   function FullPageWidget(proteinDisplayTag, viewsDisplayTag, params) {
     var _this7 = this;
 

@@ -3,17 +3,17 @@
 define(function() {
 
 var result = {
-  get_protein_data: function(loadProteinData) {
+  getProteinData: function(loadProteinData) {
     loadProteinData({
-      pdb_id: "1a0a.Xe",
-      pdb_text: getPdbLines(),
+      pdbId: "1a0a.Xe",
+      pdbText: getPdbLines(),
     });
   },
-  get_views: function(loadViewDicts) {
+  getViews: function(loadViewDicts) {
     loadViewDicts(getViewDicts());
   },
-  save_views: function(views, success) { success() },
-  delete_protein_view: function(viewId, success) { success() }, };
+  saveViews: function(views, success) { success() },
+  deleteView: function(viewId, success) { success() }, };
   
 function getPdbLines() {
     return pdbLines.join('\n');
@@ -23,7 +23,227 @@ function getViewDicts() {
     return views;
 }  
 
-var views = {};
+var views = [
+  {
+    "camera": {
+      "in": [
+        16.793615753327593,
+        18.235190478417106,
+        39.01500498213858
+      ],
+      "pos": [
+        16.793615753327593,
+        18.235190478417106,
+        38.01500498213858
+      ],
+      "slab": {
+        "z_back": 33.43000030517578,
+        "z_front": -33.43000030517578,
+        "zoom": 117.00500106811523
+      },
+      "up": [
+        16.793615753327593,
+        17.235190478417106,
+        38.01500498213858
+      ]
+    },
+    "distances": [],
+    "grid": {
+      "bCutoff": 1.0370238095238096,
+      "isElem": {
+        "Ar": true,
+        "Kr": false,
+        "Xe": true
+      }
+    },
+    "i_atom": -1,
+    "labels": [],
+    "order": 1,
+    "pdb_id": "1a0a.Ar",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "sphere": false,
+      "trace": true,
+      "transparent": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "user_id": "",
+    "version": 2,
+    "view_id": "view:ue087c"
+  },
+  {
+    "camera": {
+      "in": [
+        20.605514682398134,
+        27.840386754918203,
+        30.16526677266556
+      ],
+      "pos": [
+        19.899999618530273,
+        27.90999984741211,
+        29.459999084472656
+      ],
+      "slab": {
+        "z_back": 10.464450771031316,
+        "z_front": -6.987662566975305,
+        "zoom": 37.363516696109485
+      },
+      "up": [
+        19.853354343054797,
+        26.912432459572855,
+        29.408196333625025
+      ]
+    },
+    "distances": [],
+    "grid": {
+      "bCutoff": 0.48845238095238097,
+      "isElem": {
+        "Ar": true,
+        "He": false,
+        "Kr": false,
+        "Xe": false
+      }
+    },
+    "i_atom": 4,
+    "labels": [],
+    "order": 2,
+    "pdb_id": "1a0a.Ar",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "sphere": false,
+      "trace": true,
+      "transparent": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "user_id": "",
+    "version": 2,
+    "view_id": "view:ae8ni8"
+  },
+  {
+    "camera": {
+      "in": [
+        10.495515025720888,
+        22.44038713638793,
+        36.14526631490189
+      ],
+      "pos": [
+        9.789999961853027,
+        22.510000228881836,
+        35.439998626708984
+      ],
+      "slab": {
+        "z_back": 10.464450771031316,
+        "z_front": -6.987662566975305,
+        "zoom": 37.363516696109485
+      },
+      "up": [
+        9.74335468637755,
+        21.512432841042582,
+        35.388195875861356
+      ]
+    },
+    "distances": [],
+    "grid": {
+      "bCutoff": 0.48845238095238097,
+      "isElem": {
+        "Ar": true,
+        "He": false,
+        "Kr": false,
+        "Xe": false
+      }
+    },
+    "i_atom": 2014,
+    "labels": [],
+    "order": 3,
+    "pdb_id": "1a0a.Ar",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "sphere": false,
+      "trace": true,
+      "transparent": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "user_id": "",
+    "version": 2,
+    "view_id": "view:q5fgnu"
+  },
+  {
+    "camera": {
+      "in": [
+        12.325514949426942,
+        10.910386449742422,
+        32.60526730672318
+      ],
+      "pos": [
+        11.619999885559082,
+        10.979999542236328,
+        31.899999618530273
+      ],
+      "slab": {
+        "z_back": 10.464450771031316,
+        "z_front": -6.987662566975305,
+        "zoom": 37.363516696109485
+      },
+      "up": [
+        11.573354610083605,
+        9.982432154397074,
+        31.848196867682645
+      ]
+    },
+    "distances": [],
+    "grid": {
+      "bCutoff": 0.48845238095238097,
+      "isElem": {
+        "Ar": true,
+        "He": false,
+        "Kr": false,
+        "Xe": false
+      }
+    },
+    "i_atom": 490,
+    "labels": [],
+    "order": 4,
+    "pdb_id": "1a0a",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "sphere": false,
+      "trace": true,
+      "transparent": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "user_id": "",
+    "version": 2,
+    "view_id": "view:0rm7ax"
+  }
+];
 
 var pdbLines = [
     "HETATM    0 Xe   XXX     0      18.782  21.160  24.969  1.00  1.02          Xe", 

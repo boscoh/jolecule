@@ -3,17 +3,17 @@
 define(function() {
 
 var result = {
-  get_protein_data: function(loadProteinData) {
+  getProteinData: function(loadProteinData) {
     loadProteinData({
-      pdb_id: "1a0a.Ne",
-      pdb_text: getPdbLines(),
+      pdbId: "1a0a.Ne",
+      pdbText: getPdbLines(),
     });
   },
-  get_views: function(loadViewDicts) {
+  getViews: function(loadViewDicts) {
     loadViewDicts(getViewDicts());
   },
-  save_views: function(views, success) { success() },
-  delete_protein_view: function(viewId, success) { success() }, };
+  saveViews: function(views, success) { success() },
+  deleteView: function(viewId, success) { success() }, };
   
 function getPdbLines() {
     return pdbLines.join('\n');
