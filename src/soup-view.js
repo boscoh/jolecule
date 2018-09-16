@@ -66,6 +66,7 @@ class View {
       bCutoff: null,
       isChanged: false
     }
+    this.lock = false
   }
 
   setCamera (cameraParams) {
@@ -95,6 +96,7 @@ class View {
     v.cameraParams = _.cloneDeep(this.cameraParams)
     v.show = _.cloneDeep(this.show)
     v.grid = _.cloneDeep(this.grid)
+    v.lock = this.lock
     return v
   }
 
@@ -142,7 +144,8 @@ class View {
         pos: [pos.x, pos.y, pos.z],
         up: [upV.x, upV.y, upV.z],
         in: [inV.x, inV.y, inV.z]
-      }
+      },
+      lock: this.lock
     }
   }
 
