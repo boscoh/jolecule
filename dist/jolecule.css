@@ -57,11 +57,11 @@ a.jolecule-large-button:active {
     background-color: #F99;
 }
 .jolecule-author {
-    padding-top: 0em;
     font-size: 10px;
-    letter-spacing: 0em;
-    color: #776;
-    padding-left: 15px;
+    letter-spacing: 0.1em;
+    color: #888;
+    margin-left: 5px;
+    padding: 0;
     font-weight: normal;
 }
 .jolecule-dialog {

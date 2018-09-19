@@ -2,6 +2,7 @@ import { EmbedJolecule, defaultArgs } from './embed-widget.js'
 import { FullPageWidget } from './full-page-widget.js'
 import _ from 'lodash'
 import $ from 'jquery'
+import * as THREE from 'three'
 
 /**
  *
@@ -36,6 +37,7 @@ function initFullPageJolecule (...args) {
  *                      default: ''
  * @param isReadOnly: Bool - prevents save/delete to server
  * @param saveUrl: Str - base URL of views server (e.g. "http://jolecule.com")
+ * @param isView: bool - if false: creates dummy view get methods
  * @returns DataServer object
  */
 function makeDataServer (
@@ -63,9 +65,10 @@ function makeDataServer (
       } else {
         url = `${saveUrl}/pdb/${pdbId}.txt`
       }
-      console.log('makeDataServer.getProteinData', url)
       $.get(url, pdbText => {
-        callback({ pdbId: pdbId, pdbText: pdbText })
+        let result = { pdbId: pdbId, pdbText: pdbText }
+        console.log('makeDataServer.getProteinData', url, result)
+        callback(result)
       })
     },
 
@@ -83,8 +86,10 @@ function makeDataServer (
       if (userId) {
         url += `?user_id=${userId}`
       }
-      console.log('makeDataServer.getViews', url)
-      $.getJSON(url, callback)
+      $.getJSON(url, (views) => {
+        console.log('makeDataServer.getViews', url, views)
+        callback(views)
+      })
     },
 
     /**
@@ -96,8 +101,10 @@ function makeDataServer (
         callback()
         return
       }
-      console.log('makeDataServer.saveViews', '/save/views', views)
-      $.post(`${saveUrl}/save/views`, JSON.stringify(views), callback)
+      $.post(`${saveUrl}/save/views`, JSON.stringify(views), () => {
+        console.log('makeDataServer.saveViews', '/save/views', views)
+        callback()
+      })
     },
 
     /**
@@ -109,11 +116,21 @@ function makeDataServer (
         callback()
         return
       }
-      console.log('makeDataServer.deleteView', '/delete/view')
-      $.post(`${saveUrl}/delete/view`, JSON.stringify({ pdbId, viewId }), callback)
+      $.post(`${saveUrl}/delete/view`, JSON.stringify({ pdbId, viewId }), () => {
+        console.log('makeDataServer.deleteView', viewId)
+        callback()
+      })
     }
   }
 }
 
+function getHexColor(hex) {
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  var r = parseInt(result[1], 16) / 255
+  var g = parseInt(result[2], 16) / 255
+  var b = parseInt(result[3], 16) / 255
+  return new THREE.Color(r, g, b)
+}
 
-export { initEmbedJolecule, initFullPageJolecule, makeDataServer }
+
+export { initEmbedJolecule, initFullPageJolecule, makeDataServer, getHexColor }

@@ -95,9 +95,9 @@ class EmbedJolecule {
 
     this.controller.zoomOut()
 
-    await this.soupWidget.asyncSetMesssage('Loading views...')
-
     if (_.isNil(this.soupView.dataServer)) {
+      await this.soupWidget.asyncSetMesssage('Loading views...')
+
       // save only first loaded dataServer for saving and deleting
       this.soupWidget.dataServer = dataServer
 

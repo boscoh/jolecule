@@ -67,6 +67,7 @@ class View {
       isChanged: false
     }
     this.lock = false
+    this.creator = 'public'
   }
 
   setCamera (cameraParams) {
@@ -97,6 +98,7 @@ class View {
     v.show = _.cloneDeep(this.show)
     v.grid = _.cloneDeep(this.grid)
     v.lock = this.lock
+    v.creator = this.creator
     return v
   }
 
@@ -145,7 +147,8 @@ class View {
         up: [upV.x, upV.y, upV.z],
         in: [inV.x, inV.y, inV.z]
       },
-      lock: this.lock
+      lock: this.lock,
+      creator: this.creator
     }
   }
 
@@ -153,6 +156,7 @@ class View {
     this.id = flatDict.view_id
     this.pdbId = flatDict.pdb_id
     this.lock = flatDict.lock
+    this.creator = flatDict.creator
     this.text = flatDict.text
     this.userId = flatDict.user_id
     this.order = flatDict.order
@@ -475,7 +479,6 @@ class SoupView {
         view.selectedTraces.push(iTrace)
       }
     }
-    console.log('SoupView.setTargetViewByIAtom new trace', view.selectedTraces)
     this.setTargetView(view)
   }
 
@@ -1006,7 +1009,6 @@ class SoupViewController {
     let b = this.soup.grid.isElem[elem]
     this.soup.grid.isElem[elem] = !b
     this.soup.grid.isChanged = true
-    this.soup.colorResidues()
 
     this.soupView.currentView.grid.isElem = _.cloneDeep(this.soup.grid.isElem)
     this.soupView.isChanged = true

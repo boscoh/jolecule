@@ -1512,7 +1512,6 @@ class ResidueSelectorWidget {
   }
 
   rebuild () {
-    console.log('ResidueSelectorWidget rebuild start...')
     this.$select.empty()
     // rebuild selector
     this.soup = this.soupView.soup
@@ -1525,7 +1524,6 @@ class ResidueSelectorWidget {
       let text = residue.resId + '-' + residue.resType
       this.$select.append(new Option(text, `${iRes}`))
     }
-    console.log('ResidueSelectorWidget rebuild done')
   }
 
   update () {

@@ -211,10 +211,12 @@ class ViewPanelList {
       }
 
       let viewPiece = this.viewPiece[id]
-      if (view.text !== viewPiece.showTextDiv.html()) {
-        viewPiece.showTextDiv.html(
-          view.order + 1 + '/' + nView + ': ' + view.text
-        )
+      let s = view.order + 1 + '/' + nView + ': ' + view.text
+      if (view.creator) {
+        s += ` <span class="jolecule-author">${view.creator}</span>`
+      }
+      if (s !== viewPiece.showTextDiv.html()) {
+        viewPiece.showTextDiv.html(s)
       }
     }
 

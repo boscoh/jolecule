@@ -3,17 +3,28 @@
 define(function() {
 
 var result = {
-  getProteinData: function(loadProteinData) {
-    loadProteinData({
+  getProteinData: function(callback) {
+    var payload = {
       pdbId: "1a0a.Kr",
       pdbText: getPdbLines(),
-    });
+    }
+    console.log('getProteinData', payload)
+    callback(payload);
   },
-  getViews: function(loadViewDicts) {
-    loadViewDicts(getViewDicts());
+  getViews: function(callback) {
+    var payload = getViewDicts()
+    console.log('getView', payload)
+    callback(payload);
   },
-  saveViews: function(views, success) { success() },
-  deleteView: function(viewId, success) { success() }, };
+  saveViews: function(views, callback) { 
+    console.log('saveViews dummy')
+    callback() 
+  },
+  deleteView: function(viewId, callback) { 
+    console.log('deleteView dummy')
+    callback() 
+  }
+};
   
 function getPdbLines() {
     return pdbLines.join('\n');
