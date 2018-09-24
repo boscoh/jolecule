@@ -1022,15 +1022,10 @@ class SequenceWidget extends CanvasWidget {
       }
     }
     if (this.mousePressed === 'top') {
-      // mouse event in structure bar
-      this.setIChar(this.xToI(this.pointerX))
+      this.iChar = this.xToI(this.pointerX)
+      this.iCharDisplayStart = this.iChar - this.nCharDisplay / 2
+      this.checkDisplayLimits()
       this.updateWithoutCheckingCurrent()
-      let charEntry = this.charEntries[this.iChar]
-      if (!_.isUndefined(charEntry)) {
-        if (charEntry.c !== '') {
-          this.controller.setTargetViewByIAtom(this.getCurrIAtom())
-        }
-      }
     } else if (this.mousePressed === 'bottom') {
       let iNewChar = this.xToIChar(this.pointerX)
       let iCharDiff = iNewChar - this.iCharPressed

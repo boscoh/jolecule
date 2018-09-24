@@ -154,6 +154,8 @@ body {
   font-size: 14px;
   letter-spacing: 0.2em;
   color: #999;
+  font-family: Helvetica, sans-serif;
+  text-transform: uppercase;
 }
 .jolecule-selected-box {
   border: 2px solid #A88; 
