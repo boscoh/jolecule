@@ -474,8 +474,12 @@ class SoupView {
     let view = this.currentView.getViewTranslatedTo(atom.pos)
     view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus)
     view.selectedTraces = []
+    let residue = this.soup.getResidueProxy(atom.iRes)
+    let chain = residue.chain
+    let iStructure = residue.iStructure
     for (let [iTrace, trace] of this.soup.traces.entries()) {
-      if (_.includes(trace.indices, atom.iRes)) {
+      residue.load(trace.indices[0])
+      if ((residue.chain === chain) && (residue.iStructure === iStructure)) {
         view.selectedTraces.push(iTrace)
       }
     }
