@@ -32,11 +32,11 @@ let defaultArgs = {
 }
 
 class EmbedJolecule {
-  constructor (params) {
+  constructor(params) {
     this.params = _.cloneDeep(defaultArgs)
     _.assign(this.params, params)
     console.log('EmbedJolecule.constructor', this.params)
-    this.isProcessing = {flag: false}
+    this.isProcessing = { flag: false }
 
     this.divTag = this.params.divTag
     this.div = $(this.params.divTag)
@@ -66,7 +66,7 @@ class EmbedJolecule {
     resizeFn()
   }
 
-  async asyncAddDataServer (dataServer) {
+  async asyncAddDataServer(dataServer) {
     while (this.isProcessing.flag) {
       await delay(100)
     }
@@ -121,13 +121,13 @@ class EmbedJolecule {
     this.isProcessing.flag = false
   }
 
-  clear () {
+  clear() {
     while (this.soupWidget.soup.structureIds.length > 0) {
       this.soupWidget.deleteStructure(0)
     }
   }
 
-  createDivs () {
+  createDivs() {
     this.headerDiv = $('<div>').attr('id', `${this.divId}-sequence-widget`)
 
     this.bodyDiv = $('<div>')
@@ -331,7 +331,7 @@ class EmbedJolecule {
     }
   }
 
-  resize () {
+  resize() {
     this.bodyDiv.width(this.div.outerWidth())
 
     let height = this.div.outerHeight()
@@ -348,7 +348,4 @@ class EmbedJolecule {
   }
 }
 
-export {
-  EmbedJolecule,
-  defaultArgs
-}
+export { EmbedJolecule, defaultArgs }

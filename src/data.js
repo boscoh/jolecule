@@ -66,7 +66,7 @@ for (let [k, v] of _.toPairs(ElementColors)) {
   ElementColors[k] = new THREE.Color(v)
 }
 
-function getSsColor (ss) {
+function getSsColor(ss) {
   if (ss === 'E') {
     return yellow
   } else if (ss === 'H') {
@@ -127,26 +127,26 @@ const backboneAtomTypes = [
   'HA',
   'CA',
   'OXT',
-  'C3\'',
+  "C3'",
   'P',
   'OP1',
-  'O5\'',
+  "O5'",
   'OP2',
-  'C5\'',
-  'O5\'',
-  'O3\'',
-  'C4\'',
-  'O4\'',
-  'C1\'',
-  'C2\'',
-  'O2\'',
-  'H2\'',
-  'H2\'\'',
-  'H3\'',
-  'H4\'',
-  'H5\'',
-  'H5\'\'',
-  'HO3\''
+  "C5'",
+  "O5'",
+  "O3'",
+  "C4'",
+  "O4'",
+  "C1'",
+  "C2'",
+  "O2'",
+  "H2'",
+  "H2''",
+  "H3'",
+  "H4'",
+  "H5'",
+  "H5''",
+  "HO3'"
 ]
 
 // Cartoon cross-sections
@@ -171,14 +171,14 @@ const fatCoilFace = new THREE.Shape([
   new THREE.Vector2(+0.25, -0.25)
 ])
 
-function getSsFace (ss) {
+function getSsFace(ss) {
   if (ss === 'C' || ss === '-') {
     return coilFace
   }
   return ribbonFace
 }
 
-function getNucleotideBaseAtomTypes (resType) {
+function getNucleotideBaseAtomTypes(resType) {
   let atomTypes = []
   if (resType === 'DA' || resType === 'A') {
     atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
@@ -192,16 +192,16 @@ function getNucleotideBaseAtomTypes (resType) {
   return atomTypes
 }
 
-function getNucleotideConnectorBondAtomTypes (resType) {
+function getNucleotideConnectorBondAtomTypes(resType) {
   let bondTypes = []
   if (resType === 'DA' || resType === 'A') {
-    bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
+    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']]
   } else if (resType === 'DG' || resType === 'G') {
-    bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N9']]
+    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']]
   } else if (resType === 'DT' || resType === 'U') {
-    bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
+    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']]
   } else if (resType === 'DC' || resType === 'C') {
-    bondTypes = [['C3\'', 'C2\''], ['C2\'', 'C1\''], ['C1\'', 'N1']]
+    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']]
   }
   return bondTypes
 }

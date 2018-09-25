@@ -1,459 +1,464 @@
-import _ from "lodash";
-import v3 from "./v3";
-import { inArray } from "./util.js";
-import * as glgeom from "./glgeom";
-import { SpaceHash } from "./pairs.js";
-import Store from "./store.js";
-import * as data from "./data";
-import * as THREE from "three";
+import _ from 'lodash'
+import v3 from './v3'
+import { inArray } from './util.js'
+import * as glgeom from './glgeom'
+import { SpaceHash } from './pairs.js'
+import Store from './store.js'
+import * as data from './data'
+import * as THREE from 'three'
 
 function deleteNumbers(text) {
-  return text.replace(/\d+/, "");
+  return text.replace(/\d+/, '')
 }
 
 function pushToListInDict(dict, key, value) {
   if (!(key in dict)) {
-    dict[key] = [];
+    dict[key] = []
   }
-  dict[key].push(value);
+  dict[key].push(value)
 }
 
 function getValueTableIndex(valueList, value, isEqualFn = null) {
   if (_.isNil(isEqualFn)) {
     if (!_.includes(valueList, value)) {
-      valueList.push(value);
+      valueList.push(value)
     }
-    return valueList.indexOf(value);
+    return valueList.indexOf(value)
   } else {
-    let i = _.findIndex(valueList, thisVal => isEqualFn(value, thisVal));
+    let i = _.findIndex(valueList, thisVal => isEqualFn(value, thisVal))
     if (i >= 0) {
       return i
     } else {
-      valueList.push(value);
+      valueList.push(value)
       return valueList.length - 1
     }
   }
 }
 
 function intToBool(i) {
-  return i === 1;
+  return i === 1
 }
 
 function boolToInt(b) {
-  return b ? 1 : 0;
+  return b ? 1 : 0
 }
 
 function intToChar(i) {
-  return i ? String.fromCharCode(i) : "";
+  return i ? String.fromCharCode(i) : ''
 }
 
 function charToInt(c) {
-  return c.charCodeAt(0);
+  return c.charCodeAt(0)
 }
 
 function parsetTitleFromPdbText(text) {
-  let result = "";
-  let lines = text.split(/\r?\n/);
+  let result = ''
+  let lines = text.split(/\r?\n/)
   for (let line of lines) {
-    if (line.substring(0, 5) === "TITLE") {
-      result += line.substring(10);
+    if (line.substring(0, 5) === 'TITLE') {
+      result += line.substring(10)
     }
   }
-  return result;
+  return result
 }
 
 function getIndexColor(i) {
-  return new THREE.Color().setHex(i + 1);
+  return new THREE.Color().setHex(i + 1)
 }
 
 const atomStoreFields = [
-  ["x", 1, "float32"],
-  ["y", 1, "float32"],
-  ["z", 1, "float32"],
-  ["bfactor", 1, "float32"],
-  ["alt", 1, "uint8"],
-  ["iAtomType", 1, "uint16"],
-  ["iElem", 1, "uint16"],
-  ["iRes", 1, "uint32"],
-  ["iChain", 1, "int32"],
-  ["bondOffset", 1, "uint32"],
-  ["bondCount", 1, "uint16"]
-];
+  ['x', 1, 'float32'],
+  ['y', 1, 'float32'],
+  ['z', 1, 'float32'],
+  ['bfactor', 1, 'float32'],
+  ['alt', 1, 'uint8'],
+  ['iAtomType', 1, 'uint16'],
+  ['iElem', 1, 'uint16'],
+  ['iRes', 1, 'uint32'],
+  ['iChain', 1, 'int32'],
+  ['bondOffset', 1, 'uint32'],
+  ['bondCount', 1, 'uint16']
+]
 
 class AtomProxy {
   constructor(soup, iAtom) {
-    this.soup = soup;
+    this.soup = soup
     if (Number.isInteger(iAtom)) {
-      this.load(iAtom);
+      this.load(iAtom)
     }
-    this._pos = v3.create();
+    this._pos = v3.create()
   }
 
   load(iAtom) {
-    this.iAtom = iAtom;
-    return this;
+    this.iAtom = iAtom
+    return this
   }
 
   get pos() {
-    this._pos.x = this.soup.atomStore.x[this.iAtom];
-    this._pos.y = this.soup.atomStore.y[this.iAtom];
-    this._pos.z = this.soup.atomStore.z[this.iAtom];
-    return this._pos;
+    this._pos.x = this.soup.atomStore.x[this.iAtom]
+    this._pos.y = this.soup.atomStore.y[this.iAtom]
+    this._pos.z = this.soup.atomStore.z[this.iAtom]
+    return this._pos
   }
 
   get resId() {
-    return this.soup.resIds[this.iRes];
+    return this.soup.resIds[this.iRes]
   }
 
   get elem() {
-    let iElem = this.soup.atomStore.iElem[this.iAtom];
-    return this.soup.elemTable[iElem];
+    let iElem = this.soup.atomStore.iElem[this.iAtom]
+    return this.soup.elemTable[iElem]
   }
 
   get bfactor() {
-    return this.soup.atomStore.bfactor[this.iAtom];
+    return this.soup.atomStore.bfactor[this.iAtom]
   }
 
   get atomType() {
-    let iAtomType = this.soup.atomStore.iAtomType[this.iAtom];
-    return this.soup.atomTypeTable[iAtomType];
+    let iAtomType = this.soup.atomStore.iAtomType[this.iAtom]
+    return this.soup.atomTypeTable[iAtomType]
   }
 
   get alt() {
-    return intToChar(this.soup.atomStore.alt[this.iAtom]);
+    return intToChar(this.soup.atomStore.alt[this.iAtom])
   }
 
   set alt(c) {
-    this.soup.atomStore.alt[this.iAtom] = charToInt(c);
+    this.soup.atomStore.alt[this.iAtom] = charToInt(c)
   }
 
   get iRes() {
-    return this.soup.atomStore.iRes[this.iAtom];
+    return this.soup.atomStore.iRes[this.iAtom]
   }
 
   set iRes(iRes) {
-    this.soup.atomStore.iRes[this.iAtom] = iRes;
+    this.soup.atomStore.iRes[this.iAtom] = iRes
   }
 
   get resType() {
-    let iResType = this.soup.residueStore.iResType[this.iRes];
-    return this.soup.resTypeTable[iResType];
+    let iResType = this.soup.residueStore.iResType[this.iRes]
+    return this.soup.resTypeTable[iResType]
   }
 
   get label() {
-    let iResType = this.soup.residueStore.iResType[this.iRes];
-    let resType = this.soup.resTypeTable[iResType];
+    let iResType = this.soup.residueStore.iResType[this.iRes]
+    let resType = this.soup.resTypeTable[iResType]
     let label =
-      this.soup.resIds[this.iRes] + ":" + resType + ":" + this.atomType;
+      this.soup.resIds[this.iRes] + ':' + resType + ':' + this.atomType
     if (this.alt) {
-      label += ":" + this.alt;
+      label += ':' + this.alt
     }
-    return label;
+    return label
   }
 
   getBondIndices() {
-    let iStart = this.soup.atomStore.bondOffset[this.iAtom];
-    let n = this.soup.atomStore.bondCount[this.iAtom];
-    let iEnd = iStart + n;
-    return _.range(iStart, iEnd);
+    let iStart = this.soup.atomStore.bondOffset[this.iAtom]
+    let n = this.soup.atomStore.bondCount[this.iAtom]
+    let iEnd = iStart + n
+    return _.range(iStart, iEnd)
   }
 
   get color() {
-    let residue = this.soup.getResidueProxy(this.iRes);
+    let residue = this.soup.getResidueProxy(this.iRes)
     if (residue.isPolymer) {
-      let resColor = residue.activeColor;
-      if (this.elem === "C" || this.elem === "H") {
-        return resColor;
+      let resColor = residue.activeColor
+      if (this.elem === 'C' || this.elem === 'H') {
+        return resColor
       } else if (this.elem in data.ElementColors) {
         let elemColor = data.ElementColors[this.elem]
           .clone()
-          .offsetHSL(0, -0.3, -0.3);
-        return new THREE.Color().addColors(resColor, elemColor);
+          .offsetHSL(0, -0.3, -0.3)
+        return new THREE.Color().addColors(resColor, elemColor)
       }
     }
     if (this.elem in data.ElementColors) {
-      return data.ElementColors[this.elem];
+      return data.ElementColors[this.elem]
     }
-    return data.darkGrey;
+    return data.darkGrey
   }
 }
 
 const residueStoreFields = [
-  ["atomOffset", 1, "uint32"],
-  ["atomCount", 1, "uint16"],
-  ["iCentralAtom", 1, "uint32"],
-  ["iResType", 1, "uint16"],
-  ["iChain", 1, "uint8"],
-  ["iStructure", 1, "uint8"],
-  ["resNum", 1, "int32"],
-  ["insCode", 1, "uint8"],
-  ["sstruc", 1, "uint8"],
-  ["iColor", 1, "uint16"],
-  ["iCustomColor", 1, "uint16"],
-  ["isPolymer", 1, "uint8"],
-  ["selected", 1, "uint8"],
-  ["sidechain", 1, "uint8"],
-  ["iChain", 1, "uint8"]
-];
+  ['atomOffset', 1, 'uint32'],
+  ['atomCount', 1, 'uint16'],
+  ['iCentralAtom', 1, 'uint32'],
+  ['iResType', 1, 'uint16'],
+  ['iChain', 1, 'uint8'],
+  ['iStructure', 1, 'uint8'],
+  ['resNum', 1, 'int32'],
+  ['insCode', 1, 'uint8'],
+  ['sstruc', 1, 'uint8'],
+  ['iColor', 1, 'uint16'],
+  ['iCustomColor', 1, 'uint16'],
+  ['isPolymer', 1, 'uint8'],
+  ['selected', 1, 'uint8'],
+  ['sidechain', 1, 'uint8'],
+  ['iChain', 1, 'uint8']
+]
 
 function cmpColors(c1, c2) {
-  return c1.r === c2.r && c1.g === c2.g && c1.b === c2.b;
+  return c1.r === c2.r && c1.g === c2.g && c1.b === c2.b
 }
 
 class ResidueProxy {
   constructor(soup, iRes) {
-    this.soup = soup;
+    this.soup = soup
     if (Number.isInteger(iRes)) {
-      this.load(iRes);
+      this.load(iRes)
     }
   }
 
   load(iRes) {
-    this.iRes = iRes;
-    return this;
+    this.iRes = iRes
+    return this
   }
 
   get iAtom() {
-    return this.soup.residueStore.iCentralAtom[this.iRes];
+    return this.soup.residueStore.iCentralAtom[this.iRes]
   }
 
   set iAtom(iAtom) {
-    this.soup.residueStore.iCentralAtom[this.iRes] = iAtom;
+    this.soup.residueStore.iCentralAtom[this.iRes] = iAtom
   }
 
   get iChain() {
-    return this.soup.residueStore.iChain[this.iRes];
+    return this.soup.residueStore.iChain[this.iRes]
   }
 
   get chain() {
-    return this.soup.chains[this.iChain];
+    return this.soup.chains[this.iChain]
   }
 
   get iStructure() {
-    return this.soup.residueStore.iStructure[this.iRes];
+    return this.soup.residueStore.iStructure[this.iRes]
   }
 
   set iStructure(iStructure) {
-    this.soup.residueStore.iStructure[this.iRes] = iStructure;
+    this.soup.residueStore.iStructure[this.iRes] = iStructure
   }
 
   get resId() {
-    return this.soup.resIds[this.iRes];
+    return this.soup.resIds[this.iRes]
   }
 
   get resNum() {
-    return this.soup.residueStore.resNum[this.iRes];
+    return this.soup.residueStore.resNum[this.iRes]
   }
 
   get insCode() {
-    return intToChar(this.soup.residueStore.insCode[this.iRes]);
+    return intToChar(this.soup.residueStore.insCode[this.iRes])
   }
 
   set insCode(c) {
-    this.soup.residueStore.insCode[this.iRes] = charToInt(c);
+    this.soup.residueStore.insCode[this.iRes] = charToInt(c)
   }
 
   get isPolymer() {
-    return intToBool(this.soup.residueStore.isPolymer[this.iRes]);
+    return intToBool(this.soup.residueStore.isPolymer[this.iRes])
   }
 
   set isPolymer(v) {
-    this.soup.residueStore.isPolymer[this.iRes] = boolToInt(v);
+    this.soup.residueStore.isPolymer[this.iRes] = boolToInt(v)
   }
 
   get sidechain() {
-    return intToBool(this.soup.residueStore.sidechain[this.iRes]);
+    return intToBool(this.soup.residueStore.sidechain[this.iRes])
   }
 
   set sidechain(v) {
-    this.soup.residueStore.sidechain[this.iRes] = boolToInt(v);
+    this.soup.residueStore.sidechain[this.iRes] = boolToInt(v)
   }
 
   get selected() {
-    return intToBool(this.soup.residueStore.selected[this.iRes]);
+    return intToBool(this.soup.residueStore.selected[this.iRes])
   }
 
   set selected(v) {
-    this.soup.residueStore.selected[this.iRes] = boolToInt(v);
+    this.soup.residueStore.selected[this.iRes] = boolToInt(v)
   }
 
   get color() {
-    let iColor = this.soup.residueStore.iColor[this.iRes];
-    return this.soup.colorTable[iColor];
+    let iColor = this.soup.residueStore.iColor[this.iRes]
+    return this.soup.colorTable[iColor]
   }
 
   set color(color) {
     let iColor = getValueTableIndex(
-      this.soup.colorTable, new THREE.Color(color), cmpColors);
-    this.soup.residueStore.iColor[this.iRes] = iColor;
+      this.soup.colorTable,
+      new THREE.Color(color),
+      cmpColors
+    )
+    this.soup.residueStore.iColor[this.iRes] = iColor
   }
 
   get customColor() {
-    let iColor = this.soup.residueStore.iCustomColor[this.iRes];
-    return this.soup.colorTable[iColor];
+    let iColor = this.soup.residueStore.iCustomColor[this.iRes]
+    return this.soup.colorTable[iColor]
   }
 
   set customColor(color) {
-    let iColor = getValueTableIndex(this.soup.colorTable, new THREE.Color(color), cmpColors);
-    this.soup.residueStore.iCustomColor[this.iRes] = iColor;
+    let iColor = getValueTableIndex(
+      this.soup.colorTable,
+      new THREE.Color(color),
+      cmpColors
+    )
+    this.soup.residueStore.iCustomColor[this.iRes] = iColor
   }
 
   get activeColor() {
-    let iColor = this.soup.residueStore.iColor[this.iRes];
-    let color = this.soup.colorTable[iColor];
+    let iColor = this.soup.residueStore.iColor[this.iRes]
+    let color = this.soup.colorTable[iColor]
     if (this.selected) {
-      color = color.clone().offsetHSL(0, 0, +0.3);
+      color = color.clone().offsetHSL(0, 0, +0.3)
     }
-    return color;
+    return color
   }
 
   get resType() {
-    let iResType = this.soup.residueStore.iResType[this.iRes];
-    return this.soup.resTypeTable[iResType];
+    let iResType = this.soup.residueStore.iResType[this.iRes]
+    return this.soup.resTypeTable[iResType]
   }
 
   get normal() {
-    let hasNormal = this.iRes in this.soup.residueNormal;
-    return hasNormal ? this.soup.residueNormal[this.iRes].clone() : null;
+    let hasNormal = this.iRes in this.soup.residueNormal
+    return hasNormal ? this.soup.residueNormal[this.iRes].clone() : null
   }
 
   get ss() {
-    return intToChar(this.soup.residueStore.sstruc[this.iRes]);
+    return intToChar(this.soup.residueStore.sstruc[this.iRes])
   }
 
   set ss(c) {
-    this.soup.residueStore.sstruc[this.iRes] = charToInt(c);
+    this.soup.residueStore.sstruc[this.iRes] = charToInt(c)
   }
 
   get label() {
-    let iResType = this.soup.residueStore.iResType[this.iRes];
-    let resType = this.soup.resTypeTable[iResType];
-    let label = this.soup.resIds[this.iRes] + ":" + resType;
-    return label;
+    let iResType = this.soup.residueStore.iResType[this.iRes]
+    let resType = this.soup.resTypeTable[iResType]
+    let label = this.soup.resIds[this.iRes] + ':' + resType
+    return label
   }
 
   getAtomIndices() {
-    let iStart = this.soup.residueStore.atomOffset[this.iRes];
-    let n = this.soup.residueStore.atomCount[this.iRes];
-    let iEnd = iStart + n;
-    return _.range(iStart, iEnd);
+    let iStart = this.soup.residueStore.atomOffset[this.iRes]
+    let n = this.soup.residueStore.atomCount[this.iRes]
+    let iEnd = iStart + n
+    return _.range(iStart, iEnd)
   }
 
   getAtomProxy(atomType) {
-    let atom = this.soup.getAtomProxy();
+    let atom = this.soup.getAtomProxy()
     for (let iAtom of this.getAtomIndices()) {
-      atom.iAtom = iAtom;
+      atom.iAtom = iAtom
       if (atom.atomType === atomType) {
-        return atom;
+        return atom
       }
     }
-    return null;
+    return null
   }
 
   getIAtom(atomType) {
     for (let iAtom of this.getAtomIndices()) {
-      let iAtomType = this.soup.atomStore.iAtomType[iAtom];
-      let testAatomType = this.soup.atomTypeTable[iAtomType];
+      let iAtomType = this.soup.atomStore.iAtomType[iAtom]
+      let testAatomType = this.soup.atomTypeTable[iAtomType]
       if (testAatomType === atomType) {
-        return iAtom;
+        return iAtom
       }
     }
-    return null;
+    return null
   }
 
   checkAtomTypes(atomTypes) {
     for (let atomType of atomTypes) {
       if (this.getIAtom(atomType) === null) {
-        return false;
+        return false
       }
     }
-    return true;
+    return true
   }
 
   isProteinConnectedToPrev() {
     if (this.iRes === 0) {
-      return false;
+      return false
     }
 
-    let thisRes = this;
-    let prevRes = new ResidueProxy(this.soup, this.iRes - 1);
+    let thisRes = this
+    let prevRes = new ResidueProxy(this.soup, this.iRes - 1)
 
-    const proteinAtomTypes = ["CA"];
+    const proteinAtomTypes = ['CA']
     if (
       prevRes.checkAtomTypes(proteinAtomTypes) &&
       thisRes.checkAtomTypes(proteinAtomTypes)
     ) {
-      let ca0 = prevRes.getAtomProxy("CA").pos;
-      let ca1 = thisRes.getAtomProxy("CA").pos;
+      let ca0 = prevRes.getAtomProxy('CA').pos
+      let ca1 = thisRes.getAtomProxy('CA').pos
       if (v3.distance(ca0, ca1) < 5) {
-        return true;
+        return true
       }
     }
 
-    return false;
+    return false
   }
 
   isNucleotideConnectedToPrev() {
     if (this.iRes === 0) {
-      return false;
+      return false
     }
 
-    let thisRes = this;
-    let prevRes = new ResidueProxy(this.soup, this.iRes - 1);
+    let thisRes = this
+    let prevRes = new ResidueProxy(this.soup, this.iRes - 1)
 
-    const nucleicAtomTypes = ["C3'", "O3'"];
+    const nucleicAtomTypes = ["C3'", "O3'"]
 
     if (
       prevRes.checkAtomTypes(nucleicAtomTypes) &&
       thisRes.checkAtomTypes(nucleicAtomTypes) &&
-      thisRes.checkAtomTypes(["P"])
+      thisRes.checkAtomTypes(['P'])
     ) {
-      let o3 = prevRes.getAtomProxy("O3'").pos;
-      let p = thisRes.getAtomProxy("P").pos;
+      let o3 = prevRes.getAtomProxy("O3'").pos
+      let p = thisRes.getAtomProxy('P').pos
       if (v3.distance(o3, p) < 2.5) {
-        return true;
+        return true
       }
     }
-    return false;
+    return false
   }
 
   isConnectedToPrev() {
-    return (
-      this.isProteinConnectedToPrev() || this.isNucleotideConnectedToPrev()
-    );
+    return this.isProteinConnectedToPrev() || this.isNucleotideConnectedToPrev()
   }
 
   getNucleotideNormal() {
-    let c3 = this.getAtomProxy("C3'").pos;
-    let c5 = this.getAtomProxy("C5'").pos;
-    let c1 = this.getAtomProxy("C1'").pos;
-    let forward = v3.diff(c3, c5);
-    let up = v3.diff(c1, c3);
-    return v3.crossProduct(forward, up);
+    let c3 = this.getAtomProxy("C3'").pos
+    let c5 = this.getAtomProxy("C5'").pos
+    let c1 = this.getAtomProxy("C1'").pos
+    let forward = v3.diff(c3, c5)
+    let up = v3.diff(c1, c3)
+    return v3.crossProduct(forward, up)
   }
 }
 
-const bondStoreFields = [["iAtom1", 1, "int32"], ["iAtom2", 1, "int32"]];
+const bondStoreFields = [['iAtom1', 1, 'int32'], ['iAtom2', 1, 'int32']]
 
 class BondProxy {
   constructor(soup, iBond) {
-    this.soup = soup;
+    this.soup = soup
     if (Number.isInteger(iBond)) {
-      this.load(iBond);
+      this.load(iBond)
     }
   }
 
   load(iBond) {
-    this.iBond = iBond;
-    return this;
+    this.iBond = iBond
+    return this
   }
 
   get iAtom1() {
-    return this.soup.bondStore.iAtom1[this.iBond];
+    return this.soup.bondStore.iAtom1[this.iBond]
   }
 
   get iAtom2() {
-    return this.soup.bondStore.iAtom2[this.iBond];
+    return this.soup.bondStore.iAtom2[this.iBond]
   }
 }
 
@@ -467,38 +472,38 @@ class BondProxy {
  */
 class Soup {
   constructor() {
-    this.parsingError = "";
-    this.title = "";
+    this.parsingError = ''
+    this.title = ''
 
-    this.structureIds = [];
-    this.structureId = null;
-    this.iStructure = -1;
+    this.structureIds = []
+    this.structureId = null
+    this.iStructure = -1
 
-    this.chains = [];
+    this.chains = []
 
-    this.maxLength = null;
+    this.maxLength = null
 
     // stores trace of protein/nucleotide backbones for ribbons
-    this.traces = [];
+    this.traces = []
     // stores selected chain
-    this.selectedTraces = [];
+    this.selectedTraces = []
 
-    this.colorMode = "secondary"; // or 'grid'
+    this.colorMode = 'secondary' // or 'grid'
 
-    this.atomStore = new Store(atomStoreFields);
-    this.residueStore = new Store(residueStoreFields);
-    this.bondStore = new Store(bondStoreFields);
+    this.atomStore = new Store(atomStoreFields)
+    this.residueStore = new Store(residueStoreFields)
+    this.bondStore = new Store(bondStoreFields)
 
-    this.resIds = [];
-    this.residueNormal = {};
+    this.resIds = []
+    this.residueNormal = {}
 
-    this.residueProxy = new ResidueProxy(this);
-    this.atomProxy = new AtomProxy(this);
+    this.residueProxy = new ResidueProxy(this)
+    this.atomProxy = new AtomProxy(this)
 
-    this.elemTable = [];
-    this.atomTypeTable = [];
-    this.resTypeTable = [];
-    this.colorTable = [];
+    this.elemTable = []
+    this.atomTypeTable = []
+    this.resTypeTable = []
+    this.colorTable = []
 
     this.grid = {
       bCutoff: 0.8,
@@ -507,67 +512,67 @@ class Soup {
       changed: true,
       isElem: {},
       convertB: b => -b.toFixed(2)
-    };
+    }
   }
 
   isEmpty() {
-    return this.getAtomCount() == 0;
+    return this.getAtomCount() == 0
   }
 
   parsePdbData(pdbText, pdbId) {
-    this.structureId = pdbId;
-    this.structureIds.push(pdbId);
-    this.iStructure = this.structureIds.length - 1;
+    this.structureId = pdbId
+    this.structureIds.push(pdbId)
+    this.iStructure = this.structureIds.length - 1
 
-    let title = parsetTitleFromPdbText(pdbText);
-    let id = this.structureId.toUpperCase();
+    let title = parsetTitleFromPdbText(pdbText)
+    let id = this.structureId.toUpperCase()
     this.title =
-      `[<a href="http://www.rcsb.org/structure/${id}">${id}</a>] ` + title;
-    console.log("Soup.parsePdbData", pdbId);
+      `[<a href="http://www.rcsb.org/structure/${id}">${id}</a>] ` + title
+    console.log('Soup.parsePdbData', pdbId)
 
-    const pdbLines = pdbText.split(/\r?\n/);
+    const pdbLines = pdbText.split(/\r?\n/)
 
-    let lines = [];
+    let lines = []
     for (let line of pdbLines) {
-      if (line.slice(0, 4) === "ATOM" || line.slice(0, 6) === "HETATM") {
-        lines.push(line);
+      if (line.slice(0, 4) === 'ATOM' || line.slice(0, 6) === 'HETATM') {
+        lines.push(line)
       }
-      if (line.slice(0, 3) === "END") {
-        break;
+      if (line.slice(0, 3) === 'END') {
+        break
       }
     }
 
     if (lines.length === 0) {
-      this.parsingError = "No atom lines";
-      return;
+      this.parsingError = 'No atom lines'
+      return
     }
 
-    let x, y, z, chain, resType;
-    let atomType, bfactor, elem, alt, resNum, insCode;
+    let x, y, z, chain, resType
+    let atomType, bfactor, elem, alt, resNum, insCode
 
     for (let iLine = 0; iLine < lines.length; iLine += 1) {
-      let line = lines[iLine];
-      if (line.substr(0, 4) === "ATOM" || line.substr(0, 6) === "HETATM") {
+      let line = lines[iLine]
+      if (line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM') {
         try {
-          atomType = _.trim(line.substr(12, 4));
-          alt = _.trim(line.substr(16, 1));
-          resType = _.trim(line.substr(17, 3));
-          chain = _.trim(line[21]);
-          resNum = parseInt(line.substr(22, 4));
-          insCode = line.substr(26, 1);
-          x = parseFloat(line.substr(30, 7));
-          y = parseFloat(line.substr(38, 7));
-          z = parseFloat(line.substr(46, 7));
-          bfactor = parseFloat(line.substr(60, 6));
-          elem = deleteNumbers(_.trim(line.substr(76, 2)));
+          atomType = _.trim(line.substr(12, 4))
+          alt = _.trim(line.substr(16, 1))
+          resType = _.trim(line.substr(17, 3))
+          chain = _.trim(line[21])
+          resNum = parseInt(line.substr(22, 4))
+          insCode = line.substr(26, 1)
+          x = parseFloat(line.substr(30, 7))
+          y = parseFloat(line.substr(38, 7))
+          z = parseFloat(line.substr(46, 7))
+          bfactor = parseFloat(line.substr(60, 6))
+          elem = deleteNumbers(_.trim(line.substr(76, 2)))
         } catch (e) {
-          this.parsingError = "line " + iLine;
-          console.log(`Error: "${line}"`);
-          continue;
+          this.parsingError = 'line ' + iLine
+          console.log(`Error: "${line}"`)
+          continue
         }
 
-        if (elem === "") {
-          elem = deleteNumbers(_.trim(atomType)).substr(0, 1);
+        if (elem === '') {
+          elem = deleteNumbers(_.trim(atomType)).substr(0, 1)
         }
 
         this.addAtom(
@@ -582,76 +587,76 @@ class Soup {
           resNum,
           insCode,
           chain
-        );
+        )
       }
     }
   }
 
   load(pdbData) {
-    console.log(`Soup.load parse ${this.structureId}...`);
+    console.log(`Soup.load parse ${this.structureId}...`)
 
-    this.parsePdbData(pdbData.pdbText, this.structureId);
+    this.parsePdbData(pdbData.pdbText, this.structureId)
 
-    this.assignResidueProperties();
+    this.assignResidueProperties()
 
     console.log(
       `Soup.load processed ${this.getAtomCount()} atoms, ` +
         `${this.getResidueCount()} residues`
-    );
+    )
 
-    console.log("Soup.load finding bonds...");
-    this.calcBondsStrategic();
+    console.log('Soup.load finding bonds...')
+    this.calcBondsStrategic()
 
-    console.log(`Soup.load calculated ${this.getBondCount()} bonds`);
+    console.log(`Soup.load calculated ${this.getBondCount()} bonds`)
 
-    this.findSecondaryStructure();
-    console.log(`Soup.load calculated secondary-structure`);
+    this.findSecondaryStructure()
+    console.log(`Soup.load calculated secondary-structure`)
   }
 
   async asyncLoadProteinData(proteinData, asyncSetMessageFn) {
-    let pdbText = proteinData.pdbText;
-    let pdbId = proteinData.pdbId;
+    let pdbText = proteinData.pdbText
+    let pdbId = proteinData.pdbId
 
     if (proteinData.pdbText.length === 0) {
-      await asyncSetMessageFn("Error: no soup data");
-      return;
+      await asyncSetMessageFn('Error: no soup data')
+      return
     }
 
-    await asyncSetMessageFn(`Parsing '${pdbId}'`);
-    this.parsePdbData(pdbText, pdbId);
+    await asyncSetMessageFn(`Parsing '${pdbId}'`)
+    this.parsePdbData(pdbText, pdbId)
 
     if (this.parsingError) {
-      let err = this.soup.parsingError;
-      await asyncSetMessageFn(`Error parsing soup: ${err}`);
-      return;
+      let err = this.soup.parsingError
+      await asyncSetMessageFn(`Error parsing soup: ${err}`)
+      return
     }
 
-    this.assignResidueProperties();
+    this.assignResidueProperties()
 
-    let nAtom = this.getAtomCount();
-    let nRes = this.getResidueCount();
+    let nAtom = this.getAtomCount()
+    let nRes = this.getResidueCount()
     await asyncSetMessageFn(
       `Calculating bonds for ${nAtom} atoms, ${nRes} residues...`
-    );
+    )
 
-    this.calcBondsStrategic();
+    this.calcBondsStrategic()
 
-    let nBond = this.getBondCount();
+    let nBond = this.getBondCount()
     await asyncSetMessageFn(
       `Calculated ${nBond} bonds. Assigning secondary structure...`
-    );
+    )
 
-    this.findSecondaryStructure();
+    this.findSecondaryStructure()
 
-    this.maxLength = this.calcMaxLength();
+    this.maxLength = this.calcMaxLength()
 
-    this.findGridLimits();
+    this.findGridLimits()
 
-    this.setSecondaryStructureColorResidues();
+    this.setSecondaryStructureColorResidues()
 
-    this.colorResidues();
+    this.colorResidues()
 
-    this.calculateTracesForRibbons();
+    this.calculateTracesForRibbons()
   }
 
   addAtom(
@@ -667,296 +672,296 @@ class Soup {
     insCode,
     chain
   ) {
-    let iAtom = this.atomStore.count;
+    let iAtom = this.atomStore.count
 
-    this.atomStore.increment();
+    this.atomStore.increment()
 
-    this.atomStore.x[iAtom] = x;
-    this.atomStore.y[iAtom] = y;
-    this.atomStore.z[iAtom] = z;
+    this.atomStore.x[iAtom] = x
+    this.atomStore.y[iAtom] = y
+    this.atomStore.z[iAtom] = z
 
-    this.atomStore.bfactor[iAtom] = bfactor;
-    this.atomStore.alt[iAtom] = charToInt(alt);
+    this.atomStore.bfactor[iAtom] = bfactor
+    this.atomStore.alt[iAtom] = charToInt(alt)
 
-    this.atomStore.bondCount[iAtom] = 0;
+    this.atomStore.bondCount[iAtom] = 0
 
     this.atomStore.iAtomType[iAtom] = getValueTableIndex(
       this.atomTypeTable,
       atomType
-    );
+    )
 
-    this.atomStore.iElem[iAtom] = getValueTableIndex(this.elemTable, elem);
+    this.atomStore.iElem[iAtom] = getValueTableIndex(this.elemTable, elem)
 
-    let nRes = this.getResidueCount();
+    let nRes = this.getResidueCount()
 
-    let isNewRes = false;
+    let isNewRes = false
     if (nRes === 0) {
-      isNewRes = true;
+      isNewRes = true
     } else {
-      this.residueProxy.iRes = nRes - 1;
+      this.residueProxy.iRes = nRes - 1
       if (this.residueProxy.resNum !== resNum) {
-        isNewRes = true;
+        isNewRes = true
       } else if (this.residueProxy.insCode !== insCode) {
-        isNewRes = true;
+        isNewRes = true
       } else if (this.chains[this.residueProxy.iChain] !== chain) {
-        isNewRes = true;
+        isNewRes = true
       }
     }
 
     if (isNewRes) {
-      this.addResidue(iAtom, resNum, insCode, chain, resType);
+      this.addResidue(iAtom, resNum, insCode, chain, resType)
     }
 
-    let iRes = this.getResidueCount() - 1;
-    this.residueStore.atomCount[iRes] += 1;
-    this.atomStore.iRes[iAtom] = iRes;
+    let iRes = this.getResidueCount() - 1
+    this.residueStore.atomCount[iRes] += 1
+    this.atomStore.iRes[iAtom] = iRes
   }
 
   addResidue(iFirstAtomInRes, resNum, insCode, chain, resType) {
-    let iRes = this.getResidueCount();
-    this.residueStore.increment();
+    let iRes = this.getResidueCount()
+    this.residueStore.increment()
 
-    let resId = this.structureId + ":";
+    let resId = this.structureId + ':'
     if (chain) {
-      resId += chain + ":";
+      resId += chain + ':'
     }
-    resId += resNum + _.trim(insCode);
+    resId += resNum + _.trim(insCode)
 
-    this.resIds.push(resId);
+    this.resIds.push(resId)
 
-    let iChain = getValueTableIndex(this.chains, chain);
-    this.residueStore.iChain[iRes] = iChain;
+    let iChain = getValueTableIndex(this.chains, chain)
+    this.residueStore.iChain[iRes] = iChain
 
-    this.residueStore.resNum[iRes] = resNum;
-    this.residueStore.insCode[iRes] = charToInt(insCode);
+    this.residueStore.resNum[iRes] = resNum
+    this.residueStore.insCode[iRes] = charToInt(insCode)
 
     this.residueStore.iResType[iRes] = getValueTableIndex(
       this.resTypeTable,
       resType
-    );
+    )
 
-    this.residueStore.atomOffset[iRes] = iFirstAtomInRes;
-    this.residueStore.atomCount[iRes] = 0;
+    this.residueStore.atomOffset[iRes] = iFirstAtomInRes
+    this.residueStore.atomCount[iRes] = 0
 
-    this.residueStore.iStructure[iRes] = this.iStructure;
+    this.residueStore.iStructure[iRes] = this.iStructure
   }
 
   assignResidueProperties() {
-    let res = this.getResidueProxy();
+    let res = this.getResidueProxy()
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-      res.iRes = iRes;
+      res.iRes = iRes
 
       if (_.includes(data.proteinResTypes, res.resType)) {
-        res.iAtom = res.getIAtom("CA");
-        res.ss = "C";
-        res.isPolymer = true;
+        res.iAtom = res.getIAtom('CA')
+        res.ss = 'C'
+        res.isPolymer = true
       } else if (
         _.includes(data.dnaResTypes, res.resType) ||
         _.includes(data.rnaResTypes, res.resType)
       ) {
-        res.iAtom = res.getIAtom("C3'");
-        res.ss = "D";
-        res.isPolymer = true;
+        res.iAtom = res.getIAtom("C3'")
+        res.ss = 'D'
+        res.isPolymer = true
       } else {
-        res.isPolymer = false;
-        if (res.resType === "HOH") {
+        res.isPolymer = false
+        if (res.resType === 'HOH') {
           // water
-          res.ss = "W";
-        } else if (res.resType === "XXX") {
+          res.ss = 'W'
+        } else if (res.resType === 'XXX') {
           // grid atom
-          res.ss = "G";
+          res.ss = 'G'
         } else {
-          res.ss = "-";
+          res.ss = '-'
         }
-        let center = this.getCenter(res.getAtomIndices());
-        res.iAtom = this.getIAtomClosest(center, res.getAtomIndices());
+        let center = this.getCenter(res.getAtomIndices())
+        res.iAtom = this.getIAtomClosest(center, res.getAtomIndices())
       }
     }
   }
 
   getIAtomClosest(pos, atomIndices) {
-    let iAtomClosest = null;
-    let minD = 1e6;
-    let atom = this.getAtomProxy();
+    let iAtomClosest = null
+    let minD = 1e6
+    let atom = this.getAtomProxy()
     for (let iAtom of atomIndices) {
       if (iAtomClosest === null) {
-        iAtomClosest = iAtom;
+        iAtomClosest = iAtom
       } else {
-        atom.iAtom = iAtom;
-        let d = v3.distance(pos, atom.pos);
+        atom.iAtom = iAtom
+        let d = v3.distance(pos, atom.pos)
         if (d < minD) {
-          iAtomClosest = iAtom;
-          minD = d;
+          iAtomClosest = iAtom
+          minD = d
         }
       }
     }
-    return iAtomClosest;
+    return iAtomClosest
   }
 
   getIAtomAtPosition(pos) {
-    let atomIndices = _.range(this.getAtomCount());
-    let iAtomClosest = null;
-    let minD = 1e6;
-    let atom = this.getAtomProxy();
+    let atomIndices = _.range(this.getAtomCount())
+    let iAtomClosest = null
+    let minD = 1e6
+    let atom = this.getAtomProxy()
     for (let iAtom of atomIndices) {
       if (iAtomClosest === null) {
-        iAtomClosest = iAtom;
+        iAtomClosest = iAtom
       } else {
-        atom.iAtom = iAtom;
-        let d = v3.distance(pos, atom.pos);
+        atom.iAtom = iAtom
+        let d = v3.distance(pos, atom.pos)
         if (d < minD) {
-          iAtomClosest = iAtom;
-          minD = d;
+          iAtomClosest = iAtom
+          minD = d
         }
       }
     }
     if (minD < 0.1) {
-      return iAtomClosest;
+      return iAtomClosest
     } else {
-      return -1;
+      return -1
     }
   }
 
   getCenter(atomIndices) {
-    let result = v3.create(0, 0, 0);
-    let atom = this.getAtomProxy();
+    let result = v3.create(0, 0, 0)
+    let atom = this.getAtomProxy()
     for (let iAtom of atomIndices) {
-      result = v3.sum(result, atom.load(iAtom).pos);
+      result = v3.sum(result, atom.load(iAtom).pos)
     }
-    result.divideScalar(atomIndices.length);
-    return result;
+    result.divideScalar(atomIndices.length)
+    return result
   }
 
   calcMaxLength(atomIndices = null) {
-    let maxima = [0.0, 0.0, 0.0];
-    let minima = [0.0, 0.0, 0.0];
-    let spans = [0.0, 0.0, 0.0];
+    let maxima = [0.0, 0.0, 0.0]
+    let minima = [0.0, 0.0, 0.0]
+    let spans = [0.0, 0.0, 0.0]
 
     function comp(v, i) {
-      if (i === 0) return v.x;
-      if (i === 1) return v.y;
-      if (i === 2) return v.z;
+      if (i === 0) return v.x
+      if (i === 1) return v.y
+      if (i === 2) return v.z
     }
 
     if (_.isNull(atomIndices)) {
-      atomIndices = _.range(this.getAtomCount());
+      atomIndices = _.range(this.getAtomCount())
     }
-    let atom = this.getAtomProxy();
+    let atom = this.getAtomProxy()
     for (let iDim = 0; iDim < 3; iDim++) {
       for (let iAtom of atomIndices) {
-        let pos = atom.load(iAtom).pos;
+        let pos = atom.load(iAtom).pos
         if (minima[iDim] > comp(pos, iDim)) {
-          minima[iDim] = comp(pos, iDim);
+          minima[iDim] = comp(pos, iDim)
         }
         if (maxima[iDim] < comp(pos, iDim)) {
-          maxima[iDim] = comp(pos, iDim);
+          maxima[iDim] = comp(pos, iDim)
         }
       }
-      spans[iDim] = maxima[iDim] - minima[iDim];
+      spans[iDim] = maxima[iDim] - minima[iDim]
     }
-    return Math.max(spans[0], spans[1], spans[2]);
+    return Math.max(spans[0], spans[1], spans[2])
   }
 
   calcBondsStrategic() {
-    this.bondStore.count = 0;
+    this.bondStore.count = 0
 
-    const smallCutoffSq = 1.2 * 1.2;
-    const mediumCutoffSq = 1.9 * 1.9;
-    const largeCutoffSq = 2.4 * 2.4;
-    const CHONPS = ["C", "H", "O", "N", "P", "S"];
+    const smallCutoffSq = 1.2 * 1.2
+    const mediumCutoffSq = 1.9 * 1.9
+    const largeCutoffSq = 2.4 * 2.4
+    const CHONPS = ['C', 'H', 'O', 'N', 'P', 'S']
 
     function isBonded(atom1, atom2) {
       if (atom1 === null || atom2 === null) {
-        return false;
+        return false
       }
       // don't include bonds between different alt positions
-      if (atom1.alt !== "" && atom2.alt !== "") {
+      if (atom1.alt !== '' && atom2.alt !== '') {
         if (atom1.alt !== atom2.alt) {
-          return false;
+          return false
         }
       }
 
-      let cutoffSq;
-      if (atom1.elem === "H" || atom2.elem === "H") {
-        cutoffSq = smallCutoffSq;
+      let cutoffSq
+      if (atom1.elem === 'H' || atom2.elem === 'H') {
+        cutoffSq = smallCutoffSq
       } else if (inArray(atom1.elem, CHONPS) && inArray(atom2.elem, CHONPS)) {
-        cutoffSq = mediumCutoffSq;
+        cutoffSq = mediumCutoffSq
       } else {
-        cutoffSq = largeCutoffSq;
+        cutoffSq = largeCutoffSq
       }
 
-      let diffX = atom1.pos.x - atom2.pos.x;
-      let diffY = atom1.pos.y - atom2.pos.y;
-      let diffZ = atom1.pos.z - atom2.pos.z;
-      let distSq = diffX * diffX + diffY * diffY + diffZ * diffZ;
-      return distSq <= cutoffSq;
+      let diffX = atom1.pos.x - atom2.pos.x
+      let diffY = atom1.pos.y - atom2.pos.y
+      let diffZ = atom1.pos.z - atom2.pos.z
+      let distSq = diffX * diffX + diffY * diffY + diffZ * diffZ
+      return distSq <= cutoffSq
     }
 
     let makeBond = (atom1, atom2) => {
-      let iBond = this.getBondCount();
-      this.bondStore.increment();
-      this.bondStore.iAtom1[iBond] = atom1.iAtom;
-      this.bondStore.iAtom2[iBond] = atom2.iAtom;
+      let iBond = this.getBondCount()
+      this.bondStore.increment()
+      this.bondStore.iAtom1[iBond] = atom1.iAtom
+      this.bondStore.iAtom2[iBond] = atom2.iAtom
 
-      iBond = this.getBondCount();
-      this.bondStore.increment();
-      this.bondStore.iAtom1[iBond] = atom2.iAtom;
-      this.bondStore.iAtom2[iBond] = atom1.iAtom;
-    };
+      iBond = this.getBondCount()
+      this.bondStore.increment()
+      this.bondStore.iAtom1[iBond] = atom2.iAtom
+      this.bondStore.iAtom2[iBond] = atom1.iAtom
+    }
 
-    let residue1 = this.getResidueProxy();
-    let residue2 = this.getResidueProxy();
-    let nRes = this.getResidueCount();
-    let atom1 = this.getAtomProxy();
-    let atom2 = this.getAtomProxy();
+    let residue1 = this.getResidueProxy()
+    let residue2 = this.getResidueProxy()
+    let nRes = this.getResidueCount()
+    let atom1 = this.getAtomProxy()
+    let atom2 = this.getAtomProxy()
 
     for (let iRes1 = 0; iRes1 < nRes; iRes1++) {
-      residue2.iRes = iRes1;
+      residue2.iRes = iRes1
 
       // cycle through all atoms within a residue
       for (let iAtom1 of residue2.getAtomIndices()) {
         for (let iAtom2 of residue2.getAtomIndices()) {
-          atom1.iAtom = iAtom1;
-          atom2.iAtom = iAtom2;
+          atom1.iAtom = iAtom1
+          atom2.iAtom = iAtom2
           if (isBonded(atom1, atom2)) {
-            makeBond(atom1, atom2);
+            makeBond(atom1, atom2)
           }
         }
       }
     }
 
     for (let iRes2 = 1; iRes2 < nRes; iRes2++) {
-      residue1.iRes = iRes2 - 1;
-      residue2.iRes = iRes2;
+      residue1.iRes = iRes2 - 1
+      residue2.iRes = iRes2
       if (residue2.isProteinConnectedToPrev()) {
-        atom1.iAtom = residue1.getIAtom("C");
-        atom2.iAtom = residue2.getIAtom("N");
+        atom1.iAtom = residue1.getIAtom('C')
+        atom2.iAtom = residue2.getIAtom('N')
       } else if (residue2.isNucleotideConnectedToPrev()) {
-        atom1.iAtom = residue1.getIAtom(`O3'`);
-        atom2.iAtom = residue2.getIAtom("P");
+        atom1.iAtom = residue1.getIAtom(`O3'`)
+        atom2.iAtom = residue2.getIAtom('P')
       } else {
-        continue;
+        continue
       }
-      makeBond(atom1, atom2);
+      makeBond(atom1, atom2)
     }
 
     // sort bonds by iAtom1
-    let iAtom1Array = this.bondStore.iAtom1;
-    this.bondStore.sort((i, j) => iAtom1Array[i] - iAtom1Array[j]);
+    let iAtom1Array = this.bondStore.iAtom1
+    this.bondStore.sort((i, j) => iAtom1Array[i] - iAtom1Array[j])
 
     // asign bonds to atoms
     for (let iAtom = 0; iAtom < this.getAtomCount(); iAtom += 1) {
-      this.atomStore.bondCount[iAtom] = 0;
+      this.atomStore.bondCount[iAtom] = 0
     }
-    let bond = this.getBondProxy();
-    let iAtom1 = null;
+    let bond = this.getBondProxy()
+    let iAtom1 = null
     for (let iBond = 0; iBond < this.getBondCount(); iBond += 1) {
-      bond.iBond = iBond;
+      bond.iBond = iBond
       if (iAtom1 !== bond.iAtom1) {
-        iAtom1 = bond.iAtom1;
-        this.atomStore.bondOffset[iAtom1] = iBond;
+        iAtom1 = bond.iAtom1
+        this.atomStore.bondOffset[iAtom1] = iBond
       }
-      this.atomStore.bondCount[iAtom1] += 1;
+      this.atomStore.bondCount[iAtom1] += 1
     }
 
     // this.bondSelect = new BitArray(this.getBondCount())
@@ -967,12 +972,12 @@ class Soup {
    * criteria between O and N atoms.
    */
   findBackboneHbonds() {
-    let residue = this.getResidueProxy();
-    let atom0 = this.getAtomProxy();
-    let atom1 = this.getAtomProxy();
+    let residue = this.getResidueProxy()
+    let atom0 = this.getAtomProxy()
+    let atom1 = this.getAtomProxy()
 
-    let result = [];
-    let cutoff = 3.5;
+    let result = []
+    let cutoff = 3.5
 
     for (
       let iStructure = 0;
@@ -980,48 +985,48 @@ class Soup {
       iStructure += 1
     ) {
       // Collect backbone O and N atoms
-      let vertices = [];
-      let atomIndices = [];
+      let vertices = []
+      let atomIndices = []
       for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-        residue.iRes = iRes;
+        residue.iRes = iRes
         if (residue.iStructure !== iStructure) {
           // ensure only backbone H-bonds of a single structure are calculated
-          continue;
+          continue
         }
         if (residue.isPolymer) {
-          for (let aTypeName of ["O", "N"]) {
-            let iAtom = residue.getIAtom(aTypeName);
+          for (let aTypeName of ['O', 'N']) {
+            let iAtom = residue.getIAtom(aTypeName)
             if (iAtom !== null) {
-              atom0.iAtom = iAtom;
-              vertices.push([atom0.pos.x, atom0.pos.y, atom0.pos.z]);
-              atomIndices.push(iAtom);
+              atom0.iAtom = iAtom
+              vertices.push([atom0.pos.x, atom0.pos.y, atom0.pos.z])
+              atomIndices.push(iAtom)
             }
           }
         }
       }
 
-      let spaceHash = new SpaceHash(vertices);
+      let spaceHash = new SpaceHash(vertices)
       for (let pair of spaceHash.getClosePairs()) {
-        atom0.iAtom = atomIndices[pair[0]];
-        atom1.iAtom = atomIndices[pair[1]];
-        if (atom0.elem === "O" && atom1.elem === "N") {
-          [atom0, atom1] = [atom1, atom0];
+        atom0.iAtom = atomIndices[pair[0]]
+        atom1.iAtom = atomIndices[pair[1]]
+        if (atom0.elem === 'O' && atom1.elem === 'N') {
+          ;[atom0, atom1] = [atom1, atom0]
         }
-        if (!(atom0.elem === "N" && atom1.elem === "O")) {
-          continue;
+        if (!(atom0.elem === 'N' && atom1.elem === 'O')) {
+          continue
         }
-        let iRes0 = atom0.iRes;
-        let iRes1 = atom1.iRes;
+        let iRes0 = atom0.iRes
+        let iRes1 = atom1.iRes
         if (iRes0 === iRes1) {
-          continue;
+          continue
         }
         if (v3.distance(atom0.pos, atom1.pos) <= cutoff) {
-          pushToListInDict(result, iRes0, iRes1);
+          pushToListInDict(result, iRes0, iRes1)
         }
       }
     }
 
-    this.conhPartners = result;
+    this.conhPartners = result
   }
 
   /**
@@ -1037,140 +1042,140 @@ class Soup {
    * - R - non-standard nucleotide
    */
   findSecondaryStructure() {
-    this.findBackboneHbonds();
-    let conhPartners = this.conhPartners;
-    let residueNormals = {};
+    this.findBackboneHbonds()
+    let conhPartners = this.conhPartners
+    let residueNormals = {}
 
-    let nRes = this.getResidueCount();
-    let residue0 = this.getResidueProxy();
-    let residue1 = this.getResidueProxy();
+    let nRes = this.getResidueCount()
+    let residue0 = this.getResidueProxy()
+    let residue1 = this.getResidueProxy()
 
-    let atom0 = this.getAtomProxy();
-    let atom1 = this.getAtomProxy();
+    let atom0 = this.getAtomProxy()
+    let atom1 = this.getAtomProxy()
 
     function isCONH(iRes0, iRes1) {
       if (iRes1 < 0 || iRes1 >= nRes || iRes0 < 0 || iRes0 >= nRes) {
-        return false;
+        return false
       }
-      return _.includes(conhPartners[iRes1], iRes0);
+      return _.includes(conhPartners[iRes1], iRes0)
     }
 
     function vecBetweenResidues(iRes0, iRes1) {
-      atom0.iAtom = residue0.load(iRes0).iAtom;
-      atom1.iAtom = residue1.load(iRes1).iAtom;
-      return v3.diff(atom0.pos, atom1.pos);
+      atom0.iAtom = residue0.load(iRes0).iAtom
+      atom1.iAtom = residue1.load(iRes1).iAtom
+      return v3.diff(atom0.pos, atom1.pos)
     }
 
     // Collect ca atoms
-    let vertices = [];
-    let atomIndices = [];
-    let resIndices = [];
+    let vertices = []
+    let atomIndices = []
+    let resIndices = []
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-      residue0.iRes = iRes;
-      if (residue0.isPolymer && !(residue0.ss === "D")) {
-        let iAtom = residue0.getIAtom("CA");
+      residue0.iRes = iRes
+      if (residue0.isPolymer && !(residue0.ss === 'D')) {
+        let iAtom = residue0.getIAtom('CA')
         if (iAtom !== null) {
-          atom0.iAtom = iAtom;
-          vertices.push([atom0.pos.x, atom0.pos.y, atom0.pos.z]);
-          atomIndices.push(iAtom);
-          resIndices.push(iRes);
+          atom0.iAtom = iAtom
+          vertices.push([atom0.pos.x, atom0.pos.y, atom0.pos.z])
+          atomIndices.push(iAtom)
+          resIndices.push(iRes)
         }
       }
     }
 
     for (let iRes0 = 0; iRes0 < nRes; iRes0 += 1) {
-      residue0.iRes = iRes0;
+      residue0.iRes = iRes0
 
       if (!residue0.isPolymer) {
-        continue;
+        continue
       }
 
-      if (residue0.ss === "D") {
-        pushToListInDict(residueNormals, iRes0, residue0.getNucleotideNormal());
-        continue;
+      if (residue0.ss === 'D') {
+        pushToListInDict(residueNormals, iRes0, residue0.getNucleotideNormal())
+        continue
       }
 
       // alpha-helix
       if (isCONH(iRes0, iRes0 + 4) && isCONH(iRes0 + 1, iRes0 + 5)) {
-        let normal0 = vecBetweenResidues(iRes0, iRes0 + 4);
-        let normal1 = vecBetweenResidues(iRes0 + 1, iRes0 + 5);
+        let normal0 = vecBetweenResidues(iRes0, iRes0 + 4)
+        let normal1 = vecBetweenResidues(iRes0 + 1, iRes0 + 5)
         for (let iRes1 = iRes0 + 1; iRes1 < iRes0 + 5; iRes1 += 1) {
-          residue0.load(iRes1).ss = "H";
-          pushToListInDict(residueNormals, iRes1, normal0);
-          pushToListInDict(residueNormals, iRes1, normal1);
+          residue0.load(iRes1).ss = 'H'
+          pushToListInDict(residueNormals, iRes1, normal0)
+          pushToListInDict(residueNormals, iRes1, normal1)
         }
       }
 
       // 3-10 helix
       if (isCONH(iRes0, iRes0 + 3) && isCONH(iRes0 + 1, iRes0 + 4)) {
-        let normal1 = vecBetweenResidues(iRes0, iRes0 + 3);
-        let normal2 = vecBetweenResidues(iRes0 + 1, iRes0 + 4);
+        let normal1 = vecBetweenResidues(iRes0, iRes0 + 3)
+        let normal2 = vecBetweenResidues(iRes0 + 1, iRes0 + 4)
         for (let iRes1 = iRes0 + 1; iRes1 < iRes0 + 4; iRes1 += 1) {
-          residue0.load(iRes1).ss = "H";
-          pushToListInDict(residueNormals, iRes1, normal1);
-          pushToListInDict(residueNormals, iRes1, normal2);
+          residue0.load(iRes1).ss = 'H'
+          pushToListInDict(residueNormals, iRes1, normal1)
+          pushToListInDict(residueNormals, iRes1, normal2)
         }
       }
     }
 
-    let betaResidues = [];
-    let spaceHash = new SpaceHash(vertices);
+    let betaResidues = []
+    let spaceHash = new SpaceHash(vertices)
     for (let pair of spaceHash.getClosePairs()) {
-      let [iVertex0, iVertex1] = pair;
-      let iRes0 = resIndices[iVertex0];
-      let iRes1 = resIndices[iVertex1];
+      let [iVertex0, iVertex1] = pair
+      let iRes0 = resIndices[iVertex0]
+      let iRes1 = resIndices[iVertex1]
       if (Math.abs(iRes0 - iRes1) <= 5) {
-        continue;
+        continue
       }
       // parallel beta sheet pairs
       if (isCONH(iRes0, iRes1 + 1) && isCONH(iRes1 - 1, iRes0)) {
-        betaResidues = betaResidues.concat([iRes0, iRes1]);
+        betaResidues = betaResidues.concat([iRes0, iRes1])
       }
       if (isCONH(iRes0 - 1, iRes1) && isCONH(iRes1, iRes0 + 1)) {
-        betaResidues = betaResidues.concat([iRes0, iRes1]);
+        betaResidues = betaResidues.concat([iRes0, iRes1])
       }
 
       // anti-parallel hbonded beta sheet pairs
       if (isCONH(iRes0, iRes1) && isCONH(iRes1, iRes0)) {
-        betaResidues = betaResidues.concat([iRes0, iRes1]);
-        let normal = vecBetweenResidues(iRes0, iRes1);
-        pushToListInDict(residueNormals, iRes0, normal);
-        pushToListInDict(residueNormals, iRes1, v3.scaled(normal, -1));
+        betaResidues = betaResidues.concat([iRes0, iRes1])
+        let normal = vecBetweenResidues(iRes0, iRes1)
+        pushToListInDict(residueNormals, iRes0, normal)
+        pushToListInDict(residueNormals, iRes1, v3.scaled(normal, -1))
       }
 
       // anti-parallel non-hbonded beta sheet pairs
       if (isCONH(iRes0 - 1, iRes1 + 1) && isCONH(iRes1 - 1, iRes0 + 1)) {
-        betaResidues = betaResidues.concat([iRes0, iRes1]);
-        let normal = vecBetweenResidues(iRes0, iRes1);
-        pushToListInDict(residueNormals, iRes0, v3.scaled(normal, -1));
-        pushToListInDict(residueNormals, iRes1, normal);
+        betaResidues = betaResidues.concat([iRes0, iRes1])
+        let normal = vecBetweenResidues(iRes0, iRes1)
+        pushToListInDict(residueNormals, iRes0, v3.scaled(normal, -1))
+        pushToListInDict(residueNormals, iRes1, normal)
       }
     }
 
     for (let iRes of betaResidues) {
-      residue0.load(iRes).ss = "E";
+      residue0.load(iRes).ss = 'E'
     }
 
     // average residueNormals to make a nice average
     for (let iRes = 0; iRes < nRes; iRes += 1) {
       if (iRes in residueNormals && residueNormals[iRes].length > 0) {
-        let normalSum = v3.create(0, 0, 0);
+        let normalSum = v3.create(0, 0, 0)
         for (let normal of residueNormals[iRes]) {
-          normalSum = v3.sum(normalSum, normal);
+          normalSum = v3.sum(normalSum, normal)
         }
-        this.residueNormal[iRes] = v3.normalized(normalSum);
+        this.residueNormal[iRes] = v3.normalized(normalSum)
       }
     }
 
     // flip every second beta-strand normal so they are
     // consistently pointing in the same direction
     for (let iRes = 1; iRes < nRes; iRes += 1) {
-      residue0.iRes = iRes - 1;
-      residue1.iRes = iRes;
-      if (residue0.ss === "E" && residue0.normal) {
-        if (residue1.ss === "E" && residue1.normal) {
+      residue0.iRes = iRes - 1
+      residue1.iRes = iRes
+      if (residue0.ss === 'E' && residue0.normal) {
+        if (residue1.ss === 'E' && residue1.normal) {
           if (residue1.normal.dot(residue0.normal) < 0) {
-            this.residueNormal[iRes].negate();
+            this.residueNormal[iRes].negate()
           }
         }
       }
@@ -1178,21 +1183,21 @@ class Soup {
   }
 
   calculateTracesForRibbons() {
-    this.traces.length = 0;
+    this.traces.length = 0
 
-    let lastTrace;
-    let residue = this.getResidueProxy();
-    let nextResidue = this.getResidueProxy();
-    let atom = this.getAtomProxy();
-    let nRes = this.getResidueCount();
+    let lastTrace
+    let residue = this.getResidueProxy()
+    let nextResidue = this.getResidueProxy()
+    let atom = this.getAtomProxy()
+    let nRes = this.getResidueCount()
     for (let iRes = 0; iRes < nRes; iRes += 1) {
-      residue.iRes = iRes;
+      residue.iRes = iRes
       if (iRes < nRes - 1) {
-        nextResidue.iRes = iRes + 1;
+        nextResidue.iRes = iRes + 1
         if (nextResidue.isConnectedToPrev()) {
           // set for non-standard DNA or protein residues
-          residue.isPolymer = true;
-          nextResidue.isPolymer = true;
+          residue.isPolymer = true
+          nextResidue.isPolymer = true
         }
       }
       if (residue.isPolymer) {
@@ -1201,182 +1206,182 @@ class Soup {
           iRes === 0 ||
           !residue.isConnectedToPrev()
         ) {
-          let newTrace = new glgeom.Trace();
+          let newTrace = new glgeom.Trace()
           newTrace.getReference = i => {
-            residue.iRes = newTrace.indices[i];
-            return residue;
-          };
-          this.traces.push(newTrace);
-          lastTrace = newTrace;
+            residue.iRes = newTrace.indices[i]
+            return residue
+          }
+          this.traces.push(newTrace)
+          lastTrace = newTrace
         }
-        lastTrace.indices.push(iRes);
+        lastTrace.indices.push(iRes)
 
-        if (residue.getIAtom("CA")) {
-          atom.iAtom = residue.getIAtom("CA");
+        if (residue.getIAtom('CA')) {
+          atom.iAtom = residue.getIAtom('CA')
         } else if (residue.getIAtom("C3'")) {
-          atom.iAtom = residue.getIAtom("C3'");
+          atom.iAtom = residue.getIAtom("C3'")
         } else {
-          atom.iAtom = residue.iAtom;
+          atom.iAtom = residue.iAtom
         }
 
-        lastTrace.refIndices.push(residue.iRes);
-        lastTrace.points.push(atom.pos.clone());
-        lastTrace.colors.push(residue.activeColor);
-        lastTrace.indexColors.push(getIndexColor(residue.iAtom));
-        lastTrace.segmentTypes.push(residue.ss);
-        lastTrace.normals.push(residue.normal);
+        lastTrace.refIndices.push(residue.iRes)
+        lastTrace.points.push(atom.pos.clone())
+        lastTrace.colors.push(residue.activeColor)
+        lastTrace.indexColors.push(getIndexColor(residue.iAtom))
+        lastTrace.segmentTypes.push(residue.ss)
+        lastTrace.normals.push(residue.normal)
       }
     }
 
     for (let trace of this.traces) {
-      trace.calcTangents();
-      trace.calcNormals();
-      trace.calcBinormals();
-      trace.expand();
+      trace.calcTangents()
+      trace.calcNormals()
+      trace.calcBinormals()
+      trace.expand()
     }
   }
 
   getAtomProxy(iAtom) {
-    return new AtomProxy(this, iAtom);
+    return new AtomProxy(this, iAtom)
   }
 
   getAtomCount() {
-    return this.atomStore.count;
+    return this.atomStore.count
   }
 
   getResidueProxy(iRes) {
-    return new ResidueProxy(this, iRes);
+    return new ResidueProxy(this, iRes)
   }
 
   getBondProxy(iBond) {
-    return new BondProxy(this, iBond);
+    return new BondProxy(this, iBond)
   }
 
   getBondCount() {
-    return this.bondStore.count;
+    return this.bondStore.count
   }
 
   getResidueCount() {
-    return this.residueStore.count;
+    return this.residueStore.count
   }
 
   areCloseResidues(iRes0, iRes1) {
-    let atom0 = this.getAtomProxy();
-    let atom1 = this.getAtomProxy();
+    let atom0 = this.getAtomProxy()
+    let atom1 = this.getAtomProxy()
 
-    let res0 = this.getResidueProxy(iRes0);
-    let pos0 = atom0.load(res0.iAtom).pos.clone();
-    let atomIndices0 = res0.getAtomIndices();
+    let res0 = this.getResidueProxy(iRes0)
+    let pos0 = atom0.load(res0.iAtom).pos.clone()
+    let atomIndices0 = res0.getAtomIndices()
 
-    let res1 = this.getResidueProxy(iRes1);
-    let pos1 = atom1.load(res1.iAtom).pos.clone();
-    let atomIndices1 = res1.getAtomIndices();
+    let res1 = this.getResidueProxy(iRes1)
+    let pos1 = atom1.load(res1.iAtom).pos.clone()
+    let atomIndices1 = res1.getAtomIndices()
 
     if (v3.distance(pos0, pos1) > 17) {
-      return false;
+      return false
     }
 
     for (let iAtom0 of atomIndices0) {
       for (let iAtom1 of atomIndices1) {
         if (v3.distance(atom0.load(iAtom0).pos, atom1.load(iAtom1).pos) < 4) {
-          return true;
+          return true
         }
       }
     }
-    return false;
+    return false
   }
 
   clearSelectedResidues() {
-    let residue = this.getResidueProxy();
+    let residue = this.getResidueProxy()
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-      residue.load(iRes).selected = false;
+      residue.load(iRes).selected = false
     }
   }
 
   clearSidechainResidues() {
-    let residue = this.getResidueProxy();
+    let residue = this.getResidueProxy()
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-      residue.load(iRes).sidechain = false;
+      residue.load(iRes).sidechain = false
     }
   }
 
   setSidechainOfResidues(residueIndices, isSidechain) {
-    let residue = this.getResidueProxy();
+    let residue = this.getResidueProxy()
     for (let iRes of residueIndices) {
-      residue.load(iRes).sidechain = isSidechain;
+      residue.load(iRes).sidechain = isSidechain
     }
   }
 
   getNeighbours(iRes) {
-    let indices = [iRes];
+    let indices = [iRes]
     for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
       if (this.areCloseResidues(jRes, iRes)) {
-        indices.push(jRes);
+        indices.push(jRes)
       }
     }
-    return indices;
+    return indices
   }
 
   isResCloseToPoint(iRes0, pos1) {
-    let atom0 = this.getAtomProxy();
+    let atom0 = this.getAtomProxy()
 
-    let res0 = this.getResidueProxy(iRes0);
-    let pos0 = atom0.load(res0.iAtom).pos.clone();
+    let res0 = this.getResidueProxy(iRes0)
+    let pos0 = atom0.load(res0.iAtom).pos.clone()
     if (v3.distance(pos0, pos1) > 17) {
-      return false;
+      return false
     }
 
-    let atomIndices0 = res0.getAtomIndices();
+    let atomIndices0 = res0.getAtomIndices()
     for (let iAtom0 of atomIndices0) {
       if (v3.distance(atom0.load(iAtom0).pos, pos1) < 5) {
-        return true;
+        return true
       }
     }
-    return false;
+    return false
   }
 
   getNeighboursOfPoint(pos) {
-    let indices = [];
+    let indices = []
     for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
       if (this.isResCloseToPoint(jRes, pos)) {
-        indices.push(jRes);
+        indices.push(jRes)
       }
     }
-    return indices;
+    return indices
   }
 
   findResidue(chain, resNum) {
-    let residue = this.getResidueProxy();
+    let residue = this.getResidueProxy()
     for (let iRes of _.range(this.getResidueCount())) {
-      residue.iRes = iRes;
+      residue.iRes = iRes
       if (residue.chain === chain && residue.resNum === resNum) {
-        return residue;
+        return residue
       }
     }
-    return null;
+    return null
   }
 
   setSecondaryStructureColorResidues() {
-    let residue = this.getResidueProxy();
+    let residue = this.getResidueProxy()
     for (let iRes of _.range(this.getResidueCount())) {
-      residue.iRes = iRes;
-      residue.customColor = data.getSsColor(residue.ss);
+      residue.iRes = iRes
+      residue.customColor = data.getSsColor(residue.ss)
     }
   }
 
   colorResidues() {
-    let residue = this.getResidueProxy();
-    let isGridActive = _.some(_.values(this.grid.isElem));
+    let residue = this.getResidueProxy()
+    let isGridActive = _.some(_.values(this.grid.isElem))
     if (isGridActive) {
       for (let iRes of _.range(this.getResidueCount())) {
-        residue.iRes = iRes;
-        residue.color = data.darkGrey;
+        residue.iRes = iRes
+        residue.color = data.darkGrey
       }
     }
 
     for (let iRes of _.range(this.getResidueCount())) {
-      residue.iRes = iRes;
-      residue.color = isGridActive ? data.darkGrey : residue.customColor;
+      residue.iRes = iRes
+      residue.color = isGridActive ? data.darkGrey : residue.customColor
     }
   }
 
@@ -1384,133 +1389,133 @@ class Soup {
    * Searches autodock grid atoms for B-factor limits
    */
   findGridLimits() {
-    let residue = this.getResidueProxy();
-    let atom = this.getAtomProxy();
-    this.grid.isElem = {};
+    let residue = this.getResidueProxy()
+    let atom = this.getAtomProxy()
+    this.grid.isElem = {}
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
-      residue.iRes = iRes;
-      if (residue.ss === "G") {
-        atom.iAtom = residue.iAtom;
+      residue.iRes = iRes
+      if (residue.ss === 'G') {
+        atom.iAtom = residue.iAtom
         if (!(atom.elem in this.grid.isElem)) {
-          this.grid.isElem[atom.elem] = true;
+          this.grid.isElem[atom.elem] = true
         }
         if (this.grid.bMin === null) {
-          this.grid.bMin = atom.bfactor;
-          this.grid.bMax = atom.bfactor;
+          this.grid.bMin = atom.bfactor
+          this.grid.bMax = atom.bfactor
         } else {
           if (atom.bfactor > this.grid.bMax) {
-            this.grid.bMax = atom.bfactor;
+            this.grid.bMax = atom.bfactor
           }
           if (atom.bfactor < this.grid.bMin) {
-            this.grid.bMin = atom.bfactor;
+            this.grid.bMin = atom.bfactor
           }
         }
       }
     }
 
     if (this.grid.bMin === null) {
-      this.grid.bMin = 0;
+      this.grid.bMin = 0
     }
     if (this.grid.bMax === null) {
-      this.grid.bMin = 0;
+      this.grid.bMin = 0
     }
     if (_.isNil(this.grid)) {
-      this.grid.bCutoff = this.grid.bMin;
+      this.grid.bCutoff = this.grid.bMin
     }
   }
 
   deleteStructure(iStructure) {
-    console.log("Soup.deleteStructure", iStructure);
-    let atom = this.getAtomProxy();
-    let res = this.getResidueProxy();
+    console.log('Soup.deleteStructure', iStructure)
+    let atom = this.getAtomProxy()
+    let res = this.getResidueProxy()
 
-    let iAtomStart = null;
-    let iAtomEnd = null;
-    let iResStart = null;
-    let iResEnd = null;
+    let iAtomStart = null
+    let iAtomEnd = null
+    let iResStart = null
+    let iResEnd = null
 
     for (let iAtom = 0; iAtom < this.getAtomCount(); iAtom += 1) {
-      atom.iAtom = iAtom;
-      res.iRes = atom.iRes;
+      atom.iAtom = iAtom
+      res.iRes = atom.iRes
       if (res.iStructure === iStructure) {
         if (iAtomStart === null) {
-          iAtomStart = iAtom;
+          iAtomStart = iAtom
         }
-        iAtomEnd = iAtom + 1;
+        iAtomEnd = iAtom + 1
         if (iResStart === null) {
-          iResStart = atom.iRes;
+          iResStart = atom.iRes
         }
-        iResEnd = atom.iRes + 1;
+        iResEnd = atom.iRes + 1
       }
     }
 
-    let nAtomOffset = iAtomEnd - iAtomStart;
-    let nAtom = this.getAtomCount();
-    let nAtomNew = nAtom - nAtomOffset;
-    let nAtomCopy = nAtom - iAtomEnd;
+    let nAtomOffset = iAtomEnd - iAtomStart
+    let nAtom = this.getAtomCount()
+    let nAtomNew = nAtom - nAtomOffset
+    let nAtomCopy = nAtom - iAtomEnd
 
-    let nResOffset = iResEnd - iResStart;
-    let nRes = this.getResidueCount();
-    let nResNew = nRes - nResOffset;
-    let nResCopy = nRes - iResEnd;
+    let nResOffset = iResEnd - iResStart
+    let nRes = this.getResidueCount()
+    let nResNew = nRes - nResOffset
+    let nResCopy = nRes - iResEnd
 
-    this.atomStore.copyWithin(iAtomStart, iAtomEnd, nAtomCopy);
-    this.atomStore.count -= nAtomOffset;
+    this.atomStore.copyWithin(iAtomStart, iAtomEnd, nAtomCopy)
+    this.atomStore.count -= nAtomOffset
 
     for (let iAtom = 0; iAtom < nAtomNew; iAtom += 1) {
-      atom.iAtom = iAtom;
+      atom.iAtom = iAtom
       if (atom.iRes >= iResStart) {
-        atom.iRes -= nResOffset;
+        atom.iRes -= nResOffset
       }
     }
 
     for (let iRes = 0; iRes < nResNew; iRes += 1) {
       if (iRes >= iResStart) {
-        let iResOld = iRes + nResOffset;
+        let iResOld = iRes + nResOffset
         if (iResOld in this.residueNormal) {
-          this.residueNormal[iRes] = this.residueNormal[iResOld].clone();
+          this.residueNormal[iRes] = this.residueNormal[iResOld].clone()
         }
       }
     }
 
     for (let iRes = nResNew; iRes < nRes; iRes += 1) {
-      delete this.residueNormal[iRes];
+      delete this.residueNormal[iRes]
     }
 
-    this.residueStore.copyWithin(iResStart, iResEnd, nResCopy);
-    this.residueStore.count -= nResOffset;
-    this.resIds.splice(iResStart, nResOffset);
+    this.residueStore.copyWithin(iResStart, iResEnd, nResCopy)
+    this.residueStore.count -= nResOffset
+    this.resIds.splice(iResStart, nResOffset)
 
     for (let iRes = 0; iRes < nResNew; iRes += 1) {
-      res.iRes = iRes;
+      res.iRes = iRes
       if (res.iAtom >= iAtomStart) {
-        res.iAtom -= nAtomOffset;
-        atom.iAtom = res.iAtom;
+        res.iAtom -= nAtomOffset
+        atom.iAtom = res.iAtom
       }
       if (this.residueStore.atomOffset[iRes] >= iAtomStart) {
-        this.residueStore.atomOffset[iRes] -= nAtomOffset;
+        this.residueStore.atomOffset[iRes] -= nAtomOffset
       }
       if (res.iStructure >= iStructure) {
-        res.iStructure -= 1;
+        res.iStructure -= 1
       }
     }
 
-    this.structureIds.splice(iStructure, 1);
-    this.iStructure -= 1;
+    this.structureIds.splice(iStructure, 1)
+    this.iStructure -= 1
 
-    this.calcBondsStrategic();
+    this.calcBondsStrategic()
   }
 
   makeSelectedResidueList() {
-    let result = [];
-    let residue = this.getResidueProxy();
+    let result = []
+    let residue = this.getResidueProxy()
     for (let i = 0; i < this.getResidueCount(); i += 1) {
       if (residue.load(i).sidechain) {
-        result.push(i);
+        result.push(i)
       }
     }
-    return result;
+    return result
   }
 }
 
-export { Soup };
+export { Soup }

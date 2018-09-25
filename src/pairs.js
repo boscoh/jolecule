@@ -15,7 +15,7 @@
  * @returns {Array} - array of pairs of positions
  */
 class SpaceHash {
-  constructor (vertices) {
+  constructor(vertices) {
     this.vertices = vertices
     this.padding = 0.05
     this.div = 5.0
@@ -54,7 +54,7 @@ class SpaceHash {
     }
   }
 
-  getSpaceFromVertex (vertex) {
+  getSpaceFromVertex(vertex) {
     let result = []
     for (let iDim = 0; iDim < 3; iDim++) {
       result.push(Math.round((vertex[iDim] - this.minima[iDim]) * this.invDiv))
@@ -62,11 +62,11 @@ class SpaceHash {
     return result
   }
 
-  getHashFromSpace (s) {
+  getHashFromSpace(s) {
     return s[0] * this.sizes[1] * this.sizes[2] + s[1] * this.sizes[2] + s[2]
   }
 
-  pushCellOfSpace (pairs, vertex, iVertex) {
+  pushCellOfSpace(pairs, vertex, iVertex) {
     let spaceCenter = this.getSpaceFromVertex(vertex)
 
     let space0start = Math.max(0, spaceCenter[0] - 1)
@@ -96,7 +96,7 @@ class SpaceHash {
     }
   }
 
-  getClosePairs () {
+  getClosePairs() {
     let pairs = []
     for (let iVertex = 0; iVertex < this.vertices.length; iVertex++) {
       this.pushCellOfSpace(pairs, this.vertices[iVertex], iVertex)
@@ -104,7 +104,7 @@ class SpaceHash {
     return pairs
   }
 
-  getVerticesNearPoint (vertex, iVertex) {
+  getVerticesNearPoint(vertex, iVertex) {
     console.log('SpatialHash.getClosePairs')
     let pairs = []
     this.pushCellOfSpace(pairs, vertex, iVertex)

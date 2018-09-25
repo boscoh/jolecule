@@ -30,7 +30,7 @@ import * as THREE from 'three'
  *   - box -1 to +1
  */
 class View {
-  constructor () {
+  constructor() {
     this.id = 'view:000000'
     this.iAtom = -1
     this.order = 1
@@ -70,11 +70,11 @@ class View {
     this.creator = 'public'
   }
 
-  setCamera (cameraParams) {
+  setCamera(cameraParams) {
     this.cameraParams = cameraParams
   }
 
-  getViewTranslatedTo (pos) {
+  getViewTranslatedTo(pos) {
     let view = this.clone()
     let disp = pos.clone().sub(view.cameraParams.focus)
     view.cameraParams.focus.copy(pos)
@@ -82,7 +82,7 @@ class View {
     return view
   }
 
-  clone () {
+  clone() {
     let v = new View()
     v.id = this.id
     v.pdbId = this.pdbId
@@ -102,7 +102,7 @@ class View {
     return v
   }
 
-  getDict () {
+  getDict() {
     // version 2.0 camera dict structure {
     //    pos: soupView center, cameraParams focus
     //    up: gives the direction of the y vector from pos
@@ -152,7 +152,7 @@ class View {
     }
   }
 
-  setFromDict (flatDict) {
+  setFromDict(flatDict) {
     this.id = flatDict.view_id
     this.pdbId = flatDict.pdb_id
     this.lock = flatDict.lock
@@ -238,7 +238,7 @@ class View {
   }
 }
 
-function interpolateCameras (oldCamera, futureCamera, t) {
+function interpolateCameras(oldCamera, futureCamera, t) {
   let oldCameraDirection = oldCamera.position.clone().sub(oldCamera.focus)
   let oldZoom = oldCameraDirection.length()
   oldCameraDirection.normalize()
@@ -294,7 +294,7 @@ function interpolateCameras (oldCamera, futureCamera, t) {
  * view, and a target view for animation
  */
 class SoupView {
-  constructor (soup) {
+  constructor(soup) {
     // the soup data for the soupView
     this.soup = soup
 
@@ -342,14 +342,14 @@ class SoupView {
     this.msPerStep = 17
   }
 
-  build () {
+  build() {
     if (this.savedViews.length === 0 && !this.soup.isEmpty()) {
       this.setCurrentViewToDefaultAndSave()
     }
     this.saveGridToCurrentView()
   }
 
-  saveGridToCurrentView () {
+  saveGridToCurrentView() {
     for (let elem in this.soup.grid.isElem) {
       if (elem in this.soup.grid.isElem) {
         this.currentView.grid.isElem[elem] = this.soup.grid.isElem[elem]
@@ -360,7 +360,7 @@ class SoupView {
     }
   }
 
-  setCurrentViewToDefaultAndSave () {
+  setCurrentViewToDefaultAndSave() {
     this.currentView.show.sidechain = false
     this.currentView.order = 0
     this.currentView.text = this.soup.title
@@ -370,7 +370,7 @@ class SoupView {
     this.isChanged = true
   }
 
-  setTargetView (view) {
+  setTargetView(view) {
     this.isStartTargetAfterRender = true
     this.saveTargetView = view.clone()
     this.saveTargetView.iAtom = this.soup.getIAtomAtPosition(
@@ -378,18 +378,18 @@ class SoupView {
     )
   }
 
-  startTargetView () {
+  startTargetView() {
     this.targetView = this.saveTargetView
     this.isUpdateObservers = true
     this.isStartTargetAfterRender = false
     this.isChanged = true
   }
 
-  getICenteredAtom () {
+  getICenteredAtom() {
     return this.currentView.iAtom
   }
 
-  getIViewFromViewId (viewId) {
+  getIViewFromViewId(viewId) {
     for (let iView = 0; iView < this.savedViews.length; iView += 1) {
       if (this.savedViews[iView].id === viewId) {
         return iView
@@ -398,7 +398,7 @@ class SoupView {
     return -1
   }
 
-  insertView (iView, newViewId, newView) {
+  insertView(iView, newViewId, newView) {
     this.savedViewsByViewId[newViewId] = newView
     if (iView >= this.savedViews.length) {
       this.savedViews.push(newView)
@@ -411,7 +411,7 @@ class SoupView {
     }
   }
 
-  removeView (viewId) {
+  removeView(viewId) {
     let iView = this.getIViewFromViewId(viewId)
     if (iView < 0) {
       return
@@ -427,12 +427,12 @@ class SoupView {
     this.isChanged = true
   }
 
-  saveView (view) {
+  saveView(view) {
     this.savedViewsByViewId[view.id] = view
     this.savedViews.push(view)
   }
 
-  getZoomedOutViewOfCurrentView () {
+  getZoomedOutViewOfCurrentView() {
     let maxLength = this.soup.calcMaxLength()
 
     let newView = this.currentView.clone()
@@ -463,13 +463,13 @@ class SoupView {
     return newView
   }
 
-  setTargetViewByViewId (viewId) {
+  setTargetViewByViewId(viewId) {
     let view = this.savedViewsByViewId[viewId]
     this.iLastViewSelected = this.savedViewsByViewId[viewId].order
     this.setTargetView(view)
   }
 
-  setTargetViewByIAtom (iAtom) {
+  setTargetViewByIAtom(iAtom) {
     let atom = this.soup.getAtomProxy(iAtom)
     let view = this.currentView.getViewTranslatedTo(atom.pos)
     view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus)
@@ -479,14 +479,14 @@ class SoupView {
     let iStructure = residue.iStructure
     for (let [iTrace, trace] of this.soup.traces.entries()) {
       residue.load(trace.indices[0])
-      if ((residue.chain === chain) && (residue.iStructure === iStructure)) {
+      if (residue.chain === chain && residue.iStructure === iStructure) {
         view.selectedTraces.push(iTrace)
       }
     }
     this.setTargetView(view)
   }
 
-  getZoomedOutViewOfSelection () {
+  getZoomedOutViewOfSelection() {
     let newView = this.currentView.clone()
 
     let atomIndices = []
@@ -523,7 +523,7 @@ class SoupView {
     return newView
   }
 
-  saveCurrentView () {
+  saveCurrentView() {
     let newView = this.currentView.clone()
     newView.id = randomId()
     newView.text = 'Click edit to change this text.'
@@ -541,7 +541,7 @@ class SoupView {
     return newView.id
   }
 
-  setCurrentView (view) {
+  setCurrentView(view) {
     let oldViewSelected = this.currentView.selected
     this.currentView = view.clone()
     this.soup.selectedTraces = _.cloneDeep(view.selectedTraces)
@@ -572,7 +572,7 @@ class SoupView {
     this.isChanged = true
   }
 
-  setTargetToPrevView () {
+  setTargetToPrevView() {
     if (this.savedViews.length === 0) {
       return ''
     }
@@ -585,7 +585,7 @@ class SoupView {
     return id
   }
 
-  setTargetToNextView () {
+  setTargetToNextView() {
     if (this.savedViews.length === 0) {
       return ''
     }
@@ -598,7 +598,7 @@ class SoupView {
     return id
   }
 
-  setTargetToPrevResidue () {
+  setTargetToPrevResidue() {
     let iAtom = _.get(this.targetView, 'iAtom')
     if (exists(iAtom)) {
       iAtom = this.targetView.iAtom
@@ -618,7 +618,7 @@ class SoupView {
     this.setTargetViewByIAtom(iAtom)
   }
 
-  setTargetToNextResidue () {
+  setTargetToNextResidue() {
     let iAtom = _.get(this.targetView, 'iAtom')
     if (exists(iAtom)) {
       iAtom = this.targetView.iAtom
@@ -638,7 +638,7 @@ class SoupView {
     this.setTargetViewByIAtom(iAtom)
   }
 
-  adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
+  adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
     let cameraParams = this.currentView.cameraParams
 
     let y = cameraParams.up
@@ -685,7 +685,7 @@ class SoupView {
     this.setCurrentView(view)
   }
 
-  animate (elapsedTime) {
+  animate(elapsedTime) {
     this.nUpdateStep -= elapsedTime / this.msPerStep
     if (this.nUpdateStep < 0) {
       if (this.targetView !== null) {
@@ -737,18 +737,18 @@ class SoupView {
  * to a Soup and its Views go through here.
  */
 class SoupViewController {
-  constructor (soupView) {
+  constructor(soupView) {
     this.soup = soupView.soup
     this.soupView = soupView
     this.iResLastSelected = null
   }
 
-  deleteDistance (iDistance) {
+  deleteDistance(iDistance) {
     this.soupView.currentView.distances.splice(iDistance, 1)
     this.soupView.isChanged = true
   }
 
-  makeDistance (iAtom1, iAtom2) {
+  makeDistance(iAtom1, iAtom2) {
     this.soupView.currentView.distances.push({
       i_atom1: iAtom1,
       i_atom2: iAtom2
@@ -756,45 +756,45 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
-  makeAtomLabel (iAtom, text) {
+  makeAtomLabel(iAtom, text) {
     this.soupView.currentView.labels.push({ i_atom: iAtom, text })
     this.soupView.isChanged = true
   }
 
-  deleteAtomLabel (iLabel) {
+  deleteAtomLabel(iLabel) {
     this.soupView.currentView.labels.splice(iLabel, 1)
     this.soupView.isChanged = true
   }
 
-  setTargetView (view) {
+  setTargetView(view) {
     this.soupView.setTargetView(view)
   }
 
-  setTargetViewByViewId (viewId) {
+  setTargetViewByViewId(viewId) {
     this.soupView.setTargetViewByViewId(viewId)
   }
 
-  setTargetViewByIAtom (iAtom) {
+  setTargetViewByIAtom(iAtom) {
     this.soupView.setTargetViewByIAtom(iAtom)
   }
 
-  setTargetToPrevResidue () {
+  setTargetToPrevResidue() {
     this.soupView.setTargetToPrevResidue()
   }
 
-  setTargetToNextResidue () {
+  setTargetToNextResidue() {
     this.soupView.setTargetToNextResidue()
   }
 
-  setTargetToPrevView () {
+  setTargetToPrevView() {
     return this.soupView.setTargetToPrevView()
   }
 
-  setTargetToNextView () {
+  setTargetToNextView() {
     return this.soupView.setTargetToNextView()
   }
 
-  swapViews (i, j) {
+  swapViews(i, j) {
     this.soupView.savedViews[j].order = i
     this.soupView.savedViews[i].order = j
     let dummy = this.soupView.savedViews[j]
@@ -802,7 +802,7 @@ class SoupViewController {
     this.soupView.savedViews[i] = dummy
   }
 
-  getViewDicts () {
+  getViewDicts() {
     let viewDicts = []
     for (let i = 1; i < this.soupView.savedViews.length; i += 1) {
       viewDicts.push(this.soupView.savedViews[i].getDict())
@@ -810,28 +810,28 @@ class SoupViewController {
     return viewDicts
   }
 
-  clearSidechainResidues () {
+  clearSidechainResidues() {
     this.soup.clearSidechainResidues()
     this.soupView.currentView.selected = this.soup.makeSelectedResidueList()
     this.soupView.isUpdateSidechain = true
     this.soupView.isChanged = true
   }
 
-  clearSelectedResidues () {
+  clearSelectedResidues() {
     this.soup.clearSelectedResidues()
     this.soupView.currentView.selected = this.soup.makeSelectedResidueList()
     this.soupView.isUpdateSelection = true
     this.soupView.isChanged = true
   }
 
-  setResidueSelect (iRes, val) {
+  setResidueSelect(iRes, val) {
     let res = this.soup.getResidueProxy(iRes)
     res.selected = val
     this.soupView.isUpdateSelection = true
     this.soupView.isChanged = true
   }
 
-  showAllSidechains () {
+  showAllSidechains() {
     let res = this.soup.getResidueProxy()
     for (let iRes of _.range(this.soup.getResidueCount())) {
       res.load(iRes).sidechain = true
@@ -840,7 +840,7 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
-  selectResidue (iRes, val) {
+  selectResidue(iRes, val) {
     let res = this.soup.getResidueProxy(iRes)
     if (_.isUndefined(val)) {
       val = !res.selected
@@ -852,7 +852,7 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
-  selectAdditionalResidue (iRes) {
+  selectAdditionalResidue(iRes) {
     let res = this.soup.getResidueProxy(iRes)
     let val = !res.selected
     this.setResidueSelect(iRes, val)
@@ -861,7 +861,7 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
-  selectAdditionalRangeToResidue (iRes) {
+  selectAdditionalRangeToResidue(iRes) {
     let res = this.soup.getResidueProxy(iRes)
     let val = !res.selected
     if (this.iResLastSelected !== null) {
@@ -879,7 +879,7 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
-  toggleSelectedSidechains () {
+  toggleSelectedSidechains() {
     let residue = this.soup.getResidueProxy()
     let indices = []
     let nSidechain = 0
@@ -905,7 +905,7 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
-  toggleResidueNeighbors () {
+  toggleResidueNeighbors() {
     let indices = []
 
     let nSelected = 0
@@ -943,16 +943,16 @@ class SoupViewController {
     this.soupView.isUpdateSidechain = true
   }
 
-  saveCurrentView () {
+  saveCurrentView() {
     return this.soupView.saveCurrentView()
   }
 
-  deleteView (viewId) {
+  deleteView(viewId) {
     this.soupView.removeView(viewId)
   }
 
-  sortViewsByOrder () {
-    function orderSort (a, b) {
+  sortViewsByOrder() {
+    function orderSort(a, b) {
       return a.order - b.order
     }
 
@@ -962,7 +962,7 @@ class SoupViewController {
     }
   }
 
-  loadViewsFromViewDicts (viewDicts) {
+  loadViewsFromViewDicts(viewDicts) {
     for (let i = 0; i < viewDicts.length; i += 1) {
       let view = new View()
       view.setFromDict(viewDicts[i])
@@ -974,7 +974,7 @@ class SoupViewController {
     this.sortViewsByOrder()
   }
 
-  async asyncLoadProteinData (proteinData, asyncSetMessageFn) {
+  async asyncLoadProteinData(proteinData, asyncSetMessageFn) {
     await this.soup.asyncLoadProteinData(proteinData, asyncSetMessageFn)
     // pre-calculations needed before building meshes
     this.soupView.build()
@@ -982,26 +982,26 @@ class SoupViewController {
     this.soupView.isUpdateObservers = true
   }
 
-  setShowOption (option, bool) {
+  setShowOption(option, bool) {
     console.log('Controller.setShowOption', option, bool)
     this.soupView.currentView.show[option] = bool
     this.soupView.isChanged = true
   }
 
-  getShowOption (option) {
+  getShowOption(option) {
     return this.soupView.currentView.show[option]
   }
 
-  toggleShowOption (option) {
+  toggleShowOption(option) {
     let val = this.getShowOption(option)
     this.setShowOption(option, !val)
   }
 
-  setChangeFlag () {
+  setChangeFlag() {
     this.soupView.isChanged = true
   }
 
-  setZoom (zBack, zFront) {
+  setZoom(zBack, zFront) {
     let cameraParams = this.soupView.currentView.cameraParams
     cameraParams.zBack = zBack
     cameraParams.zFront = zFront
@@ -1009,7 +1009,7 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
-  toggleGridElem (elem) {
+  toggleGridElem(elem) {
     let b = this.soup.grid.isElem[elem]
     this.soup.grid.isElem[elem] = !b
     this.soup.grid.isChanged = true
@@ -1021,7 +1021,7 @@ class SoupViewController {
     this.soupView.isUpdateSelection = true
   }
 
-  setGridCutoff (bCutoff) {
+  setGridCutoff(bCutoff) {
     this.soup.grid.bCutoff = bCutoff
     this.soup.grid.isChanged = true
     this.soupView.currentView.grid.bCutoff = bCutoff
@@ -1035,7 +1035,7 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
-  clear () {
+  clear() {
     let distances = this.soupView.currentView.distances
     for (let i of _.reverse(_.range(distances.length))) {
       this.deleteDistance(i)
@@ -1048,17 +1048,17 @@ class SoupViewController {
     this.clearSelectedResidues()
   }
 
-  getAnimateState () {
+  getAnimateState() {
     return this.soupView.animateState
   }
 
-  setAnimateState (v) {
+  setAnimateState(v) {
     this.soupView.animateState = v
     this.soupView.isUpdateObservers = true
     this.soupView.isChanged = true
   }
 
-  deleteStructure (iStructure) {
+  deleteStructure(iStructure) {
     this.soup.deleteStructure(iStructure)
     if (this.soup.isEmpty()) {
       this.soupView.savedViews.length = 0
@@ -1077,21 +1077,21 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
-  zoomOut () {
+  zoomOut() {
     if (!this.soup.isEmpty()) {
       this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView())
       this.soupView.isChanged = true
     }
   }
 
-  zoomToSelection () {
+  zoomToSelection() {
     if (!this.soup.isEmpty()) {
       this.setTargetView(this.soupView.getZoomedOutViewOfSelection())
       this.soupView.isChanged = true
     }
   }
 
-  adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
+  adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
     this.soupView.adjustCamera(
       xRotationAngle,
       yRotationAngle,

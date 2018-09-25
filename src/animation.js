@@ -20,7 +20,7 @@
  * typically MS_PER_STEP = 17
  */
 
-function loop () {
+function loop() {
   requestAnimationFrame(loop)
 
   if (window.globalWidgets === []) {
@@ -46,7 +46,7 @@ function loop () {
  * run loop() as a singleton by using the global
  * window space to lock one single copy of loop
  */
-function registerGlobalAnimationLoop (widget) {
+function registerGlobalAnimationLoop(widget) {
   // only set once by checking the global window variable
 
   if (typeof window.globalWidgets === 'undefined') {

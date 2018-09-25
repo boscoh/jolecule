@@ -24,11 +24,11 @@ let transparentMaterial = new THREE.MeshPhongMaterial({
   transparent: true
 })
 
-function getIndexColor (i) {
+function getIndexColor(i) {
   return new THREE.Color().setHex(i + 1)
 }
 
-function transferObjects (fromObj, toObj) {
+function transferObjects(fromObj, toObj) {
   for (let child of _.values(fromObj.children)) {
     toObj.add(child)
   }
@@ -41,7 +41,7 @@ function transferObjects (fromObj, toObj) {
  */
 
 class Representation {
-  constructor (soup) {
+  constructor(soup) {
     this.soup = soup
     this.displayObj = new THREE.Object3D()
     this.displayMaterial = phongMaterial
@@ -50,7 +50,7 @@ class Representation {
     this.isTransparent = false
   }
 
-  setTransparent (isTransparent) {
+  setTransparent(isTransparent) {
     this.isTransparent = isTransparent
     if (this.isTransparent) {
       this.displayMaterial = transparentMaterial
@@ -59,11 +59,11 @@ class Representation {
     }
   }
 
-  build () {}
+  build() {}
 }
 
 class ArrowRepresentation extends Representation {
-  constructor (soup, isTransparent = false, selectedTraces = []) {
+  constructor(soup, isTransparent = false, selectedTraces = []) {
     super(soup)
     this.selectedTraces = selectedTraces
     this.setTransparent(isTransparent)
@@ -71,7 +71,7 @@ class ArrowRepresentation extends Representation {
     this.build()
   }
 
-  build () {
+  build() {
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
     let nCopy = 0
@@ -127,7 +127,7 @@ class ArrowRepresentation extends Representation {
     this.pickingObj.add(new THREE.Mesh(this.pickingGeom, this.pickingMaterial))
   }
 
-  recolor () {
+  recolor() {
     let iCopy = 0
     let residue = this.soup.getResidueProxy()
 
@@ -145,7 +145,7 @@ class ArrowRepresentation extends Representation {
 }
 
 class RibbonRepresentation extends Representation {
-  constructor (soup, isTransparent = false, selectedTraces = []) {
+  constructor(soup, isTransparent = false, selectedTraces = []) {
     super(soup)
     this.selectedTraces = selectedTraces
     this.traces = []
@@ -153,7 +153,7 @@ class RibbonRepresentation extends Representation {
     this.build()
   }
 
-  build () {
+  build() {
     4
     this.traces = this.soup.traces
     if (this.selectedTraces.length > 0) {
@@ -184,7 +184,7 @@ class RibbonRepresentation extends Representation {
     this.recolor()
   }
 
-  recolor () {
+  recolor() {
     let residue = this.soup.getResidueProxy()
     for (let trace of this.traces) {
       for (let iTrace of _.range(trace.points.length)) {
@@ -197,7 +197,7 @@ class RibbonRepresentation extends Representation {
 }
 
 class NucleotideRepresentation extends Representation {
-  constructor (soup, isTransparent = false, selectedTraces = null) {
+  constructor(soup, isTransparent = false, selectedTraces = null) {
     super(soup)
     this.selectedTraces = selectedTraces
     this.setTransparent(isTransparent)
@@ -205,7 +205,7 @@ class NucleotideRepresentation extends Representation {
     this.build()
   }
 
-  build () {
+  build() {
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
 
@@ -303,7 +303,7 @@ class NucleotideRepresentation extends Representation {
     this.displayObj.add(mesh)
   }
 
-  recolor () {
+  recolor() {
     this.nucleotideColorList = []
     let residue = this.soup.getResidueProxy()
     for (let trace of this.traces) {
@@ -327,21 +327,21 @@ class NucleotideRepresentation extends Representation {
 }
 
 class CartoonRepresentation extends Representation {
-  constructor (soup, isTransparent = false, selectedTraces = []) {
+  constructor(soup, isTransparent = false, selectedTraces = []) {
     super(soup)
     super.setTransparent(isTransparent)
     this.selectedTraces = selectedTraces
     this.build()
   }
 
-  setTransparent (isTransparent) {
+  setTransparent(isTransparent) {
     super.setTransparent(isTransparent)
     this.ribbonRepr.setTransparent(isTransparent)
     this.arrowRepr.setTransparent(isTransparent)
     this.nucRepr.setTransparent(isTransparent)
   }
 
-  build () {
+  build() {
     this.ribbonRepr = new RibbonRepresentation(
       this.soup,
       this.isTransparent,
@@ -370,7 +370,7 @@ class CartoonRepresentation extends Representation {
     transferObjects(this.nucRepr.pickingObj, this.pickingObj)
   }
 
-  recolor () {
+  recolor() {
     this.ribbonRepr.recolor()
     this.arrowRepr.recolor()
     this.nucRepr.recolor()
@@ -378,7 +378,7 @@ class CartoonRepresentation extends Representation {
 }
 
 class AtomsRepresentation {
-  constructor (soup, atomIndices, atomRadius, isElementRadius = false) {
+  constructor(soup, atomIndices, atomRadius, isElementRadius = false) {
     this.soup = soup
     this.displayObj = new THREE.Object3D()
     this.pickingObj = new THREE.Object3D()
@@ -390,7 +390,7 @@ class AtomsRepresentation {
     this.build()
   }
 
-  build () {
+  build() {
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
     if (this.atomIndices.length === 0) {
@@ -427,7 +427,7 @@ class AtomsRepresentation {
     this.pickingObj.add(new THREE.Mesh(pickingGeom, this.pickingMaterial))
   }
 
-  recolor () {
+  recolor() {
     if (this.atomIndices.length === 0) {
       return
     }
@@ -442,11 +442,11 @@ class AtomsRepresentation {
 }
 
 class GridRepresentation extends AtomsRepresentation {
-  constructor (soup, radius) {
+  constructor(soup, radius) {
     super(soup, [], radius)
   }
 
-  build () {
+  build() {
     let grid = this.soup.grid
     this.atomIndices = []
     let residue = this.soup.getResidueProxy()
@@ -465,11 +465,11 @@ class GridRepresentation extends AtomsRepresentation {
 }
 
 class SphereRepresentation extends AtomsRepresentation {
-  constructor (soup) {
+  constructor(soup) {
     super(soup, [], 1.7, true)
   }
 
-  build () {
+  build() {
     let grid = this.soup.grid
     this.atomIndices = []
     let residue = this.soup.getResidueProxy()
@@ -489,7 +489,7 @@ class SphereRepresentation extends AtomsRepresentation {
 }
 
 class BondRepresentation {
-  constructor (soup, bondIndices) {
+  constructor(soup, bondIndices) {
     this.soup = soup
     this.bondIndices = bondIndices
     this.displayObj = new THREE.Object3D()
@@ -499,7 +499,7 @@ class BondRepresentation {
     this.build()
   }
 
-  build () {
+  build() {
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
     let bondIndices = this.bondIndices
@@ -563,7 +563,7 @@ class BondRepresentation {
     this.displayObj.add(displayMesh)
   }
 
-  recolor () {
+  recolor() {
     let bondIndices = this.bondIndices
     if (bondIndices.length === 0) {
       return
@@ -585,7 +585,7 @@ class BondRepresentation {
 }
 
 class LigandRepresentation {
-  constructor (soup, radius) {
+  constructor(soup, radius) {
     this.soup = soup
     this.radius = radius
     this.displayObj = new THREE.Object3D()
@@ -593,7 +593,7 @@ class LigandRepresentation {
     this.build()
   }
 
-  build () {
+  build() {
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
 
@@ -628,7 +628,7 @@ class LigandRepresentation {
 }
 
 class WaterRepresentation extends AtomsRepresentation {
-  constructor (soup, radius) {
+  constructor(soup, radius) {
     super(soup, [], radius)
     this.name = 'water'
     this.atomIndices = []
@@ -644,7 +644,7 @@ class WaterRepresentation extends AtomsRepresentation {
 }
 
 class SidechainRepresentation {
-  constructor (soup, radius) {
+  constructor(soup, radius) {
     this.soup = soup
     this.displayObj = new THREE.Object3D()
     this.pickingObj = new THREE.Object3D()
@@ -652,7 +652,7 @@ class SidechainRepresentation {
     this.build()
   }
 
-  build () {
+  build() {
     glgeom.clearObject3D(this.displayObj)
     glgeom.clearObject3D(this.pickingObj)
 
@@ -689,14 +689,14 @@ class SidechainRepresentation {
     transferObjects(this.atomRepr.pickingObj, this.pickingObj)
   }
 
-  recolor () {
+  recolor() {
     this.atomRepr.recolor()
     this.bondRepr.recolor()
   }
 }
 
 class BackboneRepresentation {
-  constructor (soup, radius) {
+  constructor(soup, radius) {
     this.soup = soup
     this.displayObj = new THREE.Object3D()
     this.pickingObj = new THREE.Object3D()
@@ -704,7 +704,7 @@ class BackboneRepresentation {
     this.build()
   }
 
-  build () {
+  build() {
     let atomIndices = []
     let bondIndices = []
 
@@ -736,7 +736,7 @@ class BackboneRepresentation {
     }
   }
 
-  recolor () {
+  recolor() {
     this.atomRepr.recolor()
     this.bondRepr.recolor()
   }

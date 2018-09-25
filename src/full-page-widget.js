@@ -15,14 +15,14 @@ class ViewPanel {
    *    swapUp
    * }
    */
-  constructor (params) {
+  constructor(params) {
     this.params = params
     this.div = $('<div>').addClass('jolecule-view')
     this.makeEditDiv()
     this.makeShowDiv()
   }
 
-  saveChange () {
+  saveChange() {
     console.log('ViewPiece.saveChange')
     let changedText = this.editTextArea.val()
     this.editDiv.hide()
@@ -31,25 +31,25 @@ class ViewPanel {
     window.keyboardLock = false
   }
 
-  startEdit () {
+  startEdit() {
     this.params.pick()
     this.editTextArea.text(this.params.view.text)
     this.editDiv.show()
     this.showDiv.hide()
     let textarea = this.editTextArea.find('textarea')
-    setTimeout(function () {
+    setTimeout(function() {
       textarea.focus()
     }, 100)
     window.keyboardLock = true
   }
 
-  discardChange () {
+  discardChange() {
     this.editDiv.hide()
     this.showDiv.show()
     window.keyboardLock = false
   }
 
-  makeEditDiv () {
+  makeEditDiv() {
     this.editTextArea = $('<textarea>')
       .addClass('jolecule-view-text')
       .css('width', '100%')
@@ -76,7 +76,7 @@ class ViewPanel {
     this.div.append(this.editDiv)
   }
 
-  makeShowDiv () {
+  makeShowDiv() {
     let view = this.params.view
 
     let editButton = linkButton('edit', 'jolecule-small-button', () => {
@@ -144,7 +144,7 @@ class ViewPanel {
  * ViewPanelList keeps track of the ViewPanel's
  */
 class ViewPanelList {
-  constructor (divTag, soupWidget, isEditable) {
+  constructor(divTag, soupWidget, isEditable) {
     this.divTag = divTag
     this.soupWidget = soupWidget
     this.soupView = soupWidget.soupView
@@ -166,7 +166,7 @@ class ViewPanelList {
     }
   }
 
-  saveViewsToDataServer (success) {
+  saveViewsToDataServer(success) {
     console.log('ViewPanelList.saveViewsToDataServer')
     this.soupWidget.dataServer.saveViews(
       this.controller.getViewDicts(),
@@ -174,7 +174,7 @@ class ViewPanelList {
     )
   }
 
-  update () {
+  update() {
     for (let id in this.viewPiece) {
       if (!(id in this.soupView.savedViewsByViewId)) {
         this.viewPiece[id].div.remove()
@@ -237,22 +237,22 @@ class ViewPanelList {
     }
   }
 
-  setTargetByViewId (id) {
+  setTargetByViewId(id) {
     this.controller.setTargetViewByViewId(id)
     this.update()
   }
 
-  gotoPrevView () {
+  gotoPrevView() {
     let id = this.controller.setTargetToPrevView()
     this.update()
   }
 
-  gotoNextView () {
+  gotoNextView() {
     let id = this.controller.setTargetToNextView()
     this.update()
   }
 
-  removeView (id) {
+  removeView(id) {
     console.log('ViewPanelList.removeView')
     this.viewPiece[id].div.css('background-color', 'lightgray')
     this.soupWidget.dataServer.deleteView(id, () => {
@@ -261,7 +261,7 @@ class ViewPanelList {
     })
   }
 
-  swapViews (i, j) {
+  swapViews(i, j) {
     let iId = this.soupView.savedViews[i].id
     let jId = this.soupView.savedViews[j].id
     let iDiv = this.viewPiece[iId].div
@@ -280,7 +280,7 @@ class ViewPanelList {
     })
   }
 
-  swapUp (viewId) {
+  swapUp(viewId) {
     let i = this.soupView.getIViewFromViewId(viewId)
     if (i < 2) {
       return
@@ -288,7 +288,7 @@ class ViewPanelList {
     this.swapViews(i - 1, i)
   }
 
-  swapDown (viewId) {
+  swapDown(viewId) {
     let i = this.soupView.getIViewFromViewId(viewId)
     if (i > this.soupView.savedViews.length - 2) {
       return
@@ -296,7 +296,7 @@ class ViewPanelList {
     this.swapViews(i, i + 1)
   }
 
-  makeViewDiv (id) {
+  makeViewDiv(id) {
     let view = this.soupView.savedViewsByViewId[id]
     this.viewPiece[id] = new ViewPanel({
       view: view,
@@ -330,7 +330,7 @@ class ViewPanelList {
     return this.viewPiece[id].div
   }
 
-  makeAllViews () {
+  makeAllViews() {
     for (let i = 0; i < this.soupView.savedViews.length; i += 1) {
       let id = this.soupView.savedViews[i].id
       let div = this.makeViewDiv(id)
@@ -338,7 +338,7 @@ class ViewPanelList {
     }
   }
 
-  insertNewViewDiv (newId) {
+  insertNewViewDiv(newId) {
     let div = this.makeViewDiv(newId)
     if (
       this.soupView.iLastViewSelected === 0 ||
@@ -353,7 +353,7 @@ class ViewPanelList {
     }
   }
 
-  saveCurrentView () {
+  saveCurrentView() {
     console.log('ViewPanelList.saveCurrentView')
     let newId = this.controller.saveCurrentView()
     this.insertNewViewDiv(newId)
@@ -375,7 +375,7 @@ class ViewPanelList {
  * @param name
  * @returns {RegExpExecArray | string}
  */
-function getParameterByName (name) {
+function getParameterByName(name) {
   let match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search)
   return match && decodeURIComponent(match[1].replace(/\+/g, ' '))
 }
@@ -391,7 +391,7 @@ class FullPageWidget {
    * @param viewsDisplayTag
    * @param params
    */
-  constructor (proteinDisplayTag, viewsDisplayTag, params) {
+  constructor(proteinDisplayTag, viewsDisplayTag, params) {
     this.viewsDisplayTag = viewsDisplayTag
     this.params = {
       divTag: proteinDisplayTag,
@@ -423,11 +423,11 @@ class FullPageWidget {
     }
   }
 
-  clear () {
+  clear() {
     this.embedJolecule.clear()
   }
 
-  async asyncAddDataServer (dataServer) {
+  async asyncAddDataServer(dataServer) {
     console.log('FullPageWidget.asyncAddDataServer')
     await this.embedJolecule.asyncAddDataServer(dataServer)
     if (!this.viewPanelList) {
@@ -446,13 +446,13 @@ class FullPageWidget {
     this.embedJolecule.resize()
   }
 
-  update () {
+  update() {
     if (!_.isUndefined(this.viewPanelList)) {
       this.viewPanelList.update()
     }
   }
 
-  onkeydown (event) {
+  onkeydown(event) {
     if (!window.keyboardLock) {
       let c = String.fromCharCode(event.keyCode).toUpperCase()
       if (c === 'V') {

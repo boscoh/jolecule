@@ -5,7 +5,7 @@
  * adapted from NGL @author Alexander Rose <alexander.rose@weirdbyte.de>
  */
 
-function getTypedArray (arrayType, arraySize) {
+function getTypedArray(arrayType, arraySize) {
   switch (arrayType) {
     case 'int8':
       return new Int8Array(arraySize)
@@ -35,7 +35,7 @@ class Store {
    * @param fields - list of typed fields in the store
    * @param {Integer} size - initial size of the datastore
    */
-  constructor (fields, size) {
+  constructor(fields, size) {
     // actual size allocated
     this.length = 0
 
@@ -55,7 +55,7 @@ class Store {
    * Initialize the store
    * @param {Integer} size - size to initialize
    */
-  _init (size) {
+  _init(size) {
     this.length = size
     this.count = 0
 
@@ -71,7 +71,7 @@ class Store {
    * @param  {String} type - data type, one of int8, int16, int32,
    *                         uint8, uint16, uint32, float32
    */
-  _initField (name, size, type) {
+  _initField(name, size, type) {
     this[name] = getTypedArray(type, this.length * size)
   }
 
@@ -82,7 +82,7 @@ class Store {
    * @param  {String} type - data type, one of int8, int16, int32,
    *                         uint8, uint16, uint32, float32
    */
-  addField (name, size, type) {
+  addField(name, size, type) {
     this._fields.push([name, size, type])
     this._initField(name, size, type)
   }
@@ -91,7 +91,7 @@ class Store {
    * Resize the store to the new size
    * @param  {Integer} size - new size
    */
-  resize (size) {
+  resize(size) {
     // Log.time( "Store.resize" );
 
     this.length = Math.round(size || 0)
@@ -117,7 +117,7 @@ class Store {
   /**
    * Resize the store to 1.5 times its current size if full, or to 256 if empty
    */
-  growIfFull () {
+  growIfFull() {
     if (this.count >= this.length) {
       const size = Math.round(this.length * 1.5)
       this.resize(Math.max(256, size))
@@ -127,7 +127,7 @@ class Store {
   /**
    * Increase the store by 1, and resize if necessary
    */
-  increment () {
+  increment() {
     this.count += 1
     this.growIfFull()
   }
@@ -139,7 +139,7 @@ class Store {
    * @param  {Integer} otherOffset - offset to start copying from
    * @param  {Integer} length - number of entries to copy
    */
-  copyFrom (other, thisOffset, otherOffset, length) {
+  copyFrom(other, thisOffset, otherOffset, length) {
     for (let i = 0, il = this._fields.length; i < il; ++i) {
       const name = this._fields[i][0]
       const itemSize = this._fields[i][1]
@@ -162,7 +162,7 @@ class Store {
    * @param  {Integer} offsetSource - offset to start copying from
    * @param  {Integer} length - number of entries to copy
    */
-  copyWithin (offsetTarget, offsetSource, length) {
+  copyWithin(offsetTarget, offsetSource, length) {
     for (let i = 0, il = this._fields.length; i < il; ++i) {
       const name = this._fields[i][0]
       const itemSize = this._fields[i][1]
@@ -183,18 +183,18 @@ class Store {
    * @param  {Function} compareFunction - function to sort by (i, j) -> Integer
    *            the return value is - if item[i] is smaller than item[j]
    */
-  sort (compareFunction) {
+  sort(compareFunction) {
     const thisStore = this
     const tmpStore = new this.constructor(this._fields, 1)
 
-    function swap (index1, index2) {
+    function swap(index1, index2) {
       if (index1 === index2) return
       tmpStore.copyFrom(thisStore, 0, index1, 1)
       thisStore.copyWithin(index1, index2, 1)
       thisStore.copyFrom(tmpStore, index2, 0, 1)
     }
 
-    function quicksort (left, right) {
+    function quicksort(left, right) {
       if (left < right) {
         let pivot = Math.floor((left + right) / 2)
         let leftNew = left
@@ -228,14 +228,14 @@ class Store {
   /**
    * Empty the store, but keep the allocated memory
    */
-  clear () {
+  clear() {
     this.count = 0
   }
 
   /**
    * Dispose of the store entries and fields
    */
-  dispose () {
+  dispose() {
     delete this.length
     delete this.count
 

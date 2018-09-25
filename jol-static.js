@@ -156,9 +156,9 @@ const fullPageIndexHtmlMustache = `
 `
 
 let knownOpts = {
-  'out': [String, null],
-  'browser': [Boolean, false],
-  'embed': [Boolean, true]
+  out: [String, null],
+  browser: [Boolean, false],
+  embed: [Boolean, true]
 }
 let shortHands = {
   o: ['--out'],
@@ -171,7 +171,6 @@ let remain = parsed.argv.remain
 if (remain.length < 1) {
   console.log(doc)
 } else {
-
   const pdb = remain[0]
   let base = path.basename(pdb.replace('.pdb', ''))
   let targetDir = path.join(path.dirname(pdb), base + '-jol')
@@ -197,7 +196,7 @@ if (remain.length < 1) {
     dataServerLoadStr += `"data-server${i}"`
     dataServerArgStr += `dataServer${i}`
     let pdbLines = pdbText.split(/\r?\n/)
-    pdbLines = _.map(pdbLines, (l) => l.replace(/"/g, '\\"'))
+    pdbLines = _.map(pdbLines, l => l.replace(/"/g, '\\"'))
     let pdbId = base
     let viewsJson = pdb.replace('.pdb', '') + '.views.json'
     console.log(`Checking ${viewsJson}`)
@@ -207,9 +206,11 @@ if (remain.length < 1) {
       views = JSON.parse(text)
     }
     let viewsJsonStr = JSON.stringify(views, null, 2)
-    let dataJsText = mustache.render(
-      dataServerMustache,
-      {pdbId, pdbLines, viewsJsonStr})
+    let dataJsText = mustache.render(dataServerMustache, {
+      pdbId,
+      pdbLines,
+      viewsJsonStr
+    })
     fs.writeFileSync(dataJs, dataJsText)
   }
 
@@ -219,18 +220,16 @@ if (remain.length < 1) {
   let htmlText
   if (isFullPage) {
     let user_nickname = 'anonymous'
-    htmlText = mustache.render(
-      fullPageIndexHtmlMustache, {
-        dataServerLoadStr,
-        dataServerArgStr,
-        user_nickname
-      })
+    htmlText = mustache.render(fullPageIndexHtmlMustache, {
+      dataServerLoadStr,
+      dataServerArgStr,
+      user_nickname
+    })
   } else {
-    htmlText = mustache.render(
-      embedIndexHtmlMustache, {
-        dataServerLoadStr,
-        dataServerArgStr,
-      })
+    htmlText = mustache.render(embedIndexHtmlMustache, {
+      dataServerLoadStr,
+      dataServerArgStr
+    })
   }
   fs.writeFileSync(html, htmlText)
 
@@ -238,20 +237,17 @@ if (remain.length < 1) {
     'dist/jolecule.js',
     'dist/jolecule.js.map',
     'dist/full-page-jolecule.css',
-    'node_modules/requirejs/require.js']
+    'node_modules/requirejs/require.js'
+  ]
 
   for (let fname of fnames) {
     fs.copySync(
       path.join(__dirname, fname),
-      path.join(targetDir, path.basename(fname)))
+      path.join(targetDir, path.basename(fname))
+    )
   }
 
   if (!parsed.browser) {
     opener(html)
   }
 }
-
-
-
-
-
