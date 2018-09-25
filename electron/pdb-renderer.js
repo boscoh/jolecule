@@ -71,12 +71,12 @@ function loadPdb (pdb) {
 }
 
 function buildFileDiv (entry) {
-  let s = entry.name
+  let s = `<span style="text-transform: uppercase">[${entry.name}]</span>`
   if (entry.title) {
-    s += ' - ' + entry.title
+    s += ` <span style="">${entry.title}</span>`
   }
   let entryDiv = $('<div class="file-entry">')
-    .append($('<span>').text(s))
+    .html(s)
     .click(e => {
       loadPdb(entry.filename)
     })

@@ -18,7 +18,7 @@ import * as THREE from 'three'
  * }
  * @returns {EmbedJolecule}
  */
-function initEmbedJolecule (args) {
+function initEmbedJolecule(args) {
   return new EmbedJolecule(_.merge(defaultArgs, args))
 }
 
@@ -27,7 +27,7 @@ function initEmbedJolecule (args) {
  * @param viewsDisplayTag
  * @param params
  */
-function initFullPageJolecule (...args) {
+function initFullPageJolecule(...args) {
   return new FullPageWidget(...args)
 }
 
@@ -40,7 +40,7 @@ function initFullPageJolecule (...args) {
  * @param isView: bool - if false: creates dummy view get methods
  * @returns DataServer object
  */
-function makeDataServer (
+function makeDataServer(
   pdbId,
   userId = null,
   isReadOnly = false,
@@ -48,7 +48,6 @@ function makeDataServer (
   isView = true
 ) {
   return {
-
     // Id of structure accessed by this DataServer
     pdbId: pdbId,
 
@@ -58,7 +57,7 @@ function makeDataServer (
      *   pdbText: Str - text in PDB format of a protein structure
      * }
      */
-    getProteinData: function (callback) {
+    getProteinData: function(callback) {
       let url
       if (pdbId.length === 4) {
         url = `https://files.rcsb.org/download/${pdbId}.pdb`
@@ -77,7 +76,7 @@ function makeDataServer (
      *   View dictionary as defined by View.getDict()
      * ]
      */
-    getViews: function (callback) {
+    getViews: function(callback) {
       if (!isView) {
         callback([])
         return
@@ -86,7 +85,7 @@ function makeDataServer (
       if (userId) {
         url += `?user_id=${userId}`
       }
-      $.getJSON(url, (views) => {
+      $.getJSON(url, views => {
         console.log('makeDataServer.getViews', url, views)
         callback(views)
       })
@@ -96,7 +95,7 @@ function makeDataServer (
      * @param views - list of View.dicts to be saved
      * @param callback - that is triggered on successful save
      */
-    saveViews: function (views, callback) {
+    saveViews: function(views, callback) {
       if (isReadOnly) {
         callback()
         return
@@ -111,26 +110,119 @@ function makeDataServer (
      * @param viewId - Str: id of view to be deleted
      * @param callback - that is triggered on successful delete
      */
-    deleteView: function (viewId, callback) {
+    deleteView: function(viewId, callback) {
       if (isReadOnly) {
         callback()
         return
       }
-      $.post(`${saveUrl}/delete/view`, JSON.stringify({ pdbId, viewId }), () => {
-        console.log('makeDataServer.deleteView', viewId)
-        callback()
-      })
+      $.post(
+        `${saveUrl}/delete/view`,
+        JSON.stringify({ pdbId, viewId }),
+        () => {
+          console.log('makeDataServer.deleteView', viewId)
+          callback()
+        }
+      )
     }
   }
 }
 
 function getHexColor(hex) {
-  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
   var r = parseInt(result[1], 16) / 255
   var g = parseInt(result[2], 16) / 255
   var b = parseInt(result[3], 16) / 255
   return new THREE.Color(r, g, b)
 }
 
+function isNumeric(str) {
+  return /^\d+$/.test(str)
+}
 
-export { initEmbedJolecule, initFullPageJolecule, makeDataServer, getHexColor }
+function makeRgbStringFromHexString(hex) {
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  var r = parseInt(result[1], 16)
+  var g = parseInt(result[2], 16)
+  var b = parseInt(result[3], 16)
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+class AquariaAlignment {
+  constructor(aquariaAlignData) {
+    this.data = aquariaAlignData
+    this.alignEntries = []
+    for (let alignStr of R.split(';', this.data.alignment)) {
+      let pieces = R.split(',', alignStr)
+      let tokens = R.head(pieces).split(':')
+      let [pdbId, pdbChain, resNumPdbStart] = R.take(3, tokens)
+      let resNumPdbEnd = R.last(tokens)
+      if (R.isNil(resNumPdbStart)) {
+        continue
+      }
+      let [seqId, resNumSeqStart, resNumSeqEnd] = R.last(pieces).split(':')
+      if (seqId !== 'P04637') {
+        continue
+      }
+      let entry = {
+        pdbId,
+        pdbChain,
+        resNumPdbStart,
+        resNumPdbEnd,
+        seqId,
+        resNumSeqStart,
+        resNumSeqEnd
+      }
+      for (let key of R.keys(entry)) {
+        if (isNumeric(entry[key])) {
+          entry[key] = parseInt(entry[key])
+        }
+      }
+      this.alignEntries.push(entry)
+    }
+  }
+
+  getMapResNums(resNumSeq) {
+    let result = []
+    for (let entry of this.alignEntries) {
+      if (
+        resNumSeq >= entry.resNumSeqStart &&
+        resNumSeq <= entry.resNumSeqEnd
+      ) {
+        let diff = resNumSeq - entry.resNumSeqStart
+        let resNumPdb = entry.resNumPdbStart + diff
+        result.push([entry.pdbId, entry.pdbChain, resNumPdb])
+      }
+    }
+    return result
+  }
+
+  getPdbResColors(resNumSeq, color) {
+    let result = []
+    for (let entry of this.getMapResNums(resNumSeq)) {
+      let [pdb, chain, resNumPdb] = entry
+      result.push({
+        pdb,
+        chain,
+        resNum: resNumPdb,
+        color: makeRgbStringFromHexString(color)
+      })
+    }
+    return result
+  }
+
+  getSeqToPdbMapping(seqId, chain) {}
+
+  getPdbToSeqMapping(chain, seqId) {}
+
+  recolorPdb(chain, seqId) {}
+
+  rebuildWithNewAlignment(seqId, chain) {}
+}
+
+export {
+  initEmbedJolecule,
+  initFullPageJolecule,
+  makeDataServer,
+  getHexColor,
+  AquariaAlignment
+}

@@ -1,14 +1,17 @@
+// https://eslint.org/docs/user-guide/configuring
+
 module.exports = {
-  // https://github.com/prettier/eslint-config-prettier
-  extends: ["prettier", "prettier/standard"],
-  // https://github.com/prettier/eslint-plugin-prettier
-  plugins: ["prettier"],
+  root: true,
+  parserOptions: {
+    parser: 'babel-eslint',
+    ecmaVersion: 7
+  },
+  env: {
+    browser: true,
+  },
+  extends: ["prettier-standard", "plugin:vue/recommended"],
+  plugins: ["vue", "prettier"],
   rules: {
     "prettier/prettier": "error"
   },
-  "scripts": {
-    "lint": "eslint --ext .js,.vue src test",
-    "lint-autofix": "eslint --ext .js,.vue src test --fix",
-    "eslint-check": "eslint --print-config .eslintrc.js | eslint-config-prettier-check"
-  }
-};
+}

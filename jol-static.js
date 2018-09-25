@@ -237,9 +237,7 @@ if (remain.length < 1) {
   let fnames = [
     'dist/jolecule.js',
     'dist/jolecule.js.map',
-    'dist/jolecule.css',
     'dist/full-page-jolecule.css',
-    'dist/select2.css',
     'node_modules/requirejs/require.js']
 
   for (let fname of fnames) {
