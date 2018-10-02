@@ -150,19 +150,16 @@ function makeRgbStringFromHexString(hex) {
 class AquariaAlignment {
   constructor(aquariaAlignData) {
     this.data = aquariaAlignData
+
     this.alignEntries = []
-    for (let alignStr of R.split(';', this.data.alignment)) {
-      let pieces = R.split(',', alignStr)
-      let tokens = R.head(pieces).split(':')
-      let [pdbId, pdbChain, resNumPdbStart] = R.take(3, tokens)
-      let resNumPdbEnd = R.last(tokens)
-      if (R.isNil(resNumPdbStart)) {
+    for (let alignStr of this.data.alignment.split(';')) {
+      let pieces = alignStr.split(',')
+      let tokens = _.head(pieces).split(':')
+      let [pdbId, pdbChain, resNumPdbStart, dummy, resNumPdbEnd] = _.take(tokens, 5)
+      if (_.isNil(resNumPdbStart)) {
         continue
       }
-      let [seqId, resNumSeqStart, resNumSeqEnd] = R.last(pieces).split(':')
-      if (seqId !== 'P04637') {
-        continue
-      }
+      let [seqId, resNumSeqStart, resNumSeqEnd] = _.last(pieces).split(':')
       let entry = {
         pdbId,
         pdbChain,
@@ -172,7 +169,7 @@ class AquariaAlignment {
         resNumSeqStart,
         resNumSeqEnd
       }
-      for (let key of R.keys(entry)) {
+      for (let key of _.keys(entry)) {
         if (isNumeric(entry[key])) {
           entry[key] = parseInt(entry[key])
         }
@@ -181,7 +178,7 @@ class AquariaAlignment {
     }
   }
 
-  getMapResNums(resNumSeq) {
+  mapPdbFromSeqResNum(resNumSeq) {
     let result = []
     for (let entry of this.alignEntries) {
       if (
@@ -196,9 +193,41 @@ class AquariaAlignment {
     return result
   }
 
-  getPdbResColors(resNumSeq, color) {
+  mapPdb(chain, resNum) {
+    for (let entry of this.alignEntries) {
+      if (chain !== entry.pdbChain) {
+        continue
+      }
+      if (
+        resNum >= entry.resNumPdbStart &&
+        resNum <= entry.resNumPdbEnd
+      ) {
+        let diff = resNum - entry.resNumPdbStart
+        let resNumSeq = entry.resNumSeqStart + diff
+        return resNumSeq
+      }
+    }
+    return null
+  }
+
+  mapSeqRes(seqId, resNumSeq, chain) {
+    for (let entry of this.alignEntries) {
+      if (
+        resNumSeq >= entry.resNumSeqStart &&
+        resNumSeq <= entry.resNumSeqEnd &&
+        chain === entry.pdbChain
+      ) {
+        let diff = resNumSeq - entry.resNumSeqStart
+        let resNumPdb = entry.resNumPdbStart + diff
+        return [entry.pdbId, entry.pdbChain, resNumPdb]
+      }
+    }
+    return null
+  }
+
+  getPdbColorEntry(resNumSeq, color) {
     let result = []
-    for (let entry of this.getMapResNums(resNumSeq)) {
+    for (let entry of this.mapPdbFromSeqResNum(resNumSeq)) {
       let [pdb, chain, resNumPdb] = entry
       result.push({
         pdb,
@@ -210,13 +239,29 @@ class AquariaAlignment {
     return result
   }
 
-  getSeqToPdbMapping(seqId, chain) {}
+  getSeqToPdbMapping(seqId, chain) {
+  }
 
-  getPdbToSeqMapping(chain, seqId) {}
+  getPdbToSeqMapping(chain, seqId) {
 
-  recolorPdb(chain, seqId) {}
+  }
 
-  rebuildWithNewAlignment(seqId, chain) {}
+  recolorPdb(chain, seqId) {
+    let colors = []
+    for (let chain of _.keys(this.data.conservations)) {
+      for (let resNum of this.data.conservations[chain].conserved) {
+        colors = _.concat(colors, this.getPdbColorEntry(resNum, '#666666'))
+      }
+      for (let resNum of this.data.conservations[chain].nonconserved) {
+        colors = _.concat(colors, this.getPdbColorEntry(resNum, '#000000'))
+      }
+    }
+    return colors
+  }
+
+  rebuildWithNewAlignment(seqId, chain) {
+
+  }
 }
 
 export {

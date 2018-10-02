@@ -746,6 +746,17 @@ class Soup {
     this.residueStore.iStructure[iRes] = this.iStructure
   }
 
+  findResidue (chain, resNum) {
+    let residue = this.getResidueProxy()
+    for (let iRes of _.range(this.getResidueCount())) {
+      residue.iRes = iRes
+      if (residue.chain === chain && residue.resNum === resNum) {
+        return residue
+      }
+    }
+    return null
+  }
+
   assignResidueProperties() {
     let res = this.getResidueProxy()
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
