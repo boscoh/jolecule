@@ -445,19 +445,55 @@ class SoupWidget extends WebglWidget {
     this.controller.setChangeFlag()
   }
 
+  triggerAtom(iAtomHover) {
+    if (_.isNil(iAtomHover)) {
+      this.controller.clearSelectedResidues()
+      this.controller.zoomOut()
+      if (this.soupView.getMode() === 'chain') {
+        this.soup.selectedTraces.length = 0
+        this.asyncFlashMesssage('Select entire structure', 1000)
+      }
+    } else {
+      let atom = this.soup.getAtomProxy(iAtomHover)
+      let residue = this.soup.getResidueProxy(atom.iRes)
+      let chain = residue.chain
+      let iStructure = residue.iStructure
+      let isSameChainSelected = false
+      if (this.soupView.getMode() === 'chain') {
+        if (this.soup.selectedTraces.length > 0) {
+          let iTrace = this.soup.selectedTraces[0]
+          let iRes = this.soup.traces[iTrace].indices[0]
+          let residue = this.soup.getResidueProxy(iRes)
+          if (residue.iStructure === iStructure && residue.chain === chain) {
+            isSameChainSelected = true
+          }
+        }
+        if (!isSameChainSelected) {
+          let structureId = this.soup.structureIds[iStructure]
+          this.asyncFlashMesssage(
+            `Select chain ${structureId}:${chain}`,
+            1000
+          )
+          this.controller.zoomToChain(atom.iAtom)
+          return
+        }
+      }
+      this.controller.selectResidue(atom.iRes, true)
+      this.controller.setTargetViewByIAtom(iAtomHover)
+      this.asyncFlashMesssage(`Select atom ${atom.label}`, 1000)
+    }
+  }
+
   doubleclick(event) {
     if (this.iAtomHover !== null) {
       if (this.iAtomHover === this.soupView.getICenteredAtom()) {
         this.atomLabelDialog()
       } else {
-        let iRes = this.soup.getAtomProxy(this.iAtomHover).iRes
-        this.controller.selectResidue(iRes, true)
-        this.setTargetViewByIAtom(this.iAtomHover)
+        this.triggerAtom(this.iAtomHover)
       }
       this.isDraggingCentralAtom = false
     } else {
-      this.controller.clearSelectedResidues()
-      this.controller.zoomOut()
+      this.triggerAtom()
     }
     this.iAtomPressed = null
     this.iResClick = null

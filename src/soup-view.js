@@ -349,6 +349,13 @@ class SoupView {
     this.saveGridToCurrentView()
   }
 
+  getMode() {
+    if (this.currentView.show.transparent) {
+      return 'chain'
+    }
+    return 'normal'
+  }
+
   saveGridToCurrentView() {
     for (let elem in this.soup.grid.isElem) {
       if (elem in this.soup.grid.isElem) {
@@ -432,7 +439,7 @@ class SoupView {
     this.savedViews.push(view)
   }
 
-  getZoomedOutViewOfCurrentView() {
+  getZoomedOutViewOf(atomIndices) {
     let maxLength = this.soup.calcMaxLength()
 
     let newView = this.currentView.clone()
@@ -447,7 +454,6 @@ class SoupView {
     cameraParams.zBack = maxLength / 2
     cameraParams.zoom = Math.abs(maxLength) * 1.75
 
-    let atomIndices = _.range(this.soup.getAtomCount())
     let center = this.soup.getCenter(atomIndices)
 
     let look = cameraParams.position
@@ -460,7 +466,15 @@ class SoupView {
       .add(look.multiplyScalar(cameraParams.zoom))
 
     newView.iAtom = this.soup.getIAtomAtPosition(center)
+
+    newView.selectedTraces.length = 0
+
     return newView
+  }
+
+  getZoomedOutViewOfCurrentView() {
+    let atomIndices = _.range(this.soup.getAtomCount())
+    return this.getZoomedOutViewOf(atomIndices)
   }
 
   setTargetViewByViewId(viewId) {
@@ -469,20 +483,26 @@ class SoupView {
     this.setTargetView(view)
   }
 
-  setTargetViewByIAtom(iAtom) {
-    let atom = this.soup.getAtomProxy(iAtom)
-    let view = this.currentView.getViewTranslatedTo(atom.pos)
-    view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus)
-    view.selectedTraces = []
-    let residue = this.soup.getResidueProxy(atom.iRes)
+  getITrace(iRes) {
+    let result = []
+    let residue = this.soup.getResidueProxy(iRes)
     let chain = residue.chain
     let iStructure = residue.iStructure
     for (let [iTrace, trace] of this.soup.traces.entries()) {
       residue.load(trace.indices[0])
       if (residue.chain === chain && residue.iStructure === iStructure) {
-        view.selectedTraces.push(iTrace)
+        result.push(iTrace)
       }
     }
+    return result
+  }
+
+
+  setTargetViewByIAtom(iAtom) {
+    let atom = this.soup.getAtomProxy(iAtom)
+    let view = this.currentView.getViewTranslatedTo(atom.pos)
+    view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus)
+    view.selectedTraces = this.getITrace(atom.iRes)
     this.setTargetView(view)
   }
 
@@ -1082,6 +1102,27 @@ class SoupViewController {
       this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView())
       this.soupView.isChanged = true
     }
+  }
+
+  zoomToChain(iAtom) {
+    let atom = this.soup.getAtomProxy(iAtom)
+    let iRes = atom.iRes
+    let residue = this.soup.getResidueProxy(iRes)
+    let iStructure = residue.iStructure
+    let chain = residue.chain
+    let atomIndices = []
+    for (let i = 0; i < this.soup.getResidueCount(); i += 1) {
+      residue.iRes = i
+      if (
+        residue.iStructure === iStructure &&
+        residue.chain === chain
+      ) {
+        atomIndices.push(residue.iAtom)
+      }
+    }
+    let view = this.soupView.getZoomedOutViewOf(atomIndices)
+    view.selectedTraces = this.soupView.getITrace(iRes)
+    this.setTargetView(view)
   }
 
   zoomToSelection() {

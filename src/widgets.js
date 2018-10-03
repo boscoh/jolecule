@@ -774,11 +774,6 @@ class SequenceWidget extends CanvasWidget {
       let residue = this.soup.getResidueProxy(iRes)
       selectedIStructure = residue.iStructure
       selectedChain = residue.chain
-      console.log(
-        'SequenceWidget.updateWithoutCheckingCurrent chain',
-        selectedIStructure,
-        selectedChain
-      )
       this.iCharStructStart = null
       for (let iChar of _.range(this.charEntries.length)) {
         let charEntry = this.charEntries[iChar]
@@ -792,22 +787,12 @@ class SequenceWidget extends CanvasWidget {
           this.iCharStructEnd = iChar + 1
         }
       }
-      console.log(
-        'SequenceWidget.updateWithoutCheckingCurrent end',
-        this.iCharStructEnd, this.charEntries[this.iCharStructEnd]
-      )
       this.nCharStruct = this.iCharStructEnd - this.iCharStructStart
     } else {
       this.iCharStructStart = 0
       this.nCharStruct = this.charEntries.length
     }
 
-    console.log(
-      'SequenceWidget.updateWithoutCheckingCurrent',
-      this.iCharStructStart,
-      this.iCharStructEnd,
-      this.nCharStruct
-    )
     let yTopStructure = this.offsetY - 2
     let yStructureName = this.offsetY + 7
     let heightStructure = this.yTopSequence - yTopStructure + 2

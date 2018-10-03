@@ -248,7 +248,7 @@ class WebglWidget {
     this.webglDiv.css('top', this.y() + position.top)
 
     util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 20)
-    this.messageDiv.width(this.div.width() - 200)
+    this.messageDiv.css('max-width', this.div.width() - 200)
 
     this.camera.aspect = this.width() / this.height()
     this.camera.updateProjectionMatrix()
@@ -268,6 +268,12 @@ class WebglWidget {
   async asyncSetMesssage(message) {
     this.setMesssage(message)
     await util.delay(0)
+  }
+
+  async asyncFlashMesssage(message, timeMs) {
+    this.setMesssage(message)
+    await util.delay(timeMs)
+    this.messageDiv.hide().html('')
   }
 
   cleanupMessage() {

@@ -80758,7 +80758,6 @@ var SequenceWidget = function (_CanvasWidget) {
         var residue = this.soup.getResidueProxy(iRes);
         selectedIStructure = residue.iStructure;
         selectedChain = residue.chain;
-        console.log('SequenceWidget.updateWithoutCheckingCurrent chain', selectedIStructure, selectedChain);
         this.iCharStructStart = null;
         var _iteratorNormalCompletion5 = true;
         var _didIteratorError5 = false;
@@ -80791,14 +80790,12 @@ var SequenceWidget = function (_CanvasWidget) {
           }
         }
 
-        console.log('SequenceWidget.updateWithoutCheckingCurrent end', this.iCharStructEnd, this.charEntries[this.iCharStructEnd]);
         this.nCharStruct = this.iCharStructEnd - this.iCharStructStart;
       } else {
         this.iCharStructStart = 0;
         this.nCharStruct = this.charEntries.length;
       }
 
-      console.log('SequenceWidget.updateWithoutCheckingCurrent', this.iCharStructStart, this.iCharStructEnd, this.nCharStruct);
       var yTopStructure = this.offsetY - 2;
       var yStructureName = this.offsetY + 7;
       var heightStructure = this.yTopSequence - yTopStructure + 2;
@@ -88307,6 +88304,14 @@ var SoupView = function () {
       this.saveGridToCurrentView();
     }
   }, {
+    key: 'getMode',
+    value: function getMode() {
+      if (this.currentView.show.transparent) {
+        return 'chain';
+      }
+      return 'normal';
+    }
+  }, {
     key: 'saveGridToCurrentView',
     value: function saveGridToCurrentView() {
       for (var elem in this.soup.grid.isElem) {
@@ -88397,8 +88402,8 @@ var SoupView = function () {
       this.savedViews.push(view);
     }
   }, {
-    key: 'getZoomedOutViewOfCurrentView',
-    value: function getZoomedOutViewOfCurrentView() {
+    key: 'getZoomedOutViewOf',
+    value: function getZoomedOutViewOf(atomIndices) {
       var maxLength = this.soup.calcMaxLength();
 
       var newView = this.currentView.clone();
@@ -88413,7 +88418,6 @@ var SoupView = function () {
       cameraParams.zBack = maxLength / 2;
       cameraParams.zoom = Math.abs(maxLength) * 1.75;
 
-      var atomIndices = _lodash2.default.range(this.soup.getAtomCount());
       var center = this.soup.getCenter(atomIndices);
 
       var look = cameraParams.position.clone().sub(cameraParams.focus).normalize();
@@ -88421,7 +88425,16 @@ var SoupView = function () {
       cameraParams.position = cameraParams.focus.clone().add(look.multiplyScalar(cameraParams.zoom));
 
       newView.iAtom = this.soup.getIAtomAtPosition(center);
+
+      newView.selectedTraces.length = 0;
+
       return newView;
+    }
+  }, {
+    key: 'getZoomedOutViewOfCurrentView',
+    value: function getZoomedOutViewOfCurrentView() {
+      var atomIndices = _lodash2.default.range(this.soup.getAtomCount());
+      return this.getZoomedOutViewOf(atomIndices);
     }
   }, {
     key: 'setTargetViewByViewId',
@@ -88431,13 +88444,10 @@ var SoupView = function () {
       this.setTargetView(view);
     }
   }, {
-    key: 'setTargetViewByIAtom',
-    value: function setTargetViewByIAtom(iAtom) {
-      var atom = this.soup.getAtomProxy(iAtom);
-      var view = this.currentView.getViewTranslatedTo(atom.pos);
-      view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
-      view.selectedTraces = [];
-      var residue = this.soup.getResidueProxy(atom.iRes);
+    key: 'getITrace',
+    value: function getITrace(iRes) {
+      var result = [];
+      var residue = this.soup.getResidueProxy(iRes);
       var chain = residue.chain;
       var iStructure = residue.iStructure;
       var _iteratorNormalCompletion2 = true;
@@ -88452,7 +88462,7 @@ var SoupView = function () {
 
           residue.load(trace.indices[0]);
           if (residue.chain === chain && residue.iStructure === iStructure) {
-            view.selectedTraces.push(iTrace);
+            result.push(iTrace);
           }
         }
       } catch (err) {
@@ -88470,6 +88480,15 @@ var SoupView = function () {
         }
       }
 
+      return result;
+    }
+  }, {
+    key: 'setTargetViewByIAtom',
+    value: function setTargetViewByIAtom(iAtom) {
+      var atom = this.soup.getAtomProxy(iAtom);
+      var view = this.currentView.getViewTranslatedTo(atom.pos);
+      view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
+      view.selectedTraces = this.getITrace(atom.iRes);
       this.setTargetView(view);
     }
   }, {
@@ -89274,6 +89293,25 @@ var SoupViewController = function () {
         this.setTargetView(this.soupView.getZoomedOutViewOfCurrentView());
         this.soupView.isChanged = true;
       }
+    }
+  }, {
+    key: 'zoomToChain',
+    value: function zoomToChain(iAtom) {
+      var atom = this.soup.getAtomProxy(iAtom);
+      var iRes = atom.iRes;
+      var residue = this.soup.getResidueProxy(iRes);
+      var iStructure = residue.iStructure;
+      var chain = residue.chain;
+      var atomIndices = [];
+      for (var i = 0; i < this.soup.getResidueCount(); i += 1) {
+        residue.iRes = i;
+        if (residue.iStructure === iStructure && residue.chain === chain) {
+          atomIndices.push(residue.iAtom);
+        }
+      }
+      var view = this.soupView.getZoomedOutViewOf(atomIndices);
+      view.selectedTraces = this.soupView.getITrace(iRes);
+      this.setTargetView(view);
     }
   }, {
     key: 'zoomToSelection',
@@ -92498,20 +92536,54 @@ var SoupWidget = function (_WebglWidget) {
       this.controller.setChangeFlag();
     }
   }, {
+    key: 'triggerAtom',
+    value: function triggerAtom(iAtomHover) {
+      if (_lodash2.default.isNil(iAtomHover)) {
+        this.controller.clearSelectedResidues();
+        this.controller.zoomOut();
+        if (this.soupView.getMode() === 'chain') {
+          this.soup.selectedTraces.length = 0;
+          this.asyncFlashMesssage('Select entire structure', 1000);
+        }
+      } else {
+        var atom = this.soup.getAtomProxy(iAtomHover);
+        var residue = this.soup.getResidueProxy(atom.iRes);
+        var chain = residue.chain;
+        var iStructure = residue.iStructure;
+        var isSameChainSelected = false;
+        if (this.soupView.getMode() === 'chain') {
+          if (this.soup.selectedTraces.length > 0) {
+            var iTrace = this.soup.selectedTraces[0];
+            var iRes = this.soup.traces[iTrace].indices[0];
+            var _residue = this.soup.getResidueProxy(iRes);
+            if (_residue.iStructure === iStructure && _residue.chain === chain) {
+              isSameChainSelected = true;
+            }
+          }
+          if (!isSameChainSelected) {
+            var structureId = this.soup.structureIds[iStructure];
+            this.asyncFlashMesssage('Select chain ' + structureId + ':' + chain, 1000);
+            this.controller.zoomToChain(atom.iAtom);
+            return;
+          }
+        }
+        this.controller.selectResidue(atom.iRes, true);
+        this.controller.setTargetViewByIAtom(iAtomHover);
+        this.asyncFlashMesssage('Select atom ' + atom.label, 1000);
+      }
+    }
+  }, {
     key: 'doubleclick',
     value: function doubleclick(event) {
       if (this.iAtomHover !== null) {
         if (this.iAtomHover === this.soupView.getICenteredAtom()) {
           this.atomLabelDialog();
         } else {
-          var iRes = this.soup.getAtomProxy(this.iAtomHover).iRes;
-          this.controller.selectResidue(iRes, true);
-          this.setTargetViewByIAtom(this.iAtomHover);
+          this.triggerAtom(this.iAtomHover);
         }
         this.isDraggingCentralAtom = false;
       } else {
-        this.controller.clearSelectedResidues();
-        this.controller.zoomOut();
+        this.triggerAtom();
       }
       this.iAtomPressed = null;
       this.iResClick = null;
@@ -101019,7 +101091,7 @@ var WebglWidget = function () {
       this.webglDiv.css('top', this.y() + position.top);
 
       util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 20);
-      this.messageDiv.width(this.div.width() - 200);
+      this.messageDiv.css('max-width', this.div.width() - 200);
 
       this.camera.aspect = this.width() / this.height();
       this.camera.updateProjectionMatrix();
@@ -101061,6 +101133,35 @@ var WebglWidget = function () {
       }
 
       return asyncSetMesssage;
+    }()
+  }, {
+    key: 'asyncFlashMesssage',
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(message, timeMs) {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                this.setMesssage(message);
+                _context2.next = 3;
+                return util.delay(timeMs);
+
+              case 3:
+                this.messageDiv.hide().html('');
+
+              case 4:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function asyncFlashMesssage(_x2, _x3) {
+        return _ref2.apply(this, arguments);
+      }
+
+      return asyncFlashMesssage;
     }()
   }, {
     key: 'cleanupMessage',
@@ -101265,7 +101366,7 @@ exports = module.exports = __webpack_require__(134)();
 
 
 // module
-exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    text-align: center;\n    font-size: 12px;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #F99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-header,\n.jolecule-embed-footer  {\n    display: flex;\n    padding: 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-footer {\n    border-top: 2px solid #AAA;\n}\n.jolecule-embed-header,\n.jolecule-embed-header a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    flex: 1;\n    -webkit-flex: 1;\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #666\n}\n\n", ""]);
+exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    text-align: center;\n    font-size: 12px;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #F99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-header,\n.jolecule-embed-footer  {\n    display: flex;\n    padding: 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-footer {\n    border-top: 2px solid #AAA;\n}\n.jolecule-embed-header,\n.jolecule-embed-header a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    flex: 1;\n    -webkit-flex: 1;\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n", ""]);
 
 // exports
 
