@@ -158,6 +158,7 @@ class EmbedJolecule {
     if (this.params.isGrid) {
       this.widget.grid = new widgets.GridControlWidget(this.soupWidget)
     }
+    this.widget.colorLegend = new widgets.ColorLegendWidget(this.soupWidget)
 
     let isFooter =
       this.params.isPlayable ||

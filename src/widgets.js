@@ -30,6 +30,12 @@ import '../dist/select2.css' // eslint-disable-line no-alert
 
 import * as data from './data'
 import * as util from './util'
+import { yellow } from './data'
+import { blue } from './data'
+import { purple } from './data'
+import { green } from './data'
+import { red } from './data'
+import { grey } from './data'
 
 /**
  * LineElement
@@ -637,7 +643,10 @@ class SequenceWidget extends CanvasWidget {
   }
 
   iCharFromXStruct(x) {
-    return parseInt((x * this.nCharStruct) / this.textWidth()) + this.iCharStructStart
+    return (
+      parseInt((x * this.nCharStruct) / this.textWidth()) +
+      this.iCharStructStart
+    )
   }
 
   xStructFromIChar(iRes) {
@@ -1518,6 +1527,106 @@ class GridControlWidget extends CanvasWidget {
   }
 }
 
+/**
+ * ColorLegendWidget
+ */
+class ColorLegendWidget extends CanvasWidget {
+  constructor(soupWidget) {
+    super(soupWidget.divTag)
+
+    this.canvas.hide()
+    function getSsColor(ss) {
+      if (ss === 'E') {
+        return yellow
+      } else if (ss === 'H') {
+        return blue
+      } else if (ss === 'D') {
+        return purple
+      } else if (ss === 'C') {
+        return green
+      } else if (ss === 'W') {
+        return red
+      }
+      return grey
+    }
+
+    this.colorEntries = [
+      { color: '#' + data.getSsColor('E').getHexString(), label: '&beta;-structure' },
+      { color: '#' + data.getSsColor('H').getHexString(), label: '&alpha;-helical' },
+      { color: '#' + data.getSsColor('C').getHexString(), label: 'coil' },
+      { color: '#' + data.getSsColor('D').getHexString(), label: 'DNA/RNA nucleotide'},
+      { color: '#' + data.getSsColor('W').getHexString(), label: 'water' },
+    ]
+
+    this.buttonsDiv = $('<div id="color-legend-buttons" style="text-align: left">')
+    this.div.append(this.buttonsDiv)
+
+    this.div.css('display', 'block')
+    this.div.attr('id', 'color-legend')
+    this.div.addClass('jolecule-button')
+    this.div.css({ padding: '15px 10px' })
+
+    this.isShow = false
+
+    soupWidget.addObserver(this)
+  }
+
+  rebuild() {
+    this.buttonsDiv.empty()
+
+    for (let [i, entry] of this.colorEntries.entries()) {
+      let id = 'color-legend-' + i
+      let buttonDiv = $(`<div id="${id}" style="position: auto; display: block">`)
+      let style = `
+        color: ${entry.color};
+        display: inline;
+        font-size: 1em;
+        line-height: 1.5em;
+        height: 1em;
+        margin-right: 0.2em`
+      let colorDiv = $(`<div style="${style}">&block;</div>`)
+      buttonDiv.append(colorDiv)
+      buttonDiv.append(entry.label)
+      this.buttonsDiv.append(buttonDiv)
+    }
+
+    if (this.isShow) {
+      this.div.hide()
+    } else {
+      this.div.show()
+    }
+    this.resize()
+  }
+
+  resize() {
+    this.div.css({
+      width: this.width(),
+      height: this.height(),
+      top: this.y(),
+      left: this.x()
+    })
+  }
+
+  width() {
+    return 100
+  }
+
+  height() {
+    return this.buttonsDiv.height()
+  }
+
+  x() {
+    let parentDivPos = this.parentDiv.position()
+    return parentDivPos.left + 5
+  }
+
+  y() {
+    let parentDivPos = this.parentDiv.position()
+    let y = parentDivPos.top + this.parentDiv.height() - this.height() - 40
+    return y
+  }
+}
+
 class ResidueSelectorWidget {
   constructor(soupWidget, selector) {
     this.controller = soupWidget.controller
@@ -1685,6 +1794,7 @@ export default {
   DistanceMeasuresWidget,
   SequenceWidget,
   ClippingPlaneWidget,
+  ColorLegendWidget,
   GridControlWidget,
   ResidueSelectorWidget,
   ToggleOptionWidget,

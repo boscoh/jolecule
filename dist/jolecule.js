@@ -79656,6 +79656,7 @@ var EmbedJolecule = function () {
       if (this.params.isGrid) {
         this.widget.grid = new _widgets2.default.GridControlWidget(this.soupWidget);
       }
+      this.widget.colorLegend = new _widgets2.default.ColorLegendWidget(this.soupWidget);
 
       var isFooter = this.params.isPlayable || this.params.isEditable || this.params.isExtraEditable;
 
@@ -81329,9 +81330,9 @@ var GridControlWidget = function (_CanvasWidget3) {
 
       try {
         for (var _iterator6 = _lodash2.default.keys(this.soupView.soup.grid.isElem)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-          var elem = _step6.value;
+          var _elem = _step6.value;
 
-          this.makeElemButton(elem, y);
+          this.makeElemButton(_elem, y);
           y += this.buttonHeight;
         }
       } catch (err) {
@@ -81503,9 +81504,139 @@ var GridControlWidget = function (_CanvasWidget3) {
   return GridControlWidget;
 }(CanvasWidget);
 
+/**
+ * ColorLegendWidget
+ */
+
+
+var ColorLegendWidget = function (_CanvasWidget4) {
+  _inherits(ColorLegendWidget, _CanvasWidget4);
+
+  function ColorLegendWidget(soupWidget) {
+    _classCallCheck(this, ColorLegendWidget);
+
+    var _this10 = _possibleConstructorReturn(this, (ColorLegendWidget.__proto__ || Object.getPrototypeOf(ColorLegendWidget)).call(this, soupWidget.divTag));
+
+    _this10.colors = [['red', 'something'], ['blue', 'something else'], ['green', 'something else']];
+
+    _this10.soupWidget = soupWidget;
+    _this10.soupView = soupWidget.soupView;
+    _this10.controller = soupWidget.controller;
+
+    _this10.backgroundColor = '#999';
+    _this10.buttonHeight = 40;
+    _this10.sliderHeight = _this10.buttonHeight * 6 - 30;
+
+    _this10.div.css('display', 'none');
+    _this10.div.attr('id', 'color-legend');
+    _this10.div.css('height', _this10.height());
+    _this10.div.addClass('jolecule-button');
+
+    _this10.buttonsDiv = (0, _jquery2.default)('<div id="color-legend-buttons">');
+    _this10.div.append(_this10.buttonsDiv);
+
+    _this10.isShow = false;
+
+    soupWidget.addObserver(_this10);
+    return _this10;
+  }
+
+  _createClass(ColorLegendWidget, [{
+    key: 'rebuild',
+    value: function rebuild() {
+      this.buttonsDiv.empty();
+
+      var y = 10;
+      var _iteratorNormalCompletion7 = true;
+      var _didIteratorError7 = false;
+      var _iteratorError7 = undefined;
+
+      try {
+        for (var _iterator7 = this.colors[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          var color = _step7.value;
+
+          this.makeElemButton(elem, y);
+          y += this.buttonHeight;
+        }
+      } catch (err) {
+        _didIteratorError7 = true;
+        _iteratorError7 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion7 && _iterator7.return) {
+            _iterator7.return();
+          }
+        } finally {
+          if (_didIteratorError7) {
+            throw _iteratorError7;
+          }
+        }
+      }
+
+      if (this.isShow) {
+        this.div.hide();
+      } else {
+        this.div.show();
+      }
+    }
+  }, {
+    key: 'makeElemButton',
+    value: function makeElemButton(elem, y) {
+      var color = data.ElementColors[elem];
+      var colorHexStr = '#' + color.getHexString();
+      var id = 'grid-button-' + elem.toLowerCase();
+      var selector = '#' + id;
+      this.buttonsDiv.append((0, _jquery2.default)('<div id="' + id + '">'));
+      new GridToggleButtonWidget(this.soupWidget, selector, elem, 50, y, colorHexStr);
+    }
+  }, {
+    key: 'resize',
+    value: function resize() {
+      if (!this.isGrid) {
+        return;
+      }
+      this.div.css({
+        width: this.width(),
+        height: this.height(),
+        top: this.y(),
+        left: this.x()
+      });
+      this.canvasDom.width = this.width();
+      this.canvasDom.height = this.height();
+    }
+  }, {
+    key: 'width',
+    value: function width() {
+      return 84;
+    }
+  }, {
+    key: 'height',
+    value: function height() {
+      return this.colors.length * 6 + 10;
+    }
+  }, {
+    key: 'x',
+    value: function x() {
+      var parentDivPos = this.parentDiv.position();
+      return parentDivPos.left + 5;
+    }
+  }, {
+    key: 'y',
+    value: function y() {
+      var parentDivPos = this.parentDiv.position();
+      return parentDivPos.bottom - this.height - 10;
+    }
+  }, {
+    key: 'update',
+    value: function update() {}
+  }]);
+
+  return ColorLegendWidget;
+}(CanvasWidget);
+
 var ResidueSelectorWidget = function () {
   function ResidueSelectorWidget(soupWidget, selector) {
-    var _this10 = this;
+    var _this11 = this;
 
     _classCallCheck(this, ResidueSelectorWidget);
 
@@ -81520,7 +81651,7 @@ var ResidueSelectorWidget = function () {
     this.$select = (0, _jquery2.default)('<select>').attr('id', this.selectId);
     this.div.append(this.$select);
     this.$select.change(function () {
-      return _this10.change();
+      return _this11.change();
     });
     this.$select.select2({ width: '150px' });
   }
@@ -81541,13 +81672,13 @@ var ResidueSelectorWidget = function () {
       // rebuild selector
       this.soup = this.soupView.soup;
       var residue = this.soup.getResidueProxy();
-      var _iteratorNormalCompletion7 = true;
-      var _didIteratorError7 = false;
-      var _iteratorError7 = undefined;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
 
       try {
-        for (var _iterator7 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-          var iRes = _step7.value;
+        for (var _iterator8 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var iRes = _step8.value;
 
           residue.iRes = iRes;
           if (residue.resType === 'XXX') {
@@ -81557,16 +81688,16 @@ var ResidueSelectorWidget = function () {
           this.$select.append(new Option(text, '' + iRes));
         }
       } catch (err) {
-        _didIteratorError7 = true;
-        _iteratorError7 = err;
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion7 && _iterator7.return) {
-            _iterator7.return();
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
           }
         } finally {
-          if (_didIteratorError7) {
-            throw _iteratorError7;
+          if (_didIteratorError8) {
+            throw _iteratorError8;
           }
         }
       }
@@ -81594,15 +81725,15 @@ var ResidueSelectorWidget = function () {
 
 var ToggleWidget = function () {
   function ToggleWidget(soupWidget, selector) {
-    var _this11 = this;
+    var _this12 = this;
 
     _classCallCheck(this, ToggleWidget);
 
     this.soupWidget = soupWidget;
     this.controller = soupWidget.controller;
     this.div = (0, _jquery2.default)(selector).html(this.html()).addClass('jolecule-button').on('click touch', function (e) {
-      _this11.set(!_this11.get());
-      _this11.update();
+      _this12.set(!_this12.get());
+      _this12.update();
       e.preventDefault();
     });
     this.soupWidget.addObserver(this);
@@ -81641,11 +81772,11 @@ var ToggleOptionWidget = function (_ToggleWidget) {
   function ToggleOptionWidget(soupWidget, selector, option) {
     _classCallCheck(this, ToggleOptionWidget);
 
-    var _this12 = _possibleConstructorReturn(this, (ToggleOptionWidget.__proto__ || Object.getPrototypeOf(ToggleOptionWidget)).call(this, soupWidget, selector));
+    var _this13 = _possibleConstructorReturn(this, (ToggleOptionWidget.__proto__ || Object.getPrototypeOf(ToggleOptionWidget)).call(this, soupWidget, selector));
 
-    _this12.option = option;
-    _this12.div.html(_this12.html());
-    return _this12;
+    _this13.option = option;
+    _this13.div.html(_this13.html());
+    return _this13;
   }
 
   _createClass(ToggleOptionWidget, [{
@@ -81677,12 +81808,12 @@ var ToggleAnimateWidget = function (_ToggleWidget2) {
   function ToggleAnimateWidget(soupWidget, selector, state, text) {
     _classCallCheck(this, ToggleAnimateWidget);
 
-    var _this13 = _possibleConstructorReturn(this, (ToggleAnimateWidget.__proto__ || Object.getPrototypeOf(ToggleAnimateWidget)).call(this, soupWidget, selector));
+    var _this14 = _possibleConstructorReturn(this, (ToggleAnimateWidget.__proto__ || Object.getPrototypeOf(ToggleAnimateWidget)).call(this, soupWidget, selector));
 
-    _this13.state = state;
-    _this13.text = text;
-    _this13.div.html(_this13.html());
-    return _this13;
+    _this14.state = state;
+    _this14.text = text;
+    _this14.div.html(_this14.html());
+    return _this14;
   }
 
   _createClass(ToggleAnimateWidget, [{
@@ -81743,6 +81874,7 @@ exports.default = {
   DistanceMeasuresWidget: DistanceMeasuresWidget,
   SequenceWidget: SequenceWidget,
   ClippingPlaneWidget: ClippingPlaneWidget,
+  ColorLegendWidget: ColorLegendWidget,
   GridControlWidget: GridControlWidget,
   ResidueSelectorWidget: ResidueSelectorWidget,
   ToggleOptionWidget: ToggleOptionWidget,
