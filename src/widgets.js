@@ -30,12 +30,6 @@ import '../dist/select2.css' // eslint-disable-line no-alert
 
 import * as data from './data'
 import * as util from './util'
-import { yellow } from './data'
-import { blue } from './data'
-import { purple } from './data'
-import { green } from './data'
-import { red } from './data'
-import { grey } from './data'
 
 /**
  * LineElement
@@ -669,18 +663,13 @@ class SequenceWidget extends CanvasWidget {
     )
   }
 
-  rebuild() {
-    this.charEntries.length = 0
-    let residue = this.soup.getResidueProxy()
-    let iChain = -1
-    let iStructure = 0
-    let nRes = this.soup.getResidueCount()
-
+  calcNPad () {
     let polymerLengths = []
     for (let i of _.range(this.soup.structureIds.length)) {
       polymerLengths.push(0)
     }
-    for (let iRes of _.range(nRes)) {
+    let residue = this.soup.getResidueProxy()
+    for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
       if (residue.isPolymer) {
         polymerLengths[residue.iStructure] += 1
@@ -689,8 +678,17 @@ class SequenceWidget extends CanvasWidget {
     polymerLengths = _.filter(polymerLengths, l => l > 0)
     let averageLength = _.mean(polymerLengths)
     this.nPadChar = parseInt(0.02 * averageLength)
+  }
 
-    for (let iRes of _.range(nRes)) {
+  rebuild() {
+    this.charEntries.length = 0
+    this.calcNPad()
+
+    let iChain = -1
+    let iStructure = 0
+
+    let residue = this.soup.getResidueProxy()
+    for (let iRes of _.range(this.soup.getResidueCount())) {
       residue.iRes = iRes
 
       if (!residue.isPolymer) {
@@ -751,11 +749,7 @@ class SequenceWidget extends CanvasWidget {
       this.nChar - this.nCharSeq
     )
     this.iCharSeqStart = parseInt(this.iCharSeqStart)
-  }
-
-  setIChar(iChar) {
-    this.iChar = iChar
-    this.checkDisplayLimits()
+    this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq
   }
 
   getColorStyle(iChar) {
@@ -774,7 +768,7 @@ class SequenceWidget extends CanvasWidget {
     }
   }
 
-  updateWithoutCheckingCurrent() {
+  checkChain() {
     let selectedChain = null
     let selectedIStructure = null
     if (this.soup.selectedTraces.length > 0) {
@@ -801,6 +795,18 @@ class SequenceWidget extends CanvasWidget {
       this.iCharStructStart = 0
       this.nCharStruct = this.charEntries.length
     }
+
+    if (
+      this.iCharSeqStart < this.iCharStructStart ||
+      this.iCharSeqStart >= this.iCharStructEnd
+    ) {
+      this.iCharSeqStart = this.iCharStructStart
+      this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq
+    }
+  }
+
+  updateWithoutCheckingCurrent() {
+    this.checkChain()
 
     let yTopStructure = this.offsetY - 2
     let yStructureName = this.offsetY + 7
@@ -927,6 +933,7 @@ class SequenceWidget extends CanvasWidget {
       if (_.isUndefined(charEntry) || charEntry.c === '') {
         continue
       }
+
       colorStyle = this.getColorStyle(iChar)
 
       let xLeft = this.xSeqFromIChar(iChar)
@@ -1021,23 +1028,28 @@ class SequenceWidget extends CanvasWidget {
   }
 
   update() {
-    let iAtom = this.soupView.currentView.iAtom
+    let iAtom = _.get(this.soupView, 'targetView.iAtom')
     let iResCurrent = this.soupView.soup.getAtomProxy(iAtom).iRes
 
-    let iCharCurrent = null
-    for (let iChar in _.range(this.nChar)) {
-      if (this.charEntries[iChar].iRes === iResCurrent) {
-        iCharCurrent = iChar
-        break
-      }
-    }
-
-    if (iCharCurrent !== null) {
-      if (
-        iCharCurrent < this.iCharSeqStart ||
-        iCharCurrent >= this.iCharSeqStart + this.nCharSeq
-      ) {
-        this.setIChar(iCharCurrent)
+    if (!_.isNil(iResCurrent)) {
+      for (let iChar in _.range(this.nChar)) {
+        if (this.charEntries[iChar].iRes === iResCurrent) {
+          if (
+            iChar < this.iCharSeqStart ||
+            iChar >= this.iCharSeqStart + this.nCharSeq
+          ) {
+            this.iChar = iChar
+            this.checkDisplayLimits()
+            console.log(
+              'SequenceWidget update iChar',
+              iChar,
+              this.iCharSeqStart,
+              this.iCharSeqEnd,
+              this.charEntries[iChar].label
+            )
+          }
+          break
+        }
       }
     }
 
@@ -1101,7 +1113,6 @@ class SequenceWidget extends CanvasWidget {
           this.controller.setResidueSelect(charEntry.iRes, true)
           let residue = this.soup.getResidueProxy(charEntry.iRes)
           this.controller.setTargetViewByIAtom(residue.iAtom)
-          this.updateWithoutCheckingCurrent()
         }
       }
     }
@@ -1535,40 +1546,35 @@ class ColorLegendWidget extends CanvasWidget {
     super(soupWidget.divTag)
 
     this.canvas.hide()
-    function getSsColor(ss) {
-      if (ss === 'E') {
-        return yellow
-      } else if (ss === 'H') {
-        return blue
-      } else if (ss === 'D') {
-        return purple
-      } else if (ss === 'C') {
-        return green
-      } else if (ss === 'W') {
-        return red
-      }
-      return grey
-    }
+
+    let getSSColor = ss => '#' + data.getSsColor(ss).getHexString()
 
     this.colorEntries = [
-      { color: '#' + data.getSsColor('E').getHexString(), label: '&beta;-structure' },
-      { color: '#' + data.getSsColor('H').getHexString(), label: '&alpha;-helical' },
-      { color: '#' + data.getSsColor('C').getHexString(), label: 'coil' },
-      { color: '#' + data.getSsColor('D').getHexString(), label: 'DNA/RNA nucleotide'},
-      { color: '#' + data.getSsColor('W').getHexString(), label: 'water' },
+      { color: getSSColor('E'), label: 'strand' },
+      { color: getSSColor('H'), label: 'helix' },
+      { color: getSSColor('C'), label: 'coil' },
+      { color: getSSColor('D'), label: 'DNA/RNA' }
     ]
-
-    this.buttonsDiv = $('<div id="color-legend-buttons" style="text-align: left">')
-    this.div.append(this.buttonsDiv)
 
     this.div.css('display', 'block')
     this.div.attr('id', 'color-legend')
     this.div.addClass('jolecule-button')
-    this.div.css({ padding: '15px 10px' })
+    this.div.css({
+      padding: '8px',
+      height: 'auto',
+      width: 'auto'
+    })
+
+    this.buttonsDiv = $('<div>')
+      .attr('id', 'color-legend-buttons')
+      .css('text-align', 'left')
+    this.div.append(this.buttonsDiv)
 
     this.isShow = false
 
     soupWidget.addObserver(this)
+
+    this.rebuild()
   }
 
   rebuild() {
@@ -1576,39 +1582,39 @@ class ColorLegendWidget extends CanvasWidget {
 
     for (let [i, entry] of this.colorEntries.entries()) {
       let id = 'color-legend-' + i
-      let buttonDiv = $(`<div id="${id}" style="position: auto; display: block">`)
-      let style = `
-        color: ${entry.color};
-        display: inline;
-        font-size: 1em;
-        line-height: 1.5em;
-        height: 1em;
-        margin-right: 0.2em`
-      let colorDiv = $(`<div style="${style}">&block;</div>`)
+      let buttonDiv = $(`<div>`)
+        .attr('id', id)
+        .css({
+          'font-size': '0.8em',
+          'line-height': '1.5em',
+          display: 'block'
+        })
+      let colorDiv = $(`<div>`)
+        .html('&block;')
+        .css({
+          color: entry.color,
+          display: 'inline',
+          'font-size': '1em',
+          'margin-right': '0.7em'
+        })
       buttonDiv.append(colorDiv)
       buttonDiv.append(entry.label)
       this.buttonsDiv.append(buttonDiv)
     }
 
-    if (this.isShow) {
-      this.div.hide()
-    } else {
-      this.div.show()
-    }
     this.resize()
+    this.update()
   }
 
   resize() {
     this.div.css({
-      width: this.width(),
-      height: this.height(),
       top: this.y(),
       left: this.x()
     })
   }
 
   width() {
-    return 100
+    return 80
   }
 
   height() {
@@ -1622,8 +1628,89 @@ class ColorLegendWidget extends CanvasWidget {
 
   y() {
     let parentDivPos = this.parentDiv.position()
-    let y = parentDivPos.top + this.parentDiv.height() - this.height() - 40
-    return y
+    return parentDivPos.top + this.parentDiv.height() - this.height() - 40
+  }
+  update() {
+    if (this.isShow) {
+      this.div.hide()
+    } else {
+      this.div.show()
+    }
+  }
+}
+
+/**
+ * SelectionWidget
+ */
+class SelectionWidget extends CanvasWidget {
+  constructor(soupWidget) {
+    super(soupWidget.divTag)
+    this.soupWidget = soupWidget
+
+    this.canvas.hide()
+
+    this.div.css('display', 'block')
+    this.div.attr('id', 'selection')
+    this.div.addClass('jolecule-button')
+    this.div.css({
+      padding: '8px',
+      position: 'absolute',
+      'max-width': '120px',
+      'max-height': '200px',
+      'font-size': '0.8em',
+      'overflow': 'hidden',
+      height: 'auto',
+      width: 'auto',
+      'text-align': 'left'
+    })
+
+    this.isShow = false
+
+    soupWidget.addObserver(this)
+  }
+
+  resize() {
+    this.div.css({
+      top: this.y(),
+      left: this.x()
+    })
+  }
+
+  x() {
+    let parentDivPos = this.parentDiv.position()
+    return parentDivPos.left + this.parentDiv.width() - this.div.width() - 40
+  }
+
+  y() {
+    let parentDivPos = this.parentDiv.position()
+    return parentDivPos.top + this.parentDiv.height() - this.div.height() - 40
+  }
+
+  update() {
+    let soup = this.soupWidget.soup
+    let residue = soup.getResidueProxy()
+    this.isShow = false
+    let s = ''
+    let n = 0
+    for (let i = 0; i < soup.getResidueCount(); i += 1) {
+      residue.iRes = i
+      if (residue.selected) {
+        this.isShow = true
+        if (n > 8) {
+          s += '[more...]'
+          break
+        }
+        s += residue.label + '<br>'
+        n += 1
+      }
+    }
+    if (!this.isShow) {
+      this.div.hide()
+    } else {
+      this.div.html(s)
+      this.div.show()
+      this.resize()
+    }
   }
 }
 
@@ -1795,6 +1882,7 @@ export default {
   SequenceWidget,
   ClippingPlaneWidget,
   ColorLegendWidget,
+  SelectionWidget,
   GridControlWidget,
   ResidueSelectorWidget,
   ToggleOptionWidget,

@@ -78291,7 +78291,7 @@ var rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
 
 var green = new THREE.Color(0x639941);
 var blue = new THREE.Color(0x568ab5);
-var yellow = new THREE.Color(0xbf9d13);
+var yellow = new THREE.Color(0xF6C719);
 var purple = new THREE.Color(0x9578aa);
 var grey = new THREE.Color(0xbbbbbb);
 var red = new THREE.Color(0x993333);
@@ -79656,7 +79656,9 @@ var EmbedJolecule = function () {
       if (this.params.isGrid) {
         this.widget.grid = new _widgets2.default.GridControlWidget(this.soupWidget);
       }
+
       this.widget.colorLegend = new _widgets2.default.ColorLegendWidget(this.soupWidget);
+      this.widget.selection = new _widgets2.default.SelectionWidget(this.soupWidget);
 
       var isFooter = this.params.isPlayable || this.params.isEditable || this.params.isExtraEditable;
 
@@ -79787,6 +79789,8 @@ exports.defaultArgs = defaultArgs;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
@@ -80555,14 +80559,8 @@ var SequenceWidget = function (_CanvasWidget) {
       return parseInt((iRes - this.iCharSeqStart) / this.nCharSeq * this.textWidth());
     }
   }, {
-    key: 'rebuild',
-    value: function rebuild() {
-      this.charEntries.length = 0;
-      var residue = this.soup.getResidueProxy();
-      var iChain = -1;
-      var iStructure = 0;
-      var nRes = this.soup.getResidueCount();
-
+    key: 'calcNPad',
+    value: function calcNPad() {
       var polymerLengths = [];
       var _iteratorNormalCompletion = true;
       var _didIteratorError = false;
@@ -80589,12 +80587,13 @@ var SequenceWidget = function (_CanvasWidget) {
         }
       }
 
+      var residue = this.soup.getResidueProxy();
       var _iteratorNormalCompletion2 = true;
       var _didIteratorError2 = false;
       var _iteratorError2 = undefined;
 
       try {
-        for (var _iterator2 = _lodash2.default.range(nRes)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        for (var _iterator2 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
           var iRes = _step2.value;
 
           residue.iRes = iRes;
@@ -80622,16 +80621,26 @@ var SequenceWidget = function (_CanvasWidget) {
       });
       var averageLength = _lodash2.default.mean(polymerLengths);
       this.nPadChar = parseInt(0.02 * averageLength);
+    }
+  }, {
+    key: 'rebuild',
+    value: function rebuild() {
+      this.charEntries.length = 0;
+      this.calcNPad();
 
+      var iChain = -1;
+      var iStructure = 0;
+
+      var residue = this.soup.getResidueProxy();
       var _iteratorNormalCompletion3 = true;
       var _didIteratorError3 = false;
       var _iteratorError3 = undefined;
 
       try {
-        for (var _iterator3 = _lodash2.default.range(nRes)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-          var _iRes = _step3.value;
+        for (var _iterator3 = _lodash2.default.range(this.soup.getResidueCount())[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          var iRes = _step3.value;
 
-          residue.iRes = _iRes;
+          residue.iRes = iRes;
 
           if (!residue.isPolymer) {
             continue;
@@ -80646,10 +80655,10 @@ var SequenceWidget = function (_CanvasWidget) {
 
             try {
               for (var _iterator4 = _lodash2.default.range(this.nPadChar)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                var _i5 = _step4.value;
+                var i = _step4.value;
 
                 var startLabel = null;
-                if (_i5 === 0) {
+                if (i === 0) {
                   startLabel = this.soup.structureIds[iStructure];
                   startLabel += ':' + this.soup.chains[iChain];
                 }
@@ -80680,7 +80689,7 @@ var SequenceWidget = function (_CanvasWidget) {
           var entry = {
             iStructure: iStructure,
             chain: residue.chain,
-            iRes: _iRes,
+            iRes: iRes,
             startLabel: null,
             ss: residue.ss,
             label: residue.resId + ':' + residue.resType,
@@ -80724,12 +80733,7 @@ var SequenceWidget = function (_CanvasWidget) {
       this.iCharSeqStart = Math.max(this.iChar - 0.5 * this.nCharSeq, 0);
       this.iCharSeqStart = Math.min(this.iCharSeqStart, this.nChar - this.nCharSeq);
       this.iCharSeqStart = parseInt(this.iCharSeqStart);
-    }
-  }, {
-    key: 'setIChar',
-    value: function setIChar(iChar) {
-      this.iChar = iChar;
-      this.checkDisplayLimits();
+      this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq;
     }
   }, {
     key: 'getColorStyle',
@@ -80749,8 +80753,8 @@ var SequenceWidget = function (_CanvasWidget) {
       }
     }
   }, {
-    key: 'updateWithoutCheckingCurrent',
-    value: function updateWithoutCheckingCurrent() {
+    key: 'checkChain',
+    value: function checkChain() {
       var selectedChain = null;
       var selectedIStructure = null;
       if (this.soup.selectedTraces.length > 0) {
@@ -80766,14 +80770,14 @@ var SequenceWidget = function (_CanvasWidget) {
 
         try {
           for (var _iterator5 = _lodash2.default.range(this.charEntries.length)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-            var _iChar = _step5.value;
+            var iChar = _step5.value;
 
-            var charEntry = this.charEntries[_iChar];
+            var charEntry = this.charEntries[iChar];
             if (charEntry.iStructure === selectedIStructure && charEntry.chain === selectedChain) {
               if (_lodash2.default.isNil(this.iCharStructStart)) {
-                this.iCharStructStart = _iChar;
+                this.iCharStructStart = iChar;
               }
-              this.iCharStructEnd = _iChar + 1;
+              this.iCharStructEnd = iChar + 1;
             }
           }
         } catch (err) {
@@ -80796,6 +80800,16 @@ var SequenceWidget = function (_CanvasWidget) {
         this.iCharStructStart = 0;
         this.nCharStruct = this.charEntries.length;
       }
+
+      if (this.iCharSeqStart < this.iCharStructStart || this.iCharSeqStart >= this.iCharStructEnd) {
+        this.iCharSeqStart = this.iCharStructStart;
+        this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq;
+      }
+    }
+  }, {
+    key: 'updateWithoutCheckingCurrent',
+    value: function updateWithoutCheckingCurrent() {
+      this.checkChain();
 
       var yTopStructure = this.offsetY - 2;
       var yStructureName = this.offsetY + 7;
@@ -80881,37 +80895,38 @@ var SequenceWidget = function (_CanvasWidget) {
       this.line(0, this.yMidSequence, this.width(), this.yMidSequence, 1, this.borderColor);
 
       // draw characters for sequence
-      for (var _iChar2 = this.iCharSeqStart; _iChar2 < this.iCharSeqEnd; _iChar2 += 1) {
-        var _charEntry = this.charEntries[_iChar2];
-        if (_lodash2.default.isUndefined(_charEntry) || _charEntry.c === '') {
+      for (var _iChar = this.iCharSeqStart; _iChar < this.iCharSeqEnd; _iChar += 1) {
+        var charEntry = this.charEntries[_iChar];
+        if (_lodash2.default.isUndefined(charEntry) || charEntry.c === '') {
           continue;
         }
-        colorStyle = this.getColorStyle(_iChar2);
 
-        var xLeft = this.xSeqFromIChar(_iChar2);
-        var xRight = this.xSeqFromIChar(_iChar2 + 1);
+        colorStyle = this.getColorStyle(_iChar);
+
+        var xLeft = this.xSeqFromIChar(_iChar);
+        var xRight = this.xSeqFromIChar(_iChar + 1);
         var width = xRight - xLeft;
         var xMid = xLeft + width / 2;
         var height = this.charHeight;
         var _yTop = this.yMidSequence - height / 2;
-        if (_charEntry.ss !== 'C' && _charEntry.ss !== '.') {
+        if (charEntry.ss !== 'C' && charEntry.ss !== '.') {
           _yTop -= 4;
           height += 2 * 4;
         }
 
         this.fillRect(xLeft, _yTop, width, height, colorStyle);
 
-        this.text(_charEntry.c, xMid, this.yMidSequence, '7pt Helvetica', 'white', 'center');
+        this.text(charEntry.c, xMid, this.yMidSequence, '7pt Helvetica', 'white', 'center');
 
         // draw highlight res box
-        if (iResCurrent >= 0 && iResCurrent === _charEntry.iRes) {
+        if (iResCurrent >= 0 && iResCurrent === charEntry.iRes) {
           this.strokeRect(xLeft, _yTop - 5, width, height + 10, this.highlightColor);
         }
 
         // draw numbered ticks
-        if (_charEntry.resNum % 20 === 0 || _charEntry.resNum === 1) {
+        if (charEntry.resNum % 20 === 0 || charEntry.resNum === 1) {
           this.line(xLeft, this.yBottom, xLeft, this.yBottom - 6, 1, this.borderColor);
-          this.text('' + _charEntry.resNum, xLeft + 3, this.yBottom - 6, '7pt Helvetica', this.borderColor, 'left');
+          this.text('' + charEntry.resNum, xLeft + 3, this.yBottom - 6, '7pt Helvetica', this.borderColor, 'left');
         }
       }
 
@@ -80933,20 +80948,19 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'update',
     value: function update() {
-      var iAtom = this.soupView.currentView.iAtom;
+      var iAtom = _lodash2.default.get(this.soupView, 'targetView.iAtom');
       var iResCurrent = this.soupView.soup.getAtomProxy(iAtom).iRes;
 
-      var iCharCurrent = null;
-      for (var iChar in _lodash2.default.range(this.nChar)) {
-        if (this.charEntries[iChar].iRes === iResCurrent) {
-          iCharCurrent = iChar;
-          break;
-        }
-      }
-
-      if (iCharCurrent !== null) {
-        if (iCharCurrent < this.iCharSeqStart || iCharCurrent >= this.iCharSeqStart + this.nCharSeq) {
-          this.setIChar(iCharCurrent);
+      if (!_lodash2.default.isNil(iResCurrent)) {
+        for (var iChar in _lodash2.default.range(this.nChar)) {
+          if (this.charEntries[iChar].iRes === iResCurrent) {
+            if (iChar < this.iCharSeqStart || iChar >= this.iCharSeqStart + this.nCharSeq) {
+              this.iChar = iChar;
+              this.checkDisplayLimits();
+              console.log('SequenceWidget update iChar', iChar, this.iCharSeqStart, this.iCharSeqEnd, this.charEntries[iChar].label);
+            }
+            break;
+          }
         }
       }
 
@@ -80966,11 +80980,11 @@ var SequenceWidget = function (_CanvasWidget) {
         }
       } else {
         this.hover.hide();
-        var _iChar3 = this.iCharFromXSeq(this.pointerX);
-        var _charEntry2 = this.charEntries[_iChar3];
-        if (_lodash2.default.get(_charEntry2, 'c', '') !== '') {
-          this.hover.html(_charEntry2.label);
-          var x = this.xSeqFromIChar(_iChar3) + this.charWidth / 2;
+        var _iChar2 = this.iCharFromXSeq(this.pointerX);
+        var _charEntry = this.charEntries[_iChar2];
+        if (_lodash2.default.get(_charEntry, 'c', '') !== '') {
+          this.hover.html(_charEntry.label);
+          var x = this.xSeqFromIChar(_iChar2) + this.charWidth / 2;
           this.hover.move(x, this.yMidSequence);
         }
       }
@@ -81014,7 +81028,6 @@ var SequenceWidget = function (_CanvasWidget) {
             this.controller.setResidueSelect(charEntry.iRes, true);
             var residue = this.soup.getResidueProxy(charEntry.iRes);
             this.controller.setTargetViewByIAtom(residue.iAtom);
-            this.updateWithoutCheckingCurrent();
           }
         }
       }
@@ -81330,9 +81343,9 @@ var GridControlWidget = function (_CanvasWidget3) {
 
       try {
         for (var _iterator6 = _lodash2.default.keys(this.soupView.soup.grid.isElem)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-          var _elem = _step6.value;
+          var elem = _step6.value;
 
-          this.makeElemButton(_elem, y);
+          this.makeElemButton(elem, y);
           y += this.buttonHeight;
         }
       } catch (err) {
@@ -81517,27 +81530,31 @@ var ColorLegendWidget = function (_CanvasWidget4) {
 
     var _this10 = _possibleConstructorReturn(this, (ColorLegendWidget.__proto__ || Object.getPrototypeOf(ColorLegendWidget)).call(this, soupWidget.divTag));
 
-    _this10.colors = [['red', 'something'], ['blue', 'something else'], ['green', 'something else']];
+    _this10.canvas.hide();
 
-    _this10.soupWidget = soupWidget;
-    _this10.soupView = soupWidget.soupView;
-    _this10.controller = soupWidget.controller;
+    var getSSColor = function getSSColor(ss) {
+      return '#' + data.getSsColor(ss).getHexString();
+    };
 
-    _this10.backgroundColor = '#999';
-    _this10.buttonHeight = 40;
-    _this10.sliderHeight = _this10.buttonHeight * 6 - 30;
+    _this10.colorEntries = [{ color: getSSColor('E'), label: 'strand' }, { color: getSSColor('H'), label: 'helix' }, { color: getSSColor('C'), label: 'coil' }, { color: getSSColor('D'), label: 'DNA/RNA' }];
 
-    _this10.div.css('display', 'none');
+    _this10.div.css('display', 'block');
     _this10.div.attr('id', 'color-legend');
-    _this10.div.css('height', _this10.height());
     _this10.div.addClass('jolecule-button');
+    _this10.div.css({
+      padding: '8px',
+      height: 'auto',
+      width: 'auto'
+    });
 
-    _this10.buttonsDiv = (0, _jquery2.default)('<div id="color-legend-buttons">');
+    _this10.buttonsDiv = (0, _jquery2.default)('<div>').attr('id', 'color-legend-buttons').css('text-align', 'left');
     _this10.div.append(_this10.buttonsDiv);
 
     _this10.isShow = false;
 
     soupWidget.addObserver(_this10);
+
+    _this10.rebuild();
     return _this10;
   }
 
@@ -81546,17 +81563,31 @@ var ColorLegendWidget = function (_CanvasWidget4) {
     value: function rebuild() {
       this.buttonsDiv.empty();
 
-      var y = 10;
       var _iteratorNormalCompletion7 = true;
       var _didIteratorError7 = false;
       var _iteratorError7 = undefined;
 
       try {
-        for (var _iterator7 = this.colors[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-          var color = _step7.value;
+        for (var _iterator7 = this.colorEntries.entries()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          var _step7$value = _slicedToArray(_step7.value, 2),
+              i = _step7$value[0],
+              entry = _step7$value[1];
 
-          this.makeElemButton(elem, y);
-          y += this.buttonHeight;
+          var id = 'color-legend-' + i;
+          var buttonDiv = (0, _jquery2.default)('<div>').attr('id', id).css({
+            'font-size': '0.8em',
+            'line-height': '1.5em',
+            display: 'block'
+          });
+          var colorDiv = (0, _jquery2.default)('<div>').html('&block;').css({
+            color: entry.color,
+            display: 'inline',
+            'font-size': '1em',
+            'margin-right': '0.7em'
+          });
+          buttonDiv.append(colorDiv);
+          buttonDiv.append(entry.label);
+          this.buttonsDiv.append(buttonDiv);
         }
       } catch (err) {
         _didIteratorError7 = true;
@@ -81573,46 +81604,26 @@ var ColorLegendWidget = function (_CanvasWidget4) {
         }
       }
 
-      if (this.isShow) {
-        this.div.hide();
-      } else {
-        this.div.show();
-      }
-    }
-  }, {
-    key: 'makeElemButton',
-    value: function makeElemButton(elem, y) {
-      var color = data.ElementColors[elem];
-      var colorHexStr = '#' + color.getHexString();
-      var id = 'grid-button-' + elem.toLowerCase();
-      var selector = '#' + id;
-      this.buttonsDiv.append((0, _jquery2.default)('<div id="' + id + '">'));
-      new GridToggleButtonWidget(this.soupWidget, selector, elem, 50, y, colorHexStr);
+      this.resize();
+      this.update();
     }
   }, {
     key: 'resize',
     value: function resize() {
-      if (!this.isGrid) {
-        return;
-      }
       this.div.css({
-        width: this.width(),
-        height: this.height(),
         top: this.y(),
         left: this.x()
       });
-      this.canvasDom.width = this.width();
-      this.canvasDom.height = this.height();
     }
   }, {
     key: 'width',
     value: function width() {
-      return 84;
+      return 80;
     }
   }, {
     key: 'height',
     value: function height() {
-      return this.colors.length * 6 + 10;
+      return this.buttonsDiv.height();
     }
   }, {
     key: 'x',
@@ -81624,19 +81635,116 @@ var ColorLegendWidget = function (_CanvasWidget4) {
     key: 'y',
     value: function y() {
       var parentDivPos = this.parentDiv.position();
-      return parentDivPos.bottom - this.height - 10;
+      return parentDivPos.top + this.parentDiv.height() - this.height() - 40;
     }
   }, {
     key: 'update',
-    value: function update() {}
+    value: function update() {
+      if (this.isShow) {
+        this.div.hide();
+      } else {
+        this.div.show();
+      }
+    }
   }]);
 
   return ColorLegendWidget;
 }(CanvasWidget);
 
+/**
+ * SelectionWidget
+ */
+
+
+var SelectionWidget = function (_CanvasWidget5) {
+  _inherits(SelectionWidget, _CanvasWidget5);
+
+  function SelectionWidget(soupWidget) {
+    _classCallCheck(this, SelectionWidget);
+
+    var _this11 = _possibleConstructorReturn(this, (SelectionWidget.__proto__ || Object.getPrototypeOf(SelectionWidget)).call(this, soupWidget.divTag));
+
+    _this11.soupWidget = soupWidget;
+
+    _this11.canvas.hide();
+
+    _this11.div.css('display', 'block');
+    _this11.div.attr('id', 'selection');
+    _this11.div.addClass('jolecule-button');
+    _this11.div.css({
+      padding: '8px',
+      position: 'absolute',
+      'max-width': '120px',
+      'max-height': '200px',
+      'font-size': '0.8em',
+      'overflow': 'hidden',
+      height: 'auto',
+      width: 'auto',
+      'text-align': 'left'
+    });
+
+    _this11.isShow = false;
+
+    soupWidget.addObserver(_this11);
+    return _this11;
+  }
+
+  _createClass(SelectionWidget, [{
+    key: 'resize',
+    value: function resize() {
+      this.div.css({
+        top: this.y(),
+        left: this.x()
+      });
+    }
+  }, {
+    key: 'x',
+    value: function x() {
+      var parentDivPos = this.parentDiv.position();
+      return parentDivPos.left + this.parentDiv.width() - this.div.width() - 40;
+    }
+  }, {
+    key: 'y',
+    value: function y() {
+      var parentDivPos = this.parentDiv.position();
+      return parentDivPos.top + this.parentDiv.height() - this.div.height() - 40;
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      var soup = this.soupWidget.soup;
+      var residue = soup.getResidueProxy();
+      this.isShow = false;
+      var s = '';
+      var n = 0;
+      for (var i = 0; i < soup.getResidueCount(); i += 1) {
+        residue.iRes = i;
+        if (residue.selected) {
+          this.isShow = true;
+          if (n > 8) {
+            s += '[more...]';
+            break;
+          }
+          s += residue.label + '<br>';
+          n += 1;
+        }
+      }
+      if (!this.isShow) {
+        this.div.hide();
+      } else {
+        this.div.html(s);
+        this.div.show();
+        this.resize();
+      }
+    }
+  }]);
+
+  return SelectionWidget;
+}(CanvasWidget);
+
 var ResidueSelectorWidget = function () {
   function ResidueSelectorWidget(soupWidget, selector) {
-    var _this11 = this;
+    var _this12 = this;
 
     _classCallCheck(this, ResidueSelectorWidget);
 
@@ -81651,7 +81759,7 @@ var ResidueSelectorWidget = function () {
     this.$select = (0, _jquery2.default)('<select>').attr('id', this.selectId);
     this.div.append(this.$select);
     this.$select.change(function () {
-      return _this11.change();
+      return _this12.change();
     });
     this.$select.select2({ width: '150px' });
   }
@@ -81725,15 +81833,15 @@ var ResidueSelectorWidget = function () {
 
 var ToggleWidget = function () {
   function ToggleWidget(soupWidget, selector) {
-    var _this12 = this;
+    var _this13 = this;
 
     _classCallCheck(this, ToggleWidget);
 
     this.soupWidget = soupWidget;
     this.controller = soupWidget.controller;
     this.div = (0, _jquery2.default)(selector).html(this.html()).addClass('jolecule-button').on('click touch', function (e) {
-      _this12.set(!_this12.get());
-      _this12.update();
+      _this13.set(!_this13.get());
+      _this13.update();
       e.preventDefault();
     });
     this.soupWidget.addObserver(this);
@@ -81772,11 +81880,11 @@ var ToggleOptionWidget = function (_ToggleWidget) {
   function ToggleOptionWidget(soupWidget, selector, option) {
     _classCallCheck(this, ToggleOptionWidget);
 
-    var _this13 = _possibleConstructorReturn(this, (ToggleOptionWidget.__proto__ || Object.getPrototypeOf(ToggleOptionWidget)).call(this, soupWidget, selector));
+    var _this14 = _possibleConstructorReturn(this, (ToggleOptionWidget.__proto__ || Object.getPrototypeOf(ToggleOptionWidget)).call(this, soupWidget, selector));
 
-    _this13.option = option;
-    _this13.div.html(_this13.html());
-    return _this13;
+    _this14.option = option;
+    _this14.div.html(_this14.html());
+    return _this14;
   }
 
   _createClass(ToggleOptionWidget, [{
@@ -81808,12 +81916,12 @@ var ToggleAnimateWidget = function (_ToggleWidget2) {
   function ToggleAnimateWidget(soupWidget, selector, state, text) {
     _classCallCheck(this, ToggleAnimateWidget);
 
-    var _this14 = _possibleConstructorReturn(this, (ToggleAnimateWidget.__proto__ || Object.getPrototypeOf(ToggleAnimateWidget)).call(this, soupWidget, selector));
+    var _this15 = _possibleConstructorReturn(this, (ToggleAnimateWidget.__proto__ || Object.getPrototypeOf(ToggleAnimateWidget)).call(this, soupWidget, selector));
 
-    _this14.state = state;
-    _this14.text = text;
-    _this14.div.html(_this14.html());
-    return _this14;
+    _this15.state = state;
+    _this15.text = text;
+    _this15.div.html(_this15.html());
+    return _this15;
   }
 
   _createClass(ToggleAnimateWidget, [{
@@ -81875,6 +81983,7 @@ exports.default = {
   SequenceWidget: SequenceWidget,
   ClippingPlaneWidget: ClippingPlaneWidget,
   ColorLegendWidget: ColorLegendWidget,
+  SelectionWidget: SelectionWidget,
   GridControlWidget: GridControlWidget,
   ResidueSelectorWidget: ResidueSelectorWidget,
   ToggleOptionWidget: ToggleOptionWidget,
@@ -88477,6 +88586,7 @@ var SoupView = function () {
     key: 'startTargetView',
     value: function startTargetView() {
       this.targetView = this.saveTargetView;
+      this.saveTargetView = null;
       this.isUpdateObservers = true;
       this.isStartTargetAfterRender = false;
       this.isChanged = true;
@@ -88576,8 +88686,8 @@ var SoupView = function () {
       this.setTargetView(view);
     }
   }, {
-    key: 'getITrace',
-    value: function getITrace(iRes) {
+    key: 'getTracesOfChainContainingResidue',
+    value: function getTracesOfChainContainingResidue(iRes) {
       var result = [];
       var residue = this.soup.getResidueProxy(iRes);
       var chain = residue.chain;
@@ -88620,7 +88730,7 @@ var SoupView = function () {
       var atom = this.soup.getAtomProxy(iAtom);
       var view = this.currentView.getViewTranslatedTo(atom.pos);
       view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
-      view.selectedTraces = this.getITrace(atom.iRes);
+      view.selectedTraces = this.getTracesOfChainContainingResidue(atom.iRes);
       this.setTargetView(view);
     }
   }, {
@@ -88839,6 +88949,7 @@ var SoupView = function () {
       if (this.nUpdateStep < 0) {
         if (this.targetView !== null) {
           this.setCurrentView(this.targetView);
+          this.targetView = null;
           this.isUpdateObservers = true;
           this.isChanged = true;
           this.targetView = null;
@@ -89430,19 +89541,9 @@ var SoupViewController = function () {
     key: 'zoomToChain',
     value: function zoomToChain(iAtom) {
       var atom = this.soup.getAtomProxy(iAtom);
-      var iRes = atom.iRes;
-      var residue = this.soup.getResidueProxy(iRes);
-      var iStructure = residue.iStructure;
-      var chain = residue.chain;
-      var atomIndices = [];
-      for (var i = 0; i < this.soup.getResidueCount(); i += 1) {
-        residue.iRes = i;
-        if (residue.iStructure === iStructure && residue.chain === chain) {
-          atomIndices.push(residue.iAtom);
-        }
-      }
+      var atomIndices = this.soup.getAtomsOfChainContainingResidue(atom.iRes);
       var view = this.soupView.getZoomedOutViewOf(atomIndices);
-      view.selectedTraces = this.soupView.getITrace(iRes);
+      view.selectedTraces = this.soupView.getTracesOfChainContainingResidue(atom.iRes);
       this.setTargetView(view);
     }
   }, {
@@ -91329,6 +91430,21 @@ var Soup = function () {
       }
     }
   }, {
+    key: 'getAtomsOfChainContainingResidue',
+    value: function getAtomsOfChainContainingResidue(iRes) {
+      var residue = this.getResidueProxy(iRes);
+      var iStructure = residue.iStructure;
+      var chain = residue.chain;
+      var atomIndices = [];
+      for (var i = 0; i < this.getResidueCount(); i += 1) {
+        residue.iRes = i;
+        if (residue.iStructure === iStructure && residue.chain === chain) {
+          atomIndices.push(residue.iAtom);
+        }
+      }
+      return atomIndices;
+    }
+  }, {
     key: 'getNeighbours',
     value: function getNeighbours(iRes) {
       var indices = [iRes];
@@ -92538,6 +92654,7 @@ var SoupWidget = function (_WebglWidget) {
       };
 
       var show = this.soupView.currentView.show;
+
       if (isNewTrigger('water', show.water)) {
         this.addRepresentation('water', new representation.WaterRepresentation(this.soup, this.atomRadius));
       }
@@ -92693,6 +92810,7 @@ var SoupWidget = function (_WebglWidget) {
             }
           }
           if (!isSameChainSelected) {
+            this.controller.clearSelectedResidues();
             var structureId = this.soup.structureIds[iStructure];
             this.asyncFlashMesssage('Select chain ' + structureId + ':' + chain, 1000);
             this.controller.zoomToChain(atom.iAtom);

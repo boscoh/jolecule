@@ -320,6 +320,7 @@ class SoupWidget extends WebglWidget {
     }
 
     let show = this.soupView.currentView.show
+
     if (isNewTrigger('water', show.water)) {
       this.addRepresentation(
         'water',
@@ -469,6 +470,7 @@ class SoupWidget extends WebglWidget {
           }
         }
         if (!isSameChainSelected) {
+          this.controller.clearSelectedResidues()
           let structureId = this.soup.structureIds[iStructure]
           this.asyncFlashMesssage(
             `Select chain ${structureId}:${chain}`,

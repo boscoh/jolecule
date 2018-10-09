@@ -35,7 +35,7 @@ const rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U']
 
 const green = new THREE.Color(0x639941)
 const blue = new THREE.Color(0x568ab5)
-const yellow = new THREE.Color(0xbf9d13)
+const yellow = new THREE.Color(0xF6C719)
 const purple = new THREE.Color(0x9578aa)
 const grey = new THREE.Color(0xbbbbbb)
 const red = new THREE.Color(0x993333)

@@ -387,6 +387,7 @@ class SoupView {
 
   startTargetView() {
     this.targetView = this.saveTargetView
+    this.saveTargetView = null
     this.isUpdateObservers = true
     this.isStartTargetAfterRender = false
     this.isChanged = true
@@ -483,7 +484,7 @@ class SoupView {
     this.setTargetView(view)
   }
 
-  getITrace(iRes) {
+  getTracesOfChainContainingResidue(iRes) {
     let result = []
     let residue = this.soup.getResidueProxy(iRes)
     let chain = residue.chain
@@ -497,12 +498,11 @@ class SoupView {
     return result
   }
 
-
   setTargetViewByIAtom(iAtom) {
     let atom = this.soup.getAtomProxy(iAtom)
     let view = this.currentView.getViewTranslatedTo(atom.pos)
     view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus)
-    view.selectedTraces = this.getITrace(atom.iRes)
+    view.selectedTraces = this.getTracesOfChainContainingResidue(atom.iRes)
     this.setTargetView(view)
   }
 
@@ -710,6 +710,7 @@ class SoupView {
     if (this.nUpdateStep < 0) {
       if (this.targetView !== null) {
         this.setCurrentView(this.targetView)
+        this.targetView = null
         this.isUpdateObservers = true
         this.isChanged = true
         this.targetView = null
@@ -1106,22 +1107,11 @@ class SoupViewController {
 
   zoomToChain(iAtom) {
     let atom = this.soup.getAtomProxy(iAtom)
-    let iRes = atom.iRes
-    let residue = this.soup.getResidueProxy(iRes)
-    let iStructure = residue.iStructure
-    let chain = residue.chain
-    let atomIndices = []
-    for (let i = 0; i < this.soup.getResidueCount(); i += 1) {
-      residue.iRes = i
-      if (
-        residue.iStructure === iStructure &&
-        residue.chain === chain
-      ) {
-        atomIndices.push(residue.iAtom)
-      }
-    }
+    let atomIndices = this.soup.getAtomsOfChainContainingResidue(atom.iRes)
     let view = this.soupView.getZoomedOutViewOf(atomIndices)
-    view.selectedTraces = this.soupView.getITrace(iRes)
+    view.selectedTraces = this.soupView.getTracesOfChainContainingResidue(
+      atom.iRes
+    )
     this.setTargetView(view)
   }
 

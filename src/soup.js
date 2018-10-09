@@ -1323,6 +1323,23 @@ class Soup {
     }
   }
 
+  getAtomsOfChainContainingResidue (iRes) {
+    let residue = this.getResidueProxy(iRes)
+    let iStructure = residue.iStructure
+    let chain = residue.chain
+    let atomIndices = []
+    for (let i = 0; i < this.getResidueCount(); i += 1) {
+      residue.iRes = i
+      if (
+        residue.iStructure === iStructure &&
+        residue.chain === chain
+      ) {
+        atomIndices.push(residue.iAtom)
+      }
+    }
+    return atomIndices
+  }
+
   getNeighbours(iRes) {
     let indices = [iRes]
     for (let jRes = 0; jRes < this.getResidueCount(); jRes += 1) {
