@@ -1689,13 +1689,13 @@ class SelectionWidget extends CanvasWidget {
   update() {
     let soup = this.soupWidget.soup
     let residue = soup.getResidueProxy()
-    this.isShow = false
+    let anySelected = false
     let s = ''
     let n = 0
     for (let i = 0; i < soup.getResidueCount(); i += 1) {
       residue.iRes = i
       if (residue.selected) {
-        this.isShow = true
+        anySelected = true
         if (n > 8) {
           s += '[more...]'
           break
@@ -1704,6 +1704,22 @@ class SelectionWidget extends CanvasWidget {
         n += 1
       }
     }
+
+    if (!anySelected) {
+      if (this.soupWidget.soupView.getMode() === 'chain') {
+        console.log('SelectionWidget checking chain')
+        if (soup.selectedTraces.length > 0) {
+          let iTrace = soup.selectedTraces[0]
+          let iRes = soup.traces[iTrace].indices[0]
+          let residue = soup.getResidueProxy(iRes)
+          let structureId = soup.structureIds[residue.iStructure]
+          s += `Chain ${structureId}:${residue.chain}`
+          anySelected = true
+        }
+      }
+    }
+
+    this.isShow = anySelected
     if (!this.isShow) {
       this.div.hide()
     } else {

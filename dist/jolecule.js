@@ -81714,13 +81714,13 @@ var SelectionWidget = function (_CanvasWidget5) {
     value: function update() {
       var soup = this.soupWidget.soup;
       var residue = soup.getResidueProxy();
-      this.isShow = false;
+      var anySelected = false;
       var s = '';
       var n = 0;
       for (var i = 0; i < soup.getResidueCount(); i += 1) {
         residue.iRes = i;
         if (residue.selected) {
-          this.isShow = true;
+          anySelected = true;
           if (n > 8) {
             s += '[more...]';
             break;
@@ -81729,6 +81729,22 @@ var SelectionWidget = function (_CanvasWidget5) {
           n += 1;
         }
       }
+
+      if (!anySelected) {
+        if (this.soupWidget.soupView.getMode() === 'chain') {
+          console.log('SelectionWidget checking chain');
+          if (soup.selectedTraces.length > 0) {
+            var iTrace = soup.selectedTraces[0];
+            var iRes = soup.traces[iTrace].indices[0];
+            var _residue = soup.getResidueProxy(iRes);
+            var structureId = soup.structureIds[_residue.iStructure];
+            s += 'Chain ' + structureId + ':' + _residue.chain;
+            anySelected = true;
+          }
+        }
+      }
+
+      this.isShow = anySelected;
       if (!this.isShow) {
         this.div.hide();
       } else {
@@ -92849,6 +92865,8 @@ var SoupWidget = function (_WebglWidget) {
         } else {
           this.controller.selectAdditionalResidue(this.iResClick);
         }
+      } else {
+        this.controller.clearSelectedResidues();
       }
       this.iAtomPressed = null;
       this.iResClick = null;

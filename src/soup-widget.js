@@ -510,6 +510,8 @@ class SoupWidget extends WebglWidget {
       } else {
         this.controller.selectAdditionalResidue(this.iResClick)
       }
+    } else {
+      this.controller.clearSelectedResidues()
     }
     this.iAtomPressed = null
     this.iResClick = null
