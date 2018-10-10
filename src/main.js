@@ -155,7 +155,10 @@ class AquariaAlignment {
     for (let alignStr of this.data.alignment.split(';')) {
       let pieces = alignStr.split(',')
       let tokens = _.head(pieces).split(':')
-      let [pdbId, pdbChain, resNumPdbStart, dummy, resNumPdbEnd] = _.take(tokens, 5)
+      let [pdbId, pdbChain, resNumPdbStart, dummy, resNumPdbEnd] = _.take(
+        tokens,
+        5
+      )
       if (_.isNil(resNumPdbStart)) {
         continue
       }
@@ -198,10 +201,7 @@ class AquariaAlignment {
       if (chain !== entry.pdbChain) {
         continue
       }
-      if (
-        resNum >= entry.resNumPdbStart &&
-        resNum <= entry.resNumPdbEnd
-      ) {
+      if (resNum >= entry.resNumPdbStart && resNum <= entry.resNumPdbEnd) {
         let diff = resNum - entry.resNumPdbStart
         let resNumSeq = entry.resNumSeqStart + diff
         return resNumSeq
@@ -239,11 +239,33 @@ class AquariaAlignment {
     return result
   }
 
-  getSeqToPdbMapping(seqId, chain) {
+  getMapResNums (resNumSeq) {
+    let result = []
+    for (let entry of this.alignEntries) {
+      if (
+        resNumSeq >= entry.resNumSeqStart &&
+        resNumSeq <= entry.resNumSeqEnd
+      ) {
+        let diff = resNumSeq - entry.resNumSeqStart
+        let resNumPdb = entry.resNumPdbStart + diff
+        result.push([entry.pdbId, entry.pdbChain, resNumPdb])
+      }
+    }
+    return result
   }
 
-  getPdbToSeqMapping(chain, seqId) {
-
+  getPdbResColors (resNumSeq, color) {
+    let result = []
+    for (let entry of this.getMapResNums(resNumSeq)) {
+      let [pdb, chain, resNumPdb] = entry
+      result.push({
+        pdb,
+        chain,
+        resNum: resNumPdb,
+        color: makeRgbStringFromHexString(color)
+      })
+    }
+    return result
   }
 
   recolorPdb(chain, seqId) {
@@ -259,8 +281,149 @@ class AquariaAlignment {
     return colors
   }
 
-  rebuildWithNewAlignment(seqId, chain) {
+  colorSoup(soup) {
+    let residue = soup.getResidueProxy()
+    for (let iRes = 0; iRes < soup.getResidueCount(); iRes += 1) {
+      residue.iRes = iRes
+      let chain = residue.chain
+      let seqResNum = null
+      let resNum = residue.resNum
+      seqResNum = this.mapPdb(chain, resNum)
+      if (_.isNil(seqResNum)) {
+        residue.customColor = '#999999'
+      } else {
+        if (chain in this.data.conservations) {
+          let conservations = this.data.conservations[chain]
+          if (_.includes(conservations.conserved, seqResNum)) {
+            residue.customColor = '#666666'
+          } else if (_.includes(conservations.nonconserved, seqResNum)) {
+            residue.customColor = '#000000'
+          }
+        } else {
+          residue.customColor = '#999999'
+        }
+      }
+    }
+    soup.colorResidues()
+  }
 
+  setColorLegend(colorLegendWidget) {
+    if (colorLegendWidget.colorEntries.length === 4) {
+      colorLegendWidget.colorEntries.push({
+        color: '#666666',
+        label: 'conserved'
+      })
+      colorLegendWidget.colorEntries.push({
+        color: '#000000',
+        label: 'nonconserved'
+      })
+      colorLegendWidget.rebuild()
+    }
+  }
+
+  setFullSequence(sequenceWidget) {
+    let soup = sequenceWidget.soup
+
+    sequenceWidget.charEntries.length = 0
+    sequenceWidget.nChar = 0
+
+    let pdbId = this.data.pdb_id
+
+    let chains = this.data.pdb_chain
+    for (let iChain = 0; iChain < chains.length; iChain += 1) {
+      let chain = chains[iChain]
+      let sequenceOfChain = this.data.sequences[iChain].sequence
+      sequenceWidget.nChar += sequenceOfChain.length + sequenceWidget.nPadChar
+      let seqId = this.data.sequences[iChain].primary_accession
+      if (_.isNil(seqId)) {
+        seqId = ''
+      }
+
+      // Fill the empty padding before every chain
+      for (
+        let iResOfSeq = 0;
+        iResOfSeq < sequenceOfChain.length;
+        iResOfSeq += 1
+      ) {
+        if (iResOfSeq === 0) {
+          for (let iResOfPadding of _.range(sequenceWidget.nPadChar)) {
+            let startLabel = null
+            if (iResOfPadding === 0) {
+              startLabel = seqId + ':' + pdbId + ':' + chain
+            }
+            sequenceWidget.charEntries.push({
+              iStructure: 0,
+              chain,
+              c: '',
+              startLabel: startLabel,
+              ss: ''
+            })
+          }
+        }
+
+        let c = sequenceOfChain[iResOfSeq]
+        let pdbRes = this.mapSeqRes(seqId, iResOfSeq + 1, chain)
+        if (_.isNil(pdbRes)) {
+          // Entries of residues without PDB matches
+          sequenceWidget.charEntries.push({
+            iStructure: 0,
+            chain,
+            c: c,
+            startLabel: null,
+            ss: '.',
+            label: seqId + ':' + (iResOfSeq + 1),
+            resNum: iResOfSeq + 1
+          })
+        } else {
+          // Entries of residues that match PDB residues
+          let [pdbId, chain, pdbResNum] = pdbRes
+          let residue = soup.findResidue(chain, pdbResNum)
+          sequenceWidget.charEntries.push({
+            chain,
+            iStructure: residue.iStructure,
+            c: c,
+            startLabel: null,
+            iRes: residue.iRes,
+            ss: residue.ss,
+            label: seqId + ':' + residue.resId + ':' + residue.resType,
+            resNum: iResOfSeq + 1
+          })
+        }
+      }
+    }
+    sequenceWidget.nChar = sequenceWidget.charEntries.length
+  }
+
+  colorFromFeatures(soup, features) {
+    let residue = soup.getResidueProxy()
+    for (let i = 0; i < soup.getResidueCount(); i+= 1) {
+      residue.iRes = i
+      residue.customColor = getHexColor('#999999')
+    }
+    for (let feature of features) {
+      let resNum = parseInt(feature.Residue)
+      for (let entry of this.getPdbResColors(resNum, feature.Color)) {
+        let residue = soup.findResidue(entry.chain, entry.resNum)
+        if (residue.chain === entry.chain && residue.resNum === resNum) {
+          residue.customColor = entry.color
+        }
+      }
+    }
+    soup.colorResidues()
+  }
+
+  setFeatureColorLegend(colorLegendWidget, features) {
+    let entries = []
+    for (let feature of features) {
+      if (!_.find(entries, e => e.color === feature.Color)) {
+        entries.push({ color: feature.Color, label: feature.Name })
+      }
+    }
+    colorLegendWidget.colorEntries.length = 0
+    for (let entry of entries) {
+      colorLegendWidget.colorEntries.push(entry)
+    }
+    colorLegendWidget.rebuild()
   }
 }
 

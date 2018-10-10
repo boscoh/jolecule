@@ -304,7 +304,7 @@ class SoupView {
     this.isUpdateSidechain = false
 
     // indicates when colors need to be updated
-    this.isUpdateSelection = false
+    this.isUpdateColors = false
 
     // delayed flag to change rendering after
     // rotations have been done
@@ -555,7 +555,7 @@ class SoupView {
     this.insertView(iNewView, newView.id, newView)
     this.setTargetViewByViewId(newView.id)
     this.isChanged = true
-    this.isUpdateSelection = true
+    this.isUpdateColors = true
     console.log('Soupview.saveCurrentView', newView)
 
     return newView.id
@@ -841,14 +841,14 @@ class SoupViewController {
   clearSelectedResidues() {
     this.soup.clearSelectedResidues()
     this.soupView.currentView.selected = this.soup.makeSelectedResidueList()
-    this.soupView.isUpdateSelection = true
+    this.soupView.isUpdateColors = true
     this.soupView.isChanged = true
   }
 
   setResidueSelect(iRes, val) {
     let res = this.soup.getResidueProxy(iRes)
     res.selected = val
-    this.soupView.isUpdateSelection = true
+    this.soupView.isUpdateColors = true
     this.soupView.isChanged = true
   }
 
@@ -869,7 +869,7 @@ class SoupViewController {
     this.clearSelectedResidues()
     this.setResidueSelect(iRes, val)
     this.iResLastSelected = val ? iRes : null
-    this.soupView.isUpdateSelection = true
+    this.soupView.isUpdateColors = true
     this.soupView.isChanged = true
   }
 
@@ -878,7 +878,7 @@ class SoupViewController {
     let val = !res.selected
     this.setResidueSelect(iRes, val)
     this.iResLastSelected = val ? iRes : null
-    this.soupView.isUpdateSelection = true
+    this.soupView.isUpdateColors = true
     this.soupView.isChanged = true
   }
 
@@ -896,7 +896,7 @@ class SoupViewController {
       }
     }
     this.iResLastSelected = val ? iRes : null
-    this.soupView.isUpdateSelection = true
+    this.soupView.isUpdateColors = true
     this.soupView.isChanged = true
   }
 
@@ -1004,8 +1004,8 @@ class SoupViewController {
   }
 
   setShowOption(option, bool) {
-    console.log('Controller.setShowOption', option, bool)
     this.soupView.currentView.show[option] = bool
+    this.soupView.isUpdateObservers = true
     this.soupView.isChanged = true
   }
 
@@ -1039,7 +1039,7 @@ class SoupViewController {
     this.soupView.isChanged = true
 
     this.soupView.isUpdateObservers = true
-    this.soupView.isUpdateSelection = true
+    this.soupView.isUpdateColors = true
   }
 
   setGridCutoff(bCutoff) {
@@ -1092,7 +1092,7 @@ class SoupViewController {
       this.soupView.nUpdateStep = -1
     } else {
       this.soupView.isUpdateSidechain = true
-      this.soupView.isUpdateSelection = true
+      this.soupView.isUpdateColors = true
     }
     this.soupView.isUpdateObservers = true
     this.soupView.isChanged = true

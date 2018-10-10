@@ -303,7 +303,7 @@ class SoupWidget extends WebglWidget {
     let isNoMoreChanges =
       !this.soupView.soup.grid.isChanged &&
       !this.soupView.isUpdateSidechain &&
-      !this.soupView.isUpdateSelection
+      !this.soupView.isUpdateColors
 
     if (this.soupView.isStartTargetAfterRender) {
       // set target only AFTER all changes have been applied in previous tick
@@ -360,7 +360,7 @@ class SoupWidget extends WebglWidget {
           'SoupWidget.drawFrame new soup.selectedTraces',
           this.soup.selectedTraces
         )
-        this.representations.ribbon.selectedTraces = this.soup.selectedTraces
+        this.representations.ribbon.selectedTraces = _.cloneDeep(this.soup.selectedTraces)
         this.representations.ribbon.build()
         this.updateMeshesInScene = true
       }
@@ -393,13 +393,13 @@ class SoupWidget extends WebglWidget {
       this.updateMeshesInScene = true
     }
 
-    if (this.soupView.isUpdateSelection) {
+    if (this.soupView.isUpdateColors) {
       for (let repr of _.values(this.representations)) {
         if ('recolor' in repr) {
           repr.recolor()
         }
       }
-      this.soupView.isUpdateSelection = false
+      this.soupView.isUpdateColors = false
       this.soupView.isUpdateObservers = true
     }
 
@@ -450,10 +450,6 @@ class SoupWidget extends WebglWidget {
     if (_.isNil(iAtomHover)) {
       this.controller.clearSelectedResidues()
       this.controller.zoomOut()
-      if (this.soupView.getMode() === 'chain') {
-        this.soup.selectedTraces.length = 0
-        this.asyncFlashMesssage('Select entire structure', 1000)
-      }
     } else {
       let atom = this.soup.getAtomProxy(iAtomHover)
       let residue = this.soup.getResidueProxy(atom.iRes)
@@ -471,18 +467,12 @@ class SoupWidget extends WebglWidget {
         }
         if (!isSameChainSelected) {
           this.controller.clearSelectedResidues()
-          let structureId = this.soup.structureIds[iStructure]
-          this.asyncFlashMesssage(
-            `Select chain ${structureId}:${chain}`,
-            1000
-          )
           this.controller.zoomToChain(atom.iAtom)
           return
         }
       }
       this.controller.selectResidue(atom.iRes, true)
       this.controller.setTargetViewByIAtom(iAtomHover)
-      this.asyncFlashMesssage(`Select atom ${atom.label}`, 1000)
     }
   }
 
@@ -502,7 +492,7 @@ class SoupWidget extends WebglWidget {
   }
 
   click(event) {
-    if (!_.isUndefined(this.iResClick) && this.iResClick !== null) {
+    if (util.exists(this.iResClick)) {
       if (!event.metaKey && !event.shiftKey) {
         this.controller.selectResidue(this.iResClick)
       } else if (event.shiftKey) {
@@ -510,8 +500,6 @@ class SoupWidget extends WebglWidget {
       } else {
         this.controller.selectAdditionalResidue(this.iResClick)
       }
-    } else {
-      this.controller.clearSelectedResidues()
     }
     this.iAtomPressed = null
     this.iResClick = null

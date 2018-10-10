@@ -663,7 +663,7 @@ class SequenceWidget extends CanvasWidget {
     )
   }
 
-  calcNPad () {
+  calcNPad() {
     let polymerLengths = []
     for (let i of _.range(this.soup.structureIds.length)) {
       polymerLengths.push(0)
@@ -769,40 +769,49 @@ class SequenceWidget extends CanvasWidget {
   }
 
   checkChain() {
-    let selectedChain = null
-    let selectedIStructure = null
-    if (this.soup.selectedTraces.length > 0) {
-      let iTrace = this.soup.selectedTraces[0]
-      let iRes = this.soup.traces[iTrace].indices[0]
-      let residue = this.soup.getResidueProxy(iRes)
-      selectedIStructure = residue.iStructure
-      selectedChain = residue.chain
-      this.iCharStructStart = null
-      for (let iChar of _.range(this.charEntries.length)) {
-        let charEntry = this.charEntries[iChar]
-        if (
-          charEntry.iStructure === selectedIStructure &&
-          charEntry.chain === selectedChain
-        ) {
-          if (_.isNil(this.iCharStructStart)) {
-            this.iCharStructStart = iChar
+    console.log('SequenceWidget.checkChain', this.soupView.getMode(), this.soup.selectedTraces)
+    if (this.soupView.getMode() === 'chain') {
+      if (this.soup.selectedTraces.length > 0) {
+
+        let iTrace = this.soup.selectedTraces[0]
+        let iRes = this.soup.traces[iTrace].indices[0]
+        let residue = this.soup.getResidueProxy(iRes)
+        let iStructure = residue.iStructure
+        let chain = residue.chain
+
+        this.iCharStructStart = null
+        for (let iChar of _.range(this.charEntries.length)) {
+          let charEntry = this.charEntries[iChar]
+          if (
+            charEntry.iStructure === iStructure &&
+            charEntry.chain === chain
+          ) {
+            if (_.isNil(this.iCharStructStart)) {
+              this.iCharStructStart = iChar
+            }
+            this.iCharStructEnd = iChar + 1
           }
-          this.iCharStructEnd = iChar + 1
         }
+
+        console.log('SequenceWidget.checkChain chain',
+          this.iCharStructStart, this.iCharStructEnd)
+        this.nCharStruct = this.iCharStructEnd - this.iCharStructStart
+
+        if (
+          this.iCharSeqStart < this.iCharStructStart ||
+          this.iCharSeqStart >= this.iCharStructEnd
+        ) {
+          this.iCharSeqStart = this.iCharStructStart
+          this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq
+        }
+
+        return
       }
-      this.nCharStruct = this.iCharStructEnd - this.iCharStructStart
-    } else {
-      this.iCharStructStart = 0
-      this.nCharStruct = this.charEntries.length
     }
 
-    if (
-      this.iCharSeqStart < this.iCharStructStart ||
-      this.iCharSeqStart >= this.iCharStructEnd
-    ) {
-      this.iCharSeqStart = this.iCharStructStart
-      this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq
-    }
+    this.iCharStructStart = 0
+    this.nCharStruct = this.charEntries.length
+    this.iCharStructEnd = this.iCharStructStart + this.nCharStruct
   }
 
   updateWithoutCheckingCurrent() {
@@ -1040,13 +1049,6 @@ class SequenceWidget extends CanvasWidget {
           ) {
             this.iChar = iChar
             this.checkDisplayLimits()
-            console.log(
-              'SequenceWidget update iChar',
-              iChar,
-              this.iCharSeqStart,
-              this.iCharSeqEnd,
-              this.charEntries[iChar].label
-            )
           }
           break
         }
@@ -1106,10 +1108,8 @@ class SequenceWidget extends CanvasWidget {
       this.iChar = this.iCharFromXSeq(this.pointerX)
       if (this.iChar === this.iCharPressed) {
         let charEntry = this.charEntries[this.iChar]
-        console.log('SequenceWidget.doubleclick press', this.iChar, charEntry)
         if (!_.isNil(charEntry.iRes)) {
           this.controller.clearSelectedResidues()
-          console.log('SequenceWidget.doubleclick goto', charEntry.iRes)
           this.controller.setResidueSelect(charEntry.iRes, true)
           let residue = this.soup.getResidueProxy(charEntry.iRes)
           this.controller.setTargetViewByIAtom(residue.iAtom)
@@ -1570,7 +1570,7 @@ class ColorLegendWidget extends CanvasWidget {
       .css('text-align', 'left')
     this.div.append(this.buttonsDiv)
 
-    this.isShow = false
+    this.isShow = true
 
     soupWidget.addObserver(this)
 
@@ -1630,11 +1630,12 @@ class ColorLegendWidget extends CanvasWidget {
     let parentDivPos = this.parentDiv.position()
     return parentDivPos.top + this.parentDiv.height() - this.height() - 40
   }
+
   update() {
     if (this.isShow) {
-      this.div.hide()
-    } else {
       this.div.show()
+    } else {
+      this.div.hide()
     }
   }
 }
@@ -1658,7 +1659,7 @@ class SelectionWidget extends CanvasWidget {
       'max-width': '120px',
       'max-height': '200px',
       'font-size': '0.8em',
-      'overflow': 'hidden',
+      overflow: 'hidden',
       height: 'auto',
       width: 'auto',
       'text-align': 'left'
@@ -1689,13 +1690,13 @@ class SelectionWidget extends CanvasWidget {
   update() {
     let soup = this.soupWidget.soup
     let residue = soup.getResidueProxy()
-    let anySelected = false
+    this.isShow = false
     let s = ''
     let n = 0
     for (let i = 0; i < soup.getResidueCount(); i += 1) {
       residue.iRes = i
       if (residue.selected) {
-        anySelected = true
+        this.isShow = true
         if (n > 8) {
           s += '[more...]'
           break
@@ -1705,21 +1706,19 @@ class SelectionWidget extends CanvasWidget {
       }
     }
 
-    if (!anySelected) {
+    if (!this.isShow) {
       if (this.soupWidget.soupView.getMode() === 'chain') {
-        console.log('SelectionWidget checking chain')
         if (soup.selectedTraces.length > 0) {
           let iTrace = soup.selectedTraces[0]
           let iRes = soup.traces[iTrace].indices[0]
           let residue = soup.getResidueProxy(iRes)
           let structureId = soup.structureIds[residue.iStructure]
           s += `Chain ${structureId}:${residue.chain}`
-          anySelected = true
+          this.isShow = true
         }
       }
     }
 
-    this.isShow = anySelected
     if (!this.isShow) {
       this.div.hide()
     } else {
@@ -1779,10 +1778,10 @@ class ResidueSelectorWidget {
         let startTime = new Date()
         this.$select.val(newValue).trigger('change.select2')
         let s = (new Date() - startTime) / 1000
-        console.log(
-          `ResidueSelectorWidget.update ${oldValue} -> ${newValue}` +
-            ` in ${s.toFixed(3)}s`
-        )
+        // console.log(
+        //   `ResidueSelectorWidget.update ${oldValue} -> ${newValue}` +
+        //     ` in ${s.toFixed(3)}s`
+        // )
       }
     }
   }

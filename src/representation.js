@@ -65,7 +65,7 @@ class Representation {
 class ArrowRepresentation extends Representation {
   constructor(soup, isTransparent = false, selectedTraces = []) {
     super(soup)
-    this.selectedTraces = selectedTraces
+    this.selectedTraces = _.cloneDeep(selectedTraces)
     this.setTransparent(isTransparent)
     this.traces = []
     this.build()
@@ -147,7 +147,7 @@ class ArrowRepresentation extends Representation {
 class RibbonRepresentation extends Representation {
   constructor(soup, isTransparent = false, selectedTraces = []) {
     super(soup)
-    this.selectedTraces = selectedTraces
+    this.selectedTraces = _.cloneDeep(selectedTraces)
     this.traces = []
     this.setTransparent(isTransparent)
     this.build()
@@ -199,7 +199,7 @@ class RibbonRepresentation extends Representation {
 class NucleotideRepresentation extends Representation {
   constructor(soup, isTransparent = false, selectedTraces = null) {
     super(soup)
-    this.selectedTraces = selectedTraces
+    this.selectedTraces = _.cloneDeep(selectedTraces)
     this.setTransparent(isTransparent)
     this.traces = []
     this.build()
@@ -330,7 +330,7 @@ class CartoonRepresentation extends Representation {
   constructor(soup, isTransparent = false, selectedTraces = []) {
     super(soup)
     super.setTransparent(isTransparent)
-    this.selectedTraces = selectedTraces
+    this.selectedTraces = _.cloneDeep(selectedTraces)
     this.build()
   }
 
