@@ -446,46 +446,16 @@ class SoupWidget extends WebglWidget {
     this.controller.setChangeFlag()
   }
 
-  triggerAtom(iAtomHover) {
-    if (_.isNil(iAtomHover)) {
-      this.controller.clearSelectedResidues()
-      this.controller.zoomOut()
-    } else {
-      let atom = this.soup.getAtomProxy(iAtomHover)
-      let residue = this.soup.getResidueProxy(atom.iRes)
-      let chain = residue.chain
-      let iStructure = residue.iStructure
-      let isSameChainSelected = false
-      if (this.soupView.getMode() === 'chain') {
-        if (this.soup.selectedTraces.length > 0) {
-          let iTrace = this.soup.selectedTraces[0]
-          let iRes = this.soup.traces[iTrace].indices[0]
-          let residue = this.soup.getResidueProxy(iRes)
-          if (residue.iStructure === iStructure && residue.chain === chain) {
-            isSameChainSelected = true
-          }
-        }
-        if (!isSameChainSelected) {
-          this.controller.clearSelectedResidues()
-          this.controller.zoomToChain(atom.iAtom)
-          return
-        }
-      }
-      this.controller.selectResidue(atom.iRes, true)
-      this.controller.setTargetViewByIAtom(iAtomHover)
-    }
-  }
-
   doubleclick(event) {
     if (this.iAtomHover !== null) {
       if (this.iAtomHover === this.soupView.getICenteredAtom()) {
         this.atomLabelDialog()
       } else {
-        this.triggerAtom(this.iAtomHover)
+        this.controller.triggerAtom(this.iAtomHover)
       }
       this.isDraggingCentralAtom = false
     } else {
-      this.triggerAtom()
+      this.controller.triggerAtom()
     }
     this.iAtomPressed = null
     this.iResClick = null

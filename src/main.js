@@ -37,7 +37,7 @@ function initFullPageJolecule(...args) {
  *                      default: ''
  * @param isReadOnly: Bool - prevents save/delete to server
  * @param saveUrl: Str - base URL of views server (e.g. "http://jolecule.com")
- * @param isView: bool - if false: creates dummy view get methods
+ * @param isLoadViews: bool - if false: creates dummy view get methods
  * @returns DataServer object
  */
 function makeDataServer(
@@ -45,7 +45,7 @@ function makeDataServer(
   userId = null,
   isReadOnly = false,
   saveUrl = '',
-  isView = true
+  isLoadViews = true
 ) {
   return {
     // Id of structure accessed by this DataServer
@@ -64,11 +64,15 @@ function makeDataServer(
       } else {
         url = `${saveUrl}/pdb/${pdbId}.txt`
       }
-      $.get(url, pdbText => {
-        let result = { pdbId: pdbId, pdbText: pdbText }
-        console.log('makeDataServer.getProteinData', url, result)
-        callback(result)
-      })
+      $.get(url)
+        .done(pdbText => {
+          let result = { pdbId: pdbId, pdbText: pdbText }
+          console.log('makeDataServer.getProteinData', url, result)
+          callback(result)
+        })
+        .fail(() => {
+          callback({ pdbId: pdbId, pdbText: '' })
+        })
     },
 
     /**
@@ -77,7 +81,7 @@ function makeDataServer(
      * ]
      */
     getViews: function(callback) {
-      if (!isView) {
+      if (!isLoadViews) {
         callback([])
         return
       }
@@ -85,44 +89,55 @@ function makeDataServer(
       if (userId) {
         url += `?user_id=${userId}`
       }
-      $.getJSON(url, views => {
-        console.log('makeDataServer.getViews', url, views)
-        callback(views)
-      })
+      $.getJSON(url)
+        .done(views => {
+          console.log('makeDataServer.getViews', url, views)
+          callback(views)
+        })
+        .fail(() => {
+          console.log('makeDataServer.getViews fail', url)
+          callback([])
+        })
     },
 
     /**
      * @param views - list of View.dicts to be saved
-     * @param callback - that is triggered on successful save
+     * @param callback(Boolean) - that is triggered on successful save
      */
     saveViews: function(views, callback) {
       if (isReadOnly) {
         callback()
         return
       }
-      $.post(`${saveUrl}/save/views`, JSON.stringify(views), () => {
-        console.log('makeDataServer.saveViews', '/save/views', views)
-        callback()
-      })
+      $.post(`${saveUrl}/save/views`, JSON.stringify(views))
+        .done(() => {
+          console.log('makeDataServer.saveViews success', '/save/views', views)
+          callback(true)
+        })
+        .fail(() => {
+          console.log('makeDataServer.saveViews fail', '/save/views', views)
+          callback(false)
+        })
     },
 
     /**
      * @param viewId - Str: id of view to be deleted
-     * @param callback - that is triggered on successful delete
+     * @param callback(Boolean) - that is triggered on successful delete with
      */
     deleteView: function(viewId, callback) {
       if (isReadOnly) {
         callback()
         return
       }
-      $.post(
-        `${saveUrl}/delete/view`,
-        JSON.stringify({ pdbId, viewId }),
-        () => {
-          console.log('makeDataServer.deleteView', viewId)
-          callback()
-        }
-      )
+      $.post(`${saveUrl}/delete/view`, JSON.stringify({ pdbId, viewId }))
+        .done(() => {
+          console.log('makeDataServer.deleteView success', viewId)
+          callback(true)
+        })
+        .fail(() => {
+          console.log('makeDataServer.deleteView fail', viewId)
+          callback(false)
+        })
     }
   }
 }
@@ -239,7 +254,7 @@ class AquariaAlignment {
     return result
   }
 
-  getMapResNums (resNumSeq) {
+  getMapResNums(resNumSeq) {
     let result = []
     for (let entry of this.alignEntries) {
       if (
@@ -254,7 +269,7 @@ class AquariaAlignment {
     return result
   }
 
-  getPdbResColors (resNumSeq, color) {
+  getPdbResColors(resNumSeq, color) {
     let result = []
     for (let entry of this.getMapResNums(resNumSeq)) {
       let [pdb, chain, resNumPdb] = entry
@@ -396,7 +411,7 @@ class AquariaAlignment {
 
   colorFromFeatures(soup, features) {
     let residue = soup.getResidueProxy()
-    for (let i = 0; i < soup.getResidueCount(); i+= 1) {
+    for (let i = 0; i < soup.getResidueCount(); i += 1) {
       residue.iRes = i
       residue.customColor = getHexColor('#999999')
     }
@@ -425,12 +440,39 @@ class AquariaAlignment {
     }
     colorLegendWidget.rebuild()
   }
+
+  setEmbedJolecule(embedJolecule) {
+    embedJolecule.soupView.isUpdateObservers = true
+    embedJolecule.soupView.isChanged = true
+    embedJolecule.soupView.setMode('chain')
+    this.colorSoup(embedJolecule.soup)
+    this.setColorLegend(embedJolecule.widget.colorLegend)
+    this.setFullSequence(embedJolecule.sequenceWidget)
+    for (let [iChain, sequence] of this.data.sequences.entries()) {
+      if (!_.isNil(sequence.primary_accession)) {
+        let chain = this.data.pdb_chain[iChain]
+        console.log('AlignAquara.setEmbedJolecule', chain)
+        embedJolecule.controller.selectChain(0, chain)
+        break
+      }
+    }
+    if (_.isNil(embedJolecule.soupWidget.isAquariaTracking)) {
+      embedJolecule.soupWidget.addObserver(this)
+      embedJolecule.soupWidget.isAquariaTracking = true
+      this.embedJolecule = embedJolecule
+    }
+  }
+
+  update() {
+    console.log(
+      'AquariaAlignment.update',
+      this.embedJolecule.soup.getIStructureAndChain())
+  }
 }
 
 export {
   initEmbedJolecule,
   initFullPageJolecule,
   makeDataServer,
-  getHexColor,
   AquariaAlignment
 }

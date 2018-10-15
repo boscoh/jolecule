@@ -8,20 +8,20 @@ var result = {
       pdbId: "1a0a.Ar",
       pdbText: getPdbLines(),
     }
-    console.log('getProteinData', payload)
+    console.log('dataserver.getProteinData', payload)
     callback(payload);
   },
   getViews: function(callback) {
     var payload = getViewDicts()
-    console.log('getView', payload)
+    console.log('dataserver.getView', payload)
     callback(payload);
   },
   saveViews: function(views, callback) { 
-    console.log('saveViews dummy')
+    console.log('dataserver.saveViews dummy')
     callback() 
   },
   deleteView: function(viewId, callback) { 
-    console.log('deleteView dummy')
+    console.log('dataserver.deleteView dummy')
     callback() 
   }
 };

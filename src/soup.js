@@ -516,7 +516,7 @@ class Soup {
   }
 
   isEmpty() {
-    return this.getAtomCount() == 0
+    return this.getAtomCount() === 0
   }
 
   parsePdbData(pdbText, pdbId) {
@@ -746,7 +746,7 @@ class Soup {
     this.residueStore.iStructure[iRes] = this.iStructure
   }
 
-  findResidue (chain, resNum) {
+  findResidue(chain, resNum) {
     let residue = this.getResidueProxy()
     for (let iRes of _.range(this.getResidueCount())) {
       residue.iRes = iRes
@@ -1252,6 +1252,16 @@ class Soup {
     }
   }
 
+  getIStructureAndChain() {
+    if (this.selectedTraces.length > 0) {
+      let iTrace = this.selectedTraces[0]
+      let iRes = this.traces[iTrace].indices[0]
+      let residue = this.getResidueProxy(iRes)
+      return [residue.iStructure, residue.chain]
+    }
+    return [null, null]
+  }
+
   getAtomProxy(iAtom) {
     return new AtomProxy(this, iAtom)
   }
@@ -1376,17 +1386,6 @@ class Soup {
       }
     }
     return indices
-  }
-
-  findResidue(chain, resNum) {
-    let residue = this.getResidueProxy()
-    for (let iRes of _.range(this.getResidueCount())) {
-      residue.iRes = iRes
-      if (residue.chain === chain && residue.resNum === resNum) {
-        return residue
-      }
-    }
-    return null
   }
 
   setSecondaryStructureColorResidues() {

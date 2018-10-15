@@ -769,16 +769,10 @@ class SequenceWidget extends CanvasWidget {
   }
 
   checkChain() {
-    console.log('SequenceWidget.checkChain', this.soupView.getMode(), this.soup.selectedTraces)
     if (this.soupView.getMode() === 'chain') {
-      if (this.soup.selectedTraces.length > 0) {
+      let [iStructure, chain] = this.soup.getIStructureAndChain()
 
-        let iTrace = this.soup.selectedTraces[0]
-        let iRes = this.soup.traces[iTrace].indices[0]
-        let residue = this.soup.getResidueProxy(iRes)
-        let iStructure = residue.iStructure
-        let chain = residue.chain
-
+      if (!_.isNil(chain)) {
         this.iCharStructStart = null
         for (let iChar of _.range(this.charEntries.length)) {
           let charEntry = this.charEntries[iChar]
@@ -792,11 +786,7 @@ class SequenceWidget extends CanvasWidget {
             this.iCharStructEnd = iChar + 1
           }
         }
-
-        console.log('SequenceWidget.checkChain chain',
-          this.iCharStructStart, this.iCharStructEnd)
         this.nCharStruct = this.iCharStructEnd - this.iCharStructStart
-
         if (
           this.iCharSeqStart < this.iCharStructStart ||
           this.iCharSeqStart >= this.iCharStructEnd
@@ -804,7 +794,6 @@ class SequenceWidget extends CanvasWidget {
           this.iCharSeqStart = this.iCharStructStart
           this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq
         }
-
         return
       }
     }
@@ -1441,7 +1430,7 @@ class GridControlWidget extends CanvasWidget {
 
   y() {
     let parentDivPos = this.parentDiv.position()
-    return parentDivPos.top + 20
+    return parentDivPos.top + 50
   }
 
   yToZ(y) {

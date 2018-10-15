@@ -340,6 +340,8 @@ class SoupView {
     // this is to set the time between transitions of views
     this.maxUpdateStep = 70
     this.msPerStep = 17
+
+    this.mode = 'normal' // or 'chain'
   }
 
   build() {
@@ -350,10 +352,11 @@ class SoupView {
   }
 
   getMode() {
-    if (this.currentView.show.transparent) {
-      return 'chain'
-    }
-    return 'normal'
+    return this.mode
+  }
+
+  setMode(mode) {
+    this.mode = mode
   }
 
   saveGridToCurrentView() {
@@ -705,15 +708,23 @@ class SoupView {
     this.setCurrentView(view)
   }
 
+  setTargetViewToCurrent() {
+    console.log('SoupView.setTargetViewToCurrent', this.targetView)
+    this.setCurrentView(this.targetView)
+    if (this.getMode() === 'chain') {
+      this.currentView.show.transparent = true
+    }
+    this.targetView = null
+    this.isUpdateObservers = true
+    this.isChanged = true
+    this.targetView = null
+  }
+
   animate(elapsedTime) {
     this.nUpdateStep -= elapsedTime / this.msPerStep
     if (this.nUpdateStep < 0) {
       if (this.targetView !== null) {
-        this.setCurrentView(this.targetView)
-        this.targetView = null
-        this.isUpdateObservers = true
-        this.isChanged = true
-        this.targetView = null
+        this.setTargetViewToCurrent()
         this.nUpdateStep = this.maxUpdateStep
       } else {
         if (this.isStartTargetAfterRender) {
@@ -1003,7 +1014,25 @@ class SoupViewController {
     this.soupView.isUpdateObservers = true
   }
 
+  selectChain(iStructure, chain) {
+    this.soup.selectedTraces.length = 0
+    this.clearSelectedResidues()
+    let iAtom = null
+    for (let [iTrace, trace] of this.soup.traces.entries()) {
+      let iRes = trace.indices[0]
+      let residue = this.soup.getResidueProxy(iRes)
+      if (residue.iStructure === iStructure && residue.chain === chain) {
+        this.soup.selectedTraces.push(iTrace)
+        iAtom = residue.iAtom
+      }
+    }
+    if (!_.isNil(iAtom)) {
+      this.zoomToChainContainingAtom(iAtom)
+    }
+  }
+
   setShowOption(option, bool) {
+    console.log('Controller.setShowOption', option, bool)
     this.soupView.currentView.show[option] = bool
     this.soupView.isUpdateObservers = true
     this.soupView.isChanged = true
@@ -1105,7 +1134,7 @@ class SoupViewController {
     }
   }
 
-  zoomToChain(iAtom) {
+  zoomToChainContainingAtom(iAtom) {
     let atom = this.soup.getAtomProxy(iAtom)
     let atomIndices = this.soup.getAtomsOfChainContainingResidue(atom.iRes)
     let view = this.soupView.getZoomedOutViewOf(atomIndices)
@@ -1129,6 +1158,36 @@ class SoupViewController {
       zRotationAngle,
       zoomRatio
     )
+  }
+
+  triggerAtom(iAtomHover) {
+    if (_.isNil(iAtomHover)) {
+      this.clearSelectedResidues()
+      this.zoomOut()
+    } else {
+      let atom = this.soup.getAtomProxy(iAtomHover)
+      let residue = this.soup.getResidueProxy(atom.iRes)
+      let chain = residue.chain
+      let iStructure = residue.iStructure
+      let isSameChainSelected = false
+      if (this.soupView.getMode() === 'chain') {
+        if (this.soup.selectedTraces.length > 0) {
+          let iTrace = this.soup.selectedTraces[0]
+          let iRes = this.soup.traces[iTrace].indices[0]
+          let residue = this.soup.getResidueProxy(iRes)
+          if (residue.iStructure === iStructure && residue.chain === chain) {
+            isSameChainSelected = true
+          }
+        }
+        if (!isSameChainSelected) {
+          this.clearSelectedResidues()
+          this.zoomToChainContainingAtom(atom.iAtom)
+          return
+        }
+      }
+      this.selectResidue(atom.iRes, true)
+      this.setTargetViewByIAtom(iAtomHover)
+    }
   }
 }
 

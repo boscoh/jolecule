@@ -20,6 +20,8 @@ let defaultArgs = {
   viewHeight: 170,
   isViewTextShown: false,
   isSequenceBar: true,
+  isResidueSelector: true,
+  isLegend: false,
   isEditable: true,
   isExtraEditable: false,
   animateState: 'none', // 'loop', 'rotate', 'rock'
@@ -104,6 +106,7 @@ class EmbedJolecule {
       await new Promise(resolve => {
         dataServer.getViews(viewDicts => {
           this.controller.loadViewsFromViewDicts(viewDicts)
+          console.log('EmbedJolecule.asyncAddDataServer getViews finish')
           resolve()
         })
       })
@@ -119,6 +122,8 @@ class EmbedJolecule {
     this.soupWidget.cleanupMessage()
 
     this.isProcessing.flag = false
+
+    console.log('EmbedJolecule.asyncAddDataServer finished')
   }
 
   clear() {
@@ -160,6 +165,8 @@ class EmbedJolecule {
     }
 
     this.widget.colorLegend = new widgets.ColorLegendWidget(this.soupWidget)
+    this.widget.colorLegend.isShow = this.params.isLegend
+
     this.widget.selection = new widgets.SelectionWidget(this.soupWidget)
 
     let isFooter =
@@ -246,20 +253,22 @@ class EmbedJolecule {
     }
 
     if (this.params.isEditable) {
-      this.footerDiv.append(
-        $('<div>')
-          .attr('id', `${this.divId}-res-selector`)
-          .addClass('jolecule-button')
-          .css({
-            'padding-top': '6px',
-            height: '24px',
-            'box-sizing': 'content-box'
-          })
-      )
-      this.widget.residueSelect = new widgets.ResidueSelectorWidget(
-        this.soupWidget,
-        `#${this.divId}-res-selector`
-      )
+      if (this.params.isResidueSelector) {
+        this.footerDiv.append(
+          $('<div>')
+            .attr('id', `${this.divId}-res-selector`)
+            .addClass('jolecule-button')
+            .css({
+              'padding-top': '6px',
+              height: '24px',
+              'box-sizing': 'content-box'
+            })
+        )
+        this.widget.residueSelect = new widgets.ResidueSelectorWidget(
+          this.soupWidget,
+          `#${this.divId}-res-selector`
+        )
+      }
 
       this.footerDiv.append(
         $('<div>')

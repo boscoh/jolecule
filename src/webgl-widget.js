@@ -247,7 +247,7 @@ class WebglWidget {
     this.webglDiv.css('left', this.x() + position.left)
     this.webglDiv.css('top', this.y() + position.top)
 
-    util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 120, 20)
+    util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 5, 5)
     this.messageDiv.css('max-width', this.div.width() - 200)
 
     this.camera.aspect = this.width() / this.height()
