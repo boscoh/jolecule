@@ -36,8 +36,10 @@
               j.asyncAddDataServer(dataServer0).then(function() {
                 let alignment = new jolecule.AquariaAlignment(alignData)
                 alignment.setEmbedJolecule(j.embedJolecule)
+                alignment.selectNewChain = function(seqId, pdbId, chain) {
+                  console.log('selectNewChain', seqId, pdbId, chain)
+                }
               });
-
             });
           });
         })();
