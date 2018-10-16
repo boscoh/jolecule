@@ -1257,9 +1257,11 @@ class Soup {
       let iTrace = this.selectedTraces[0]
       let iRes = this.traces[iTrace].indices[0]
       let residue = this.getResidueProxy(iRes)
-      return [residue.iStructure, residue.chain]
+      let iStructure = residue.iStructure
+      let chain = residue.chain
+      return { iStructure, chain }
     }
-    return [null, null]
+    return null
   }
 
   getAtomProxy(iAtom) {

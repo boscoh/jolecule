@@ -1,0 +1,49 @@
+
+<html>
+
+<head>
+  <meta name="mobile-web-app-capable" content="yes"/> 
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+  <link rel="stylesheet" type="text/css" href="./3q05-jol/full-page-jolecule.css" />
+  <title>jolecule</title>
+</head>
+
+<body>
+  <div id="jolecule-container">
+    <div id="jolecule-body">
+      <div id="jolecule-protein-container"></div>
+      <div id="jolecule-views-container"></div>
+      <script src="./3q05-jol/require.js"></script>
+      <script>
+        (function() {
+          require(['../dist/jolecule'], function(jolecule) {
+            var j = jolecule.initFullPageJolecule(
+              '#jolecule-protein-container',
+              '#jolecule-views-container',
+              { 
+                isEditable: true,
+                isResidueSelector: false,
+                isLegend: true,
+                isExtraEditable: false,
+                isGrid: false,
+                isPlayable: false,
+                backgroundColor: 0xCCCCCC
+              });
+            require([
+                "./3q05-jol/data-server0",
+                "./P04637.3q05.A.json",
+            ], function(dataServer0, alignData) {
+              j.asyncAddDataServer(dataServer0).then(function() {
+                let alignment = new jolecule.AquariaAlignment(alignData)
+                alignment.setEmbedJolecule(j.embedJolecule)
+              });
+
+            });
+          });
+        })();
+      </script>
+    </div>
+  </div>
+</body>
+
+</html>

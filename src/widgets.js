@@ -770,15 +770,15 @@ class SequenceWidget extends CanvasWidget {
 
   checkChain() {
     if (this.soupView.getMode() === 'chain') {
-      let [iStructure, chain] = this.soup.getIStructureAndChain()
+      let result = this.soup.getIStructureAndChain()
 
-      if (!_.isNil(chain)) {
+      if (!_.isNil(result)) {
         this.iCharStructStart = null
         for (let iChar of _.range(this.charEntries.length)) {
           let charEntry = this.charEntries[iChar]
           if (
-            charEntry.iStructure === iStructure &&
-            charEntry.chain === chain
+            charEntry.iStructure === result.iStructure &&
+            charEntry.chain === result.chain
           ) {
             if (_.isNil(this.iCharStructStart)) {
               this.iCharStructStart = iChar
@@ -1550,6 +1550,7 @@ class ColorLegendWidget extends CanvasWidget {
     this.div.addClass('jolecule-button')
     this.div.css({
       padding: '8px',
+      'box-sizing': 'border-box',
       height: 'auto',
       width: 'auto'
     })
@@ -1617,7 +1618,7 @@ class ColorLegendWidget extends CanvasWidget {
 
   y() {
     let parentDivPos = this.parentDiv.position()
-    return parentDivPos.top + this.parentDiv.height() - this.height() - 40
+    return parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - 5
   }
 
   update() {
@@ -1648,9 +1649,10 @@ class SelectionWidget extends CanvasWidget {
       'max-width': '120px',
       'max-height': '200px',
       'font-size': '0.8em',
-      overflow: 'hidden',
+      'white-space': 'nowrap',
       height: 'auto',
       width: 'auto',
+      'box-sizing': 'border-box',
       'text-align': 'left'
     })
 
@@ -1668,12 +1670,12 @@ class SelectionWidget extends CanvasWidget {
 
   x() {
     let parentDivPos = this.parentDiv.position()
-    return parentDivPos.left + this.parentDiv.width() - this.div.width() - 40
+    return parentDivPos.left + this.parentDiv.width() - this.div.outerWidth() - 5
   }
 
   y() {
     let parentDivPos = this.parentDiv.position()
-    return parentDivPos.top + this.parentDiv.height() - this.div.height() - 40
+    return parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - 5
   }
 
   update() {
@@ -1708,10 +1710,11 @@ class SelectionWidget extends CanvasWidget {
       }
     }
 
+    this.div.html(s)
+
     if (!this.isShow) {
       this.div.hide()
     } else {
-      this.div.html(s)
       this.div.show()
       this.resize()
     }
