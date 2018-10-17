@@ -890,9 +890,11 @@ class SequenceWidget extends CanvasWidget {
     while (iEnd < this.nChar) {
       iEnd += 1
       endColor = this.getColorStyle(iEnd)
+      let charEntry = this.charEntries[iEnd]
       let isEndOfSegment =
+        _.isNil(charEntry) ||
         iEnd === this.nChar ||
-        this.charEntries[iEnd].ss !== ss ||
+        charEntry.ss !== ss ||
         endColor !== color
       if (isEndOfSegment) {
         let x1 = this.xStructFromIChar(iStart)
@@ -908,9 +910,9 @@ class SequenceWidget extends CanvasWidget {
         }
         if (iEnd <= this.nChar - 1) {
           iStart = iEnd
-          ss = this.charEntries[iEnd].ss
-          c = this.charEntries[iEnd].c
-          color = this.getColorStyle(iEnd)
+          ss = charEntry.ss
+          c = charEntry.c
+          color = endColor
         }
       }
     }

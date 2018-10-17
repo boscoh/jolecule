@@ -80876,7 +80876,8 @@ var SequenceWidget = function (_CanvasWidget) {
       while (iEnd < this.nChar) {
         iEnd += 1;
         endColor = this.getColorStyle(iEnd);
-        var isEndOfSegment = iEnd === this.nChar || this.charEntries[iEnd].ss !== ss || endColor !== color;
+        var charEntry = this.charEntries[iEnd];
+        var isEndOfSegment = _lodash2.default.isNil(charEntry) || iEnd === this.nChar || charEntry.ss !== ss || endColor !== color;
         if (isEndOfSegment) {
           var _x = this.xStructFromIChar(iStart);
           var _x2 = this.xStructFromIChar(iEnd);
@@ -80891,9 +80892,9 @@ var SequenceWidget = function (_CanvasWidget) {
           }
           if (iEnd <= this.nChar - 1) {
             iStart = iEnd;
-            ss = this.charEntries[iEnd].ss;
-            c = this.charEntries[iEnd].c;
-            color = this.getColorStyle(iEnd);
+            ss = charEntry.ss;
+            c = charEntry.c;
+            color = endColor;
           }
         }
       }
@@ -80903,8 +80904,8 @@ var SequenceWidget = function (_CanvasWidget) {
 
       // draw characters for sequence
       for (var _iChar = this.iCharSeqStart; _iChar < this.iCharSeqEnd; _iChar += 1) {
-        var charEntry = this.charEntries[_iChar];
-        if (_lodash2.default.isUndefined(charEntry) || charEntry.c === '') {
+        var _charEntry = this.charEntries[_iChar];
+        if (_lodash2.default.isUndefined(_charEntry) || _charEntry.c === '') {
           continue;
         }
 
@@ -80916,24 +80917,24 @@ var SequenceWidget = function (_CanvasWidget) {
         var xMid = xLeft + width / 2;
         var height = this.charHeight;
         var _yTop = this.yMidSequence - height / 2;
-        if (charEntry.ss !== 'C' && charEntry.ss !== '.') {
+        if (_charEntry.ss !== 'C' && _charEntry.ss !== '.') {
           _yTop -= 4;
           height += 2 * 4;
         }
 
         this.fillRect(xLeft, _yTop, width, height, colorStyle);
 
-        this.text(charEntry.c, xMid, this.yMidSequence, '7pt Helvetica', 'white', 'center');
+        this.text(_charEntry.c, xMid, this.yMidSequence, '7pt Helvetica', 'white', 'center');
 
         // draw highlight res box
-        if (iResCurrent >= 0 && iResCurrent === charEntry.iRes) {
+        if (iResCurrent >= 0 && iResCurrent === _charEntry.iRes) {
           this.strokeRect(xLeft, _yTop - 5, width, height + 10, this.highlightColor);
         }
 
         // draw numbered ticks
-        if (charEntry.resNum % 20 === 0 || charEntry.resNum === 1) {
+        if (_charEntry.resNum % 20 === 0 || _charEntry.resNum === 1) {
           this.line(xLeft, this.yBottom, xLeft, this.yBottom - 6, 1, this.borderColor);
-          this.text('' + charEntry.resNum, xLeft + 3, this.yBottom - 6, '7pt Helvetica', this.borderColor, 'left');
+          this.text('' + _charEntry.resNum, xLeft + 3, this.yBottom - 6, '7pt Helvetica', this.borderColor, 'left');
         }
       }
 
@@ -80987,9 +80988,9 @@ var SequenceWidget = function (_CanvasWidget) {
       } else {
         this.hover.hide();
         var _iChar2 = this.iCharFromXSeq(this.pointerX);
-        var _charEntry = this.charEntries[_iChar2];
-        if (_lodash2.default.get(_charEntry, 'c', '') !== '') {
-          this.hover.html(_charEntry.label);
+        var _charEntry2 = this.charEntries[_iChar2];
+        if (_lodash2.default.get(_charEntry2, 'c', '') !== '') {
+          this.hover.html(_charEntry2.label);
           var x = this.xSeqFromIChar(_iChar2) + this.charWidth / 2;
           this.hover.move(x, this.yMidSequence);
         }
@@ -102601,10 +102602,10 @@ var AquariaAlignment = function () {
       var pdbId = this.data.pdb_id;
 
       var chains = this.data.pdb_chain;
+
       for (var iChain = 0; iChain < chains.length; iChain += 1) {
         var chain = chains[iChain];
         var sequenceOfChain = this.data.sequences[iChain].sequence;
-        sequenceWidget.nChar += sequenceOfChain.length + sequenceWidget.nPadChar;
         var seqId = this.data.sequences[iChain].primary_accession;
         if (_lodash2.default.isNil(seqId)) {
           seqId = '';
@@ -102625,13 +102626,14 @@ var AquariaAlignment = function () {
                 if (iResOfPadding === 0) {
                   startLabel = seqId + ':' + pdbId + ':' + chain;
                 }
-                sequenceWidget.charEntries.push({
+                var entry = {
                   iStructure: 0,
                   chain: chain,
                   c: '',
                   startLabel: startLabel,
                   ss: ''
-                });
+                };
+                sequenceWidget.charEntries.push(entry);
               }
             } catch (err) {
               _didIteratorError12 = true;
@@ -102653,7 +102655,7 @@ var AquariaAlignment = function () {
           var pdbRes = this.mapSeqRes(seqId, iResOfSeq + 1, chain);
           if (_lodash2.default.isNil(pdbRes)) {
             // Entries of residues without PDB matches
-            sequenceWidget.charEntries.push({
+            var _entry3 = {
               iStructure: 0,
               chain: chain,
               c: c,
@@ -102661,7 +102663,8 @@ var AquariaAlignment = function () {
               ss: '.',
               label: seqId + ':' + (iResOfSeq + 1),
               resNum: iResOfSeq + 1
-            });
+            };
+            sequenceWidget.charEntries.push(_entry3);
           } else {
             // Entries of residues that match PDB residues
             var _pdbRes = _slicedToArray(pdbRes, 3),
@@ -102670,16 +102673,30 @@ var AquariaAlignment = function () {
                 pdbResNum = _pdbRes[2];
 
             var residue = soup.findResidue(_chain2, pdbResNum);
-            sequenceWidget.charEntries.push({
-              chain: _chain2,
-              iStructure: residue.iStructure,
-              c: c,
-              startLabel: null,
-              iRes: residue.iRes,
-              ss: residue.ss,
-              label: seqId + ':' + residue.resId + ':' + residue.resType,
-              resNum: iResOfSeq + 1
-            });
+            if (_lodash2.default.isNil(residue)) {
+              var _entry4 = {
+                chain: _chain2,
+                iStructure: 0,
+                c: c,
+                startLabel: null,
+                ss: '.',
+                label: seqId + ':' + (iResOfSeq + 1),
+                resNum: iResOfSeq + 1
+              };
+              sequenceWidget.charEntries.push(_entry4);
+            } else {
+              var _entry5 = {
+                chain: _chain2,
+                iStructure: residue.iStructure,
+                c: c,
+                startLabel: null,
+                iRes: residue.iRes,
+                ss: residue.ss,
+                label: seqId + ':' + residue.resId + ':' + residue.resType,
+                resNum: iResOfSeq + 1
+              };
+              sequenceWidget.charEntries.push(_entry5);
+            }
           }
         }
       }
@@ -102711,8 +102728,10 @@ var AquariaAlignment = function () {
               var entry = _step14.value;
 
               var _residue = soup.findResidue(entry.chain, entry.resNum);
-              if (_residue.chain === entry.chain && _residue.resNum === resNum) {
-                _residue.customColor = entry.color;
+              if (!_lodash2.default.isNil(_residue)) {
+                if (_residue.chain === entry.chain && _residue.resNum === resNum) {
+                  _residue.customColor = entry.color;
+                }
               }
             }
           } catch (err) {

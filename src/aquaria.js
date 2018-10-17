@@ -204,10 +204,10 @@ class AquariaAlignment {
     let pdbId = this.data.pdb_id
 
     let chains = this.data.pdb_chain
+
     for (let iChain = 0; iChain < chains.length; iChain += 1) {
       let chain = chains[iChain]
       let sequenceOfChain = this.data.sequences[iChain].sequence
-      sequenceWidget.nChar += sequenceOfChain.length + sequenceWidget.nPadChar
       let seqId = this.data.sequences[iChain].primary_accession
       if (_.isNil(seqId)) {
         seqId = ''
@@ -225,13 +225,14 @@ class AquariaAlignment {
             if (iResOfPadding === 0) {
               startLabel = seqId + ':' + pdbId + ':' + chain
             }
-            sequenceWidget.charEntries.push({
+            let entry = {
               iStructure: 0,
               chain,
               c: '',
               startLabel: startLabel,
               ss: ''
-            })
+            }
+            sequenceWidget.charEntries.push(entry)
           }
         }
 
@@ -239,7 +240,7 @@ class AquariaAlignment {
         let pdbRes = this.mapSeqRes(seqId, iResOfSeq + 1, chain)
         if (_.isNil(pdbRes)) {
           // Entries of residues without PDB matches
-          sequenceWidget.charEntries.push({
+          let entry = {
             iStructure: 0,
             chain,
             c: c,
@@ -247,21 +248,36 @@ class AquariaAlignment {
             ss: '.',
             label: seqId + ':' + (iResOfSeq + 1),
             resNum: iResOfSeq + 1
-          })
+          }
+          sequenceWidget.charEntries.push(entry)
         } else {
           // Entries of residues that match PDB residues
           let [pdbId, chain, pdbResNum] = pdbRes
           let residue = soup.findResidue(chain, pdbResNum)
-          sequenceWidget.charEntries.push({
-            chain,
-            iStructure: residue.iStructure,
-            c: c,
-            startLabel: null,
-            iRes: residue.iRes,
-            ss: residue.ss,
-            label: seqId + ':' + residue.resId + ':' + residue.resType,
-            resNum: iResOfSeq + 1
-          })
+          if (_.isNil(residue)) {
+            let entry = {
+              chain,
+              iStructure: 0,
+              c: c,
+              startLabel: null,
+              ss: '.',
+              label: seqId + ':' + (iResOfSeq + 1),
+              resNum: iResOfSeq + 1
+            }
+            sequenceWidget.charEntries.push(entry)
+          } else {
+            let entry = {
+              chain,
+              iStructure: residue.iStructure,
+              c: c,
+              startLabel: null,
+              iRes: residue.iRes,
+              ss: residue.ss,
+              label: seqId + ':' + residue.resId + ':' + residue.resType,
+              resNum: iResOfSeq + 1
+            }
+            sequenceWidget.charEntries.push(entry)
+          }
         }
       }
     }
@@ -278,8 +294,10 @@ class AquariaAlignment {
       let resNum = parseInt(feature.Residue)
       for (let entry of this.getPdbResColors(resNum, feature.Color)) {
         let residue = soup.findResidue(entry.chain, entry.resNum)
-        if (residue.chain === entry.chain && residue.resNum === resNum) {
-          residue.customColor = entry.color
+        if (!_.isNil(residue)) {
+          if (residue.chain === entry.chain && residue.resNum === resNum) {
+            residue.customColor = entry.color
+          }
         }
       }
     }
