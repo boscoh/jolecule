@@ -1,0 +1,53 @@
+
+<html>
+
+<head>
+  <meta name="mobile-web-app-capable" content="yes"/> 
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+  <link rel="stylesheet" type="text/css" href="./3q05-jol/full-page-jolecule.css" />
+  <title>jolecule</title>
+</head>
+
+<body>
+  <div id="jolecule-container">
+    <div id="jolecule-body">
+      <div id="jolecule-protein-container"></div>
+      <div id="jolecule-views-container"></div>
+      <script src="./3q05-jol/require.js"></script>
+      <script>
+        (function() {
+          require(['../dist/jolecule'], function(jolecule) {
+            var j = jolecule.initFullPageJolecule(
+              '#jolecule-protein-container',
+              '#jolecule-views-container',
+              { 
+                isEditable: true,
+                isExtraEditable: true,
+                isGrid: true,
+                isPlayable: true,
+                backgroundColor: 0x000000
+              });
+            require([
+              "./3q05-jol/data-server0",
+              "./P04637.3q05.A.json",
+              './P04637.features.json',
+              './lodash.min.js'
+            ], function(dataServer0, alignData, featuresData, _) {
+              let alignment = new jolecule.AquariaAlignment(alignData)
+              for (var dataServer of [dataServer0]) {
+                j.asyncAddDataServer(dataServer).then(function() {
+                  let features = _.head(_.values(featuresData)).Features
+                  alignment.colorFromFeatures(j.embedJolecule.soup, features)
+                  j.embedJolecule.widget.colorLegend.isShow = false
+                  j.embedJolecule.soupView.isUpdateColors = true
+                });
+              }
+            });
+          });
+        })();
+      </script>
+    </div>
+  </div>
+</body>
+
+</html>
