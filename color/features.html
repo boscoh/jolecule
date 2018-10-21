@@ -37,7 +37,7 @@
               for (var dataServer of [dataServer0]) {
                 j.asyncAddDataServer(dataServer).then(function() {
                   let features = _.head(_.values(featuresData)).Features
-                  alignment.colorFromFeatures(j.embedJolecule.soup, features)
+                  alignment.colorFromFeatures(j.embedJolecule.soup, features, 'P04637')
                   j.embedJolecule.widget.colorLegend.isShow = false
                   j.embedJolecule.soupView.isUpdateColors = true
                 });

@@ -102445,7 +102445,7 @@ var AquariaAlignment = function () {
       var _iteratorError8 = undefined;
 
       try {
-        for (var _iterator8 = this.getMapResNums(resNumSeq)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+        for (var _iterator8 = this.mapSeqResToPdbResList(resNumSeq)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
           var entry = _step8.value;
 
           var _entry2 = _slicedToArray(entry, 3),
@@ -102564,7 +102564,7 @@ var AquariaAlignment = function () {
         var chain = residue.chain;
         var seqResNum = null;
         var resNum = residue.resNum;
-        seqResNum = this.mapPdb(chain, resNum);
+        seqResNum = this.mapPdbResOfChainToSeqRes(chain, resNum);
         if (_lodash2.default.isNil(seqResNum)) {
           residue.customColor = '#999999';
         } else {
@@ -102658,7 +102658,7 @@ var AquariaAlignment = function () {
           }
 
           var c = sequenceOfChain[iResOfSeq];
-          var pdbRes = this.mapSeqRes(seqId, iResOfSeq + 1, chain);
+          var pdbRes = this.mapSeqResToPdbResOfChain(seqId, iResOfSeq + 1, chain);
           if (_lodash2.default.isNil(pdbRes)) {
             // Entries of residues without PDB matches
             sequenceWidget.charEntries.push({
@@ -102716,7 +102716,7 @@ var AquariaAlignment = function () {
           var _iteratorError14 = undefined;
 
           try {
-            for (var _iterator14 = this.getPdbResColors(resNum, feature.Color)[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+            for (var _iterator14 = this.mapSeqResToPdbResColorEntry(resNum, feature.Color)[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
               var entry = _step14.value;
 
               var _residue = soup.findResidue(entry.chain, entry.resNum);
