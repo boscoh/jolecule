@@ -1538,14 +1538,7 @@ class ColorLegendWidget extends CanvasWidget {
 
     this.canvas.hide()
 
-    let getSSColor = ss => '#' + data.getSsColor(ss).getHexString()
-
-    this.colorEntries = [
-      { color: getSSColor('E'), label: 'strand' },
-      { color: getSSColor('H'), label: 'helix' },
-      { color: getSSColor('C'), label: 'coil' },
-      { color: getSSColor('D'), label: 'DNA/RNA' }
-    ]
+    this.default()
 
     this.div.css('display', 'block')
     this.div.attr('id', 'color-legend')
@@ -1567,6 +1560,16 @@ class ColorLegendWidget extends CanvasWidget {
     soupWidget.addObserver(this)
 
     this.rebuild()
+  }
+
+  default() {
+    let getSSColor = ss => '#' + data.getSsColor(ss).getHexString()
+    this.colorEntries = [
+      { color: getSSColor('E'), label: 'strand' },
+      { color: getSSColor('H'), label: 'helix' },
+      { color: getSSColor('C'), label: 'coil' },
+      { color: getSSColor('D'), label: 'DNA/RNA' }
+    ]
   }
 
   rebuild() {

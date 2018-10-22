@@ -24,7 +24,9 @@ function makeRgbStringFromHexString(hex) {
 class AquariaAlignment {
   constructor(aquariaAlignData) {
     this.data = aquariaAlignData
-
+    this.seqId = _.head(this.data.instanceId.split('-'))
+    this.pdbId = this.data.pdb_id
+    console.log('AquariaAlignment', this.pdbId, this.seqId)
     this.alignEntries = []
     for (let alignStr of this.data.alignment.split(';')) {
       let pieces = alignStr.split(',')
@@ -99,13 +101,18 @@ class AquariaAlignment {
     return null
   }
 
-  mapSeqResToPdbResColorEntry(seqId, resNumSeq, color) {
+  getChainsThatMapToSeqId(seqId) {
     let allowedChains = []
     for (let iChain of _.range(this.data.pdb_chain.length)) {
       if (this.data.sequences[iChain].primary_accession === seqId) {
         allowedChains.push(this.data.pdb_chain[iChain])
       }
     }
+    return allowedChains
+  }
+
+  mapSeqResToPdbResColorEntry(seqId, resNumSeq, color) {
+    let allowedChains = this.getChainsThatMapToSeqId(seqId)
     let result = []
     for (let entry of this.mapSeqResToPdbResList(resNumSeq)) {
       let [pdbId, chain, resNumPdb] = entry
@@ -122,6 +129,9 @@ class AquariaAlignment {
   }
 
   colorSoup(soup) {
+    console.log('AquariaAlignment.colorSoup start')
+    soup.setSecondaryStructureColorResidues()
+    let allowedChains = this.getChainsThatMapToSeqId(this.seqId)
     let residue = soup.getResidueProxy()
     for (let iRes = 0; iRes < soup.getResidueCount(); iRes += 1) {
       residue.iRes = iRes
@@ -130,17 +140,18 @@ class AquariaAlignment {
       let resNum = residue.resNum
       seqResNum = this.mapPdbResOfChainToSeqRes(chain, resNum)
       if (_.isNil(seqResNum)) {
+        // probably insertion, and non-alignments
         residue.customColor = '#999999'
       } else {
-        if (chain in this.data.conservations) {
+        if (!_.includes(allowedChains, residue.chain)) {
+          residue.customColor = '#999999'
+        } else if (chain in this.data.conservations) {
           let conservations = this.data.conservations[chain]
           if (_.includes(conservations.conserved, seqResNum)) {
             residue.customColor = '#666666'
           } else if (_.includes(conservations.nonconserved, seqResNum)) {
             residue.customColor = '#000000'
           }
-        } else {
-          residue.customColor = '#999999'
         }
       }
     }
@@ -148,17 +159,16 @@ class AquariaAlignment {
   }
 
   setColorLegend(colorLegendWidget) {
-    if (colorLegendWidget.colorEntries.length === 4) {
-      colorLegendWidget.colorEntries.push({
-        color: '#666666',
-        label: 'conserved'
-      })
-      colorLegendWidget.colorEntries.push({
-        color: '#000000',
-        label: 'nonconserved'
-      })
-      colorLegendWidget.rebuild()
-    }
+    colorLegendWidget.default()
+    colorLegendWidget.colorEntries.push({
+      color: '#666666',
+      label: 'conserved'
+    })
+    colorLegendWidget.colorEntries.push({
+      color: '#000000',
+      label: 'nonconserved'
+    })
+    colorLegendWidget.rebuild()
   }
 
   setFullSequence(sequenceWidget) {
@@ -250,7 +260,8 @@ class AquariaAlignment {
     sequenceWidget.nChar = sequenceWidget.charEntries.length
   }
 
-  colorFromFeatures(soup, features, seqId) {
+  colorFromFeatures(embededJolecule, features, seqId) {
+    let soup = embededJolecule.soup
     let residue = soup.getResidueProxy()
     for (let i = 0; i < soup.getResidueCount(); i += 1) {
       residue.iRes = i
@@ -266,6 +277,9 @@ class AquariaAlignment {
       }
     }
     soup.colorResidues()
+    embededJolecule.soupView.isUpdateColors = true
+    embededJolecule.soupView.isChanged = true
+    this.setFeatureColorLegend(embededJolecule.widget.colorLegend, features)
   }
 
   setFeatureColorLegend(colorLegendWidget, features) {
@@ -284,6 +298,7 @@ class AquariaAlignment {
 
   colorFromConservation(embedJolecule) {
     embedJolecule.soupView.isUpdateObservers = true
+    embedJolecule.soupView.isUpdateColors = true
     embedJolecule.soupView.isChanged = true
     this.colorSoup(embedJolecule.soup)
     this.setColorLegend(embedJolecule.widget.colorLegend)
@@ -295,7 +310,7 @@ class AquariaAlignment {
     for (let [iChain, sequence] of this.data.sequences.entries()) {
       if (!_.isNil(sequence.primary_accession)) {
         let chain = this.data.pdb_chain[iChain]
-        console.log('AlignAquara.setEmbedJolecule', chain)
+        console.log('AquariaAlignment.setEmbedJolecule', chain)
         embedJolecule.controller.selectChain(0, chain)
         break
       }

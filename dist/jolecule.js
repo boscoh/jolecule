@@ -81537,11 +81537,7 @@ var ColorLegendWidget = function (_CanvasWidget4) {
 
     _this10.canvas.hide();
 
-    var getSSColor = function getSSColor(ss) {
-      return '#' + data.getSsColor(ss).getHexString();
-    };
-
-    _this10.colorEntries = [{ color: getSSColor('E'), label: 'strand' }, { color: getSSColor('H'), label: 'helix' }, { color: getSSColor('C'), label: 'coil' }, { color: getSSColor('D'), label: 'DNA/RNA' }];
+    _this10.default();
 
     _this10.div.css('display', 'block');
     _this10.div.attr('id', 'color-legend');
@@ -81565,6 +81561,14 @@ var ColorLegendWidget = function (_CanvasWidget4) {
   }
 
   _createClass(ColorLegendWidget, [{
+    key: 'default',
+    value: function _default() {
+      var getSSColor = function getSSColor(ss) {
+        return '#' + data.getSsColor(ss).getHexString();
+      };
+      this.colorEntries = [{ color: getSSColor('E'), label: 'strand' }, { color: getSSColor('H'), label: 'helix' }, { color: getSSColor('C'), label: 'coil' }, { color: getSSColor('D'), label: 'DNA/RNA' }];
+    }
+  }, {
     key: 'rebuild',
     value: function rebuild() {
       this.buttonsDiv.empty();
@@ -102163,7 +102167,9 @@ var AquariaAlignment = function () {
     _classCallCheck(this, AquariaAlignment);
 
     this.data = aquariaAlignData;
-
+    this.seqId = _lodash2.default.head(this.data.instanceId.split('-'));
+    this.pdbId = this.data.pdb_id;
+    console.log('AquariaAlignment', this.pdbId, this.seqId);
     this.alignEntries = [];
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
@@ -102355,8 +102361,8 @@ var AquariaAlignment = function () {
       return null;
     }
   }, {
-    key: 'mapSeqResToPdbResColorEntry',
-    value: function mapSeqResToPdbResColorEntry(seqId, resNumSeq, color) {
+    key: 'getChainsThatMapToSeqId',
+    value: function getChainsThatMapToSeqId(seqId) {
       var allowedChains = [];
       var _iteratorNormalCompletion6 = true;
       var _didIteratorError6 = false;
@@ -102385,6 +102391,12 @@ var AquariaAlignment = function () {
         }
       }
 
+      return allowedChains;
+    }
+  }, {
+    key: 'mapSeqResToPdbResColorEntry',
+    value: function mapSeqResToPdbResColorEntry(seqId, resNumSeq, color) {
+      var allowedChains = this.getChainsThatMapToSeqId(seqId);
       var result = [];
       var _iteratorNormalCompletion7 = true;
       var _didIteratorError7 = false;
@@ -102428,6 +102440,9 @@ var AquariaAlignment = function () {
   }, {
     key: 'colorSoup',
     value: function colorSoup(soup) {
+      console.log('AquariaAlignment.colorSoup start');
+      soup.setSecondaryStructureColorResidues();
+      var allowedChains = this.getChainsThatMapToSeqId(this.seqId);
       var residue = soup.getResidueProxy();
       for (var iRes = 0; iRes < soup.getResidueCount(); iRes += 1) {
         residue.iRes = iRes;
@@ -102436,17 +102451,18 @@ var AquariaAlignment = function () {
         var resNum = residue.resNum;
         seqResNum = this.mapPdbResOfChainToSeqRes(chain, resNum);
         if (_lodash2.default.isNil(seqResNum)) {
+          // probably insertion, and non-alignments
           residue.customColor = '#999999';
         } else {
-          if (chain in this.data.conservations) {
+          if (!_lodash2.default.includes(allowedChains, residue.chain)) {
+            residue.customColor = '#999999';
+          } else if (chain in this.data.conservations) {
             var conservations = this.data.conservations[chain];
             if (_lodash2.default.includes(conservations.conserved, seqResNum)) {
               residue.customColor = '#666666';
             } else if (_lodash2.default.includes(conservations.nonconserved, seqResNum)) {
               residue.customColor = '#000000';
             }
-          } else {
-            residue.customColor = '#999999';
           }
         }
       }
@@ -102455,17 +102471,16 @@ var AquariaAlignment = function () {
   }, {
     key: 'setColorLegend',
     value: function setColorLegend(colorLegendWidget) {
-      if (colorLegendWidget.colorEntries.length === 4) {
-        colorLegendWidget.colorEntries.push({
-          color: '#666666',
-          label: 'conserved'
-        });
-        colorLegendWidget.colorEntries.push({
-          color: '#000000',
-          label: 'nonconserved'
-        });
-        colorLegendWidget.rebuild();
-      }
+      colorLegendWidget.default();
+      colorLegendWidget.colorEntries.push({
+        color: '#666666',
+        label: 'conserved'
+      });
+      colorLegendWidget.colorEntries.push({
+        color: '#000000',
+        label: 'nonconserved'
+      });
+      colorLegendWidget.rebuild();
     }
   }, {
     key: 'setFullSequence',
@@ -102580,7 +102595,8 @@ var AquariaAlignment = function () {
     }
   }, {
     key: 'colorFromFeatures',
-    value: function colorFromFeatures(soup, features, seqId) {
+    value: function colorFromFeatures(embededJolecule, features, seqId) {
+      var soup = embededJolecule.soup;
       var residue = soup.getResidueProxy();
       for (var i = 0; i < soup.getResidueCount(); i += 1) {
         residue.iRes = i;
@@ -102639,6 +102655,9 @@ var AquariaAlignment = function () {
       }
 
       soup.colorResidues();
+      embededJolecule.soupView.isUpdateColors = true;
+      embededJolecule.soupView.isChanged = true;
+      this.setFeatureColorLegend(embededJolecule.widget.colorLegend, features);
     }
   }, {
     key: 'setFeatureColorLegend',
@@ -102709,6 +102728,7 @@ var AquariaAlignment = function () {
     key: 'colorFromConservation',
     value: function colorFromConservation(embedJolecule) {
       embedJolecule.soupView.isUpdateObservers = true;
+      embedJolecule.soupView.isUpdateColors = true;
       embedJolecule.soupView.isChanged = true;
       this.colorSoup(embedJolecule.soup);
       this.setColorLegend(embedJolecule.widget.colorLegend);
@@ -102730,7 +102750,7 @@ var AquariaAlignment = function () {
 
           if (!_lodash2.default.isNil(sequence.primary_accession)) {
             var chain = this.data.pdb_chain[iChain];
-            console.log('AlignAquara.setEmbedJolecule', chain);
+            console.log('AquariaAlignment.setEmbedJolecule', chain);
             embedJolecule.controller.selectChain(0, chain);
             break;
           }
