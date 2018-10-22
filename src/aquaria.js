@@ -24,9 +24,14 @@ function makeRgbStringFromHexString(hex) {
 class AquariaAlignment {
   constructor(aquariaAlignData) {
     this.data = aquariaAlignData
-    this.seqId = _.head(this.data.instanceId.split('-'))
+    this.seqId = this.data.sequences[0].primary_accession
     this.pdbId = this.data.pdb_id
-    console.log('AquariaAlignment', this.pdbId, this.seqId)
+    console.log(
+      'AquariaAlignment.constructor',
+      this.data,
+      this.pdbId,
+      this.seqId
+    )
     this.alignEntries = []
     for (let alignStr of this.data.alignment.split(';')) {
       let pieces = alignStr.split(',')
@@ -269,7 +274,11 @@ class AquariaAlignment {
     }
     for (let feature of features) {
       let resNum = parseInt(feature.Residue)
-      for (let entry of this.mapSeqResToPdbResColorEntry(seqId, resNum, feature.Color)) {
+      for (let entry of this.mapSeqResToPdbResColorEntry(
+        seqId,
+        resNum,
+        feature.Color
+      )) {
         let residue = soup.findResidue(entry.chain, entry.resNum)
         if (!_.isNil(residue)) {
           residue.customColor = entry.color

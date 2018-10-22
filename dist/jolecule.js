@@ -80737,9 +80737,9 @@ var SequenceWidget = function (_CanvasWidget) {
       this.iCharStructEnd = this.nChar;
     }
   }, {
-    key: 'checkDisplayLimits',
-    value: function checkDisplayLimits() {
-      this.iCharSeqStart = Math.max(this.iChar - 0.5 * this.nCharSeq, 0);
+    key: 'centerSeqOnIChar',
+    value: function centerSeqOnIChar(iChar) {
+      this.iCharSeqStart = Math.max(iChar - 0.5 * this.nCharSeq, 0);
       this.iCharSeqStart = Math.min(this.iCharSeqStart, this.nChar - this.nCharSeq);
       this.iCharSeqStart = parseInt(this.iCharSeqStart);
       this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq;
@@ -80762,12 +80762,32 @@ var SequenceWidget = function (_CanvasWidget) {
       }
     }
   }, {
+    key: 'findFirstResidue',
+    value: function findFirstResidue(iCharStart) {
+      for (var iChar = iCharStart; iChar < this.nChar - 1; iChar += 1) {
+        var charEntry = this.charEntries[iChar + 1];
+        if (!_lodash2.default.isNil(charEntry.iRes)) {
+          return iChar;
+        }
+      }
+      return null;
+    }
+  }, {
     key: 'checkChain',
     value: function checkChain() {
-      if (this.soupView.getMode() === 'chain') {
-        var result = this.soup.getIStructureAndChain();
+      console.log('SequenceWidget.checkChain');
 
-        if (!_lodash2.default.isNil(result)) {
+      this.nCharSeq = Math.ceil(this.width() / this.charWidth);
+
+      // Set structure bar to full length
+      this.iCharStructStart = 0;
+      this.nCharStruct = this.charEntries.length;
+      this.iCharStructEnd = this.iCharStructStart + this.nCharStruct;
+
+      if (this.soupView.getMode() === 'chain') {
+        var chainEntry = this.soup.getIStructureAndChain();
+
+        if (!_lodash2.default.isNil(chainEntry)) {
           this.iCharStructStart = null;
           var _iteratorNormalCompletion5 = true;
           var _didIteratorError5 = false;
@@ -80778,7 +80798,7 @@ var SequenceWidget = function (_CanvasWidget) {
               var iChar = _step5.value;
 
               var charEntry = this.charEntries[iChar];
-              if (charEntry.iStructure === result.iStructure && charEntry.chain === result.chain) {
+              if (charEntry.iStructure === chainEntry.iStructure && charEntry.chain === chainEntry.chain) {
                 if (_lodash2.default.isNil(this.iCharStructStart)) {
                   this.iCharStructStart = iChar;
                 }
@@ -80802,20 +80822,35 @@ var SequenceWidget = function (_CanvasWidget) {
 
           this.nCharStruct = this.iCharStructEnd - this.iCharStructStart;
           if (this.iCharSeqStart < this.iCharStructStart || this.iCharSeqStart >= this.iCharStructEnd) {
-            this.iCharSeqStart = this.iCharStructStart;
+            var iCharSeqStart = this.findFirstResidue(this.iCharStructStart);
+            if (_lodash2.default.isNil(iCharSeqStart)) {
+              this.iCharSeqStart = this.iCharStructStart;
+            } else {
+              this.iCharSeqStart = iCharSeqStart;
+            }
             this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq;
           }
-          return;
         }
       }
 
-      this.iCharStructStart = 0;
-      this.nCharStruct = this.charEntries.length;
-      this.iCharStructEnd = this.iCharStructStart + this.nCharStruct;
+      // Sanity checks for sequence bar to stay within the sequence
+      if (this.iCharSeqStart + this.nCharSeq > this.charEntries.length) {
+        this.iCharSeqStart = this.iCharSeqEnd - this.nCharSeq;
+      }
+      if (this.iCharSeqStart < 0) {
+        this.iCharSeqStart = 0;
+      }
+      this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq;
     }
+
+    /**
+     * Draw when updated from 3D display or mouse activity
+     */
+
   }, {
-    key: 'updateWithoutCheckingCurrent',
-    value: function updateWithoutCheckingCurrent() {
+    key: 'draw',
+    value: function draw() {
+      console.log('SequenceWidget.draw');
       this.checkChain();
 
       var yTopStructure = this.offsetY - 2;
@@ -80844,16 +80879,6 @@ var SequenceWidget = function (_CanvasWidget) {
 
       var iAtom = this.soupView.currentView.iAtom;
       var iResCurrent = this.soupView.soup.getAtomProxy(iAtom).iRes;
-
-      this.nCharSeq = Math.ceil(this.width() / this.charWidth);
-
-      if (this.iCharSeqStart + this.nCharSeq > this.charEntries.length) {
-        this.iCharSeqStart = this.iCharSeqEnd - this.nCharSeq;
-      }
-      if (this.iCharSeqStart < 0) {
-        this.iCharSeqStart = 0;
-      }
-      this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq;
 
       var x1 = this.xStructFromIChar(this.iCharSeqStart);
       var x2 = this.xStructFromIChar(this.iCharSeqEnd);
@@ -80963,15 +80988,14 @@ var SequenceWidget = function (_CanvasWidget) {
         for (var iChar in _lodash2.default.range(this.nChar)) {
           if (this.charEntries[iChar].iRes === iResCurrent) {
             if (iChar < this.iCharSeqStart || iChar >= this.iCharSeqStart + this.nCharSeq) {
-              this.iChar = iChar;
-              this.checkDisplayLimits();
+              this.centerSeqOnIChar(iChar);
             }
             break;
           }
         }
       }
 
-      this.updateWithoutCheckingCurrent();
+      this.draw();
     }
   }, {
     key: 'mousemove',
@@ -80996,15 +81020,13 @@ var SequenceWidget = function (_CanvasWidget) {
         }
       }
       if (this.mousePressed === 'top') {
-        this.iChar = this.iCharFromXStruct(this.pointerX);
-        this.iCharSeqStart = this.iChar - this.nCharSeq / 2;
-        this.checkDisplayLimits();
-        this.updateWithoutCheckingCurrent();
+        this.centerSeqOnIChar(this.iCharFromXStruct(this.pointerX));
+        this.draw();
       } else if (this.mousePressed === 'bottom') {
         var iNewChar = this.iCharFromXSeq(this.pointerX);
         var iCharDiff = iNewChar - this.iCharPressed;
         this.iCharSeqStart -= iCharDiff;
-        this.updateWithoutCheckingCurrent();
+        this.draw();
       }
     }
   }, {
@@ -81051,7 +81073,7 @@ var SequenceWidget = function (_CanvasWidget) {
           } else {
             this.controller.selectAdditionalResidue(iRes);
           }
-          this.updateWithoutCheckingCurrent();
+          this.draw();
         }
       }
     }
@@ -102167,9 +102189,9 @@ var AquariaAlignment = function () {
     _classCallCheck(this, AquariaAlignment);
 
     this.data = aquariaAlignData;
-    this.seqId = _lodash2.default.head(this.data.instanceId.split('-'));
+    this.seqId = this.data.sequences[0].primary_accession;
     this.pdbId = this.data.pdb_id;
-    console.log('AquariaAlignment', this.pdbId, this.seqId);
+    console.log('AquariaAlignment.constructor', this.data, this.pdbId, this.seqId);
     this.alignEntries = [];
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;

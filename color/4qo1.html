@@ -36,6 +36,8 @@
               j.asyncAddDataServer(dataServer0).then(function() {
                 let alignment = new jolecule.AquariaAlignment(alignData)
                 alignment.setEmbedJolecule(j.embedJolecule)
+                j.embedJolecule.soupView.setMode('chain')
+                j.embedJolecule.sequenceWidget.update()
                 alignment.selectNewChain = function(seqId, pdbId, chain) {
                   console.log('selectNewChain', seqId, pdbId, chain)
                 }

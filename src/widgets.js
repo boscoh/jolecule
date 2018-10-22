@@ -742,8 +742,8 @@ class SequenceWidget extends CanvasWidget {
     this.iCharStructEnd = this.nChar
   }
 
-  checkDisplayLimits() {
-    this.iCharSeqStart = Math.max(this.iChar - 0.5 * this.nCharSeq, 0)
+  centerSeqOnIChar(iChar) {
+    this.iCharSeqStart = Math.max(iChar - 0.5 * this.nCharSeq, 0)
     this.iCharSeqStart = Math.min(
       this.iCharSeqStart,
       this.nChar - this.nCharSeq
@@ -768,17 +768,36 @@ class SequenceWidget extends CanvasWidget {
     }
   }
 
-  checkChain() {
-    if (this.soupView.getMode() === 'chain') {
-      let result = this.soup.getIStructureAndChain()
+  findFirstResidue(iCharStart) {
+    for (let iChar = iCharStart; iChar < (this.nChar - 1); iChar += 1) {
+      let charEntry = this.charEntries[iChar + 1]
+      if (!_.isNil(charEntry.iRes)) {
+        return iChar
+      }
+    }
+    return null
+  }
 
-      if (!_.isNil(result)) {
+  checkChain() {
+    console.log('SequenceWidget.checkChain')
+
+    this.nCharSeq = Math.ceil(this.width() / this.charWidth)
+
+    // Set structure bar to full length
+    this.iCharStructStart = 0
+    this.nCharStruct = this.charEntries.length
+    this.iCharStructEnd = this.iCharStructStart + this.nCharStruct
+
+    if (this.soupView.getMode() === 'chain') {
+      let chainEntry = this.soup.getIStructureAndChain()
+
+      if (!_.isNil(chainEntry)) {
         this.iCharStructStart = null
         for (let iChar of _.range(this.charEntries.length)) {
           let charEntry = this.charEntries[iChar]
           if (
-            charEntry.iStructure === result.iStructure &&
-            charEntry.chain === result.chain
+            charEntry.iStructure === chainEntry.iStructure &&
+            charEntry.chain === chainEntry.chain
           ) {
             if (_.isNil(this.iCharStructStart)) {
               this.iCharStructStart = iChar
@@ -791,19 +810,32 @@ class SequenceWidget extends CanvasWidget {
           this.iCharSeqStart < this.iCharStructStart ||
           this.iCharSeqStart >= this.iCharStructEnd
         ) {
-          this.iCharSeqStart = this.iCharStructStart
+          let iCharSeqStart = this.findFirstResidue(this.iCharStructStart)
+          if (_.isNil(iCharSeqStart)) {
+            this.iCharSeqStart = this.iCharStructStart
+          } else {
+            this.iCharSeqStart = iCharSeqStart
+          }
           this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq
         }
-        return
       }
     }
 
-    this.iCharStructStart = 0
-    this.nCharStruct = this.charEntries.length
-    this.iCharStructEnd = this.iCharStructStart + this.nCharStruct
+    // Sanity checks for sequence bar to stay within the sequence
+    if (this.iCharSeqStart + this.nCharSeq > this.charEntries.length) {
+      this.iCharSeqStart = this.iCharSeqEnd - this.nCharSeq
+    }
+    if (this.iCharSeqStart < 0) {
+      this.iCharSeqStart = 0
+    }
+    this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq
   }
 
-  updateWithoutCheckingCurrent() {
+  /**
+   * Draw when updated from 3D display or mouse activity
+   */
+  draw() {
+    console.log('SequenceWidget.draw')
     this.checkChain()
 
     let yTopStructure = this.offsetY - 2
@@ -845,16 +877,6 @@ class SequenceWidget extends CanvasWidget {
 
     let iAtom = this.soupView.currentView.iAtom
     let iResCurrent = this.soupView.soup.getAtomProxy(iAtom).iRes
-
-    this.nCharSeq = Math.ceil(this.width() / this.charWidth)
-
-    if (this.iCharSeqStart + this.nCharSeq > this.charEntries.length) {
-      this.iCharSeqStart = this.iCharSeqEnd - this.nCharSeq
-    }
-    if (this.iCharSeqStart < 0) {
-      this.iCharSeqStart = 0
-    }
-    this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq
 
     let x1 = this.xStructFromIChar(this.iCharSeqStart)
     let x2 = this.xStructFromIChar(this.iCharSeqEnd)
@@ -1038,15 +1060,14 @@ class SequenceWidget extends CanvasWidget {
             iChar < this.iCharSeqStart ||
             iChar >= this.iCharSeqStart + this.nCharSeq
           ) {
-            this.iChar = iChar
-            this.checkDisplayLimits()
+            this.centerSeqOnIChar(iChar)
           }
           break
         }
       }
     }
 
-    this.updateWithoutCheckingCurrent()
+    this.draw()
   }
 
   mousemove(event) {
@@ -1070,15 +1091,13 @@ class SequenceWidget extends CanvasWidget {
       }
     }
     if (this.mousePressed === 'top') {
-      this.iChar = this.iCharFromXStruct(this.pointerX)
-      this.iCharSeqStart = this.iChar - this.nCharSeq / 2
-      this.checkDisplayLimits()
-      this.updateWithoutCheckingCurrent()
+      this.centerSeqOnIChar(this.iCharFromXStruct(this.pointerX))
+      this.draw()
     } else if (this.mousePressed === 'bottom') {
       let iNewChar = this.iCharFromXSeq(this.pointerX)
       let iCharDiff = iNewChar - this.iCharPressed
       this.iCharSeqStart -= iCharDiff
-      this.updateWithoutCheckingCurrent()
+      this.draw()
     }
   }
 
@@ -1121,7 +1140,7 @@ class SequenceWidget extends CanvasWidget {
         } else {
           this.controller.selectAdditionalResidue(iRes)
         }
-        this.updateWithoutCheckingCurrent()
+        this.draw()
       }
     }
   }
