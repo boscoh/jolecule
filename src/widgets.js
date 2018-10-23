@@ -779,8 +779,6 @@ class SequenceWidget extends CanvasWidget {
   }
 
   checkChain() {
-    console.log('SequenceWidget.checkChain')
-
     this.nCharSeq = Math.ceil(this.width() / this.charWidth)
 
     // Set structure bar to full length
@@ -835,7 +833,6 @@ class SequenceWidget extends CanvasWidget {
    * Draw when updated from 3D display or mouse activity
    */
   draw() {
-    console.log('SequenceWidget.draw')
     this.checkChain()
 
     let yTopStructure = this.offsetY - 2
@@ -1112,19 +1109,21 @@ class SequenceWidget extends CanvasWidget {
   }
 
   doubleclick(event) {
+    console.log('SequenceWidget.doubleclick')
     this.getPointer(event)
+    let iChar = null
     if (this.pointerY >= this.yTopSequence) {
       // mouse event in sequence bar
-      this.iChar = this.iCharFromXSeq(this.pointerX)
-      if (this.iChar === this.iCharPressed) {
-        let charEntry = this.charEntries[this.iChar]
-        if (!_.isNil(charEntry.iRes)) {
-          this.controller.clearSelectedResidues()
-          this.controller.setResidueSelect(charEntry.iRes, true)
-          let residue = this.soup.getResidueProxy(charEntry.iRes)
-          this.controller.setTargetViewByIAtom(residue.iAtom)
-        }
-      }
+      iChar = this.iCharFromXSeq(this.pointerX)
+    } else {
+      iChar = this.iCharFromXStruct(this.pointerX)
+    }
+    let charEntry = this.charEntries[iChar]
+    if (!_.isNil(charEntry.iRes)) {
+      this.controller.clearSelectedResidues()
+      this.controller.setResidueSelect(charEntry.iRes, true)
+      let residue = this.soup.getResidueProxy(charEntry.iRes)
+      this.controller.triggerAtom(residue.iAtom)
     }
   }
 
@@ -1156,15 +1155,13 @@ class SequenceWidget extends CanvasWidget {
       this.mousePressed = 'bottom'
     }
 
-    this.iChar = this.iCharFromXSeq(this.pointerX)
-
     if (this.pointerY < this.yTopSequence) {
       this.pressSection = 'top'
     } else {
       this.pressSection = 'bottom'
     }
 
-    if (this.downTimer !== null && this.iChar === this.iCharPressed) {
+    if (this.downTimer !== null) {
       clearTimeout(this.downTimer)
       this.doubleclick(event)
       this.downTimer = null
@@ -1172,7 +1169,7 @@ class SequenceWidget extends CanvasWidget {
       this.downTimer = setTimeout(() => this.click(event), 250)
     }
 
-    this.iCharPressed = this.iChar
+    this.iCharPressed = this.iCharFromXSeq(this.pointerX)
 
     this.mousemove(event)
   }

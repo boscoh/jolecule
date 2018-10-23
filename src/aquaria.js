@@ -136,7 +136,14 @@ class AquariaAlignment {
   colorSoup(soup) {
     console.log('AquariaAlignment.colorSoup start')
     soup.setSecondaryStructureColorResidues()
-    let allowedChains = this.getChainsThatMapToSeqId(this.seqId)
+
+    let allowedChains = []
+    for (let iChain of _.range(this.data.sequences.length)) {
+      if (!_.isNil(this.data.sequences[iChain].primary_accession)) {
+        allowedChains.push(this.data.pdb_chain[iChain])
+      }
+    }
+
     let residue = soup.getResidueProxy()
     for (let iRes = 0; iRes < soup.getResidueCount(); iRes += 1) {
       residue.iRes = iRes
@@ -266,7 +273,7 @@ class AquariaAlignment {
   }
 
   colorFromFeatures(embededJolecule, features, seqId) {
-    let soup = embededJolecule.soup
+    let soup = embededJolecule.soupView.soup
     let residue = soup.getResidueProxy()
     for (let i = 0; i < soup.getResidueCount(); i += 1) {
       residue.iRes = i

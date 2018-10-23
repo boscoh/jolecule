@@ -80775,8 +80775,6 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'checkChain',
     value: function checkChain() {
-      console.log('SequenceWidget.checkChain');
-
       this.nCharSeq = Math.ceil(this.width() / this.charWidth);
 
       // Set structure bar to full length
@@ -80850,7 +80848,6 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'draw',
     value: function draw() {
-      console.log('SequenceWidget.draw');
       this.checkChain();
 
       var yTopStructure = this.offsetY - 2;
@@ -81044,19 +81041,21 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'doubleclick',
     value: function doubleclick(event) {
+      console.log('SequenceWidget.doubleclick');
       this.getPointer(event);
+      var iChar = null;
       if (this.pointerY >= this.yTopSequence) {
         // mouse event in sequence bar
-        this.iChar = this.iCharFromXSeq(this.pointerX);
-        if (this.iChar === this.iCharPressed) {
-          var charEntry = this.charEntries[this.iChar];
-          if (!_lodash2.default.isNil(charEntry.iRes)) {
-            this.controller.clearSelectedResidues();
-            this.controller.setResidueSelect(charEntry.iRes, true);
-            var residue = this.soup.getResidueProxy(charEntry.iRes);
-            this.controller.setTargetViewByIAtom(residue.iAtom);
-          }
-        }
+        iChar = this.iCharFromXSeq(this.pointerX);
+      } else {
+        iChar = this.iCharFromXStruct(this.pointerX);
+      }
+      var charEntry = this.charEntries[iChar];
+      if (!_lodash2.default.isNil(charEntry.iRes)) {
+        this.controller.clearSelectedResidues();
+        this.controller.setResidueSelect(charEntry.iRes, true);
+        var residue = this.soup.getResidueProxy(charEntry.iRes);
+        this.controller.triggerAtom(residue.iAtom);
       }
     }
   }, {
@@ -81092,15 +81091,13 @@ var SequenceWidget = function (_CanvasWidget) {
         this.mousePressed = 'bottom';
       }
 
-      this.iChar = this.iCharFromXSeq(this.pointerX);
-
       if (this.pointerY < this.yTopSequence) {
         this.pressSection = 'top';
       } else {
         this.pressSection = 'bottom';
       }
 
-      if (this.downTimer !== null && this.iChar === this.iCharPressed) {
+      if (this.downTimer !== null) {
         clearTimeout(this.downTimer);
         this.doubleclick(event);
         this.downTimer = null;
@@ -81110,7 +81107,7 @@ var SequenceWidget = function (_CanvasWidget) {
         }, 250);
       }
 
-      this.iCharPressed = this.iChar;
+      this.iCharPressed = this.iCharFromXSeq(this.pointerX);
 
       this.mousemove(event);
     }
@@ -99263,30 +99260,66 @@ var ArrowRepresentation = function (_Representation) {
   _createClass(ArrowRepresentation, [{
     key: 'build',
     value: function build() {
+      this.traces = this.soup.traces;
+      if (this.selectedTraces.length > 0) {
+        var newTraces = [];
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
+
+        try {
+          for (var _iterator2 = this.traces.entries()[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            var _step2$value = _slicedToArray(_step2.value, 2),
+                i = _step2$value[0],
+                trace = _step2$value[1];
+
+            if (_lodash2.default.includes(this.selectedTraces, i)) {
+              newTraces.push(trace);
+            }
+          }
+        } catch (err) {
+          _didIteratorError2 = true;
+          _iteratorError2 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+              _iterator2.return();
+            }
+          } finally {
+            if (_didIteratorError2) {
+              throw _iteratorError2;
+            }
+          }
+        }
+
+        this.traces = newTraces;
+      }
+
       glgeom.clearObject3D(this.displayObj);
       glgeom.clearObject3D(this.pickingObj);
+
       var nCopy = 0;
-      var _iteratorNormalCompletion2 = true;
-      var _didIteratorError2 = false;
-      var _iteratorError2 = undefined;
+      var _iteratorNormalCompletion3 = true;
+      var _didIteratorError3 = false;
+      var _iteratorError3 = undefined;
 
       try {
-        for (var _iterator2 = this.soup.traces[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-          var trace = _step2.value;
+        for (var _iterator3 = this.traces[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          var trace = _step3.value;
 
           nCopy += trace.points.length;
         }
       } catch (err) {
-        _didIteratorError2 = true;
-        _iteratorError2 = err;
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-            _iterator2.return();
+          if (!_iteratorNormalCompletion3 && _iterator3.return) {
+            _iterator3.return();
           }
         } finally {
-          if (_didIteratorError2) {
-            throw _iteratorError2;
+          if (_didIteratorError3) {
+            throw _iteratorError3;
           }
         }
       }
@@ -99298,41 +99331,6 @@ var ArrowRepresentation = function (_Representation) {
       this.pickingGeom = new glgeom.CopyBufferGeometry(unitBufferGeom, nCopy);
 
       var obj = new THREE.Object3D();
-
-      this.traces = this.soup.traces;
-      if (this.selectedTraces.length > 0) {
-        var newTraces = [];
-        var _iteratorNormalCompletion3 = true;
-        var _didIteratorError3 = false;
-        var _iteratorError3 = undefined;
-
-        try {
-          for (var _iterator3 = this.traces.entries()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-            var _step3$value = _slicedToArray(_step3.value, 2),
-                i = _step3$value[0],
-                trace = _step3$value[1];
-
-            if (_lodash2.default.includes(this.selectedTraces, i)) {
-              newTraces.push(trace);
-            }
-          }
-        } catch (err) {
-          _didIteratorError3 = true;
-          _iteratorError3 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-              _iterator3.return();
-            }
-          } finally {
-            if (_didIteratorError3) {
-              throw _iteratorError3;
-            }
-          }
-        }
-
-        this.traces = newTraces;
-      }
 
       var iCopy = 0;
       var _iteratorNormalCompletion4 = true;
@@ -99490,7 +99488,6 @@ var RibbonRepresentation = function (_Representation2) {
   _createClass(RibbonRepresentation, [{
     key: 'build',
     value: function build() {
-      4;
       this.traces = this.soup.traces;
       if (this.selectedTraces.length > 0) {
         var newTraces = [];
@@ -102464,7 +102461,35 @@ var AquariaAlignment = function () {
     value: function colorSoup(soup) {
       console.log('AquariaAlignment.colorSoup start');
       soup.setSecondaryStructureColorResidues();
-      var allowedChains = this.getChainsThatMapToSeqId(this.seqId);
+
+      var allowedChains = [];
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
+
+      try {
+        for (var _iterator8 = _lodash2.default.range(this.data.sequences.length)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var iChain = _step8.value;
+
+          if (!_lodash2.default.isNil(this.data.sequences[iChain].primary_accession)) {
+            allowedChains.push(this.data.pdb_chain[iChain]);
+          }
+        }
+      } catch (err) {
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
+          }
+        } finally {
+          if (_didIteratorError8) {
+            throw _iteratorError8;
+          }
+        }
+      }
+
       var residue = soup.getResidueProxy();
       for (var iRes = 0; iRes < soup.getResidueCount(); iRes += 1) {
         residue.iRes = iRes;
@@ -102527,13 +102552,13 @@ var AquariaAlignment = function () {
         // Fill the empty padding before every chain
         for (var iResOfSeq = 0; iResOfSeq < sequenceOfChain.length; iResOfSeq += 1) {
           if (iResOfSeq === 0) {
-            var _iteratorNormalCompletion8 = true;
-            var _didIteratorError8 = false;
-            var _iteratorError8 = undefined;
+            var _iteratorNormalCompletion9 = true;
+            var _didIteratorError9 = false;
+            var _iteratorError9 = undefined;
 
             try {
-              for (var _iterator8 = _lodash2.default.range(sequenceWidget.nPadChar)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-                var iResOfPadding = _step8.value;
+              for (var _iterator9 = _lodash2.default.range(sequenceWidget.nPadChar)[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+                var iResOfPadding = _step9.value;
 
                 var startLabel = null;
                 if (iResOfPadding === 0) {
@@ -102549,16 +102574,16 @@ var AquariaAlignment = function () {
                 sequenceWidget.charEntries.push(entry);
               }
             } catch (err) {
-              _didIteratorError8 = true;
-              _iteratorError8 = err;
+              _didIteratorError9 = true;
+              _iteratorError9 = err;
             } finally {
               try {
-                if (!_iteratorNormalCompletion8 && _iterator8.return) {
-                  _iterator8.return();
+                if (!_iteratorNormalCompletion9 && _iterator9.return) {
+                  _iterator9.return();
                 }
               } finally {
-                if (_didIteratorError8) {
-                  throw _iteratorError8;
+                if (_didIteratorError9) {
+                  throw _iteratorError9;
                 }
               }
             }
@@ -102618,28 +102643,28 @@ var AquariaAlignment = function () {
   }, {
     key: 'colorFromFeatures',
     value: function colorFromFeatures(embededJolecule, features, seqId) {
-      var soup = embededJolecule.soup;
+      var soup = embededJolecule.soupView.soup;
       var residue = soup.getResidueProxy();
       for (var i = 0; i < soup.getResidueCount(); i += 1) {
         residue.iRes = i;
         residue.customColor = getHexColor('#999999');
       }
-      var _iteratorNormalCompletion9 = true;
-      var _didIteratorError9 = false;
-      var _iteratorError9 = undefined;
+      var _iteratorNormalCompletion10 = true;
+      var _didIteratorError10 = false;
+      var _iteratorError10 = undefined;
 
       try {
-        for (var _iterator9 = features[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-          var feature = _step9.value;
+        for (var _iterator10 = features[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+          var feature = _step10.value;
 
           var resNum = parseInt(feature.Residue);
-          var _iteratorNormalCompletion10 = true;
-          var _didIteratorError10 = false;
-          var _iteratorError10 = undefined;
+          var _iteratorNormalCompletion11 = true;
+          var _didIteratorError11 = false;
+          var _iteratorError11 = undefined;
 
           try {
-            for (var _iterator10 = this.mapSeqResToPdbResColorEntry(seqId, resNum, feature.Color)[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-              var entry = _step10.value;
+            for (var _iterator11 = this.mapSeqResToPdbResColorEntry(seqId, resNum, feature.Color)[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+              var entry = _step11.value;
 
               var _residue = soup.findResidue(entry.chain, entry.resNum);
               if (!_lodash2.default.isNil(_residue)) {
@@ -102647,31 +102672,31 @@ var AquariaAlignment = function () {
               }
             }
           } catch (err) {
-            _didIteratorError10 = true;
-            _iteratorError10 = err;
+            _didIteratorError11 = true;
+            _iteratorError11 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion10 && _iterator10.return) {
-                _iterator10.return();
+              if (!_iteratorNormalCompletion11 && _iterator11.return) {
+                _iterator11.return();
               }
             } finally {
-              if (_didIteratorError10) {
-                throw _iteratorError10;
+              if (_didIteratorError11) {
+                throw _iteratorError11;
               }
             }
           }
         }
       } catch (err) {
-        _didIteratorError9 = true;
-        _iteratorError9 = err;
+        _didIteratorError10 = true;
+        _iteratorError10 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion9 && _iterator9.return) {
-            _iterator9.return();
+          if (!_iteratorNormalCompletion10 && _iterator10.return) {
+            _iterator10.return();
           }
         } finally {
-          if (_didIteratorError9) {
-            throw _iteratorError9;
+          if (_didIteratorError10) {
+            throw _iteratorError10;
           }
         }
       }
@@ -102685,13 +102710,13 @@ var AquariaAlignment = function () {
     key: 'setFeatureColorLegend',
     value: function setFeatureColorLegend(colorLegendWidget, features) {
       var entries = [];
-      var _iteratorNormalCompletion11 = true;
-      var _didIteratorError11 = false;
-      var _iteratorError11 = undefined;
+      var _iteratorNormalCompletion12 = true;
+      var _didIteratorError12 = false;
+      var _iteratorError12 = undefined;
 
       try {
         var _loop = function _loop() {
-          var feature = _step11.value;
+          var feature = _step12.value;
 
           if (!_lodash2.default.find(entries, function (e) {
             return e.color === feature.Color;
@@ -102700,34 +102725,8 @@ var AquariaAlignment = function () {
           }
         };
 
-        for (var _iterator11 = features[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+        for (var _iterator12 = features[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
           _loop();
-        }
-      } catch (err) {
-        _didIteratorError11 = true;
-        _iteratorError11 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion11 && _iterator11.return) {
-            _iterator11.return();
-          }
-        } finally {
-          if (_didIteratorError11) {
-            throw _iteratorError11;
-          }
-        }
-      }
-
-      colorLegendWidget.colorEntries.length = 0;
-      var _iteratorNormalCompletion12 = true;
-      var _didIteratorError12 = false;
-      var _iteratorError12 = undefined;
-
-      try {
-        for (var _iterator12 = entries[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-          var entry = _step12.value;
-
-          colorLegendWidget.colorEntries.push(entry);
         }
       } catch (err) {
         _didIteratorError12 = true;
@@ -102740,6 +102739,32 @@ var AquariaAlignment = function () {
         } finally {
           if (_didIteratorError12) {
             throw _iteratorError12;
+          }
+        }
+      }
+
+      colorLegendWidget.colorEntries.length = 0;
+      var _iteratorNormalCompletion13 = true;
+      var _didIteratorError13 = false;
+      var _iteratorError13 = undefined;
+
+      try {
+        for (var _iterator13 = entries[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+          var entry = _step13.value;
+
+          colorLegendWidget.colorEntries.push(entry);
+        }
+      } catch (err) {
+        _didIteratorError13 = true;
+        _iteratorError13 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion13 && _iterator13.return) {
+            _iterator13.return();
+          }
+        } finally {
+          if (_didIteratorError13) {
+            throw _iteratorError13;
           }
         }
       }
@@ -102760,15 +102785,15 @@ var AquariaAlignment = function () {
     value: function setEmbedJolecule(embedJolecule) {
       embedJolecule.soupView.setMode('chain');
       this.setFullSequence(embedJolecule.sequenceWidget);
-      var _iteratorNormalCompletion13 = true;
-      var _didIteratorError13 = false;
-      var _iteratorError13 = undefined;
+      var _iteratorNormalCompletion14 = true;
+      var _didIteratorError14 = false;
+      var _iteratorError14 = undefined;
 
       try {
-        for (var _iterator13 = this.data.sequences.entries()[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-          var _step13$value = _slicedToArray(_step13.value, 2),
-              iChain = _step13$value[0],
-              sequence = _step13$value[1];
+        for (var _iterator14 = this.data.sequences.entries()[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+          var _step14$value = _slicedToArray(_step14.value, 2),
+              iChain = _step14$value[0],
+              sequence = _step14$value[1];
 
           if (!_lodash2.default.isNil(sequence.primary_accession)) {
             var chain = this.data.pdb_chain[iChain];
@@ -102778,16 +102803,16 @@ var AquariaAlignment = function () {
           }
         }
       } catch (err) {
-        _didIteratorError13 = true;
-        _iteratorError13 = err;
+        _didIteratorError14 = true;
+        _iteratorError14 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion13 && _iterator13.return) {
-            _iterator13.return();
+          if (!_iteratorNormalCompletion14 && _iterator14.return) {
+            _iterator14.return();
           }
         } finally {
-          if (_didIteratorError13) {
-            throw _iteratorError13;
+          if (_didIteratorError14) {
+            throw _iteratorError14;
           }
         }
       }

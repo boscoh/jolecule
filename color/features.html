@@ -34,12 +34,13 @@
               './lodash.min.js'
             ], function(dataServer0, alignData, featuresData, _) {
               let alignment = new jolecule.AquariaAlignment(alignData)
-              for (var dataServer of [dataServer0]) {
+              for (let dataServer of [dataServer0]) {
                 j.asyncAddDataServer(dataServer).then(function() {
-                  let features = _.head(_.values(featuresData)).Features
-                  alignment.colorFromFeatures(j.embedJolecule.soup, features, 'P04637')
+                  alignment.colorFromFeatures(
+                    j.embedJolecule,
+                    _.head(_.values(featuresData)).Features,
+                    'P04637')
                   j.embedJolecule.widget.colorLegend.isShow = false
-                  j.embedJolecule.soupView.isUpdateColors = true
                 });
               }
             });

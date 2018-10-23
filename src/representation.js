@@ -72,21 +72,6 @@ class ArrowRepresentation extends Representation {
   }
 
   build() {
-    glgeom.clearObject3D(this.displayObj)
-    glgeom.clearObject3D(this.pickingObj)
-    let nCopy = 0
-    for (let trace of this.soup.traces) {
-      nCopy += trace.points.length
-    }
-
-    let unitGeom = new glgeom.BlockArrowGeometry()
-    let unitBufferGeom = new THREE.BufferGeometry().fromGeometry(unitGeom)
-
-    this.displayGeom = new glgeom.CopyBufferGeometry(unitBufferGeom, nCopy)
-    this.pickingGeom = new glgeom.CopyBufferGeometry(unitBufferGeom, nCopy)
-
-    let obj = new THREE.Object3D()
-
     this.traces = this.soup.traces
     if (this.selectedTraces.length > 0) {
       let newTraces = []
@@ -97,6 +82,22 @@ class ArrowRepresentation extends Representation {
       }
       this.traces = newTraces
     }
+
+    glgeom.clearObject3D(this.displayObj)
+    glgeom.clearObject3D(this.pickingObj)
+
+    let nCopy = 0
+    for (let trace of this.traces) {
+      nCopy += trace.points.length
+    }
+
+    let unitGeom = new glgeom.BlockArrowGeometry()
+    let unitBufferGeom = new THREE.BufferGeometry().fromGeometry(unitGeom)
+
+    this.displayGeom = new glgeom.CopyBufferGeometry(unitBufferGeom, nCopy)
+    this.pickingGeom = new glgeom.CopyBufferGeometry(unitBufferGeom, nCopy)
+
+    let obj = new THREE.Object3D()
 
     let iCopy = 0
     for (let trace of this.traces) {
@@ -154,7 +155,6 @@ class RibbonRepresentation extends Representation {
   }
 
   build() {
-    4
     this.traces = this.soup.traces
     if (this.selectedTraces.length > 0) {
       let newTraces = []
