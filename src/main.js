@@ -45,7 +45,8 @@ function makeDataServer(
   userId = null,
   isReadOnly = false,
   saveUrl = '',
-  isLoadViews = true
+  isLoadViews = true,
+  isBioUnit = false
 ) {
   return {
     // Id of structure accessed by this DataServer
@@ -61,6 +62,9 @@ function makeDataServer(
       let url
       if (pdbId.length === 4) {
         url = `https://files.rcsb.org/download/${pdbId}.pdb`
+        if (isBioUnit) {
+          url = `https://files.rcsb.org/download/${pdbId}.pdb1`
+        }
       } else {
         url = `${saveUrl}/pdb/${pdbId}.txt`
       }

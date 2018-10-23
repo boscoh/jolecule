@@ -212,7 +212,7 @@ export default {
     },
     async loadFromDataServer (dataServer) {
       await this.joleculeWidget.asyncAddDataServer(dataServer)
-      this.structureIds = this.joleculeWidget.display.soup.structureIds
+      this.structureIds = this.joleculeWidget.soup.structureIds
       this.joleculeWidget.controller.zoomOut()
     },
     async loadFromPdbId () {

@@ -519,39 +519,13 @@ class Soup {
     return this.getAtomCount() === 0
   }
 
-  parsePdbData(pdbText, pdbId) {
-    this.structureId = pdbId
-    this.structureIds.push(pdbId)
-    this.iStructure = this.structureIds.length - 1
-
-    let title = parsetTitleFromPdbText(pdbText)
-    let id = this.structureId.toUpperCase()
-    this.title =
-      `[<a href="http://www.rcsb.org/structure/${id}">${id}</a>] ` + title
-    console.log('Soup.parsePdbData', pdbId)
-
-    const pdbLines = pdbText.split(/\r?\n/)
-
-    let lines = []
-    for (let line of pdbLines) {
-      if (line.slice(0, 4) === 'ATOM' || line.slice(0, 6) === 'HETATM') {
-        lines.push(line)
-      }
-      if (line.slice(0, 3) === 'END') {
-        break
-      }
-    }
-
-    if (lines.length === 0) {
-      this.parsingError = 'No atom lines'
-      return
-    }
-
+  parseAtomLines(pdbLines) {
     let x, y, z, chain, resType
     let atomType, bfactor, elem, alt, resNum, insCode
 
-    for (let iLine = 0; iLine < lines.length; iLine += 1) {
-      let line = lines[iLine]
+    for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
+      let line = pdbLines[iLine]
+
       if (line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM') {
         try {
           atomType = _.trim(line.substr(12, 4))
@@ -592,12 +566,66 @@ class Soup {
     }
   }
 
+  parseSsLines(pdbLines) {
+    this.assignResidueProperties()
+
+    this.parsedSecondaryStructure = false
+
+    for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
+      let line = pdbLines[iLine]
+
+      if (line.substr(0, 5) === 'HELIX') {
+        let chain = line.substr(19, 1)
+        let resNumStart = parseInt(line.substr(21, 4))
+        let resNumEnd = parseInt(line.substr(33, 4))
+        this.parsedSecondaryStructure = true
+        let residue = this.findResidue(chain, resNumStart)
+        while (residue.resNum <= resNumEnd) {
+          residue.ss = 'H'
+          residue.iRes = residue.iRes + 1
+        }
+      }
+
+      if (line.substr(0, 5) === 'SHEET') {
+        this.parsedSecondaryStructure = true
+        let chain = line.substr(21, 1)
+        let resNumStart = parseInt(line.substr(22, 4))
+        let resNumEnd = parseInt(line.substr(33, 4))
+        let residue = this.findResidue(chain, resNumStart)
+        while (residue.resNum <= resNumEnd) {
+          residue.ss = 'E'
+          residue.iRes = residue.iRes + 1
+        }
+      }
+    }
+  }
+
+  parsePdbData(pdbText, pdbId) {
+    this.structureId = pdbId
+    this.structureIds.push(pdbId)
+    this.iStructure = this.structureIds.length - 1
+
+    let title = parsetTitleFromPdbText(pdbText)
+    let id = this.structureId.toUpperCase()
+    this.title =
+      `[<a href="http://www.rcsb.org/structure/${id}">${id}</a>] ` + title
+    console.log('Soup.parsePdbData', pdbId)
+
+    const pdbLines = pdbText.split(/\r?\n/)
+
+    if (pdbLines.length === 0) {
+      this.parsingError = 'No atom lines'
+      return
+    }
+
+    this.parseAtomLines(pdbLines)
+    this.parseSsLines(pdbLines)
+  }
+
   load(pdbData) {
     console.log(`Soup.load parse ${this.structureId}...`)
 
     this.parsePdbData(pdbData.pdbText, this.structureId)
-
-    this.assignResidueProperties()
 
     console.log(
       `Soup.load processed ${this.getAtomCount()} atoms, ` +
@@ -608,9 +636,6 @@ class Soup {
     this.calcBondsStrategic()
 
     console.log(`Soup.load calculated ${this.getBondCount()} bonds`)
-
-    this.findSecondaryStructure()
-    console.log(`Soup.load calculated secondary-structure`)
   }
 
   async asyncLoadProteinData(proteinData, asyncSetMessageFn) {
@@ -631,8 +656,6 @@ class Soup {
       return
     }
 
-    this.assignResidueProperties()
-
     let nAtom = this.getAtomCount()
     let nRes = this.getResidueCount()
     await asyncSetMessageFn(
@@ -641,12 +664,12 @@ class Soup {
 
     this.calcBondsStrategic()
 
-    let nBond = this.getBondCount()
-    await asyncSetMessageFn(
-      `Calculated ${nBond} bonds. Assigning secondary structure...`
-    )
-
-    this.findSecondaryStructure()
+    if (!this.parsedSecondaryStructure) {
+      await asyncSetMessageFn(
+        `Calculated ${this.getBondCount()} bonds. Calculating secondary structure...`
+      )
+      this.findSecondaryStructure()
+    }
 
     this.maxLength = this.calcMaxLength()
 
