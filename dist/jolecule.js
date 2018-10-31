@@ -92790,7 +92790,6 @@ var SoupWidget = function (_WebglWidget) {
 
       event.preventDefault();
 
-      console.log('SoupWidget.mousewheel', event.wheelDelta, event.ctrlKey);
       var wheel = void 0;
       if (util.exists(event.wheelDelta)) {
         wheel = event.wheelDelta / 480;
@@ -92799,9 +92798,9 @@ var SoupWidget = function (_WebglWidget) {
         wheel = -event.detail / 24;
       }
 
-      // converted from pinch-zoom on mac
+      // converted from pinch-zoom on chrome
       if (event.ctrlKey) {
-        wheel /= 20;
+        wheel /= 2;
         wheel *= -1;
       }
 

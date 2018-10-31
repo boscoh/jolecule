@@ -598,7 +598,6 @@ class SoupWidget extends WebglWidget {
 
     event.preventDefault()
 
-    console.log('SoupWidget.mousewheel', event.wheelDelta, event.ctrlKey)
     let wheel
     if (util.exists(event.wheelDelta)) {
       wheel = event.wheelDelta / 480
@@ -607,9 +606,9 @@ class SoupWidget extends WebglWidget {
       wheel = -event.detail / 24
     }
 
-    // converted from pinch-zoom on mac
+    // converted from pinch-zoom on chrome
     if (event.ctrlKey) {
-      wheel /= 20
+      wheel /= 2
       wheel *= -1
     }
 
