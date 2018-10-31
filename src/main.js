@@ -46,7 +46,7 @@ function makeDataServer(
   isReadOnly = false,
   saveUrl = '',
   isLoadViews = true,
-  isBioUnit = false
+  isBioUnit = true
 ) {
   return {
     // Id of structure accessed by this DataServer
@@ -59,11 +59,13 @@ function makeDataServer(
      * }
      */
     getProteinData: function(callback) {
+      console.log('makeDataServer.getProteinData isBioUnit', isBioUnit)
       let url
       if (pdbId.length === 4) {
-        url = `https://files.rcsb.org/download/${pdbId}.pdb`
         if (isBioUnit) {
           url = `https://files.rcsb.org/download/${pdbId}.pdb1`
+        } else {
+          url = `https://files.rcsb.org/download/${pdbId}.pdb`
         }
       } else {
         url = `${saveUrl}/pdb/${pdbId}.txt`

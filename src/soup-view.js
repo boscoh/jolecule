@@ -686,9 +686,11 @@ class SoupView {
       .multiply(rotX)
 
     let newZoom = zoomRatio * cameraParams.zoom
-
     if (newZoom < 2) {
       newZoom = 2
+    }
+    if (newZoom > 1000) {
+      newZoom = 1000
     }
 
     let position = cameraParams.position
@@ -811,11 +813,50 @@ class SoupViewController {
   }
 
   setTargetToPrevResidue() {
-    this.soupView.setTargetToPrevResidue()
+    let iResLast = null
+    let residue = this.soup.getResidueProxy()
+    let nRes = this.soup.getResidueCount()
+    for (let iRes = nRes - 1; iRes > 0; iRes -= 1) {
+      if (residue.load(iRes).selected) {
+        iResLast = iRes
+        break
+      }
+    }
+    if (iResLast !== null) {
+      if (iResLast < nRes - 1) {
+        iResLast += 1
+      } else {
+        iResLast = 0
+      }
+      residue.load(iResLast)
+      this.clearSelectedResidues()
+      this.setTargetViewByIAtom(residue.iAtom)
+    } else {
+      this.soupView.setTargetToPrevResidue()
+    }
   }
 
   setTargetToNextResidue() {
-    this.soupView.setTargetToNextResidue()
+    let iResFirst = null
+    let residue = this.soup.getResidueProxy()
+    for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+      if (residue.load(iRes).selected) {
+        iResFirst = iRes
+        break
+      }
+    }
+    if (iResFirst !== null) {
+      if (iResFirst > 0) {
+        iResFirst -= 1
+      } else {
+        iResFirst = this.soup.getResidueCount - 1
+      }
+      residue.load(iResFirst)
+      this.clearSelectedResidues()
+      this.setTargetViewByIAtom(residue.iAtom)
+    } else {
+      this.soupView.setTargetToNextResidue()
+    }
   }
 
   setTargetToPrevView() {

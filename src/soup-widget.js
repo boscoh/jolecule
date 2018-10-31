@@ -481,6 +481,7 @@ class SoupWidget extends WebglWidget {
     if (this.isGesture) {
       return
     }
+    console.log('WebglWidget.mousedown')
 
     event.preventDefault()
 
@@ -515,6 +516,7 @@ class SoupWidget extends WebglWidget {
     if (this.isGesture) {
       return
     }
+    console.log('WebglWidget.mousemove')
 
     this.getPointer(event)
 
@@ -619,6 +621,7 @@ class SoupWidget extends WebglWidget {
 
   gesturestart(event) {
     event.preventDefault()
+    console.log('WebglWidget.gesturestart')
     this.isGesture = true
     this.lastPinchRotation = 0
     this.lastScale = event.scale * event.scale

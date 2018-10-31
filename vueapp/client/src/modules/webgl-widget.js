@@ -38,7 +38,7 @@ class Widget {
     bind('mouseup', e => this.mouseup(e))
     bind('mousewheel', e => this.mousewheel(e))
     bind('DOMMouseScroll', e => this.mousewheel(e))
-    bind('touchstart', e => this.mousedown(e))
+    bind('touchstart', e => this.touchstart(e))
     bind('touchmove', e => this.mousemove(e))
     bind('touchend', e => this.mouseup(e))
     bind('touchcancel', e => this.mouseup(e))
@@ -96,6 +96,10 @@ class Widget {
   savePointerXY () {
     this.savePointerX = this.pointerX
     this.savePointerY = this.pointerY
+  }
+
+  touchstart (event) {
+    console.log('WebglWidget.touchstart')
   }
 
   mousedown (event) {

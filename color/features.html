@@ -17,16 +17,30 @@
       <script>
         (function() {
           require(['../dist/jolecule'], function(jolecule) {
-            var j = jolecule.initFullPageJolecule(
-              '#jolecule-protein-container',
-              '#jolecule-views-container',
-              { 
+            var j = jolecule.initEmbedJolecule(
+              {
+                divTag: '#jolecule-protein-container',
                 isEditable: true,
                 isExtraEditable: true,
                 isGrid: true,
                 isPlayable: true,
                 backgroundColor: 0x000000
               });
+
+            document.onkeydown = function (event) {
+              let c = String.fromCharCode(event.keyCode).toUpperCase()
+              if (false) {
+              } else if (c === 'K' || event.keyCode === 39) {
+                j.controller.setTargetToNextResidue()
+              } else if (c === 'J' || event.keyCode === 37) {
+                j.controller.setTargetToPrevResidue()
+              } else if (event.keyCode === 13) {
+                j.controller.zoomToSelection()
+              } else if (event.keyCode === 27) {
+                j.controller.clearSelectedResidues()
+              }
+            }
+
             require([
               "./3q05-jol/data-server0",
               "./P04637.3q05.A.json",
@@ -37,10 +51,10 @@
               for (let dataServer of [dataServer0]) {
                 j.asyncAddDataServer(dataServer).then(function() {
                   alignment.colorFromFeatures(
-                    j.embedJolecule,
+                    j,
                     _.head(_.values(featuresData)).Features,
                     'P04637')
-                  j.embedJolecule.widget.colorLegend.isShow = false
+                  j.widget.colorLegend.isShow = false
                 });
               }
             });

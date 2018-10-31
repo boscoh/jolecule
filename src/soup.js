@@ -531,7 +531,7 @@ class Soup {
           atomType = _.trim(line.substr(12, 4))
           alt = _.trim(line.substr(16, 1))
           resType = _.trim(line.substr(17, 3))
-          chain = _.trim(line[21])
+          chain = line[21]
           resNum = parseInt(line.substr(22, 4))
           insCode = line.substr(26, 1)
           x = parseFloat(line.substr(30, 7))
@@ -566,7 +566,7 @@ class Soup {
     }
   }
 
-  parseSsLines(pdbLines) {
+  parseSecondaryStructureLines(pdbLines) {
     this.assignResidueProperties()
 
     this.parsedSecondaryStructure = false
@@ -580,9 +580,11 @@ class Soup {
         let resNumEnd = parseInt(line.substr(33, 4))
         this.parsedSecondaryStructure = true
         let residue = this.findResidue(chain, resNumStart)
-        while (residue.resNum <= resNumEnd) {
-          residue.ss = 'H'
-          residue.iRes = residue.iRes + 1
+        if (!_.isNil(residue)) {
+          while (residue.resNum <= resNumEnd) {
+            residue.ss = 'H'
+            residue.iRes = residue.iRes + 1
+          }
         }
       }
 
@@ -592,9 +594,11 @@ class Soup {
         let resNumStart = parseInt(line.substr(22, 4))
         let resNumEnd = parseInt(line.substr(33, 4))
         let residue = this.findResidue(chain, resNumStart)
-        while (residue.resNum <= resNumEnd) {
-          residue.ss = 'E'
-          residue.iRes = residue.iRes + 1
+        if (!_.isNil(residue)) {
+          while (residue.resNum <= resNumEnd) {
+            residue.ss = 'E'
+            residue.iRes = residue.iRes + 1
+          }
         }
       }
     }
@@ -611,15 +615,22 @@ class Soup {
       `[<a href="http://www.rcsb.org/structure/${id}">${id}</a>] ` + title
     console.log('Soup.parsePdbData', pdbId)
 
-    const pdbLines = pdbText.split(/\r?\n/)
+    let pdbLines = pdbText.split(/\r?\n/)
 
     if (pdbLines.length === 0) {
       this.parsingError = 'No atom lines'
       return
     }
 
+    for (let i of _.range(pdbLines.length)) {
+      if (_.includes(['END'], pdbLines[i].slice(0, 3))) {
+        pdbLines = pdbLines.slice(0, i)
+        break
+      }
+    }
+
     this.parseAtomLines(pdbLines)
-    this.parseSsLines(pdbLines)
+    this.parseSecondaryStructureLines(pdbLines)
   }
 
   load(pdbData) {
