@@ -813,6 +813,29 @@ class SoupViewController {
   }
 
   setTargetToPrevResidue() {
+    let iResFirst = null
+    let residue = this.soup.getResidueProxy()
+    for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+      if (residue.load(iRes).selected) {
+        iResFirst = iRes
+        break
+      }
+    }
+    if (iResFirst !== null) {
+      if (iResFirst > 0) {
+        iResFirst -= 1
+      } else {
+        iResFirst = this.soup.getResidueCount - 1
+      }
+      residue.load(iResFirst)
+      this.clearSelectedResidues()
+      this.setTargetViewByIAtom(residue.iAtom)
+    } else {
+      this.soupView.setTargetToPrevResidue()
+    }
+  }
+
+  setTargetToNextResidue() {
     let iResLast = null
     let residue = this.soup.getResidueProxy()
     let nRes = this.soup.getResidueCount()
@@ -829,29 +852,6 @@ class SoupViewController {
         iResLast = 0
       }
       residue.load(iResLast)
-      this.clearSelectedResidues()
-      this.setTargetViewByIAtom(residue.iAtom)
-    } else {
-      this.soupView.setTargetToPrevResidue()
-    }
-  }
-
-  setTargetToNextResidue() {
-    let iResFirst = null
-    let residue = this.soup.getResidueProxy()
-    for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
-      if (residue.load(iRes).selected) {
-        iResFirst = iRes
-        break
-      }
-    }
-    if (iResFirst !== null) {
-      if (iResFirst > 0) {
-        iResFirst -= 1
-      } else {
-        iResFirst = this.soup.getResidueCount - 1
-      }
-      residue.load(iResFirst)
       this.clearSelectedResidues()
       this.setTargetViewByIAtom(residue.iAtom)
     } else {

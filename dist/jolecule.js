@@ -87734,7 +87734,7 @@ function makeDataServer(pdbId) {
   var isReadOnly = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
   var saveUrl = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
   var isLoadViews = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
-  var isBioUnit = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : true;
+  var biounit = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
 
   return {
     // Id of structure accessed by this DataServer
@@ -87747,17 +87747,18 @@ function makeDataServer(pdbId) {
      * }
      */
     getProteinData: function getProteinData(callback) {
-      console.log('makeDataServer.getProteinData isBioUnit', isBioUnit);
       var url = void 0;
       if (pdbId.length === 4) {
-        if (isBioUnit) {
-          url = 'https://files.rcsb.org/download/' + pdbId + '.pdb1';
-        } else {
+        if (!biounit) {
+          // 0, null or undefined
           url = 'https://files.rcsb.org/download/' + pdbId + '.pdb';
+        } else {
+          url = 'https://files.rcsb.org/download/' + pdbId + '.pdb' + biounit;
         }
       } else {
         url = saveUrl + '/pdb/' + pdbId + '.txt';
       }
+      console.log('makeDataServer.getProteinData ' + url + ' biounit:' + biounit);
       _jquery2.default.get(url).done(function (pdbText) {
         var result = { pdbId: pdbId, pdbText: pdbText };
         console.log('makeDataServer.getProteinData', url, result);
@@ -88768,6 +88769,30 @@ var SoupViewController = function () {
   }, {
     key: 'setTargetToPrevResidue',
     value: function setTargetToPrevResidue() {
+      var iResFirst = null;
+      var residue = this.soup.getResidueProxy();
+      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+        if (residue.load(iRes).selected) {
+          iResFirst = iRes;
+          break;
+        }
+      }
+      if (iResFirst !== null) {
+        if (iResFirst > 0) {
+          iResFirst -= 1;
+        } else {
+          iResFirst = this.soup.getResidueCount - 1;
+        }
+        residue.load(iResFirst);
+        this.clearSelectedResidues();
+        this.setTargetViewByIAtom(residue.iAtom);
+      } else {
+        this.soupView.setTargetToPrevResidue();
+      }
+    }
+  }, {
+    key: 'setTargetToNextResidue',
+    value: function setTargetToNextResidue() {
       var iResLast = null;
       var residue = this.soup.getResidueProxy();
       var nRes = this.soup.getResidueCount();
@@ -88784,30 +88809,6 @@ var SoupViewController = function () {
           iResLast = 0;
         }
         residue.load(iResLast);
-        this.clearSelectedResidues();
-        this.setTargetViewByIAtom(residue.iAtom);
-      } else {
-        this.soupView.setTargetToPrevResidue();
-      }
-    }
-  }, {
-    key: 'setTargetToNextResidue',
-    value: function setTargetToNextResidue() {
-      var iResFirst = null;
-      var residue = this.soup.getResidueProxy();
-      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
-        if (residue.load(iRes).selected) {
-          iResFirst = iRes;
-          break;
-        }
-      }
-      if (iResFirst !== null) {
-        if (iResFirst > 0) {
-          iResFirst -= 1;
-        } else {
-          iResFirst = this.soup.getResidueCount - 1;
-        }
-        residue.load(iResFirst);
         this.clearSelectedResidues();
         this.setTargetViewByIAtom(residue.iAtom);
       } else {
@@ -92676,7 +92677,6 @@ var SoupWidget = function (_WebglWidget) {
       if (this.isGesture) {
         return;
       }
-      console.log('WebglWidget.mousedown');
 
       event.preventDefault();
 
@@ -92714,7 +92714,6 @@ var SoupWidget = function (_WebglWidget) {
       if (this.isGesture) {
         return;
       }
-      console.log('WebglWidget.mousemove');
 
       this.getPointer(event);
 
@@ -92791,17 +92790,18 @@ var SoupWidget = function (_WebglWidget) {
 
       event.preventDefault();
 
+      console.log('SoupWidget.mousewheel', event.wheelDelta, event.ctrlKey);
       var wheel = void 0;
       if (util.exists(event.wheelDelta)) {
-        wheel = event.wheelDelta / 120;
+        wheel = event.wheelDelta / 480;
       } else {
         // for Firefox
-        wheel = -event.detail / 12;
+        wheel = -event.detail / 24;
       }
 
       // converted from pinch-zoom on mac
       if (event.ctrlKey) {
-        wheel /= 10;
+        wheel /= 20;
         wheel *= -1;
       }
 
@@ -92813,7 +92813,6 @@ var SoupWidget = function (_WebglWidget) {
     key: 'gesturestart',
     value: function gesturestart(event) {
       event.preventDefault();
-      console.log('WebglWidget.gesturestart');
       this.isGesture = true;
       this.lastPinchRotation = 0;
       this.lastScale = event.scale * event.scale;

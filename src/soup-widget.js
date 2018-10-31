@@ -481,7 +481,6 @@ class SoupWidget extends WebglWidget {
     if (this.isGesture) {
       return
     }
-    console.log('WebglWidget.mousedown')
 
     event.preventDefault()
 
@@ -516,7 +515,6 @@ class SoupWidget extends WebglWidget {
     if (this.isGesture) {
       return
     }
-    console.log('WebglWidget.mousemove')
 
     this.getPointer(event)
 
@@ -600,17 +598,18 @@ class SoupWidget extends WebglWidget {
 
     event.preventDefault()
 
+    console.log('SoupWidget.mousewheel', event.wheelDelta, event.ctrlKey)
     let wheel
     if (util.exists(event.wheelDelta)) {
-      wheel = event.wheelDelta / 120
+      wheel = event.wheelDelta / 480
     } else {
       // for Firefox
-      wheel = -event.detail / 12
+      wheel = -event.detail / 24
     }
 
     // converted from pinch-zoom on mac
     if (event.ctrlKey) {
-      wheel /= 10
+      wheel /= 20
       wheel *= -1
     }
 
@@ -621,7 +620,6 @@ class SoupWidget extends WebglWidget {
 
   gesturestart(event) {
     event.preventDefault()
-    console.log('WebglWidget.gesturestart')
     this.isGesture = true
     this.lastPinchRotation = 0
     this.lastScale = event.scale * event.scale
