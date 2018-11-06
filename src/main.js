@@ -30,20 +30,58 @@ function initFullPageJolecule(...args) {
   return new FullPageWidget(...args)
 }
 
+let defaultDataServerArgs = {
+  pdbId: '',
+  userId: '',
+  isDisableSaveViews: true,
+  saveViewsUrl: '',
+  isLoadViews: false,
+  biounit: 0,
+  viewId: ''
+}
+
+/**
+ * @param args = {
+ *   pdbId: '', # Str - id of RCSB protein structure
+ *   userId: '', # Str - id of user on http://jolecule.com; default: ''
+ *   isDisableSaveViews: false, # Bool - prevents save/delete to server
+ *   saveViewsUrl: true, # Str - base URL of views server (e.g. "http://jolecule.com")
+ *   isLoadViews: 'none', # bool - if false: creates dummy view get methods
+ *   biounit: 0, # int - biounit
+ *   viewId: '', # Str - id of user on http://jolecule.com; default: ''
+ * }
+ * @returns dataServer obj
+ */
+function makePdbDataServer(args) {
+  args = _.merge(defaultDataServerArgs, args)
+  console.log('makePdbDataServer', args)
+  return makeDataServer(
+    args.pdbId,
+    args.userId,
+    args.isDisableSaveViews,
+    args.saveViewsUrl,
+    args.isLoadViews,
+    args.biounit,
+    args.viewId
+  )
+}
+
 /**
  * @param pdbId: Str - id of RCSB protein structure
  * @param userId: Str - optional id of user on http://jolecule.com;
  *                      default: ''
- * @param isReadOnly: Bool - prevents save/delete to server
- * @param saveUrl: Str - base URL of views server (e.g. "http://jolecule.com")
+ * @param isDisableSaveViews: Bool - prevents save/delete to server
+ * @param saveViewsUrl: Str - base URL of views server (e.g. "http://jolecule.com")
  * @param isLoadViews: bool - if false: creates dummy view get methods
+ * @param biounit: int - indicates biological assembly in PDB
+ * @param viewId: Str - id of view
  * @returns DataServer object
  */
 function makeDataServer(
   pdbId,
   userId = null,
-  isReadOnly = false,
-  saveUrl = '',
+  isDisableSaveViews = false,
+  saveViewsUrl = '',
   isLoadViews = true,
   biounit = 0,
   viewId = ''
@@ -70,7 +108,7 @@ function makeDataServer(
           url = `https://files.rcsb.org/download/${pdbId}.pdb${biounit}`
         }
       } else {
-        url = `${saveUrl}/pdb/${pdbId}.txt`
+        url = `${saveViewsUrl}/pdb/${pdbId}.txt`
       }
       $.get(url)
         .done(pdbText => {
@@ -98,7 +136,7 @@ function makeDataServer(
         callback([])
         return
       }
-      let url = `${saveUrl}/pdb/${pdbId}.views.json`
+      let url = `${saveViewsUrl}/pdb/${pdbId}.views.json`
       if (userId) {
         url += `?user_id=${userId}`
       }
@@ -118,11 +156,11 @@ function makeDataServer(
      * @param callback(Boolean) - that is triggered on successful save
      */
     saveViews: function(views, callback) {
-      if (isReadOnly) {
+      if (isDisableSaveViews) {
         callback()
         return
       }
-      $.post(`${saveUrl}/save/views`, JSON.stringify(views))
+      $.post(`${saveViewsUrl}/save/views`, JSON.stringify(views))
         .done(() => {
           console.log('makeDataServer.saveViews success', '/save/views', views)
           callback(true)
@@ -138,11 +176,11 @@ function makeDataServer(
      * @param callback(Boolean) - that is triggered on successful delete with
      */
     deleteView: function(viewId, callback) {
-      if (isReadOnly) {
+      if (isDisableSaveViews) {
         callback()
         return
       }
-      $.post(`${saveUrl}/delete/view`, JSON.stringify({ pdbId, viewId }))
+      $.post(`${saveViewsUrl}/delete/view`, JSON.stringify({ pdbId, viewId }))
         .done(() => {
           console.log('makeDataServer.deleteView success', viewId)
           callback(true)
@@ -158,6 +196,7 @@ function makeDataServer(
 export {
   initEmbedJolecule,
   initFullPageJolecule,
+  makePdbDataServer,
   makeDataServer,
   AquariaAlignment
 }

@@ -36,14 +36,10 @@
               "./P04637.3q05.A.json",
             ], function( alignData) {
 
-              var dataServer0 = jolecule.makeDataServer(
-                '3q05',
-                null,
-                true,
-                '',
-                false,
-                1
-              )
+              var dataServer0 = jolecule.makePdbDataServer({
+                pdbId: '3q05',
+                biounit: 1
+              })
 
               function selectNewChain(seqId, pdbId, chain) {
                 console.log('3q05.html.selectNewChain', seqId, pdbId, chain)
