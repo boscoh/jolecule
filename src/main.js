@@ -8,7 +8,6 @@ import $ from 'jquery'
  *
  * @param args = {
  *   divTag: '',
- *   viewId: '',
  *   viewHeight: 170,
  *   isViewTextShown: false,
  *   isEditable: true,
@@ -47,21 +46,25 @@ function makeDataServer(
   saveUrl = '',
   isLoadViews = true,
   biounit = 0,
+  viewId = ''
 ) {
   return {
     // Id of structure accessed by this DataServer
     pdbId: pdbId,
 
+    // getProteinPromise: getProteinPromise,
+
     /**
-     * @param callback - function that takes a dictionary {
+     * @param asyncCallback - function that takes a dictionary {
      *   pdbId: Str - id/name of protein structure
      *   pdbText: Str - text in PDB format of a protein structure
      * }
      */
-    getProteinData: function(callback) {
+    getProteinData: function(asyncCallback) {
       let url
       if (pdbId.length === 4) {
-        if (!biounit) { // 0, null or undefined
+        if (!biounit) {
+          // 0, null or undefined
           url = `https://files.rcsb.org/download/${pdbId}.pdb`
         } else {
           url = `https://files.rcsb.org/download/${pdbId}.pdb${biounit}`
@@ -69,22 +72,26 @@ function makeDataServer(
       } else {
         url = `${saveUrl}/pdb/${pdbId}.txt`
       }
-      console.log(`makeDataServer.getProteinData ${url} biounit:${biounit}`)
       $.get(url)
         .done(pdbText => {
           let result = { pdbId: pdbId, pdbText: pdbText }
-          console.log('makeDataServer.getProteinData', url, result)
-          callback(result)
+          console.log(
+            `makeDataServer.getProteinData success ${url} biounit:${biounit}`
+          )
+          asyncCallback(result)
         })
         .fail(() => {
-          callback({ pdbId: pdbId, pdbText: '' })
+          console.log(
+            `makeDataServer.getProteinData fail ${url} biounit:${biounit}`
+          )
+          asyncCallback({ pdbId: pdbId, pdbText: '' })
         })
     },
 
     /**
-     * @param callback - function that takes a list [
-     *   View dictionary as defined by View.getDict()
-     * ]
+     * @param callback - function that takes a
+     *  - list [ View dictionary as defined by View.getDict() ]
+     *  - initViewId
      */
     getViews: function(callback) {
       if (!isLoadViews) {
@@ -98,7 +105,7 @@ function makeDataServer(
       $.getJSON(url)
         .done(views => {
           console.log('makeDataServer.getViews', url, views)
-          callback(views)
+          callback(views, viewId)
         })
         .fail(() => {
           console.log('makeDataServer.getViews fail', url)

@@ -134,7 +134,6 @@ class AquariaAlignment {
   }
 
   colorSoup(soup) {
-    console.log('AquariaAlignment.colorSoup start')
     soup.setSecondaryStructureColorResidues()
 
     let allowedChains = []
@@ -340,12 +339,11 @@ class AquariaAlignment {
   }
 
   selectNewChain(seqId, pdbId, chain) {
-    console.log('AquariaAlignment.selectNewChain', seqId, pdbId, chain)
+    console.log('AquariaAlignment.selectNewChain [overriddeable]', seqId, pdbId, chain)
   }
 
   update() {
     let result = this.embedJolecule.soup.getIStructureAndChain()
-    console.log('AquariaAlignment.update', result)
     if (_.isNil(result)) {
       this.selectNewChain(null, null)
     } else {

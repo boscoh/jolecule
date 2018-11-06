@@ -98,24 +98,26 @@ class EmbedJolecule {
     this.controller.zoomOut()
 
     if (_.isNil(this.soupView.dataServer)) {
-      await this.soupWidget.asyncSetMesssage('Loading views...')
+      await this.soupWidget.asyncSetMesssage('Preparing views...')
 
       // save only first loaded dataServer for saving and deleting
       this.soupWidget.dataServer = dataServer
 
       await new Promise(resolve => {
-        dataServer.getViews(viewDicts => {
+        dataServer.getViews((viewDicts, viewId) => {
           this.controller.loadViewsFromViewDicts(viewDicts)
-          console.log('EmbedJolecule.asyncAddDataServer getViews finish')
+          if (viewId) {
+            this.params.viewId = viewId
+          }
+          let isDefaultViewId =
+            this.params.viewId in this.soupView.savedViewsByViewId
+          if (isDefaultViewId) {
+            this.controller.setTargetViewByViewId(this.params.viewId)
+          }
           resolve()
         })
       })
 
-      let isDefaultViewId =
-        this.params.viewId in this.soupView.savedViewsByViewId
-      if (isDefaultViewId) {
-        this.controller.setTargetViewByViewId(this.params.viewId)
-      }
       this.soupView.isUpdateObservers = true
     }
 

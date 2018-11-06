@@ -356,10 +356,6 @@ class SoupWidget extends WebglWidget {
           this.representations.ribbon.selectedTraces
         )
       ) {
-        console.log(
-          'SoupWidget.drawFrame new soup.selectedTraces',
-          this.soup.selectedTraces
-        )
         this.representations.ribbon.selectedTraces = _.cloneDeep(this.soup.selectedTraces)
         this.representations.ribbon.build()
         this.updateMeshesInScene = true

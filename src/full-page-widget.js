@@ -90,8 +90,13 @@ class ViewPanel {
       .css('background-color', '#BBB')
       .css('text-align', 'left')
       .on('click touch', e => {
-        e.preventDefault()
-        this.params.pick()
+        // allow links in button to be activated
+        if (e.target.tagName === 'A') {
+          window.location.href = e.target.href
+        } else {
+          e.preventDefault()
+          this.params.pick()
+        }
       })
 
     this.showDiv = $('<div>')
@@ -243,12 +248,12 @@ class ViewPanelList {
   }
 
   gotoPrevView() {
-    let id = this.controller.setTargetToPrevView()
+    this.controller.setTargetToPrevView()
     this.update()
   }
 
   gotoNextView() {
-    let id = this.controller.setTargetToNextView()
+    this.controller.setTargetToNextView()
     this.update()
   }
 
@@ -476,6 +481,8 @@ class FullPageWidget {
         this.controller.toggleShowOption('ligands')
       } else if (c === 'W') {
         this.controller.toggleShowOption('water')
+      } else if (c === 'T') {
+        this.controller.toggleShowOption('transparent')
       } else if (c === 'E') {
         let iView = this.soupWidget.soupView.iLastViewSelected
         if (iView > 0) {
@@ -500,7 +507,6 @@ class FullPageWidget {
           this.viewPanelList.setTargetByViewId(id)
         }
       }
-      this.soupView.isChanged = true
     }
   }
 }

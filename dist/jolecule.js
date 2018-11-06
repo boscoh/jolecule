@@ -79512,7 +79512,7 @@ var EmbedJolecule = function () {
       var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(dataServer) {
         var _this2 = this;
 
-        var asyncSetMesssage, isDefaultViewId;
+        var asyncSetMesssage;
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -79580,12 +79580,12 @@ var EmbedJolecule = function () {
                 this.controller.zoomOut();
 
                 if (!_lodash2.default.isNil(this.soupView.dataServer)) {
-                  _context2.next = 24;
+                  _context2.next = 22;
                   break;
                 }
 
                 _context2.next = 18;
-                return this.soupWidget.asyncSetMesssage('Loading views...');
+                return this.soupWidget.asyncSetMesssage('Preparing views...');
 
               case 18:
 
@@ -79594,22 +79594,24 @@ var EmbedJolecule = function () {
 
                 _context2.next = 21;
                 return new Promise(function (resolve) {
-                  dataServer.getViews(function (viewDicts) {
+                  dataServer.getViews(function (viewDicts, viewId) {
                     _this2.controller.loadViewsFromViewDicts(viewDicts);
-                    console.log('EmbedJolecule.asyncAddDataServer getViews finish');
+                    if (viewId) {
+                      _this2.params.viewId = viewId;
+                    }
+                    var isDefaultViewId = _this2.params.viewId in _this2.soupView.savedViewsByViewId;
+                    if (isDefaultViewId) {
+                      _this2.controller.setTargetViewByViewId(_this2.params.viewId);
+                    }
                     resolve();
                   });
                 });
 
               case 21:
-                isDefaultViewId = this.params.viewId in this.soupView.savedViewsByViewId;
 
-                if (isDefaultViewId) {
-                  this.controller.setTargetViewByViewId(this.params.viewId);
-                }
                 this.soupView.isUpdateObservers = true;
 
-              case 24:
+              case 22:
 
                 this.soupWidget.cleanupMessage();
 
@@ -79617,7 +79619,7 @@ var EmbedJolecule = function () {
 
                 console.log('EmbedJolecule.asyncAddDataServer finished');
 
-              case 27:
+              case 25:
               case 'end':
                 return _context2.stop();
             }
@@ -87693,7 +87695,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  *
  * @param args = {
  *   divTag: '',
- *   viewId: '',
  *   viewHeight: 170,
  *   isViewTextShown: false,
  *   isEditable: true,
@@ -87735,18 +87736,21 @@ function makeDataServer(pdbId) {
   var saveUrl = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
   var isLoadViews = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
   var biounit = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
+  var viewId = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : '';
 
   return {
     // Id of structure accessed by this DataServer
     pdbId: pdbId,
 
+    // getProteinPromise: getProteinPromise,
+
     /**
-     * @param callback - function that takes a dictionary {
+     * @param asyncCallback - function that takes a dictionary {
      *   pdbId: Str - id/name of protein structure
      *   pdbText: Str - text in PDB format of a protein structure
      * }
      */
-    getProteinData: function getProteinData(callback) {
+    getProteinData: function getProteinData(asyncCallback) {
       var url = void 0;
       if (pdbId.length === 4) {
         if (!biounit) {
@@ -87758,20 +87762,20 @@ function makeDataServer(pdbId) {
       } else {
         url = saveUrl + '/pdb/' + pdbId + '.txt';
       }
-      console.log('makeDataServer.getProteinData ' + url + ' biounit:' + biounit);
       _jquery2.default.get(url).done(function (pdbText) {
         var result = { pdbId: pdbId, pdbText: pdbText };
-        console.log('makeDataServer.getProteinData', url, result);
-        callback(result);
+        console.log('makeDataServer.getProteinData success ' + url + ' biounit:' + biounit);
+        asyncCallback(result);
       }).fail(function () {
-        callback({ pdbId: pdbId, pdbText: '' });
+        console.log('makeDataServer.getProteinData fail ' + url + ' biounit:' + biounit);
+        asyncCallback({ pdbId: pdbId, pdbText: '' });
       });
     },
 
     /**
-     * @param callback - function that takes a list [
-     *   View dictionary as defined by View.getDict()
-     * ]
+     * @param callback - function that takes a
+     *  - list [ View dictionary as defined by View.getDict() ]
+     *  - initViewId
      */
     getViews: function getViews(callback) {
       if (!isLoadViews) {
@@ -87784,7 +87788,7 @@ function makeDataServer(pdbId) {
       }
       _jquery2.default.getJSON(url).done(function (views) {
         console.log('makeDataServer.getViews', url, views);
-        callback(views);
+        callback(views, viewId);
       }).fail(function () {
         console.log('makeDataServer.getViews fail', url);
         callback([]);
@@ -88656,7 +88660,6 @@ var SoupView = function () {
   }, {
     key: 'setTargetViewToCurrent',
     value: function setTargetViewToCurrent() {
-      console.log('SoupView.setTargetViewToCurrent', this.targetView);
       this.setCurrentView(this.targetView);
       if (this.getMode() === 'chain') {
         this.currentView.show.transparent = true;
@@ -90159,7 +90162,6 @@ var Soup = function () {
       var title = parsetTitleFromPdbText(pdbText);
       var id = this.structureId.toUpperCase();
       this.title = '[<a href="http://www.rcsb.org/structure/' + id + '">' + id + '</a>] ' + title;
-      console.log('Soup.parsePdbData', pdbId);
 
       var pdbLines = pdbText.split(/\r?\n/);
 
@@ -92528,7 +92530,6 @@ var SoupWidget = function (_WebglWidget) {
 
       if (show.transparent) {
         if (!_lodash2.default.isEqual(this.soup.selectedTraces, this.representations.ribbon.selectedTraces)) {
-          console.log('SoupWidget.drawFrame new soup.selectedTraces', this.soup.selectedTraces);
           this.representations.ribbon.selectedTraces = _lodash2.default.cloneDeep(this.soup.selectedTraces);
           this.representations.ribbon.build();
           this.updateMeshesInScene = true;
@@ -101549,8 +101550,13 @@ var ViewPanel = function () {
       });
 
       this.showTextDiv = (0, _jquery2.default)('<div>').addClass('jolecule-button').css('height', 'auto').css('padding', '0').css('background-color', '#BBB').css('text-align', 'left').on('click touch', function (e) {
-        e.preventDefault();
-        _this2.params.pick();
+        // allow links in button to be activated
+        if (e.target.tagName === 'A') {
+          window.location.href = e.target.href;
+        } else {
+          e.preventDefault();
+          _this2.params.pick();
+        }
       });
 
       this.showDiv = (0, _jquery2.default)('<div>').css('width', '100%').append(this.showTextDiv);
@@ -101689,13 +101695,13 @@ var ViewPanelList = function () {
   }, {
     key: 'gotoPrevView',
     value: function gotoPrevView() {
-      var id = this.controller.setTargetToPrevView();
+      this.controller.setTargetToPrevView();
       this.update();
     }
   }, {
     key: 'gotoNextView',
     value: function gotoNextView() {
-      var id = this.controller.setTargetToNextView();
+      this.controller.setTargetToNextView();
       this.update();
     }
   }, {
@@ -101965,6 +101971,8 @@ var FullPageWidget = function () {
           this.controller.toggleShowOption('ligands');
         } else if (c === 'W') {
           this.controller.toggleShowOption('water');
+        } else if (c === 'T') {
+          this.controller.toggleShowOption('transparent');
         } else if (c === 'E') {
           var iView = this.soupWidget.soupView.iLastViewSelected;
           if (iView > 0) {
@@ -101989,7 +101997,6 @@ var FullPageWidget = function () {
             this.viewPanelList.setTargetByViewId(id);
           }
         }
-        this.soupView.isChanged = true;
       }
     }
   }]);
@@ -102547,7 +102554,6 @@ var AquariaAlignment = function () {
   }, {
     key: 'colorSoup',
     value: function colorSoup(soup) {
-      console.log('AquariaAlignment.colorSoup start');
       soup.setSecondaryStructureColorResidues();
 
       var allowedChains = [];
@@ -102915,13 +102921,12 @@ var AquariaAlignment = function () {
   }, {
     key: 'selectNewChain',
     value: function selectNewChain(seqId, pdbId, chain) {
-      console.log('AquariaAlignment.selectNewChain', seqId, pdbId, chain);
+      console.log('AquariaAlignment.selectNewChain [overriddeable]', seqId, pdbId, chain);
     }
   }, {
     key: 'update',
     value: function update() {
       var result = this.embedJolecule.soup.getIStructureAndChain();
-      console.log('AquariaAlignment.update', result);
       if (_lodash2.default.isNil(result)) {
         this.selectNewChain(null, null);
       } else {

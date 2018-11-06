@@ -613,7 +613,6 @@ class Soup {
     let id = this.structureId.toUpperCase()
     this.title =
       `[<a href="http://www.rcsb.org/structure/${id}">${id}</a>] ` + title
-    console.log('Soup.parsePdbData', pdbId)
 
     let pdbLines = pdbText.split(/\r?\n/)
 

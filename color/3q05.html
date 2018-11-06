@@ -16,8 +16,10 @@
       <script src="./3q05-jol/require.js"></script>
       <script>
         (function() {
+
           require(['../dist/jolecule'], function(jolecule) {
-            var j = jolecule.initFullPageJolecule(
+
+            var widget = jolecule.initFullPageJolecule(
               '#jolecule-protein-container',
               '#jolecule-views-container',
               { 
@@ -29,20 +31,48 @@
                 isPlayable: false,
                 backgroundColor: 0xCCCCCC
               });
+
             require([
-                "./3q05-jol/data-server0",
-                "./P04637.3q05.A.json",
-            ], function(dataServer0, alignData) {
-              j.asyncAddDataServer(dataServer0).then(function() {
+              "./P04637.3q05.A.json",
+            ], function( alignData) {
+
+              var dataServer0 = jolecule.makeDataServer(
+                '3q05',
+                null,
+                true,
+                '',
+                false,
+                1
+              )
+
+              function selectNewChain(seqId, pdbId, chain) {
+                console.log('3q05.html.selectNewChain', seqId, pdbId, chain)
+              }
+
+              widget.asyncAddDataServer(dataServer0).then(function() {
+                console.log('3q05.html loading done')
                 let alignment = new jolecule.AquariaAlignment(alignData)
-                j.embedJolecule.soupView.setMode('chain')
-                alignment.setEmbedJolecule(j.embedJolecule)
-                j.embedJolecule.sequenceWidget.update()
-                alignment.selectNewChain = function(seqId, pdbId, chain) {
-                  console.log('selectNewChain', seqId, pdbId, chain)
-                }
+                widget.embedJolecule.soupView.setMode('chain')
+                alignment.setEmbedJolecule(widget.embedJolecule)
+                widget.embedJolecule.sequenceWidget.update()
+                alignment.selectNewChain = selectNewChain
               });
             });
+
+            // require([
+            //     "./3q05-jol/data-server0",
+            //     "./P04637.3q05.A.json",
+            // ], function(dataServer0, alignData) {
+            //   j.asyncAddDataServer(dataServer0).then(function() {
+            //     let alignment = new jolecule.AquariaAlignment(alignData)
+            //     j.embedJolecule.soupView.setMode('chain')
+            //     alignment.setEmbedJolecule(j.embedJolecule)
+            //     j.embedJolecule.sequenceWidget.update()
+            //     alignment.selectNewChain = function(seqId, pdbId, chain) {
+            //       console.log('selectNewChain', seqId, pdbId, chain)
+            //     }
+            //   });
+            // });
           });
         })();
       </script>

@@ -711,7 +711,6 @@ class SoupView {
   }
 
   setTargetViewToCurrent() {
-    console.log('SoupView.setTargetViewToCurrent', this.targetView)
     this.setCurrentView(this.targetView)
     if (this.getMode() === 'chain') {
       this.currentView.show.transparent = true
