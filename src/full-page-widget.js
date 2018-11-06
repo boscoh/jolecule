@@ -498,6 +498,8 @@ class FullPageWidget {
         } else {
           this.soupWidget.atomLabelDialog()
         }
+      } else if (event.keyCode === 27) {
+        this.controller.clearSelectedResidues()
       } else if (event.keyCode === 13) {
         this.controller.zoomToSelection()
       } else {

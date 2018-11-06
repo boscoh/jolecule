@@ -453,22 +453,30 @@ class SoupWidget extends WebglWidget {
     } else {
       this.controller.triggerAtom()
     }
-    this.iAtomPressed = null
-    this.iResClick = null
+    this.iAtomFirstPressed = null
+    this.iResFirstPressed = null
   }
 
   click(event) {
-    if (util.exists(this.iResClick)) {
+    this.getPointer(event)
+    this.updateHover()
+    let iAtomPressed = this.iAtomHover
+    let iResPressed = this.soup.getAtomProxy(iAtomPressed).iRes
+    console.log('SoupWidget.click', this.iResFirstPressed, iResPressed)
+    if (util.exists(iResPressed) && iResPressed === this.iResFirstPressed) {
       if (!event.metaKey && !event.shiftKey) {
-        this.controller.selectResidue(this.iResClick)
+        this.controller.selectResidue(this.iResFirstPressed)
       } else if (event.shiftKey) {
-        this.controller.selectAdditionalRangeToResidue(this.iResClick)
+        this.controller.selectAdditionalRangeToResidue(this.iResFirstPressed)
       } else {
-        this.controller.selectAdditionalResidue(this.iResClick)
+        this.controller.selectAdditionalResidue(this.iResFirstPressed)
       }
     }
-    this.iAtomPressed = null
-    this.iResClick = null
+    if (!util.exists(iResPressed) && !util.exists(this.iResFirstPressed)) {
+      this.controller.clearSelectedResidues()
+    }
+    this.iAtomFirstPressed = null
+    this.iResFirstPressed = null
     this.clickTimer = null
     this.timePressed = null
   }
@@ -482,11 +490,11 @@ class SoupWidget extends WebglWidget {
 
     this.getPointer(event)
     this.updateHover()
-    this.iAtomPressed = this.iAtomHover
-    this.iResClick = this.soup.getAtomProxy(this.iAtomPressed).iRes
+    this.iAtomFirstPressed = this.iAtomHover
+    this.iResFirstPressed = this.soup.getAtomProxy(this.iAtomFirstPressed).iRes
 
-    if (this.iAtomPressed === this.soupView.getICenteredAtom()) {
-      this.isDraggingCentralAtom = this.iAtomPressed !== null
+    if (this.iAtomFirstPressed === this.soupView.getICenteredAtom()) {
+      this.isDraggingCentralAtom = this.iAtomFirstPressed !== null
     }
 
     let now = new Date().getTime()
@@ -503,7 +511,7 @@ class SoupWidget extends WebglWidget {
     this.getPointer(event)
     this.savePointer()
     this.timePressed = new Date().getTime()
-    this.pointerPressed = true
+    this.pointerPressedAndInDiv = true
   }
 
   mousemove(event) {
@@ -530,7 +538,7 @@ class SoupWidget extends WebglWidget {
 
       let rightMouse = event.button === 2 || event.which === 3
 
-      if (this.pointerPressed) {
+      if (this.pointerPressedAndInDiv) {
         let zoomRatio = 1.0
         let zRotationAngle = 0
         let yRotationAngle = 0
@@ -561,7 +569,7 @@ class SoupWidget extends WebglWidget {
 
   mouseout(event) {
     this.hover.hide()
-    this.pointerPressed = false
+    this.pointerPressedAndInDiv = false
   }
 
   mouseup(event) {
@@ -584,7 +592,7 @@ class SoupWidget extends WebglWidget {
       this.hover.hide()
     }
 
-    this.pointerPressed = false
+    this.pointerPressedAndInDiv = false
   }
 
   mousewheel(event) {
@@ -635,13 +643,13 @@ class SoupWidget extends WebglWidget {
   gestureend(event) {
     event.preventDefault()
     this.isGesture = false
-    this.iAtomPressed = null
-    this.iResClick = null
+    this.iAtomFirstPressed = null
+    this.iResFirstPressed = null
     if (this.clickTimer !== null) {
       clearTimeout(this.clickTimer)
       this.clickTimer = null
     }
-    this.pointerPressed = false
+    this.pointerPressedAndInDiv = false
   }
 }
 
