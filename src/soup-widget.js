@@ -53,7 +53,7 @@ class SoupWidget extends WebglWidget {
     this.buildCrossHairs()
 
     // popup hover box over the mouse position
-    this.clickTimer = null
+    this.isClickInitiated = false
     this.hover = new widgets.PopupText(this.divTag, 50)
     this.iAtomHover = null
 
@@ -356,7 +356,9 @@ class SoupWidget extends WebglWidget {
           this.representations.ribbon.selectedTraces
         )
       ) {
-        this.representations.ribbon.selectedTraces = _.cloneDeep(this.soup.selectedTraces)
+        this.representations.ribbon.selectedTraces = _.cloneDeep(
+          this.soup.selectedTraces
+        )
         this.representations.ribbon.build()
         this.updateMeshesInScene = true
       }
@@ -457,12 +459,23 @@ class SoupWidget extends WebglWidget {
     this.iResFirstPressed = null
   }
 
+  /**
+   * Click is triggered on a mouseup following a mousedown
+   */
   click(event) {
     this.getPointer(event)
+
+    let diffX = this.mouseX - this.saveMouseX
+    let diffY = this.mouseY - this.saveMouseY
+
+    if (diffX !== 0 || diffY !== 0) {
+      return
+    }
+
     this.updateHover()
     let iAtomPressed = this.iAtomHover
     let iResPressed = this.soup.getAtomProxy(iAtomPressed).iRes
-    console.log('SoupWidget.click', this.iResFirstPressed, iResPressed)
+
     if (util.exists(iResPressed) && iResPressed === this.iResFirstPressed) {
       if (!event.metaKey && !event.shiftKey) {
         this.controller.selectResidue(this.iResFirstPressed)
@@ -471,14 +484,12 @@ class SoupWidget extends WebglWidget {
       } else {
         this.controller.selectAdditionalResidue(this.iResFirstPressed)
       }
-    }
-    if (!util.exists(iResPressed) && !util.exists(this.iResFirstPressed)) {
+    } else {
       this.controller.clearSelectedResidues()
     }
+
     this.iAtomFirstPressed = null
     this.iResFirstPressed = null
-    this.clickTimer = null
-    this.timePressed = null
   }
 
   mousedown(event) {
@@ -500,12 +511,11 @@ class SoupWidget extends WebglWidget {
     let now = new Date().getTime()
     let elapsedTime = this.timePressed ? now - this.timePressed : 0
 
-    if (_.isNil(this.clickTimer)) {
-      this.clickTimer = setTimeout(() => this.click(event), 250)
+    if (!this.isClickInitiated) {
+      this.isClickInitiated = true
     } else if (elapsedTime < 600) {
-      clearTimeout(this.clickTimer)
       this.doubleclick(event)
-      this.clickTimer = null
+      this.isClickInitiated = false
     }
 
     this.getPointer(event)
@@ -544,6 +554,12 @@ class SoupWidget extends WebglWidget {
         let yRotationAngle = 0
         let xRotationAngle = 0
 
+        let diffX = this.mouseX - this.saveMouseX
+        let diffY = this.mouseY - this.saveMouseY
+
+        // cancel any down/up motion
+        this.isClickInitiated = false
+
         if (rightMouse || shiftDown) {
           zRotationAngle = this.mouseT - this.saveMouseT
 
@@ -551,8 +567,8 @@ class SoupWidget extends WebglWidget {
             zoomRatio = this.saveMouseR / this.mouseR
           }
         } else {
-          yRotationAngle = v3.degToRad(this.mouseX - this.saveMouseX)
-          xRotationAngle = v3.degToRad(this.mouseY - this.saveMouseY)
+          yRotationAngle = v3.degToRad(diffX)
+          xRotationAngle = v3.degToRad(diffY)
         }
 
         this.controller.adjustCamera(
@@ -586,6 +602,10 @@ class SoupWidget extends WebglWidget {
       }
       this.lineElement.hide()
       this.isDraggingCentralAtom = false
+    }
+
+    if (this.isClickInitiated) {
+      this.click(event)
     }
 
     if (util.exists(event.touches)) {
@@ -645,9 +665,9 @@ class SoupWidget extends WebglWidget {
     this.isGesture = false
     this.iAtomFirstPressed = null
     this.iResFirstPressed = null
-    if (this.clickTimer !== null) {
-      clearTimeout(this.clickTimer)
-      this.clickTimer = null
+    if (this.isClickInitiated !== null) {
+      clearTimeout(this.isClickInitiated)
+      this.isClickInitiated = null
     }
     this.pointerPressedAndInDiv = false
   }

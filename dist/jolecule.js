@@ -92228,7 +92228,7 @@ var SoupWidget = function (_WebglWidget) {
     _this.buildCrossHairs();
 
     // popup hover box over the mouse position
-    _this.clickTimer = null;
+    _this.isClickInitiated = false;
     _this.hover = new _widgets2.default.PopupText(_this.divTag, 50);
     _this.iAtomHover = null;
 
@@ -92683,14 +92683,27 @@ var SoupWidget = function (_WebglWidget) {
       this.iAtomFirstPressed = null;
       this.iResFirstPressed = null;
     }
+
+    /**
+     * Click is triggered on a mouseup following a mousedown
+     */
+
   }, {
     key: 'click',
     value: function click(event) {
       this.getPointer(event);
+
+      var diffX = this.mouseX - this.saveMouseX;
+      var diffY = this.mouseY - this.saveMouseY;
+
+      if (diffX !== 0 || diffY !== 0) {
+        return;
+      }
+
       this.updateHover();
       var iAtomPressed = this.iAtomHover;
       var iResPressed = this.soup.getAtomProxy(iAtomPressed).iRes;
-      console.log('SoupWidget.click', this.iResFirstPressed, iResPressed);
+
       if (util.exists(iResPressed) && iResPressed === this.iResFirstPressed) {
         if (!event.metaKey && !event.shiftKey) {
           this.controller.selectResidue(this.iResFirstPressed);
@@ -92699,20 +92712,16 @@ var SoupWidget = function (_WebglWidget) {
         } else {
           this.controller.selectAdditionalResidue(this.iResFirstPressed);
         }
-      }
-      if (!util.exists(iResPressed) && !util.exists(this.iResFirstPressed)) {
+      } else {
         this.controller.clearSelectedResidues();
       }
+
       this.iAtomFirstPressed = null;
       this.iResFirstPressed = null;
-      this.clickTimer = null;
-      this.timePressed = null;
     }
   }, {
     key: 'mousedown',
     value: function mousedown(event) {
-      var _this4 = this;
-
       if (this.isGesture) {
         return;
       }
@@ -92731,14 +92740,11 @@ var SoupWidget = function (_WebglWidget) {
       var now = new Date().getTime();
       var elapsedTime = this.timePressed ? now - this.timePressed : 0;
 
-      if (_lodash2.default.isNil(this.clickTimer)) {
-        this.clickTimer = setTimeout(function () {
-          return _this4.click(event);
-        }, 250);
+      if (!this.isClickInitiated) {
+        this.isClickInitiated = true;
       } else if (elapsedTime < 600) {
-        clearTimeout(this.clickTimer);
         this.doubleclick(event);
-        this.clickTimer = null;
+        this.isClickInitiated = false;
       }
 
       this.getPointer(event);
@@ -92773,6 +92779,12 @@ var SoupWidget = function (_WebglWidget) {
           var yRotationAngle = 0;
           var xRotationAngle = 0;
 
+          var diffX = this.mouseX - this.saveMouseX;
+          var diffY = this.mouseY - this.saveMouseY;
+
+          // cancel any down/up motion
+          this.isClickInitiated = false;
+
           if (rightMouse || shiftDown) {
             zRotationAngle = this.mouseT - this.saveMouseT;
 
@@ -92780,8 +92792,8 @@ var SoupWidget = function (_WebglWidget) {
               zoomRatio = this.saveMouseR / this.mouseR;
             }
           } else {
-            yRotationAngle = _v2.default.degToRad(this.mouseX - this.saveMouseX);
-            xRotationAngle = _v2.default.degToRad(this.mouseY - this.saveMouseY);
+            yRotationAngle = _v2.default.degToRad(diffX);
+            xRotationAngle = _v2.default.degToRad(diffY);
           }
 
           this.controller.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio);
@@ -92812,6 +92824,10 @@ var SoupWidget = function (_WebglWidget) {
         }
         this.lineElement.hide();
         this.isDraggingCentralAtom = false;
+      }
+
+      if (this.isClickInitiated) {
+        this.click(event);
       }
 
       if (util.exists(event.touches)) {
@@ -92870,9 +92886,9 @@ var SoupWidget = function (_WebglWidget) {
       this.isGesture = false;
       this.iAtomFirstPressed = null;
       this.iResFirstPressed = null;
-      if (this.clickTimer !== null) {
-        clearTimeout(this.clickTimer);
-        this.clickTimer = null;
+      if (this.isClickInitiated !== null) {
+        clearTimeout(this.isClickInitiated);
+        this.isClickInitiated = null;
       }
       this.pointerPressedAndInDiv = false;
     }
