@@ -1,63 +1,50 @@
 
 
-# jolecule - WebGL viewer for proteins/DNA with annotated views
+# Jolecule - three.js viewer for proteins/DNA with animated views
 
-Jolecule is a WebGL viewer for proteins and DNA, with an interface that also works well on touch interfaces. The viewer has views and animated slide-show as a core feature. 
+Jolecule is a WebGL viewer for proteins and DNA designed for making animated slideshows. Jolecule makes it easy to store annotated views, and by animating between stored views, custom slideshows can be easily created for presentations.
 
-The core jolecule package is a javascript module that can display PDB structures in a web-browser. 
+The core package is a javascript module that can display PDB structures. The module has been carefully written so that it can be used in a variety of different ways:
 
-However, jolecule has been configured to allow usage in several ways:
+1. On the website <http://jolecule.com>
+2. As a native desktop electron app
+3. As a local static HTML-page webapp
+4. Embedded in other webpages locally
+5. Embedded remotely from [the website](http://jolecule.com/embed/pdb?pdb_id=1mbo)
 
-0. On the website <http://jolecule.com>
-1. As a native desktop electron app
-2. As a local static HTML-page web-app
-3. Embedded in other web-pages locally
-4. Embedbed from the remote the website <http://jolecule.com/embed>
+## Demo and Explore
+
+The easiest way to try Jolecule is to go to <http://jolecule.com>. 
+
+Or if you know the PDB id of your protein structure, just type in `http://jolecule.com/pdb/PDB-ID`
 
 ## Installation
 
-To use Jolecule on your local web-site, or to build webaps. You can download the [zipped-package](https://github.com/boscoh/jolecule/archive/master.zip).
+To use Jolecule as a local Desktop app, or to build static webapps, you need to first download the github zip file: [jolecule-master.zip](https://github.com/boscoh/jolecule/archive/master.zip)
 
-The requirements are:
+Then you need to install [Node.js](http://nodejs.org), the Javascript run-time.
 
-- a modern webbrowser - Chrome, Safari, Firefox
-- [node.js](https://nodejs.org/en/download/) - the javascript runtime
-
-In the Jolecule directory, to install the required modules:
+After Node.js is installed, then, in the Jolecule directory, you need to install all the node-based dependencies:
 
 ```bash
 > npm install
 ```
 
-## Explore PDB structures on the website
-
-The easiest way to try Jolecule is to go to <http://jolecule.com>. 
-
-If you know the PDB id of your protein structure, just type in <http://jolecule.com/pdb/<your_pdbId>>
-
 ## Desktop App: Explore PDB structures on your computer
 
-An [electron](electronjs.org) app is provided that provides a useful sidebar for local PDB files. 
+An [Electron](electronjs.org) app is provided that allows Jolecule to access your file system. To run the Desktop app on a unix/macosx command-line, in the `jolecule` directory, run:
 
-If you want to run the electron-version of the app, then you must first install [electron](https://electronjs.org/). To do this, go to the `jolecule/electron` directory:
+```bash
+> ./jol-electron.sh [PDB-FILE|DIRECTORY]
+```
 
- ```bash
- npm install
- ```
+If a specified PDB is given, the PDB will be loaded. All other PDB structures in the directory will also be listed in a left-handed side-bar. 
 
-Then, to run a native-GUI electron app to open PDB files:
-
-       ./jol-electron.sh [your.pdb] [directory of PDB files]
-
-The desktop app will have a file browser for PDB files, and the creation/saving of annotated views in the file `your.views.json`. This `your.views.json` can also be used to generate slide shows in your local static web-app from the previous section.
-
-On the command-line, run `./jol-electron.sh [pdb] [directory]`
-
-If a specified PDB is given, the PDB will be loaded. As well, all other PDB structures in the directory will be listed in a left-handed side-bar. This is file-browser that is designed as a conveniently quick way to look at PDB structures.
+More importantly, the Desktop app allows the creation of views that will be directly saved as a file together with the original PDB file. For a given PDB file, say `1be9.pdb`, the Desktop will save any views in the file `1be9.views.json`. This `views.json` will be used to generate static webapps that you can distribute to other users.
 
 ## Views and Animated Slideshows
 
-An key component of Jolecule is the ability to save and re-display views of a molecule. An animated slide-show can then be displayed by cycling smoothly through these views. 
+An key component of Jolecule is the ability to save and re-display views of a molecule. An animated slideshow can then be displayed by cycling smoothly through these views. 
 
 The particular view of a molecular is saves as a list of JSON data structure, with the following structure:
 
@@ -119,94 +106,88 @@ The views are in a Json file with the same basename as the associated PDB file. 
 
 On the public server, the views of a PDB structure <http://jolecule.com/pdb/1mbo> will be accessible at <http://jolecule.com/pdb/1mbo.views.json>. You can download and modify these files.
 
-Jolecule knows how to animate smoothly between views. This will create a slide-show of your structure. Press `Play` in the bottom-left hand to start the slideshow. 
+Jolecule knows how to animate smoothly between views. This will create a slideshow of your structure. Press `Play` in the bottom-left hand to start the slideshow. 
 
-A slide-show between the views by clicking on `Play`. It's easiest to create the `views.json` file using the electron app. 
+A slideshow between the views by clicking on `Play`. It's easiest to create the `views.json` file using the electron app. 
 
 
-## Make an animated slide-show; local static web-app
+## Make static animated slideshows
 
-A good way to start with Jolecule is to create a static web page that automatically displays a PDB file `your.pdb`:
+Once you've started making views, and animating slideshows on the website, or in the Desktop app, you may want to share the slideshow with others. The easiest way to share is to create a static webapp of the slideshow, which can simply be opened by loading the webapp in the browser.
+
+Say that you have `1be9.pdb` and created a bunch of nice views in `1be9.views.json`. Then on the linux/macosx command-line, you can run:
 
 ```bash
-> ./jol-static.js your.pdb
+> ./jol-static.js 1be9
 ```
 
-This will create a directory `your-jol` and a completely contained web-page is available at `your-jol/pdb-index.html`.
+This will create a directory `1be9-jol` and a completely contained webpage is available at `1be9-jol/index.html`. The `index.html` can be edited to setup the default rendering options of Jolecule within the webapp, such as whether you want animation as auto-start feature, or whether to rotate or rock the protein. You can also turn on/off different subsets of the controls for a different mix of clarity/flexibility.
 
-If there also exists a `your.views.json`, these will also be built statically in the webpage
+## Embedding jolecule on other webpages
 
-Then, use the `jol-static.js` to create a local web-app, which will incorporate the `views.json` file into the web-app.
+Javascript was designed to be embedded in other webpages. The easiest way is to 
+[embed a Jolecule widget via the website](http://jolecule.com/embed/pdb?pdb_id=1mbo).
 
+However, you may want to create your own webpage that embeds a Jolecule widget locally. This will create the creation of a suitable `dataserver.js` module. The way to do this is to co-opt the static webpapps created by `jol-static.js`, and repurpose those files for your website.
 
-## Embed on your own web-page, remotely 
+First run `jol-static.sh` to generate an existing static Jolecule webapp. For arguments sake, let's say we converted `1be9.pdb` and `1be9.views.json` into a webap in the `1be9-jol` directory. In the `1be9-jol` directory, there will be a file called `dataserver0.js`, which is the module that stores all the `1be9` data.
 
-The local web-app created by `jol-static.js` uses the embedded mode of Jolecule. The widget can be easily resized and inserted in other web-pages. The embeding follows the form in the resultant web-app. Alternatively, if your target is an internet site, you can embed directly against the `http://jolecule.com`. For examples, for 1MBO, see <http://jolecule.com/embed/pdb?pdbId=1mbo>.
+Essentially, you repurpose the Javascript control script in `1be9/index.html` to insert into your own website. You will require only 3 files from that directory:
 
-Jolecule is designed to be easily embeddable as widgets in an external web-page. You can link to the public website or create a self-contained local version that can zipped and stuffed into an email attachment.
-
-First run `jol-static.sh` to generate an existing embedded web-app with the dataServer. The dataServer is a javascript data file that holds the protein PDB data and any saved vies. An example is given in `examples/1mbo-jol`. 
-
-From the example, you can extract the code that loads Jolecule and adapt it to your web-site. The key files are:
-
-- index.html - generic html that looks for the following files
 - require.js - the module loader
 - jolecule.js - the bundled jolecule UMD module
-- jolecule.css - common stylings
-- select2.css - stylings for cross-platform drop-down selector
-- data-server.js - specific data for your structure.
+- data-server0.js - specific data for your structure.
 
-This is the loading code in `index.html`:
+This would be the loading code in your HTML:
 
 ```html
-<html>
-  <div id="jolecule-protein-container"></div>
-</html>
-<script src="require.js"></script>
+<!-- jolecule widget will be inserted here, set the size with styles -->
+<div id="jolecule-embed"></div>
+<script type="text/javascript" src="./require.js"></script>
 <script>
-require(['jolecule'], function(jolecule) {
-  var j = jolecule.initFullPageJolecule(
-    '#jolecule-protein-container',
-    '#jolecule-views-container',
-    { 
-      isEditable: true,
-      isExtraEditable: true,
-      isGrid: true,
-      isPlayable: true,
-      backgroundColor: 0x000000
+  require(['./jolecule.js'], function(jolecule) {
+    var widget = jolecule.initEmbedJolecule({
+      divTag: '#jolecule-embed', // jquery Tag to your div element
+      animateState: 'none', // 'none', 'loop', 'rotate', 'rock'
+      isSequenceBar: false, // shows sequence bar in the header
+      isGrid: false, // show docking grid panel
+      isEditable: false, // show editable buttons at the footer
+      isPlayable: true, // show playable option buttons at the footer
+      backgroundColor: 0x000000, // background of 3D context
+      maxWaitStep: 50, // time to wait per view in looping mode
+      viewId: ''
+    })
+    require(["data-server0"], function(dataServer) {
+       widget.asyncAddDataServer(dataServer);
     });
-  require(["data-server"], function(dataServer) {
-    j.asyncAddDataServer(dataServer);
-  });
-});
+  })
 </script>
 ```
 
-Jolecule will attempt to fit within the size of `#jolecule-protein-container`.
+Jolecule will attempt to fit within the size of `#jolecule-embed`.
 
-For multiple widgets in a single page, you can load multiple times, using different values for `dataServer` and `div_tag`.
-
-Multiple structures can be loaded by loading different dataServers.
-
-The parameters in `initEmbedJolecule` controls how the widget is displayed:
-
-- `isEditable`: shows buttons that allows rendering options
-- `isExtraEditable`: more buttons
-- `isGrid`: control panel to show binding atom controls
-- `isPlayable`: shows the buttons to move through annotated view slide-show
-- `backgroundColor`: the color in hex for the background e.g. 0xFFFFFF 0x000000
+This can be expanded for multiple widgets, however, there is a limit of 16 WebGL contexts in most browsers, and therefore 16 Jolecule widgets. For different proteins, you can simple rename the `dataserver0.js` to some other name, such
+as `datasever1.js`
 
 ## Developing jolecule
 
-If you want to edit the source code to jolecule, the source code is in `jolecule/src`. It is written in ES6 and needs to be compiled. The compiled module is found in `jolecule/dist/jolecule.js`. To compile the source code, in the Jolecule directory, run:
+If you want to edit the source code to jolecule, the source code is found in `jolecule/src`. It is written in ES6 and needs to be compiled. The compiled module is found in `jolecule/dist/jolecule.js`.
 
-    ./node_modules/.bin/webpack
+Jolecule uses [three.js](http://threejs.org) to interface with [WebGl](https://www.khronos.org/webgl/).
+
+To compile the source code, in the Jolecule directory, run:
+
+```bash
+> ./node_modules/.bin/webpack
+```
 
 Alternatively, to create a watcher for changes, run:
 
-    ./node_modules/.bin/webpack -w
+```bash
+> ./node_modules/.bin/webpack -w
+```
 
-In the watch mode, open the static web-app in `dist/index.html`, and reload the web-page after the compilation is finished.
+In the watch mode, open the static webapp in `dist/index.html`, and reload the webpage after the automatic compilation is finished.
 
 
 ## Visual Graphic Design 
@@ -220,44 +201,45 @@ The cartoon view uses a flat ribbon for alpha-helices and beta-sheets, with a di
 In the display of nucleotides, the cartoon tube shows the bases as a well-defined object. This is done to indicate the importance of base-stacking as an ordering principle in nucleotide structure.
 
 ## Changelog
-- 5.0 (Sep 2016)
-    - Proper fly-weight for loading data structures
-    - Drawing uses only typed-arrays 
-    - colors implemented on residue level
-    - spherical views
-    - transparent chain mode
-    - embedded works a lot more flexibly
-    - file-browser sidebar for electron app
-    - slideshow modes with rock and rotate
-    - select residue selector
-    - improved sequence bar (with help from Sean O'Donoghue)
+
+- 5.0 (Sep 2018)
+  * Proper fly-weight for loading data structures
+  * Drawing uses only typed-arrays 
+  * colors implemented on residue level
+  * spherical views
+  * transparent chain mode
+  * embedded works a lot more flexibly
+  * file-browser sidebar for electron app
+  * slideshow modes with rock and rotate
+  * select residue selector
+  * improved sequence bar (with help from Sean O'Donoghue)
 - 4.0 (Dec 2016)
-    - converted to ES6 using import/export
-    - webpack to transpile to bundled ES5 UMD module
-    - data delivered as AMD modules
-    - modules loaded through require.js
-    - converted all 3D vector map to use three.js
-    - upgraded to three.js 0.79
-    - electron cross-platform GUI
-    - switched from python to node for file processing
+  * converted to ES6 using import/export
+  * webpack to transpile to bundled ES5 UMD module
+  * data delivered as AMD modules
+  * modules loaded through require.js
+  * converted all 3D vector map to use three.js
+  * upgraded to three.js 0.79
+  * electron cross-platform GUI
+  * switched from python to node for file processing
 - 3.0 (Oct 2015)
-    - switched rendering to three.js/WebGL
-    - DNA ribbon representation
-    - arrow for Calphas
-    - sequence-bar 
-    - peptide-bond block representation
+  * switched rendering to three.js/WebGL
+  * DNA ribbon representation
+  * arrow for Calphas
+  * sequence-bar 
+  * peptide-bond block representation
 - 2.0 (June 2015)
-	- bond detector 
-	- global animation loop
-	- correct embedding of widgets in DOM
-	- json representation of views
-	- parses PDB files in javascript
-	- local web-server
-	- multiple local loading options
-	- integrated visual/residue controls in widgets
-	- generation of self-contained webapp
-	- single codebase for appengine/local-web/self-contained
-	- responsive/iOS-touch web design
+  * bond detector 
+  * global animation loop
+  * correct embedding of widgets in DOM
+  * json representation of views
+  * parses PDB files in javascript
+  * local web-server
+  * multiple local loading options
+  * integrated visual/residue controls in widgets
+  * generation of self-contained webapp
+  * single codebase for appengine/local-web/self-contained
+  * responsive/iOS-touch web design
 - 1.0 (May 2011) 
-    - original release
+  * original release
 
