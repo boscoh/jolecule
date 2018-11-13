@@ -88675,12 +88675,13 @@ var SoupView = function () {
       this.setCurrentView(view);
     }
   }, {
-    key: 'setTargetViewToCurrent',
-    value: function setTargetViewToCurrent() {
+    key: 'setCurrentViewToTargetView',
+    value: function setCurrentViewToTargetView() {
       this.setCurrentView(this.targetView);
       if (this.getMode() === 'chain') {
         this.currentView.show.transparent = true;
       }
+      this.soup.clearSelectedResidues();
       this.targetView = null;
       this.isUpdateObservers = true;
       this.isChanged = true;
@@ -88692,7 +88693,7 @@ var SoupView = function () {
       this.nUpdateStep -= elapsedTime / this.msPerStep;
       if (this.nUpdateStep < 0) {
         if (this.targetView !== null) {
-          this.setTargetViewToCurrent();
+          this.setCurrentViewToTargetView();
           this.nUpdateStep = this.maxUpdateStep;
         } else {
           if (this.isStartTargetAfterRender) {
