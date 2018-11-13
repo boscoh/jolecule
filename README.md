@@ -1,8 +1,8 @@
 
 
-# Jolecule - three.js viewer for proteins/DNA with animated views
+# Jolecule - viewer for proteins & DNA with animated views
 
-Jolecule is a WebGL viewer for proteins and DNA designed for making animated slideshows. Jolecule makes it easy to store annotated views, and by animating between stored views, custom slideshows can be easily created for presentations.
+Jolecule is a viewer for proteins and DNA designed for making animated slideshows. It runs on web-browsers using WebGL via the [three.js](http://threejs.org) library. Jolecule makes it easy to explore and store annotated views. By animating between these stored views, custom slideshows can be created for presentations.
 
 The core package is a javascript module that can display PDB structures. The module has been carefully written so that it can be used in a variety of different ways:
 
@@ -20,7 +20,9 @@ Or if you know the PDB id of your protein structure, just type in `http://jolecu
 
 ## Installation
 
-To use Jolecule as a local Desktop app, or to build static webapps, you need to first download the github zip file: [jolecule-master.zip](https://github.com/boscoh/jolecule/archive/master.zip)
+To use Jolecule as a local Desktop app, or to build static webapps, you need to first download the github zip file: 
+
+&nbsp; &nbsp; [jolecule-master.zip](https://github.com/boscoh/jolecule/archive/master.zip)
 
 Then you need to install [Node.js](http://nodejs.org), the Javascript run-time.
 
@@ -128,7 +130,7 @@ This will create a directory `1be9-jol` and a completely contained webpage is av
 Javascript was designed to be embedded in other webpages. The easiest way is to 
 [embed a Jolecule widget via the website](http://jolecule.com/embed/pdb?pdb_id=1mbo).
 
-However, you may want to create your own webpage that embeds a Jolecule widget locally. This will create the creation of a suitable `dataserver.js` module. The way to do this is to co-opt the static webpapps created by `jol-static.js`, and repurpose those files for your website.
+However, you may want to create your own webpage that embeds a Jolecule widget locally. This requires the creation of a javascript `dataserver.js` module that holds all the protein and view data. The way to do this is to co-opt the static webpapps created by `jol-static.js`, and repurpose those files for your website.
 
 First run `jol-static.sh` to generate an existing static Jolecule webapp. For arguments sake, let's say we converted `1be9.pdb` and `1be9.views.json` into a webap in the `1be9-jol` directory. In the `1be9-jol` directory, there will be a file called `dataserver0.js`, which is the module that stores all the `1be9` data.
 
