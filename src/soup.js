@@ -571,16 +571,18 @@ class Soup {
 
     this.parsedSecondaryStructure = false
 
+    let residue = this.getResidueProxy()
+
     for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
       let line = pdbLines[iLine]
 
       if (line.substr(0, 5) === 'HELIX') {
+        this.parsedSecondaryStructure = true
         let chain = line.substr(19, 1)
         let resNumStart = parseInt(line.substr(21, 4))
         let resNumEnd = parseInt(line.substr(33, 4))
-        this.parsedSecondaryStructure = true
-        let residue = this.findResidue(chain, resNumStart)
-        if (!_.isNil(residue)) {
+        for (let iRes of this.findResidueIndices(chain, resNumStart)) {
+          residue.iRes = iRes
           while (residue.resNum <= resNumEnd) {
             residue.ss = 'H'
             residue.iRes = residue.iRes + 1
@@ -593,8 +595,8 @@ class Soup {
         let chain = line.substr(21, 1)
         let resNumStart = parseInt(line.substr(22, 4))
         let resNumEnd = parseInt(line.substr(33, 4))
-        let residue = this.findResidue(chain, resNumStart)
-        if (!_.isNil(residue)) {
+        for (let iRes of this.findResidueIndices(chain, resNumStart)) {
+          residue.iRes = iRes
           while (residue.resNum <= resNumEnd) {
             residue.ss = 'E'
             residue.iRes = residue.iRes + 1
@@ -779,7 +781,7 @@ class Soup {
     this.residueStore.iStructure[iRes] = this.iStructure
   }
 
-  findResidue(chain, resNum) {
+  findFirstResidue(chain, resNum) {
     let residue = this.getResidueProxy()
     for (let iRes of _.range(this.getResidueCount())) {
       residue.iRes = iRes
@@ -788,6 +790,18 @@ class Soup {
       }
     }
     return null
+  }
+
+  findResidueIndices(chain, resNum) {
+    let result = []
+    let residue = this.getResidueProxy()
+    for (let iRes of _.range(this.getResidueCount())) {
+      residue.iRes = iRes
+      if (residue.chain === chain && residue.resNum === resNum) {
+        result.push(iRes)
+      }
+    }
+    return result
   }
 
   assignResidueProperties() {

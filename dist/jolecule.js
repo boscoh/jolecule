@@ -90138,19 +90138,42 @@ var Soup = function () {
 
       this.parsedSecondaryStructure = false;
 
+      var residue = this.getResidueProxy();
+
       for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
         var line = pdbLines[iLine];
 
         if (line.substr(0, 5) === 'HELIX') {
+          this.parsedSecondaryStructure = true;
           var chain = line.substr(19, 1);
           var resNumStart = parseInt(line.substr(21, 4));
           var resNumEnd = parseInt(line.substr(33, 4));
-          this.parsedSecondaryStructure = true;
-          var residue = this.findResidue(chain, resNumStart);
-          if (!_lodash2.default.isNil(residue)) {
-            while (residue.resNum <= resNumEnd) {
-              residue.ss = 'H';
-              residue.iRes = residue.iRes + 1;
+          var _iteratorNormalCompletion5 = true;
+          var _didIteratorError5 = false;
+          var _iteratorError5 = undefined;
+
+          try {
+            for (var _iterator5 = this.findResidueIndices(chain, resNumStart)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+              var iRes = _step5.value;
+
+              residue.iRes = iRes;
+              while (residue.resNum <= resNumEnd) {
+                residue.ss = 'H';
+                residue.iRes = residue.iRes + 1;
+              }
+            }
+          } catch (err) {
+            _didIteratorError5 = true;
+            _iteratorError5 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                _iterator5.return();
+              }
+            } finally {
+              if (_didIteratorError5) {
+                throw _iteratorError5;
+              }
             }
           }
         }
@@ -90160,11 +90183,32 @@ var Soup = function () {
           var _chain = line.substr(21, 1);
           var _resNumStart = parseInt(line.substr(22, 4));
           var _resNumEnd = parseInt(line.substr(33, 4));
-          var _residue = this.findResidue(_chain, _resNumStart);
-          if (!_lodash2.default.isNil(_residue)) {
-            while (_residue.resNum <= _resNumEnd) {
-              _residue.ss = 'E';
-              _residue.iRes = _residue.iRes + 1;
+          var _iteratorNormalCompletion6 = true;
+          var _didIteratorError6 = false;
+          var _iteratorError6 = undefined;
+
+          try {
+            for (var _iterator6 = this.findResidueIndices(_chain, _resNumStart)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+              var _iRes = _step6.value;
+
+              residue.iRes = _iRes;
+              while (residue.resNum <= _resNumEnd) {
+                residue.ss = 'E';
+                residue.iRes = residue.iRes + 1;
+              }
+            }
+          } catch (err) {
+            _didIteratorError6 = true;
+            _iteratorError6 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                _iterator6.return();
+              }
+            } finally {
+              if (_didIteratorError6) {
+                throw _iteratorError6;
+              }
             }
           }
         }
@@ -90188,13 +90232,13 @@ var Soup = function () {
         return;
       }
 
-      var _iteratorNormalCompletion5 = true;
-      var _didIteratorError5 = false;
-      var _iteratorError5 = undefined;
+      var _iteratorNormalCompletion7 = true;
+      var _didIteratorError7 = false;
+      var _iteratorError7 = undefined;
 
       try {
-        for (var _iterator5 = _lodash2.default.range(pdbLines.length)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-          var i = _step5.value;
+        for (var _iterator7 = _lodash2.default.range(pdbLines.length)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          var i = _step7.value;
 
           if (_lodash2.default.includes(['END'], pdbLines[i].slice(0, 3))) {
             pdbLines = pdbLines.slice(0, i);
@@ -90202,16 +90246,16 @@ var Soup = function () {
           }
         }
       } catch (err) {
-        _didIteratorError5 = true;
-        _iteratorError5 = err;
+        _didIteratorError7 = true;
+        _iteratorError7 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion5 && _iterator5.return) {
-            _iterator5.return();
+          if (!_iteratorNormalCompletion7 && _iterator7.return) {
+            _iterator7.return();
           }
         } finally {
-          if (_didIteratorError5) {
-            throw _iteratorError5;
+          if (_didIteratorError7) {
+            throw _iteratorError7;
           }
         }
       }
@@ -90394,16 +90438,16 @@ var Soup = function () {
       this.residueStore.iStructure[iRes] = this.iStructure;
     }
   }, {
-    key: 'findResidue',
-    value: function findResidue(chain, resNum) {
+    key: 'findFirstResidue',
+    value: function findFirstResidue(chain, resNum) {
       var residue = this.getResidueProxy();
-      var _iteratorNormalCompletion6 = true;
-      var _didIteratorError6 = false;
-      var _iteratorError6 = undefined;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
 
       try {
-        for (var _iterator6 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-          var iRes = _step6.value;
+        for (var _iterator8 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var iRes = _step8.value;
 
           residue.iRes = iRes;
           if (residue.chain === chain && residue.resNum === resNum) {
@@ -90411,21 +90455,56 @@ var Soup = function () {
           }
         }
       } catch (err) {
-        _didIteratorError6 = true;
-        _iteratorError6 = err;
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion6 && _iterator6.return) {
-            _iterator6.return();
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
           }
         } finally {
-          if (_didIteratorError6) {
-            throw _iteratorError6;
+          if (_didIteratorError8) {
+            throw _iteratorError8;
           }
         }
       }
 
       return null;
+    }
+  }, {
+    key: 'findResidueIndices',
+    value: function findResidueIndices(chain, resNum) {
+      var result = [];
+      var residue = this.getResidueProxy();
+      var _iteratorNormalCompletion9 = true;
+      var _didIteratorError9 = false;
+      var _iteratorError9 = undefined;
+
+      try {
+        for (var _iterator9 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+          var iRes = _step9.value;
+
+          residue.iRes = iRes;
+          if (residue.chain === chain && residue.resNum === resNum) {
+            result.push(iRes);
+          }
+        }
+      } catch (err) {
+        _didIteratorError9 = true;
+        _iteratorError9 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion9 && _iterator9.return) {
+            _iterator9.return();
+          }
+        } finally {
+          if (_didIteratorError9) {
+            throw _iteratorError9;
+          }
+        }
+      }
+
+      return result;
     }
   }, {
     key: 'assignResidueProperties',
@@ -90464,13 +90543,13 @@ var Soup = function () {
       var iAtomClosest = null;
       var minD = 1e6;
       var atom = this.getAtomProxy();
-      var _iteratorNormalCompletion7 = true;
-      var _didIteratorError7 = false;
-      var _iteratorError7 = undefined;
+      var _iteratorNormalCompletion10 = true;
+      var _didIteratorError10 = false;
+      var _iteratorError10 = undefined;
 
       try {
-        for (var _iterator7 = atomIndices[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-          var iAtom = _step7.value;
+        for (var _iterator10 = atomIndices[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+          var iAtom = _step10.value;
 
           if (iAtomClosest === null) {
             iAtomClosest = iAtom;
@@ -90484,16 +90563,16 @@ var Soup = function () {
           }
         }
       } catch (err) {
-        _didIteratorError7 = true;
-        _iteratorError7 = err;
+        _didIteratorError10 = true;
+        _iteratorError10 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion7 && _iterator7.return) {
-            _iterator7.return();
+          if (!_iteratorNormalCompletion10 && _iterator10.return) {
+            _iterator10.return();
           }
         } finally {
-          if (_didIteratorError7) {
-            throw _iteratorError7;
+          if (_didIteratorError10) {
+            throw _iteratorError10;
           }
         }
       }
@@ -90507,13 +90586,13 @@ var Soup = function () {
       var iAtomClosest = null;
       var minD = 1e6;
       var atom = this.getAtomProxy();
-      var _iteratorNormalCompletion8 = true;
-      var _didIteratorError8 = false;
-      var _iteratorError8 = undefined;
+      var _iteratorNormalCompletion11 = true;
+      var _didIteratorError11 = false;
+      var _iteratorError11 = undefined;
 
       try {
-        for (var _iterator8 = atomIndices[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-          var iAtom = _step8.value;
+        for (var _iterator11 = atomIndices[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+          var iAtom = _step11.value;
 
           if (iAtomClosest === null) {
             iAtomClosest = iAtom;
@@ -90527,16 +90606,16 @@ var Soup = function () {
           }
         }
       } catch (err) {
-        _didIteratorError8 = true;
-        _iteratorError8 = err;
+        _didIteratorError11 = true;
+        _iteratorError11 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-            _iterator8.return();
+          if (!_iteratorNormalCompletion11 && _iterator11.return) {
+            _iterator11.return();
           }
         } finally {
-          if (_didIteratorError8) {
-            throw _iteratorError8;
+          if (_didIteratorError11) {
+            throw _iteratorError11;
           }
         }
       }
@@ -90552,27 +90631,27 @@ var Soup = function () {
     value: function getCenter(atomIndices) {
       var result = _v2.default.create(0, 0, 0);
       var atom = this.getAtomProxy();
-      var _iteratorNormalCompletion9 = true;
-      var _didIteratorError9 = false;
-      var _iteratorError9 = undefined;
+      var _iteratorNormalCompletion12 = true;
+      var _didIteratorError12 = false;
+      var _iteratorError12 = undefined;
 
       try {
-        for (var _iterator9 = atomIndices[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-          var iAtom = _step9.value;
+        for (var _iterator12 = atomIndices[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+          var iAtom = _step12.value;
 
           result = _v2.default.sum(result, atom.load(iAtom).pos);
         }
       } catch (err) {
-        _didIteratorError9 = true;
-        _iteratorError9 = err;
+        _didIteratorError12 = true;
+        _iteratorError12 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion9 && _iterator9.return) {
-            _iterator9.return();
+          if (!_iteratorNormalCompletion12 && _iterator12.return) {
+            _iterator12.return();
           }
         } finally {
-          if (_didIteratorError9) {
-            throw _iteratorError9;
+          if (_didIteratorError12) {
+            throw _iteratorError12;
           }
         }
       }
@@ -90600,13 +90679,13 @@ var Soup = function () {
       }
       var atom = this.getAtomProxy();
       for (var iDim = 0; iDim < 3; iDim++) {
-        var _iteratorNormalCompletion10 = true;
-        var _didIteratorError10 = false;
-        var _iteratorError10 = undefined;
+        var _iteratorNormalCompletion13 = true;
+        var _didIteratorError13 = false;
+        var _iteratorError13 = undefined;
 
         try {
-          for (var _iterator10 = atomIndices[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-            var iAtom = _step10.value;
+          for (var _iterator13 = atomIndices[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+            var iAtom = _step13.value;
 
             var pos = atom.load(iAtom).pos;
             if (minima[iDim] > comp(pos, iDim)) {
@@ -90617,16 +90696,16 @@ var Soup = function () {
             }
           }
         } catch (err) {
-          _didIteratorError10 = true;
-          _iteratorError10 = err;
+          _didIteratorError13 = true;
+          _iteratorError13 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion10 && _iterator10.return) {
-              _iterator10.return();
+            if (!_iteratorNormalCompletion13 && _iterator13.return) {
+              _iterator13.return();
             }
           } finally {
-            if (_didIteratorError10) {
-              throw _iteratorError10;
+            if (_didIteratorError13) {
+              throw _iteratorError13;
             }
           }
         }
@@ -90696,20 +90775,20 @@ var Soup = function () {
         residue2.iRes = iRes1;
 
         // cycle through all atoms within a residue
-        var _iteratorNormalCompletion11 = true;
-        var _didIteratorError11 = false;
-        var _iteratorError11 = undefined;
+        var _iteratorNormalCompletion14 = true;
+        var _didIteratorError14 = false;
+        var _iteratorError14 = undefined;
 
         try {
-          for (var _iterator11 = residue2.getAtomIndices()[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-            var _iAtom = _step11.value;
-            var _iteratorNormalCompletion12 = true;
-            var _didIteratorError12 = false;
-            var _iteratorError12 = undefined;
+          for (var _iterator14 = residue2.getAtomIndices()[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+            var _iAtom = _step14.value;
+            var _iteratorNormalCompletion15 = true;
+            var _didIteratorError15 = false;
+            var _iteratorError15 = undefined;
 
             try {
-              for (var _iterator12 = residue2.getAtomIndices()[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-                var iAtom2 = _step12.value;
+              for (var _iterator15 = residue2.getAtomIndices()[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+                var iAtom2 = _step15.value;
 
                 atom1.iAtom = _iAtom;
                 atom2.iAtom = iAtom2;
@@ -90718,31 +90797,31 @@ var Soup = function () {
                 }
               }
             } catch (err) {
-              _didIteratorError12 = true;
-              _iteratorError12 = err;
+              _didIteratorError15 = true;
+              _iteratorError15 = err;
             } finally {
               try {
-                if (!_iteratorNormalCompletion12 && _iterator12.return) {
-                  _iterator12.return();
+                if (!_iteratorNormalCompletion15 && _iterator15.return) {
+                  _iterator15.return();
                 }
               } finally {
-                if (_didIteratorError12) {
-                  throw _iteratorError12;
+                if (_didIteratorError15) {
+                  throw _iteratorError15;
                 }
               }
             }
           }
         } catch (err) {
-          _didIteratorError11 = true;
-          _iteratorError11 = err;
+          _didIteratorError14 = true;
+          _iteratorError14 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion11 && _iterator11.return) {
-              _iterator11.return();
+            if (!_iteratorNormalCompletion14 && _iterator14.return) {
+              _iterator14.return();
             }
           } finally {
-            if (_didIteratorError11) {
-              throw _iteratorError11;
+            if (_didIteratorError14) {
+              throw _iteratorError14;
             }
           }
         }
@@ -90828,13 +90907,13 @@ var Soup = function () {
         }
 
         var spaceHash = new _pairs.SpaceHash(vertices);
-        var _iteratorNormalCompletion13 = true;
-        var _didIteratorError13 = false;
-        var _iteratorError13 = undefined;
+        var _iteratorNormalCompletion16 = true;
+        var _didIteratorError16 = false;
+        var _iteratorError16 = undefined;
 
         try {
-          for (var _iterator13 = spaceHash.getClosePairs()[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-            var pair = _step13.value;
+          for (var _iterator16 = spaceHash.getClosePairs()[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+            var pair = _step16.value;
 
             atom0.iAtom = atomIndices[pair[0]];
             atom1.iAtom = atomIndices[pair[1]];
@@ -90856,16 +90935,16 @@ var Soup = function () {
             }
           }
         } catch (err) {
-          _didIteratorError13 = true;
-          _iteratorError13 = err;
+          _didIteratorError16 = true;
+          _iteratorError16 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion13 && _iterator13.return) {
-              _iterator13.return();
+            if (!_iteratorNormalCompletion16 && _iterator16.return) {
+              _iterator16.return();
             }
           } finally {
-            if (_didIteratorError13) {
-              throw _iteratorError13;
+            if (_didIteratorError16) {
+              throw _iteratorError16;
             }
           }
         }
@@ -90958,140 +91037,140 @@ var Soup = function () {
         if (isCONH(iRes0, iRes0 + 3) && isCONH(iRes0 + 1, iRes0 + 4)) {
           var _normal = vecBetweenResidues(iRes0, iRes0 + 3);
           var normal2 = vecBetweenResidues(iRes0 + 1, iRes0 + 4);
-          for (var _iRes = iRes0 + 1; _iRes < iRes0 + 4; _iRes += 1) {
-            residue0.load(_iRes).ss = 'H';
-            pushToListInDict(residueNormals, _iRes, _normal);
-            pushToListInDict(residueNormals, _iRes, normal2);
+          for (var _iRes2 = iRes0 + 1; _iRes2 < iRes0 + 4; _iRes2 += 1) {
+            residue0.load(_iRes2).ss = 'H';
+            pushToListInDict(residueNormals, _iRes2, _normal);
+            pushToListInDict(residueNormals, _iRes2, normal2);
           }
         }
       }
 
       var betaResidues = [];
       var spaceHash = new _pairs.SpaceHash(vertices);
-      var _iteratorNormalCompletion14 = true;
-      var _didIteratorError14 = false;
-      var _iteratorError14 = undefined;
+      var _iteratorNormalCompletion17 = true;
+      var _didIteratorError17 = false;
+      var _iteratorError17 = undefined;
 
       try {
-        for (var _iterator14 = spaceHash.getClosePairs()[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-          var pair = _step14.value;
+        for (var _iterator17 = spaceHash.getClosePairs()[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+          var pair = _step17.value;
 
           var _pair = _slicedToArray(pair, 2),
               iVertex0 = _pair[0],
               iVertex1 = _pair[1];
 
-          var _iRes4 = resIndices[iVertex0];
-          var _iRes5 = resIndices[iVertex1];
-          if (Math.abs(_iRes4 - _iRes5) <= 5) {
+          var _iRes5 = resIndices[iVertex0];
+          var _iRes6 = resIndices[iVertex1];
+          if (Math.abs(_iRes5 - _iRes6) <= 5) {
             continue;
           }
           // parallel beta sheet pairs
-          if (isCONH(_iRes4, _iRes5 + 1) && isCONH(_iRes5 - 1, _iRes4)) {
-            betaResidues = betaResidues.concat([_iRes4, _iRes5]);
+          if (isCONH(_iRes5, _iRes6 + 1) && isCONH(_iRes6 - 1, _iRes5)) {
+            betaResidues = betaResidues.concat([_iRes5, _iRes6]);
           }
-          if (isCONH(_iRes4 - 1, _iRes5) && isCONH(_iRes5, _iRes4 + 1)) {
-            betaResidues = betaResidues.concat([_iRes4, _iRes5]);
+          if (isCONH(_iRes5 - 1, _iRes6) && isCONH(_iRes6, _iRes5 + 1)) {
+            betaResidues = betaResidues.concat([_iRes5, _iRes6]);
           }
 
           // anti-parallel hbonded beta sheet pairs
-          if (isCONH(_iRes4, _iRes5) && isCONH(_iRes5, _iRes4)) {
-            betaResidues = betaResidues.concat([_iRes4, _iRes5]);
-            var _normal2 = vecBetweenResidues(_iRes4, _iRes5);
-            pushToListInDict(residueNormals, _iRes4, _normal2);
-            pushToListInDict(residueNormals, _iRes5, _v2.default.scaled(_normal2, -1));
+          if (isCONH(_iRes5, _iRes6) && isCONH(_iRes6, _iRes5)) {
+            betaResidues = betaResidues.concat([_iRes5, _iRes6]);
+            var _normal2 = vecBetweenResidues(_iRes5, _iRes6);
+            pushToListInDict(residueNormals, _iRes5, _normal2);
+            pushToListInDict(residueNormals, _iRes6, _v2.default.scaled(_normal2, -1));
           }
 
           // anti-parallel non-hbonded beta sheet pairs
-          if (isCONH(_iRes4 - 1, _iRes5 + 1) && isCONH(_iRes5 - 1, _iRes4 + 1)) {
-            betaResidues = betaResidues.concat([_iRes4, _iRes5]);
-            var _normal3 = vecBetweenResidues(_iRes4, _iRes5);
-            pushToListInDict(residueNormals, _iRes4, _v2.default.scaled(_normal3, -1));
-            pushToListInDict(residueNormals, _iRes5, _normal3);
+          if (isCONH(_iRes5 - 1, _iRes6 + 1) && isCONH(_iRes6 - 1, _iRes5 + 1)) {
+            betaResidues = betaResidues.concat([_iRes5, _iRes6]);
+            var _normal3 = vecBetweenResidues(_iRes5, _iRes6);
+            pushToListInDict(residueNormals, _iRes5, _v2.default.scaled(_normal3, -1));
+            pushToListInDict(residueNormals, _iRes6, _normal3);
           }
         }
       } catch (err) {
-        _didIteratorError14 = true;
-        _iteratorError14 = err;
+        _didIteratorError17 = true;
+        _iteratorError17 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion14 && _iterator14.return) {
-            _iterator14.return();
+          if (!_iteratorNormalCompletion17 && _iterator17.return) {
+            _iterator17.return();
           }
         } finally {
-          if (_didIteratorError14) {
-            throw _iteratorError14;
+          if (_didIteratorError17) {
+            throw _iteratorError17;
           }
         }
       }
 
-      var _iteratorNormalCompletion15 = true;
-      var _didIteratorError15 = false;
-      var _iteratorError15 = undefined;
+      var _iteratorNormalCompletion18 = true;
+      var _didIteratorError18 = false;
+      var _iteratorError18 = undefined;
 
       try {
-        for (var _iterator15 = betaResidues[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-          var _iRes6 = _step15.value;
+        for (var _iterator18 = betaResidues[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+          var _iRes7 = _step18.value;
 
-          residue0.load(_iRes6).ss = 'E';
+          residue0.load(_iRes7).ss = 'E';
         }
 
         // average residueNormals to make a nice average
       } catch (err) {
-        _didIteratorError15 = true;
-        _iteratorError15 = err;
+        _didIteratorError18 = true;
+        _iteratorError18 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion15 && _iterator15.return) {
-            _iterator15.return();
+          if (!_iteratorNormalCompletion18 && _iterator18.return) {
+            _iterator18.return();
           }
         } finally {
-          if (_didIteratorError15) {
-            throw _iteratorError15;
+          if (_didIteratorError18) {
+            throw _iteratorError18;
           }
         }
       }
 
-      for (var _iRes2 = 0; _iRes2 < nRes; _iRes2 += 1) {
-        if (_iRes2 in residueNormals && residueNormals[_iRes2].length > 0) {
+      for (var _iRes3 = 0; _iRes3 < nRes; _iRes3 += 1) {
+        if (_iRes3 in residueNormals && residueNormals[_iRes3].length > 0) {
           var normalSum = _v2.default.create(0, 0, 0);
-          var _iteratorNormalCompletion16 = true;
-          var _didIteratorError16 = false;
-          var _iteratorError16 = undefined;
+          var _iteratorNormalCompletion19 = true;
+          var _didIteratorError19 = false;
+          var _iteratorError19 = undefined;
 
           try {
-            for (var _iterator16 = residueNormals[_iRes2][Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-              var normal = _step16.value;
+            for (var _iterator19 = residueNormals[_iRes3][Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+              var normal = _step19.value;
 
               normalSum = _v2.default.sum(normalSum, normal);
             }
           } catch (err) {
-            _didIteratorError16 = true;
-            _iteratorError16 = err;
+            _didIteratorError19 = true;
+            _iteratorError19 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion16 && _iterator16.return) {
-                _iterator16.return();
+              if (!_iteratorNormalCompletion19 && _iterator19.return) {
+                _iterator19.return();
               }
             } finally {
-              if (_didIteratorError16) {
-                throw _iteratorError16;
+              if (_didIteratorError19) {
+                throw _iteratorError19;
               }
             }
           }
 
-          this.residueNormal[_iRes2] = _v2.default.normalized(normalSum);
+          this.residueNormal[_iRes3] = _v2.default.normalized(normalSum);
         }
       }
 
       // flip every second beta-strand normal so they are
       // consistently pointing in the same direction
-      for (var _iRes3 = 1; _iRes3 < nRes; _iRes3 += 1) {
-        residue0.iRes = _iRes3 - 1;
-        residue1.iRes = _iRes3;
+      for (var _iRes4 = 1; _iRes4 < nRes; _iRes4 += 1) {
+        residue0.iRes = _iRes4 - 1;
+        residue1.iRes = _iRes4;
         if (residue0.ss === 'E' && residue0.normal) {
           if (residue1.ss === 'E' && residue1.normal) {
             if (residue1.normal.dot(residue0.normal) < 0) {
-              this.residueNormal[_iRes3].negate();
+              this.residueNormal[_iRes4].negate();
             }
           }
         }
@@ -91150,13 +91229,13 @@ var Soup = function () {
         }
       }
 
-      var _iteratorNormalCompletion17 = true;
-      var _didIteratorError17 = false;
-      var _iteratorError17 = undefined;
+      var _iteratorNormalCompletion20 = true;
+      var _didIteratorError20 = false;
+      var _iteratorError20 = undefined;
 
       try {
-        for (var _iterator17 = this.traces[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
-          var trace = _step17.value;
+        for (var _iterator20 = this.traces[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+          var trace = _step20.value;
 
           trace.calcTangents();
           trace.calcNormals();
@@ -91164,16 +91243,16 @@ var Soup = function () {
           trace.expand();
         }
       } catch (err) {
-        _didIteratorError17 = true;
-        _iteratorError17 = err;
+        _didIteratorError20 = true;
+        _iteratorError20 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion17 && _iterator17.return) {
-            _iterator17.return();
+          if (!_iteratorNormalCompletion20 && _iterator20.return) {
+            _iterator20.return();
           }
         } finally {
-          if (_didIteratorError17) {
-            throw _iteratorError17;
+          if (_didIteratorError20) {
+            throw _iteratorError20;
           }
         }
       }
@@ -91239,51 +91318,51 @@ var Soup = function () {
         return false;
       }
 
-      var _iteratorNormalCompletion18 = true;
-      var _didIteratorError18 = false;
-      var _iteratorError18 = undefined;
+      var _iteratorNormalCompletion21 = true;
+      var _didIteratorError21 = false;
+      var _iteratorError21 = undefined;
 
       try {
-        for (var _iterator18 = atomIndices0[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-          var iAtom0 = _step18.value;
-          var _iteratorNormalCompletion19 = true;
-          var _didIteratorError19 = false;
-          var _iteratorError19 = undefined;
+        for (var _iterator21 = atomIndices0[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+          var iAtom0 = _step21.value;
+          var _iteratorNormalCompletion22 = true;
+          var _didIteratorError22 = false;
+          var _iteratorError22 = undefined;
 
           try {
-            for (var _iterator19 = atomIndices1[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-              var iAtom1 = _step19.value;
+            for (var _iterator22 = atomIndices1[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+              var iAtom1 = _step22.value;
 
               if (_v2.default.distance(atom0.load(iAtom0).pos, atom1.load(iAtom1).pos) < 4) {
                 return true;
               }
             }
           } catch (err) {
-            _didIteratorError19 = true;
-            _iteratorError19 = err;
+            _didIteratorError22 = true;
+            _iteratorError22 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion19 && _iterator19.return) {
-                _iterator19.return();
+              if (!_iteratorNormalCompletion22 && _iterator22.return) {
+                _iterator22.return();
               }
             } finally {
-              if (_didIteratorError19) {
-                throw _iteratorError19;
+              if (_didIteratorError22) {
+                throw _iteratorError22;
               }
             }
           }
         }
       } catch (err) {
-        _didIteratorError18 = true;
-        _iteratorError18 = err;
+        _didIteratorError21 = true;
+        _iteratorError21 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion18 && _iterator18.return) {
-            _iterator18.return();
+          if (!_iteratorNormalCompletion21 && _iterator21.return) {
+            _iterator21.return();
           }
         } finally {
-          if (_didIteratorError18) {
-            throw _iteratorError18;
+          if (_didIteratorError21) {
+            throw _iteratorError21;
           }
         }
       }
@@ -91310,27 +91389,27 @@ var Soup = function () {
     key: 'setSidechainOfResidues',
     value: function setSidechainOfResidues(residueIndices, isSidechain) {
       var residue = this.getResidueProxy();
-      var _iteratorNormalCompletion20 = true;
-      var _didIteratorError20 = false;
-      var _iteratorError20 = undefined;
+      var _iteratorNormalCompletion23 = true;
+      var _didIteratorError23 = false;
+      var _iteratorError23 = undefined;
 
       try {
-        for (var _iterator20 = residueIndices[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-          var iRes = _step20.value;
+        for (var _iterator23 = residueIndices[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+          var iRes = _step23.value;
 
           residue.load(iRes).sidechain = isSidechain;
         }
       } catch (err) {
-        _didIteratorError20 = true;
-        _iteratorError20 = err;
+        _didIteratorError23 = true;
+        _iteratorError23 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion20 && _iterator20.return) {
-            _iterator20.return();
+          if (!_iteratorNormalCompletion23 && _iterator23.return) {
+            _iterator23.return();
           }
         } finally {
-          if (_didIteratorError20) {
-            throw _iteratorError20;
+          if (_didIteratorError23) {
+            throw _iteratorError23;
           }
         }
       }
@@ -91373,29 +91452,29 @@ var Soup = function () {
       }
 
       var atomIndices0 = res0.getAtomIndices();
-      var _iteratorNormalCompletion21 = true;
-      var _didIteratorError21 = false;
-      var _iteratorError21 = undefined;
+      var _iteratorNormalCompletion24 = true;
+      var _didIteratorError24 = false;
+      var _iteratorError24 = undefined;
 
       try {
-        for (var _iterator21 = atomIndices0[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-          var iAtom0 = _step21.value;
+        for (var _iterator24 = atomIndices0[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
+          var iAtom0 = _step24.value;
 
           if (_v2.default.distance(atom0.load(iAtom0).pos, pos1) < 5) {
             return true;
           }
         }
       } catch (err) {
-        _didIteratorError21 = true;
-        _iteratorError21 = err;
+        _didIteratorError24 = true;
+        _iteratorError24 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion21 && _iterator21.return) {
-            _iterator21.return();
+          if (!_iteratorNormalCompletion24 && _iterator24.return) {
+            _iterator24.return();
           }
         } finally {
-          if (_didIteratorError21) {
-            throw _iteratorError21;
+          if (_didIteratorError24) {
+            throw _iteratorError24;
           }
         }
       }
@@ -91417,28 +91496,28 @@ var Soup = function () {
     key: 'setSecondaryStructureColorResidues',
     value: function setSecondaryStructureColorResidues() {
       var residue = this.getResidueProxy();
-      var _iteratorNormalCompletion22 = true;
-      var _didIteratorError22 = false;
-      var _iteratorError22 = undefined;
+      var _iteratorNormalCompletion25 = true;
+      var _didIteratorError25 = false;
+      var _iteratorError25 = undefined;
 
       try {
-        for (var _iterator22 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-          var iRes = _step22.value;
+        for (var _iterator25 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
+          var iRes = _step25.value;
 
           residue.iRes = iRes;
           residue.customColor = data.getSsColor(residue.ss);
         }
       } catch (err) {
-        _didIteratorError22 = true;
-        _iteratorError22 = err;
+        _didIteratorError25 = true;
+        _iteratorError25 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion22 && _iterator22.return) {
-            _iterator22.return();
+          if (!_iteratorNormalCompletion25 && _iterator25.return) {
+            _iterator25.return();
           }
         } finally {
-          if (_didIteratorError22) {
-            throw _iteratorError22;
+          if (_didIteratorError25) {
+            throw _iteratorError25;
           }
         }
       }
@@ -91449,55 +91528,55 @@ var Soup = function () {
       var residue = this.getResidueProxy();
       var isGridActive = _lodash2.default.some(_lodash2.default.values(this.grid.isElem));
       if (isGridActive) {
-        var _iteratorNormalCompletion23 = true;
-        var _didIteratorError23 = false;
-        var _iteratorError23 = undefined;
+        var _iteratorNormalCompletion26 = true;
+        var _didIteratorError26 = false;
+        var _iteratorError26 = undefined;
 
         try {
-          for (var _iterator23 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-            var iRes = _step23.value;
+          for (var _iterator26 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
+            var iRes = _step26.value;
 
             residue.iRes = iRes;
             residue.color = data.darkGrey;
           }
         } catch (err) {
-          _didIteratorError23 = true;
-          _iteratorError23 = err;
+          _didIteratorError26 = true;
+          _iteratorError26 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion23 && _iterator23.return) {
-              _iterator23.return();
+            if (!_iteratorNormalCompletion26 && _iterator26.return) {
+              _iterator26.return();
             }
           } finally {
-            if (_didIteratorError23) {
-              throw _iteratorError23;
+            if (_didIteratorError26) {
+              throw _iteratorError26;
             }
           }
         }
       }
 
-      var _iteratorNormalCompletion24 = true;
-      var _didIteratorError24 = false;
-      var _iteratorError24 = undefined;
+      var _iteratorNormalCompletion27 = true;
+      var _didIteratorError27 = false;
+      var _iteratorError27 = undefined;
 
       try {
-        for (var _iterator24 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-          var _iRes7 = _step24.value;
+        for (var _iterator27 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
+          var _iRes8 = _step27.value;
 
-          residue.iRes = _iRes7;
+          residue.iRes = _iRes8;
           residue.color = isGridActive ? data.darkGrey : residue.customColor;
         }
       } catch (err) {
-        _didIteratorError24 = true;
-        _iteratorError24 = err;
+        _didIteratorError27 = true;
+        _iteratorError27 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion24 && _iterator24.return) {
-            _iterator24.return();
+          if (!_iteratorNormalCompletion27 && _iterator27.return) {
+            _iterator27.return();
           }
         } finally {
-          if (_didIteratorError24) {
-            throw _iteratorError24;
+          if (_didIteratorError27) {
+            throw _iteratorError27;
           }
         }
       }
@@ -91600,22 +91679,22 @@ var Soup = function () {
         }
       }
 
-      for (var _iRes8 = nResNew; _iRes8 < nRes; _iRes8 += 1) {
-        delete this.residueNormal[_iRes8];
+      for (var _iRes9 = nResNew; _iRes9 < nRes; _iRes9 += 1) {
+        delete this.residueNormal[_iRes9];
       }
 
       this.residueStore.copyWithin(iResStart, iResEnd, nResCopy);
       this.residueStore.count -= nResOffset;
       this.resIds.splice(iResStart, nResOffset);
 
-      for (var _iRes9 = 0; _iRes9 < nResNew; _iRes9 += 1) {
-        res.iRes = _iRes9;
+      for (var _iRes10 = 0; _iRes10 < nResNew; _iRes10 += 1) {
+        res.iRes = _iRes10;
         if (res.iAtom >= iAtomStart) {
           res.iAtom -= nAtomOffset;
           atom.iAtom = res.iAtom;
         }
-        if (this.residueStore.atomOffset[_iRes9] >= iAtomStart) {
-          this.residueStore.atomOffset[_iRes9] -= nAtomOffset;
+        if (this.residueStore.atomOffset[_iRes10] >= iAtomStart) {
+          this.residueStore.atomOffset[_iRes10] -= nAtomOffset;
         }
         if (res.iStructure >= iStructure) {
           res.iStructure -= 1;
@@ -102751,7 +102830,7 @@ var AquariaAlignment = function () {
                 _chain = _pdbRes[1],
                 pdbResNum = _pdbRes[2];
 
-            var residue = soup.findResidue(_chain, pdbResNum);
+            var residue = soup.findFirstResidue(_chain, pdbResNum);
             if (_lodash2.default.isNil(residue)) {
               var _entry3 = {
                 chain: _chain,
@@ -102807,7 +102886,7 @@ var AquariaAlignment = function () {
             for (var _iterator11 = this.mapSeqResToPdbResColorEntry(seqId, resNum, feature.Color)[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
               var entry = _step11.value;
 
-              var _residue = soup.findResidue(entry.chain, entry.resNum);
+              var _residue = soup.findFirstResidue(entry.chain, entry.resNum);
               if (!_lodash2.default.isNil(_residue)) {
                 _residue.customColor = entry.color;
               }

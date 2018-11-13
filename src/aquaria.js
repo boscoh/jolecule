@@ -240,7 +240,7 @@ class AquariaAlignment {
         } else {
           // Entries of residues that match PDB residues
           let [pdbId, chain, pdbResNum] = pdbRes
-          let residue = soup.findResidue(chain, pdbResNum)
+          let residue = soup.findFirstResidue(chain, pdbResNum)
           if (_.isNil(residue)) {
             let entry = {
               chain,
@@ -285,7 +285,7 @@ class AquariaAlignment {
         resNum,
         feature.Color
       )) {
-        let residue = soup.findResidue(entry.chain, entry.resNum)
+        let residue = soup.findFirstResidue(entry.chain, entry.resNum)
         if (!_.isNil(residue)) {
           residue.customColor = entry.color
         }
