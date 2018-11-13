@@ -78264,7 +78264,7 @@ module.exports = navigator && navigator.userAgent || '';
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.getNucleotideConnectorBondAtomTypes = exports.getNucleotideBaseAtomTypes = exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.darkGrey = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.fatCoilFace = exports.coilFace = exports.getSsFace = exports.backboneAtomTypes = exports.resToAa = exports.getSsColor = undefined;
+exports.getNucleotideConnectorBondAtomTypes = exports.getNucleotideBaseAtomTypes = exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.darkGrey = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.coilFace = exports.backboneAtomTypes = exports.resToAa = exports.getSsColor = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }(); /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * Central place to store constants and color
@@ -78400,18 +78400,7 @@ var resToAa = {
 };var backboneAtomTypes = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', "C3'", 'P', 'OP1', "O5'", 'OP2', "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'", "H2'", "H2''", "H3'", "H4'", "H5'", "H5''", "HO3'"];
 
 // Cartoon cross-sections
-var ribbonFace = new THREE.Shape([new THREE.Vector2(-1.5, -0.2), new THREE.Vector2(-1.5, +0.2), new THREE.Vector2(+1.5, +0.2), new THREE.Vector2(+1.5, -0.2)]);
 var coilFace = new THREE.Shape([new THREE.Vector2(-0.2, -0.2), new THREE.Vector2(-0.2, +0.2), new THREE.Vector2(+0.2, +0.2), new THREE.Vector2(+0.2, -0.2)]);
-
-// Tube cross-sections
-var fatCoilFace = new THREE.Shape([new THREE.Vector2(-0.25, -0.25), new THREE.Vector2(-0.25, +0.25), new THREE.Vector2(+0.25, +0.25), new THREE.Vector2(+0.25, -0.25)]);
-
-function getSsFace(ss) {
-  if (ss === 'C' || ss === '-') {
-    return coilFace;
-  }
-  return ribbonFace;
-}
 
 function getNucleotideBaseAtomTypes(resType) {
   var atomTypes = [];
@@ -78444,9 +78433,7 @@ function getNucleotideConnectorBondAtomTypes(resType) {
 exports.getSsColor = getSsColor;
 exports.resToAa = resToAa;
 exports.backboneAtomTypes = backboneAtomTypes;
-exports.getSsFace = getSsFace;
 exports.coilFace = coilFace;
-exports.fatCoilFace = fatCoilFace;
 exports.green = green;
 exports.blue = blue;
 exports.yellow = yellow;
@@ -92673,7 +92660,7 @@ var SoupWidget = function (_WebglWidget) {
       if (this.iAtomHover !== null) {
         if (this.iAtomHover === this.soupView.getICenteredAtom()) {
           this.atomLabelDialog();
-        } else {
+        } else if (this.iAtomHover === this.iAtomPreClick) {
           this.controller.triggerAtom(this.iAtomHover);
         }
         this.isDraggingCentralAtom = false;
@@ -92682,6 +92669,7 @@ var SoupWidget = function (_WebglWidget) {
       }
       this.iAtomFirstPressed = null;
       this.iResFirstPressed = null;
+      this.iAtomPreClick = null;
     }
 
     /**
@@ -92701,6 +92689,7 @@ var SoupWidget = function (_WebglWidget) {
       }
 
       this.updateHover();
+
       var iAtomPressed = this.iAtomHover;
       var iResPressed = this.soup.getAtomProxy(iAtomPressed).iRes;
 
@@ -92741,6 +92730,7 @@ var SoupWidget = function (_WebglWidget) {
       var elapsedTime = this.timePressed ? now - this.timePressed : 0;
 
       if (!this.isClickInitiated) {
+        this.iAtomPreClick = this.iAtomHover;
         this.isClickInitiated = true;
       } else if (elapsedTime < 600) {
         this.doubleclick(event);
@@ -102031,7 +102021,7 @@ var FullPageWidget = function () {
           var iView = this.soupWidget.soupView.iLastViewSelected;
           if (iView > 0) {
             var viewId = this.soupWidget.soupView.savedViews[iView].id;
-            this.viewPanelList.div[viewId].edit_fn();
+            this.viewPanelList.viewPiece[viewId].startEdit();
           }
         } else if (c === 'N') {
           this.controller.toggleResidueNeighbors();

@@ -487,7 +487,7 @@ class FullPageWidget {
         let iView = this.soupWidget.soupView.iLastViewSelected
         if (iView > 0) {
           let viewId = this.soupWidget.soupView.savedViews[iView].id
-          this.viewPanelList.div[viewId].edit_fn()
+          this.viewPanelList.viewPiece[viewId].startEdit()
         }
       } else if (c === 'N') {
         this.controller.toggleResidueNeighbors()

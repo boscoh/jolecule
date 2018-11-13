@@ -448,7 +448,7 @@ class SoupWidget extends WebglWidget {
     if (this.iAtomHover !== null) {
       if (this.iAtomHover === this.soupView.getICenteredAtom()) {
         this.atomLabelDialog()
-      } else {
+      } else if (this.iAtomHover === this.iAtomPreClick) {
         this.controller.triggerAtom(this.iAtomHover)
       }
       this.isDraggingCentralAtom = false
@@ -457,6 +457,7 @@ class SoupWidget extends WebglWidget {
     }
     this.iAtomFirstPressed = null
     this.iResFirstPressed = null
+    this.iAtomPreClick = null
   }
 
   /**
@@ -473,6 +474,7 @@ class SoupWidget extends WebglWidget {
     }
 
     this.updateHover()
+
     let iAtomPressed = this.iAtomHover
     let iResPressed = this.soup.getAtomProxy(iAtomPressed).iRes
 
@@ -512,6 +514,7 @@ class SoupWidget extends WebglWidget {
     let elapsedTime = this.timePressed ? now - this.timePressed : 0
 
     if (!this.isClickInitiated) {
+      this.iAtomPreClick = this.iAtomHover
       this.isClickInitiated = true
     } else if (elapsedTime < 600) {
       this.doubleclick(event)

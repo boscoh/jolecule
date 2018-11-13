@@ -150,33 +150,12 @@ const backboneAtomTypes = [
 ]
 
 // Cartoon cross-sections
-const ribbonFace = new THREE.Shape([
-  new THREE.Vector2(-1.5, -0.2),
-  new THREE.Vector2(-1.5, +0.2),
-  new THREE.Vector2(+1.5, +0.2),
-  new THREE.Vector2(+1.5, -0.2)
-])
 const coilFace = new THREE.Shape([
   new THREE.Vector2(-0.2, -0.2),
   new THREE.Vector2(-0.2, +0.2),
   new THREE.Vector2(+0.2, +0.2),
   new THREE.Vector2(+0.2, -0.2)
 ])
-
-// Tube cross-sections
-const fatCoilFace = new THREE.Shape([
-  new THREE.Vector2(-0.25, -0.25),
-  new THREE.Vector2(-0.25, +0.25),
-  new THREE.Vector2(+0.25, +0.25),
-  new THREE.Vector2(+0.25, -0.25)
-])
-
-function getSsFace(ss) {
-  if (ss === 'C' || ss === '-') {
-    return coilFace
-  }
-  return ribbonFace
-}
 
 function getNucleotideBaseAtomTypes(resType) {
   let atomTypes = []
@@ -210,9 +189,7 @@ export {
   getSsColor,
   resToAa,
   backboneAtomTypes,
-  getSsFace,
   coilFace,
-  fatCoilFace,
   green,
   blue,
   yellow,
