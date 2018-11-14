@@ -184,27 +184,31 @@ class SoupWidget extends WebglWidget {
     return null
   }
 
+  popupText(iAtomHover) {
+    let atom = this.soup.getAtomProxy(iAtomHover)
+    let label = atom.label
+    let iAtom = atom.iAtom
+    if (atom.resType === 'XXX') {
+      label += ':' + 'E=' + this.soup.grid.convertB(atom.bfactor)
+    }
+    let text = ''
+    if (iAtom === this.soupView.getICenteredAtom()) {
+      text = '<div style="text-align: center">'
+      text += label
+      text += '<br>[drag distances]<br>'
+      text += '[double-click labels]'
+      text += '</div>'
+    } else {
+      text = label
+    }
+    return text
+  }
+
   updateHover() {
     this.iAtomHover = this.getIAtomHover()
     if (this.iAtomHover) {
-      let atom = this.soup.getAtomProxy(this.iAtomHover)
-      let label = atom.label
-      let iAtom = atom.iAtom
-      let pos = atom.pos.clone()
-      if (atom.resType === 'XXX') {
-        label += ':' + 'E=' + this.soup.grid.convertB(atom.bfactor)
-      }
-      let text = ''
-      if (iAtom === this.soupView.getICenteredAtom()) {
-        text = '<div style="text-align: center">'
-        text += label
-        text += '<br>[drag distances]<br>'
-        text += '[double-click labels]'
-        text += '</div>'
-      } else {
-        text = label
-      }
-      this.hover.html(text)
+      this.hover.html(this.popupText(this.iAtomHover))
+      let pos = this.soup.getAtomProxy(this.iAtomHover).pos
       let vector = this.getPosXY(pos)
       this.hover.move(vector.x, vector.y)
     } else {

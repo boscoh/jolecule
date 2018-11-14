@@ -48,9 +48,7 @@
               widget.asyncAddDataServer(dataServer0).then(function() {
                 console.log('3q05.html loading done')
                 let alignment = new jolecule.AquariaAlignment(alignData)
-                widget.embedJolecule.soupView.setMode('chain')
                 alignment.setEmbedJolecule(widget.embedJolecule)
-                widget.embedJolecule.sequenceWidget.update()
                 alignment.selectNewChain = selectNewChain
               });
             });

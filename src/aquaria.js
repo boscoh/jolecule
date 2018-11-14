@@ -22,7 +22,7 @@ function makeRgbStringFromHexString(hex) {
 }
 
 class AquariaAlignment {
-  constructor(aquariaAlignData) {
+  constructor (aquariaAlignData) {
     this.data = aquariaAlignData
     this.seqId = this.data.sequences[0].primary_accession
     this.pdbId = this.data.pdb_id
@@ -62,7 +62,7 @@ class AquariaAlignment {
     }
   }
 
-  mapSeqResToPdbResOfChain(seqId, resNumSeq, chain) {
+  mapSeqResToPdbResOfChain (seqId, resNumSeq, chain) {
     for (let entry of this.alignEntries) {
       if (
         resNumSeq >= entry.resNumSeqStart &&
@@ -77,7 +77,7 @@ class AquariaAlignment {
     return null
   }
 
-  mapSeqResToPdbResList(resNumSeq) {
+  mapSeqResToPdbResList (resNumSeq) {
     let result = []
     for (let entry of this.alignEntries) {
       if (
@@ -92,7 +92,7 @@ class AquariaAlignment {
     return result
   }
 
-  mapPdbResOfChainToSeqRes(chain, resNum) {
+  mapPdbResOfChainToSeqRes (chain, resNum) {
     for (let entry of this.alignEntries) {
       if (chain !== entry.pdbChain) {
         continue
@@ -100,13 +100,13 @@ class AquariaAlignment {
       if (resNum >= entry.resNumPdbStart && resNum <= entry.resNumPdbEnd) {
         let diff = resNum - entry.resNumPdbStart
         let resNumSeq = entry.resNumSeqStart + diff
-        return resNumSeq
+        return [entry.seqId, resNumSeq]
       }
     }
-    return null
+    return [null, null]
   }
 
-  getChainsThatMapToSeqId(seqId) {
+  getChainsThatMapToSeqId (seqId) {
     let allowedChains = []
     for (let iChain of _.range(this.data.pdb_chain.length)) {
       if (this.data.sequences[iChain].primary_accession === seqId) {
@@ -114,6 +114,20 @@ class AquariaAlignment {
       }
     }
     return allowedChains
+  }
+
+  getISeqFromSeqId (seqId) {
+    let sequences = this.data.sequences
+    for (let iSeq of _.range(sequences.length)) {
+      if (sequences[iSeq].primary_accession === seqId) {
+        return iSeq
+      }
+      let testSeqId = this.data.pdb_id + '-' + this.data.pdb_chain[iSeq]
+      if (testSeqId === seqId) {
+        return iSeq
+      }
+    }
+    return null
   }
 
   mapSeqResToPdbResColorEntry(seqId, resNumSeq, color) {
@@ -147,9 +161,8 @@ class AquariaAlignment {
     for (let iRes = 0; iRes < soup.getResidueCount(); iRes += 1) {
       residue.iRes = iRes
       let chain = residue.chain
-      let seqResNum = null
       let resNum = residue.resNum
-      seqResNum = this.mapPdbResOfChainToSeqRes(chain, resNum)
+      let [seqId, seqResNum] = this.mapPdbResOfChainToSeqRes(chain, resNum)
       if (_.isNil(seqResNum)) {
         // probably insertion, and non-alignments
         residue.customColor = '#999999'
@@ -196,6 +209,7 @@ class AquariaAlignment {
       let chain = chains[iChain]
       let sequenceOfChain = this.data.sequences[iChain].sequence
       let seqId = this.data.sequences[iChain].primary_accession
+      let seqName = this.data.common_names[iChain]
       if (_.isNil(seqId)) {
         seqId = ''
       }
@@ -210,7 +224,7 @@ class AquariaAlignment {
           for (let iResOfPadding of _.range(sequenceWidget.nPadChar)) {
             let startLabel = null
             if (iResOfPadding === 0) {
-              startLabel = seqId + ':' + pdbId + ':' + chain
+              startLabel = seqName + ',' + pdbId + '-' + chain
             }
             let entry = {
               iStructure: 0,
@@ -234,7 +248,7 @@ class AquariaAlignment {
             c: c,
             startLabel: null,
             ss: '.',
-            label: seqId + ':' + (iResOfSeq + 1),
+            label: `${seqName}:${seqResNum} ${c} no PDB`,
             resNum: iResOfSeq + 1
           }
           sequenceWidget.charEntries.push(entry)
@@ -249,7 +263,7 @@ class AquariaAlignment {
               c: c,
               startLabel: null,
               ss: '.',
-              label: `${seqId}:${seqResNum}:${c}`,
+              label: `${seqName}:${seqResNum} Res:${c} - no PDB`,
               resNum: iResOfSeq + 1
             }
             sequenceWidget.charEntries.push(entry)
@@ -262,8 +276,8 @@ class AquariaAlignment {
               iRes: residue.iRes,
               ss: residue.ss,
               label:
-                `${seqId}:${seqResNum}:${c}` +
-                ` - ${pdbId}:${chain}:${pdbResNum}:${c}`,
+                `${seqName}:${seqResNum} ` +
+                `${pdbId}-${chain}:${pdbResNum} Res:${c}`,
               resNum: iResOfSeq + 1
             }
             sequenceWidget.charEntries.push(entry)
@@ -322,9 +336,44 @@ class AquariaAlignment {
     this.setColorLegend(embedJolecule.widget.colorLegend)
   }
 
+  selectNewChain(seqId, pdbId, chain) {
+    console.log(
+      'AquariaAlignment.selectNewChain [overriddeable]',
+      seqId,
+      pdbId,
+      chain
+    )
+  }
+
+  setPopup(embedJolecule) {
+    let soup = embedJolecule.soup
+    embedJolecule.soupWidget.popupText = iAtom => {
+      let pdbId = this.data.pdb_id
+      let atom = soup.getAtomProxy(iAtom)
+      let iRes = atom.iRes
+      let residue = soup.getResidueProxy(iRes)
+      let [seqId, resNum] = this.mapPdbResOfChainToSeqRes(residue.chain, residue.resNum)
+      if (!_.isNil(resNum)) {
+        let iSeq = this.getISeqFromSeqId(seqId)
+        let c = this.data.sequences[iSeq].sequence[resNum - 1]
+        let seqName = this.data.common_names[iSeq]
+        let label = `${pdbId}-${residue.chain}:${residue.resNum} Res:${c} Atom:${atom.atomType}`
+        if (seqName) {
+          label = `${seqName}:${resNum} ` + label
+        }
+        return label
+      } else {
+        return residue.label
+      }
+    }
+  }
+
   setEmbedJolecule(embedJolecule) {
     embedJolecule.soupView.setMode('chain')
+    embedJolecule.soupWidget.crossHairs.visible = false
+    embedJolecule.soupView.setMode('chain')
     this.setFullSequence(embedJolecule.sequenceWidget)
+    embedJolecule.sequenceWidget.update()
     for (let [iChain, sequence] of this.data.sequences.entries()) {
       if (!_.isNil(sequence.primary_accession)) {
         let chain = this.data.pdb_chain[iChain]
@@ -339,15 +388,7 @@ class AquariaAlignment {
       this.embedJolecule = embedJolecule
     }
     this.colorFromConservation(embedJolecule)
-  }
-
-  selectNewChain(seqId, pdbId, chain) {
-    console.log(
-      'AquariaAlignment.selectNewChain [overriddeable]',
-      seqId,
-      pdbId,
-      chain
-    )
+    this.setPopup(embedJolecule)
   }
 
   update() {

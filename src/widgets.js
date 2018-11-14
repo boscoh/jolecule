@@ -1265,7 +1265,7 @@ class ClippingPlaneWidget extends CanvasWidget {
     this.text('front', xFront + 3, yMid, font, '#AAA', 'left')
 
     // halfway marker
-    this.line(xMid, 0, xMid, this.height(), 1, '#333')
+    this.line(xMid, 0, xMid, this.height(), 1, '#ff5555')
   }
 
   getZ(event) {
