@@ -547,8 +547,6 @@ class SoupWidget extends WebglWidget {
         v.y
       )
     } else {
-      let shiftDown = event.shiftKey === 1
-
       let rightMouse = event.button === 2 || event.which === 3
 
       if (this.pointerPressedAndInDiv) {
@@ -563,7 +561,7 @@ class SoupWidget extends WebglWidget {
         // cancel any down/up motion
         this.isClickInitiated = false
 
-        if (rightMouse || shiftDown) {
+        if (rightMouse || event.shiftKey || event.ctrlKey) {
           zRotationAngle = this.mouseT - this.saveMouseT
 
           if (this.mouseR > 0.0) {

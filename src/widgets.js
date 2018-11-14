@@ -1791,10 +1791,10 @@ class ResidueSelectorWidget {
         let startTime = new Date()
         this.$select.val(newValue).trigger('change.select2')
         let s = (new Date() - startTime) / 1000
-        // console.log(
-        //   `ResidueSelectorWidget.update ${oldValue} -> ${newValue}` +
-        //     ` in ${s.toFixed(3)}s`
-        // )
+        console.log(
+          `ResidueSelectorWidget.update ${oldValue} -> ${newValue}` +
+            ` in ${s.toFixed(3)}s`
+        )
       }
     }
   }
@@ -1892,7 +1892,7 @@ class ViewTextWidget {
 
   update() {
     let n = this.soupView.savedViews.length
-    if (n == 0) {
+    if (n === 0) {
       this.div.text('')
     } else {
       let i = this.soupView.currentView.order + 1

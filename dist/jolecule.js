@@ -81856,10 +81856,7 @@ var ResidueSelectorWidget = function () {
           var startTime = new Date();
           this.$select.val(newValue).trigger('change.select2');
           var s = (new Date() - startTime) / 1000;
-          // console.log(
-          //   `ResidueSelectorWidget.update ${oldValue} -> ${newValue}` +
-          //     ` in ${s.toFixed(3)}s`
-          // )
+          console.log('ResidueSelectorWidget.update ' + oldValue + ' -> ' + newValue + (' in ' + s.toFixed(3) + 's'));
         }
       }
     }
@@ -81999,7 +81996,7 @@ var ViewTextWidget = function () {
     key: 'update',
     value: function update() {
       var n = this.soupView.savedViews.length;
-      if (n == 0) {
+      if (n === 0) {
         this.div.text('');
       } else {
         var i = this.soupView.currentView.order + 1;
@@ -92839,8 +92836,6 @@ var SoupWidget = function (_WebglWidget) {
         var v = this.getPosXY(pos);
         this.lineElement.move(this.mouseX + this.x(), this.mouseY + this.y(), v.x, v.y);
       } else {
-        var shiftDown = event.shiftKey === 1;
-
         var rightMouse = event.button === 2 || event.which === 3;
 
         if (this.pointerPressedAndInDiv) {
@@ -92855,7 +92850,7 @@ var SoupWidget = function (_WebglWidget) {
           // cancel any down/up motion
           this.isClickInitiated = false;
 
-          if (rightMouse || shiftDown) {
+          if (rightMouse || event.shiftKey || event.ctrlKey) {
             zRotationAngle = this.mouseT - this.saveMouseT;
 
             if (this.mouseR > 0.0) {
@@ -102810,7 +102805,8 @@ var AquariaAlignment = function () {
           }
 
           var c = sequenceOfChain[iResOfSeq];
-          var pdbRes = this.mapSeqResToPdbResOfChain(seqId, iResOfSeq + 1, chain);
+          var seqResNum = iResOfSeq + 1;
+          var pdbRes = this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain);
           if (_lodash2.default.isNil(pdbRes)) {
             // Entries of residues without PDB matches
             var _entry2 = {
@@ -102838,7 +102834,7 @@ var AquariaAlignment = function () {
                 c: c,
                 startLabel: null,
                 ss: '.',
-                label: seqId + ':' + (iResOfSeq + 1),
+                label: seqId + ':' + seqResNum + ':' + c,
                 resNum: iResOfSeq + 1
               };
               sequenceWidget.charEntries.push(_entry3);
@@ -102850,7 +102846,7 @@ var AquariaAlignment = function () {
                 startLabel: null,
                 iRes: residue.iRes,
                 ss: residue.ss,
-                label: seqId + ':' + residue.resId + ':' + residue.resType,
+                label: seqId + ':' + seqResNum + ':' + c + (' - ' + _pdbId + ':' + _chain + ':' + pdbResNum + ':' + c),
                 resNum: iResOfSeq + 1
               };
               sequenceWidget.charEntries.push(_entry4);

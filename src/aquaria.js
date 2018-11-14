@@ -224,7 +224,8 @@ class AquariaAlignment {
         }
 
         let c = sequenceOfChain[iResOfSeq]
-        let pdbRes = this.mapSeqResToPdbResOfChain(seqId, iResOfSeq + 1, chain)
+        let seqResNum = iResOfSeq + 1
+        let pdbRes = this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain)
         if (_.isNil(pdbRes)) {
           // Entries of residues without PDB matches
           let entry = {
@@ -248,7 +249,7 @@ class AquariaAlignment {
               c: c,
               startLabel: null,
               ss: '.',
-              label: seqId + ':' + (iResOfSeq + 1),
+              label: `${seqId}:${seqResNum}:${c}`,
               resNum: iResOfSeq + 1
             }
             sequenceWidget.charEntries.push(entry)
@@ -260,7 +261,9 @@ class AquariaAlignment {
               startLabel: null,
               iRes: residue.iRes,
               ss: residue.ss,
-              label: seqId + ':' + residue.resId + ':' + residue.resType,
+              label:
+                `${seqId}:${seqResNum}:${c}` +
+                ` - ${pdbId}:${chain}:${pdbResNum}:${c}`,
               resNum: iResOfSeq + 1
             }
             sequenceWidget.charEntries.push(entry)
@@ -339,7 +342,12 @@ class AquariaAlignment {
   }
 
   selectNewChain(seqId, pdbId, chain) {
-    console.log('AquariaAlignment.selectNewChain [overriddeable]', seqId, pdbId, chain)
+    console.log(
+      'AquariaAlignment.selectNewChain [overriddeable]',
+      seqId,
+      pdbId,
+      chain
+    )
   }
 
   update() {
