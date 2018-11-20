@@ -1265,7 +1265,7 @@ class ClippingPlaneWidget extends CanvasWidget {
     this.text('front', xFront + 3, yMid, font, '#AAA', 'left')
 
     // halfway marker
-    this.line(xMid, 0, xMid, this.height(), 1, '#ff5555')
+    this.line(xMid, 0, xMid, this.height(), 1, '#995555')
   }
 
   getZ(event) {
@@ -1667,10 +1667,9 @@ class SelectionWidget extends CanvasWidget {
     this.div.css({
       padding: '8px',
       position: 'absolute',
-      'max-width': '120px',
+      'max-width': '180px',
       'max-height': '200px',
       'font-size': '0.8em',
-      'white-space': 'nowrap',
       height: 'auto',
       width: 'auto',
       'box-sizing': 'border-box',
@@ -1699,43 +1698,69 @@ class SelectionWidget extends CanvasWidget {
     return parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - 5
   }
 
-  update() {
+  getText() {
     let soup = this.soupWidget.soup
     let residue = soup.getResidueProxy()
-    this.isShow = false
-    let s = ''
-    let n = 0
+
+    let text = ''
+    let first = null
+    let last = null
+    let chain = null
+    let isDrawComma = false
     for (let i = 0; i < soup.getResidueCount(); i += 1) {
       residue.iRes = i
       if (residue.selected) {
-        this.isShow = true
-        if (n > 8) {
-          s += '[more...]'
-          break
+        if (chain === null || chain !== residue.chain) {
+          if (chain !== null) {
+            text += '<br>'
+          }
+          chain = residue.chain
+          text += soup.structureIds[residue.iStructure] + '-' + chain + ': '
+          isDrawComma = false
         }
-        s += residue.label + '<br>'
-        n += 1
+        if (first === null) {
+          first = residue.resNum
+          last = residue.resNum
+        } else {
+          last = residue.resNum
+        }
+      } else {
+        if (first !== null) {
+          if (isDrawComma) {
+            text += ', '
+          } else {
+            isDrawComma = true
+          }
+          if (first === last) {
+            text += first
+          } else {
+            text += first + '-' + last
+          }
+          first = null
+          last = null
+        }
       }
     }
-
-    if (!this.isShow) {
+    if (!text) {
       if (this.soupWidget.soupView.getMode() === 'chain') {
         if (soup.selectedTraces.length > 0) {
           let iTrace = soup.selectedTraces[0]
           let iRes = soup.traces[iTrace].indices[0]
           let residue = soup.getResidueProxy(iRes)
           let structureId = soup.structureIds[residue.iStructure]
-          s += `Chain ${structureId}:${residue.chain}`
-          this.isShow = true
+          text += `${structureId}-${residue.chain}`
         }
       }
     }
+    return text
+  }
 
-    this.div.html(s)
-
-    if (!this.isShow) {
+  update() {
+    let s = this.getText()
+    if (!s) {
       this.div.hide()
     } else {
+      this.div.html(s)
       this.div.show()
       this.resize()
     }

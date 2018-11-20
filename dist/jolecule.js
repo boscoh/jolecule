@@ -77122,8 +77122,8 @@ function getUnitVectorRotation(reference, target) {
   return new THREE.Quaternion().setFromUnitVectors(reference, target);
 }
 
-function fraction(reference, target, t) {
-  return t * (target - reference) + reference;
+function fraction(reference, target, f) {
+  return f * (target - reference) + reference;
 }
 
 function getFractionRotation(rotation, t) {
@@ -81206,7 +81206,7 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
       this.text('front', xFront + 3, yMid, font, '#AAA', 'left');
 
       // halfway marker
-      this.line(xMid, 0, xMid, this.height(), 1, '#ff5555');
+      this.line(xMid, 0, xMid, this.height(), 1, '#995555');
     }
   }, {
     key: 'getZ',
@@ -81692,10 +81692,9 @@ var SelectionWidget = function (_CanvasWidget5) {
     _this11.div.css({
       padding: '8px',
       position: 'absolute',
-      'max-width': '120px',
+      'max-width': '180px',
       'max-height': '200px',
       'font-size': '0.8em',
-      'white-space': 'nowrap',
       height: 'auto',
       width: 'auto',
       'box-sizing': 'border-box',
@@ -81729,44 +81728,71 @@ var SelectionWidget = function (_CanvasWidget5) {
       return parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - 5;
     }
   }, {
-    key: 'update',
-    value: function update() {
+    key: 'getText',
+    value: function getText() {
       var soup = this.soupWidget.soup;
       var residue = soup.getResidueProxy();
-      this.isShow = false;
-      var s = '';
-      var n = 0;
+
+      var text = '';
+      var first = null;
+      var last = null;
+      var chain = null;
+      var isDrawComma = false;
       for (var i = 0; i < soup.getResidueCount(); i += 1) {
         residue.iRes = i;
         if (residue.selected) {
-          this.isShow = true;
-          if (n > 8) {
-            s += '[more...]';
-            break;
+          if (chain === null || chain !== residue.chain) {
+            if (chain !== null) {
+              text += '<br>';
+            }
+            chain = residue.chain;
+            text += soup.structureIds[residue.iStructure] + '-' + chain + ': ';
+            isDrawComma = false;
           }
-          s += residue.label + '<br>';
-          n += 1;
+          if (first === null) {
+            first = residue.resNum;
+            last = residue.resNum;
+          } else {
+            last = residue.resNum;
+          }
+        } else {
+          if (first !== null) {
+            if (isDrawComma) {
+              text += ', ';
+            } else {
+              isDrawComma = true;
+            }
+            if (first === last) {
+              text += first;
+            } else {
+              text += first + '-' + last;
+            }
+            first = null;
+            last = null;
+          }
         }
       }
-
-      if (!this.isShow) {
+      if (!text) {
         if (this.soupWidget.soupView.getMode() === 'chain') {
           if (soup.selectedTraces.length > 0) {
             var iTrace = soup.selectedTraces[0];
             var iRes = soup.traces[iTrace].indices[0];
             var _residue = soup.getResidueProxy(iRes);
             var structureId = soup.structureIds[_residue.iStructure];
-            s += 'Chain ' + structureId + ':' + _residue.chain;
-            this.isShow = true;
+            text += structureId + '-' + _residue.chain;
           }
         }
       }
-
-      this.div.html(s);
-
-      if (!this.isShow) {
+      return text;
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      var s = this.getText();
+      if (!s) {
         this.div.hide();
       } else {
+        this.div.html(s);
         this.div.show();
         this.resize();
       }
@@ -88167,7 +88193,7 @@ var View = function () {
   return View;
 }();
 
-function interpolateCameras(oldCamera, futureCamera, t) {
+function interpolateCameras(oldCamera, futureCamera, fraction) {
   var oldCameraDirection = oldCamera.position.clone().sub(oldCamera.focus);
   var oldZoom = oldCameraDirection.length();
   oldCameraDirection.normalize();
@@ -88182,13 +88208,13 @@ function interpolateCameras(oldCamera, futureCamera, t) {
   var partialRotatedCameraUp = oldCamera.up.clone().applyQuaternion(cameraDirRotation);
 
   var fullCameraUpRotation = glgeom.getUnitVectorRotation(partialRotatedCameraUp, futureCamera.up).multiply(cameraDirRotation);
-  var cameraUpRotation = glgeom.getFractionRotation(fullCameraUpRotation, t);
+  var cameraUpRotation = glgeom.getFractionRotation(fullCameraUpRotation, fraction);
 
-  var focusDisp = futureCamera.focus.clone().sub(oldCamera.focus).multiplyScalar(t);
+  var focusDisp = futureCamera.focus.clone().sub(oldCamera.focus).multiplyScalar(fraction);
 
   var focus = oldCamera.focus.clone().add(focusDisp);
 
-  var zoom = glgeom.fraction(oldZoom, futureZoom, t);
+  var zoom = glgeom.fraction(oldZoom, futureZoom, fraction);
 
   var focusToPosition = oldCameraDirection.clone().applyQuaternion(cameraUpRotation).multiplyScalar(zoom);
 
@@ -88196,8 +88222,8 @@ function interpolateCameras(oldCamera, futureCamera, t) {
     focus: focus,
     position: focus.clone().add(focusToPosition),
     up: oldCamera.up.clone().applyQuaternion(cameraUpRotation),
-    zFront: glgeom.fraction(oldCamera.zFront, futureCamera.zFront, t),
-    zBack: glgeom.fraction(oldCamera.zBack, futureCamera.zBack, t),
+    zFront: glgeom.fraction(oldCamera.zFront, futureCamera.zFront, fraction),
+    zBack: glgeom.fraction(oldCamera.zBack, futureCamera.zBack, fraction),
     zoom: zoom
   };
 }
@@ -88692,6 +88718,8 @@ var SoupView = function () {
         if (this.targetView !== null) {
           this.setCurrentViewToTargetView();
           this.nUpdateStep = this.maxUpdateStep;
+          this.maxTime = this.msPerStep * this.maxUpdateStep;
+          this.elapsedTime = this.maxTime;
         } else {
           if (this.isStartTargetAfterRender) {
             this.isChanged = true;
@@ -88717,7 +88745,12 @@ var SoupView = function () {
       } else if (this.nUpdateStep >= 1) {
         if (this.targetView != null) {
           var view = this.currentView.clone();
-          view.setCamera(interpolateCameras(this.currentView.cameraParams, this.targetView.cameraParams, 1.0 / this.nUpdateStep));
+          var nStepToGo = this.nUpdateStep;
+          var fraction = 1.0 / nStepToGo;
+          this.elapsedTime -= elapsedTime;
+          var fraction2 = (this.maxUpdateStep - this.elapsedTime / this.msPerStep) / this.maxUpdateStep;
+          // console.log('SoupView.animate', fraction, fraction2)
+          view.setCamera(interpolateCameras(this.currentView.cameraParams, this.targetView.cameraParams, fraction));
           this.setCurrentView(view);
         }
       }
@@ -101555,7 +101588,7 @@ exports = module.exports = __webpack_require__(134)();
 
 
 // module
-exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    text-align: center;\n    font-size: 12px;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #B99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-header,\n.jolecule-embed-footer  {\n    display: flex;\n    padding: 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-footer {\n    border-top: 2px solid #AAA;\n}\n.jolecule-embed-header,\n.jolecule-embed-header a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    flex: 1;\n    -webkit-flex: 1;\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n", ""]);
+exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    text-align: center;\n    font-size: 12px;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-header,\n.jolecule-embed-footer  {\n    display: flex;\n    padding: 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-footer {\n    border-top: 2px solid #AAA;\n}\n.jolecule-embed-header,\n.jolecule-embed-header a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    flex: 1;\n    -webkit-flex: 1;\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n", ""]);
 
 // exports
 
@@ -102375,6 +102408,10 @@ var _three = __webpack_require__(28);
 
 var THREE = _interopRequireWildcard(_three);
 
+var _data = __webpack_require__(97);
+
+var data = _interopRequireWildcard(_data);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -102578,9 +102615,15 @@ var AquariaAlignment = function () {
             continue;
           }
           if (resNum >= entry.resNumPdbStart && resNum <= entry.resNumPdbEnd) {
+            var iSeq = this.getISeqFromSeqId(entry.seqId);
+            var seqName = this.data.common_names[iSeq];
+            if (!seqName) {
+              seqName = this.data.sequences[iSeq].primary_accession;
+            }
             var diff = resNum - entry.resNumPdbStart;
             var resNumSeq = entry.resNumSeqStart + diff;
-            return [entry.seqId, resNumSeq];
+            var c = this.data.sequences[iSeq].sequence[resNum - 1];
+            return [seqName, resNumSeq, c];
           }
         }
       } catch (err) {
@@ -102598,7 +102641,7 @@ var AquariaAlignment = function () {
         }
       }
 
-      return [null, null];
+      return [null, null, null];
     }
   }, {
     key: 'getChainsThatMapToSeqId',
@@ -102754,9 +102797,10 @@ var AquariaAlignment = function () {
         var resNum = residue.resNum;
 
         var _mapPdbResOfChainToSe = this.mapPdbResOfChainToSeqRes(chain, resNum),
-            _mapPdbResOfChainToSe2 = _slicedToArray(_mapPdbResOfChainToSe, 2),
-            seqId = _mapPdbResOfChainToSe2[0],
-            seqResNum = _mapPdbResOfChainToSe2[1];
+            _mapPdbResOfChainToSe2 = _slicedToArray(_mapPdbResOfChainToSe, 3),
+            seqName = _mapPdbResOfChainToSe2[0],
+            seqResNum = _mapPdbResOfChainToSe2[1],
+            c = _mapPdbResOfChainToSe2[2];
 
         if (_lodash2.default.isNil(seqResNum)) {
           // probably insertion, and non-alignments
@@ -102810,7 +102854,7 @@ var AquariaAlignment = function () {
         if (_lodash2.default.isNil(seqId)) {
           seqId = '';
         }
-
+        console.log('AquariaAlignment.setFullSequence', iChain, seqId, seqName);
         // Fill the empty padding before every chain
         for (var iResOfSeq = 0; iResOfSeq < sequenceOfChain.length; iResOfSeq += 1) {
           if (iResOfSeq === 0) {
@@ -102824,7 +102868,11 @@ var AquariaAlignment = function () {
 
                 var startLabel = null;
                 if (iResOfPadding === 0) {
-                  startLabel = seqName + ',' + pdbId + '-' + chain;
+                  startLabel = '';
+                  if (seqName) {
+                    startLabel += seqName + ', ';
+                  }
+                  startLabel += pdbId + '-' + chain;
                 }
                 var entry = {
                   iStructure: 0,
@@ -102854,6 +102902,10 @@ var AquariaAlignment = function () {
           var c = sequenceOfChain[iResOfSeq];
           var seqResNum = iResOfSeq + 1;
           var pdbRes = this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain);
+          var seqLabel = '';
+          if (seqName) {
+            seqLabel = seqName + ': ' + c + seqResNum + '<br>';
+          }
           if (_lodash2.default.isNil(pdbRes)) {
             // Entries of residues without PDB matches
             var _entry2 = {
@@ -102862,7 +102914,7 @@ var AquariaAlignment = function () {
               c: c,
               startLabel: null,
               ss: '.',
-              label: seqName + ':' + seqResNum + ' ' + c + ' no PDB',
+              label: seqLabel + '[No PDB]',
               resNum: iResOfSeq + 1
             };
             sequenceWidget.charEntries.push(_entry2);
@@ -102881,7 +102933,7 @@ var AquariaAlignment = function () {
                 c: c,
                 startLabel: null,
                 ss: '.',
-                label: seqName + ':' + seqResNum + ' Res:' + c + ' - no PDB',
+                label: seqLabel + '[No PDB]',
                 resNum: iResOfSeq + 1
               };
               sequenceWidget.charEntries.push(_entry3);
@@ -102893,7 +102945,7 @@ var AquariaAlignment = function () {
                 startLabel: null,
                 iRes: residue.iRes,
                 ss: residue.ss,
-                label: seqName + ':' + seqResNum + ' ' + (_pdbId + '-' + _chain + ':' + pdbResNum + ' Res:' + c),
+                label: '' + seqLabel + _pdbId + '-' + _chain + ':' + c + pdbResNum,
                 resNum: iResOfSeq + 1
               };
               sequenceWidget.charEntries.push(_entry4);
@@ -103061,22 +103113,238 @@ var AquariaAlignment = function () {
         var residue = soup.getResidueProxy(iRes);
 
         var _mapPdbResOfChainToSe3 = _this.mapPdbResOfChainToSeqRes(residue.chain, residue.resNum),
-            _mapPdbResOfChainToSe4 = _slicedToArray(_mapPdbResOfChainToSe3, 2),
-            seqId = _mapPdbResOfChainToSe4[0],
-            resNum = _mapPdbResOfChainToSe4[1];
+            _mapPdbResOfChainToSe4 = _slicedToArray(_mapPdbResOfChainToSe3, 3),
+            seqName = _mapPdbResOfChainToSe4[0],
+            resNum = _mapPdbResOfChainToSe4[1],
+            c = _mapPdbResOfChainToSe4[2];
 
         if (!_lodash2.default.isNil(resNum)) {
-          var iSeq = _this.getISeqFromSeqId(seqId);
-          var c = _this.data.sequences[iSeq].sequence[resNum - 1];
-          var seqName = _this.data.common_names[iSeq];
-          var label = pdbId + '-' + residue.chain + ':' + residue.resNum + ' Res:' + c + ' Atom:' + atom.atomType;
+          var label = pdbId + '-' + residue.chain + ': ' + c + residue.resNum + ' <br>Atom:' + atom.atomType;
           if (seqName) {
-            label = seqName + ':' + resNum + ' ' + label;
+            label = seqName + ': ' + c + resNum + ' <br>' + label;
           }
           return label;
         } else {
           return residue.label;
         }
+      };
+    }
+  }, {
+    key: 'getSelectionText',
+    value: function getSelectionText() {
+      var soup = this.embedJolecule.soup;
+      var residue = soup.getResidueProxy();
+
+      var pieces = [];
+      var chain = null;
+      var piece = {};
+      var firstPdbResNum = null;
+      var lastPdbResNum = null;
+      var firstSeqResNum = null;
+      var lastSeqResNum = null;
+      for (var i = 0; i < soup.getResidueCount(); i += 1) {
+        residue.iRes = i;
+        if (residue.selected) {
+          var _mapPdbResOfChainToSe5 = this.mapPdbResOfChainToSeqRes(residue.chain, residue.resNum),
+              _mapPdbResOfChainToSe6 = _slicedToArray(_mapPdbResOfChainToSe5, 3),
+              seqName = _mapPdbResOfChainToSe6[0],
+              seqResNum = _mapPdbResOfChainToSe6[1],
+              c = _mapPdbResOfChainToSe6[2];
+
+          if (chain === null || chain !== residue.chain) {
+            piece = {
+              pdbChain: soup.structureIds[residue.iStructure] + '-' + residue.chain,
+              seqName: seqName,
+              firstPdbRes: null,
+              firstSeqRes: null,
+              pdbResRanges: [],
+              seqResRanges: []
+            };
+            pieces.push(piece);
+            piece.firstPdbRes = c + residue.resNum;
+            piece.firstSeqRes = c + seqResNum;
+            chain = residue.chain;
+          }
+          if (firstPdbResNum === null) {
+            firstPdbResNum = residue.resNum;
+            lastPdbResNum = firstPdbResNum;
+            firstSeqResNum = seqResNum;
+            lastSeqResNum = firstSeqResNum;
+          } else {
+            lastPdbResNum = residue.resNum;
+            lastSeqResNum = seqResNum;
+          }
+        } else {
+          if (firstPdbResNum !== null) {
+            piece.pdbResRanges.push([firstPdbResNum, lastPdbResNum]);
+            piece.seqResRanges.push([firstSeqResNum, lastSeqResNum]);
+          }
+          firstPdbResNum = null;
+        }
+      }
+
+      console.log('AquariaAlignment.getSelectionText', pieces);
+      var text = '';
+
+      if (pieces.length > 0) {
+        var _iteratorNormalCompletion15 = true;
+        var _didIteratorError15 = false;
+        var _iteratorError15 = undefined;
+
+        try {
+          for (var _iterator15 = pieces[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+            var _piece = _step15.value;
+
+            if (_piece.pdbResRanges.length === 0) {
+              continue;
+            }
+
+            text += _piece.pdbChain + ": ";
+
+            var first = _piece.pdbResRanges[0];
+            var isFirstSolo = first[0] === first[1];
+
+            if (_piece.pdbResRanges.length === 1 && isFirstSolo) {
+              text += _piece.firstPdbRes;
+              text += "<br>";
+            } else {
+              var _iteratorNormalCompletion17 = true;
+              var _didIteratorError17 = false;
+              var _iteratorError17 = undefined;
+
+              try {
+                for (var _iterator17 = _lodash2.default.toPairs(_piece.pdbResRanges)[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+                  var _step17$value = _slicedToArray(_step17.value, 2),
+                      _i = _step17$value[0],
+                      r = _step17$value[1];
+
+                  if (_i > 0) {
+                    text += ', ';
+                  }
+                  if (r[0] === r[1]) {
+                    text += r[0];
+                  } else {
+                    text += ' ' + r[0] + '-' + r[1];
+                  }
+                }
+              } catch (err) {
+                _didIteratorError17 = true;
+                _iteratorError17 = err;
+              } finally {
+                try {
+                  if (!_iteratorNormalCompletion17 && _iterator17.return) {
+                    _iterator17.return();
+                  }
+                } finally {
+                  if (_didIteratorError17) {
+                    throw _iteratorError17;
+                  }
+                }
+              }
+
+              text += "<br>";
+            }
+          }
+        } catch (err) {
+          _didIteratorError15 = true;
+          _iteratorError15 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion15 && _iterator15.return) {
+              _iterator15.return();
+            }
+          } finally {
+            if (_didIteratorError15) {
+              throw _iteratorError15;
+            }
+          }
+        }
+
+        var _iteratorNormalCompletion16 = true;
+        var _didIteratorError16 = false;
+        var _iteratorError16 = undefined;
+
+        try {
+          for (var _iterator16 = pieces[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+            var _piece2 = _step16.value;
+
+            if (_piece2.seqName) {
+              if (_piece2.seqResRanges.length === 0) {
+                continue;
+              }
+
+              text += _piece2.seqName + ": ";
+
+              var _first = _piece2.seqResRanges[0];
+              var _isFirstSolo = _first[0] === _first[1];
+
+              if (_piece2.seqResRanges.length === 1 && _isFirstSolo) {
+                text += _piece2.firstSeqRes;
+                text += "<br>";
+              } else {
+                var _iteratorNormalCompletion18 = true;
+                var _didIteratorError18 = false;
+                var _iteratorError18 = undefined;
+
+                try {
+                  for (var _iterator18 = _lodash2.default.toPairs(_piece2.seqResRanges)[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+                    var _step18$value = _slicedToArray(_step18.value, 2),
+                        _i2 = _step18$value[0],
+                        r = _step18$value[1];
+
+                    if (_i2 > 0) {
+                      text += ', ';
+                    }
+                    if (r[0] === r[1]) {
+                      text += r[0];
+                    } else {
+                      text += ' ' + r[0] + '-' + r[1];
+                    }
+                  }
+                } catch (err) {
+                  _didIteratorError18 = true;
+                  _iteratorError18 = err;
+                } finally {
+                  try {
+                    if (!_iteratorNormalCompletion18 && _iterator18.return) {
+                      _iterator18.return();
+                    }
+                  } finally {
+                    if (_didIteratorError18) {
+                      throw _iteratorError18;
+                    }
+                  }
+                }
+
+                text += "<br>";
+              }
+            }
+          }
+        } catch (err) {
+          _didIteratorError16 = true;
+          _iteratorError16 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion16 && _iterator16.return) {
+              _iterator16.return();
+            }
+          } finally {
+            if (_didIteratorError16) {
+              throw _iteratorError16;
+            }
+          }
+        }
+      }
+      return text;
+    }
+  }, {
+    key: 'setSelectionPanel',
+    value: function setSelectionPanel(embedJolecule) {
+      var _this2 = this;
+
+      var widget = embedJolecule.widget.selection;
+      widget.getText = function () {
+        return _this2.getSelectionText();
       };
     }
   }, {
@@ -103087,15 +103355,15 @@ var AquariaAlignment = function () {
       embedJolecule.soupView.setMode('chain');
       this.setFullSequence(embedJolecule.sequenceWidget);
       embedJolecule.sequenceWidget.update();
-      var _iteratorNormalCompletion15 = true;
-      var _didIteratorError15 = false;
-      var _iteratorError15 = undefined;
+      var _iteratorNormalCompletion19 = true;
+      var _didIteratorError19 = false;
+      var _iteratorError19 = undefined;
 
       try {
-        for (var _iterator15 = this.data.sequences.entries()[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-          var _step15$value = _slicedToArray(_step15.value, 2),
-              iChain = _step15$value[0],
-              sequence = _step15$value[1];
+        for (var _iterator19 = this.data.sequences.entries()[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+          var _step19$value = _slicedToArray(_step19.value, 2),
+              iChain = _step19$value[0],
+              sequence = _step19$value[1];
 
           if (!_lodash2.default.isNil(sequence.primary_accession)) {
             var chain = this.data.pdb_chain[iChain];
@@ -103105,44 +103373,48 @@ var AquariaAlignment = function () {
           }
         }
       } catch (err) {
-        _didIteratorError15 = true;
-        _iteratorError15 = err;
+        _didIteratorError19 = true;
+        _iteratorError19 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion15 && _iterator15.return) {
-            _iterator15.return();
+          if (!_iteratorNormalCompletion19 && _iterator19.return) {
+            _iterator19.return();
           }
         } finally {
-          if (_didIteratorError15) {
-            throw _iteratorError15;
+          if (_didIteratorError19) {
+            throw _iteratorError19;
           }
         }
       }
 
       if (_lodash2.default.isNil(embedJolecule.soupWidget.isAquariaTracking)) {
+        // Makes this an observer where this.update will be called
+        // whenever an event is triggered in the widget
         embedJolecule.soupWidget.addObserver(this);
         embedJolecule.soupWidget.isAquariaTracking = true;
         this.embedJolecule = embedJolecule;
       }
       this.colorFromConservation(embedJolecule);
       this.setPopup(embedJolecule);
+      this.setSelectionPanel(embedJolecule);
     }
   }, {
     key: 'update',
     value: function update() {
       var result = this.embedJolecule.soup.getIStructureAndChain();
       if (_lodash2.default.isNil(result)) {
-        this.selectNewChain(null, null);
+        this.selectNewChain(null, null, null);
       } else {
         var iChain = _lodash2.default.findIndex(this.data.pdb_chain, function (c) {
           return c === result.chain;
         });
-        var seqId = null;
         if (iChain >= 0) {
-          seqId = this.data.sequences[iChain].primary_accession;
+          this.seqId = this.data.sequences[iChain].primary_accession;
+          var structureId = this.embedJolecule.soup.structureIds[result.iStructure];
+          this.selectNewChain(this.seqId, structureId, result.chain);
+        } else {
+          console.log('AquariaAlignment.update error, chain not found in alignment:', result.chain);
         }
-        var structureId = this.embedJolecule.soup.structureIds[result.iStructure];
-        this.selectNewChain(seqId, structureId, result.chain);
       }
     }
   }]);

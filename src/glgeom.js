@@ -1079,8 +1079,8 @@ function getUnitVectorRotation(reference, target) {
   return new THREE.Quaternion().setFromUnitVectors(reference, target)
 }
 
-function fraction(reference, target, t) {
-  return t * (target - reference) + reference
+function fraction(reference, target, f) {
+  return f * (target - reference) + reference
 }
 
 function getFractionRotation(rotation, t) {

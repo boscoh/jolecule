@@ -238,7 +238,7 @@ class View {
   }
 }
 
-function interpolateCameras(oldCamera, futureCamera, t) {
+function interpolateCameras(oldCamera, futureCamera, fraction) {
   let oldCameraDirection = oldCamera.position.clone().sub(oldCamera.focus)
   let oldZoom = oldCameraDirection.length()
   oldCameraDirection.normalize()
@@ -262,16 +262,16 @@ function interpolateCameras(oldCamera, futureCamera, t) {
   let fullCameraUpRotation = glgeom
     .getUnitVectorRotation(partialRotatedCameraUp, futureCamera.up)
     .multiply(cameraDirRotation)
-  let cameraUpRotation = glgeom.getFractionRotation(fullCameraUpRotation, t)
+  let cameraUpRotation = glgeom.getFractionRotation(fullCameraUpRotation, fraction)
 
   let focusDisp = futureCamera.focus
     .clone()
     .sub(oldCamera.focus)
-    .multiplyScalar(t)
+    .multiplyScalar(fraction)
 
   let focus = oldCamera.focus.clone().add(focusDisp)
 
-  let zoom = glgeom.fraction(oldZoom, futureZoom, t)
+  let zoom = glgeom.fraction(oldZoom, futureZoom, fraction)
 
   let focusToPosition = oldCameraDirection
     .clone()
@@ -282,8 +282,8 @@ function interpolateCameras(oldCamera, futureCamera, t) {
     focus: focus,
     position: focus.clone().add(focusToPosition),
     up: oldCamera.up.clone().applyQuaternion(cameraUpRotation),
-    zFront: glgeom.fraction(oldCamera.zFront, futureCamera.zFront, t),
-    zBack: glgeom.fraction(oldCamera.zBack, futureCamera.zBack, t),
+    zFront: glgeom.fraction(oldCamera.zFront, futureCamera.zFront, fraction),
+    zBack: glgeom.fraction(oldCamera.zBack, futureCamera.zBack, fraction),
     zoom: zoom
   }
 }
@@ -728,6 +728,8 @@ class SoupView {
       if (this.targetView !== null) {
         this.setCurrentViewToTargetView()
         this.nUpdateStep = this.maxUpdateStep
+        this.maxTime = this.msPerStep * this.maxUpdateStep
+        this.elapsedTime = this.maxTime
       } else {
         if (this.isStartTargetAfterRender) {
           this.isChanged = true
@@ -753,11 +755,16 @@ class SoupView {
     } else if (this.nUpdateStep >= 1) {
       if (this.targetView != null) {
         let view = this.currentView.clone()
+        let nStepToGo = this.nUpdateStep
+        let fraction = 1.0 / nStepToGo
+        this.elapsedTime -= elapsedTime
+        let fraction2 = (this.maxUpdateStep - this.elapsedTime / this.msPerStep) / this.maxUpdateStep
+        // console.log('SoupView.animate', fraction, fraction2)
         view.setCamera(
           interpolateCameras(
             this.currentView.cameraParams,
             this.targetView.cameraParams,
-            1.0 / this.nUpdateStep
+            fraction
           )
         )
         this.setCurrentView(view)
