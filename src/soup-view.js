@@ -866,6 +866,56 @@ class SoupViewController {
     }
   }
 
+  selectPrevResidue() {
+    let iResFirst = null
+    let residue = this.soup.getResidueProxy()
+    for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+      if (residue.load(iRes).selected) {
+        iResFirst = iRes
+        break
+      }
+    }
+    if (iResFirst !== null) {
+      if (iResFirst > 0) {
+        iResFirst -= 1
+      } else {
+        iResFirst = this.soup.getResidueCount - 1
+      }
+      this.clearSelectedResidues()
+      this.selectResidue(iResFirst, true)
+    } else {
+      this.selectResidue(0, true)
+    }
+    this.soupView.isUpdateSidechain = true
+    this.soupView.isChanged = true
+  }
+
+  selectNextResidue() {
+    let iResLast = null
+    let residue = this.soup.getResidueProxy()
+    let nRes = this.soup.getResidueCount()
+    for (let iRes = nRes - 1; iRes > 0; iRes -= 1) {
+      if (residue.load(iRes).selected) {
+        iResLast = iRes
+        break
+      }
+    }
+    if (iResLast !== null) {
+      if (iResLast < nRes - 1) {
+        iResLast += 1
+      } else {
+        iResLast = 0
+      }
+      this.clearSelectedResidues()
+      this.selectResidue(iResLast, true)
+    } else {
+      let iRes = this.soup.getResidueCount() - 1
+      this.selectResidue(iRes, true)
+    }
+    this.soupView.isUpdateSidechain = true
+    this.soupView.isChanged = true
+  }
+
   setTargetToPrevView() {
     return this.soupView.setTargetToPrevView()
   }
@@ -962,23 +1012,41 @@ class SoupViewController {
   toggleSelectedSidechains() {
     let residue = this.soup.getResidueProxy()
     let indices = []
-    let nSidechain = 0
+    let nSelectedSidechain = 0
+    let nShowInSelectedSidechain = 0
+    let nShowSidechain = 0
     for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
       residue.load(iRes)
       if (residue.selected) {
+        nSelectedSidechain += 1
         indices.push(iRes)
         if (residue.sidechain) {
-          nSidechain += 1
+          nShowInSelectedSidechain += 1
         }
       }
+      if (residue.sidechain) {
+        nShowSidechain += 1
+      }
     }
-    let isSidechain = true
-    if (nSidechain === indices.length) {
-      isSidechain = false
-    }
-    for (let iRes of indices) {
-      residue.load(iRes)
-      residue.sidechain = isSidechain
+
+    if (nSelectedSidechain === 0) {
+      let sidechainState = true
+      if (nShowSidechain > 0) {
+        sidechainState = false
+      }
+      for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+        residue.load(iRes)
+        residue.sidechain = sidechainState
+      }
+    } else {
+      let sideChainState = true
+      if (nShowInSelectedSidechain > 0) {
+        sideChainState = false
+      }
+      for (let iRes of indices) {
+        residue.load(iRes)
+        residue.sidechain = sideChainState
+      }
     }
 
     this.soupView.isUpdateSidechain = true

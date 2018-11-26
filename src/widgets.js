@@ -1876,9 +1876,6 @@ class ToggleOptionWidget extends ToggleWidget {
 
   set(val) {
     this.controller.setShowOption(this.option, val)
-    if (this.option === 'sidechains' && val === false) {
-      this.controller.clearSidechainResidues()
-    }
   }
 }
 

@@ -29,6 +29,22 @@
                 isPlayable: false,
                 backgroundColor: 0xCCCCCC
               });
+
+            let controller = j.embedJolecule.controller
+            document.onkeydown = function (event) {
+              let c = String.fromCharCode(event.keyCode).toUpperCase()
+              if (false) {
+              } else if (c === 'J' || event.keyCode === 37) {
+                controller.selectPrevResidue()
+              } else if (c === 'K' || event.keyCode === 39) {
+                controller.selectNextResidue()
+              } else if (event.keyCode === 13) {
+                controller.zoomToSelection()
+              } else if (event.keyCode === 27) {
+                controller.clearSelectedResidues()
+              }
+            }
+
             require([
                 "./4qo1-jol/data-server0",
                 "./P04637.4qo1.B.json",

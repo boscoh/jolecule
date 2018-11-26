@@ -135,8 +135,8 @@ class EmbedJolecule {
   }
 
   createDivs() {
-    this.headerDiv = $('<div>').attr('id', `${this.divId}-sequence-widget`)
-
+    this.headerDiv = $('<div>')
+    this.div.append(this.headerDiv)
     this.bodyDiv = $('<div>')
       .attr('id', `${this.divId}-jolecule-soup-display`)
       .addClass('jolecule-embed-body')
@@ -144,9 +144,27 @@ class EmbedJolecule {
         overflow: 'hidden',
         width: this.div.outerWidth()
       })
+    this.div.append(this.bodyDiv)
+    this.footerDiv = $('<div>')
+    this.div.append(this.footerDiv)
 
-    this.div.append(this.headerDiv).append(this.bodyDiv)
+    let isToolbar =
+      this.params.isPlayable ||
+      this.params.isEditable ||
+      this.params.isExtraEditable
+    if (isToolbar) {
+      this.toolbarDiv = $('<div>')
+        .addClass('jolecule-embed-footer')
+        .css({
+          display: 'flex',
+          'flex-wrap': 'wrap',
+          'flex-direction': 'row'
+        })
+      this.headerDiv.append(this.toolbarDiv)
+    }
 
+    this.footerDiv.append(
+      $('<div>').attr('id', `${this.divId}-sequence-widget`))
     this.soupWidget = new SoupWidget(
       this.soupView,
       `#${this.divId}-jolecule-soup-display`,
@@ -171,23 +189,9 @@ class EmbedJolecule {
 
     this.widget.selection = new widgets.SelectionWidget(this.soupWidget)
 
-    let isFooter =
-      this.params.isPlayable ||
-      this.params.isEditable ||
-      this.params.isExtraEditable
-
-    if (!isFooter) {
+    if (!isToolbar) {
       return
     }
-
-    this.footerDiv = $('<div>')
-      .addClass('jolecule-embed-footer')
-      .css({
-        display: 'flex',
-        'flex-wrap': 'wrap',
-        'flex-direction': 'row'
-      })
-    this.div.append(this.footerDiv)
 
     if (this.params.isPlayable) {
       this.playableDiv = $('<div>')
@@ -197,7 +201,7 @@ class EmbedJolecule {
           display: 'flex',
           'flex-direction': 'row'
         })
-      this.footerDiv.append(this.playableDiv)
+      this.toolbarDiv.append(this.playableDiv)
 
       this.playableDiv.append($(`<div id="${this.divId}-rotate">`))
       this.widget.rotate = new widgets.ToggleAnimateWidget(
@@ -256,7 +260,7 @@ class EmbedJolecule {
 
     if (this.params.isEditable) {
       if (this.params.isResidueSelector) {
-        this.footerDiv.append(
+        this.toolbarDiv.append(
           $('<div>')
             .attr('id', `${this.divId}-res-selector`)
             .addClass('jolecule-button')
@@ -272,7 +276,7 @@ class EmbedJolecule {
         )
       }
 
-      this.footerDiv.append(
+      this.toolbarDiv.append(
         $('<div>')
           .attr('id', `${this.divId}-clipping-plane`)
           .addClass('jolecule-button')
@@ -290,13 +294,13 @@ class EmbedJolecule {
     }
 
     if (this.params.isEditable) {
-      this.footerDiv.append(
+      this.toolbarDiv.append(
         linkButton('Zoom', 'jolecule-button', () => {
           this.controller.zoomToSelection()
         })
       )
 
-      this.footerDiv
+      this.toolbarDiv
         .append(
           linkButton('Clear', 'jolecule-button', () => {
             this.controller.clear()
@@ -313,7 +317,7 @@ class EmbedJolecule {
           })
         )
 
-      this.footerDiv.append($(`<div id="${this.divId}-ligand">`))
+      this.toolbarDiv.append($(`<div id="${this.divId}-ligand">`))
       this.widget.ligand = new widgets.ToggleOptionWidget(
         this.soupWidget,
         `#${this.divId}-ligand`,
@@ -322,21 +326,21 @@ class EmbedJolecule {
     }
 
     if (this.params.isExtraEditable) {
-      this.footerDiv.append($(`<div id="${this.divId}-sphere">`))
+      this.toolbarDiv.append($(`<div id="${this.divId}-sphere">`))
       this.widget.sphere = new widgets.ToggleOptionWidget(
         this.soupWidget,
         `#${this.divId}-sphere`,
         'sphere'
       )
 
-      this.footerDiv.append($(`<div id="${this.divId}-backbone">`))
+      this.toolbarDiv.append($(`<div id="${this.divId}-backbone">`))
       this.widget.backbone = new widgets.ToggleOptionWidget(
         this.soupWidget,
         `#${this.divId}-backbone`,
         'backbone'
       )
 
-      this.footerDiv.append($(`<div id="${this.divId}-transparent">`))
+      this.toolbarDiv.append($(`<div id="${this.divId}-transparent">`))
       this.widget.transparent = new widgets.ToggleOptionWidget(
         this.soupWidget,
         `#${this.divId}-transparent`,
@@ -346,18 +350,14 @@ class EmbedJolecule {
   }
 
   resize() {
-    this.bodyDiv.width(this.div.outerWidth())
-
+    this.bodyDiv.width(this.div.innerWidth())
     let height = this.div.outerHeight()
-    if ('sequenceWidget' in this) {
-      height -= this.sequenceWidget.height()
-      this.bodyDiv.css('top', this.sequenceWidget.height())
-    }
+    height -= this.headerDiv.height()
+    this.bodyDiv.css('top', this.headerDiv.height())
     if ('footerDiv' in this) {
       height -= this.footerDiv.outerHeight()
     }
     this.bodyDiv.css('height', height)
-
     this.soupWidget.resize()
   }
 }
