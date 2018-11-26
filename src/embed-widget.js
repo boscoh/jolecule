@@ -140,10 +140,6 @@ class EmbedJolecule {
     this.bodyDiv = $('<div>')
       .attr('id', `${this.divId}-jolecule-soup-display`)
       .addClass('jolecule-embed-body')
-      .css({
-        overflow: 'hidden',
-        width: this.div.outerWidth()
-      })
     this.div.append(this.bodyDiv)
     this.footerDiv = $('<div>')
     this.div.append(this.footerDiv)
@@ -350,10 +346,10 @@ class EmbedJolecule {
   }
 
   resize() {
-    this.bodyDiv.width(this.div.innerWidth())
+    console.log('EmbedWidget.resize', this.div.width())
+    this.bodyDiv.width(this.div.width())
     let height = this.div.outerHeight()
     height -= this.headerDiv.height()
-    this.bodyDiv.css('top', this.headerDiv.height())
     if ('footerDiv' in this) {
       height -= this.footerDiv.outerHeight()
     }

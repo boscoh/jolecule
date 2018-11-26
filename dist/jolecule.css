@@ -99,8 +99,6 @@ a.jolecule-large-button:active {
     text-decoration: none;
 }
 .jolecule-embed-body {
-    flex: 1;
-    -webkit-flex: 1;
     font-size: 12px;
     font-family: helvetica;
     letter-spacing: 0.05em;

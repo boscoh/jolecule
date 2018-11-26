@@ -243,6 +243,7 @@ class WebglWidget {
   }
 
   resize() {
+    console.log('Webgl.Widget.resize', this.div, this.width(), this.div.width(), this.div.innerWidth())
     let position = this.div.position()
     this.webglDiv.css('left', this.x() + position.left)
     this.webglDiv.css('top', this.y() + position.top)
