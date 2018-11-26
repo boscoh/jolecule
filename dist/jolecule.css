@@ -78,9 +78,13 @@ a.jolecule-large-button:active {
     letter-spacing: 0.1em;
     line-height: 1em;
 }
-.jolecule-embed-header,
-.jolecule-embed-footer  {
-    display: flex;
+.jolecule-embed-header {
+    border-bottom: 2px solid #AAA;
+}
+.jolecule-embed-footer {
+    border-top: 2px solid #AAA;
+}
+.jolecule-embed-toolbar {
     padding: 5px;
     vertical-align: middle;
     background-color: #CCC;
@@ -90,11 +94,8 @@ a.jolecule-large-button:active {
     letter-spacing: 0.05em;
     overflow: hidden;
 }
-.jolecule-embed-footer {
-    border-top: 2px solid #AAA;
-}
-.jolecule-embed-header,
-.jolecule-embed-header a {
+.jolecule-embed-toolbar,
+.jolecule-embed-toolbar a {
     color: #777;
     text-decoration: none;
 }

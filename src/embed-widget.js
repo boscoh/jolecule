@@ -136,12 +136,14 @@ class EmbedJolecule {
 
   createDivs() {
     this.headerDiv = $('<div>')
+      .addClass('jolecule-embed-header')
     this.div.append(this.headerDiv)
     this.bodyDiv = $('<div>')
       .attr('id', `${this.divId}-jolecule-soup-display`)
       .addClass('jolecule-embed-body')
     this.div.append(this.bodyDiv)
     this.footerDiv = $('<div>')
+      .addClass('jolecule-embed-footer')
     this.div.append(this.footerDiv)
 
     let isToolbar =
@@ -150,12 +152,12 @@ class EmbedJolecule {
       this.params.isExtraEditable
     if (isToolbar) {
       this.toolbarDiv = $('<div>')
-        .addClass('jolecule-embed-footer')
         .css({
           display: 'flex',
           'flex-wrap': 'wrap',
           'flex-direction': 'row'
         })
+        .addClass('jolecule-embed-toolbar')
       this.headerDiv.append(this.toolbarDiv)
     }
 
@@ -346,13 +348,10 @@ class EmbedJolecule {
   }
 
   resize() {
-    console.log('EmbedWidget.resize', this.div.width())
     this.bodyDiv.width(this.div.width())
     let height = this.div.outerHeight()
-    height -= this.headerDiv.height()
-    if ('footerDiv' in this) {
-      height -= this.footerDiv.outerHeight()
-    }
+    height -= this.headerDiv.outerHeight()
+    height -= this.footerDiv.outerHeight()
     this.bodyDiv.css('height', height)
     this.soupWidget.resize()
   }
