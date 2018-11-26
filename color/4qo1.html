@@ -17,7 +17,7 @@
       <script>
         (function() {
           require(['../dist/jolecule'], function(jolecule) {
-            var j = jolecule.initFullPageJolecule(
+            var widget = jolecule.initFullPageJolecule(
               '#jolecule-protein-container',
               '#jolecule-views-container',
               { 
@@ -30,7 +30,7 @@
                 backgroundColor: 0xCCCCCC
               });
 
-            let controller = j.embedJolecule.controller
+            let controller = widget.embedJolecule.controller
             document.onkeydown = function (event) {
               let c = String.fromCharCode(event.keyCode).toUpperCase()
               if (false) {
@@ -49,11 +49,11 @@
                 "./4qo1-jol/data-server0",
                 "./P04637.4qo1.B.json",
             ], function(dataServer0, alignData) {
-              j.asyncAddDataServer(dataServer0).then(function() {
+              widget.asyncAddDataServer(dataServer0).then(function() {
                 let alignment = new jolecule.AquariaAlignment(alignData)
-                alignment.setEmbedJolecule(j.embedJolecule)
-                j.embedJolecule.soupView.setMode('chain')
-                j.embedJolecule.sequenceWidget.update()
+                alignment.setEmbedJolecule(widget.embedJolecule)
+                widget.embedJolecule.soupView.setMode('chain')
+                widget.embedJolecule.sequenceWidget.update()
                 alignment.selectNewChain = function(seqId, pdbId, chain) {
                   console.log('4q01.html.selectNewChain', seqId, pdbId, chain)
                 }

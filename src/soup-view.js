@@ -884,7 +884,15 @@ class SoupViewController {
       this.clearSelectedResidues()
       this.selectResidue(iResFirst, true)
     } else {
-      this.selectResidue(0, true)
+      this.clearSelectedResidues()
+      let iResSelect = null
+      for (let iRes = this.soup.getResidueCount() - 1; iRes >= 0; iRes -= 1) {
+        if (residue.load(iRes).isPolymer) {
+          iResSelect = iRes
+          break
+        }
+      }
+      this.selectResidue(iResSelect, true)
     }
     this.soupView.isUpdateSidechain = true
     this.soupView.isChanged = true
@@ -894,7 +902,7 @@ class SoupViewController {
     let iResLast = null
     let residue = this.soup.getResidueProxy()
     let nRes = this.soup.getResidueCount()
-    for (let iRes = nRes - 1; iRes > 0; iRes -= 1) {
+    for (let iRes = nRes - 1; iRes >= 0; iRes -= 1) {
       if (residue.load(iRes).selected) {
         iResLast = iRes
         break
@@ -907,10 +915,19 @@ class SoupViewController {
         iResLast = 0
       }
       this.clearSelectedResidues()
+      console.log('Controller.selectNextResidue', iResLast, residue.load(iResLast).label)
       this.selectResidue(iResLast, true)
     } else {
-      let iRes = this.soup.getResidueCount() - 1
-      this.selectResidue(iRes, true)
+      this.clearSelectedResidues()
+      let iResSelect = null
+      for (let iRes = 0; iRes < nRes - 1; iRes += 1) {
+        if (residue.load(iRes).isPolymer) {
+          iResSelect = iRes
+          break
+        }
+      }
+      console.log('Controller.selectNextResidue', iResSelect, residue.load(iResSelect).label)
+      this.selectResidue(iResSelect, true)
     }
     this.soupView.isUpdateSidechain = true
     this.soupView.isChanged = true

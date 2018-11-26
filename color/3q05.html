@@ -32,6 +32,21 @@
                 backgroundColor: 0xCCCCCC
               });
 
+            let controller = widget.embedJolecule.controller
+            document.onkeydown = function (event) {
+              let c = String.fromCharCode(event.keyCode).toUpperCase()
+              if (false) {
+              } else if (c === 'J' || event.keyCode === 37) {
+                controller.selectPrevResidue()
+              } else if (c === 'K' || event.keyCode === 39) {
+                controller.selectNextResidue()
+              } else if (event.keyCode === 13) {
+                controller.zoomToSelection()
+              } else if (event.keyCode === 27) {
+                controller.clearSelectedResidues()
+              }
+            }
+
             require([
               "./P04637.3q05.A.json",
             ], function( alignData) {

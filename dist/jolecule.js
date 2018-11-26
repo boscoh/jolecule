@@ -88876,7 +88876,15 @@ var SoupViewController = function () {
         this.clearSelectedResidues();
         this.selectResidue(iResFirst, true);
       } else {
-        this.selectResidue(0, true);
+        this.clearSelectedResidues();
+        var iResSelect = null;
+        for (var _iRes = this.soup.getResidueCount() - 1; _iRes >= 0; _iRes -= 1) {
+          if (residue.load(_iRes).isPolymer) {
+            iResSelect = _iRes;
+            break;
+          }
+        }
+        this.selectResidue(iResSelect, true);
       }
       this.soupView.isUpdateSidechain = true;
       this.soupView.isChanged = true;
@@ -88887,7 +88895,7 @@ var SoupViewController = function () {
       var iResLast = null;
       var residue = this.soup.getResidueProxy();
       var nRes = this.soup.getResidueCount();
-      for (var iRes = nRes - 1; iRes > 0; iRes -= 1) {
+      for (var iRes = nRes - 1; iRes >= 0; iRes -= 1) {
         if (residue.load(iRes).selected) {
           iResLast = iRes;
           break;
@@ -88900,10 +88908,19 @@ var SoupViewController = function () {
           iResLast = 0;
         }
         this.clearSelectedResidues();
+        console.log('Controller.selectNextResidue', iResLast, residue.load(iResLast).label);
         this.selectResidue(iResLast, true);
       } else {
-        var _iRes = this.soup.getResidueCount() - 1;
-        this.selectResidue(_iRes, true);
+        this.clearSelectedResidues();
+        var iResSelect = null;
+        for (var _iRes2 = 0; _iRes2 < nRes - 1; _iRes2 += 1) {
+          if (residue.load(_iRes2).isPolymer) {
+            iResSelect = _iRes2;
+            break;
+          }
+        }
+        console.log('Controller.selectNextResidue', iResSelect, residue.load(iResSelect).label);
+        this.selectResidue(iResSelect, true);
       }
       this.soupView.isUpdateSidechain = true;
       this.soupView.isChanged = true;
@@ -89061,8 +89078,8 @@ var SoupViewController = function () {
         if (nShowSidechain > 0) {
           sidechainState = false;
         }
-        for (var _iRes2 = 0; _iRes2 < this.soup.getResidueCount(); _iRes2 += 1) {
-          residue.load(_iRes2);
+        for (var _iRes3 = 0; _iRes3 < this.soup.getResidueCount(); _iRes3 += 1) {
+          residue.load(_iRes3);
           residue.sidechain = sidechainState;
         }
       } else {
@@ -89076,9 +89093,9 @@ var SoupViewController = function () {
 
         try {
           for (var _iterator5 = indices[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-            var _iRes3 = _step5.value;
+            var _iRes4 = _step5.value;
 
-            residue.load(_iRes3);
+            residue.load(_iRes4);
             residue.sidechain = sideChainState;
           }
         } catch (err) {
@@ -89123,8 +89140,8 @@ var SoupViewController = function () {
 
       if (indices.length === 0) {
         var iAtom = this.soupView.currentView.iAtom;
-        var _iRes4 = this.soup.getAtomProxy(iAtom).iRes;
-        indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes4));
+        var _iRes5 = this.soup.getAtomProxy(iAtom).iRes;
+        indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes5));
       }
       var nSidechain = 0;
       var _iteratorNormalCompletion6 = true;
@@ -89133,9 +89150,9 @@ var SoupViewController = function () {
 
       try {
         for (var _iterator6 = indices[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-          var _iRes5 = _step6.value;
+          var _iRes6 = _step6.value;
 
-          if (residue.load(_iRes5).sidechain) {
+          if (residue.load(_iRes6).sidechain) {
             nSidechain += 1;
           }
         }

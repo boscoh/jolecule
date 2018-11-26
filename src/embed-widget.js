@@ -135,15 +135,13 @@ class EmbedJolecule {
   }
 
   createDivs() {
-    this.headerDiv = $('<div>')
-      .addClass('jolecule-embed-header')
+    this.headerDiv = $('<div>').addClass('jolecule-embed-header')
     this.div.append(this.headerDiv)
     this.bodyDiv = $('<div>')
       .attr('id', `${this.divId}-jolecule-soup-display`)
       .addClass('jolecule-embed-body')
     this.div.append(this.bodyDiv)
-    this.footerDiv = $('<div>')
-      .addClass('jolecule-embed-footer')
+    this.footerDiv = $('<div>').addClass('jolecule-embed-footer')
     this.div.append(this.footerDiv)
 
     let isToolbar =
@@ -162,7 +160,8 @@ class EmbedJolecule {
     }
 
     this.footerDiv.append(
-      $('<div>').attr('id', `${this.divId}-sequence-widget`))
+      $('<div>').attr('id', `${this.divId}-sequence-widget`)
+    )
     this.soupWidget = new SoupWidget(
       this.soupView,
       `#${this.divId}-jolecule-soup-display`,
