@@ -80495,6 +80495,7 @@ var SequenceWidget = function (_CanvasWidget) {
       'background-color': '#CCC'
     });
 
+    _this5.isWaitForDoubleClick = false;
     _this5.charEntries = [];
     _this5.nChar = null;
     _this5.iChar = null; // central character for automatic scaling
@@ -80987,6 +80988,7 @@ var SequenceWidget = function (_CanvasWidget) {
     key: 'mousemove',
     value: function mousemove(event) {
       this.getPointer(event);
+
       if (this.pointerY < this.yTopSequence) {
         this.hover.hide();
         var iChar = this.iCharFromXStruct(this.pointerX);
@@ -81024,16 +81026,19 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'mouseup',
     value: function mouseup() {
+      if (this.isWaitForDoubleClick) {
+        this.click(event);
+      }
       this.hover.hide();
       this.mousePressed = '';
     }
   }, {
     key: 'doubleclick',
     value: function doubleclick(event) {
-      console.log('SequenceWidget.doubleclick');
+      console.log('SequenceWidget.doubleclick', this.pressSection, this.iCharPressed);
       this.getPointer(event);
       var iChar = null;
-      if (this.pointerY >= this.yTopSequence) {
+      if (this.pressSection === 'bottom') {
         // mouse event in sequence bar
         iChar = this.iCharFromXSeq(this.pointerX);
       } else {
@@ -81046,72 +81051,83 @@ var SequenceWidget = function (_CanvasWidget) {
         var residue = this.soup.getResidueProxy(charEntry.iRes);
         this.controller.triggerAtom(residue.iAtom);
       }
+      this.draw();
     }
   }, {
     key: 'click',
     value: function click(event) {
+      console.log('SequenceWidget.click', this.pressSection, this.iCharPressed);
+
+      var iChar = null;
       if (this.pressSection === 'bottom') {
+        // mouse event in sequence bar
+        iChar = this.iCharFromXSeq(this.pointerX);
+      } else {
+        iChar = this.iCharFromXStruct(this.pointerX);
+      }
+
+      if (iChar !== this.iCharPressed) {
+        return;
+      }
+
+      if (this.pressSection === 'top') {
         var charEntry = this.charEntries[this.iCharPressed];
         if (!_lodash2.default.isNil(charEntry.iRes)) {
           var iRes = charEntry.iRes;
-          if (!event.metaKey && !event.shiftKey) {
-            this.controller.selectResidue(iRes);
-          } else if (event.shiftKey) {
-            this.controller.selectAdditionalRangeToResidue(iRes);
-          } else {
-            this.controller.selectAdditionalResidue(iRes);
-          }
+          this.controller.selectSecondaryStructure(iRes);
           this.draw();
         }
-      } else if (this.pressSection === 'top') {
+      } else if (this.pressSection === 'bottom') {
         var _charEntry3 = this.charEntries[this.iCharPressed];
         if (!_lodash2.default.isNil(_charEntry3.iRes)) {
           var _iRes = _charEntry3.iRes;
-          this.controller.selectSecondaryStructure(_iRes);
+          if (!event.metaKey && !event.shiftKey) {
+            this.controller.selectResidue(_iRes);
+          } else if (event.shiftKey) {
+            this.controller.selectAdditionalRangeToResidue(_iRes);
+          } else {
+            this.controller.selectAdditionalResidue(_iRes);
+          }
+          this.draw();
         }
       }
     }
   }, {
     key: 'mousedown',
     value: function mousedown(event) {
-      var _this6 = this;
-
       event.preventDefault();
 
       this.getPointer(event);
       this.saveMouse();
+
       if (this.pointerY < this.yTopSequence) {
         this.mousePressed = 'top';
       } else {
         this.mousePressed = 'bottom';
       }
 
-      if (this.pointerY < this.yTopSequence) {
-        this.pressSection = 'top';
-      } else {
-        this.pressSection = 'bottom';
+      var now = new Date().getTime();
+      var elapsedTime = this.timePressed ? now - this.timePressed : 0;
+
+      if (elapsedTime > 600) {
+        this.isWaitForDoubleClick = false;
       }
 
-      var time = Date.now();
-      var timeDiff = time - this.timeMouseDown;
-      var isDoubleClick = timeDiff < 600 && this.downTimer !== null;
-      clearTimeout(this.downTimer);
-      this.downTimer = null;
-
-      if (isDoubleClick) {
-        this.doubleclick(event);
-      } else {
+      if (!this.isWaitForDoubleClick) {
+        this.pressSection = this.mousePressed;
         if (this.pressSection === 'bottom') {
           this.iCharPressed = this.iCharFromXSeq(this.pointerX);
         } else {
           this.iCharPressed = this.iCharFromXStruct(this.pointerX);
         }
-        this.timeMouseDown = Date.now();
-        this.downTimer = setTimeout(function () {
-          return _this6.click(event);
-        }, 250);
+        console.log('SequenceWidget.mousedown new press', this.pressSection, this.iCharPressed);
+        this.isWaitForDoubleClick = true;
+      } else if (elapsedTime < 600) {
+        this.doubleclick(event);
+        this.isWaitForDoubleClick = false;
       }
 
+      this.timePressed = new Date().getTime();
       this.mousemove(event);
     }
   }]);
@@ -81130,15 +81146,15 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
   function ClippingPlaneWidget(soupWidget, selector) {
     _classCallCheck(this, ClippingPlaneWidget);
 
-    var _this7 = _possibleConstructorReturn(this, (ClippingPlaneWidget.__proto__ || Object.getPrototypeOf(ClippingPlaneWidget)).call(this, selector));
+    var _this6 = _possibleConstructorReturn(this, (ClippingPlaneWidget.__proto__ || Object.getPrototypeOf(ClippingPlaneWidget)).call(this, selector));
 
-    _this7.soupView = soupWidget.soupView;
-    _this7.controller = soupWidget.controller;
-    soupWidget.addObserver(_this7);
-    _this7.maxZLength = 0.0;
-    _this7.div.css('box-sizing', 'border-box');
-    _this7.zFrontColor = 'rgb(150, 90, 90)';
-    return _this7;
+    _this6.soupView = soupWidget.soupView;
+    _this6.controller = soupWidget.controller;
+    soupWidget.addObserver(_this6);
+    _this6.maxZLength = 0.0;
+    _this6.div.css('box-sizing', 'border-box');
+    _this6.zFrontColor = 'rgb(150, 90, 90)';
+    return _this6;
   }
 
   _createClass(ClippingPlaneWidget, [{
@@ -81272,7 +81288,7 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
 
 var GridToggleButtonWidget = function () {
   function GridToggleButtonWidget(soupWidget, selector, elem, x, y, color) {
-    var _this8 = this;
+    var _this7 = this;
 
     _classCallCheck(this, GridToggleButtonWidget);
 
@@ -81282,7 +81298,7 @@ var GridToggleButtonWidget = function () {
     this.color = color;
     this.div = (0, _jquery2.default)(selector).text(elem).addClass('jolecule-button').css('position', 'absolute').css('top', y + 'px').css('left', x + 'px').css('height', '15px').css('width', '20px').on('click touch', function (e) {
       e.preventDefault();
-      _this8.toggle();
+      _this7.toggle();
     });
     this.update();
     soupWidget.addObserver(this);
@@ -81332,26 +81348,26 @@ var GridControlWidget = function (_CanvasWidget3) {
   function GridControlWidget(soupWidget) {
     _classCallCheck(this, GridControlWidget);
 
-    var _this9 = _possibleConstructorReturn(this, (GridControlWidget.__proto__ || Object.getPrototypeOf(GridControlWidget)).call(this, soupWidget.divTag));
+    var _this8 = _possibleConstructorReturn(this, (GridControlWidget.__proto__ || Object.getPrototypeOf(GridControlWidget)).call(this, soupWidget.divTag));
 
-    _this9.soupWidget = soupWidget;
-    _this9.soupView = soupWidget.soupView;
-    _this9.controller = soupWidget.controller;
-    soupWidget.addObserver(_this9);
+    _this8.soupWidget = soupWidget;
+    _this8.soupView = soupWidget.soupView;
+    _this8.controller = soupWidget.controller;
+    soupWidget.addObserver(_this8);
 
-    _this9.backgroundColor = '#999';
-    _this9.buttonHeight = 40;
-    _this9.sliderHeight = _this9.buttonHeight * 6 - 30;
-    _this9.isGrid = soupWidget.isGrid;
+    _this8.backgroundColor = '#999';
+    _this8.buttonHeight = 40;
+    _this8.sliderHeight = _this8.buttonHeight * 6 - 30;
+    _this8.isGrid = soupWidget.isGrid;
 
-    _this9.div.css('display', 'none');
-    _this9.div.attr('id', 'grid-control');
-    _this9.div.css('height', _this9.height());
-    _this9.div.addClass('jolecule-button');
+    _this8.div.css('display', 'none');
+    _this8.div.attr('id', 'grid-control');
+    _this8.div.css('height', _this8.height());
+    _this8.div.addClass('jolecule-button');
 
-    _this9.buttonsDiv = (0, _jquery2.default)('<div id="grid-control-buttons">');
-    _this9.div.append(_this9.buttonsDiv);
-    return _this9;
+    _this8.buttonsDiv = (0, _jquery2.default)('<div id="grid-control-buttons">');
+    _this8.div.append(_this8.buttonsDiv);
+    return _this8;
   }
 
   _createClass(GridControlWidget, [{
@@ -81555,31 +81571,31 @@ var ColorLegendWidget = function (_CanvasWidget4) {
   function ColorLegendWidget(soupWidget) {
     _classCallCheck(this, ColorLegendWidget);
 
-    var _this10 = _possibleConstructorReturn(this, (ColorLegendWidget.__proto__ || Object.getPrototypeOf(ColorLegendWidget)).call(this, soupWidget.divTag));
+    var _this9 = _possibleConstructorReturn(this, (ColorLegendWidget.__proto__ || Object.getPrototypeOf(ColorLegendWidget)).call(this, soupWidget.divTag));
 
-    _this10.canvas.hide();
+    _this9.canvas.hide();
 
-    _this10.default();
+    _this9.default();
 
-    _this10.div.css('display', 'block');
-    _this10.div.attr('id', 'color-legend');
-    _this10.div.addClass('jolecule-button');
-    _this10.div.css({
+    _this9.div.css('display', 'block');
+    _this9.div.attr('id', 'color-legend');
+    _this9.div.addClass('jolecule-button');
+    _this9.div.css({
       padding: '8px',
       'box-sizing': 'border-box',
       height: 'auto',
       width: 'auto'
     });
 
-    _this10.buttonsDiv = (0, _jquery2.default)('<div>').attr('id', 'color-legend-buttons').css('text-align', 'left');
-    _this10.div.append(_this10.buttonsDiv);
+    _this9.buttonsDiv = (0, _jquery2.default)('<div>').attr('id', 'color-legend-buttons').css('text-align', 'left');
+    _this9.div.append(_this9.buttonsDiv);
 
-    _this10.isShow = true;
+    _this9.isShow = true;
 
-    soupWidget.addObserver(_this10);
+    soupWidget.addObserver(_this9);
 
-    _this10.rebuild();
-    return _this10;
+    _this9.rebuild();
+    return _this9;
   }
 
   _createClass(ColorLegendWidget, [{
@@ -81694,16 +81710,16 @@ var SelectionWidget = function (_CanvasWidget5) {
   function SelectionWidget(soupWidget) {
     _classCallCheck(this, SelectionWidget);
 
-    var _this11 = _possibleConstructorReturn(this, (SelectionWidget.__proto__ || Object.getPrototypeOf(SelectionWidget)).call(this, soupWidget.divTag));
+    var _this10 = _possibleConstructorReturn(this, (SelectionWidget.__proto__ || Object.getPrototypeOf(SelectionWidget)).call(this, soupWidget.divTag));
 
-    _this11.soupWidget = soupWidget;
+    _this10.soupWidget = soupWidget;
 
-    _this11.canvas.hide();
+    _this10.canvas.hide();
 
-    _this11.div.css('display', 'block');
-    _this11.div.attr('id', 'selection');
-    _this11.div.addClass('jolecule-button');
-    _this11.div.css({
+    _this10.div.css('display', 'block');
+    _this10.div.attr('id', 'selection');
+    _this10.div.addClass('jolecule-button');
+    _this10.div.css({
       padding: '8px',
       position: 'absolute',
       'max-width': '180px',
@@ -81715,10 +81731,10 @@ var SelectionWidget = function (_CanvasWidget5) {
       'text-align': 'left'
     });
 
-    _this11.isShow = false;
+    _this10.isShow = false;
 
-    soupWidget.addObserver(_this11);
-    return _this11;
+    soupWidget.addObserver(_this10);
+    return _this10;
   }
 
   _createClass(SelectionWidget, [{
@@ -81818,7 +81834,7 @@ var SelectionWidget = function (_CanvasWidget5) {
 
 var ResidueSelectorWidget = function () {
   function ResidueSelectorWidget(soupWidget, selector) {
-    var _this12 = this;
+    var _this11 = this;
 
     _classCallCheck(this, ResidueSelectorWidget);
 
@@ -81833,7 +81849,7 @@ var ResidueSelectorWidget = function () {
     this.$select = (0, _jquery2.default)('<select>').attr('id', this.selectId);
     this.div.append(this.$select);
     this.$select.change(function () {
-      return _this12.change();
+      return _this11.change();
     });
     this.$select.select2({ width: '150px' });
   }
@@ -81907,14 +81923,14 @@ var ResidueSelectorWidget = function () {
 
 var MenuWidget = function () {
   function MenuWidget(soupWidget, selector) {
-    var _this13 = this;
+    var _this12 = this;
 
     _classCallCheck(this, MenuWidget);
 
     this.soupWidget = soupWidget;
     this.controller = soupWidget.controller;
     this.div = (0, _jquery2.default)(selector).html('&#9776;').addClass('jolecule-button').on('click touch', function (e) {
-      _this13.update();
+      _this12.update();
       e.preventDefault();
     });
     this.soupWidget.addObserver(this);
@@ -81930,15 +81946,15 @@ var MenuWidget = function () {
 
 var ToggleWidget = function () {
   function ToggleWidget(soupWidget, selector) {
-    var _this14 = this;
+    var _this13 = this;
 
     _classCallCheck(this, ToggleWidget);
 
     this.soupWidget = soupWidget;
     this.controller = soupWidget.controller;
     this.div = (0, _jquery2.default)(selector).html(this.html()).addClass('jolecule-button').on('click touch', function (e) {
-      _this14.set(!_this14.get());
-      _this14.update();
+      _this13.set(!_this13.get());
+      _this13.update();
       e.preventDefault();
     });
     this.soupWidget.addObserver(this);
@@ -81977,11 +81993,11 @@ var ToggleOptionWidget = function (_ToggleWidget) {
   function ToggleOptionWidget(soupWidget, selector, option) {
     _classCallCheck(this, ToggleOptionWidget);
 
-    var _this15 = _possibleConstructorReturn(this, (ToggleOptionWidget.__proto__ || Object.getPrototypeOf(ToggleOptionWidget)).call(this, soupWidget, selector));
+    var _this14 = _possibleConstructorReturn(this, (ToggleOptionWidget.__proto__ || Object.getPrototypeOf(ToggleOptionWidget)).call(this, soupWidget, selector));
 
-    _this15.option = option;
-    _this15.div.html(_this15.html());
-    return _this15;
+    _this14.option = option;
+    _this14.div.html(_this14.html());
+    return _this14;
   }
 
   _createClass(ToggleOptionWidget, [{
@@ -82010,12 +82026,12 @@ var ToggleAnimateWidget = function (_ToggleWidget2) {
   function ToggleAnimateWidget(soupWidget, selector, state, text) {
     _classCallCheck(this, ToggleAnimateWidget);
 
-    var _this16 = _possibleConstructorReturn(this, (ToggleAnimateWidget.__proto__ || Object.getPrototypeOf(ToggleAnimateWidget)).call(this, soupWidget, selector));
+    var _this15 = _possibleConstructorReturn(this, (ToggleAnimateWidget.__proto__ || Object.getPrototypeOf(ToggleAnimateWidget)).call(this, soupWidget, selector));
 
-    _this16.state = state;
-    _this16.text = text;
-    _this16.div.html(_this16.html());
-    return _this16;
+    _this15.state = state;
+    _this15.text = text;
+    _this15.div.html(_this15.html());
+    return _this15;
   }
 
   _createClass(ToggleAnimateWidget, [{
@@ -89589,6 +89605,8 @@ var SoupViewController = function () {
         this.selectResidue(atom.iRes, true);
         this.setTargetViewByIAtom(iAtomHover);
       }
+      this.soupView.isUpdateColors = true;
+      this.soupView.isUpdateObservers = true;
     }
   }]);
 

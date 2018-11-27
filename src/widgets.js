@@ -604,6 +604,7 @@ class SequenceWidget extends CanvasWidget {
       'background-color': '#CCC'
     })
 
+    this.isWaitForDoubleClick = false
     this.charEntries = []
     this.nChar = null
     this.iChar = null // central character for automatic scaling
@@ -1069,6 +1070,7 @@ class SequenceWidget extends CanvasWidget {
 
   mousemove(event) {
     this.getPointer(event)
+
     if (this.pointerY < this.yTopSequence) {
       this.hover.hide()
       let iChar = this.iCharFromXStruct(this.pointerX)
@@ -1104,15 +1106,18 @@ class SequenceWidget extends CanvasWidget {
   }
 
   mouseup() {
+    if (this.isWaitForDoubleClick) {
+      this.click(event)
+    }
     this.hover.hide()
     this.mousePressed = ''
   }
 
   doubleclick(event) {
-    console.log('SequenceWidget.doubleclick')
+    console.log('SequenceWidget.doubleclick', this.pressSection, this.iCharPressed)
     this.getPointer(event)
     let iChar = null
-    if (this.pointerY >= this.yTopSequence) {
+    if (this.pressSection === 'bottom') {
       // mouse event in sequence bar
       iChar = this.iCharFromXSeq(this.pointerX)
     } else {
@@ -1125,10 +1130,32 @@ class SequenceWidget extends CanvasWidget {
       let residue = this.soup.getResidueProxy(charEntry.iRes)
       this.controller.triggerAtom(residue.iAtom)
     }
+    this.draw()
   }
 
   click(event) {
+    console.log('SequenceWidget.click', this.pressSection, this.iCharPressed)
+
+    let iChar = null
     if (this.pressSection === 'bottom') {
+      // mouse event in sequence bar
+      iChar = this.iCharFromXSeq(this.pointerX)
+    } else {
+      iChar = this.iCharFromXStruct(this.pointerX)
+    }
+
+    if (iChar !== this.iCharPressed) {
+      return
+    }
+
+    if (this.pressSection === 'top') {
+      let charEntry = this.charEntries[this.iCharPressed]
+      if (!_.isNil(charEntry.iRes)) {
+        let iRes = charEntry.iRes
+        this.controller.selectSecondaryStructure(iRes)
+        this.draw()
+      }
+    } else if (this.pressSection === 'bottom') {
       let charEntry = this.charEntries[this.iCharPressed]
       if (!_.isNil(charEntry.iRes)) {
         let iRes = charEntry.iRes
@@ -1141,12 +1168,6 @@ class SequenceWidget extends CanvasWidget {
         }
         this.draw()
       }
-    } else if (this.pressSection === 'top') {
-      let charEntry = this.charEntries[this.iCharPressed]
-      if (!_.isNil(charEntry.iRes)) {
-        let iRes = charEntry.iRes
-        this.controller.selectSecondaryStructure(iRes)
-      }
     }
   }
 
@@ -1155,36 +1176,35 @@ class SequenceWidget extends CanvasWidget {
 
     this.getPointer(event)
     this.saveMouse()
+
     if (this.pointerY < this.yTopSequence) {
       this.mousePressed = 'top'
     } else {
       this.mousePressed = 'bottom'
     }
 
-    if (this.pointerY < this.yTopSequence) {
-      this.pressSection = 'top'
-    } else {
-      this.pressSection = 'bottom'
+    let now = new Date().getTime()
+    let elapsedTime = this.timePressed ? now - this.timePressed : 0
+
+    if (elapsedTime > 600) {
+      this.isWaitForDoubleClick = false
     }
 
-    let time = Date.now()
-    let timeDiff = time - this.timeMouseDown
-    let isDoubleClick = timeDiff < 600 && this.downTimer !== null
-    clearTimeout(this.downTimer)
-    this.downTimer = null
-
-    if (isDoubleClick) {
-      this.doubleclick(event)
-    } else {
+    if (!this.isWaitForDoubleClick) {
+      this.pressSection = this.mousePressed
       if (this.pressSection === 'bottom') {
         this.iCharPressed = this.iCharFromXSeq(this.pointerX)
       } else {
         this.iCharPressed = this.iCharFromXStruct(this.pointerX)
       }
-      this.timeMouseDown = Date.now()
-      this.downTimer = setTimeout(() => this.click(event), 250)
+      console.log('SequenceWidget.mousedown new press', this.pressSection, this.iCharPressed)
+      this.isWaitForDoubleClick = true
+    } else if (elapsedTime < 600) {
+      this.doubleclick(event)
+      this.isWaitForDoubleClick = false
     }
 
+    this.timePressed = new Date().getTime()
     this.mousemove(event)
   }
 }

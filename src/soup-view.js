@@ -1345,6 +1345,8 @@ class SoupViewController {
       this.selectResidue(atom.iRes, true)
       this.setTargetViewByIAtom(iAtomHover)
     }
+    this.soupView.isUpdateColors = true
+    this.soupView.isUpdateObservers = true
   }
 }
 
