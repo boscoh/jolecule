@@ -11,6 +11,7 @@
     box-sizing: content-box;
     height: 20px;
     user-select: none;
+    vertical-align: center;
 }
 .jolecule-button,
 a.jolecule-button input a,

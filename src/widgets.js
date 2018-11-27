@@ -769,7 +769,7 @@ class SequenceWidget extends CanvasWidget {
   }
 
   findFirstResidue(iCharStart) {
-    for (let iChar = iCharStart; iChar < (this.nChar - 1); iChar += 1) {
+    for (let iChar = iCharStart; iChar < this.nChar - 1; iChar += 1) {
       let charEntry = this.charEntries[iChar + 1]
       if (!_.isNil(charEntry.iRes)) {
         return iChar
@@ -1141,6 +1141,12 @@ class SequenceWidget extends CanvasWidget {
         }
         this.draw()
       }
+    } else if (this.pressSection === 'top') {
+      let charEntry = this.charEntries[this.iCharPressed]
+      if (!_.isNil(charEntry.iRes)) {
+        let iRes = charEntry.iRes
+        this.controller.selectSecondaryStructure(iRes)
+      }
     }
   }
 
@@ -1161,15 +1167,23 @@ class SequenceWidget extends CanvasWidget {
       this.pressSection = 'bottom'
     }
 
-    if (this.downTimer !== null) {
-      clearTimeout(this.downTimer)
+    let time = Date.now()
+    let timeDiff = time - this.timeMouseDown
+    let isDoubleClick = timeDiff < 600 && this.downTimer !== null
+    clearTimeout(this.downTimer)
+    this.downTimer = null
+
+    if (isDoubleClick) {
       this.doubleclick(event)
-      this.downTimer = null
     } else {
+      if (this.pressSection === 'bottom') {
+        this.iCharPressed = this.iCharFromXSeq(this.pointerX)
+      } else {
+        this.iCharPressed = this.iCharFromXStruct(this.pointerX)
+      }
+      this.timeMouseDown = Date.now()
       this.downTimer = setTimeout(() => this.click(event), 250)
     }
-
-    this.iCharPressed = this.iCharFromXSeq(this.pointerX)
 
     this.mousemove(event)
   }
@@ -1639,7 +1653,9 @@ class ColorLegendWidget extends CanvasWidget {
 
   y() {
     let parentDivPos = this.parentDiv.position()
-    return parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - 5
+    return (
+      parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - 5
+    )
   }
 
   update() {
@@ -1690,12 +1706,16 @@ class SelectionWidget extends CanvasWidget {
 
   x() {
     let parentDivPos = this.parentDiv.position()
-    return parentDivPos.left + this.parentDiv.width() - this.div.outerWidth() - 5
+    return (
+      parentDivPos.left + this.parentDiv.width() - this.div.outerWidth() - 5
+    )
   }
 
   y() {
     let parentDivPos = this.parentDiv.position()
-    return parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - 5
+    return (
+      parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - 5
+    )
   }
 
   getText() {
@@ -1825,6 +1845,22 @@ class ResidueSelectorWidget {
   }
 }
 
+class MenuWidget {
+  constructor(soupWidget, selector) {
+    this.soupWidget = soupWidget
+    this.controller = soupWidget.controller
+    this.div = $(selector)
+      .html('&#9776;')
+      .addClass('jolecule-button')
+      .on('click touch', e => {
+        this.update()
+        e.preventDefault()
+      })
+    this.soupWidget.addObserver(this)
+  }
+  update() {}
+}
+
 class ToggleWidget {
   constructor(soupWidget, selector) {
     this.soupWidget = soupWidget
@@ -1937,5 +1973,6 @@ export default {
   ResidueSelectorWidget,
   ToggleOptionWidget,
   ToggleAnimateWidget,
-  ViewTextWidget
+  ViewTextWidget,
+  MenuWidget
 }

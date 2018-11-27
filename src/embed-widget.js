@@ -256,6 +256,21 @@ class EmbedJolecule {
     }
 
     if (this.params.isEditable) {
+      this.toolbarDiv.append(
+        $('<div>')
+          .attr('id', `${this.divId}-menu`)
+          .addClass('jolecule-button')
+          .css({
+            'padding-top': '6px',
+            height: '24px',
+            'box-sizing': 'content-box'
+          })
+      )
+      this.menuWidget = new widgets.MenuWidget(
+        this.soupWidget,
+        `#${this.divId}-menu`
+      )
+
       if (this.params.isResidueSelector) {
         this.toolbarDiv.append(
           $('<div>')

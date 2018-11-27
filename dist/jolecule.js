@@ -79706,6 +79706,13 @@ var EmbedJolecule = function () {
       }
 
       if (this.params.isEditable) {
+        this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-menu').addClass('jolecule-button').css({
+          'padding-top': '6px',
+          height: '24px',
+          'box-sizing': 'content-box'
+        }));
+        this.menuWidget = new _widgets2.default.MenuWidget(this.soupWidget, '#' + this.divId + '-menu');
+
         if (this.params.isResidueSelector) {
           this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-res-selector').addClass('jolecule-button').css({
             'padding-top': '6px',
@@ -81056,6 +81063,12 @@ var SequenceWidget = function (_CanvasWidget) {
           }
           this.draw();
         }
+      } else if (this.pressSection === 'top') {
+        var _charEntry3 = this.charEntries[this.iCharPressed];
+        if (!_lodash2.default.isNil(_charEntry3.iRes)) {
+          var _iRes = _charEntry3.iRes;
+          this.controller.selectSecondaryStructure(_iRes);
+        }
       }
     }
   }, {
@@ -81079,17 +81092,25 @@ var SequenceWidget = function (_CanvasWidget) {
         this.pressSection = 'bottom';
       }
 
-      if (this.downTimer !== null) {
-        clearTimeout(this.downTimer);
+      var time = Date.now();
+      var timeDiff = time - this.timeMouseDown;
+      var isDoubleClick = timeDiff < 600 && this.downTimer !== null;
+      clearTimeout(this.downTimer);
+      this.downTimer = null;
+
+      if (isDoubleClick) {
         this.doubleclick(event);
-        this.downTimer = null;
       } else {
+        if (this.pressSection === 'bottom') {
+          this.iCharPressed = this.iCharFromXSeq(this.pointerX);
+        } else {
+          this.iCharPressed = this.iCharFromXStruct(this.pointerX);
+        }
+        this.timeMouseDown = Date.now();
         this.downTimer = setTimeout(function () {
           return _this6.click(event);
         }, 250);
       }
-
-      this.iCharPressed = this.iCharFromXSeq(this.pointerX);
 
       this.mousemove(event);
     }
@@ -81884,17 +81905,40 @@ var ResidueSelectorWidget = function () {
   return ResidueSelectorWidget;
 }();
 
+var MenuWidget = function () {
+  function MenuWidget(soupWidget, selector) {
+    var _this13 = this;
+
+    _classCallCheck(this, MenuWidget);
+
+    this.soupWidget = soupWidget;
+    this.controller = soupWidget.controller;
+    this.div = (0, _jquery2.default)(selector).html('&#9776;').addClass('jolecule-button').on('click touch', function (e) {
+      _this13.update();
+      e.preventDefault();
+    });
+    this.soupWidget.addObserver(this);
+  }
+
+  _createClass(MenuWidget, [{
+    key: 'update',
+    value: function update() {}
+  }]);
+
+  return MenuWidget;
+}();
+
 var ToggleWidget = function () {
   function ToggleWidget(soupWidget, selector) {
-    var _this13 = this;
+    var _this14 = this;
 
     _classCallCheck(this, ToggleWidget);
 
     this.soupWidget = soupWidget;
     this.controller = soupWidget.controller;
     this.div = (0, _jquery2.default)(selector).html(this.html()).addClass('jolecule-button').on('click touch', function (e) {
-      _this13.set(!_this13.get());
-      _this13.update();
+      _this14.set(!_this14.get());
+      _this14.update();
       e.preventDefault();
     });
     this.soupWidget.addObserver(this);
@@ -81933,11 +81977,11 @@ var ToggleOptionWidget = function (_ToggleWidget) {
   function ToggleOptionWidget(soupWidget, selector, option) {
     _classCallCheck(this, ToggleOptionWidget);
 
-    var _this14 = _possibleConstructorReturn(this, (ToggleOptionWidget.__proto__ || Object.getPrototypeOf(ToggleOptionWidget)).call(this, soupWidget, selector));
+    var _this15 = _possibleConstructorReturn(this, (ToggleOptionWidget.__proto__ || Object.getPrototypeOf(ToggleOptionWidget)).call(this, soupWidget, selector));
 
-    _this14.option = option;
-    _this14.div.html(_this14.html());
-    return _this14;
+    _this15.option = option;
+    _this15.div.html(_this15.html());
+    return _this15;
   }
 
   _createClass(ToggleOptionWidget, [{
@@ -81966,12 +82010,12 @@ var ToggleAnimateWidget = function (_ToggleWidget2) {
   function ToggleAnimateWidget(soupWidget, selector, state, text) {
     _classCallCheck(this, ToggleAnimateWidget);
 
-    var _this15 = _possibleConstructorReturn(this, (ToggleAnimateWidget.__proto__ || Object.getPrototypeOf(ToggleAnimateWidget)).call(this, soupWidget, selector));
+    var _this16 = _possibleConstructorReturn(this, (ToggleAnimateWidget.__proto__ || Object.getPrototypeOf(ToggleAnimateWidget)).call(this, soupWidget, selector));
 
-    _this15.state = state;
-    _this15.text = text;
-    _this15.div.html(_this15.html());
-    return _this15;
+    _this16.state = state;
+    _this16.text = text;
+    _this16.div.html(_this16.html());
+    return _this16;
   }
 
   _createClass(ToggleAnimateWidget, [{
@@ -82038,7 +82082,8 @@ exports.default = {
   ResidueSelectorWidget: ResidueSelectorWidget,
   ToggleOptionWidget: ToggleOptionWidget,
   ToggleAnimateWidget: ToggleAnimateWidget,
-  ViewTextWidget: ViewTextWidget
+  ViewTextWidget: ViewTextWidget,
+  MenuWidget: MenuWidget
 };
 
 /***/ }),
@@ -89052,6 +89097,31 @@ var SoupViewController = function () {
       this.soupView.isChanged = true;
     }
   }, {
+    key: 'selectSecondaryStructure',
+    value: function selectSecondaryStructure(iCenterRes) {
+      console.log('Controller.selectSecondaryStructure');
+      this.clearSelectedResidues();
+      var res = this.soup.getResidueProxy(iCenterRes);
+      var ss = res.ss;
+      var nRes = this.soup.getResidueCount();
+      for (var iRes = iCenterRes; iRes >= 0; iRes -= 1) {
+        res.load(iRes);
+        if (res.ss !== ss) {
+          break;
+        }
+        res.selected = true;
+      }
+      for (var _iRes3 = iCenterRes + 1; _iRes3 < nRes; _iRes3 += 1) {
+        res.load(_iRes3);
+        if (res.ss !== ss) {
+          break;
+        }
+        res.selected = true;
+      }
+      this.soupView.isUpdateColors = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
     key: 'toggleSelectedSidechains',
     value: function toggleSelectedSidechains() {
       var residue = this.soup.getResidueProxy();
@@ -89078,8 +89148,8 @@ var SoupViewController = function () {
         if (nShowSidechain > 0) {
           sidechainState = false;
         }
-        for (var _iRes3 = 0; _iRes3 < this.soup.getResidueCount(); _iRes3 += 1) {
-          residue.load(_iRes3);
+        for (var _iRes4 = 0; _iRes4 < this.soup.getResidueCount(); _iRes4 += 1) {
+          residue.load(_iRes4);
           residue.sidechain = sidechainState;
         }
       } else {
@@ -89093,9 +89163,9 @@ var SoupViewController = function () {
 
         try {
           for (var _iterator5 = indices[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-            var _iRes4 = _step5.value;
+            var _iRes5 = _step5.value;
 
-            residue.load(_iRes4);
+            residue.load(_iRes5);
             residue.sidechain = sideChainState;
           }
         } catch (err) {
@@ -89140,8 +89210,8 @@ var SoupViewController = function () {
 
       if (indices.length === 0) {
         var iAtom = this.soupView.currentView.iAtom;
-        var _iRes5 = this.soup.getAtomProxy(iAtom).iRes;
-        indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes5));
+        var _iRes6 = this.soup.getAtomProxy(iAtom).iRes;
+        indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes6));
       }
       var nSidechain = 0;
       var _iteratorNormalCompletion6 = true;
@@ -89150,9 +89220,9 @@ var SoupViewController = function () {
 
       try {
         for (var _iterator6 = indices[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-          var _iRes6 = _step6.value;
+          var _iRes7 = _step6.value;
 
-          if (residue.load(_iRes6).sidechain) {
+          if (residue.load(_iRes7).sidechain) {
             nSidechain += 1;
           }
         }
@@ -101666,7 +101736,7 @@ exports = module.exports = __webpack_require__(134)();
 
 
 // module
-exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    text-align: center;\n    font-size: 12px;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-header {\n    border-bottom: 2px solid #AAA;\n}\n.jolecule-embed-footer {\n    border-top: 2px solid #AAA;\n}\n.jolecule-embed-toolbar {\n    padding: 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n", ""]);
+exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    text-align: center;\n    font-size: 12px;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: center;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-header {\n    border-bottom: 2px solid #AAA;\n}\n.jolecule-embed-footer {\n    border-top: 2px solid #AAA;\n}\n.jolecule-embed-toolbar {\n    padding: 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n", ""]);
 
 // exports
 

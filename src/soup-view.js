@@ -1026,6 +1026,30 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
+  selectSecondaryStructure(iCenterRes) {
+    console.log('Controller.selectSecondaryStructure')
+    this.clearSelectedResidues()
+    let res = this.soup.getResidueProxy(iCenterRes)
+    let ss = res.ss
+    let nRes = this.soup.getResidueCount()
+    for (let iRes = iCenterRes; iRes >= 0; iRes -= 1) {
+      res.load(iRes)
+      if (res.ss !== ss) {
+        break
+      }
+      res.selected = true
+    }
+    for (let iRes = iCenterRes + 1; iRes < nRes; iRes += 1) {
+      res.load(iRes)
+      if (res.ss !== ss) {
+        break
+      }
+      res.selected = true
+    }
+    this.soupView.isUpdateColors = true
+    this.soupView.isChanged = true
+  }
+
   toggleSelectedSidechains() {
     let residue = this.soup.getResidueProxy()
     let indices = []
