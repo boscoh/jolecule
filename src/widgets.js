@@ -607,7 +607,6 @@ class SequenceWidget extends CanvasWidget {
     this.isWaitForDoubleClick = false
     this.charEntries = []
     this.nChar = null
-    this.iChar = null // central character for automatic scaling
 
     this.iCharSeqStart = null
     this.iCharSeqEnd = null
@@ -736,7 +735,6 @@ class SequenceWidget extends CanvasWidget {
     }
 
     this.nChar = this.charEntries.length
-    this.iChar = this.nCharSeq / 2
     this.iCharSeqStart = this.nPadChar
     this.iCharStructStart = 0
     this.nCharStruct = this.nChar
@@ -1125,12 +1123,14 @@ class SequenceWidget extends CanvasWidget {
     }
     let charEntry = this.charEntries[iChar]
     if (!_.isNil(charEntry.iRes)) {
-      this.controller.clearSelectedResidues()
-      this.controller.setResidueSelect(charEntry.iRes, true)
+      if (this.pressSection === 'top') {
+        this.controller.selectSecondaryStructure(charEntry.iRes)
+      } else {
+        this.controller.setResidueSelect(charEntry.iRes, true)
+      }
       let residue = this.soup.getResidueProxy(charEntry.iRes)
       this.controller.triggerAtom(residue.iAtom)
     }
-    this.draw()
   }
 
   click(event) {
@@ -1153,7 +1153,6 @@ class SequenceWidget extends CanvasWidget {
       if (!_.isNil(charEntry.iRes)) {
         let iRes = charEntry.iRes
         this.controller.selectSecondaryStructure(iRes)
-        this.draw()
       }
     } else if (this.pressSection === 'bottom') {
       let charEntry = this.charEntries[this.iCharPressed]
@@ -1166,7 +1165,6 @@ class SequenceWidget extends CanvasWidget {
         } else {
           this.controller.selectAdditionalResidue(iRes)
         }
-        this.draw()
       }
     }
   }

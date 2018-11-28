@@ -28,7 +28,7 @@ let defaultArgs = {
   isGrid: false,
   bCutoff: 0.5,
   isPlayable: false,
-  maxUpdateStep: 30,
+  maxUpdateStep: 50,
   msPerStep: 17,
   maxWaitStep: 30
 }
@@ -260,11 +260,6 @@ class EmbedJolecule {
         $('<div>')
           .attr('id', `${this.divId}-menu`)
           .addClass('jolecule-button')
-          .css({
-            'padding-top': '6px',
-            height: '24px',
-            'box-sizing': 'content-box'
-          })
       )
       this.menuWidget = new widgets.MenuWidget(
         this.soupWidget,

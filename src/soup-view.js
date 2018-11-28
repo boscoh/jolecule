@@ -262,7 +262,10 @@ function interpolateCameras(oldCamera, futureCamera, fraction) {
   let fullCameraUpRotation = glgeom
     .getUnitVectorRotation(partialRotatedCameraUp, futureCamera.up)
     .multiply(cameraDirRotation)
-  let cameraUpRotation = glgeom.getFractionRotation(fullCameraUpRotation, fraction)
+  let cameraUpRotation = glgeom.getFractionRotation(
+    fullCameraUpRotation,
+    fraction
+  )
 
   let focusDisp = futureCamera.focus
     .clone()
@@ -715,11 +718,29 @@ class SoupView {
     if (this.getMode() === 'chain') {
       this.currentView.show.transparent = true
     }
-    this.soup.clearSelectedResidues()
     this.targetView = null
+    this.isUpdateColors = true
     this.isUpdateObservers = true
     this.isChanged = true
     this.targetView = null
+  }
+
+  /**
+   * Function that goes from lowY to highY and back down to lowY in
+   * a sinusoidal form between 0 and maxTime
+   *
+   * @param time
+   * @param maxTime
+   * @param highY
+   * @param lowY
+   * @returns {*}
+   */
+  scalingFunction(time, maxTime, highY, lowY) {
+    return (
+      ((highY - lowY) / 2) *
+        (Math.sin(((2 * Math.PI) / maxTime) * time - (1 / 2) * Math.PI) + 1) +
+      lowY
+    )
   }
 
   animate(elapsedTime) {
@@ -728,8 +749,6 @@ class SoupView {
       if (this.targetView !== null) {
         this.setCurrentViewToTargetView()
         this.nUpdateStep = this.maxUpdateStep
-        this.maxTime = this.msPerStep * this.maxUpdateStep
-        this.elapsedTime = this.maxTime
       } else {
         if (this.isStartTargetAfterRender) {
           this.isChanged = true
@@ -740,26 +759,33 @@ class SoupView {
         } else if (this.animateState === 'rotate') {
           this.adjustCamera(0.0, 0.002, 0, 1)
         } else if (this.animateState === 'rock') {
-          let nStepRock = 18
+          let nStepRock = 36
+          let dAng = 0.002
+          let ang = dAng
+          let scale = this.scalingFunction(-this.nUpdateStep - nStepRock, 2*nStepRock, 10, 1)
+          ang *= scale
+          console.log('SoupView.animate rock', 4*nStepRock, this.nUpdateStep, scale, ang)
           if (this.nUpdateStep > -nStepRock) {
-            this.adjustCamera(0.0, 0.002, 0, 1)
+            this.adjustCamera(0.0, ang, 0, 1)
           } else if (this.nUpdateStep > -3 * nStepRock) {
-            this.adjustCamera(0.0, -0.002, 0, 1)
+            this.adjustCamera(0.0, -ang, 0, 1)
           } else if (this.nUpdateStep > -4 * nStepRock) {
-            this.adjustCamera(0.0, +0.002, 0, 1)
+            this.adjustCamera(0.0, +ang, 0, 1)
           } else {
             this.nUpdateStep = 0
           }
         }
       }
-    } else if (this.nUpdateStep >= 1) {
+    } else if (this.nUpdateStep >= 0) {
       if (this.targetView != null) {
         let view = this.currentView.clone()
         let nStepToGo = this.nUpdateStep
-        let fraction = 1.0 / nStepToGo
-        this.elapsedTime -= elapsedTime
-        let fraction2 = (this.maxUpdateStep - this.elapsedTime / this.msPerStep) / this.maxUpdateStep
-        // console.log('SoupView.animate', fraction, fraction2)
+        let scale = this.scalingFunction(nStepToGo, this.maxUpdateStep, 5, 1)
+        let fraction = 1.0 / nStepToGo * scale
+        if (fraction > 1) {
+          fraction = 1
+        }
+        console.log('SoupView.animate loop', nStepToGo, scale, fraction)
         view.setCamera(
           interpolateCameras(
             this.currentView.cameraParams,
@@ -915,7 +941,11 @@ class SoupViewController {
         iResLast = 0
       }
       this.clearSelectedResidues()
-      console.log('Controller.selectNextResidue', iResLast, residue.load(iResLast).label)
+      console.log(
+        'Controller.selectNextResidue',
+        iResLast,
+        residue.load(iResLast).label
+      )
       this.selectResidue(iResLast, true)
     } else {
       this.clearSelectedResidues()
@@ -926,7 +956,11 @@ class SoupViewController {
           break
         }
       }
-      console.log('Controller.selectNextResidue', iResSelect, residue.load(iResSelect).label)
+      console.log(
+        'Controller.selectNextResidue',
+        iResSelect,
+        residue.load(iResSelect).label
+      )
       this.selectResidue(iResSelect, true)
     }
     this.soupView.isUpdateSidechain = true
@@ -1342,6 +1376,7 @@ class SoupViewController {
           return
         }
       }
+      this.clearSelectedResidues()
       this.selectResidue(atom.iRes, true)
       this.setTargetViewByIAtom(iAtomHover)
     }

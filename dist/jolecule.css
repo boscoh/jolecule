@@ -86,7 +86,7 @@ a.jolecule-large-button:active {
     border-top: 2px solid #AAA;
 }
 .jolecule-embed-toolbar {
-    padding: 5px;
+    padding: 5px 5px 2px 5px;
     vertical-align: middle;
     background-color: #CCC;
     color: #666;

@@ -79447,7 +79447,7 @@ var defaultArgs = {
   isGrid: false,
   bCutoff: 0.5,
   isPlayable: false,
-  maxUpdateStep: 30,
+  maxUpdateStep: 50,
   msPerStep: 17,
   maxWaitStep: 30
 };
@@ -79706,11 +79706,7 @@ var EmbedJolecule = function () {
       }
 
       if (this.params.isEditable) {
-        this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-menu').addClass('jolecule-button').css({
-          'padding-top': '6px',
-          height: '24px',
-          'box-sizing': 'content-box'
-        }));
+        this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-menu').addClass('jolecule-button'));
         this.menuWidget = new _widgets2.default.MenuWidget(this.soupWidget, '#' + this.divId + '-menu');
 
         if (this.params.isResidueSelector) {
@@ -80498,7 +80494,6 @@ var SequenceWidget = function (_CanvasWidget) {
     _this5.isWaitForDoubleClick = false;
     _this5.charEntries = [];
     _this5.nChar = null;
-    _this5.iChar = null; // central character for automatic scaling
 
     _this5.iCharSeqStart = null;
     _this5.iCharSeqEnd = null;
@@ -80720,7 +80715,6 @@ var SequenceWidget = function (_CanvasWidget) {
       }
 
       this.nChar = this.charEntries.length;
-      this.iChar = this.nCharSeq / 2;
       this.iCharSeqStart = this.nPadChar;
       this.iCharStructStart = 0;
       this.nCharStruct = this.nChar;
@@ -81046,12 +81040,14 @@ var SequenceWidget = function (_CanvasWidget) {
       }
       var charEntry = this.charEntries[iChar];
       if (!_lodash2.default.isNil(charEntry.iRes)) {
-        this.controller.clearSelectedResidues();
-        this.controller.setResidueSelect(charEntry.iRes, true);
+        if (this.pressSection === 'top') {
+          this.controller.selectSecondaryStructure(charEntry.iRes);
+        } else {
+          this.controller.setResidueSelect(charEntry.iRes, true);
+        }
         var residue = this.soup.getResidueProxy(charEntry.iRes);
         this.controller.triggerAtom(residue.iAtom);
       }
-      this.draw();
     }
   }, {
     key: 'click',
@@ -81075,7 +81071,6 @@ var SequenceWidget = function (_CanvasWidget) {
         if (!_lodash2.default.isNil(charEntry.iRes)) {
           var iRes = charEntry.iRes;
           this.controller.selectSecondaryStructure(iRes);
-          this.draw();
         }
       } else if (this.pressSection === 'bottom') {
         var _charEntry3 = this.charEntries[this.iCharPressed];
@@ -81088,7 +81083,6 @@ var SequenceWidget = function (_CanvasWidget) {
           } else {
             this.controller.selectAdditionalResidue(_iRes);
           }
-          this.draw();
         }
       }
     }
@@ -88755,11 +88749,28 @@ var SoupView = function () {
       if (this.getMode() === 'chain') {
         this.currentView.show.transparent = true;
       }
-      this.soup.clearSelectedResidues();
       this.targetView = null;
+      this.isUpdateColors = true;
       this.isUpdateObservers = true;
       this.isChanged = true;
       this.targetView = null;
+    }
+
+    /**
+     * Function that goes from lowY to highY and back down to lowY in
+     * a sinusoidal form between 0 and maxTime
+     *
+     * @param time
+     * @param maxTime
+     * @param highY
+     * @param lowY
+     * @returns {*}
+     */
+
+  }, {
+    key: 'scalingFunction',
+    value: function scalingFunction(time, maxTime, highY, lowY) {
+      return (highY - lowY) / 2 * (Math.sin(2 * Math.PI / maxTime * time - 1 / 2 * Math.PI) + 1) + lowY;
     }
   }, {
     key: 'animate',
@@ -88769,8 +88780,6 @@ var SoupView = function () {
         if (this.targetView !== null) {
           this.setCurrentViewToTargetView();
           this.nUpdateStep = this.maxUpdateStep;
-          this.maxTime = this.msPerStep * this.maxUpdateStep;
-          this.elapsedTime = this.maxTime;
         } else {
           if (this.isStartTargetAfterRender) {
             this.isChanged = true;
@@ -88781,26 +88790,33 @@ var SoupView = function () {
           } else if (this.animateState === 'rotate') {
             this.adjustCamera(0.0, 0.002, 0, 1);
           } else if (this.animateState === 'rock') {
-            var nStepRock = 18;
+            var nStepRock = 36;
+            var dAng = 0.002;
+            var ang = dAng;
+            var scale = this.scalingFunction(-this.nUpdateStep - nStepRock, 2 * nStepRock, 10, 1);
+            ang *= scale;
+            console.log('SoupView.animate rock', 4 * nStepRock, this.nUpdateStep, scale, ang);
             if (this.nUpdateStep > -nStepRock) {
-              this.adjustCamera(0.0, 0.002, 0, 1);
+              this.adjustCamera(0.0, ang, 0, 1);
             } else if (this.nUpdateStep > -3 * nStepRock) {
-              this.adjustCamera(0.0, -0.002, 0, 1);
+              this.adjustCamera(0.0, -ang, 0, 1);
             } else if (this.nUpdateStep > -4 * nStepRock) {
-              this.adjustCamera(0.0, +0.002, 0, 1);
+              this.adjustCamera(0.0, +ang, 0, 1);
             } else {
               this.nUpdateStep = 0;
             }
           }
         }
-      } else if (this.nUpdateStep >= 1) {
+      } else if (this.nUpdateStep >= 0) {
         if (this.targetView != null) {
           var view = this.currentView.clone();
           var nStepToGo = this.nUpdateStep;
-          var fraction = 1.0 / nStepToGo;
-          this.elapsedTime -= elapsedTime;
-          var fraction2 = (this.maxUpdateStep - this.elapsedTime / this.msPerStep) / this.maxUpdateStep;
-          // console.log('SoupView.animate', fraction, fraction2)
+          var _scale = this.scalingFunction(nStepToGo, this.maxUpdateStep, 5, 1);
+          var fraction = 1.0 / nStepToGo * _scale;
+          if (fraction > 1) {
+            fraction = 1;
+          }
+          console.log('SoupView.animate loop', nStepToGo, _scale, fraction);
           view.setCamera(interpolateCameras(this.currentView.cameraParams, this.targetView.cameraParams, fraction));
           this.setCurrentView(view);
         }
@@ -89602,6 +89618,7 @@ var SoupViewController = function () {
             return;
           }
         }
+        this.clearSelectedResidues();
         this.selectResidue(atom.iRes, true);
         this.setTargetViewByIAtom(iAtomHover);
       }
@@ -101754,7 +101771,7 @@ exports = module.exports = __webpack_require__(134)();
 
 
 // module
-exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    text-align: center;\n    font-size: 12px;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: center;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-header {\n    border-bottom: 2px solid #AAA;\n}\n.jolecule-embed-footer {\n    border-top: 2px solid #AAA;\n}\n.jolecule-embed-toolbar {\n    padding: 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n", ""]);
+exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    text-align: center;\n    font-size: 12px;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: center;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-header {\n    border-bottom: 2px solid #AAA;\n}\n.jolecule-embed-footer {\n    border-top: 2px solid #AAA;\n}\n.jolecule-embed-toolbar {\n    padding: 5px 5px 2px 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n", ""]);
 
 // exports
 
