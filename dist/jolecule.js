@@ -79450,7 +79450,8 @@ var defaultArgs = {
   maxUpdateStep: 50,
   msPerStep: 17,
   maxWaitStep: 30,
-  isToolbarOnTop: false
+  isToolbarOnTop: false,
+  isMenu: false
 };
 
 var EmbedJolecule = function () {
@@ -79725,7 +79726,10 @@ var EmbedJolecule = function () {
 
       if (this.params.isEditable) {
         this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-menu').addClass('jolecule-button'));
-        this.menuWidget = new _widgets2.default.MenuWidget(this.soupWidget, '#' + this.divId + '-menu');
+
+        if (this.params.isMenu) {
+          this.menuWidget = new _widgets2.default.MenuWidget(this.soupWidget, '#' + this.divId + '-menu', !this.params.isToolbarOnTop);
+        }
 
         if (this.params.isResidueSelector) {
           this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-res-selector').addClass('jolecule-button').css({
@@ -79775,12 +79779,14 @@ var EmbedJolecule = function () {
 
       if (this.headerDiv.contents().length > 0) {
         this.headerDiv.css({
-          'border-bottom': '2px solid #AAA' });
+          'border-bottom': '2px solid #AAA'
+        });
       }
 
       if (this.footerDiv.contents().length > 0) {
         this.footerDiv.css({
-          'border-top': '2px solid #AAA' });
+          'border-top': '2px solid #AAA'
+        });
       }
     }
   }, {
@@ -81947,20 +81953,56 @@ var MenuWidget = function () {
   function MenuWidget(soupWidget, selector) {
     var _this12 = this;
 
+    var isPopAbove = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+
     _classCallCheck(this, MenuWidget);
 
     this.soupWidget = soupWidget;
     this.controller = soupWidget.controller;
+    this.isShowPanel = false;
+    this.isPopAbove = isPopAbove;
+
     this.div = (0, _jquery2.default)(selector).html('&#9776;').addClass('jolecule-button').on('click touch', function (e) {
+      _this12.isShowPanel = !_this12.isShowPanel;
       _this12.update();
       e.preventDefault();
     });
+    this.divId = this.div.attr('id');
+
+    this.panelDiv = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view');
+    this.panelDiv.css({
+      position: 'absolute',
+      'z-index': '1000',
+      border: '2px solid #AAA',
+      padding: '4px 5px'
+    });
+    this.panelDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-transparent">'));
+    this.div.parent().append(this.panelDiv);
+
+    this.widget = {};
+    this.widget.transparent = new ToggleOptionWidget(soupWidget, '#' + this.divId + '-transparent', 'transparent');
+
     this.soupWidget.addObserver(this);
+    this.update();
   }
 
   _createClass(MenuWidget, [{
     key: 'update',
-    value: function update() {}
+    value: function update() {
+      this.panelDiv.css('display', this.isShowPanel ? 'block' : 'none');
+      var position = this.div.position();
+      if (this.isPopAbove) {
+        this.panelDiv.css({
+          top: position.top - this.panelDiv.outerHeight() - 4,
+          left: position.left - 7
+        });
+      } else {
+        this.panelDiv.css({
+          top: position.top + this.div.outerHeight() + 4,
+          left: position.left - 7
+        });
+      }
+    }
   }]);
 
   return MenuWidget;
@@ -101798,7 +101840,7 @@ exports = module.exports = __webpack_require__(134)();
 
 
 // module
-exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    text-align: center;\n    font-size: 12px;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: center;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-toolbar {\n    padding: 5px 5px 2px 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n", ""]);
+exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    font-family: Helvetica, Arial, sans-serif;\n    text-align: center;\n    font-size: 12px;\n    line-height: 1.5em;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: middle;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-toolbar {\n    padding: 5px 5px 2px 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n", ""]);
 
 // exports
 

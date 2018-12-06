@@ -1112,7 +1112,11 @@ class SequenceWidget extends CanvasWidget {
   }
 
   doubleclick(event) {
-    console.log('SequenceWidget.doubleclick', this.pressSection, this.iCharPressed)
+    console.log(
+      'SequenceWidget.doubleclick',
+      this.pressSection,
+      this.iCharPressed
+    )
     this.getPointer(event)
     let iChar = null
     if (this.pressSection === 'bottom') {
@@ -1195,7 +1199,11 @@ class SequenceWidget extends CanvasWidget {
       } else {
         this.iCharPressed = this.iCharFromXStruct(this.pointerX)
       }
-      console.log('SequenceWidget.mousedown new press', this.pressSection, this.iCharPressed)
+      console.log(
+        'SequenceWidget.mousedown new press',
+        this.pressSection,
+        this.iCharPressed
+      )
       this.isWaitForDoubleClick = true
     } else if (elapsedTime < 600) {
       this.doubleclick(event)
@@ -1864,19 +1872,58 @@ class ResidueSelectorWidget {
 }
 
 class MenuWidget {
-  constructor(soupWidget, selector) {
+  constructor(soupWidget, selector, isPopAbove = true) {
     this.soupWidget = soupWidget
     this.controller = soupWidget.controller
+    this.isShowPanel = false
+    this.isPopAbove = isPopAbove
+
     this.div = $(selector)
       .html('&#9776;')
       .addClass('jolecule-button')
       .on('click touch', e => {
+        this.isShowPanel = !this.isShowPanel
         this.update()
         e.preventDefault()
       })
+    this.divId = this.div.attr('id')
+
+    this.panelDiv = $('<div>').addClass('jolecule-embed-view')
+    this.panelDiv.css({
+      position: 'absolute',
+      'z-index': '1000',
+      border: '2px solid #AAA',
+      padding: '4px 5px'
+    })
+    this.panelDiv.append($(`<div id="${this.divId}-transparent">`))
+    this.div.parent().append(this.panelDiv)
+
+    this.widget = {}
+    this.widget.transparent = new ToggleOptionWidget(
+      soupWidget,
+      `#${this.divId}-transparent`,
+      'transparent'
+    )
+
     this.soupWidget.addObserver(this)
+    this.update()
   }
-  update() {}
+
+  update() {
+    this.panelDiv.css('display', this.isShowPanel ? 'block' : 'none')
+    let position = this.div.position()
+    if (this.isPopAbove) {
+      this.panelDiv.css({
+        top: position.top - this.panelDiv.outerHeight() - 4,
+        left: position.left - 7
+      })
+    } else {
+      this.panelDiv.css({
+        top: position.top + this.div.outerHeight() + 4,
+        left: position.left - 7
+      })
+    }
+  }
 }
 
 class ToggleWidget {

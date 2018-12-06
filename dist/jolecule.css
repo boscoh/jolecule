@@ -3,15 +3,17 @@
     margin-right: 2px;
     margin-bottom: 2px;
     padding: 10px 7px;
+    font-family: Helvetica, Arial, sans-serif;
     text-align: center;
     font-size: 12px;
+    line-height: 1.5em;
     font-weight: normal;
     letter-spacing: 0.1em;
     cursor: pointer;
     box-sizing: content-box;
     height: 20px;
     user-select: none;
-    vertical-align: center;
+    vertical-align: middle;
 }
 .jolecule-button,
 a.jolecule-button input a,
@@ -75,7 +77,7 @@ a.jolecule-large-button:active {
 }
 .jolecule-textbox {
     font-size: 12px;
-    font-family: Helvetica, sans-serif;
+    font-family: Helvetica, Arial, sans-serif;
     letter-spacing: 0.1em;
     line-height: 1em;
 }
@@ -105,7 +107,7 @@ a.jolecule-large-button:active {
     background-color: #CCC;
     color: #777;
     font-size: 12px;
-    font-family: Helvetica, sans-serif;
+    font-family: Helvetica, Arial, sans-serif;
     letter-spacing: 0.05em;
     line-height: 1em;
 }

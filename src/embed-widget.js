@@ -31,7 +31,8 @@ let defaultArgs = {
   maxUpdateStep: 50,
   msPerStep: 17,
   maxWaitStep: 30,
-  isToolbarOnTop: false
+  isToolbarOnTop: false,
+  isMenu: false
 }
 
 class EmbedJolecule {
@@ -281,10 +282,14 @@ class EmbedJolecule {
           .attr('id', `${this.divId}-menu`)
           .addClass('jolecule-button')
       )
-      this.menuWidget = new widgets.MenuWidget(
-        this.soupWidget,
-        `#${this.divId}-menu`
-      )
+
+      if (this.params.isMenu) {
+        this.menuWidget = new widgets.MenuWidget(
+          this.soupWidget,
+          `#${this.divId}-menu`,
+          !this.params.isToolbarOnTop
+        )
+      }
 
       if (this.params.isResidueSelector) {
         this.toolbarDiv.append(
@@ -377,12 +382,14 @@ class EmbedJolecule {
 
     if (this.headerDiv.contents().length > 0) {
       this.headerDiv.css({
-        'border-bottom': '2px solid #AAA'})
+        'border-bottom': '2px solid #AAA'
+      })
     }
 
     if (this.footerDiv.contents().length > 0) {
       this.footerDiv.css({
-        'border-top': '2px solid #AAA'})
+        'border-top': '2px solid #AAA'
+      })
     }
   }
 
