@@ -759,12 +759,10 @@ class SoupView {
         } else if (this.animateState === 'rotate') {
           this.adjustCamera(0.0, 0.002, 0, 1)
         } else if (this.animateState === 'rock') {
-          let nStepRock = 36
-          let dAng = 0.002
-          let ang = dAng
-          let scale = this.scalingFunction(-this.nUpdateStep - nStepRock, 2*nStepRock, 10, 1)
-          ang *= scale
-          console.log('SoupView.animate rock', 4*nStepRock, this.nUpdateStep, scale, ang)
+          let nStepRock = 18
+          let scale = this.scalingFunction(-this.nUpdateStep - nStepRock, 2*nStepRock, 4, 1)
+          let dAng = 0.001
+          let ang = dAng * scale
           if (this.nUpdateStep > -nStepRock) {
             this.adjustCamera(0.0, ang, 0, 1)
           } else if (this.nUpdateStep > -3 * nStepRock) {
@@ -776,16 +774,15 @@ class SoupView {
           }
         }
       }
-    } else if (this.nUpdateStep >= 0) {
+    } else if (this.nUpdateStep > 0) {
       if (this.targetView != null) {
         let view = this.currentView.clone()
         let nStepToGo = this.nUpdateStep
-        let scale = this.scalingFunction(nStepToGo, this.maxUpdateStep, 5, 1)
+        let scale = this.scalingFunction(nStepToGo, this.maxUpdateStep, 4, 1)
         let fraction = 1.0 / nStepToGo * scale
         if (fraction > 1) {
           fraction = 1
         }
-        console.log('SoupView.animate loop', nStepToGo, scale, fraction)
         view.setCamera(
           interpolateCameras(
             this.currentView.cameraParams,

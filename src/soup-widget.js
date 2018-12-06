@@ -565,12 +565,14 @@ class SoupWidget extends WebglWidget {
         // cancel any down/up motion
         this.isClickInitiated = false
 
-        if (rightMouse || event.shiftKey || event.ctrlKey) {
+        if (rightMouse || event.ctrlKey) {
           zRotationAngle = this.mouseT - this.saveMouseT
 
           if (this.mouseR > 0.0) {
             zoomRatio = this.saveMouseR / this.mouseR
           }
+        } else if (event.shiftKey) {
+          zRotationAngle = this.mouseT - this.saveMouseT
         } else {
           yRotationAngle = v3.degToRad(diffX)
           xRotationAngle = v3.degToRad(diffY)

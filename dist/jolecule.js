@@ -79449,7 +79449,8 @@ var defaultArgs = {
   isPlayable: false,
   maxUpdateStep: 50,
   msPerStep: 17,
-  maxWaitStep: 30
+  maxWaitStep: 30,
+  isToolbarOnTop: false
 };
 
 var EmbedJolecule = function () {
@@ -79636,20 +79637,37 @@ var EmbedJolecule = function () {
       this.div.append(this.headerDiv);
       this.bodyDiv = (0, _jquery2.default)('<div>').attr('id', this.divId + '-jolecule-soup-display').addClass('jolecule-embed-body');
       this.div.append(this.bodyDiv);
-      this.footerDiv = (0, _jquery2.default)('<div>').addClass('jolecule-embed-footer');
+      this.footerDiv = (0, _jquery2.default)('<div>').addClass('jolecule-embed-footer').css({
+        display: 'flex',
+        'flex-wrap': 'wrap',
+        'flex-direction': 'row'
+      });
       this.div.append(this.footerDiv);
 
       var isToolbar = this.params.isPlayable || this.params.isEditable || this.params.isExtraEditable;
       if (isToolbar) {
         this.toolbarDiv = (0, _jquery2.default)('<div>').css({
+          flex: '1',
           display: 'flex',
           'flex-wrap': 'wrap',
           'flex-direction': 'row'
         }).addClass('jolecule-embed-toolbar');
-        this.headerDiv.append(this.toolbarDiv);
+        if (this.params.isToolbarOnTop) {
+          this.headerDiv.append(this.toolbarDiv);
+        } else {
+          this.footerDiv.append(this.toolbarDiv);
+        }
       }
 
-      this.footerDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-sequence-widget'));
+      this.sequenceBarDiv = (0, _jquery2.default)('<div>').attr('id', this.divId + '-sequence-widget').css({
+        flex: '1'
+      });
+      if (this.params.isToolbarOnTop) {
+        this.footerDiv.append(this.sequenceBarDiv);
+      } else {
+        this.headerDiv.append(this.sequenceBarDiv);
+      }
+
       this.soupWidget = new _soupWidget.SoupWidget(this.soupView, '#' + this.divId + '-jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
 
       if (this.params.isSequenceBar) {
@@ -79753,6 +79771,16 @@ var EmbedJolecule = function () {
 
         this.toolbarDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-transparent">'));
         this.widget.transparent = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-transparent', 'transparent');
+      }
+
+      if (this.headerDiv.contents().length > 0) {
+        this.headerDiv.css({
+          'border-bottom': '2px solid #AAA' });
+      }
+
+      if (this.footerDiv.contents().length > 0) {
+        this.footerDiv.css({
+          'border-top': '2px solid #AAA' });
       }
     }
   }, {
@@ -88790,12 +88818,10 @@ var SoupView = function () {
           } else if (this.animateState === 'rotate') {
             this.adjustCamera(0.0, 0.002, 0, 1);
           } else if (this.animateState === 'rock') {
-            var nStepRock = 36;
-            var dAng = 0.002;
-            var ang = dAng;
-            var scale = this.scalingFunction(-this.nUpdateStep - nStepRock, 2 * nStepRock, 10, 1);
-            ang *= scale;
-            console.log('SoupView.animate rock', 4 * nStepRock, this.nUpdateStep, scale, ang);
+            var nStepRock = 18;
+            var scale = this.scalingFunction(-this.nUpdateStep - nStepRock, 2 * nStepRock, 4, 1);
+            var dAng = 0.001;
+            var ang = dAng * scale;
             if (this.nUpdateStep > -nStepRock) {
               this.adjustCamera(0.0, ang, 0, 1);
             } else if (this.nUpdateStep > -3 * nStepRock) {
@@ -88807,16 +88833,15 @@ var SoupView = function () {
             }
           }
         }
-      } else if (this.nUpdateStep >= 0) {
+      } else if (this.nUpdateStep > 0) {
         if (this.targetView != null) {
           var view = this.currentView.clone();
           var nStepToGo = this.nUpdateStep;
-          var _scale = this.scalingFunction(nStepToGo, this.maxUpdateStep, 5, 1);
+          var _scale = this.scalingFunction(nStepToGo, this.maxUpdateStep, 4, 1);
           var fraction = 1.0 / nStepToGo * _scale;
           if (fraction > 1) {
             fraction = 1;
           }
-          console.log('SoupView.animate loop', nStepToGo, _scale, fraction);
           view.setCamera(interpolateCameras(this.currentView.cameraParams, this.targetView.cameraParams, fraction));
           this.setCurrentView(view);
         }
@@ -93070,12 +93095,14 @@ var SoupWidget = function (_WebglWidget) {
           // cancel any down/up motion
           this.isClickInitiated = false;
 
-          if (rightMouse || event.shiftKey || event.ctrlKey) {
+          if (rightMouse || event.ctrlKey) {
             zRotationAngle = this.mouseT - this.saveMouseT;
 
             if (this.mouseR > 0.0) {
               zoomRatio = this.saveMouseR / this.mouseR;
             }
+          } else if (event.shiftKey) {
+            zRotationAngle = this.mouseT - this.saveMouseT;
           } else {
             yRotationAngle = _v2.default.degToRad(diffX);
             xRotationAngle = _v2.default.degToRad(diffY);
@@ -101771,7 +101798,7 @@ exports = module.exports = __webpack_require__(134)();
 
 
 // module
-exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    text-align: center;\n    font-size: 12px;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: center;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-header {\n    border-bottom: 2px solid #AAA;\n}\n.jolecule-embed-footer {\n    border-top: 2px solid #AAA;\n}\n.jolecule-embed-toolbar {\n    padding: 5px 5px 2px 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n", ""]);
+exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    text-align: center;\n    font-size: 12px;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: center;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-toolbar {\n    padding: 5px 5px 2px 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n", ""]);
 
 // exports
 
@@ -103315,6 +103342,9 @@ var AquariaAlignment = function () {
   }, {
     key: 'getSelectionText',
     value: function getSelectionText() {
+      if (_lodash2.default.isNil(this.embedJolecule)) {
+        return '';
+      }
       var soup = this.embedJolecule.soup;
       var residue = soup.getResidueProxy();
 
@@ -103588,6 +103618,7 @@ var AquariaAlignment = function () {
       if (_lodash2.default.isNil(result)) {
         this.selectNewChain(null, null, null);
       } else {
+        console.log('AquariaAlignment.update', result, this.data.pdb_chain);
         var iChain = _lodash2.default.findIndex(this.data.pdb_chain, function (c) {
           return c === result.chain;
         });

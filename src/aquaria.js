@@ -384,6 +384,9 @@ class AquariaAlignment {
   }
 
   getSelectionText() {
+    if (_.isNil(this.embedJolecule)) {
+      return ''
+    }
     let soup = this.embedJolecule.soup
     let residue = soup.getResidueProxy()
 
@@ -534,6 +537,7 @@ class AquariaAlignment {
     if (_.isNil(result)) {
       this.selectNewChain(null, null, null)
     } else {
+      console.log('AquariaAlignment.update', result, this.data.pdb_chain)
       let iChain = _.findIndex(this.data.pdb_chain, c => c === result.chain)
       if (iChain >= 0) {
         this.seqId = this.data.sequences[iChain].primary_accession

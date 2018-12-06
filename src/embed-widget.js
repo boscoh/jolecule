@@ -30,7 +30,8 @@ let defaultArgs = {
   isPlayable: false,
   maxUpdateStep: 50,
   msPerStep: 17,
-  maxWaitStep: 30
+  maxWaitStep: 30,
+  isToolbarOnTop: false
 }
 
 class EmbedJolecule {
@@ -141,7 +142,13 @@ class EmbedJolecule {
       .attr('id', `${this.divId}-jolecule-soup-display`)
       .addClass('jolecule-embed-body')
     this.div.append(this.bodyDiv)
-    this.footerDiv = $('<div>').addClass('jolecule-embed-footer')
+    this.footerDiv = $('<div>')
+      .addClass('jolecule-embed-footer')
+      .css({
+        display: 'flex',
+        'flex-wrap': 'wrap',
+        'flex-direction': 'row'
+      })
     this.div.append(this.footerDiv)
 
     let isToolbar =
@@ -151,17 +158,30 @@ class EmbedJolecule {
     if (isToolbar) {
       this.toolbarDiv = $('<div>')
         .css({
+          flex: '1',
           display: 'flex',
           'flex-wrap': 'wrap',
           'flex-direction': 'row'
         })
         .addClass('jolecule-embed-toolbar')
-      this.headerDiv.append(this.toolbarDiv)
+      if (this.params.isToolbarOnTop) {
+        this.headerDiv.append(this.toolbarDiv)
+      } else {
+        this.footerDiv.append(this.toolbarDiv)
+      }
     }
 
-    this.footerDiv.append(
-      $('<div>').attr('id', `${this.divId}-sequence-widget`)
-    )
+    this.sequenceBarDiv = $('<div>')
+      .attr('id', `${this.divId}-sequence-widget`)
+      .css({
+        flex: '1'
+      })
+    if (this.params.isToolbarOnTop) {
+      this.footerDiv.append(this.sequenceBarDiv)
+    } else {
+      this.headerDiv.append(this.sequenceBarDiv)
+    }
+
     this.soupWidget = new SoupWidget(
       this.soupView,
       `#${this.divId}-jolecule-soup-display`,
@@ -353,6 +373,16 @@ class EmbedJolecule {
         `#${this.divId}-transparent`,
         'transparent'
       )
+    }
+
+    if (this.headerDiv.contents().length > 0) {
+      this.headerDiv.css({
+        'border-bottom': '2px solid #AAA'})
+    }
+
+    if (this.footerDiv.contents().length > 0) {
+      this.footerDiv.css({
+        'border-top': '2px solid #AAA'})
     }
   }
 
