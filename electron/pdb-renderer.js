@@ -125,6 +125,7 @@ $download.append($text)
 $download.append('&nbsp;')
 $download.append($button)
 $button.click(() => {
+  joleculeInstance.clear()
   let dataServer = jolecule.makeDataServer($text.val())
   joleculeInstance.asyncAddDataServer(dataServer)
 })

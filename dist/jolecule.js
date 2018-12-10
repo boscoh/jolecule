@@ -79725,9 +79725,9 @@ var EmbedJolecule = function () {
       }
 
       if (this.params.isEditable) {
-        this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-menu').addClass('jolecule-button'));
-
         if (this.params.isMenu) {
+          this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-menu').addClass('jolecule-button'));
+
           this.menuWidget = new _widgets2.default.MenuWidget(this.soupWidget, '#' + this.divId + '-menu', !this.params.isToolbarOnTop);
         }
 
