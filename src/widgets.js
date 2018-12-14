@@ -159,6 +159,7 @@ class CanvasWidget {
   update() {}
 
   resize() {
+    console.log('CanvasWidget.resize')
     this.canvasDom.width = this.width()
     this.canvasDom.height = this.height()
   }
@@ -633,6 +634,7 @@ class SequenceWidget extends CanvasWidget {
 
   resize() {
     super.resize()
+    console.log('SequenceWidget.resize')
     this.div.css('width', this.parentDiv.width())
   }
 

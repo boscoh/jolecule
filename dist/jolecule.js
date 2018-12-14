@@ -79661,7 +79661,7 @@ var EmbedJolecule = function () {
       }
 
       this.sequenceBarDiv = (0, _jquery2.default)('<div>').attr('id', this.divId + '-sequence-widget').css({
-        flex: '1'
+        width: '100%'
       });
       if (this.params.isToolbarOnTop) {
         this.footerDiv.append(this.sequenceBarDiv);
@@ -80035,6 +80035,7 @@ var CanvasWidget = function () {
   }, {
     key: 'resize',
     value: function resize() {
+      console.log('CanvasWidget.resize');
       this.canvasDom.width = this.width();
       this.canvasDom.height = this.height();
     }
@@ -80559,6 +80560,7 @@ var SequenceWidget = function (_CanvasWidget) {
     key: 'resize',
     value: function resize() {
       _get(SequenceWidget.prototype.__proto__ || Object.getPrototypeOf(SequenceWidget.prototype), 'resize', this).call(this);
+      console.log('SequenceWidget.resize');
       this.div.css('width', this.parentDiv.width());
     }
   }, {

@@ -175,7 +175,7 @@ class EmbedJolecule {
     this.sequenceBarDiv = $('<div>')
       .attr('id', `${this.divId}-sequence-widget`)
       .css({
-        flex: '1'
+        width: '100%'
       })
     if (this.params.isToolbarOnTop) {
       this.footerDiv.append(this.sequenceBarDiv)
