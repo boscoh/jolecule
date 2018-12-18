@@ -567,7 +567,7 @@ class Soup {
   }
 
   parseSecondaryStructureLines(pdbLines) {
-    this.assignResidueProperties()
+    this.assignResidueProperties(this.iStructure)
 
     this.parsedSecondaryStructure = false
 
@@ -581,7 +581,7 @@ class Soup {
         let chain = line.substr(19, 1)
         let resNumStart = parseInt(line.substr(21, 4))
         let resNumEnd = parseInt(line.substr(33, 4))
-        for (let iRes of this.findResidueIndices(chain, resNumStart)) {
+        for (let iRes of this.findResidueIndices(this.iStructure, chain, resNumStart)) {
           residue.iRes = iRes
           while (residue.resNum <= resNumEnd) {
             residue.ss = 'H'
@@ -595,7 +595,7 @@ class Soup {
         let chain = line.substr(21, 1)
         let resNumStart = parseInt(line.substr(22, 4))
         let resNumEnd = parseInt(line.substr(33, 4))
-        for (let iRes of this.findResidueIndices(chain, resNumStart)) {
+        for (let iRes of this.findResidueIndices(this.iStructure, chain, resNumStart)) {
           residue.iRes = iRes
           while (residue.resNum <= resNumEnd) {
             residue.ss = 'E'
@@ -792,22 +792,26 @@ class Soup {
     return null
   }
 
-  findResidueIndices(chain, resNum) {
+  findResidueIndices(iStructure, chain, resNum) {
     let result = []
     let residue = this.getResidueProxy()
     for (let iRes of _.range(this.getResidueCount())) {
       residue.iRes = iRes
-      if (residue.chain === chain && residue.resNum === resNum) {
+      if (residue.iStructure === iStructure && residue.chain === chain && residue.resNum === resNum) {
         result.push(iRes)
       }
     }
     return result
   }
 
-  assignResidueProperties() {
+  assignResidueProperties(iStructure) {
     let res = this.getResidueProxy()
     for (let iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
       res.iRes = iRes
+
+      if (res.iStructure !== iStructure) {
+        continue
+      }
 
       if (_.includes(data.proteinResTypes, res.resType)) {
         res.iAtom = res.getIAtom('CA')
