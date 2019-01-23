@@ -105,7 +105,6 @@ class SpaceHash {
   }
 
   getVerticesNearPoint(vertex, iVertex) {
-    console.log('SpatialHash.getClosePairs')
     let pairs = []
     this.pushCellOfSpace(pairs, vertex, iVertex)
     return pairs

@@ -204,7 +204,7 @@ export default {
   },
   methods: {
     async deleteProtein (i) {
-      this.joleculeWidget.display.deleteStructure(i)
+      this.joleculeWidget.soupWidget.deleteStructure(i)
       this.joleculeWidget.controller.zoomOut()
     },
     async toggleOption (option) {

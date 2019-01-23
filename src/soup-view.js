@@ -760,7 +760,12 @@ class SoupView {
           this.adjustCamera(0.0, 0.002, 0, 1)
         } else if (this.animateState === 'rock') {
           let nStepRock = 18
-          let scale = this.scalingFunction(-this.nUpdateStep - nStepRock, 2*nStepRock, 4, 1)
+          let scale = this.scalingFunction(
+            -this.nUpdateStep - nStepRock,
+            2 * nStepRock,
+            4,
+            1
+          )
           let dAng = 0.001
           let ang = dAng * scale
           if (this.nUpdateStep > -nStepRock) {
@@ -779,7 +784,7 @@ class SoupView {
         let view = this.currentView.clone()
         let nStepToGo = this.nUpdateStep
         let scale = this.scalingFunction(nStepToGo, this.maxUpdateStep, 4, 1)
-        let fraction = 1.0 / nStepToGo * scale
+        let fraction = (1.0 / nStepToGo) * scale
         if (fraction > 1) {
           fraction = 1
         }
@@ -1057,28 +1062,50 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
-  selectSecondaryStructure(iCenterRes) {
-    console.log('Controller.selectSecondaryStructure')
-    this.clearSelectedResidues()
+  getResListOfSs(iCenterRes) {
     let res = this.soup.getResidueProxy(iCenterRes)
     let ss = res.ss
     let nRes = this.soup.getResidueCount()
+    let result = []
     for (let iRes = iCenterRes; iRes >= 0; iRes -= 1) {
       res.load(iRes)
       if (res.ss !== ss) {
         break
       }
-      res.selected = true
+      result.push(iRes)
     }
     for (let iRes = iCenterRes + 1; iRes < nRes; iRes += 1) {
       res.load(iRes)
       if (res.ss !== ss) {
         break
       }
-      res.selected = true
+      result.push(iRes)
+    }
+    return result
+  }
+
+  selectSecondaryStructure(iCenterRes, isSelect = true) {
+    this.clearSelectedResidues()
+    let resList = this.getResListOfSs(iCenterRes)
+    let res = this.soup.getResidueProxy(iCenterRes)
+    for (let iRes of resList) {
+      res.load(iRes).selected = isSelect
     }
     this.soupView.isUpdateColors = true
     this.soupView.isChanged = true
+  }
+
+  toggleSecondaryStructure(iCenterRes) {
+    let resList = this.getResListOfSs(iCenterRes)
+    let res = this.soup.getResidueProxy(iCenterRes)
+    let isNoneSelected = _.every(
+      _.map(resList, iRes => !res.load(iRes).selected)
+    )
+    if (isNoneSelected) {
+      this.selectSecondaryStructure(iCenterRes, true)
+    } else {
+      this.selectSecondaryStructure(iCenterRes, false)
+    }
   }
 
   toggleSelectedSidechains() {
@@ -1296,8 +1323,166 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
+  /**
+   * Currently objects involving deleted atoms but does not
+   * yet renumber annotations for changed indices
+   *
+   * @param iStructure
+   */
   deleteStructure(iStructure) {
-    this.soup.deleteStructure(iStructure)
+    let atom = this.soup.getAtomProxy()
+    let res = this.soup.getResidueProxy()
+
+    let iAtomStart = null
+    let iAtomEnd = null
+    let iResStart = null
+    let iResEnd = null
+    let iTraceStart = null
+    let iTraceEnd = null
+
+    for (let iAtom = 0; iAtom < this.soup.getAtomCount(); iAtom += 1) {
+      atom.iAtom = iAtom
+      res.iRes = atom.iRes
+      if (res.iStructure === iStructure) {
+        if (iAtomStart === null) {
+          iAtomStart = iAtom
+        }
+        iAtomEnd = iAtom + 1
+        if (iResStart === null) {
+          iResStart = atom.iRes
+        }
+        iResEnd = atom.iRes + 1
+      }
+    }
+
+    for (let iTrace of _.range(this.soup.traces.length)) {
+      let trace = this.soup.traces[iTrace]
+      for (let iRes of trace.indices) {
+        if (isInInterval(iRes, iResStart, iResEnd)) {
+          if (_.isNil(iTraceStart)) {
+            iTraceStart = iTrace
+            iTraceEnd = iTrace + 1
+          } else {
+            iTraceEnd = iTrace + 1
+          }
+        }
+      }
+    }
+
+    function isInInterval(i, iStart, iEnd) {
+      return i >= iStart && i < iEnd
+    }
+
+    function patchInterval(i, iStart, iEnd) {
+      return i >= iEnd ? i - (iEnd - iStart) : i
+    }
+
+    function resolveView(view) {
+      _.remove(
+        view.selectedTraces,
+        _.partial(isInInterval, iTraceStart, iTraceEnd)
+      )
+      view.selectedTraces = _.map(
+        view.selectedTraces,
+        _.partial(patchInterval, iTraceStart, iTraceEnd)
+      )
+
+      _.remove(
+        view.distances,
+        d =>
+          isInInterval(d.i_atom1, iAtomStart, iAtomEnd) ||
+          isInInterval(d.i_atom2, iAtomStart, iAtomEnd)
+      )
+      for (let d of view.distances) {
+        d.i_atom1 = patchInterval(d.i_atom1, iAtomStart, iAtomEnd)
+        d.i_atom2 = patchInterval(d.i_atom2, iAtomStart, iAtomEnd)
+      }
+
+      _.remove(view.selected, iRes => isInInterval(iRes, iResStart, iResEnd))
+      view.selected = _.map(view.selected, iRes =>
+        patchInterval(iRes, iResStart, iResEnd)
+      )
+
+      _.remove(view.labels, l => isInInterval(l.iAtom, iAtomStart, iAtomEnd))
+      for (let l of view.labels) {
+        l.iAtom = patchInterval(l.iAtom, iAtomStart, iAtomEnd)
+      }
+    }
+
+    _.remove(
+      this.soup.selectedTraces,
+      _.partial(isInInterval, iTraceStart, iTraceEnd)
+    )
+    this.soup.selectedTraces = _.map(
+      this.soup.selectedTraces,
+      _.partial(patchInterval, iTraceStart, iTraceEnd)
+    )
+
+    resolveView(this.soupView.currentView)
+    for (let view of this.soupView.savedViews) {
+      resolveView(view)
+    }
+
+    let nAtomOffset = iAtomEnd - iAtomStart
+    let nAtom = this.soup.getAtomCount()
+    let nAtomNew = nAtom - nAtomOffset
+    let nAtomCopy = nAtom - iAtomEnd
+
+    let nResOffset = iResEnd - iResStart
+    let nRes = this.soup.getResidueCount()
+    let nResNew = nRes - nResOffset
+    let nResCopy = nRes - iResEnd
+
+    this.soup.atomStore.copyWithin(iAtomStart, iAtomEnd, nAtomCopy)
+    this.soup.atomStore.count -= nAtomOffset
+
+    for (let iAtom = 0; iAtom < nAtomNew; iAtom += 1) {
+      atom.iAtom = iAtom
+      if (atom.iRes >= iResStart) {
+        atom.iRes -= nResOffset
+      }
+    }
+
+    for (let iRes = 0; iRes < nResNew; iRes += 1) {
+      if (iRes >= iResStart) {
+        let iResOld = iRes + nResOffset
+        if (iResOld in this.soup.residueNormal) {
+          this.soup.residueNormal[iRes] = this.soup.residueNormal[
+            iResOld
+          ].clone()
+        }
+      }
+    }
+
+    for (let iRes = nResNew; iRes < nRes; iRes += 1) {
+      delete this.soup.residueNormal[iRes]
+    }
+
+    this.soup.residueStore.copyWithin(iResStart, iResEnd, nResCopy)
+    this.soup.residueStore.count -= nResOffset
+    this.soup.resIds.splice(iResStart, nResOffset)
+
+    for (let iRes = 0; iRes < nResNew; iRes += 1) {
+      res.iRes = iRes
+      if (res.iAtom >= iAtomStart) {
+        res.iAtom -= nAtomOffset
+        atom.iAtom = res.iAtom
+      }
+      if (this.soup.residueStore.atomOffset[iRes] >= iAtomStart) {
+        this.soup.residueStore.atomOffset[iRes] -= nAtomOffset
+      }
+      if (res.iStructure >= iStructure) {
+        res.iStructure -= 1
+      }
+    }
+
+    this.soup.structureIds.splice(iStructure, 1)
+    this.soup.iStructure -= 1
+
+    this.soup.calcBondsStrategic()
+
+    this.soup.calculateTracesForRibbons()
+
     if (this.soup.isEmpty()) {
       this.soupView.savedViews.length = 0
       for (let id of _.keys(this.soupView.savedViewsByViewId)) {

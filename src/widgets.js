@@ -159,7 +159,6 @@ class CanvasWidget {
   update() {}
 
   resize() {
-    console.log('CanvasWidget.resize')
     this.canvasDom.width = this.width()
     this.canvasDom.height = this.height()
   }
@@ -634,7 +633,6 @@ class SequenceWidget extends CanvasWidget {
 
   resize() {
     super.resize()
-    console.log('SequenceWidget.resize')
     this.div.css('width', this.parentDiv.width())
   }
 
@@ -1140,8 +1138,6 @@ class SequenceWidget extends CanvasWidget {
   }
 
   click(event) {
-    console.log('SequenceWidget.click', this.pressSection, this.iCharPressed)
-
     let iChar = null
     if (this.pressSection === 'bottom') {
       // mouse event in sequence bar
@@ -1158,7 +1154,7 @@ class SequenceWidget extends CanvasWidget {
       let charEntry = this.charEntries[this.iCharPressed]
       if (!_.isNil(charEntry.iRes)) {
         let iRes = charEntry.iRes
-        this.controller.selectSecondaryStructure(iRes)
+        this.controller.toggleSecondaryStructure(iRes)
       }
     } else if (this.pressSection === 'bottom') {
       let charEntry = this.charEntries[this.iCharPressed]
@@ -1201,11 +1197,6 @@ class SequenceWidget extends CanvasWidget {
       } else {
         this.iCharPressed = this.iCharFromXStruct(this.pointerX)
       }
-      console.log(
-        'SequenceWidget.mousedown new press',
-        this.pressSection,
-        this.iCharPressed
-      )
       this.isWaitForDoubleClick = true
     } else if (elapsedTime < 600) {
       this.doubleclick(event)
@@ -1897,14 +1888,29 @@ class MenuWidget {
       border: '2px solid #AAA',
       padding: '4px 5px'
     })
-    this.panelDiv.append($(`<div id="${this.divId}-transparent">`))
     this.div.parent().append(this.panelDiv)
 
     this.widget = {}
+
+    this.panelDiv.append($(`<div id="${this.divId}-transparent">`))
     this.widget.transparent = new ToggleOptionWidget(
       soupWidget,
       `#${this.divId}-transparent`,
       'transparent'
+    )
+
+    this.panelDiv.append($(`<div id="${this.divId}-sphere">`))
+    this.widget.sphere = new ToggleOptionWidget(
+      soupWidget,
+      `#${this.divId}-sphere`,
+      'sphere'
+    )
+
+    this.panelDiv.append($(`<div id="${this.divId}-backbone">`))
+    this.widget.backbone = new ToggleOptionWidget(
+      soupWidget,
+      `#${this.divId}-backbone`,
+      'backbone'
     )
 
     this.soupWidget.addObserver(this)

@@ -462,7 +462,6 @@ class FullPageWidget {
       let c = String.fromCharCode(event.keyCode).toUpperCase()
       if (c === 'V') {
         this.viewPanelList.saveCurrentView()
-        return
       } else if (c === 'K' || event.keyCode === 37) {
         this.controller.setTargetToPrevResidue()
       } else if (c === 'J' || event.keyCode === 39) {

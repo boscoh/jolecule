@@ -32,7 +32,7 @@ let defaultArgs = {
   msPerStep: 17,
   maxWaitStep: 30,
   isToolbarOnTop: false,
-  isMenu: false
+  isMenu: true
 }
 
 class EmbedJolecule {
@@ -75,7 +75,7 @@ class EmbedJolecule {
       await delay(100)
     }
 
-    console.log('EmbedJolecule.asyncAddDataServer')
+    console.log('EmbedJolecule.asyncAddDataServer', dataServer)
 
     this.isProcessing.flag = true
 
@@ -134,6 +134,7 @@ class EmbedJolecule {
     while (this.soupWidget.soup.structureIds.length > 0) {
       this.soupWidget.deleteStructure(0)
     }
+    // this.soupWidget.soup.selectedTraces.length = 0
   }
 
   createDivs() {
@@ -276,7 +277,7 @@ class EmbedJolecule {
       )
     }
 
-    if (this.params.isEditable) {
+    if (this.params.isExtraEditable) {
       if (this.params.isMenu) {
         this.toolbarDiv.append(
           $('<div>')
@@ -290,7 +291,9 @@ class EmbedJolecule {
           !this.params.isToolbarOnTop
         )
       }
+    }
 
+    if (this.params.isEditable) {
       if (this.params.isResidueSelector) {
         this.toolbarDiv.append(
           $('<div>')
@@ -358,26 +361,28 @@ class EmbedJolecule {
     }
 
     if (this.params.isExtraEditable) {
-      this.toolbarDiv.append($(`<div id="${this.divId}-sphere">`))
-      this.widget.sphere = new widgets.ToggleOptionWidget(
-        this.soupWidget,
-        `#${this.divId}-sphere`,
-        'sphere'
-      )
+      if (!this.params.isMenu) {
+        this.toolbarDiv.append($(`<div id="${this.divId}-sphere">`))
+        this.widget.sphere = new widgets.ToggleOptionWidget(
+          this.soupWidget,
+          `#${this.divId}-sphere`,
+          'sphere'
+        )
 
-      this.toolbarDiv.append($(`<div id="${this.divId}-backbone">`))
-      this.widget.backbone = new widgets.ToggleOptionWidget(
-        this.soupWidget,
-        `#${this.divId}-backbone`,
-        'backbone'
-      )
+        this.toolbarDiv.append($(`<div id="${this.divId}-backbone">`))
+        this.widget.backbone = new widgets.ToggleOptionWidget(
+          this.soupWidget,
+          `#${this.divId}-backbone`,
+          'backbone'
+        )
 
-      this.toolbarDiv.append($(`<div id="${this.divId}-transparent">`))
-      this.widget.transparent = new widgets.ToggleOptionWidget(
-        this.soupWidget,
-        `#${this.divId}-transparent`,
-        'transparent'
-      )
+        this.toolbarDiv.append($(`<div id="${this.divId}-transparent">`))
+        this.widget.transparent = new widgets.ToggleOptionWidget(
+          this.soupWidget,
+          `#${this.divId}-transparent`,
+          'transparent'
+        )
+      }
     }
 
     if (this.headerDiv.contents().length > 0) {

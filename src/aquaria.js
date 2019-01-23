@@ -1,12 +1,11 @@
 import _ from 'lodash'
 import * as THREE from 'three'
-import * as data from './data'
 
 function getHexColor(hex) {
-  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  var r = parseInt(result[1], 16) / 255
-  var g = parseInt(result[2], 16) / 255
-  var b = parseInt(result[3], 16) / 255
+  let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  let r = parseInt(result[1], 16) / 255
+  let g = parseInt(result[2], 16) / 255
+  let b = parseInt(result[3], 16) / 255
   return new THREE.Color(r, g, b)
 }
 
@@ -15,20 +14,21 @@ function isNumeric(str) {
 }
 
 function makeRgbStringFromHexString(hex) {
-  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  var r = parseInt(result[1], 16)
-  var g = parseInt(result[2], 16)
-  var b = parseInt(result[3], 16)
+  let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  let r = parseInt(result[1], 16)
+  let g = parseInt(result[2], 16)
+  let b = parseInt(result[3], 16)
   return `rgb(${r}, ${g}, ${b})`
 }
 
 class AquariaAlignment {
-  constructor(aquariaAlignData) {
+
+  reload(aquariaAlignData, embedJolecule) {
     this.data = aquariaAlignData
     this.seqId = this.data.sequences[0].primary_accession
     this.pdbId = this.data.pdb_id
     console.log(
-      'AquariaAlignment.constructor',
+      'AquariaAlignment.reload',
       this.data,
       this.pdbId,
       this.seqId
@@ -37,7 +37,7 @@ class AquariaAlignment {
     for (let alignStr of this.data.alignment.split(';')) {
       let pieces = alignStr.split(',')
       let tokens = _.head(pieces).split(':')
-      let [pdbId, pdbChain, resNumPdbStart, dummy, resNumPdbEnd] = _.take(
+      let [pdbId, pdbChain, resNumPdbStart, , resNumPdbEnd] = _.take(
         tokens,
         5
       )
@@ -61,6 +61,8 @@ class AquariaAlignment {
       }
       this.alignEntries.push(entry)
     }
+
+    this.setEmbedJolecule(embedJolecule)
   }
 
   mapSeqResToPdbResOfChain(seqId, resNumSeq, chain) {
@@ -102,7 +104,7 @@ class AquariaAlignment {
         let iSeq = this.getISeqFromSeqId(entry.seqId)
         let seqName = this.data.common_names[iSeq]
         if (!seqName) {
-          seqName = this.data.sequences[iSeq].primary_accession
+          seqName = null
         }
         let diff = resNum - entry.resNumPdbStart
         let resNumSeq = entry.resNumSeqStart + diff
@@ -349,10 +351,11 @@ class AquariaAlignment {
     this.setColorLegend(embedJolecule.widget.colorLegend)
   }
 
-  selectNewChain(seqId, pdbId, chain) {
+  selectNewChain(seqId, seqName, pdbId, chain) {
     console.log(
       'AquariaAlignment.selectNewChain [overriddeable]',
       seqId,
+      seqName,
       pdbId,
       chain
     )
@@ -437,7 +440,6 @@ class AquariaAlignment {
       }
     }
 
-    console.log('AquariaAlignment.getSelectionText', pieces)
     let text = ''
 
     if (pieces.length > 0) {
@@ -446,14 +448,14 @@ class AquariaAlignment {
           continue
         }
 
-        text += piece.pdbChain + ": "
+        text += piece.pdbChain + ': '
 
         let first = piece.pdbResRanges[0]
         let isFirstSolo = first[0] === first[1]
 
         if (piece.pdbResRanges.length === 1 && isFirstSolo) {
           text += piece.firstPdbRes
-          text += "<br>"
+          text += '<br>'
         } else {
           for (let [i, r] of _.toPairs(piece.pdbResRanges)) {
             if (i > 0) {
@@ -465,7 +467,7 @@ class AquariaAlignment {
               text += ` ${r[0]}-${r[1]}`
             }
           }
-          text += "<br>"
+          text += '<br>'
         }
       }
       for (let piece of pieces) {
@@ -474,14 +476,14 @@ class AquariaAlignment {
             continue
           }
 
-          text += piece.seqName + ": "
+          text += piece.seqName + ': '
 
           let first = piece.seqResRanges[0]
           let isFirstSolo = first[0] === first[1]
 
           if (piece.seqResRanges.length === 1 && isFirstSolo) {
             text += piece.firstSeqRes
-            text += "<br>"
+            text += '<br>'
           } else {
             for (let [i, r] of _.toPairs(piece.seqResRanges)) {
               if (i > 0) {
@@ -493,7 +495,7 @@ class AquariaAlignment {
                 text += ` ${r[0]}-${r[1]}`
               }
             }
-            text += "<br>"
+            text += '<br>'
           }
         }
       }
@@ -535,20 +537,21 @@ class AquariaAlignment {
   update() {
     let result = this.embedJolecule.soup.getIStructureAndChain()
     if (_.isNil(result)) {
-      this.selectNewChain(null, null, null)
+      this.selectNewChain(null, null, null, null)
     } else {
-      console.log('AquariaAlignment.update', result, this.data.pdb_chain)
       let iChain = _.findIndex(this.data.pdb_chain, c => c === result.chain)
       if (iChain >= 0) {
         this.seqId = this.data.sequences[iChain].primary_accession
+        let seqName = this.data.common_names[iChain]
         let structureId = this.embedJolecule.soup.structureIds[
           result.iStructure
         ]
-        this.selectNewChain(this.seqId, structureId, result.chain)
+        this.selectNewChain(this.seqId, seqName, structureId, result.chain)
       } else {
         console.log(
           'AquariaAlignment.update error, chain not found in alignment:',
-          result.chain
+          result.chain,
+          this.data.pdb_chain, this.data
         )
       }
     }

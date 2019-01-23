@@ -17446,7 +17446,7 @@ module.exports = function (NAME, exec) {
   }
 }.call(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(70), __webpack_require__(340)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(69), __webpack_require__(340)(module)))
 
 /***/ }),
 /* 16 */
@@ -17489,7 +17489,7 @@ exports.f = __webpack_require__(6) ? gOPD : function getOwnPropertyDescriptor(O,
 // 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
 var has = __webpack_require__(11);
 var toObject = __webpack_require__(9);
-var IE_PROTO = __webpack_require__(73)('IE_PROTO');
+var IE_PROTO = __webpack_require__(72)('IE_PROTO');
 var ObjectProto = Object.prototype;
 
 module.exports = Object.getPrototypeOf || function (O) {
@@ -17634,7 +17634,7 @@ var ctx = __webpack_require__(19);
 var IObject = __webpack_require__(50);
 var toObject = __webpack_require__(9);
 var toLength = __webpack_require__(8);
-var asc = __webpack_require__(90);
+var asc = __webpack_require__(89);
 module.exports = function (TYPE, $create) {
   var IS_MAP = TYPE == 1;
   var IS_FILTER = TYPE == 2;
@@ -63945,7 +63945,7 @@ if (__webpack_require__(6)) {
   var fails = __webpack_require__(3);
   var $export = __webpack_require__(0);
   var $typed = __webpack_require__(64);
-  var $buffer = __webpack_require__(96);
+  var $buffer = __webpack_require__(95);
   var ctx = __webpack_require__(19);
   var anInstance = __webpack_require__(43);
   var propertyDesc = __webpack_require__(35);
@@ -63960,21 +63960,21 @@ if (__webpack_require__(6)) {
   var classof = __webpack_require__(52);
   var isObject = __webpack_require__(4);
   var toObject = __webpack_require__(9);
-  var isArrayIter = __webpack_require__(87);
+  var isArrayIter = __webpack_require__(86);
   var create = __webpack_require__(40);
   var getPrototypeOf = __webpack_require__(18);
   var gOPN = __webpack_require__(41).f;
-  var getIterFn = __webpack_require__(89);
+  var getIterFn = __webpack_require__(88);
   var uid = __webpack_require__(36);
   var wks = __webpack_require__(5);
   var createArrayMethod = __webpack_require__(27);
   var createArrayIncludes = __webpack_require__(55);
   var speciesConstructor = __webpack_require__(62);
-  var ArrayIterators = __webpack_require__(92);
+  var ArrayIterators = __webpack_require__(91);
   var Iterators = __webpack_require__(48);
   var $iterDetect = __webpack_require__(59);
   var setSpecies = __webpack_require__(42);
-  var arrayFill = __webpack_require__(91);
+  var arrayFill = __webpack_require__(90);
   var arrayCopyWithin = __webpack_require__(114);
   var $DP = __webpack_require__(7);
   var $GOPD = __webpack_require__(17);
@@ -75108,7 +75108,7 @@ module.exports = false;
 
 // 19.1.2.14 / 15.2.3.14 Object.keys(O)
 var $keys = __webpack_require__(100);
-var enumBugKeys = __webpack_require__(74);
+var enumBugKeys = __webpack_require__(73);
 
 module.exports = Object.keys || function keys(O) {
   return $keys(O, enumBugKeys);
@@ -75135,21 +75135,21 @@ module.exports = function (index, length) {
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = __webpack_require__(1);
 var dPs = __webpack_require__(101);
-var enumBugKeys = __webpack_require__(74);
-var IE_PROTO = __webpack_require__(73)('IE_PROTO');
+var enumBugKeys = __webpack_require__(73);
+var IE_PROTO = __webpack_require__(72)('IE_PROTO');
 var Empty = function () { /* empty */ };
 var PROTOTYPE = 'prototype';
 
 // Create object with fake `null` prototype: use iframe Object with cleared prototype
 var createDict = function () {
   // Thrash, waste and sodomy: IE GC bug
-  var iframe = __webpack_require__(71)('iframe');
+  var iframe = __webpack_require__(70)('iframe');
   var i = enumBugKeys.length;
   var lt = '<';
   var gt = '>';
   var iframeDocument;
   iframe.style.display = 'none';
-  __webpack_require__(75).appendChild(iframe);
+  __webpack_require__(74).appendChild(iframe);
   iframe.src = 'javascript:'; // eslint-disable-line no-script-url
   // createDict = iframe.contentWindow.Object;
   // html.removeChild(iframe);
@@ -75181,7 +75181,7 @@ module.exports = Object.create || function create(O, Properties) {
 
 // 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
 var $keys = __webpack_require__(100);
-var hiddenKeys = __webpack_require__(74).concat('length', 'prototype');
+var hiddenKeys = __webpack_require__(73).concat('length', 'prototype');
 
 exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
   return $keys(O, hiddenKeys);
@@ -75225,10 +75225,10 @@ module.exports = function (it, Constructor, name, forbiddenField) {
 
 var ctx = __webpack_require__(19);
 var call = __webpack_require__(112);
-var isArrayIter = __webpack_require__(87);
+var isArrayIter = __webpack_require__(86);
 var anObject = __webpack_require__(1);
 var toLength = __webpack_require__(8);
-var getIterFn = __webpack_require__(89);
+var getIterFn = __webpack_require__(88);
 var BREAK = {};
 var RETURN = {};
 var exports = module.exports = function (iterable, entries, fn, that, ITERATOR) {
@@ -75281,7 +75281,7 @@ module.exports = function (it, tag, stat) {
 var $export = __webpack_require__(0);
 var defined = __webpack_require__(24);
 var fails = __webpack_require__(3);
-var spaces = __webpack_require__(77);
+var spaces = __webpack_require__(76);
 var space = '[' + spaces + ']';
 var non = '\u200b\u0085';
 var ltrim = RegExp('^' + space + space + '*');
@@ -75751,7 +75751,7 @@ var isObject = __webpack_require__(4);
 var fails = __webpack_require__(3);
 var $iterDetect = __webpack_require__(59);
 var setToStringTag = __webpack_require__(46);
-var inheritIfRequired = __webpack_require__(78);
+var inheritIfRequired = __webpack_require__(77);
 
 module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
   var Base = global[NAME];
@@ -77320,200 +77320,6 @@ exports.applyColorToVector3array = applyColorToVector3array;
 
 /***/ }),
 /* 69 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.getNucleotideConnectorBondAtomTypes = exports.getNucleotideBaseAtomTypes = exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.darkGrey = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.coilFace = exports.backboneAtomTypes = exports.resToAa = exports.getSsColor = undefined;
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }(); /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * Central place to store constants and color
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * accesors
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          */
-
-var _lodash = __webpack_require__(15);
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-var _three = __webpack_require__(28);
-
-var THREE = _interopRequireWildcard(_three);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var proteinResTypes = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR'];
-var dnaResTypes = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C'];
-var rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
-
-// Color constants
-
-var green = new THREE.Color(0x639941);
-var blue = new THREE.Color(0x568ab5);
-var yellow = new THREE.Color(0xF6C719);
-var purple = new THREE.Color(0x9578aa);
-var grey = new THREE.Color(0xbbbbbb);
-var red = new THREE.Color(0x993333);
-var darkGrey = new THREE.Color(0x999999);
-
-var ElementColors = {
-  H: 0xcccccc,
-  C: 0xaaaaaa,
-  O: 0xcc0000,
-  N: 0x0000cc,
-  S: 0xaaaa00,
-  P: 0x6622cc,
-  F: 0x00cc00,
-  CL: 0x00cc00,
-  BR: 0x882200,
-  I: 0x6600aa,
-  FE: 0xcc6600,
-  CA: 0x8888aa,
-  He: 0x7b86c2,
-  Ne: 0x9ed2e4,
-  Ar: 0x5dc4be,
-  Kr: 0xacd376,
-  Xe: 0xf79f7c,
-  Rn: 0xe29ec5
-};
-
-var _iteratorNormalCompletion = true;
-var _didIteratorError = false;
-var _iteratorError = undefined;
-
-try {
-  for (var _iterator = _lodash2.default.toPairs(ElementColors)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-    var _step$value = _slicedToArray(_step.value, 2),
-        k = _step$value[0],
-        v = _step$value[1];
-
-    ElementColors[k] = new THREE.Color(v);
-  }
-} catch (err) {
-  _didIteratorError = true;
-  _iteratorError = err;
-} finally {
-  try {
-    if (!_iteratorNormalCompletion && _iterator.return) {
-      _iterator.return();
-    }
-  } finally {
-    if (_didIteratorError) {
-      throw _iteratorError;
-    }
-  }
-}
-
-function getSsColor(ss) {
-  if (ss === 'E') {
-    return yellow;
-  } else if (ss === 'H') {
-    return blue;
-  } else if (ss === 'D') {
-    return purple;
-  } else if (ss === 'C') {
-    return green;
-  } else if (ss === 'W') {
-    return red;
-  }
-  return grey;
-}
-
-var resToAa = {
-  ALA: 'A',
-  CYS: 'C',
-  ASP: 'D',
-  GLU: 'E',
-  PHE: 'F',
-  GLY: 'G',
-  HIS: 'H',
-  ILE: 'I',
-  LYS: 'K',
-  LEU: 'L',
-  MET: 'M',
-  ASN: 'N',
-  PRO: 'P',
-  GLN: 'Q',
-  ARG: 'R',
-  SER: 'S',
-  THR: 'T',
-  VAL: 'V',
-  TRP: 'W',
-  TYR: 'Y',
-  DA: 'A',
-  DT: 'T',
-  DG: 'G',
-  DC: 'C',
-  A: 'A',
-  T: 'T',
-  G: 'G',
-  C: 'C',
-  RA: 'A',
-  RU: 'U',
-  RC: 'C',
-  RG: 'G',
-  U: 'U'
-
-  // Backbone atom names
-
-};var backboneAtomTypes = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', "C3'", 'P', 'OP1', "O5'", 'OP2', "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'", "H2'", "H2''", "H3'", "H4'", "H5'", "H5''", "HO3'"];
-
-// Cartoon cross-sections
-var coilFace = new THREE.Shape([new THREE.Vector2(-0.2, -0.2), new THREE.Vector2(-0.2, +0.2), new THREE.Vector2(+0.2, +0.2), new THREE.Vector2(+0.2, -0.2)]);
-
-function getNucleotideBaseAtomTypes(resType) {
-  var atomTypes = [];
-  if (resType === 'DA' || resType === 'A') {
-    atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
-  } else if (resType === 'DG' || resType === 'G') {
-    atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
-  } else if (resType === 'DT' || resType === 'U') {
-    atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
-  } else if (resType === 'DC' || resType === 'C') {
-    atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
-  }
-  return atomTypes;
-}
-
-function getNucleotideConnectorBondAtomTypes(resType) {
-  var bondTypes = [];
-  if (resType === 'DA' || resType === 'A') {
-    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']];
-  } else if (resType === 'DG' || resType === 'G') {
-    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']];
-  } else if (resType === 'DT' || resType === 'U') {
-    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']];
-  } else if (resType === 'DC' || resType === 'C') {
-    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']];
-  }
-  return bondTypes;
-}
-
-exports.getSsColor = getSsColor;
-exports.resToAa = resToAa;
-exports.backboneAtomTypes = backboneAtomTypes;
-exports.coilFace = coilFace;
-exports.green = green;
-exports.blue = blue;
-exports.yellow = yellow;
-exports.purple = purple;
-exports.grey = grey;
-exports.red = red;
-exports.darkGrey = darkGrey;
-exports.ElementColors = ElementColors;
-exports.proteinResTypes = proteinResTypes;
-exports.dnaResTypes = dnaResTypes;
-exports.rnaResTypes = rnaResTypes;
-exports.getNucleotideBaseAtomTypes = getNucleotideBaseAtomTypes;
-exports.getNucleotideConnectorBondAtomTypes = getNucleotideConnectorBondAtomTypes;
-
-/***/ }),
-/* 70 */
 /***/ (function(module, exports) {
 
 var g;
@@ -77540,7 +77346,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 71 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(4);
@@ -77553,7 +77359,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 72 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(2);
@@ -77568,7 +77374,7 @@ module.exports = function (name) {
 
 
 /***/ }),
-/* 73 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var shared = __webpack_require__(54)('keys');
@@ -77579,7 +77385,7 @@ module.exports = function (key) {
 
 
 /***/ }),
-/* 74 */
+/* 73 */
 /***/ (function(module, exports) {
 
 // IE 8- don't enum bug keys
@@ -77589,7 +77395,7 @@ module.exports = (
 
 
 /***/ }),
-/* 75 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var document = __webpack_require__(2).document;
@@ -77597,7 +77403,7 @@ module.exports = document && document.documentElement;
 
 
 /***/ }),
-/* 76 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Works with __proto__ only. Old v8 can't work with null proto objects.
@@ -77628,7 +77434,7 @@ module.exports = {
 
 
 /***/ }),
-/* 77 */
+/* 76 */
 /***/ (function(module, exports) {
 
 module.exports = '\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003' +
@@ -77636,11 +77442,11 @@ module.exports = '\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u20
 
 
 /***/ }),
-/* 78 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(4);
-var setPrototypeOf = __webpack_require__(76).set;
+var setPrototypeOf = __webpack_require__(75).set;
 module.exports = function (that, target, C) {
   var S = target.constructor;
   var P;
@@ -77651,7 +77457,7 @@ module.exports = function (that, target, C) {
 
 
 /***/ }),
-/* 79 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77670,7 +77476,7 @@ module.exports = function repeat(count) {
 
 
 /***/ }),
-/* 80 */
+/* 79 */
 /***/ (function(module, exports) {
 
 // 20.2.2.28 Math.sign(x)
@@ -77681,7 +77487,7 @@ module.exports = Math.sign || function sign(x) {
 
 
 /***/ }),
-/* 81 */
+/* 80 */
 /***/ (function(module, exports) {
 
 // 20.2.2.14 Math.expm1(x)
@@ -77697,7 +77503,7 @@ module.exports = (!$expm1
 
 
 /***/ }),
-/* 82 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var toInteger = __webpack_require__(25);
@@ -77720,7 +77526,7 @@ module.exports = function (TO_STRING) {
 
 
 /***/ }),
-/* 83 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77731,7 +77537,7 @@ var redefine = __webpack_require__(13);
 var hide = __webpack_require__(12);
 var has = __webpack_require__(11);
 var Iterators = __webpack_require__(48);
-var $iterCreate = __webpack_require__(84);
+var $iterCreate = __webpack_require__(83);
 var setToStringTag = __webpack_require__(46);
 var getPrototypeOf = __webpack_require__(18);
 var ITERATOR = __webpack_require__(5)('iterator');
@@ -77797,7 +77603,7 @@ module.exports = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCE
 
 
 /***/ }),
-/* 84 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77817,7 +77623,7 @@ module.exports = function (Constructor, NAME, next) {
 
 
 /***/ }),
-/* 85 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // helper for String#{startsWith, endsWith, includes}
@@ -77831,7 +77637,7 @@ module.exports = function (that, searchString, NAME) {
 
 
 /***/ }),
-/* 86 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var MATCH = __webpack_require__(5)('match');
@@ -77849,7 +77655,7 @@ module.exports = function (KEY) {
 
 
 /***/ }),
-/* 87 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // check on default Array iterator
@@ -77863,7 +77669,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 88 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77878,7 +77684,7 @@ module.exports = function (object, index, value) {
 
 
 /***/ }),
-/* 89 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var classof = __webpack_require__(52);
@@ -77892,7 +77698,7 @@ module.exports = __webpack_require__(22).getIteratorMethod = function (it) {
 
 
 /***/ }),
-/* 90 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 9.4.2.3 ArraySpeciesCreate(originalArray, length)
@@ -77904,7 +77710,7 @@ module.exports = function (original, length) {
 
 
 /***/ }),
-/* 91 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77926,7 +77732,7 @@ module.exports = function fill(value /* , start = 0, end = @length */) {
 
 
 /***/ }),
-/* 92 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77940,7 +77746,7 @@ var toIObject = __webpack_require__(16);
 // 22.1.3.13 Array.prototype.keys()
 // 22.1.3.29 Array.prototype.values()
 // 22.1.3.30 Array.prototype[@@iterator]()
-module.exports = __webpack_require__(83)(Array, 'Array', function (iterated, kind) {
+module.exports = __webpack_require__(82)(Array, 'Array', function (iterated, kind) {
   this._t = toIObject(iterated); // target
   this._i = 0;                   // next index
   this._k = kind;                // kind
@@ -77967,13 +77773,13 @@ addToUnscopables('entries');
 
 
 /***/ }),
-/* 93 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var ctx = __webpack_require__(19);
 var invoke = __webpack_require__(105);
-var html = __webpack_require__(75);
-var cel = __webpack_require__(71);
+var html = __webpack_require__(74);
+var cel = __webpack_require__(70);
 var global = __webpack_require__(2);
 var process = global.process;
 var setTask = global.setImmediate;
@@ -78057,11 +77863,11 @@ module.exports = {
 
 
 /***/ }),
-/* 94 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(2);
-var macrotask = __webpack_require__(93).set;
+var macrotask = __webpack_require__(92).set;
 var Observer = global.MutationObserver || global.WebKitMutationObserver;
 var process = global.process;
 var Promise = global.Promise;
@@ -78131,7 +77937,7 @@ module.exports = function () {
 
 
 /***/ }),
-/* 95 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -78156,7 +77962,7 @@ module.exports.f = function (C) {
 
 
 /***/ }),
-/* 96 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -78174,7 +77980,7 @@ var toLength = __webpack_require__(8);
 var toIndex = __webpack_require__(124);
 var gOPN = __webpack_require__(41).f;
 var dP = __webpack_require__(7).f;
-var arrayFill = __webpack_require__(91);
+var arrayFill = __webpack_require__(90);
 var setToStringTag = __webpack_require__(46);
 var ARRAY_BUFFER = 'ArrayBuffer';
 var DATA_VIEW = 'DataView';
@@ -78439,7 +78245,7 @@ exports[DATA_VIEW] = $DataView;
 
 
 /***/ }),
-/* 97 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(2);
@@ -78449,11 +78255,205 @@ module.exports = navigator && navigator.userAgent || '';
 
 
 /***/ }),
+/* 97 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getNucleotideConnectorBondAtomTypes = exports.getNucleotideBaseAtomTypes = exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.darkGrey = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.coilFace = exports.backboneAtomTypes = exports.resToAa = exports.getSsColor = undefined;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * Central place to store constants and color
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * accesors
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          */
+
+var _lodash = __webpack_require__(15);
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _three = __webpack_require__(28);
+
+var THREE = _interopRequireWildcard(_three);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var proteinResTypes = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER', 'THR', 'TRP', 'VAL', 'TYR'];
+var dnaResTypes = ['DA', 'DT', 'DG', 'DC', 'A', 'T', 'G', 'C'];
+var rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
+
+// Color constants
+
+var green = new THREE.Color(0x639941);
+var blue = new THREE.Color(0x568ab5);
+var yellow = new THREE.Color(0xf6c719);
+var purple = new THREE.Color(0x9578aa);
+var grey = new THREE.Color(0xbbbbbb);
+var red = new THREE.Color(0x993333);
+var darkGrey = new THREE.Color(0x999999);
+
+var ElementColors = {
+  H: 0xcccccc,
+  C: 0xaaaaaa,
+  O: 0xcc0000,
+  N: 0x0000cc,
+  S: 0xaaaa00,
+  P: 0x6622cc,
+  F: 0x00cc00,
+  CL: 0x00cc00,
+  BR: 0x882200,
+  I: 0x6600aa,
+  FE: 0xcc6600,
+  CA: 0x8888aa,
+  He: 0x7b86c2,
+  Ne: 0x9ed2e4,
+  Ar: 0x5dc4be,
+  Kr: 0xacd376,
+  Xe: 0xf79f7c,
+  Rn: 0xe29ec5
+};
+
+var _iteratorNormalCompletion = true;
+var _didIteratorError = false;
+var _iteratorError = undefined;
+
+try {
+  for (var _iterator = _lodash2.default.toPairs(ElementColors)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+    var _step$value = _slicedToArray(_step.value, 2),
+        k = _step$value[0],
+        v = _step$value[1];
+
+    ElementColors[k] = new THREE.Color(v);
+  }
+} catch (err) {
+  _didIteratorError = true;
+  _iteratorError = err;
+} finally {
+  try {
+    if (!_iteratorNormalCompletion && _iterator.return) {
+      _iterator.return();
+    }
+  } finally {
+    if (_didIteratorError) {
+      throw _iteratorError;
+    }
+  }
+}
+
+function getSsColor(ss) {
+  if (ss === 'E') {
+    return yellow;
+  } else if (ss === 'H') {
+    return blue;
+  } else if (ss === 'D') {
+    return purple;
+  } else if (ss === 'C') {
+    return green;
+  } else if (ss === 'W') {
+    return red;
+  }
+  return grey;
+}
+
+var resToAa = {
+  ALA: 'A',
+  CYS: 'C',
+  ASP: 'D',
+  GLU: 'E',
+  PHE: 'F',
+  GLY: 'G',
+  HIS: 'H',
+  ILE: 'I',
+  LYS: 'K',
+  LEU: 'L',
+  MET: 'M',
+  ASN: 'N',
+  PRO: 'P',
+  GLN: 'Q',
+  ARG: 'R',
+  SER: 'S',
+  THR: 'T',
+  VAL: 'V',
+  TRP: 'W',
+  TYR: 'Y',
+  DA: 'A',
+  DT: 'T',
+  DG: 'G',
+  DC: 'C',
+  A: 'A',
+  T: 'T',
+  G: 'G',
+  C: 'C',
+  RA: 'A',
+  RU: 'U',
+  RC: 'C',
+  RG: 'G',
+  U: 'U'
+
+  // Backbone atom names
+
+};var backboneAtomTypes = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', "C3'", 'P', 'OP1', "O5'", 'OP2', "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'", "H2'", "H2''", "H3'", "H4'", "H5'", "H5''", "HO3'"];
+
+// Cartoon cross-sections
+var coilFace = new THREE.Shape([new THREE.Vector2(-0.2, -0.2), new THREE.Vector2(-0.2, +0.2), new THREE.Vector2(+0.2, +0.2), new THREE.Vector2(+0.2, -0.2)]);
+
+function getNucleotideBaseAtomTypes(resType) {
+  var atomTypes = [];
+  if (resType === 'DA' || resType === 'A') {
+    atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
+  } else if (resType === 'DG' || resType === 'G') {
+    atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4'];
+  } else if (resType === 'DT' || resType === 'U') {
+    atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
+  } else if (resType === 'DC' || resType === 'C') {
+    atomTypes = ['C6', 'N1', 'C2', 'N3', 'C4', 'C5'];
+  }
+  return atomTypes;
+}
+
+function getNucleotideConnectorBondAtomTypes(resType) {
+  var bondTypes = [];
+  if (resType === 'DA' || resType === 'A') {
+    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']];
+  } else if (resType === 'DG' || resType === 'G') {
+    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']];
+  } else if (resType === 'DT' || resType === 'U') {
+    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']];
+  } else if (resType === 'DC' || resType === 'C') {
+    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']];
+  }
+  return bondTypes;
+}
+
+exports.getSsColor = getSsColor;
+exports.resToAa = resToAa;
+exports.backboneAtomTypes = backboneAtomTypes;
+exports.coilFace = coilFace;
+exports.green = green;
+exports.blue = blue;
+exports.yellow = yellow;
+exports.purple = purple;
+exports.grey = grey;
+exports.red = red;
+exports.darkGrey = darkGrey;
+exports.ElementColors = ElementColors;
+exports.proteinResTypes = proteinResTypes;
+exports.dnaResTypes = dnaResTypes;
+exports.rnaResTypes = rnaResTypes;
+exports.getNucleotideBaseAtomTypes = getNucleotideBaseAtomTypes;
+exports.getNucleotideConnectorBondAtomTypes = getNucleotideConnectorBondAtomTypes;
+
+/***/ }),
 /* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = !__webpack_require__(6) && !__webpack_require__(3)(function () {
-  return Object.defineProperty(__webpack_require__(71)('div'), 'a', { get: function () { return 7; } }).a != 7;
+  return Object.defineProperty(__webpack_require__(70)('div'), 'a', { get: function () { return 7; } }).a != 7;
 });
 
 
@@ -78471,7 +78471,7 @@ exports.f = __webpack_require__(5);
 var has = __webpack_require__(11);
 var toIObject = __webpack_require__(16);
 var arrayIndexOf = __webpack_require__(55)(false);
-var IE_PROTO = __webpack_require__(73)('IE_PROTO');
+var IE_PROTO = __webpack_require__(72)('IE_PROTO');
 
 module.exports = function (object, names) {
   var O = toIObject(object);
@@ -78632,7 +78632,7 @@ module.exports = function (fn, args, that) {
 
 var $parseInt = __webpack_require__(2).parseInt;
 var $trim = __webpack_require__(47).trim;
-var ws = __webpack_require__(77);
+var ws = __webpack_require__(76);
 var hex = /^[-+]?0[xX]/;
 
 module.exports = $parseInt(ws + '08') !== 8 || $parseInt(ws + '0x16') !== 22 ? function parseInt(str, radix) {
@@ -78648,7 +78648,7 @@ module.exports = $parseInt(ws + '08') !== 8 || $parseInt(ws + '0x16') !== 22 ? f
 var $parseFloat = __webpack_require__(2).parseFloat;
 var $trim = __webpack_require__(47).trim;
 
-module.exports = 1 / $parseFloat(__webpack_require__(77) + '-0') !== -Infinity ? function parseFloat(str) {
+module.exports = 1 / $parseFloat(__webpack_require__(76) + '-0') !== -Infinity ? function parseFloat(str) {
   var string = $trim(String(str), 3);
   var result = $parseFloat(string);
   return result === 0 && string.charAt(0) == '-' ? -0 : result;
@@ -78693,7 +78693,7 @@ module.exports = Math.log1p || function log1p(x) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.16 Math.fround(x)
-var sign = __webpack_require__(80);
+var sign = __webpack_require__(79);
 var pow = Math.pow;
 var EPSILON = pow(2, -52);
 var EPSILON32 = pow(2, -23);
@@ -78841,7 +78841,7 @@ module.exports = function (exec) {
 
 var anObject = __webpack_require__(1);
 var isObject = __webpack_require__(4);
-var newPromiseCapability = __webpack_require__(95);
+var newPromiseCapability = __webpack_require__(94);
 
 module.exports = function (C, x) {
   anObject(C);
@@ -78891,7 +78891,7 @@ var redefineAll = __webpack_require__(45);
 var ctx = __webpack_require__(19);
 var anInstance = __webpack_require__(43);
 var forOf = __webpack_require__(44);
-var $iterDefine = __webpack_require__(83);
+var $iterDefine = __webpack_require__(82);
 var step = __webpack_require__(115);
 var setSpecies = __webpack_require__(42);
 var DESCRIPTORS = __webpack_require__(6);
@@ -79293,7 +79293,7 @@ module.exports = flattenIntoArray;
 
 // https://github.com/tc39/proposal-string-pad-start-end
 var toLength = __webpack_require__(8);
-var repeat = __webpack_require__(79);
+var repeat = __webpack_require__(78);
 var defined = __webpack_require__(24);
 
 module.exports = function (that, maxLength, fillString, left) {
@@ -79451,7 +79451,7 @@ var defaultArgs = {
   msPerStep: 17,
   maxWaitStep: 30,
   isToolbarOnTop: false,
-  isMenu: false
+  isMenu: true
 };
 
 var EmbedJolecule = function () {
@@ -79520,7 +79520,7 @@ var EmbedJolecule = function () {
 
               case 5:
 
-                console.log('EmbedJolecule.asyncAddDataServer');
+                console.log('EmbedJolecule.asyncAddDataServer', dataServer);
 
                 this.isProcessing.flag = true;
 
@@ -79628,6 +79628,7 @@ var EmbedJolecule = function () {
       while (this.soupWidget.soup.structureIds.length > 0) {
         this.soupWidget.deleteStructure(0);
       }
+      // this.soupWidget.soup.selectedTraces.length = 0
     }
   }, {
     key: 'createDivs',
@@ -79724,13 +79725,15 @@ var EmbedJolecule = function () {
         this.widget.view = new _widgets2.default.ViewTextWidget(this.soupWidget, '#' + this.divId + '-view-text');
       }
 
-      if (this.params.isEditable) {
+      if (this.params.isExtraEditable) {
         if (this.params.isMenu) {
           this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-menu').addClass('jolecule-button'));
 
           this.menuWidget = new _widgets2.default.MenuWidget(this.soupWidget, '#' + this.divId + '-menu', !this.params.isToolbarOnTop);
         }
+      }
 
+      if (this.params.isEditable) {
         if (this.params.isResidueSelector) {
           this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-res-selector').addClass('jolecule-button').css({
             'padding-top': '6px',
@@ -79767,14 +79770,16 @@ var EmbedJolecule = function () {
       }
 
       if (this.params.isExtraEditable) {
-        this.toolbarDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-sphere">'));
-        this.widget.sphere = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-sphere', 'sphere');
+        if (!this.params.isMenu) {
+          this.toolbarDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-sphere">'));
+          this.widget.sphere = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-sphere', 'sphere');
 
-        this.toolbarDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-backbone">'));
-        this.widget.backbone = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-backbone', 'backbone');
+          this.toolbarDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-backbone">'));
+          this.widget.backbone = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-backbone', 'backbone');
 
-        this.toolbarDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-transparent">'));
-        this.widget.transparent = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-transparent', 'transparent');
+          this.toolbarDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-transparent">'));
+          this.widget.transparent = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-transparent', 'transparent');
+        }
       }
 
       if (this.headerDiv.contents().length > 0) {
@@ -79864,7 +79869,7 @@ __webpack_require__(347);
 
 __webpack_require__(348);
 
-var _data = __webpack_require__(69);
+var _data = __webpack_require__(97);
 
 var data = _interopRequireWildcard(_data);
 
@@ -80035,7 +80040,6 @@ var CanvasWidget = function () {
   }, {
     key: 'resize',
     value: function resize() {
-      console.log('CanvasWidget.resize');
       this.canvasDom.width = this.width();
       this.canvasDom.height = this.height();
     }
@@ -80560,7 +80564,6 @@ var SequenceWidget = function (_CanvasWidget) {
     key: 'resize',
     value: function resize() {
       _get(SequenceWidget.prototype.__proto__ || Object.getPrototypeOf(SequenceWidget.prototype), 'resize', this).call(this);
-      console.log('SequenceWidget.resize');
       this.div.css('width', this.parentDiv.width());
     }
   }, {
@@ -81088,8 +81091,6 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'click',
     value: function click(event) {
-      console.log('SequenceWidget.click', this.pressSection, this.iCharPressed);
-
       var iChar = null;
       if (this.pressSection === 'bottom') {
         // mouse event in sequence bar
@@ -81106,7 +81107,7 @@ var SequenceWidget = function (_CanvasWidget) {
         var charEntry = this.charEntries[this.iCharPressed];
         if (!_lodash2.default.isNil(charEntry.iRes)) {
           var iRes = charEntry.iRes;
-          this.controller.selectSecondaryStructure(iRes);
+          this.controller.toggleSecondaryStructure(iRes);
         }
       } else if (this.pressSection === 'bottom') {
         var _charEntry3 = this.charEntries[this.iCharPressed];
@@ -81150,7 +81151,6 @@ var SequenceWidget = function (_CanvasWidget) {
         } else {
           this.iCharPressed = this.iCharFromXStruct(this.pointerX);
         }
-        console.log('SequenceWidget.mousedown new press', this.pressSection, this.iCharPressed);
         this.isWaitForDoubleClick = true;
       } else if (elapsedTime < 600) {
         this.doubleclick(event);
@@ -81978,11 +81978,18 @@ var MenuWidget = function () {
       border: '2px solid #AAA',
       padding: '4px 5px'
     });
-    this.panelDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-transparent">'));
     this.div.parent().append(this.panelDiv);
 
     this.widget = {};
+
+    this.panelDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-transparent">'));
     this.widget.transparent = new ToggleOptionWidget(soupWidget, '#' + this.divId + '-transparent', 'transparent');
+
+    this.panelDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-sphere">'));
+    this.widget.sphere = new ToggleOptionWidget(soupWidget, '#' + this.divId + '-sphere', 'sphere');
+
+    this.panelDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-backbone">'));
+    this.widget.backbone = new ToggleOptionWidget(soupWidget, '#' + this.divId + '-backbone', 'backbone');
 
     this.soupWidget.addObserver(this);
     this.update();
@@ -82517,7 +82524,7 @@ define(String.prototype, "padRight", "".padEnd);
 "pop,reverse,shift,keys,values,entries,indexOf,every,some,forEach,map,filter,find,findIndex,includes,join,slice,concat,push,splice,unshift,sort,lastIndexOf,reduce,reduceRight,copyWithin,fill".split(",").forEach(function (key) {
   [][key] && define(Array, key, Function.call.bind([][key]));
 });
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(70)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(69)))
 
 /***/ }),
 /* 138 */
@@ -82622,7 +82629,7 @@ __webpack_require__(239);
 __webpack_require__(240);
 __webpack_require__(241);
 __webpack_require__(242);
-__webpack_require__(92);
+__webpack_require__(91);
 __webpack_require__(243);
 __webpack_require__(244);
 __webpack_require__(116);
@@ -82741,7 +82748,7 @@ var setToStringTag = __webpack_require__(46);
 var uid = __webpack_require__(36);
 var wks = __webpack_require__(5);
 var wksExt = __webpack_require__(99);
-var wksDefine = __webpack_require__(72);
+var wksDefine = __webpack_require__(71);
 var enumKeys = __webpack_require__(140);
 var isArray = __webpack_require__(57);
 var anObject = __webpack_require__(1);
@@ -83189,7 +83196,7 @@ module.exports = Object.is || function is(x, y) {
 
 // 19.1.3.19 Object.setPrototypeOf(O, proto)
 var $export = __webpack_require__(0);
-$export($export.S, 'Object', { setPrototypeOf: __webpack_require__(76).set });
+$export($export.S, 'Object', { setPrototypeOf: __webpack_require__(75).set });
 
 
 /***/ }),
@@ -83290,7 +83297,7 @@ $export($export.G + $export.F * (parseFloat != $parseFloat), { parseFloat: $pars
 var global = __webpack_require__(2);
 var has = __webpack_require__(11);
 var cof = __webpack_require__(20);
-var inheritIfRequired = __webpack_require__(78);
+var inheritIfRequired = __webpack_require__(77);
 var toPrimitive = __webpack_require__(23);
 var fails = __webpack_require__(3);
 var gOPN = __webpack_require__(41).f;
@@ -83366,7 +83373,7 @@ if (!$Number(' 0o1') || !$Number('0b1') || $Number('+0x1')) {
 var $export = __webpack_require__(0);
 var toInteger = __webpack_require__(25);
 var aNumberValue = __webpack_require__(108);
-var repeat = __webpack_require__(79);
+var repeat = __webpack_require__(78);
 var $toFixed = 1.0.toFixed;
 var floor = Math.floor;
 var data = [0, 0, 0, 0, 0, 0];
@@ -83671,7 +83678,7 @@ $export($export.S + $export.F * !($atanh && 1 / $atanh(-0) < 0), 'Math', {
 
 // 20.2.2.9 Math.cbrt(x)
 var $export = __webpack_require__(0);
-var sign = __webpack_require__(80);
+var sign = __webpack_require__(79);
 
 $export($export.S, 'Math', {
   cbrt: function cbrt(x) {
@@ -83715,7 +83722,7 @@ $export($export.S, 'Math', {
 
 // 20.2.2.14 Math.expm1(x)
 var $export = __webpack_require__(0);
-var $expm1 = __webpack_require__(81);
+var $expm1 = __webpack_require__(80);
 
 $export($export.S + $export.F * ($expm1 != Math.expm1), 'Math', { expm1: $expm1 });
 
@@ -83829,7 +83836,7 @@ $export($export.S, 'Math', {
 // 20.2.2.28 Math.sign(x)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Math', { sign: __webpack_require__(80) });
+$export($export.S, 'Math', { sign: __webpack_require__(79) });
 
 
 /***/ }),
@@ -83838,7 +83845,7 @@ $export($export.S, 'Math', { sign: __webpack_require__(80) });
 
 // 20.2.2.30 Math.sinh(x)
 var $export = __webpack_require__(0);
-var expm1 = __webpack_require__(81);
+var expm1 = __webpack_require__(80);
 var exp = Math.exp;
 
 // V8 near Chromium 38 has a problem with very small numbers
@@ -83859,7 +83866,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 // 20.2.2.33 Math.tanh(x)
 var $export = __webpack_require__(0);
-var expm1 = __webpack_require__(81);
+var expm1 = __webpack_require__(80);
 var exp = Math.exp;
 
 $export($export.S, 'Math', {
@@ -83958,10 +83965,10 @@ __webpack_require__(47)('trim', function ($trim) {
 
 "use strict";
 
-var $at = __webpack_require__(82)(true);
+var $at = __webpack_require__(81)(true);
 
 // 21.1.3.27 String.prototype[@@iterator]()
-__webpack_require__(83)(String, 'String', function (iterated) {
+__webpack_require__(82)(String, 'String', function (iterated) {
   this._t = String(iterated); // target
   this._i = 0;                // next index
 // 21.1.5.2.1 %StringIteratorPrototype%.next()
@@ -83983,7 +83990,7 @@ __webpack_require__(83)(String, 'String', function (iterated) {
 "use strict";
 
 var $export = __webpack_require__(0);
-var $at = __webpack_require__(82)(false);
+var $at = __webpack_require__(81)(false);
 $export($export.P, 'String', {
   // 21.1.3.3 String.prototype.codePointAt(pos)
   codePointAt: function codePointAt(pos) {
@@ -84001,11 +84008,11 @@ $export($export.P, 'String', {
 
 var $export = __webpack_require__(0);
 var toLength = __webpack_require__(8);
-var context = __webpack_require__(85);
+var context = __webpack_require__(84);
 var ENDS_WITH = 'endsWith';
 var $endsWith = ''[ENDS_WITH];
 
-$export($export.P + $export.F * __webpack_require__(86)(ENDS_WITH), 'String', {
+$export($export.P + $export.F * __webpack_require__(85)(ENDS_WITH), 'String', {
   endsWith: function endsWith(searchString /* , endPosition = @length */) {
     var that = context(this, searchString, ENDS_WITH);
     var endPosition = arguments.length > 1 ? arguments[1] : undefined;
@@ -84027,10 +84034,10 @@ $export($export.P + $export.F * __webpack_require__(86)(ENDS_WITH), 'String', {
 // 21.1.3.7 String.prototype.includes(searchString, position = 0)
 
 var $export = __webpack_require__(0);
-var context = __webpack_require__(85);
+var context = __webpack_require__(84);
 var INCLUDES = 'includes';
 
-$export($export.P + $export.F * __webpack_require__(86)(INCLUDES), 'String', {
+$export($export.P + $export.F * __webpack_require__(85)(INCLUDES), 'String', {
   includes: function includes(searchString /* , position = 0 */) {
     return !!~context(this, searchString, INCLUDES)
       .indexOf(searchString, arguments.length > 1 ? arguments[1] : undefined);
@@ -84046,7 +84053,7 @@ var $export = __webpack_require__(0);
 
 $export($export.P, 'String', {
   // 21.1.3.13 String.prototype.repeat(count)
-  repeat: __webpack_require__(79)
+  repeat: __webpack_require__(78)
 });
 
 
@@ -84059,11 +84066,11 @@ $export($export.P, 'String', {
 
 var $export = __webpack_require__(0);
 var toLength = __webpack_require__(8);
-var context = __webpack_require__(85);
+var context = __webpack_require__(84);
 var STARTS_WITH = 'startsWith';
 var $startsWith = ''[STARTS_WITH];
 
-$export($export.P + $export.F * __webpack_require__(86)(STARTS_WITH), 'String', {
+$export($export.P + $export.F * __webpack_require__(85)(STARTS_WITH), 'String', {
   startsWith: function startsWith(searchString /* , position = 0 */) {
     var that = context(this, searchString, STARTS_WITH);
     var index = toLength(Math.min(arguments.length > 1 ? arguments[1] : undefined, that.length));
@@ -84401,10 +84408,10 @@ var ctx = __webpack_require__(19);
 var $export = __webpack_require__(0);
 var toObject = __webpack_require__(9);
 var call = __webpack_require__(112);
-var isArrayIter = __webpack_require__(87);
+var isArrayIter = __webpack_require__(86);
 var toLength = __webpack_require__(8);
-var createProperty = __webpack_require__(88);
-var getIterFn = __webpack_require__(89);
+var createProperty = __webpack_require__(87);
+var getIterFn = __webpack_require__(88);
 
 $export($export.S + $export.F * !__webpack_require__(59)(function (iter) { Array.from(iter); }), 'Array', {
   // 22.1.2.1 Array.from(arrayLike, mapfn = undefined, thisArg = undefined)
@@ -84442,7 +84449,7 @@ $export($export.S + $export.F * !__webpack_require__(59)(function (iter) { Array
 "use strict";
 
 var $export = __webpack_require__(0);
-var createProperty = __webpack_require__(88);
+var createProperty = __webpack_require__(87);
 
 // WebKit Array.of isn't generic
 $export($export.S + $export.F * __webpack_require__(3)(function () {
@@ -84487,7 +84494,7 @@ $export($export.P + $export.F * (__webpack_require__(50) != Object || !__webpack
 "use strict";
 
 var $export = __webpack_require__(0);
-var html = __webpack_require__(75);
+var html = __webpack_require__(74);
 var cof = __webpack_require__(20);
 var toAbsoluteIndex = __webpack_require__(39);
 var toLength = __webpack_require__(8);
@@ -84757,7 +84764,7 @@ __webpack_require__(32)('copyWithin');
 // 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
 var $export = __webpack_require__(0);
 
-$export($export.P, 'Array', { fill: __webpack_require__(91) });
+$export($export.P, 'Array', { fill: __webpack_require__(90) });
 
 __webpack_require__(32)('fill');
 
@@ -84816,7 +84823,7 @@ __webpack_require__(42)('Array');
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(2);
-var inheritIfRequired = __webpack_require__(78);
+var inheritIfRequired = __webpack_require__(77);
 var dP = __webpack_require__(7).f;
 var gOPN = __webpack_require__(41).f;
 var isRegExp = __webpack_require__(58);
@@ -85035,9 +85042,9 @@ var aFunction = __webpack_require__(10);
 var anInstance = __webpack_require__(43);
 var forOf = __webpack_require__(44);
 var speciesConstructor = __webpack_require__(62);
-var task = __webpack_require__(93).set;
-var microtask = __webpack_require__(94)();
-var newPromiseCapabilityModule = __webpack_require__(95);
+var task = __webpack_require__(92).set;
+var microtask = __webpack_require__(93)();
+var newPromiseCapabilityModule = __webpack_require__(94);
 var perform = __webpack_require__(117);
 var promiseResolve = __webpack_require__(118);
 var PROMISE = 'Promise';
@@ -85328,7 +85335,7 @@ __webpack_require__(63)(WEAK_SET, function (get) {
 
 var $export = __webpack_require__(0);
 var $typed = __webpack_require__(64);
-var buffer = __webpack_require__(96);
+var buffer = __webpack_require__(95);
 var anObject = __webpack_require__(1);
 var toAbsoluteIndex = __webpack_require__(39);
 var toLength = __webpack_require__(8);
@@ -85379,7 +85386,7 @@ __webpack_require__(42)(ARRAY_BUFFER);
 
 var $export = __webpack_require__(0);
 $export($export.G + $export.W + $export.F * !__webpack_require__(64).ABV, {
-  DataView: __webpack_require__(96).DataView
+  DataView: __webpack_require__(95).DataView
 });
 
 
@@ -85619,7 +85626,7 @@ var Enumerate = function (iterated) {
   var key;
   for (key in iterated) keys.push(key);
 };
-__webpack_require__(84)(Enumerate, 'Object', function () {
+__webpack_require__(83)(Enumerate, 'Object', function () {
   var that = this;
   var keys = that._k;
   var key;
@@ -85801,7 +85808,7 @@ $export($export.S, 'Reflect', { set: set });
 
 // 26.1.14 Reflect.setPrototypeOf(target, proto)
 var $export = __webpack_require__(0);
-var setProto = __webpack_require__(76);
+var setProto = __webpack_require__(75);
 
 if (setProto) $export($export.S, 'Reflect', {
   setPrototypeOf: function setPrototypeOf(target, proto) {
@@ -85847,7 +85854,7 @@ var flattenIntoArray = __webpack_require__(126);
 var toObject = __webpack_require__(9);
 var toLength = __webpack_require__(8);
 var aFunction = __webpack_require__(10);
-var arraySpeciesCreate = __webpack_require__(90);
+var arraySpeciesCreate = __webpack_require__(89);
 
 $export($export.P, 'Array', {
   flatMap: function flatMap(callbackfn /* , thisArg */) {
@@ -85876,7 +85883,7 @@ var flattenIntoArray = __webpack_require__(126);
 var toObject = __webpack_require__(9);
 var toLength = __webpack_require__(8);
 var toInteger = __webpack_require__(25);
-var arraySpeciesCreate = __webpack_require__(90);
+var arraySpeciesCreate = __webpack_require__(89);
 
 $export($export.P, 'Array', {
   flatten: function flatten(/* depthArg = 1 */) {
@@ -85900,7 +85907,7 @@ __webpack_require__(32)('flatten');
 
 // https://github.com/mathiasbynens/String.prototype.at
 var $export = __webpack_require__(0);
-var $at = __webpack_require__(82)(true);
+var $at = __webpack_require__(81)(true);
 
 $export($export.P, 'String', {
   at: function at(pos) {
@@ -85918,7 +85925,7 @@ $export($export.P, 'String', {
 // https://github.com/tc39/proposal-string-pad-start-end
 var $export = __webpack_require__(0);
 var $pad = __webpack_require__(127);
-var userAgent = __webpack_require__(97);
+var userAgent = __webpack_require__(96);
 
 // https://github.com/zloirock/core-js/issues/280
 $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAgent), 'String', {
@@ -85937,7 +85944,7 @@ $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAge
 // https://github.com/tc39/proposal-string-pad-start-end
 var $export = __webpack_require__(0);
 var $pad = __webpack_require__(127);
-var userAgent = __webpack_require__(97);
+var userAgent = __webpack_require__(96);
 
 // https://github.com/zloirock/core-js/issues/280
 $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAgent), 'String', {
@@ -85994,7 +86001,7 @@ var $RegExpStringIterator = function (regexp, string) {
   this._s = string;
 };
 
-__webpack_require__(84)($RegExpStringIterator, 'RegExp String', function next() {
+__webpack_require__(83)($RegExpStringIterator, 'RegExp String', function next() {
   var match = this._r.exec(this._s);
   return { value: match, done: match === null };
 });
@@ -86016,14 +86023,14 @@ $export($export.P, 'String', {
 /* 285 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(72)('asyncIterator');
+__webpack_require__(71)('asyncIterator');
 
 
 /***/ }),
 /* 286 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(72)('observable');
+__webpack_require__(71)('observable');
 
 
 /***/ }),
@@ -86035,7 +86042,7 @@ var $export = __webpack_require__(0);
 var ownKeys = __webpack_require__(125);
 var toIObject = __webpack_require__(16);
 var gOPD = __webpack_require__(17);
-var createProperty = __webpack_require__(88);
+var createProperty = __webpack_require__(87);
 
 $export($export.S, 'Object', {
   getOwnPropertyDescriptors: function getOwnPropertyDescriptors(object) {
@@ -86507,7 +86514,7 @@ $export($export.P + $export.R, 'Promise', { 'finally': function (onFinally) {
 
 // https://github.com/tc39/proposal-promise-try
 var $export = __webpack_require__(0);
-var newPromiseCapability = __webpack_require__(95);
+var newPromiseCapability = __webpack_require__(94);
 var perform = __webpack_require__(117);
 
 $export($export.S, 'Promise', { 'try': function (callbackfn) {
@@ -86694,7 +86701,7 @@ $metadata.exp({ metadata: function metadata(metadataKey, metadataValue) {
 
 // https://github.com/rwaldron/tc39-notes/blob/master/es6/2014-09/sept-25.md#510-globalasap-for-enqueuing-a-microtask
 var $export = __webpack_require__(0);
-var microtask = __webpack_require__(94)();
+var microtask = __webpack_require__(93)();
 var process = __webpack_require__(2).process;
 var isNode = __webpack_require__(20)(process) == 'process';
 
@@ -86716,7 +86723,7 @@ $export($export.G, {
 var $export = __webpack_require__(0);
 var global = __webpack_require__(2);
 var core = __webpack_require__(22);
-var microtask = __webpack_require__(94)();
+var microtask = __webpack_require__(93)();
 var OBSERVABLE = __webpack_require__(5)('observable');
 var aFunction = __webpack_require__(10);
 var anObject = __webpack_require__(1);
@@ -86919,7 +86926,7 @@ __webpack_require__(42)('Observable');
 // ie9- setTimeout & setInterval additional parameters fix
 var global = __webpack_require__(2);
 var $export = __webpack_require__(0);
-var userAgent = __webpack_require__(97);
+var userAgent = __webpack_require__(96);
 var slice = [].slice;
 var MSIE = /MSIE .\./.test(userAgent); // <- dirty ie9- check
 var wrap = function (set) {
@@ -86943,7 +86950,7 @@ $export($export.G + $export.B + $export.F * MSIE, {
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
-var $task = __webpack_require__(93);
+var $task = __webpack_require__(92);
 $export($export.G + $export.B, {
   setImmediate: $task.set,
   clearImmediate: $task.clear
@@ -86954,7 +86961,7 @@ $export($export.G + $export.B, {
 /* 334 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var $iterators = __webpack_require__(92);
+var $iterators = __webpack_require__(91);
 var getKeys = __webpack_require__(38);
 var redefine = __webpack_require__(13);
 var global = __webpack_require__(2);
@@ -87755,7 +87762,7 @@ for (var collections = getKeys(DOMIterables), i = 0; i < collections.length; i++
   typeof self === "object" ? self : this
 );
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(70)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(69)))
 
 /***/ }),
 /* 336 */
@@ -89198,29 +89205,77 @@ var SoupViewController = function () {
       this.soupView.isChanged = true;
     }
   }, {
-    key: 'selectSecondaryStructure',
-    value: function selectSecondaryStructure(iCenterRes) {
-      console.log('Controller.selectSecondaryStructure');
-      this.clearSelectedResidues();
+    key: 'getResListOfSs',
+    value: function getResListOfSs(iCenterRes) {
       var res = this.soup.getResidueProxy(iCenterRes);
       var ss = res.ss;
       var nRes = this.soup.getResidueCount();
+      var result = [];
       for (var iRes = iCenterRes; iRes >= 0; iRes -= 1) {
         res.load(iRes);
         if (res.ss !== ss) {
           break;
         }
-        res.selected = true;
+        result.push(iRes);
       }
       for (var _iRes3 = iCenterRes + 1; _iRes3 < nRes; _iRes3 += 1) {
         res.load(_iRes3);
         if (res.ss !== ss) {
           break;
         }
-        res.selected = true;
+        result.push(_iRes3);
       }
+      return result;
+    }
+  }, {
+    key: 'selectSecondaryStructure',
+    value: function selectSecondaryStructure(iCenterRes) {
+      var isSelect = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+      this.clearSelectedResidues();
+      var resList = this.getResListOfSs(iCenterRes);
+      var res = this.soup.getResidueProxy(iCenterRes);
+      var _iteratorNormalCompletion5 = true;
+      var _didIteratorError5 = false;
+      var _iteratorError5 = undefined;
+
+      try {
+        for (var _iterator5 = resList[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+          var iRes = _step5.value;
+
+          res.load(iRes).selected = isSelect;
+        }
+      } catch (err) {
+        _didIteratorError5 = true;
+        _iteratorError5 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+            _iterator5.return();
+          }
+        } finally {
+          if (_didIteratorError5) {
+            throw _iteratorError5;
+          }
+        }
+      }
+
       this.soupView.isUpdateColors = true;
       this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'toggleSecondaryStructure',
+    value: function toggleSecondaryStructure(iCenterRes) {
+      var resList = this.getResListOfSs(iCenterRes);
+      var res = this.soup.getResidueProxy(iCenterRes);
+      var isNoneSelected = _lodash2.default.every(_lodash2.default.map(resList, function (iRes) {
+        return !res.load(iRes).selected;
+      }));
+      if (isNoneSelected) {
+        this.selectSecondaryStructure(iCenterRes, true);
+      } else {
+        this.selectSecondaryStructure(iCenterRes, false);
+      }
     }
   }, {
     key: 'toggleSelectedSidechains',
@@ -89258,28 +89313,28 @@ var SoupViewController = function () {
         if (nShowInSelectedSidechain > 0) {
           sideChainState = false;
         }
-        var _iteratorNormalCompletion5 = true;
-        var _didIteratorError5 = false;
-        var _iteratorError5 = undefined;
+        var _iteratorNormalCompletion6 = true;
+        var _didIteratorError6 = false;
+        var _iteratorError6 = undefined;
 
         try {
-          for (var _iterator5 = indices[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-            var _iRes5 = _step5.value;
+          for (var _iterator6 = indices[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+            var _iRes5 = _step6.value;
 
             residue.load(_iRes5);
             residue.sidechain = sideChainState;
           }
         } catch (err) {
-          _didIteratorError5 = true;
-          _iteratorError5 = err;
+          _didIteratorError6 = true;
+          _iteratorError6 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion5 && _iterator5.return) {
-              _iterator5.return();
+            if (!_iteratorNormalCompletion6 && _iterator6.return) {
+              _iterator6.return();
             }
           } finally {
-            if (_didIteratorError5) {
-              throw _iteratorError5;
+            if (_didIteratorError6) {
+              throw _iteratorError6;
             }
           }
         }
@@ -89315,29 +89370,29 @@ var SoupViewController = function () {
         indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes6));
       }
       var nSidechain = 0;
-      var _iteratorNormalCompletion6 = true;
-      var _didIteratorError6 = false;
-      var _iteratorError6 = undefined;
+      var _iteratorNormalCompletion7 = true;
+      var _didIteratorError7 = false;
+      var _iteratorError7 = undefined;
 
       try {
-        for (var _iterator6 = indices[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-          var _iRes7 = _step6.value;
+        for (var _iterator7 = indices[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          var _iRes7 = _step7.value;
 
           if (residue.load(_iRes7).sidechain) {
             nSidechain += 1;
           }
         }
       } catch (err) {
-        _didIteratorError6 = true;
-        _iteratorError6 = err;
+        _didIteratorError7 = true;
+        _iteratorError7 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion6 && _iterator6.return) {
-            _iterator6.return();
+          if (!_iteratorNormalCompletion7 && _iterator7.return) {
+            _iterator7.return();
           }
         } finally {
-          if (_didIteratorError6) {
-            throw _iteratorError6;
+          if (_didIteratorError7) {
+            throw _iteratorError7;
           }
         }
       }
@@ -89409,7 +89464,7 @@ var SoupViewController = function () {
         }, _callee, this);
       }));
 
-      function asyncLoadProteinData(_x, _x2) {
+      function asyncLoadProteinData(_x2, _x3) {
         return _ref.apply(this, arguments);
       }
 
@@ -89421,15 +89476,15 @@ var SoupViewController = function () {
       this.soup.selectedTraces.length = 0;
       this.clearSelectedResidues();
       var iAtom = null;
-      var _iteratorNormalCompletion7 = true;
-      var _didIteratorError7 = false;
-      var _iteratorError7 = undefined;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
 
       try {
-        for (var _iterator7 = this.soup.traces.entries()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-          var _step7$value = _slicedToArray(_step7.value, 2),
-              iTrace = _step7$value[0],
-              trace = _step7$value[1];
+        for (var _iterator8 = this.soup.traces.entries()[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var _step8$value = _slicedToArray(_step8.value, 2),
+              iTrace = _step8$value[0],
+              trace = _step8$value[1];
 
           var iRes = trace.indices[0];
           var residue = this.soup.getResidueProxy(iRes);
@@ -89439,16 +89494,16 @@ var SoupViewController = function () {
           }
         }
       } catch (err) {
-        _didIteratorError7 = true;
-        _iteratorError7 = err;
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion7 && _iterator7.return) {
-            _iterator7.return();
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
           }
         } finally {
-          if (_didIteratorError7) {
-            throw _iteratorError7;
+          if (_didIteratorError8) {
+            throw _iteratorError8;
           }
         }
       }
@@ -89522,41 +89577,15 @@ var SoupViewController = function () {
     key: 'clear',
     value: function clear() {
       var distances = this.soupView.currentView.distances;
-      var _iteratorNormalCompletion8 = true;
-      var _didIteratorError8 = false;
-      var _iteratorError8 = undefined;
-
-      try {
-        for (var _iterator8 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-          var i = _step8.value;
-
-          this.deleteDistance(i);
-        }
-      } catch (err) {
-        _didIteratorError8 = true;
-        _iteratorError8 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-            _iterator8.return();
-          }
-        } finally {
-          if (_didIteratorError8) {
-            throw _iteratorError8;
-          }
-        }
-      }
-
-      var labels = this.soupView.currentView.labels;
       var _iteratorNormalCompletion9 = true;
       var _didIteratorError9 = false;
       var _iteratorError9 = undefined;
 
       try {
-        for (var _iterator9 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-          var _i = _step9.value;
+        for (var _iterator9 = _lodash2.default.reverse(_lodash2.default.range(distances.length))[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+          var i = _step9.value;
 
-          this.deleteAtomLabel(_i);
+          this.deleteDistance(i);
         }
       } catch (err) {
         _didIteratorError9 = true;
@@ -89569,6 +89598,32 @@ var SoupViewController = function () {
         } finally {
           if (_didIteratorError9) {
             throw _iteratorError9;
+          }
+        }
+      }
+
+      var labels = this.soupView.currentView.labels;
+      var _iteratorNormalCompletion10 = true;
+      var _didIteratorError10 = false;
+      var _iteratorError10 = undefined;
+
+      try {
+        for (var _iterator10 = _lodash2.default.reverse(_lodash2.default.range(labels.length))[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+          var _i = _step10.value;
+
+          this.deleteAtomLabel(_i);
+        }
+      } catch (err) {
+        _didIteratorError10 = true;
+        _iteratorError10 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion10 && _iterator10.return) {
+            _iterator10.return();
+          }
+        } finally {
+          if (_didIteratorError10) {
+            throw _iteratorError10;
           }
         }
       }
@@ -89588,33 +89643,285 @@ var SoupViewController = function () {
       this.soupView.isUpdateObservers = true;
       this.soupView.isChanged = true;
     }
+
+    /**
+     * Currently objects involving deleted atoms but does not
+     * yet renumber annotations for changed indices
+     *
+     * @param iStructure
+     */
+
   }, {
     key: 'deleteStructure',
     value: function deleteStructure(iStructure) {
-      this.soup.deleteStructure(iStructure);
-      if (this.soup.isEmpty()) {
-        this.soupView.savedViews.length = 0;
-        var _iteratorNormalCompletion10 = true;
-        var _didIteratorError10 = false;
-        var _iteratorError10 = undefined;
+      var atom = this.soup.getAtomProxy();
+      var res = this.soup.getResidueProxy();
+
+      var iAtomStart = null;
+      var iAtomEnd = null;
+      var iResStart = null;
+      var iResEnd = null;
+      var iTraceStart = null;
+      var iTraceEnd = null;
+
+      for (var iAtom = 0; iAtom < this.soup.getAtomCount(); iAtom += 1) {
+        atom.iAtom = iAtom;
+        res.iRes = atom.iRes;
+        if (res.iStructure === iStructure) {
+          if (iAtomStart === null) {
+            iAtomStart = iAtom;
+          }
+          iAtomEnd = iAtom + 1;
+          if (iResStart === null) {
+            iResStart = atom.iRes;
+          }
+          iResEnd = atom.iRes + 1;
+        }
+      }
+
+      var _iteratorNormalCompletion11 = true;
+      var _didIteratorError11 = false;
+      var _iteratorError11 = undefined;
+
+      try {
+        for (var _iterator11 = _lodash2.default.range(this.soup.traces.length)[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+          var iTrace = _step11.value;
+
+          var trace = this.soup.traces[iTrace];
+          var _iteratorNormalCompletion16 = true;
+          var _didIteratorError16 = false;
+          var _iteratorError16 = undefined;
+
+          try {
+            for (var _iterator16 = trace.indices[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+              var _iRes10 = _step16.value;
+
+              if (isInInterval(_iRes10, iResStart, iResEnd)) {
+                if (_lodash2.default.isNil(iTraceStart)) {
+                  iTraceStart = iTrace;
+                  iTraceEnd = iTrace + 1;
+                } else {
+                  iTraceEnd = iTrace + 1;
+                }
+              }
+            }
+          } catch (err) {
+            _didIteratorError16 = true;
+            _iteratorError16 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion16 && _iterator16.return) {
+                _iterator16.return();
+              }
+            } finally {
+              if (_didIteratorError16) {
+                throw _iteratorError16;
+              }
+            }
+          }
+        }
+      } catch (err) {
+        _didIteratorError11 = true;
+        _iteratorError11 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion11 && _iterator11.return) {
+            _iterator11.return();
+          }
+        } finally {
+          if (_didIteratorError11) {
+            throw _iteratorError11;
+          }
+        }
+      }
+
+      function isInInterval(i, iStart, iEnd) {
+        return i >= iStart && i < iEnd;
+      }
+
+      function patchInterval(i, iStart, iEnd) {
+        return i >= iEnd ? i - (iEnd - iStart) : i;
+      }
+
+      function resolveView(view) {
+        _lodash2.default.remove(view.selectedTraces, _lodash2.default.partial(isInInterval, iTraceStart, iTraceEnd));
+        view.selectedTraces = _lodash2.default.map(view.selectedTraces, _lodash2.default.partial(patchInterval, iTraceStart, iTraceEnd));
+
+        _lodash2.default.remove(view.distances, function (d) {
+          return isInInterval(d.i_atom1, iAtomStart, iAtomEnd) || isInInterval(d.i_atom2, iAtomStart, iAtomEnd);
+        });
+        var _iteratorNormalCompletion12 = true;
+        var _didIteratorError12 = false;
+        var _iteratorError12 = undefined;
 
         try {
-          for (var _iterator10 = _lodash2.default.keys(this.soupView.savedViewsByViewId)[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-            var id = _step10.value;
+          for (var _iterator12 = view.distances[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+            var d = _step12.value;
+
+            d.i_atom1 = patchInterval(d.i_atom1, iAtomStart, iAtomEnd);
+            d.i_atom2 = patchInterval(d.i_atom2, iAtomStart, iAtomEnd);
+          }
+        } catch (err) {
+          _didIteratorError12 = true;
+          _iteratorError12 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion12 && _iterator12.return) {
+              _iterator12.return();
+            }
+          } finally {
+            if (_didIteratorError12) {
+              throw _iteratorError12;
+            }
+          }
+        }
+
+        _lodash2.default.remove(view.selected, function (iRes) {
+          return isInInterval(iRes, iResStart, iResEnd);
+        });
+        view.selected = _lodash2.default.map(view.selected, function (iRes) {
+          return patchInterval(iRes, iResStart, iResEnd);
+        });
+
+        _lodash2.default.remove(view.labels, function (l) {
+          return isInInterval(l.iAtom, iAtomStart, iAtomEnd);
+        });
+        var _iteratorNormalCompletion13 = true;
+        var _didIteratorError13 = false;
+        var _iteratorError13 = undefined;
+
+        try {
+          for (var _iterator13 = view.labels[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+            var l = _step13.value;
+
+            l.iAtom = patchInterval(l.iAtom, iAtomStart, iAtomEnd);
+          }
+        } catch (err) {
+          _didIteratorError13 = true;
+          _iteratorError13 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion13 && _iterator13.return) {
+              _iterator13.return();
+            }
+          } finally {
+            if (_didIteratorError13) {
+              throw _iteratorError13;
+            }
+          }
+        }
+      }
+
+      _lodash2.default.remove(this.soup.selectedTraces, _lodash2.default.partial(isInInterval, iTraceStart, iTraceEnd));
+      this.soup.selectedTraces = _lodash2.default.map(this.soup.selectedTraces, _lodash2.default.partial(patchInterval, iTraceStart, iTraceEnd));
+
+      resolveView(this.soupView.currentView);
+      var _iteratorNormalCompletion14 = true;
+      var _didIteratorError14 = false;
+      var _iteratorError14 = undefined;
+
+      try {
+        for (var _iterator14 = this.soupView.savedViews[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+          var view = _step14.value;
+
+          resolveView(view);
+        }
+      } catch (err) {
+        _didIteratorError14 = true;
+        _iteratorError14 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion14 && _iterator14.return) {
+            _iterator14.return();
+          }
+        } finally {
+          if (_didIteratorError14) {
+            throw _iteratorError14;
+          }
+        }
+      }
+
+      var nAtomOffset = iAtomEnd - iAtomStart;
+      var nAtom = this.soup.getAtomCount();
+      var nAtomNew = nAtom - nAtomOffset;
+      var nAtomCopy = nAtom - iAtomEnd;
+
+      var nResOffset = iResEnd - iResStart;
+      var nRes = this.soup.getResidueCount();
+      var nResNew = nRes - nResOffset;
+      var nResCopy = nRes - iResEnd;
+
+      this.soup.atomStore.copyWithin(iAtomStart, iAtomEnd, nAtomCopy);
+      this.soup.atomStore.count -= nAtomOffset;
+
+      for (var _iAtom = 0; _iAtom < nAtomNew; _iAtom += 1) {
+        atom.iAtom = _iAtom;
+        if (atom.iRes >= iResStart) {
+          atom.iRes -= nResOffset;
+        }
+      }
+
+      for (var iRes = 0; iRes < nResNew; iRes += 1) {
+        if (iRes >= iResStart) {
+          var iResOld = iRes + nResOffset;
+          if (iResOld in this.soup.residueNormal) {
+            this.soup.residueNormal[iRes] = this.soup.residueNormal[iResOld].clone();
+          }
+        }
+      }
+
+      for (var _iRes8 = nResNew; _iRes8 < nRes; _iRes8 += 1) {
+        delete this.soup.residueNormal[_iRes8];
+      }
+
+      this.soup.residueStore.copyWithin(iResStart, iResEnd, nResCopy);
+      this.soup.residueStore.count -= nResOffset;
+      this.soup.resIds.splice(iResStart, nResOffset);
+
+      for (var _iRes9 = 0; _iRes9 < nResNew; _iRes9 += 1) {
+        res.iRes = _iRes9;
+        if (res.iAtom >= iAtomStart) {
+          res.iAtom -= nAtomOffset;
+          atom.iAtom = res.iAtom;
+        }
+        if (this.soup.residueStore.atomOffset[_iRes9] >= iAtomStart) {
+          this.soup.residueStore.atomOffset[_iRes9] -= nAtomOffset;
+        }
+        if (res.iStructure >= iStructure) {
+          res.iStructure -= 1;
+        }
+      }
+
+      this.soup.structureIds.splice(iStructure, 1);
+      this.soup.iStructure -= 1;
+
+      this.soup.calcBondsStrategic();
+
+      this.soup.calculateTracesForRibbons();
+
+      if (this.soup.isEmpty()) {
+        this.soupView.savedViews.length = 0;
+        var _iteratorNormalCompletion15 = true;
+        var _didIteratorError15 = false;
+        var _iteratorError15 = undefined;
+
+        try {
+          for (var _iterator15 = _lodash2.default.keys(this.soupView.savedViewsByViewId)[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+            var id = _step15.value;
 
             delete this.soupView.savedViewsByViewId[id];
           }
         } catch (err) {
-          _didIteratorError10 = true;
-          _iteratorError10 = err;
+          _didIteratorError15 = true;
+          _iteratorError15 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion10 && _iterator10.return) {
-              _iterator10.return();
+            if (!_iteratorNormalCompletion15 && _iterator15.return) {
+              _iterator15.return();
             }
           } finally {
-            if (_didIteratorError10) {
-              throw _iteratorError10;
+            if (_didIteratorError15) {
+              throw _iteratorError15;
             }
           }
         }
@@ -89738,7 +90045,7 @@ var _store = __webpack_require__(344);
 
 var _store2 = _interopRequireDefault(_store);
 
-var _data = __webpack_require__(69);
+var _data = __webpack_require__(97);
 
 var data = _interopRequireWildcard(_data);
 
@@ -90415,7 +90722,7 @@ var Soup = function () {
   }, {
     key: 'parseSecondaryStructureLines',
     value: function parseSecondaryStructureLines(pdbLines) {
-      this.assignResidueProperties();
+      this.assignResidueProperties(this.iStructure);
 
       this.parsedSecondaryStructure = false;
 
@@ -90434,7 +90741,7 @@ var Soup = function () {
           var _iteratorError5 = undefined;
 
           try {
-            for (var _iterator5 = this.findResidueIndices(chain, resNumStart)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+            for (var _iterator5 = this.findResidueIndices(this.iStructure, chain, resNumStart)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
               var iRes = _step5.value;
 
               residue.iRes = iRes;
@@ -90469,7 +90776,7 @@ var Soup = function () {
           var _iteratorError6 = undefined;
 
           try {
-            for (var _iterator6 = this.findResidueIndices(_chain, _resNumStart)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+            for (var _iterator6 = this.findResidueIndices(this.iStructure, _chain, _resNumStart)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
               var _iRes = _step6.value;
 
               residue.iRes = _iRes;
@@ -90754,7 +91061,7 @@ var Soup = function () {
     }
   }, {
     key: 'findResidueIndices',
-    value: function findResidueIndices(chain, resNum) {
+    value: function findResidueIndices(iStructure, chain, resNum) {
       var result = [];
       var residue = this.getResidueProxy();
       var _iteratorNormalCompletion9 = true;
@@ -90766,7 +91073,7 @@ var Soup = function () {
           var iRes = _step9.value;
 
           residue.iRes = iRes;
-          if (residue.chain === chain && residue.resNum === resNum) {
+          if (residue.iStructure === iStructure && residue.chain === chain && residue.resNum === resNum) {
             result.push(iRes);
           }
         }
@@ -90789,10 +91096,14 @@ var Soup = function () {
     }
   }, {
     key: 'assignResidueProperties',
-    value: function assignResidueProperties() {
+    value: function assignResidueProperties(iStructure) {
       var res = this.getResidueProxy();
       for (var iRes = 0; iRes < this.getResidueCount(); iRes += 1) {
         res.iRes = iRes;
+
+        if (res.iStructure !== iStructure) {
+          continue;
+        }
 
         if (_lodash2.default.includes(data.proteinResTypes, res.resType)) {
           res.iAtom = res.getIAtom('CA');
@@ -90995,6 +91306,16 @@ var Soup = function () {
       }
       return Math.max(spans[0], spans[1], spans[2]);
     }
+
+    /**
+     * Only calculates bonds within residues and between
+     * neighbouring residues. Two bonds are defined for
+     * each contact, allowing the bonds to be cheaply
+     * assigned to either atom without requiring
+     * double-looping. This is quite an expensive step
+     * using this naive algoirthm
+     */
+
   }, {
     key: 'calcBondsStrategic',
     value: function calcBondsStrategic() {
@@ -91543,6 +91864,10 @@ var Soup = function () {
     value: function getIStructureAndChain() {
       if (this.selectedTraces.length > 0) {
         var iTrace = this.selectedTraces[0];
+        var trace = this.traces[iTrace];
+        if (_lodash2.default.isNil(trace)) {
+          return null;
+        }
         var iRes = this.traces[iTrace].indices[0];
         var residue = this.getResidueProxy(iRes);
         var iStructure = residue.iStructure;
@@ -91905,89 +92230,6 @@ var Soup = function () {
       }
     }
   }, {
-    key: 'deleteStructure',
-    value: function deleteStructure(iStructure) {
-      console.log('Soup.deleteStructure', iStructure);
-      var atom = this.getAtomProxy();
-      var res = this.getResidueProxy();
-
-      var iAtomStart = null;
-      var iAtomEnd = null;
-      var iResStart = null;
-      var iResEnd = null;
-
-      for (var iAtom = 0; iAtom < this.getAtomCount(); iAtom += 1) {
-        atom.iAtom = iAtom;
-        res.iRes = atom.iRes;
-        if (res.iStructure === iStructure) {
-          if (iAtomStart === null) {
-            iAtomStart = iAtom;
-          }
-          iAtomEnd = iAtom + 1;
-          if (iResStart === null) {
-            iResStart = atom.iRes;
-          }
-          iResEnd = atom.iRes + 1;
-        }
-      }
-
-      var nAtomOffset = iAtomEnd - iAtomStart;
-      var nAtom = this.getAtomCount();
-      var nAtomNew = nAtom - nAtomOffset;
-      var nAtomCopy = nAtom - iAtomEnd;
-
-      var nResOffset = iResEnd - iResStart;
-      var nRes = this.getResidueCount();
-      var nResNew = nRes - nResOffset;
-      var nResCopy = nRes - iResEnd;
-
-      this.atomStore.copyWithin(iAtomStart, iAtomEnd, nAtomCopy);
-      this.atomStore.count -= nAtomOffset;
-
-      for (var _iAtom2 = 0; _iAtom2 < nAtomNew; _iAtom2 += 1) {
-        atom.iAtom = _iAtom2;
-        if (atom.iRes >= iResStart) {
-          atom.iRes -= nResOffset;
-        }
-      }
-
-      for (var iRes = 0; iRes < nResNew; iRes += 1) {
-        if (iRes >= iResStart) {
-          var iResOld = iRes + nResOffset;
-          if (iResOld in this.residueNormal) {
-            this.residueNormal[iRes] = this.residueNormal[iResOld].clone();
-          }
-        }
-      }
-
-      for (var _iRes9 = nResNew; _iRes9 < nRes; _iRes9 += 1) {
-        delete this.residueNormal[_iRes9];
-      }
-
-      this.residueStore.copyWithin(iResStart, iResEnd, nResCopy);
-      this.residueStore.count -= nResOffset;
-      this.resIds.splice(iResStart, nResOffset);
-
-      for (var _iRes10 = 0; _iRes10 < nResNew; _iRes10 += 1) {
-        res.iRes = _iRes10;
-        if (res.iAtom >= iAtomStart) {
-          res.iAtom -= nAtomOffset;
-          atom.iAtom = res.iAtom;
-        }
-        if (this.residueStore.atomOffset[_iRes10] >= iAtomStart) {
-          this.residueStore.atomOffset[_iRes10] -= nAtomOffset;
-        }
-        if (res.iStructure >= iStructure) {
-          res.iStructure -= 1;
-        }
-      }
-
-      this.structureIds.splice(iStructure, 1);
-      this.iStructure -= 1;
-
-      this.calcBondsStrategic();
-    }
-  }, {
     key: 'makeSelectedResidueList',
     value: function makeSelectedResidueList() {
       var result = [];
@@ -92080,7 +92322,7 @@ var SpaceHash = function () {
   }
 
   _createClass(SpaceHash, [{
-    key: 'getSpaceFromVertex',
+    key: "getSpaceFromVertex",
     value: function getSpaceFromVertex(vertex) {
       var result = [];
       for (var iDim = 0; iDim < 3; iDim++) {
@@ -92089,12 +92331,12 @@ var SpaceHash = function () {
       return result;
     }
   }, {
-    key: 'getHashFromSpace',
+    key: "getHashFromSpace",
     value: function getHashFromSpace(s) {
       return s[0] * this.sizes[1] * this.sizes[2] + s[1] * this.sizes[2] + s[2];
     }
   }, {
-    key: 'pushCellOfSpace',
+    key: "pushCellOfSpace",
     value: function pushCellOfSpace(pairs, vertex, iVertex) {
       var spaceCenter = this.getSpaceFromVertex(vertex);
 
@@ -92121,7 +92363,7 @@ var SpaceHash = function () {
       }
     }
   }, {
-    key: 'getClosePairs',
+    key: "getClosePairs",
     value: function getClosePairs() {
       var pairs = [];
       for (var iVertex = 0; iVertex < this.vertices.length; iVertex++) {
@@ -92130,9 +92372,8 @@ var SpaceHash = function () {
       return pairs;
     }
   }, {
-    key: 'getVerticesNearPoint',
+    key: "getVerticesNearPoint",
     value: function getVerticesNearPoint(vertex, iVertex) {
-      console.log('SpatialHash.getClosePairs');
       var pairs = [];
       this.pushCellOfSpace(pairs, vertex, iVertex);
       return pairs;
@@ -99621,7 +99862,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _data = __webpack_require__(69);
+var _data = __webpack_require__(97);
 
 var data = _interopRequireWildcard(_data);
 
@@ -101561,7 +101802,6 @@ var WebglWidget = function () {
   }, {
     key: 'resize',
     value: function resize() {
-      console.log('Webgl.Widget.resize', this.div, this.width(), this.div.width(), this.div.innerWidth());
       var position = this.div.position();
       this.webglDiv.css('left', this.x() + position.left);
       this.webglDiv.css('top', this.y() + position.top);
@@ -102363,7 +102603,6 @@ var FullPageWidget = function () {
         var c = String.fromCharCode(event.keyCode).toUpperCase();
         if (c === 'V') {
           this.viewPanelList.saveCurrentView();
-          return;
         } else if (c === 'K' || event.keyCode === 37) {
           this.controller.setTargetToPrevResidue();
         } else if (c === 'J' || event.keyCode === 39) {
@@ -102662,10 +102901,6 @@ var _three = __webpack_require__(28);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _data = __webpack_require__(69);
-
-var data = _interopRequireWildcard(_data);
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -102694,98 +102929,102 @@ function makeRgbStringFromHexString(hex) {
 }
 
 var AquariaAlignment = function () {
-  function AquariaAlignment(aquariaAlignData) {
+  function AquariaAlignment() {
     _classCallCheck(this, AquariaAlignment);
-
-    this.data = aquariaAlignData;
-    this.seqId = this.data.sequences[0].primary_accession;
-    this.pdbId = this.data.pdb_id;
-    console.log('AquariaAlignment.constructor', this.data, this.pdbId, this.seqId);
-    this.alignEntries = [];
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = this.data.alignment.split(';')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var alignStr = _step.value;
-
-        var pieces = alignStr.split(',');
-        var tokens = _lodash2.default.head(pieces).split(':');
-
-        var _$take = _lodash2.default.take(tokens, 5),
-            _$take2 = _slicedToArray(_$take, 5),
-            pdbId = _$take2[0],
-            pdbChain = _$take2[1],
-            resNumPdbStart = _$take2[2],
-            dummy = _$take2[3],
-            resNumPdbEnd = _$take2[4];
-
-        if (_lodash2.default.isNil(resNumPdbStart)) {
-          continue;
-        }
-
-        var _$last$split = _lodash2.default.last(pieces).split(':'),
-            _$last$split2 = _slicedToArray(_$last$split, 3),
-            seqId = _$last$split2[0],
-            resNumSeqStart = _$last$split2[1],
-            resNumSeqEnd = _$last$split2[2];
-
-        var entry = {
-          pdbId: pdbId,
-          pdbChain: pdbChain,
-          resNumPdbStart: resNumPdbStart,
-          resNumPdbEnd: resNumPdbEnd,
-          seqId: seqId,
-          resNumSeqStart: resNumSeqStart,
-          resNumSeqEnd: resNumSeqEnd
-        };
-        var _iteratorNormalCompletion2 = true;
-        var _didIteratorError2 = false;
-        var _iteratorError2 = undefined;
-
-        try {
-          for (var _iterator2 = _lodash2.default.keys(entry)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-            var key = _step2.value;
-
-            if (isNumeric(entry[key])) {
-              entry[key] = parseInt(entry[key]);
-            }
-          }
-        } catch (err) {
-          _didIteratorError2 = true;
-          _iteratorError2 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion2 && _iterator2.return) {
-              _iterator2.return();
-            }
-          } finally {
-            if (_didIteratorError2) {
-              throw _iteratorError2;
-            }
-          }
-        }
-
-        this.alignEntries.push(entry);
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
   }
 
   _createClass(AquariaAlignment, [{
+    key: 'reload',
+    value: function reload(aquariaAlignData, embedJolecule) {
+      this.data = aquariaAlignData;
+      this.seqId = this.data.sequences[0].primary_accession;
+      this.pdbId = this.data.pdb_id;
+      console.log('AquariaAlignment.reload', this.data, this.pdbId, this.seqId);
+      this.alignEntries = [];
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = this.data.alignment.split(';')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var alignStr = _step.value;
+
+          var pieces = alignStr.split(',');
+          var tokens = _lodash2.default.head(pieces).split(':');
+
+          var _$take = _lodash2.default.take(tokens, 5),
+              _$take2 = _slicedToArray(_$take, 5),
+              pdbId = _$take2[0],
+              pdbChain = _$take2[1],
+              resNumPdbStart = _$take2[2],
+              resNumPdbEnd = _$take2[4];
+
+          if (_lodash2.default.isNil(resNumPdbStart)) {
+            continue;
+          }
+
+          var _$last$split = _lodash2.default.last(pieces).split(':'),
+              _$last$split2 = _slicedToArray(_$last$split, 3),
+              seqId = _$last$split2[0],
+              resNumSeqStart = _$last$split2[1],
+              resNumSeqEnd = _$last$split2[2];
+
+          var entry = {
+            pdbId: pdbId,
+            pdbChain: pdbChain,
+            resNumPdbStart: resNumPdbStart,
+            resNumPdbEnd: resNumPdbEnd,
+            seqId: seqId,
+            resNumSeqStart: resNumSeqStart,
+            resNumSeqEnd: resNumSeqEnd
+          };
+          var _iteratorNormalCompletion2 = true;
+          var _didIteratorError2 = false;
+          var _iteratorError2 = undefined;
+
+          try {
+            for (var _iterator2 = _lodash2.default.keys(entry)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+              var key = _step2.value;
+
+              if (isNumeric(entry[key])) {
+                entry[key] = parseInt(entry[key]);
+              }
+            }
+          } catch (err) {
+            _didIteratorError2 = true;
+            _iteratorError2 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                _iterator2.return();
+              }
+            } finally {
+              if (_didIteratorError2) {
+                throw _iteratorError2;
+              }
+            }
+          }
+
+          this.alignEntries.push(entry);
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      this.setEmbedJolecule(embedJolecule);
+    }
+  }, {
     key: 'mapSeqResToPdbResOfChain',
     value: function mapSeqResToPdbResOfChain(seqId, resNumSeq, chain) {
       var _iteratorNormalCompletion3 = true;
@@ -102872,7 +103111,7 @@ var AquariaAlignment = function () {
             var iSeq = this.getISeqFromSeqId(entry.seqId);
             var seqName = this.data.common_names[iSeq];
             if (!seqName) {
-              seqName = this.data.sequences[iSeq].primary_accession;
+              seqName = null;
             }
             var diff = resNum - entry.resNumPdbStart;
             var resNumSeq = entry.resNumSeqStart + diff;
@@ -103351,8 +103590,8 @@ var AquariaAlignment = function () {
     }
   }, {
     key: 'selectNewChain',
-    value: function selectNewChain(seqId, pdbId, chain) {
-      console.log('AquariaAlignment.selectNewChain [overriddeable]', seqId, pdbId, chain);
+    value: function selectNewChain(seqId, seqName, pdbId, chain) {
+      console.log('AquariaAlignment.selectNewChain [overriddeable]', seqId, seqName, pdbId, chain);
     }
   }, {
     key: 'setPopup',
@@ -103440,7 +103679,6 @@ var AquariaAlignment = function () {
         }
       }
 
-      console.log('AquariaAlignment.getSelectionText', pieces);
       var text = '';
 
       if (pieces.length > 0) {
@@ -103456,14 +103694,14 @@ var AquariaAlignment = function () {
               continue;
             }
 
-            text += _piece.pdbChain + ": ";
+            text += _piece.pdbChain + ': ';
 
             var first = _piece.pdbResRanges[0];
             var isFirstSolo = first[0] === first[1];
 
             if (_piece.pdbResRanges.length === 1 && isFirstSolo) {
               text += _piece.firstPdbRes;
-              text += "<br>";
+              text += '<br>';
             } else {
               var _iteratorNormalCompletion17 = true;
               var _didIteratorError17 = false;
@@ -103499,7 +103737,7 @@ var AquariaAlignment = function () {
                 }
               }
 
-              text += "<br>";
+              text += '<br>';
             }
           }
         } catch (err) {
@@ -103530,14 +103768,14 @@ var AquariaAlignment = function () {
                 continue;
               }
 
-              text += _piece2.seqName + ": ";
+              text += _piece2.seqName + ': ';
 
               var _first = _piece2.seqResRanges[0];
               var _isFirstSolo = _first[0] === _first[1];
 
               if (_piece2.seqResRanges.length === 1 && _isFirstSolo) {
                 text += _piece2.firstSeqRes;
-                text += "<br>";
+                text += '<br>';
               } else {
                 var _iteratorNormalCompletion18 = true;
                 var _didIteratorError18 = false;
@@ -103573,7 +103811,7 @@ var AquariaAlignment = function () {
                   }
                 }
 
-                text += "<br>";
+                text += '<br>';
               }
             }
           }
@@ -103660,18 +103898,18 @@ var AquariaAlignment = function () {
     value: function update() {
       var result = this.embedJolecule.soup.getIStructureAndChain();
       if (_lodash2.default.isNil(result)) {
-        this.selectNewChain(null, null, null);
+        this.selectNewChain(null, null, null, null);
       } else {
-        console.log('AquariaAlignment.update', result, this.data.pdb_chain);
         var iChain = _lodash2.default.findIndex(this.data.pdb_chain, function (c) {
           return c === result.chain;
         });
         if (iChain >= 0) {
           this.seqId = this.data.sequences[iChain].primary_accession;
+          var seqName = this.data.common_names[iChain];
           var structureId = this.embedJolecule.soup.structureIds[result.iStructure];
-          this.selectNewChain(this.seqId, structureId, result.chain);
+          this.selectNewChain(this.seqId, seqName, structureId, result.chain);
         } else {
-          console.log('AquariaAlignment.update error, chain not found in alignment:', result.chain);
+          console.log('AquariaAlignment.update error, chain not found in alignment:', result.chain, this.data.pdb_chain, this.data);
         }
       }
     }

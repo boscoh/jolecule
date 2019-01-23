@@ -581,7 +581,11 @@ class Soup {
         let chain = line.substr(19, 1)
         let resNumStart = parseInt(line.substr(21, 4))
         let resNumEnd = parseInt(line.substr(33, 4))
-        for (let iRes of this.findResidueIndices(this.iStructure, chain, resNumStart)) {
+        for (let iRes of this.findResidueIndices(
+          this.iStructure,
+          chain,
+          resNumStart
+        )) {
           residue.iRes = iRes
           while (residue.resNum <= resNumEnd) {
             residue.ss = 'H'
@@ -595,7 +599,11 @@ class Soup {
         let chain = line.substr(21, 1)
         let resNumStart = parseInt(line.substr(22, 4))
         let resNumEnd = parseInt(line.substr(33, 4))
-        for (let iRes of this.findResidueIndices(this.iStructure, chain, resNumStart)) {
+        for (let iRes of this.findResidueIndices(
+          this.iStructure,
+          chain,
+          resNumStart
+        )) {
           residue.iRes = iRes
           while (residue.resNum <= resNumEnd) {
             residue.ss = 'E'
@@ -797,7 +805,11 @@ class Soup {
     let residue = this.getResidueProxy()
     for (let iRes of _.range(this.getResidueCount())) {
       residue.iRes = iRes
-      if (residue.iStructure === iStructure && residue.chain === chain && residue.resNum === resNum) {
+      if (
+        residue.iStructure === iStructure &&
+        residue.chain === chain &&
+        residue.resNum === resNum
+      ) {
         result.push(iRes)
       }
     }
@@ -924,6 +936,14 @@ class Soup {
     return Math.max(spans[0], spans[1], spans[2])
   }
 
+  /**
+   * Only calculates bonds within residues and between
+   * neighbouring residues. Two bonds are defined for
+   * each contact, allowing the bonds to be cheaply
+   * assigned to either atom without requiring
+   * double-looping. This is quite an expensive step
+   * using this naive algoirthm
+   */
   calcBondsStrategic() {
     this.bondStore.count = 0
 
@@ -1306,6 +1326,10 @@ class Soup {
   getIStructureAndChain() {
     if (this.selectedTraces.length > 0) {
       let iTrace = this.selectedTraces[0]
+      let trace = this.traces[iTrace]
+      if (_.isNil(trace)) {
+        return null
+      }
       let iRes = this.traces[iTrace].indices[0]
       let residue = this.getResidueProxy(iRes)
       let iStructure = residue.iStructure
@@ -1386,17 +1410,14 @@ class Soup {
     }
   }
 
-  getAtomsOfChainContainingResidue (iRes) {
+  getAtomsOfChainContainingResidue(iRes) {
     let residue = this.getResidueProxy(iRes)
     let iStructure = residue.iStructure
     let chain = residue.chain
     let atomIndices = []
     for (let i = 0; i < this.getResidueCount(); i += 1) {
       residue.iRes = i
-      if (
-        residue.iStructure === iStructure &&
-        residue.chain === chain
-      ) {
+      if (residue.iStructure === iStructure && residue.chain === chain) {
         atomIndices.push(residue.iAtom)
       }
     }
@@ -1502,88 +1523,6 @@ class Soup {
     if (_.isNil(this.grid)) {
       this.grid.bCutoff = this.grid.bMin
     }
-  }
-
-  deleteStructure(iStructure) {
-    console.log('Soup.deleteStructure', iStructure)
-    let atom = this.getAtomProxy()
-    let res = this.getResidueProxy()
-
-    let iAtomStart = null
-    let iAtomEnd = null
-    let iResStart = null
-    let iResEnd = null
-
-    for (let iAtom = 0; iAtom < this.getAtomCount(); iAtom += 1) {
-      atom.iAtom = iAtom
-      res.iRes = atom.iRes
-      if (res.iStructure === iStructure) {
-        if (iAtomStart === null) {
-          iAtomStart = iAtom
-        }
-        iAtomEnd = iAtom + 1
-        if (iResStart === null) {
-          iResStart = atom.iRes
-        }
-        iResEnd = atom.iRes + 1
-      }
-    }
-
-    let nAtomOffset = iAtomEnd - iAtomStart
-    let nAtom = this.getAtomCount()
-    let nAtomNew = nAtom - nAtomOffset
-    let nAtomCopy = nAtom - iAtomEnd
-
-    let nResOffset = iResEnd - iResStart
-    let nRes = this.getResidueCount()
-    let nResNew = nRes - nResOffset
-    let nResCopy = nRes - iResEnd
-
-    this.atomStore.copyWithin(iAtomStart, iAtomEnd, nAtomCopy)
-    this.atomStore.count -= nAtomOffset
-
-    for (let iAtom = 0; iAtom < nAtomNew; iAtom += 1) {
-      atom.iAtom = iAtom
-      if (atom.iRes >= iResStart) {
-        atom.iRes -= nResOffset
-      }
-    }
-
-    for (let iRes = 0; iRes < nResNew; iRes += 1) {
-      if (iRes >= iResStart) {
-        let iResOld = iRes + nResOffset
-        if (iResOld in this.residueNormal) {
-          this.residueNormal[iRes] = this.residueNormal[iResOld].clone()
-        }
-      }
-    }
-
-    for (let iRes = nResNew; iRes < nRes; iRes += 1) {
-      delete this.residueNormal[iRes]
-    }
-
-    this.residueStore.copyWithin(iResStart, iResEnd, nResCopy)
-    this.residueStore.count -= nResOffset
-    this.resIds.splice(iResStart, nResOffset)
-
-    for (let iRes = 0; iRes < nResNew; iRes += 1) {
-      res.iRes = iRes
-      if (res.iAtom >= iAtomStart) {
-        res.iAtom -= nAtomOffset
-        atom.iAtom = res.iAtom
-      }
-      if (this.residueStore.atomOffset[iRes] >= iAtomStart) {
-        this.residueStore.atomOffset[iRes] -= nAtomOffset
-      }
-      if (res.iStructure >= iStructure) {
-        res.iStructure -= 1
-      }
-    }
-
-    this.structureIds.splice(iStructure, 1)
-    this.iStructure -= 1
-
-    this.calcBondsStrategic()
   }
 
   makeSelectedResidueList() {
