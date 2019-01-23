@@ -81991,6 +81991,12 @@ var MenuWidget = function () {
     this.panelDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-backbone">'));
     this.widget.backbone = new ToggleOptionWidget(soupWidget, '#' + this.divId + '-backbone', 'backbone');
 
+    this.panelDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-water">'));
+    this.widget.water = new ToggleOptionWidget(soupWidget, '#' + this.divId + '-water', 'water');
+
+    this.panelDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-ribbon">'));
+    this.widget.ribbon = new ToggleOptionWidget(soupWidget, '#' + this.divId + '-ribbon', 'ribbon');
+
     this.soupWidget.addObserver(this);
     this.update();
   }
@@ -89172,6 +89178,16 @@ var SoupViewController = function () {
       this.clearSelectedResidues();
       this.setResidueSelect(iRes, val);
       this.iResLastSelected = val ? iRes : null;
+      this.soupView.isUpdateColors = true;
+      this.soupView.isChanged = true;
+    }
+  }, {
+    key: 'selectAllSidechains',
+    value: function selectAllSidechains(val) {
+      for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+        this.setResidueSelect(iRes, val);
+      }
+      this.iResLastSelected = null;
       this.soupView.isUpdateColors = true;
       this.soupView.isChanged = true;
     }
@@ -102631,16 +102647,18 @@ var FullPageWidget = function () {
           }
         } else if (c === 'N') {
           this.controller.toggleResidueNeighbors();
+        } else if (c === 'C') {
+          this.controller.toggleSelectedSidechains();
         } else if (c === 'A') {
           if (event.metaKey) {
-            this.controller.showAllSidechains();
+            this.controller.selectAllSidechains(true);
             event.preventDefault();
           } else {
             this.soupWidget.atomLabelDialog();
           }
         } else if (event.keyCode === 27) {
-          this.controller.clearSelectedResidues();
-        } else if (event.keyCode === 13) {
+          this.controller.clear();
+        } else if (c === 'Z' || event.keyCode === 13) {
           this.controller.zoomToSelection();
         } else {
           var i = parseInt(c) - 1;

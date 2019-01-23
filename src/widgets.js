@@ -1913,6 +1913,20 @@ class MenuWidget {
       'backbone'
     )
 
+    this.panelDiv.append($(`<div id="${this.divId}-water">`))
+    this.widget.water = new ToggleOptionWidget(
+      soupWidget,
+      `#${this.divId}-water`,
+      'water'
+    )
+
+    this.panelDiv.append($(`<div id="${this.divId}-ribbon">`))
+    this.widget.ribbon = new ToggleOptionWidget(
+      soupWidget,
+      `#${this.divId}-ribbon`,
+      'ribbon'
+    )
+
     this.soupWidget.addObserver(this)
     this.update()
   }

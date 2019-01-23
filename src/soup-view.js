@@ -1035,6 +1035,15 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
+  selectAllSidechains(val) {
+    for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
+      this.setResidueSelect(iRes, val)
+    }
+    this.iResLastSelected = null
+    this.soupView.isUpdateColors = true
+    this.soupView.isChanged = true
+  }
+
   selectAdditionalResidue(iRes) {
     let res = this.soup.getResidueProxy(iRes)
     let val = !res.selected

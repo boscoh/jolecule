@@ -490,16 +490,18 @@ class FullPageWidget {
         }
       } else if (c === 'N') {
         this.controller.toggleResidueNeighbors()
+      } else if (c === 'C') {
+        this.controller.toggleSelectedSidechains()
       } else if (c === 'A') {
         if (event.metaKey) {
-          this.controller.showAllSidechains()
+          this.controller.selectAllSidechains(true)
           event.preventDefault()
         } else {
           this.soupWidget.atomLabelDialog()
         }
       } else if (event.keyCode === 27) {
-        this.controller.clearSelectedResidues()
-      } else if (event.keyCode === 13) {
+        this.controller.clear()
+      } else if ((c === 'Z') || (event.keyCode === 13)) {
         this.controller.zoomToSelection()
       } else {
         let i = parseInt(c) - 1
