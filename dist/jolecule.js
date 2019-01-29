@@ -79451,7 +79451,8 @@ var defaultArgs = {
   msPerStep: 17,
   maxWaitStep: 30,
   isToolbarOnTop: false,
-  isMenu: true
+  isMenu: true,
+  isTextOverlay: true
 };
 
 var EmbedJolecule = function () {
@@ -79713,6 +79714,11 @@ var EmbedJolecule = function () {
         this.playableDiv.append((0, _util.linkButton)('>', 'jolecule-button', function () {
           _this3.controller.setTargetToNextView();
         }));
+
+        if (this.params.isTextOverlay) {
+          this.playableDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-hud">'));
+          this.widget.hud = new _widgets2.default.HudTextWidget(this.soupWidget, '#' + this.divId + '-hud');
+        }
 
         this.playableDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-view-text').addClass('jolecule-button').css({
           'background-color': '#BBB',
@@ -80972,8 +80978,10 @@ var SequenceWidget = function (_CanvasWidget) {
         this.text(_charEntry.c, xMid, this.yMidSequence, '7pt Helvetica', 'white', 'center');
 
         // draw highlight res box
-        if (iResCurrent >= 0 && iResCurrent === _charEntry.iRes) {
-          this.strokeRect(xLeft, _yTop - 5, width, height + 10, this.highlightColor);
+        if (this.soupWidget.isCrossHairs) {
+          if (iResCurrent >= 0 && iResCurrent === _charEntry.iRes) {
+            this.strokeRect(xLeft, _yTop - 5, width, height + 10, this.highlightColor);
+          }
         }
 
         // draw numbered ticks
@@ -81634,7 +81642,7 @@ var ColorLegendWidget = function (_CanvasWidget4) {
       var getSSColor = function getSSColor(ss) {
         return '#' + data.getSsColor(ss).getHexString();
       };
-      this.colorEntries = [{ color: getSSColor('E'), label: 'strand' }, { color: getSSColor('H'), label: 'helix' }, { color: getSSColor('C'), label: 'coil' }, { color: getSSColor('D'), label: 'DNA/RNA' }];
+      this.colorEntries = [{ color: getSSColor('E'), label: 'Strand' }, { color: getSSColor('H'), label: 'Helix' }, { color: getSSColor('C'), label: 'Coil' }, { color: getSSColor('D'), label: 'DNA/RNA' }];
     }
   }, {
     key: 'rebuild',
@@ -82164,6 +82172,68 @@ var ViewTextWidget = function () {
   return ViewTextWidget;
 }();
 
+var HudTextWidget = function (_ToggleWidget3) {
+  _inherits(HudTextWidget, _ToggleWidget3);
+
+  function HudTextWidget(soupWidget, selector) {
+    _classCallCheck(this, HudTextWidget);
+
+    var _this16 = _possibleConstructorReturn(this, (HudTextWidget.__proto__ || Object.getPrototypeOf(HudTextWidget)).call(this, soupWidget, selector));
+
+    _this16.selector = selector;
+    _this16.soupView = _this16.soupWidget.soupView;
+    _this16.id = selector + '-text-overlay';
+    _this16.hudDiv = (0, _jquery2.default)('<div id="' + _this16.id + '">').addClass('jolecule-overlay-text');
+    _this16.isText = true;
+    _this16.resize();
+    return _this16;
+  }
+
+  _createClass(HudTextWidget, [{
+    key: 'html',
+    value: function html() {
+      return 'Text';
+    }
+  }, {
+    key: 'get',
+    value: function get() {
+      return this.isText;
+    }
+  }, {
+    key: 'set',
+    value: function set(val) {
+      this.isText = val;
+    }
+  }, {
+    key: 'resize',
+    value: function resize() {
+      var div = this.soupWidget.div;
+      util.stickJqueryDivInTopLeft(div, this.hudDiv, 5, 5);
+      this.hudDiv.css('max-width', div.width() - 40);
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      _get(HudTextWidget.prototype.__proto__ || Object.getPrototypeOf(HudTextWidget.prototype), 'update', this).call(this);
+      if (this.isText) {
+        var n = this.soupView.savedViews.length;
+        if (n === 0) {
+          this.hudDiv.text('');
+        } else {
+          var i = this.soupView.currentView.order + 1;
+          var text = this.soupView.currentView.text;
+          this.hudDiv.html(i + '/' + n + ': ' + text);
+        }
+        this.hudDiv.show();
+      } else {
+        this.hudDiv.hide();
+      }
+    }
+  }]);
+
+  return HudTextWidget;
+}(ToggleWidget);
+
 exports.default = {
   LineElement: LineElement,
   PopupText: PopupText,
@@ -82178,7 +82248,8 @@ exports.default = {
   ToggleOptionWidget: ToggleOptionWidget,
   ToggleAnimateWidget: ToggleAnimateWidget,
   ViewTextWidget: ViewTextWidget,
-  MenuWidget: MenuWidget
+  MenuWidget: MenuWidget,
+  HudTextWidget: HudTextWidget
 };
 
 /***/ }),
@@ -92830,6 +92901,7 @@ var SoupWidget = function (_WebglWidget) {
     _this.gridAtomRadius = 1.0;
 
     // Cross-hairs to identify centered atom
+    _this.isCrossHairs = true;
     _this.buildCrossHairs();
 
     // popup hover box over the mouse position
@@ -102098,7 +102170,7 @@ exports = module.exports = __webpack_require__(134)();
 
 
 // module
-exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    font-family: Helvetica, Arial, sans-serif;\n    text-align: center;\n    font-size: 12px;\n    line-height: 1.5em;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: middle;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-toolbar {\n    padding: 5px 5px 2px 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n", ""]);
+exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    font-family: Helvetica, Arial, sans-serif;\n    text-align: center;\n    font-size: 12px;\n    line-height: 1.5em;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: middle;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-toolbar {\n    padding: 5px 5px 2px 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n.jolecule-overlay-text {\n    z-index: 5001;\n    border: 1px solid #888;\n    color: #CCC;\n    background-color: #444;\n    padding: 10px;\n    opacity: 0.7;\n    text-align: left;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n    font-size: 12px;\n}\n\n.jolecule-overlay-text a {\n    color: #AAE;\n}\n", ""]);
 
 // exports
 
@@ -102649,6 +102721,12 @@ var FullPageWidget = function () {
           this.controller.toggleResidueNeighbors();
         } else if (c === 'C') {
           this.controller.toggleSelectedSidechains();
+        } else if (c === 'X') {
+          var iAtom = this.soupView.getICenteredAtom();
+          if (iAtom >= 0) {
+            var atom = this.soupView.soup.getAtomProxy(iAtom);
+            this.controller.selectResidue(atom.iRes);
+          }
         } else if (c === 'A') {
           if (event.metaKey) {
             this.controller.selectAllSidechains(true);
@@ -103337,11 +103415,11 @@ var AquariaAlignment = function () {
       colorLegendWidget.default();
       colorLegendWidget.colorEntries.push({
         color: '#666666',
-        label: 'conserved'
+        label: 'Conserved'
       });
       colorLegendWidget.colorEntries.push({
         color: '#000000',
-        label: 'nonconserved'
+        label: 'Nonconserved'
       });
       colorLegendWidget.rebuild();
     }
@@ -103535,6 +103613,8 @@ var AquariaAlignment = function () {
   }, {
     key: 'setFeatureColorLegend',
     value: function setFeatureColorLegend(colorLegendWidget, features) {
+      this.features = features;
+      // console.log('AquariaAlignment.setFeatureColorLegend', features)
       var entries = [];
       var _iteratorNormalCompletion13 = true;
       var _didIteratorError13 = false;
@@ -103544,10 +103624,13 @@ var AquariaAlignment = function () {
         var _loop = function _loop() {
           var feature = _step13.value;
 
-          if (!_lodash2.default.find(entries, function (e) {
+          var entry = _lodash2.default.find(entries, function (e) {
             return e.color === feature.Color;
-          })) {
-            entries.push({ color: feature.Color, label: feature.Name });
+          });
+          if (!entry) {
+            entries.push({ color: feature.Color, label: [feature.Name] });
+          } else {
+            entry.label.push(feature.Name);
           }
         };
 
@@ -103569,16 +103652,20 @@ var AquariaAlignment = function () {
         }
       }
 
-      colorLegendWidget.colorEntries.length = 0;
       var _iteratorNormalCompletion14 = true;
       var _didIteratorError14 = false;
       var _iteratorError14 = undefined;
 
       try {
         for (var _iterator14 = entries[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-          var entry = _step14.value;
+          var _entry5 = _step14.value;
 
-          colorLegendWidget.colorEntries.push(entry);
+          _entry5.label = _lodash2.default.uniq(_entry5.label);
+          _entry5.label = _lodash2.default.join(_entry5.label, ', ');
+          var n = 50;
+          if (_entry5.label.length > n) {
+            _entry5.label = _entry5.label.substring(0, n - 3) + '...';
+          }
         }
       } catch (err) {
         _didIteratorError14 = true;
@@ -103591,6 +103678,32 @@ var AquariaAlignment = function () {
         } finally {
           if (_didIteratorError14) {
             throw _iteratorError14;
+          }
+        }
+      }
+
+      colorLegendWidget.colorEntries.length = 0;
+      var _iteratorNormalCompletion15 = true;
+      var _didIteratorError15 = false;
+      var _iteratorError15 = undefined;
+
+      try {
+        for (var _iterator15 = entries[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+          var _entry6 = _step15.value;
+
+          colorLegendWidget.colorEntries.push(_entry6);
+        }
+      } catch (err) {
+        _didIteratorError15 = true;
+        _iteratorError15 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion15 && _iterator15.return) {
+            _iterator15.return();
+          }
+        } finally {
+          if (_didIteratorError15) {
+            throw _iteratorError15;
           }
         }
       }
@@ -103633,6 +103746,34 @@ var AquariaAlignment = function () {
           var label = pdbId + '-' + residue.chain + ': ' + c + residue.resNum + ' <br>Atom:' + atom.atomType;
           if (seqName) {
             label = seqName + ': ' + c + resNum + ' <br>' + label;
+          }
+          if (_this.features) {
+            var _iteratorNormalCompletion16 = true;
+            var _didIteratorError16 = false;
+            var _iteratorError16 = undefined;
+
+            try {
+              for (var _iterator16 = _this.features[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+                var _feature = _step16.value;
+
+                if (_feature.Residue === resNum) {
+                  label += '<br>Feature: ' + _feature.Name;
+                }
+              }
+            } catch (err) {
+              _didIteratorError16 = true;
+              _iteratorError16 = err;
+            } finally {
+              try {
+                if (!_iteratorNormalCompletion16 && _iterator16.return) {
+                  _iterator16.return();
+                }
+              } finally {
+                if (_didIteratorError16) {
+                  throw _iteratorError16;
+                }
+              }
+            }
           }
           return label;
         } else {
@@ -103700,13 +103841,13 @@ var AquariaAlignment = function () {
       var text = '';
 
       if (pieces.length > 0) {
-        var _iteratorNormalCompletion15 = true;
-        var _didIteratorError15 = false;
-        var _iteratorError15 = undefined;
+        var _iteratorNormalCompletion17 = true;
+        var _didIteratorError17 = false;
+        var _iteratorError17 = undefined;
 
         try {
-          for (var _iterator15 = pieces[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-            var _piece = _step15.value;
+          for (var _iterator17 = pieces[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+            var _piece = _step17.value;
 
             if (_piece.pdbResRanges.length === 0) {
               continue;
@@ -103721,15 +103862,15 @@ var AquariaAlignment = function () {
               text += _piece.firstPdbRes;
               text += '<br>';
             } else {
-              var _iteratorNormalCompletion17 = true;
-              var _didIteratorError17 = false;
-              var _iteratorError17 = undefined;
+              var _iteratorNormalCompletion19 = true;
+              var _didIteratorError19 = false;
+              var _iteratorError19 = undefined;
 
               try {
-                for (var _iterator17 = _lodash2.default.toPairs(_piece.pdbResRanges)[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
-                  var _step17$value = _slicedToArray(_step17.value, 2),
-                      _i = _step17$value[0],
-                      r = _step17$value[1];
+                for (var _iterator19 = _lodash2.default.toPairs(_piece.pdbResRanges)[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+                  var _step19$value = _slicedToArray(_step19.value, 2),
+                      _i = _step19$value[0],
+                      r = _step19$value[1];
 
                   if (_i > 0) {
                     text += ', ';
@@ -103741,16 +103882,16 @@ var AquariaAlignment = function () {
                   }
                 }
               } catch (err) {
-                _didIteratorError17 = true;
-                _iteratorError17 = err;
+                _didIteratorError19 = true;
+                _iteratorError19 = err;
               } finally {
                 try {
-                  if (!_iteratorNormalCompletion17 && _iterator17.return) {
-                    _iterator17.return();
+                  if (!_iteratorNormalCompletion19 && _iterator19.return) {
+                    _iterator19.return();
                   }
                 } finally {
-                  if (_didIteratorError17) {
-                    throw _iteratorError17;
+                  if (_didIteratorError19) {
+                    throw _iteratorError19;
                   }
                 }
               }
@@ -103759,27 +103900,27 @@ var AquariaAlignment = function () {
             }
           }
         } catch (err) {
-          _didIteratorError15 = true;
-          _iteratorError15 = err;
+          _didIteratorError17 = true;
+          _iteratorError17 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion15 && _iterator15.return) {
-              _iterator15.return();
+            if (!_iteratorNormalCompletion17 && _iterator17.return) {
+              _iterator17.return();
             }
           } finally {
-            if (_didIteratorError15) {
-              throw _iteratorError15;
+            if (_didIteratorError17) {
+              throw _iteratorError17;
             }
           }
         }
 
-        var _iteratorNormalCompletion16 = true;
-        var _didIteratorError16 = false;
-        var _iteratorError16 = undefined;
+        var _iteratorNormalCompletion18 = true;
+        var _didIteratorError18 = false;
+        var _iteratorError18 = undefined;
 
         try {
-          for (var _iterator16 = pieces[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-            var _piece2 = _step16.value;
+          for (var _iterator18 = pieces[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+            var _piece2 = _step18.value;
 
             if (_piece2.seqName) {
               if (_piece2.seqResRanges.length === 0) {
@@ -103795,15 +103936,15 @@ var AquariaAlignment = function () {
                 text += _piece2.firstSeqRes;
                 text += '<br>';
               } else {
-                var _iteratorNormalCompletion18 = true;
-                var _didIteratorError18 = false;
-                var _iteratorError18 = undefined;
+                var _iteratorNormalCompletion20 = true;
+                var _didIteratorError20 = false;
+                var _iteratorError20 = undefined;
 
                 try {
-                  for (var _iterator18 = _lodash2.default.toPairs(_piece2.seqResRanges)[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-                    var _step18$value = _slicedToArray(_step18.value, 2),
-                        _i2 = _step18$value[0],
-                        r = _step18$value[1];
+                  for (var _iterator20 = _lodash2.default.toPairs(_piece2.seqResRanges)[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+                    var _step20$value = _slicedToArray(_step20.value, 2),
+                        _i2 = _step20$value[0],
+                        r = _step20$value[1];
 
                     if (_i2 > 0) {
                       text += ', ';
@@ -103815,16 +103956,16 @@ var AquariaAlignment = function () {
                     }
                   }
                 } catch (err) {
-                  _didIteratorError18 = true;
-                  _iteratorError18 = err;
+                  _didIteratorError20 = true;
+                  _iteratorError20 = err;
                 } finally {
                   try {
-                    if (!_iteratorNormalCompletion18 && _iterator18.return) {
-                      _iterator18.return();
+                    if (!_iteratorNormalCompletion20 && _iterator20.return) {
+                      _iterator20.return();
                     }
                   } finally {
-                    if (_didIteratorError18) {
-                      throw _iteratorError18;
+                    if (_didIteratorError20) {
+                      throw _iteratorError20;
                     }
                   }
                 }
@@ -103834,16 +103975,16 @@ var AquariaAlignment = function () {
             }
           }
         } catch (err) {
-          _didIteratorError16 = true;
-          _iteratorError16 = err;
+          _didIteratorError18 = true;
+          _iteratorError18 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion16 && _iterator16.return) {
-              _iterator16.return();
+            if (!_iteratorNormalCompletion18 && _iterator18.return) {
+              _iterator18.return();
             }
           } finally {
-            if (_didIteratorError16) {
-              throw _iteratorError16;
+            if (_didIteratorError18) {
+              throw _iteratorError18;
             }
           }
         }
@@ -103864,19 +104005,20 @@ var AquariaAlignment = function () {
     key: 'setEmbedJolecule',
     value: function setEmbedJolecule(embedJolecule) {
       embedJolecule.soupView.setMode('chain');
+      embedJolecule.soupWidget.isCrossHairs = false;
       embedJolecule.soupWidget.crossHairs.visible = false;
       embedJolecule.soupView.setMode('chain');
       this.setFullSequence(embedJolecule.sequenceWidget);
       embedJolecule.sequenceWidget.update();
-      var _iteratorNormalCompletion19 = true;
-      var _didIteratorError19 = false;
-      var _iteratorError19 = undefined;
+      var _iteratorNormalCompletion21 = true;
+      var _didIteratorError21 = false;
+      var _iteratorError21 = undefined;
 
       try {
-        for (var _iterator19 = this.data.sequences.entries()[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-          var _step19$value = _slicedToArray(_step19.value, 2),
-              iChain = _step19$value[0],
-              sequence = _step19$value[1];
+        for (var _iterator21 = this.data.sequences.entries()[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+          var _step21$value = _slicedToArray(_step21.value, 2),
+              iChain = _step21$value[0],
+              sequence = _step21$value[1];
 
           if (!_lodash2.default.isNil(sequence.primary_accession)) {
             var chain = this.data.pdb_chain[iChain];
@@ -103886,16 +104028,16 @@ var AquariaAlignment = function () {
           }
         }
       } catch (err) {
-        _didIteratorError19 = true;
-        _iteratorError19 = err;
+        _didIteratorError21 = true;
+        _iteratorError21 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion19 && _iterator19.return) {
-            _iterator19.return();
+          if (!_iteratorNormalCompletion21 && _iterator21.return) {
+            _iterator21.return();
           }
         } finally {
-          if (_didIteratorError19) {
-            throw _iteratorError19;
+          if (_didIteratorError21) {
+            throw _iteratorError21;
           }
         }
       }

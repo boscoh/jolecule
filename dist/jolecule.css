@@ -122,3 +122,19 @@ a.jolecule-large-button:active {
     color: #333
 }
 
+.jolecule-overlay-text {
+    z-index: 5001;
+    border: 1px solid #888;
+    color: #CCC;
+    background-color: #444;
+    padding: 10px;
+    opacity: 0.7;
+    text-align: left;
+    letter-spacing: 0.1em;
+    line-height: 1.5em;
+    font-size: 12px;
+}
+
+.jolecule-overlay-text a {
+    color: #AAE;
+}

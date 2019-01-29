@@ -492,6 +492,12 @@ class FullPageWidget {
         this.controller.toggleResidueNeighbors()
       } else if (c === 'C') {
         this.controller.toggleSelectedSidechains()
+      } else if (c === 'X') {
+        let iAtom = this.soupView.getICenteredAtom()
+        if (iAtom >= 0) {
+          let atom = this.soupView.soup.getAtomProxy(iAtom)
+          this.controller.selectResidue(atom.iRes)
+        }
       } else if (c === 'A') {
         if (event.metaKey) {
           this.controller.selectAllSidechains(true)

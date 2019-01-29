@@ -22,25 +22,16 @@ function makeRgbStringFromHexString(hex) {
 }
 
 class AquariaAlignment {
-
   reload(aquariaAlignData, embedJolecule) {
     this.data = aquariaAlignData
     this.seqId = this.data.sequences[0].primary_accession
     this.pdbId = this.data.pdb_id
-    console.log(
-      'AquariaAlignment.reload',
-      this.data,
-      this.pdbId,
-      this.seqId
-    )
+    console.log('AquariaAlignment.reload', this.data, this.pdbId, this.seqId)
     this.alignEntries = []
     for (let alignStr of this.data.alignment.split(';')) {
       let pieces = alignStr.split(',')
       let tokens = _.head(pieces).split(':')
-      let [pdbId, pdbChain, resNumPdbStart, , resNumPdbEnd] = _.take(
-        tokens,
-        5
-      )
+      let [pdbId, pdbChain, resNumPdbStart, , resNumPdbEnd] = _.take(tokens, 5)
       if (_.isNil(resNumPdbStart)) {
         continue
       }
@@ -195,11 +186,11 @@ class AquariaAlignment {
     colorLegendWidget.default()
     colorLegendWidget.colorEntries.push({
       color: '#666666',
-      label: 'conserved'
+      label: 'Conserved'
     })
     colorLegendWidget.colorEntries.push({
       color: '#000000',
-      label: 'nonconserved'
+      label: 'Nonconserved'
     })
     colorLegendWidget.rebuild()
   }
@@ -330,10 +321,23 @@ class AquariaAlignment {
   }
 
   setFeatureColorLegend(colorLegendWidget, features) {
+    this.features = features
+    // console.log('AquariaAlignment.setFeatureColorLegend', features)
     let entries = []
     for (let feature of features) {
-      if (!_.find(entries, e => e.color === feature.Color)) {
-        entries.push({ color: feature.Color, label: feature.Name })
+      let entry = _.find(entries, e => e.color === feature.Color)
+      if (!entry) {
+        entries.push({ color: feature.Color, label: [feature.Name] })
+      } else {
+        entry.label.push(feature.Name)
+      }
+    }
+    for (let entry of entries) {
+      entry.label = _.uniq(entry.label)
+      entry.label = _.join(entry.label, ', ')
+      let n = 50
+      if (entry.label.length > n) {
+        entry.label = entry.label.substring(0, n-3) + '...'
       }
     }
     colorLegendWidget.colorEntries.length = 0
@@ -378,6 +382,13 @@ class AquariaAlignment {
         } <br>Atom:${atom.atomType}`
         if (seqName) {
           label = `${seqName}: ${c}${resNum} <br>` + label
+        }
+        if (this.features) {
+          for (let feature of this.features) {
+            if (feature.Residue === resNum) {
+              label += `<br>Feature: ${feature.Name}`
+            }
+          }
         }
         return label
       } else {
@@ -510,6 +521,7 @@ class AquariaAlignment {
 
   setEmbedJolecule(embedJolecule) {
     embedJolecule.soupView.setMode('chain')
+    embedJolecule.soupWidget.isCrossHairs = false
     embedJolecule.soupWidget.crossHairs.visible = false
     embedJolecule.soupView.setMode('chain')
     this.setFullSequence(embedJolecule.sequenceWidget)
@@ -551,7 +563,8 @@ class AquariaAlignment {
         console.log(
           'AquariaAlignment.update error, chain not found in alignment:',
           result.chain,
-          this.data.pdb_chain, this.data
+          this.data.pdb_chain,
+          this.data
         )
       }
     }

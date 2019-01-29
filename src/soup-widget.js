@@ -50,6 +50,7 @@ class SoupWidget extends WebglWidget {
     this.gridAtomRadius = 1.0
 
     // Cross-hairs to identify centered atom
+    this.isCrossHairs = true
     this.buildCrossHairs()
 
     // popup hover box over the mouse position

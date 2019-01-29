@@ -977,14 +977,16 @@ class SequenceWidget extends CanvasWidget {
       )
 
       // draw highlight res box
-      if (iResCurrent >= 0 && iResCurrent === charEntry.iRes) {
-        this.strokeRect(
-          xLeft,
-          yTop - 5,
-          width,
-          height + 10,
-          this.highlightColor
-        )
+      if (this.soupWidget.isCrossHairs) {
+        if (iResCurrent >= 0 && iResCurrent === charEntry.iRes) {
+          this.strokeRect(
+            xLeft,
+            yTop - 5,
+            width,
+            height + 10,
+            this.highlightColor
+          )
+        }
       }
 
       // draw numbered ticks
@@ -1614,9 +1616,9 @@ class ColorLegendWidget extends CanvasWidget {
   default() {
     let getSSColor = ss => '#' + data.getSsColor(ss).getHexString()
     this.colorEntries = [
-      { color: getSSColor('E'), label: 'strand' },
-      { color: getSSColor('H'), label: 'helix' },
-      { color: getSSColor('C'), label: 'coil' },
+      { color: getSSColor('E'), label: 'Strand' },
+      { color: getSSColor('H'), label: 'Helix' },
+      { color: getSSColor('C'), label: 'Coil' },
       { color: getSSColor('D'), label: 'DNA/RNA' }
     ]
   }
@@ -2047,6 +2049,54 @@ class ViewTextWidget {
   }
 }
 
+class HudTextWidget extends ToggleWidget {
+  constructor(soupWidget, selector) {
+    super(soupWidget, selector)
+    this.selector = selector
+    this.soupView = this.soupWidget.soupView
+    this.id = selector + '-text-overlay'
+    this.hudDiv = $(`<div id="${this.id}">`)
+      .addClass('jolecule-overlay-text')
+    this.isText = true
+    this.resize()
+  }
+
+  html() {
+    return 'Text'
+  }
+
+  get() {
+    return this.isText
+  }
+
+  set(val) {
+    this.isText = val
+  }
+
+  resize() {
+    let div = this.soupWidget.div
+    util.stickJqueryDivInTopLeft(div, this.hudDiv, 5, 5)
+    this.hudDiv.css('max-width', div.width() - 40)
+  }
+
+  update() {
+    super.update()
+    if (this.isText) {
+      let n = this.soupView.savedViews.length
+      if (n === 0) {
+        this.hudDiv.text('')
+      } else {
+        let i = this.soupView.currentView.order + 1
+        let text = this.soupView.currentView.text
+        this.hudDiv.html(`${i}/${n}: ${text}`)
+      }
+      this.hudDiv.show()
+    } else {
+      this.hudDiv.hide()
+    }
+  }
+}
+
 export default {
   LineElement,
   PopupText,
@@ -2061,5 +2111,6 @@ export default {
   ToggleOptionWidget,
   ToggleAnimateWidget,
   ViewTextWidget,
-  MenuWidget
+  MenuWidget,
+  HudTextWidget
 }

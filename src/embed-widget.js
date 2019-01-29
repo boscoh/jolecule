@@ -32,7 +32,8 @@ let defaultArgs = {
   msPerStep: 17,
   maxWaitStep: 30,
   isToolbarOnTop: false,
-  isMenu: true
+  isMenu: true,
+  isTextOverlay: true,
 }
 
 class EmbedJolecule {
@@ -257,6 +258,14 @@ class EmbedJolecule {
           this.controller.setTargetToNextView()
         })
       )
+
+      if (this.params.isTextOverlay) {
+        this.playableDiv.append($(`<div id="${this.divId}-hud">`))
+        this.widget.hud = new widgets.HudTextWidget(
+          this.soupWidget,
+          `#${this.divId}-hud`
+        )
+      }
 
       this.playableDiv.append(
         $('<div>')
