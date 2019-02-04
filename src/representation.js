@@ -18,7 +18,7 @@ let phongMaterial = new THREE.MeshPhongMaterial({
 })
 
 let transparentMaterial = new THREE.MeshPhongMaterial({
-  opacity: 0.2,
+  opacity: 0.15,
   premultipliedAlpha: true,
   vertexColors: THREE.VertexColors,
   transparent: true
