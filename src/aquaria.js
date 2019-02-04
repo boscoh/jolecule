@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import * as THREE from 'three'
+import * as data from './data'
 
 function getHexColor(hex) {
   let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
@@ -99,7 +100,7 @@ class AquariaAlignment {
         }
         let diff = resNum - entry.resNumPdbStart
         let resNumSeq = entry.resNumSeqStart + diff
-        let c = this.data.sequences[iSeq].sequence[resNum - 1]
+        let c = this.data.sequences[iSeq].sequence[resNumSeq-1]
         return [seqName, resNumSeq, c]
       }
     }
@@ -162,19 +163,33 @@ class AquariaAlignment {
       residue.iRes = iRes
       let chain = residue.chain
       let resNum = residue.resNum
-      let [seqName, seqResNum, c] = this.mapPdbResOfChainToSeqRes(chain, resNum)
+      let [, seqResNum] = this.mapPdbResOfChainToSeqRes(chain, resNum)
       if (_.isNil(seqResNum)) {
         // probably insertion, and non-alignments
         residue.customColor = '#999999'
       } else {
-        if (!_.includes(allowedChains, residue.chain)) {
-          residue.customColor = '#999999'
-        } else if (chain in this.data.conservations) {
-          let conservations = this.data.conservations[chain]
-          if (_.includes(conservations.conserved, seqResNum)) {
-            residue.customColor = '#666666'
-          } else if (_.includes(conservations.nonconserved, seqResNum)) {
-            residue.customColor = '#000000'
+        if (_.has(this.data, 'conservationArray')) {
+          if (!_.includes(allowedChains, residue.chain)) {
+            residue.customColor = '#999999'
+          } else if (chain === this.data.pdb_chain[0]) {
+            if (this.data.conservationArray[seqResNum] === 'conserved') {
+              residue.customColor = '#666666'
+            } else if (
+              this.data.conservationArray[seqResNum] === 'nonconserved'
+            ) {
+              residue.customColor = '#000000'
+            }
+          }
+        } else {
+          if (!_.includes(allowedChains, residue.chain)) {
+            residue.customColor = '#999999'
+          } else if (chain in this.data.conservations) {
+            let conservations = this.data.conservations[chain]
+            if (_.includes(conservations.conserved, seqResNum)) {
+              residue.customColor = '#666666'
+            } else if (_.includes(conservations.nonconserved, seqResNum)) {
+              residue.customColor = '#000000'
+            }
           }
         }
       }
@@ -276,6 +291,7 @@ class AquariaAlignment {
             }
             sequenceWidget.charEntries.push(entry)
           } else {
+            let pdbC = _.get(data.resToAa, residue.resType, '.')
             let entry = {
               chain,
               iStructure: residue.iStructure,
@@ -283,7 +299,7 @@ class AquariaAlignment {
               startLabel: null,
               iRes: residue.iRes,
               ss: residue.ss,
-              label: `${seqLabel}${pdbId}-${chain}:${c}${pdbResNum}`,
+              label: `${seqLabel}${pdbId}-${chain}:${pdbC}${pdbResNum}`,
               resNum: iResOfSeq + 1
             }
             sequenceWidget.charEntries.push(entry)
@@ -294,7 +310,7 @@ class AquariaAlignment {
     sequenceWidget.nChar = sequenceWidget.charEntries.length
   }
 
-  colorFromFeatures(embededJolecule, features, seqId) {
+  colorFromFeatures(embededJolecule, features, seqId, name) {
     let soup = embededJolecule.soupView.soup
     let residue = soup.getResidueProxy()
     for (let i = 0; i < soup.getResidueCount(); i += 1) {
@@ -317,10 +333,14 @@ class AquariaAlignment {
     soup.colorResidues()
     embededJolecule.soupView.isUpdateColors = true
     embededJolecule.soupView.isChanged = true
-    this.setFeatureColorLegend(embededJolecule.widget.colorLegend, features)
+    this.setFeatureColorLegend(
+      embededJolecule.widget.colorLegend,
+      features,
+      name
+    )
   }
 
-  setFeatureColorLegend(colorLegendWidget, features) {
+  setFeatureColorLegend(colorLegendWidget, features, name) {
     this.features = features
     // console.log('AquariaAlignment.setFeatureColorLegend', features)
     let entries = []
@@ -337,13 +357,14 @@ class AquariaAlignment {
       entry.label = _.join(entry.label, ', ')
       let n = 50
       if (entry.label.length > n) {
-        entry.label = entry.label.substring(0, n-3) + '...'
+        entry.label = entry.label.substring(0, n - 3) + '...'
       }
     }
     colorLegendWidget.colorEntries.length = 0
     for (let entry of entries) {
       colorLegendWidget.colorEntries.push(entry)
     }
+    colorLegendWidget.title = name
     colorLegendWidget.rebuild()
   }
 
@@ -376,8 +397,18 @@ class AquariaAlignment {
         residue.chain,
         residue.resNum
       )
+      console.log(
+        'AquariaAlignment.setPopup',
+        residue.chain,
+        residue.resNum,
+        residue.resType,
+        seqName,
+        resNum,
+        c
+      )
       if (!_.isNil(resNum)) {
-        let label = `${pdbId}-${residue.chain}: ${c}${
+        let pdbC = _.get(data.resToAa, residue.resType, '.')
+        let label = `${pdbId}-${residue.chain}: ${pdbC}${
           residue.resNum
         } <br>Atom:${atom.atomType}`
         if (seqName) {

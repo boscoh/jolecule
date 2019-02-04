@@ -81642,12 +81642,20 @@ var ColorLegendWidget = function (_CanvasWidget4) {
       var getSSColor = function getSSColor(ss) {
         return '#' + data.getSsColor(ss).getHexString();
       };
+      this.title = 'Secondary Structure';
       this.colorEntries = [{ color: getSSColor('E'), label: 'Strand' }, { color: getSSColor('H'), label: 'Helix' }, { color: getSSColor('C'), label: 'Coil' }, { color: getSSColor('D'), label: 'DNA/RNA' }];
     }
   }, {
     key: 'rebuild',
     value: function rebuild() {
       this.buttonsDiv.empty();
+
+      if (this.title) {
+        this.buttonsDiv.append((0, _jquery2.default)('<div>').text(this.title).css({
+          'font-size': '0.8em',
+          'font-style': 'italic'
+        }));
+      }
 
       var _iteratorNormalCompletion7 = true;
       var _didIteratorError7 = false;
@@ -89089,6 +89097,8 @@ var SoupViewController = function () {
   }, {
     key: 'selectPrevResidue',
     value: function selectPrevResidue() {
+      var isClear = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+
       var iResFirst = null;
       var residue = this.soup.getResidueProxy();
       for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
@@ -89103,10 +89113,14 @@ var SoupViewController = function () {
         } else {
           iResFirst = this.soup.getResidueCount - 1;
         }
-        this.clearSelectedResidues();
+        if (isClear) {
+          this.clearSelectedResidues();
+        }
         this.selectResidue(iResFirst, true);
       } else {
-        this.clearSelectedResidues();
+        if (isClear) {
+          this.clearSelectedResidues();
+        }
         var iResSelect = null;
         for (var _iRes = this.soup.getResidueCount() - 1; _iRes >= 0; _iRes -= 1) {
           if (residue.load(_iRes).isPolymer) {
@@ -89122,6 +89136,8 @@ var SoupViewController = function () {
   }, {
     key: 'selectNextResidue',
     value: function selectNextResidue() {
+      var isClear = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+
       var iResLast = null;
       var residue = this.soup.getResidueProxy();
       var nRes = this.soup.getResidueCount();
@@ -89131,14 +89147,16 @@ var SoupViewController = function () {
           break;
         }
       }
+      console.log('Contreoller.selectNextResidue', iResLast, isClear);
       if (iResLast !== null) {
         if (iResLast < nRes - 1) {
           iResLast += 1;
         } else {
           iResLast = 0;
         }
-        this.clearSelectedResidues();
-        console.log('Controller.selectNextResidue', iResLast, residue.load(iResLast).label);
+        if (isClear) {
+          this.clearSelectedResidues();
+        }
         this.selectResidue(iResLast, true);
       } else {
         this.clearSelectedResidues();
@@ -89149,7 +89167,6 @@ var SoupViewController = function () {
             break;
           }
         }
-        console.log('Controller.selectNextResidue', iResSelect, residue.load(iResSelect).label);
         this.selectResidue(iResSelect, true);
       }
       this.soupView.isUpdateSidechain = true;
@@ -89246,7 +89263,7 @@ var SoupViewController = function () {
       if (_lodash2.default.isUndefined(val)) {
         val = !res.selected;
       }
-      this.clearSelectedResidues();
+      // this.clearSelectedResidues()
       this.setResidueSelect(iRes, val);
       this.iResLastSelected = val ? iRes : null;
       this.soupView.isUpdateColors = true;
@@ -89551,7 +89568,7 @@ var SoupViewController = function () {
         }, _callee, this);
       }));
 
-      function asyncLoadProteinData(_x2, _x3) {
+      function asyncLoadProteinData(_x4, _x5) {
         return _ref.apply(this, arguments);
       }
 
@@ -93390,6 +93407,7 @@ var SoupWidget = function (_WebglWidget) {
 
       if (util.exists(iResPressed) && iResPressed === this.iResFirstPressed) {
         if (!event.metaKey && !event.shiftKey) {
+          this.controller.clearSelectedResidues();
           this.controller.selectResidue(this.iResFirstPressed);
         } else if (event.shiftKey) {
           this.controller.selectAdditionalRangeToResidue(this.iResFirstPressed);
@@ -99994,7 +100012,7 @@ var phongMaterial = new THREE.MeshPhongMaterial({
 });
 
 var transparentMaterial = new THREE.MeshPhongMaterial({
-  opacity: 0.3,
+  opacity: 0.2,
   premultipliedAlpha: true,
   vertexColors: THREE.VertexColors,
   transparent: true
@@ -102997,6 +103015,10 @@ var _three = __webpack_require__(28);
 
 var THREE = _interopRequireWildcard(_three);
 
+var _data = __webpack_require__(97);
+
+var data = _interopRequireWildcard(_data);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -103211,7 +103233,7 @@ var AquariaAlignment = function () {
             }
             var diff = resNum - entry.resNumPdbStart;
             var resNumSeq = entry.resNumSeqStart + diff;
-            var c = this.data.sequences[iSeq].sequence[resNum - 1];
+            var c = this.data.sequences[iSeq].sequence[resNumSeq - 1];
             return [seqName, resNumSeq, c];
           }
         }
@@ -103386,23 +103408,33 @@ var AquariaAlignment = function () {
         var resNum = residue.resNum;
 
         var _mapPdbResOfChainToSe = this.mapPdbResOfChainToSeqRes(chain, resNum),
-            _mapPdbResOfChainToSe2 = _slicedToArray(_mapPdbResOfChainToSe, 3),
-            seqName = _mapPdbResOfChainToSe2[0],
-            seqResNum = _mapPdbResOfChainToSe2[1],
-            c = _mapPdbResOfChainToSe2[2];
+            _mapPdbResOfChainToSe2 = _slicedToArray(_mapPdbResOfChainToSe, 2),
+            seqResNum = _mapPdbResOfChainToSe2[1];
 
         if (_lodash2.default.isNil(seqResNum)) {
           // probably insertion, and non-alignments
           residue.customColor = '#999999';
         } else {
-          if (!_lodash2.default.includes(allowedChains, residue.chain)) {
-            residue.customColor = '#999999';
-          } else if (chain in this.data.conservations) {
-            var conservations = this.data.conservations[chain];
-            if (_lodash2.default.includes(conservations.conserved, seqResNum)) {
-              residue.customColor = '#666666';
-            } else if (_lodash2.default.includes(conservations.nonconserved, seqResNum)) {
-              residue.customColor = '#000000';
+          if (_lodash2.default.has(this.data, 'conservationArray')) {
+            if (!_lodash2.default.includes(allowedChains, residue.chain)) {
+              residue.customColor = '#999999';
+            } else if (chain === this.data.pdb_chain[0]) {
+              if (this.data.conservationArray[seqResNum] === 'conserved') {
+                residue.customColor = '#666666';
+              } else if (this.data.conservationArray[seqResNum] === 'nonconserved') {
+                residue.customColor = '#000000';
+              }
+            }
+          } else {
+            if (!_lodash2.default.includes(allowedChains, residue.chain)) {
+              residue.customColor = '#999999';
+            } else if (chain in this.data.conservations) {
+              var conservations = this.data.conservations[chain];
+              if (_lodash2.default.includes(conservations.conserved, seqResNum)) {
+                residue.customColor = '#666666';
+              } else if (_lodash2.default.includes(conservations.nonconserved, seqResNum)) {
+                residue.customColor = '#000000';
+              }
             }
           }
         }
@@ -103527,6 +103559,7 @@ var AquariaAlignment = function () {
               };
               sequenceWidget.charEntries.push(_entry3);
             } else {
+              var pdbC = _lodash2.default.get(data.resToAa, residue.resType, '.');
               var _entry4 = {
                 chain: _chain,
                 iStructure: residue.iStructure,
@@ -103534,7 +103567,7 @@ var AquariaAlignment = function () {
                 startLabel: null,
                 iRes: residue.iRes,
                 ss: residue.ss,
-                label: '' + seqLabel + _pdbId + '-' + _chain + ':' + c + pdbResNum,
+                label: '' + seqLabel + _pdbId + '-' + _chain + ':' + pdbC + pdbResNum,
                 resNum: iResOfSeq + 1
               };
               sequenceWidget.charEntries.push(_entry4);
@@ -103546,7 +103579,7 @@ var AquariaAlignment = function () {
     }
   }, {
     key: 'colorFromFeatures',
-    value: function colorFromFeatures(embededJolecule, features, seqId) {
+    value: function colorFromFeatures(embededJolecule, features, seqId, name) {
       var soup = embededJolecule.soupView.soup;
       var residue = soup.getResidueProxy();
       for (var i = 0; i < soup.getResidueCount(); i += 1) {
@@ -103608,11 +103641,11 @@ var AquariaAlignment = function () {
       soup.colorResidues();
       embededJolecule.soupView.isUpdateColors = true;
       embededJolecule.soupView.isChanged = true;
-      this.setFeatureColorLegend(embededJolecule.widget.colorLegend, features);
+      this.setFeatureColorLegend(embededJolecule.widget.colorLegend, features, name);
     }
   }, {
     key: 'setFeatureColorLegend',
-    value: function setFeatureColorLegend(colorLegendWidget, features) {
+    value: function setFeatureColorLegend(colorLegendWidget, features, name) {
       this.features = features;
       // console.log('AquariaAlignment.setFeatureColorLegend', features)
       var entries = [];
@@ -103708,6 +103741,7 @@ var AquariaAlignment = function () {
         }
       }
 
+      colorLegendWidget.title = name;
       colorLegendWidget.rebuild();
     }
   }, {
@@ -103742,8 +103776,10 @@ var AquariaAlignment = function () {
             resNum = _mapPdbResOfChainToSe4[1],
             c = _mapPdbResOfChainToSe4[2];
 
+        console.log('AquariaAlignment.setPopup', residue.chain, residue.resNum, residue.resType, seqName, resNum, c);
         if (!_lodash2.default.isNil(resNum)) {
-          var label = pdbId + '-' + residue.chain + ': ' + c + residue.resNum + ' <br>Atom:' + atom.atomType;
+          var pdbC = _lodash2.default.get(data.resToAa, residue.resType, '.');
+          var label = pdbId + '-' + residue.chain + ': ' + pdbC + residue.resNum + ' <br>Atom:' + atom.atomType;
           if (seqName) {
             label = seqName + ': ' + c + resNum + ' <br>' + label;
           }

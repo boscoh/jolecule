@@ -1615,6 +1615,7 @@ class ColorLegendWidget extends CanvasWidget {
 
   default() {
     let getSSColor = ss => '#' + data.getSsColor(ss).getHexString()
+    this.title = 'Secondary Structure'
     this.colorEntries = [
       { color: getSSColor('E'), label: 'Strand' },
       { color: getSSColor('H'), label: 'Helix' },
@@ -1625,6 +1626,17 @@ class ColorLegendWidget extends CanvasWidget {
 
   rebuild() {
     this.buttonsDiv.empty()
+
+    if (this.title) {
+      this.buttonsDiv.append(
+        $('<div>')
+          .text(this.title)
+          .css({
+            'font-size': '0.8em',
+            'font-style': 'italic'
+          })
+      )
+    }
 
     for (let [i, entry] of this.colorEntries.entries()) {
       let id = 'color-legend-' + i
@@ -2055,8 +2067,7 @@ class HudTextWidget extends ToggleWidget {
     this.selector = selector
     this.soupView = this.soupWidget.soupView
     this.id = selector + '-text-overlay'
-    this.hudDiv = $(`<div id="${this.id}">`)
-      .addClass('jolecule-overlay-text')
+    this.hudDiv = $(`<div id="${this.id}">`).addClass('jolecule-overlay-text')
     this.isText = true
     this.resize()
   }

@@ -894,7 +894,7 @@ class SoupViewController {
     }
   }
 
-  selectPrevResidue() {
+  selectPrevResidue(isClear = true) {
     let iResFirst = null
     let residue = this.soup.getResidueProxy()
     for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
@@ -909,10 +909,14 @@ class SoupViewController {
       } else {
         iResFirst = this.soup.getResidueCount - 1
       }
-      this.clearSelectedResidues()
+      if (isClear) {
+        this.clearSelectedResidues()
+      }
       this.selectResidue(iResFirst, true)
     } else {
-      this.clearSelectedResidues()
+      if (isClear) {
+        this.clearSelectedResidues()
+      }
       let iResSelect = null
       for (let iRes = this.soup.getResidueCount() - 1; iRes >= 0; iRes -= 1) {
         if (residue.load(iRes).isPolymer) {
@@ -926,7 +930,7 @@ class SoupViewController {
     this.soupView.isChanged = true
   }
 
-  selectNextResidue() {
+  selectNextResidue(isClear = true) {
     let iResLast = null
     let residue = this.soup.getResidueProxy()
     let nRes = this.soup.getResidueCount()
@@ -936,18 +940,16 @@ class SoupViewController {
         break
       }
     }
+    console.log('Contreoller.selectNextResidue', iResLast, isClear)
     if (iResLast !== null) {
       if (iResLast < nRes - 1) {
         iResLast += 1
       } else {
         iResLast = 0
       }
-      this.clearSelectedResidues()
-      console.log(
-        'Controller.selectNextResidue',
-        iResLast,
-        residue.load(iResLast).label
-      )
+      if (isClear) {
+        this.clearSelectedResidues()
+      }
       this.selectResidue(iResLast, true)
     } else {
       this.clearSelectedResidues()
@@ -958,11 +960,6 @@ class SoupViewController {
           break
         }
       }
-      console.log(
-        'Controller.selectNextResidue',
-        iResSelect,
-        residue.load(iResSelect).label
-      )
       this.selectResidue(iResSelect, true)
     }
     this.soupView.isUpdateSidechain = true
@@ -1028,7 +1025,7 @@ class SoupViewController {
     if (_.isUndefined(val)) {
       val = !res.selected
     }
-    this.clearSelectedResidues()
+    // this.clearSelectedResidues()
     this.setResidueSelect(iRes, val)
     this.iResLastSelected = val ? iRes : null
     this.soupView.isUpdateColors = true

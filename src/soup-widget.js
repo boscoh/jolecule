@@ -485,6 +485,7 @@ class SoupWidget extends WebglWidget {
 
     if (util.exists(iResPressed) && iResPressed === this.iResFirstPressed) {
       if (!event.metaKey && !event.shiftKey) {
+        this.controller.clearSelectedResidues()
         this.controller.selectResidue(this.iResFirstPressed)
       } else if (event.shiftKey) {
         this.controller.selectAdditionalRangeToResidue(this.iResFirstPressed)
