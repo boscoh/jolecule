@@ -352,7 +352,7 @@ class AquariaAlignment {
               startLabel: null,
               iRes: residue.iRes,
               ss: residue.ss,
-              label: `${seqLabel}${pdbId}-${chain}:${pdbC}${pdbResNum}`,
+              label: `${seqLabel}${pdbId}-${chain}: ${pdbC}${pdbResNum}`,
               resNum: iResOfSeq + 1
             }
             sequenceWidget.charEntries.push(entry)
@@ -361,6 +361,14 @@ class AquariaAlignment {
       }
     }
     sequenceWidget.nChar = sequenceWidget.charEntries.length
+    // sequenceWidget.iCharStructStart = 0
+    // sequenceWidget.nCharStruct = sequenceWidget.nChar
+    // sequenceWidget.iCharStructEnd = sequenceWidget.nChar
+    // for (let iChar = 0; iChar < sequenceWidget.nChar; iChar += 1) {
+    //   if (_.has(sequenceWidget.charEntries[iChar], 'iRes')) {
+    //     sequenceWidget.iCharSeqStart = iChar
+    //   }
+    // }
   }
 
   colorFromFeatures(embededJolecule, features, seqId, name) {
@@ -454,7 +462,7 @@ class AquariaAlignment {
         let pdbC = _.get(data.resToAa, residue.resType, '.')
         let label = `${pdbId}-${residue.chain}: ${pdbC}${
           residue.resNum
-        } <br>Atom:${atom.atomType}`
+        } <br>Atom: ${atom.atomType}`
         if (seqName) {
           label = `${seqName}: ${c}${resNum} <br>` + label
         }

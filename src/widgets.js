@@ -709,6 +709,7 @@ class SequenceWidget extends CanvasWidget {
             iStructure,
             c: '',
             startLabel,
+            iRes: null,
             ss: ''
           })
         }
@@ -780,6 +781,9 @@ class SequenceWidget extends CanvasWidget {
   checkChain() {
     this.nCharSeq = Math.ceil(this.width() / this.charWidth)
 
+    let nCharStructOld = this.nCharStruct
+    let oldChain = this.chain
+
     // Set structure bar to full length
     this.iCharStructStart = 0
     this.nCharStruct = this.charEntries.length
@@ -788,7 +792,9 @@ class SequenceWidget extends CanvasWidget {
     if (this.soupView.getMode() === 'chain') {
       let chainEntry = this.soup.getIStructureAndChain()
 
-      if (!_.isNil(chainEntry)) {
+      if (_.isNil(chainEntry)) {
+        this.chain = null
+      } else {
         this.iCharStructStart = null
         for (let iChar of _.range(this.charEntries.length)) {
           let charEntry = this.charEntries[iChar]
@@ -798,22 +804,38 @@ class SequenceWidget extends CanvasWidget {
           ) {
             if (_.isNil(this.iCharStructStart)) {
               this.iCharStructStart = iChar
+              this.chain = charEntry.chain
             }
             this.iCharStructEnd = iChar + 1
           }
         }
         this.nCharStruct = this.iCharStructEnd - this.iCharStructStart
-        if (
-          this.iCharSeqStart < this.iCharStructStart ||
-          this.iCharSeqStart >= this.iCharStructEnd
-        ) {
-          let iCharSeqStart = this.findFirstResidue(this.iCharStructStart)
-          if (_.isNil(iCharSeqStart)) {
-            this.iCharSeqStart = this.iCharStructStart
-          } else {
-            this.iCharSeqStart = iCharSeqStart
+
+        if (_.isNil(oldChain) && !_.isNil(this.chain)) {
+          for (
+            let iChar = this.iCharStructStart;
+            iChar < this.iCharStructEnd;
+            iChar += 1
+          ) {
+            if (_.has(this.charEntries[iChar], 'iRes')) {
+              this.iCharSeqStart = iChar
+              this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq
+              break
+            }
           }
-          this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq
+        } else {
+          if (
+            this.iCharSeqStart < this.iCharStructStart ||
+            this.iCharSeqStart >= this.iCharStructEnd
+          ) {
+            let iCharSeqStart = this.findFirstResidue(this.iCharStructStart)
+            if (_.isNil(iCharSeqStart)) {
+              this.iCharSeqStart = this.iCharStructStart
+            } else {
+              this.iCharSeqStart = iCharSeqStart
+            }
+            this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq
+          }
         }
       }
     }
