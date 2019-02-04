@@ -22,6 +22,51 @@ function makeRgbStringFromHexString(hex) {
   return `rgb(${r}, ${g}, ${b})`
 }
 
+/*
+ * ￼420
+ * A. D. MCLACHLAN 1972
+ * Here's the Japanese version - search for "McLachlan, 1972"
+ * ftp://ftp.genome.jp/pub/db/community/aaindex/aaindex2
+ * TABLE 1
+ * Chemical similarity scores for the amino acids
+ * ￼￼score
+ * 6 - ￼FF MM YY HH CC WW RR GG
+ * 5 - LL II VV SS PP TT AA QQ NN KK DD EE
+ * 3 - FY FW LI LM IM ST AG QE ND KR
+ * 2 - ￼FL FM FH IV YH YW SC HQ QN DE
+ * 1 - FI FV LV LP LY LW IT IY ￼IW MV MY MW VP SA SN SQ PT PA TA TN HN HW QK QD NE
+ * 0 - All others, including unknowns and deletions
+ **/
+
+// one letter code: FLIMVSPTAYHQNKDECWRGBZ
+
+const conservedPairs = `
+  FY FW LI LM IM ST AG QE ND KR
+  FL FM FH IV YH YW SC HQ QN DE
+  FI FV LV LP LY LW IT IY IW MV 
+  MY MW VP SA SN SQ PT PA TA TN 
+  HN HW QK QD NE`
+
+const conservationSet = {}
+for (let code of conservedPairs.split(/\s+/)) {
+  conservationSet[code] = 1
+  let reverseCode = code.charAt(1) + code.charAt(0)
+  conservationSet[reverseCode] = 1
+}
+
+console.log('conservationSet', conservationSet)
+
+function getConservation(a, b) {
+  if (a === b) {
+    return 'identical'
+  } else {
+    if (_.has(conservationSet, a + b)) {
+      return 'conserved'
+    }
+  }
+  return 'nonconserved'
+}
+
 class AquariaAlignment {
   reload(aquariaAlignData, embedJolecule) {
     this.data = aquariaAlignData
@@ -100,7 +145,7 @@ class AquariaAlignment {
         }
         let diff = resNum - entry.resNumPdbStart
         let resNumSeq = entry.resNumSeqStart + diff
-        let c = this.data.sequences[iSeq].sequence[resNumSeq-1]
+        let c = this.data.sequences[iSeq].sequence[resNumSeq - 1]
         return [seqName, resNumSeq, c]
       }
     }
@@ -163,35 +208,43 @@ class AquariaAlignment {
       residue.iRes = iRes
       let chain = residue.chain
       let resNum = residue.resNum
-      let [, seqResNum] = this.mapPdbResOfChainToSeqRes(chain, resNum)
+      let pdbC = _.get(data.resToAa, residue.resType, '.')
+      let [, seqResNum, c] = this.mapPdbResOfChainToSeqRes(chain, resNum)
       if (_.isNil(seqResNum)) {
         // probably insertion, and non-alignments
         residue.customColor = '#999999'
       } else {
-        if (_.has(this.data, 'conservationArray')) {
-          if (!_.includes(allowedChains, residue.chain)) {
-            residue.customColor = '#999999'
-          } else if (chain === this.data.pdb_chain[0]) {
-            if (this.data.conservationArray[seqResNum] === 'conserved') {
-              residue.customColor = '#666666'
-            } else if (
-              this.data.conservationArray[seqResNum] === 'nonconserved'
-            ) {
-              residue.customColor = '#000000'
-            }
-          }
-        } else {
-          if (!_.includes(allowedChains, residue.chain)) {
-            residue.customColor = '#999999'
-          } else if (chain in this.data.conservations) {
-            let conservations = this.data.conservations[chain]
-            if (_.includes(conservations.conserved, seqResNum)) {
-              residue.customColor = '#666666'
-            } else if (_.includes(conservations.nonconserved, seqResNum)) {
-              residue.customColor = '#000000'
-            }
-          }
+        if (!_.includes(allowedChains, residue.chain)) {
+          residue.customColor = '#999999'
+        } else if (getConservation(c, pdbC) === 'conserved') {
+          residue.customColor = '#666666'
+        } else if (getConservation(c, pdbC) === 'nonconserved') {
+          residue.customColor = '#000000'
         }
+        // if (_.has(this.data, 'conservationArray')) {
+        //   if (!_.includes(allowedChains, residue.chain)) {
+        //     residue.customColor = '#999999'
+        //   } else if (chain === this.data.pdb_chain[0]) {
+        //     if (this.data.conservationArray[seqResNum] === 'conserved') {
+        //       residue.customColor = '#666666'
+        //     } else if (
+        //       this.data.conservationArray[seqResNum] === 'nonconserved'
+        //     ) {
+        //       residue.customColor = '#000000'
+        //     }
+        //   }
+        // } else {
+        //   if (!_.includes(allowedChains, residue.chain)) {
+        //     residue.customColor = '#999999'
+        //   } else if (chain in this.data.conservations) {
+        //     let conservations = this.data.conservations[chain]
+        //     if (_.includes(conservations.conserved, seqResNum)) {
+        //       residue.customColor = '#666666'
+        //     } else if (_.includes(conservations.nonconserved, seqResNum)) {
+        //       residue.customColor = '#000000'
+        //     }
+        //   }
+        // }
       }
     }
     soup.colorResidues()
@@ -396,15 +449,6 @@ class AquariaAlignment {
       let [seqName, resNum, c] = this.mapPdbResOfChainToSeqRes(
         residue.chain,
         residue.resNum
-      )
-      console.log(
-        'AquariaAlignment.setPopup',
-        residue.chain,
-        residue.resNum,
-        residue.resType,
-        seqName,
-        resNum,
-        c
       )
       if (!_.isNil(resNum)) {
         let pdbC = _.get(data.resToAa, residue.resType, '.')
