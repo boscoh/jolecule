@@ -114,27 +114,31 @@ a.jolecule-large-button:active {
 
 .jolecule-loading-message {
     z-index: 5000;
-    background-color: rgba(180, 180, 180, 0.9);
     font-family: Helvetica, Arial, sans-serif;
     font-size: 12px;
     letter-spacing: 0.05em;
     padding: 5px 15px;
+    background-color: rgba(180, 180, 180, 0.9);
     color: #333
 }
 
 .jolecule-overlay-text {
     z-index: 5001;
-    border: 1px solid #888;
-    color: #CCC;
-    background-color: #444;
     padding: 10px;
     opacity: 0.7;
     text-align: left;
     letter-spacing: 0.1em;
     line-height: 1.5em;
+    font-family: Helvetica, Arial, sans-serif;
     font-size: 12px;
+
+    border: 1px solid #888;
+    /*color: #CCC;*/
+    /*background-color: #444;*/
+    background-color: rgba(200, 200, 200, 0.8);
+    color: #000
 }
 
 .jolecule-overlay-text a {
-    color: #AAE;
+    color: #447;
 }

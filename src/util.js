@@ -54,6 +54,22 @@ function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
   })
 }
 
+function stickJqueryDivInBottomLeft(parent, target, xOffset, yOffset) {
+  target.css({
+    position: 'absolute',
+    'z-index': '9000'
+  })
+  let top = parent.position().top
+  let left = parent.position().left
+  let heightParent = parent.outerHeight()
+  parent.prepend(target)
+  let heightTarget = target.outerHeight()
+  target.css({
+    top: top + heightParent - heightTarget - yOffset,
+    left: left + xOffset
+  })
+}
+
 function inArray(v, aList) {
   return aList.indexOf(v) >= 0
 }
@@ -143,6 +159,7 @@ export {
   linkButton,
   stickJqueryDivInCenter,
   stickJqueryDivInTopLeft,
+  stickJqueryDivInBottomLeft,
   inArray,
   randomId,
   textEntryDialog,

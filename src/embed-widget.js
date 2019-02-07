@@ -31,9 +31,9 @@ let defaultArgs = {
   maxUpdateStep: 50,
   msPerStep: 17,
   maxWaitStep: 30,
-  isToolbarOnTop: false,
+  isToolbarOnTop: true,
   isMenu: true,
-  isTextOverlay: true,
+  isTextOverlay: true
 }
 
 class EmbedJolecule {
@@ -141,10 +141,20 @@ class EmbedJolecule {
   createDivs() {
     this.headerDiv = $('<div>').addClass('jolecule-embed-header')
     this.div.append(this.headerDiv)
+
     this.bodyDiv = $('<div>')
       .attr('id', `${this.divId}-jolecule-soup-display`)
       .addClass('jolecule-embed-body')
     this.div.append(this.bodyDiv)
+
+    this.soupWidget = new SoupWidget(
+      this.soupView,
+      `#${this.divId}-jolecule-soup-display`,
+      this.controller,
+      this.params.isGrid,
+      this.params.backgroundColor
+    )
+
     this.footerDiv = $('<div>')
       .addClass('jolecule-embed-footer')
       .css({
@@ -154,25 +164,7 @@ class EmbedJolecule {
       })
     this.div.append(this.footerDiv)
 
-    let isToolbar =
-      this.params.isPlayable ||
-      this.params.isEditable ||
-      this.params.isExtraEditable
-    if (isToolbar) {
-      this.toolbarDiv = $('<div>')
-        .css({
-          flex: '1',
-          display: 'flex',
-          'flex-wrap': 'wrap',
-          'flex-direction': 'row'
-        })
-        .addClass('jolecule-embed-toolbar')
-      if (this.params.isToolbarOnTop) {
-        this.headerDiv.append(this.toolbarDiv)
-      } else {
-        this.footerDiv.append(this.toolbarDiv)
-      }
-    }
+    this.bodyDiv.append($(`<div id="${this.divId}-toogle-toolbar">`))
 
     this.sequenceBarDiv = $('<div>')
       .attr('id', `${this.divId}-sequence-widget`)
@@ -184,14 +176,6 @@ class EmbedJolecule {
     } else {
       this.headerDiv.append(this.sequenceBarDiv)
     }
-
-    this.soupWidget = new SoupWidget(
-      this.soupView,
-      `#${this.divId}-jolecule-soup-display`,
-      this.controller,
-      this.params.isGrid,
-      this.params.backgroundColor
-    )
 
     if (this.params.isSequenceBar) {
       this.sequenceWidget = new widgets.SequenceWidget(
@@ -209,15 +193,40 @@ class EmbedJolecule {
 
     this.widget.selection = new widgets.SelectionWidget(this.soupWidget)
 
+    let isToolbar =
+      this.params.isPlayable ||
+      this.params.isEditable ||
+      this.params.isExtraEditable
+
     if (!isToolbar) {
       return
+    }
+
+    if (isToolbar) {
+      // this.toolbarDiv = $('<div>')
+      //   .css({
+      //     display: 'flex',
+      //     'flex-wrap': 'wrap',
+      //     'flex-direction': 'row'
+      //   })
+      //   .addClass('jolecule-embed-toolbar')
+      // if (this.params.isToolbarOnTop) {
+      //   this.headerDiv.append(this.toolbarDiv)
+      // } else {
+      //   this.footerDiv.append(this.toolbarDiv)
+      // }
+      this.widget.toolbar = new widgets.ToggleToolbarWidget(
+        this.soupWidget,
+        `#${this.divId}-jolecule-soup-display`
+      )
+      this.toolbarDiv = this.widget.toolbar.toolbarDiv
     }
 
     if (this.params.isPlayable) {
       this.playableDiv = $('<div>')
         .attr('id', `${this.divId}-playable`)
         .css({
-          width: '100%',
+          // width: '100%',
           display: 'flex',
           'flex-direction': 'row'
         })
@@ -267,40 +276,25 @@ class EmbedJolecule {
         )
       }
 
-      this.playableDiv.append(
-        $('<div>')
-          .attr('id', `${this.divId}-view-text`)
-          .addClass('jolecule-button')
-          .css({
-            'background-color': '#BBB',
-            flex: '1 1',
-            'box-sizing': 'content-box',
-            'white-space': 'nowrap',
-            overflow: 'hidden',
-            'text-align': 'left'
-          })
-      )
-      this.widget.view = new widgets.ViewTextWidget(
-        this.soupWidget,
-        `#${this.divId}-view-text`
-      )
+      // this.playableDiv.append(
+      //   $('<div>')
+      //     .attr('id', `${this.divId}-view-text`)
+      //     .addClass('jolecule-button')
+      //     .css({
+      //       'background-color': '#BBB',
+      //       flex: '1 1',
+      //       'box-sizing': 'content-box',
+      //       'white-space': 'nowrap',
+      //       overflow: 'hidden',
+      //       'text-align': 'left'
+      //     })
+      // )
+      // this.widget.view = new widgets.ViewTextWidget(
+      //   this.soupWidget,
+      //   `#${this.divId}-view-text`
+      // )
     }
 
-    if (this.params.isExtraEditable) {
-      if (this.params.isMenu) {
-        this.toolbarDiv.append(
-          $('<div>')
-            .attr('id', `${this.divId}-menu`)
-            .addClass('jolecule-button')
-        )
-
-        this.menuWidget = new widgets.MenuWidget(
-          this.soupWidget,
-          `#${this.divId}-menu`,
-          !this.params.isToolbarOnTop
-        )
-      }
-    }
 
     if (this.params.isEditable) {
       if (this.params.isResidueSelector) {
@@ -345,11 +339,11 @@ class EmbedJolecule {
       )
 
       this.toolbarDiv
-        .append(
-          linkButton('Clear', 'jolecule-button', () => {
-            this.controller.clear()
-          })
-        )
+        // .append(
+        //   linkButton('Clear', 'jolecule-button', () => {
+        //     this.controller.clear()
+        //   })
+        // )
         .append(
           linkButton('Sidechains', 'jolecule-button', () => {
             this.controller.toggleSelectedSidechains()
@@ -360,17 +354,22 @@ class EmbedJolecule {
             this.controller.toggleResidueNeighbors()
           })
         )
-
-      this.toolbarDiv.append($(`<div id="${this.divId}-ligand">`))
-      this.widget.ligand = new widgets.ToggleOptionWidget(
-        this.soupWidget,
-        `#${this.divId}-ligand`,
-        'ligands'
-      )
     }
 
     if (this.params.isExtraEditable) {
-      if (!this.params.isMenu) {
+      if (this.params.isMenu) {
+        this.toolbarDiv.append(
+          $('<div>')
+            .attr('id', `${this.divId}-menu`)
+            .addClass('jolecule-button')
+        )
+
+        this.menuWidget = new widgets.MenuWidget(
+          this.soupWidget,
+          `#${this.divId}-menu`,
+          !this.params.isToolbarOnTop
+        )
+      } else {
         this.toolbarDiv.append($(`<div id="${this.divId}-sphere">`))
         this.widget.sphere = new widgets.ToggleOptionWidget(
           this.soupWidget,

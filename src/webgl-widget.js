@@ -97,7 +97,7 @@ class WebglWidget {
     // div to display processing messages
     this.messageDiv = $('<div>')
       .attr('id', 'loading-message')
-      .addClass('jolecule-loading-message')
+      .addClass('jolecule-overlay-text')
     this.setMesssage('Initialized jolecule.')
 
     // input control parameters
@@ -243,11 +243,12 @@ class WebglWidget {
   }
 
   resize() {
+    console.log('Webgl.resize')
     let position = this.div.position()
     this.webglDiv.css('left', this.x() + position.left)
     this.webglDiv.css('top', this.y() + position.top)
 
-    util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 5, 5)
+    util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 5, 60)
     this.messageDiv.css('max-width', this.div.width() - 200)
 
     this.camera.aspect = this.width() / this.height()

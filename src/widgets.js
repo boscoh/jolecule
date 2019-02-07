@@ -1247,6 +1247,7 @@ class ClippingPlaneWidget extends CanvasWidget {
   }
 
   resize() {
+    console.log('ClippingPlaneWidget.resize')
     this.div.css({
       width: this.width(),
       height: this.height()
@@ -1283,6 +1284,7 @@ class ClippingPlaneWidget extends CanvasWidget {
   }
 
   update() {
+    console.log('ClippingPlaneWidget.update')
     let soup = this.soupView.soup
     let cameraParams = this.soupView.currentView.cameraParams
     this.maxZLength = 2 * soup.maxLength
@@ -1849,7 +1851,7 @@ class ResidueSelectorWidget {
     this.soupWidget = soupWidget
     this.soupWidget.addObserver(this)
 
-    this.div = $(selector)
+    this.div = $(selector).css('z-index', 10000)
     this.divId = this.div.attr('id')
     this.selectId = `${this.divId}-residue-select`
     this.$select = $('<select>').attr('id', this.selectId)
@@ -1963,6 +1965,13 @@ class MenuWidget {
       'ribbon'
     )
 
+    this.panelDiv.append($(`<div id="${this.divId}-ligand">`))
+    this.widget.ligand = new ToggleOptionWidget(
+      soupWidget,
+      `#${this.divId}-ligand`,
+      'ligands'
+    )
+
     this.soupWidget.addObserver(this)
     this.update()
   }
@@ -1980,6 +1989,13 @@ class MenuWidget {
         top: position.top + this.div.outerHeight() + 4,
         left: position.left - 7
       })
+    }
+    let xRight = this.panelDiv.position().left + this.panelDiv.width()
+    if (xRight > position.left + this.div.width()) {
+      this.panelDiv.css(
+        'left',
+        position.left + this.div.width() - this.panelDiv.width()
+      )
     }
   }
 }
@@ -2089,7 +2105,7 @@ class HudTextWidget extends ToggleWidget {
     this.selector = selector
     this.soupView = this.soupWidget.soupView
     this.id = selector + '-text-overlay'
-    this.hudDiv = $(`<div id="${this.id}">`).addClass('jolecule-overlay-text')
+    // this.hudDiv = $(`<div id="${this.id}">`).addClass('jolecule-overlay-text')
     this.isText = true
     this.resize()
   }
@@ -2107,25 +2123,104 @@ class HudTextWidget extends ToggleWidget {
   }
 
   resize() {
-    let div = this.soupWidget.div
-    util.stickJqueryDivInTopLeft(div, this.hudDiv, 5, 5)
-    this.hudDiv.css('max-width', div.width() - 40)
+    // let div = this.soupWidget.div
+    // util.stickJqueryDivInTopLeft(div, this.hudDiv, 5, 5)
+    // this.hudDiv.css('max-width', div.width() - 40)
+  }
+
+  async update() {
+    super.update()
+    console.log('HudTextWidget.update', this.soupWidget)
+    if (this.isText && this.soupWidget) {
+      let text
+      let n = this.soupView.savedViews.length
+      if (n === 0) {
+        text = ''
+      } else {
+        let i = this.soupView.currentView.order + 1
+        text = `${i}/${n}: ${this.soupView.currentView.text}`
+      }
+      await this.soupWidget.asyncSetMesssage(text)
+      // this.hudDiv.html(text)
+      // this.hudDiv.show()
+    } else {
+      // this.hudDiv.hide()
+      this.soupWidget.cleanupMessage()
+    }
+  }
+}
+
+class ToggleToolbarWidget {
+  constructor(soupWidget, selector) {
+    console.log('ToggleToolbarWidget.constructor', selector)
+    this.soupWidget = soupWidget
+    this.on = false
+    this.isChange = true
+    this.div = $(selector)
+
+    this.wrapperDiv = $('<div>')
+    this.div.append(this.wrapperDiv)
+
+    this.toolbarDiv = $('<div id="jolecule-toggle-toolbar">')
+      .css({
+        display: 'flex',
+        'flex-wrap': 'nowrap',
+        'flex-direction': 'row'
+      })
+      .addClass('jolecule-embed-toolbar')
+    this.wrapperDiv.append(this.toolbarDiv)
+
+    this.buttonDiv = $('<div id="toggle-toolbar-button">')
+      .html('J')
+      .addClass('jolecule-button')
+      .css({ 'margin-top': '5px', 'margin-left': '5px' })
+      .on('click touch', e => {
+        this.isChange = true
+        this.update()
+        e.preventDefault()
+      })
+    this.wrapperDiv.append(this.buttonDiv)
+
+    this.buttonDiv2 = $('<div id="toggle-toolbar-button2">')
+      .html('J')
+      .addClass('jolecule-button')
+      .on('click touch', e => {
+        this.isChange = true
+        this.update()
+        e.preventDefault()
+      })
+    this.toolbarDiv.append(this.buttonDiv2)
+
+    this.soupWidget.addObserver(this)
+    this.resize()
+  }
+
+  resize() {
+    console.log('ToggleToolbarWidget.resize')
+    this.toolbarDiv.width(this.div.width() - 10)
+    util.stickJqueryDivInTopLeft(this.div, this.wrapperDiv, 0, 0)
   }
 
   update() {
-    super.update()
-    if (this.isText) {
-      let n = this.soupView.savedViews.length
-      if (n === 0) {
-        this.hudDiv.text('')
+    if (this.isChange) {
+      console.log('ToggleToolbarWidget.update isChange')
+      this.on = !this.on
+      this.isChange = false
+      if (this.on) {
+        this.buttonDiv.hide()
+        this.toolbarDiv.show()
       } else {
-        let i = this.soupView.currentView.order + 1
-        let text = this.soupView.currentView.text
-        this.hudDiv.html(`${i}/${n}: ${text}`)
+        this.buttonDiv.show()
+        this.toolbarDiv.hide()
       }
-      this.hudDiv.show()
-    } else {
-      this.hudDiv.hide()
+      this.resize()
+      this.soupWidget.resize()
+      let messageDiv = this.soupWidget.messageDiv
+      if (this.on) {
+        util.stickJqueryDivInTopLeft(this.div, messageDiv, 5, 55)
+      } else {
+        util.stickJqueryDivInTopLeft(this.div, messageDiv, 35, 5)
+      }
     }
   }
 }
@@ -2145,5 +2240,6 @@ export default {
   ToggleAnimateWidget,
   ViewTextWidget,
   MenuWidget,
-  HudTextWidget
+  HudTextWidget,
+  ToggleToolbarWidget
 }

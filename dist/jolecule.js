@@ -74930,7 +74930,7 @@ return jQuery;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.delay = exports.textEntryDialog = exports.randomId = exports.inArray = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.linkButton = exports.exists = undefined;
+exports.delay = exports.textEntryDialog = exports.randomId = exports.inArray = exports.stickJqueryDivInBottomLeft = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.linkButton = exports.exists = undefined;
 
 var _jquery = __webpack_require__(33);
 
@@ -74989,6 +74989,22 @@ function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
   target.css({
     top: top + heightParent / 2 - heightTarget / 2 - yOffset,
     left: left + widthParent / 2 - widthTarget / 2 - xOffset
+  });
+}
+
+function stickJqueryDivInBottomLeft(parent, target, xOffset, yOffset) {
+  target.css({
+    position: 'absolute',
+    'z-index': '9000'
+  });
+  var top = parent.position().top;
+  var left = parent.position().left;
+  var heightParent = parent.outerHeight();
+  parent.prepend(target);
+  var heightTarget = target.outerHeight();
+  target.css({
+    top: top + heightParent - heightTarget - yOffset,
+    left: left + xOffset
   });
 }
 
@@ -75065,6 +75081,7 @@ exports.exists = exists;
 exports.linkButton = linkButton;
 exports.stickJqueryDivInCenter = stickJqueryDivInCenter;
 exports.stickJqueryDivInTopLeft = stickJqueryDivInTopLeft;
+exports.stickJqueryDivInBottomLeft = stickJqueryDivInBottomLeft;
 exports.inArray = inArray;
 exports.randomId = randomId;
 exports.textEntryDialog = textEntryDialog;
@@ -79450,7 +79467,7 @@ var defaultArgs = {
   maxUpdateStep: 50,
   msPerStep: 17,
   maxWaitStep: 30,
-  isToolbarOnTop: false,
+  isToolbarOnTop: true,
   isMenu: true,
   isTextOverlay: true
 };
@@ -79638,8 +79655,12 @@ var EmbedJolecule = function () {
 
       this.headerDiv = (0, _jquery2.default)('<div>').addClass('jolecule-embed-header');
       this.div.append(this.headerDiv);
+
       this.bodyDiv = (0, _jquery2.default)('<div>').attr('id', this.divId + '-jolecule-soup-display').addClass('jolecule-embed-body');
       this.div.append(this.bodyDiv);
+
+      this.soupWidget = new _soupWidget.SoupWidget(this.soupView, '#' + this.divId + '-jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
+
       this.footerDiv = (0, _jquery2.default)('<div>').addClass('jolecule-embed-footer').css({
         display: 'flex',
         'flex-wrap': 'wrap',
@@ -79647,20 +79668,7 @@ var EmbedJolecule = function () {
       });
       this.div.append(this.footerDiv);
 
-      var isToolbar = this.params.isPlayable || this.params.isEditable || this.params.isExtraEditable;
-      if (isToolbar) {
-        this.toolbarDiv = (0, _jquery2.default)('<div>').css({
-          flex: '1',
-          display: 'flex',
-          'flex-wrap': 'wrap',
-          'flex-direction': 'row'
-        }).addClass('jolecule-embed-toolbar');
-        if (this.params.isToolbarOnTop) {
-          this.headerDiv.append(this.toolbarDiv);
-        } else {
-          this.footerDiv.append(this.toolbarDiv);
-        }
-      }
+      this.bodyDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-toogle-toolbar">'));
 
       this.sequenceBarDiv = (0, _jquery2.default)('<div>').attr('id', this.divId + '-sequence-widget').css({
         width: '100%'
@@ -79670,8 +79678,6 @@ var EmbedJolecule = function () {
       } else {
         this.headerDiv.append(this.sequenceBarDiv);
       }
-
-      this.soupWidget = new _soupWidget.SoupWidget(this.soupView, '#' + this.divId + '-jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
 
       if (this.params.isSequenceBar) {
         this.sequenceWidget = new _widgets2.default.SequenceWidget('#' + this.divId + '-sequence-widget', this.soupWidget);
@@ -79686,13 +79692,32 @@ var EmbedJolecule = function () {
 
       this.widget.selection = new _widgets2.default.SelectionWidget(this.soupWidget);
 
+      var isToolbar = this.params.isPlayable || this.params.isEditable || this.params.isExtraEditable;
+
       if (!isToolbar) {
         return;
       }
 
+      if (isToolbar) {
+        // this.toolbarDiv = $('<div>')
+        //   .css({
+        //     display: 'flex',
+        //     'flex-wrap': 'wrap',
+        //     'flex-direction': 'row'
+        //   })
+        //   .addClass('jolecule-embed-toolbar')
+        // if (this.params.isToolbarOnTop) {
+        //   this.headerDiv.append(this.toolbarDiv)
+        // } else {
+        //   this.footerDiv.append(this.toolbarDiv)
+        // }
+        this.widget.toolbar = new _widgets2.default.ToggleToolbarWidget(this.soupWidget, '#' + this.divId + '-jolecule-soup-display');
+        this.toolbarDiv = this.widget.toolbar.toolbarDiv;
+      }
+
       if (this.params.isPlayable) {
         this.playableDiv = (0, _jquery2.default)('<div>').attr('id', this.divId + '-playable').css({
-          width: '100%',
+          // width: '100%',
           display: 'flex',
           'flex-direction': 'row'
         });
@@ -79720,23 +79745,23 @@ var EmbedJolecule = function () {
           this.widget.hud = new _widgets2.default.HudTextWidget(this.soupWidget, '#' + this.divId + '-hud');
         }
 
-        this.playableDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-view-text').addClass('jolecule-button').css({
-          'background-color': '#BBB',
-          flex: '1 1',
-          'box-sizing': 'content-box',
-          'white-space': 'nowrap',
-          overflow: 'hidden',
-          'text-align': 'left'
-        }));
-        this.widget.view = new _widgets2.default.ViewTextWidget(this.soupWidget, '#' + this.divId + '-view-text');
-      }
-
-      if (this.params.isExtraEditable) {
-        if (this.params.isMenu) {
-          this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-menu').addClass('jolecule-button'));
-
-          this.menuWidget = new _widgets2.default.MenuWidget(this.soupWidget, '#' + this.divId + '-menu', !this.params.isToolbarOnTop);
-        }
+        // this.playableDiv.append(
+        //   $('<div>')
+        //     .attr('id', `${this.divId}-view-text`)
+        //     .addClass('jolecule-button')
+        //     .css({
+        //       'background-color': '#BBB',
+        //       flex: '1 1',
+        //       'box-sizing': 'content-box',
+        //       'white-space': 'nowrap',
+        //       overflow: 'hidden',
+        //       'text-align': 'left'
+        //     })
+        // )
+        // this.widget.view = new widgets.ViewTextWidget(
+        //   this.soupWidget,
+        //   `#${this.divId}-view-text`
+        // )
       }
 
       if (this.params.isEditable) {
@@ -79763,20 +79788,25 @@ var EmbedJolecule = function () {
           _this3.controller.zoomToSelection();
         }));
 
-        this.toolbarDiv.append((0, _util.linkButton)('Clear', 'jolecule-button', function () {
-          _this3.controller.clear();
-        })).append((0, _util.linkButton)('Sidechains', 'jolecule-button', function () {
+        this.toolbarDiv
+        // .append(
+        //   linkButton('Clear', 'jolecule-button', () => {
+        //     this.controller.clear()
+        //   })
+        // )
+        .append((0, _util.linkButton)('Sidechains', 'jolecule-button', function () {
           _this3.controller.toggleSelectedSidechains();
         })).append((0, _util.linkButton)('Neighbors', 'jolecule-button', function () {
           _this3.controller.toggleResidueNeighbors();
         }));
-
-        this.toolbarDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-ligand">'));
-        this.widget.ligand = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-ligand', 'ligands');
       }
 
       if (this.params.isExtraEditable) {
-        if (!this.params.isMenu) {
+        if (this.params.isMenu) {
+          this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-menu').addClass('jolecule-button'));
+
+          this.menuWidget = new _widgets2.default.MenuWidget(this.soupWidget, '#' + this.divId + '-menu', !this.params.isToolbarOnTop);
+        } else {
           this.toolbarDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-sphere">'));
           this.widget.sphere = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-sphere', 'sphere');
 
@@ -79886,6 +79916,8 @@ var util = _interopRequireWildcard(_util);
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
@@ -81216,6 +81248,7 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
   _createClass(ClippingPlaneWidget, [{
     key: 'resize',
     value: function resize() {
+      console.log('ClippingPlaneWidget.resize');
       this.div.css({
         width: this.width(),
         height: this.height()
@@ -81259,6 +81292,7 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
   }, {
     key: 'update',
     value: function update() {
+      console.log('ClippingPlaneWidget.update');
       var soup = this.soupView.soup;
       var cameraParams = this.soupView.currentView.cameraParams;
       this.maxZLength = 2 * soup.maxLength;
@@ -81907,7 +81941,7 @@ var ResidueSelectorWidget = function () {
     this.soupWidget = soupWidget;
     this.soupWidget.addObserver(this);
 
-    this.div = (0, _jquery2.default)(selector);
+    this.div = (0, _jquery2.default)(selector).css('z-index', 10000);
     this.divId = this.div.attr('id');
     this.selectId = this.divId + '-residue-select';
     this.$select = (0, _jquery2.default)('<select>').attr('id', this.selectId);
@@ -82031,6 +82065,9 @@ var MenuWidget = function () {
     this.panelDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-ribbon">'));
     this.widget.ribbon = new ToggleOptionWidget(soupWidget, '#' + this.divId + '-ribbon', 'ribbon');
 
+    this.panelDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-ligand">'));
+    this.widget.ligand = new ToggleOptionWidget(soupWidget, '#' + this.divId + '-ligand', 'ligands');
+
     this.soupWidget.addObserver(this);
     this.update();
   }
@@ -82050,6 +82087,10 @@ var MenuWidget = function () {
           top: position.top + this.div.outerHeight() + 4,
           left: position.left - 7
         });
+      }
+      var xRight = this.panelDiv.position().left + this.panelDiv.width();
+      if (xRight > position.left + this.div.width()) {
+        this.panelDiv.css('left', position.left + this.div.width() - this.panelDiv.width());
       }
     }
   }]);
@@ -82209,7 +82250,7 @@ var HudTextWidget = function (_ToggleWidget3) {
     _this16.selector = selector;
     _this16.soupView = _this16.soupWidget.soupView;
     _this16.id = selector + '-text-overlay';
-    _this16.hudDiv = (0, _jquery2.default)('<div id="' + _this16.id + '">').addClass('jolecule-overlay-text');
+    // this.hudDiv = $(`<div id="${this.id}">`).addClass('jolecule-overlay-text')
     _this16.isText = true;
     _this16.resize();
     return _this16;
@@ -82233,32 +82274,142 @@ var HudTextWidget = function (_ToggleWidget3) {
   }, {
     key: 'resize',
     value: function resize() {
-      var div = this.soupWidget.div;
-      util.stickJqueryDivInTopLeft(div, this.hudDiv, 5, 5);
-      this.hudDiv.css('max-width', div.width() - 40);
+      // let div = this.soupWidget.div
+      // util.stickJqueryDivInTopLeft(div, this.hudDiv, 5, 5)
+      // this.hudDiv.css('max-width', div.width() - 40)
     }
   }, {
     key: 'update',
-    value: function update() {
-      _get(HudTextWidget.prototype.__proto__ || Object.getPrototypeOf(HudTextWidget.prototype), 'update', this).call(this);
-      if (this.isText) {
-        var n = this.soupView.savedViews.length;
-        if (n === 0) {
-          this.hudDiv.text('');
-        } else {
-          var i = this.soupView.currentView.order + 1;
-          var text = this.soupView.currentView.text;
-          this.hudDiv.html(i + '/' + n + ': ' + text);
-        }
-        this.hudDiv.show();
-      } else {
-        this.hudDiv.hide();
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var text, n, i;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _get(HudTextWidget.prototype.__proto__ || Object.getPrototypeOf(HudTextWidget.prototype), 'update', this).call(this);
+                console.log('HudTextWidget.update', this.soupWidget);
+
+                if (!(this.isText && this.soupWidget)) {
+                  _context.next = 10;
+                  break;
+                }
+
+                text = void 0;
+                n = this.soupView.savedViews.length;
+
+                if (n === 0) {
+                  text = '';
+                } else {
+                  i = this.soupView.currentView.order + 1;
+
+                  text = i + '/' + n + ': ' + this.soupView.currentView.text;
+                }
+                _context.next = 8;
+                return this.soupWidget.asyncSetMesssage(text);
+
+              case 8:
+                _context.next = 11;
+                break;
+
+              case 10:
+                // this.hudDiv.hide()
+                this.soupWidget.cleanupMessage();
+
+              case 11:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function update() {
+        return _ref.apply(this, arguments);
       }
-    }
+
+      return update;
+    }()
   }]);
 
   return HudTextWidget;
 }(ToggleWidget);
+
+var ToggleToolbarWidget = function () {
+  function ToggleToolbarWidget(soupWidget, selector) {
+    var _this17 = this;
+
+    _classCallCheck(this, ToggleToolbarWidget);
+
+    console.log('ToggleToolbarWidget.constructor', selector);
+    this.soupWidget = soupWidget;
+    this.on = false;
+    this.isChange = true;
+    this.div = (0, _jquery2.default)(selector);
+
+    this.wrapperDiv = (0, _jquery2.default)('<div>');
+    this.div.append(this.wrapperDiv);
+
+    this.toolbarDiv = (0, _jquery2.default)('<div id="jolecule-toggle-toolbar">').css({
+      display: 'flex',
+      'flex-wrap': 'nowrap',
+      'flex-direction': 'row'
+    }).addClass('jolecule-embed-toolbar');
+    this.wrapperDiv.append(this.toolbarDiv);
+
+    this.buttonDiv = (0, _jquery2.default)('<div id="toggle-toolbar-button">').html('J').addClass('jolecule-button').css({ 'margin-top': '5px', 'margin-left': '5px' }).on('click touch', function (e) {
+      _this17.isChange = true;
+      _this17.update();
+      e.preventDefault();
+    });
+    this.wrapperDiv.append(this.buttonDiv);
+
+    this.buttonDiv2 = (0, _jquery2.default)('<div id="toggle-toolbar-button2">').html('J').addClass('jolecule-button').on('click touch', function (e) {
+      _this17.isChange = true;
+      _this17.update();
+      e.preventDefault();
+    });
+    this.toolbarDiv.append(this.buttonDiv2);
+
+    this.soupWidget.addObserver(this);
+    this.resize();
+  }
+
+  _createClass(ToggleToolbarWidget, [{
+    key: 'resize',
+    value: function resize() {
+      console.log('ToggleToolbarWidget.resize');
+      this.toolbarDiv.width(this.div.width() - 10);
+      util.stickJqueryDivInTopLeft(this.div, this.wrapperDiv, 0, 0);
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      if (this.isChange) {
+        console.log('ToggleToolbarWidget.update isChange');
+        this.on = !this.on;
+        this.isChange = false;
+        if (this.on) {
+          this.buttonDiv.hide();
+          this.toolbarDiv.show();
+        } else {
+          this.buttonDiv.show();
+          this.toolbarDiv.hide();
+        }
+        this.resize();
+        this.soupWidget.resize();
+        var messageDiv = this.soupWidget.messageDiv;
+        if (this.on) {
+          util.stickJqueryDivInTopLeft(this.div, messageDiv, 5, 55);
+        } else {
+          util.stickJqueryDivInTopLeft(this.div, messageDiv, 35, 5);
+        }
+      }
+    }
+  }]);
+
+  return ToggleToolbarWidget;
+}();
 
 exports.default = {
   LineElement: LineElement,
@@ -82275,7 +82426,8 @@ exports.default = {
   ToggleAnimateWidget: ToggleAnimateWidget,
   ViewTextWidget: ViewTextWidget,
   MenuWidget: MenuWidget,
-  HudTextWidget: HudTextWidget
+  HudTextWidget: HudTextWidget,
+  ToggleToolbarWidget: ToggleToolbarWidget
 };
 
 /***/ }),
@@ -101759,7 +101911,7 @@ var WebglWidget = function () {
     this.buildLights();
 
     // div to display processing messages
-    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-loading-message');
+    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-overlay-text');
     this.setMesssage('Initialized jolecule.');
 
     // input control parameters
@@ -101926,11 +102078,12 @@ var WebglWidget = function () {
   }, {
     key: 'resize',
     value: function resize() {
+      console.log('Webgl.resize');
       var position = this.div.position();
       this.webglDiv.css('left', this.x() + position.left);
       this.webglDiv.css('top', this.y() + position.top);
 
-      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 5, 5);
+      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 5, 60);
       this.messageDiv.css('max-width', this.div.width() - 200);
 
       this.camera.aspect = this.width() / this.height();
@@ -102206,7 +102359,7 @@ exports = module.exports = __webpack_require__(134)();
 
 
 // module
-exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    font-family: Helvetica, Arial, sans-serif;\n    text-align: center;\n    font-size: 12px;\n    line-height: 1.5em;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: middle;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-toolbar {\n    padding: 5px 5px 2px 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    background-color: rgba(180, 180, 180, 0.9);\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    color: #333\n}\n\n.jolecule-overlay-text {\n    z-index: 5001;\n    border: 1px solid #888;\n    color: #CCC;\n    background-color: #444;\n    padding: 10px;\n    opacity: 0.7;\n    text-align: left;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n    font-size: 12px;\n}\n\n.jolecule-overlay-text a {\n    color: #AAE;\n}\n", ""]);
+exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    font-family: Helvetica, Arial, sans-serif;\n    text-align: center;\n    font-size: 12px;\n    line-height: 1.5em;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: middle;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-toolbar {\n    padding: 5px 5px 2px 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    background-color: rgba(180, 180, 180, 0.9);\n    color: #333\n}\n\n.jolecule-overlay-text {\n    z-index: 5001;\n    padding: 10px;\n    opacity: 0.7;\n    text-align: left;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n\n    border: 1px solid #888;\n    /*color: #CCC;*/\n    /*background-color: #444;*/\n    background-color: rgba(200, 200, 200, 0.8);\n    color: #000\n}\n\n.jolecule-overlay-text a {\n    color: #447;\n}\n", ""]);
 
 // exports
 
