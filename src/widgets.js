@@ -102,7 +102,6 @@ class CanvasWidget {
 
     this.div = $('<div>')
       .css('position', 'absolute')
-      .css('z-index', 100)
       .css('user-select', 'none')
 
     this.parentDiv.append(this.div)
@@ -1978,6 +1977,11 @@ class MenuWidget {
 
   update() {
     this.panelDiv.css('display', this.isShowPanel ? 'block' : 'none')
+    if (this.isShowPanel) {
+      this.div.addClass('jolecule-button-toggle-on')
+    } else {
+      this.div.removeClass('jolecule-button-toggle-on')
+    }
     let position = this.div.position()
     if (this.isPopAbove) {
       this.panelDiv.css({
@@ -2151,10 +2155,10 @@ class HudTextWidget extends ToggleWidget {
 }
 
 class ToggleToolbarWidget {
-  constructor(soupWidget, selector) {
+  constructor(soupWidget, selector, isOn = true) {
     console.log('ToggleToolbarWidget.constructor', selector)
     this.soupWidget = soupWidget
-    this.on = false
+    this.on = !isOn
     this.isChange = true
     this.div = $(selector)
 
@@ -2184,6 +2188,7 @@ class ToggleToolbarWidget {
     this.buttonDiv2 = $('<div id="toggle-toolbar-button2">')
       .html('J')
       .addClass('jolecule-button')
+      .addClass('jolecule-button-toggle-on')
       .on('click touch', e => {
         this.isChange = true
         this.update()

@@ -79468,6 +79468,7 @@ var defaultArgs = {
   msPerStep: 17,
   maxWaitStep: 30,
   isToolbarOnTop: true,
+  isToolbarOn: false,
   isMenu: true,
   isTextOverlay: true
 };
@@ -79711,7 +79712,7 @@ var EmbedJolecule = function () {
         // } else {
         //   this.footerDiv.append(this.toolbarDiv)
         // }
-        this.widget.toolbar = new _widgets2.default.ToggleToolbarWidget(this.soupWidget, '#' + this.divId + '-jolecule-soup-display');
+        this.widget.toolbar = new _widgets2.default.ToggleToolbarWidget(this.soupWidget, '#' + this.divId + '-jolecule-soup-display', this.params.isToolbarOn);
         this.toolbarDiv = this.widget.toolbar.toolbarDiv;
       }
 
@@ -80003,7 +80004,7 @@ var CanvasWidget = function () {
     this.parentDiv = (0, _jquery2.default)(selector);
     this.parentDivId = this.parentDiv.attr('id');
 
-    this.div = (0, _jquery2.default)('<div>').css('position', 'absolute').css('z-index', 100).css('user-select', 'none');
+    this.div = (0, _jquery2.default)('<div>').css('position', 'absolute').css('user-select', 'none');
 
     this.parentDiv.append(this.div);
 
@@ -82076,6 +82077,11 @@ var MenuWidget = function () {
     key: 'update',
     value: function update() {
       this.panelDiv.css('display', this.isShowPanel ? 'block' : 'none');
+      if (this.isShowPanel) {
+        this.div.addClass('jolecule-button-toggle-on');
+      } else {
+        this.div.removeClass('jolecule-button-toggle-on');
+      }
       var position = this.div.position();
       if (this.isPopAbove) {
         this.panelDiv.css({
@@ -82339,11 +82345,13 @@ var ToggleToolbarWidget = function () {
   function ToggleToolbarWidget(soupWidget, selector) {
     var _this17 = this;
 
+    var isOn = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+
     _classCallCheck(this, ToggleToolbarWidget);
 
     console.log('ToggleToolbarWidget.constructor', selector);
     this.soupWidget = soupWidget;
-    this.on = false;
+    this.on = !isOn;
     this.isChange = true;
     this.div = (0, _jquery2.default)(selector);
 
@@ -82364,7 +82372,7 @@ var ToggleToolbarWidget = function () {
     });
     this.wrapperDiv.append(this.buttonDiv);
 
-    this.buttonDiv2 = (0, _jquery2.default)('<div id="toggle-toolbar-button2">').html('J').addClass('jolecule-button').on('click touch', function (e) {
+    this.buttonDiv2 = (0, _jquery2.default)('<div id="toggle-toolbar-button2">').html('J').addClass('jolecule-button').addClass('jolecule-button-toggle-on').on('click touch', function (e) {
       _this17.isChange = true;
       _this17.update();
       e.preventDefault();

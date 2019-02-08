@@ -32,6 +32,7 @@ let defaultArgs = {
   msPerStep: 17,
   maxWaitStep: 30,
   isToolbarOnTop: true,
+  isToolbarOn: false,
   isMenu: true,
   isTextOverlay: true
 }
@@ -217,7 +218,8 @@ class EmbedJolecule {
       // }
       this.widget.toolbar = new widgets.ToggleToolbarWidget(
         this.soupWidget,
-        `#${this.divId}-jolecule-soup-display`
+        `#${this.divId}-jolecule-soup-display`,
+        this.params.isToolbarOn
       )
       this.toolbarDiv = this.widget.toolbar.toolbarDiv
     }
