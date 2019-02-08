@@ -80004,7 +80004,7 @@ var CanvasWidget = function () {
     this.parentDiv = (0, _jquery2.default)(selector);
     this.parentDivId = this.parentDiv.attr('id');
 
-    this.div = (0, _jquery2.default)('<div>').css('user-select', 'none');
+    this.div = (0, _jquery2.default)('<div>').css('user-select', 'none').css('position', 'absolute');
 
     this.parentDiv.append(this.div);
 
@@ -81237,6 +81237,7 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
 
     var _this6 = _possibleConstructorReturn(this, (ClippingPlaneWidget.__proto__ || Object.getPrototypeOf(ClippingPlaneWidget)).call(this, selector));
 
+    _this6.div.css('position', 'relative');
     _this6.soupView = soupWidget.soupView;
     _this6.controller = soupWidget.controller;
     soupWidget.addObserver(_this6);

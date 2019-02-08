@@ -102,6 +102,7 @@ class CanvasWidget {
 
     this.div = $('<div>')
       .css('user-select', 'none')
+      .css('position', 'absolute')
 
     this.parentDiv.append(this.div)
 
@@ -1236,6 +1237,7 @@ class SequenceWidget extends CanvasWidget {
 class ClippingPlaneWidget extends CanvasWidget {
   constructor(soupWidget, selector) {
     super(selector)
+    this.div.css('position', 'relative')
     this.soupView = soupWidget.soupView
     this.controller = soupWidget.controller
     soupWidget.addObserver(this)
