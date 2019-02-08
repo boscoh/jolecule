@@ -103964,14 +103964,14 @@ var AquariaAlignment = function () {
         var _mapPdbResOfChainToSe3 = _this.mapPdbResOfChainToSeqRes(residue.chain, residue.resNum),
             _mapPdbResOfChainToSe4 = _slicedToArray(_mapPdbResOfChainToSe3, 3),
             seqName = _mapPdbResOfChainToSe4[0],
-            resNum = _mapPdbResOfChainToSe4[1],
+            seqResNum = _mapPdbResOfChainToSe4[1],
             c = _mapPdbResOfChainToSe4[2];
 
-        if (!_lodash2.default.isNil(resNum)) {
-          var pdbC = _lodash2.default.get(data.resToAa, residue.resType, '.');
-          var label = 'Structure: ' + pdbId + '-' + residue.chain + ' ' + pdbC + residue.resNum + ' <br>Atom: ' + atom.atomType;
+        var pdbC = _lodash2.default.get(data.resToAa, residue.resType, '.');
+        var label = 'Structure: ' + pdbId + '-' + residue.chain + ' ' + pdbC + residue.resNum + ' <br>Atom: ' + atom.atomType;
+        if (!_lodash2.default.isNil(seqResNum)) {
           if (seqName) {
-            label = 'Sequence: ' + seqName + ' ' + c + resNum + ' <br>' + label;
+            label = 'Sequence: ' + seqName + ' ' + c + seqResNum + ' <br>' + label;
           } else {
             label = 'Sequence: [No match]<br>' + label;
           }
@@ -103984,7 +103984,7 @@ var AquariaAlignment = function () {
               for (var _iterator17 = _this.features[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
                 var _feature = _step17.value;
 
-                if (_feature.Residue === resNum) {
+                if (_feature.Residue === seqResNum) {
                   label += '<br>Feature: ' + _feature.Name;
                 }
               }
@@ -104003,10 +104003,10 @@ var AquariaAlignment = function () {
               }
             }
           }
-          return label;
         } else {
-          return residue.label;
+          label = 'Sequence: [No match]<br>' + label;
         }
+        return label;
       };
     }
   }, {

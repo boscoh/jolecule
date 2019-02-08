@@ -422,31 +422,31 @@ class AquariaAlignment {
       let atom = soup.getAtomProxy(iAtom)
       let iRes = atom.iRes
       let residue = soup.getResidueProxy(iRes)
-      let [seqName, resNum, c] = this.mapPdbResOfChainToSeqRes(
+      let [seqName, seqResNum, c] = this.mapPdbResOfChainToSeqRes(
         residue.chain,
         residue.resNum
       )
-      if (!_.isNil(resNum)) {
-        let pdbC = _.get(data.resToAa, residue.resType, '.')
-        let label = `Structure: ${pdbId}-${residue.chain} ${pdbC}${
-          residue.resNum
-        } <br>Atom: ${atom.atomType}`
+      let pdbC = _.get(data.resToAa, residue.resType, '.')
+      let label = `Structure: ${pdbId}-${residue.chain} ${pdbC}${
+        residue.resNum
+      } <br>Atom: ${atom.atomType}`
+      if (!_.isNil(seqResNum)) {
         if (seqName) {
-          label = `Sequence: ${seqName} ${c}${resNum} <br>` + label
+          label = `Sequence: ${seqName} ${c}${seqResNum} <br>` + label
         } else {
           label = `Sequence: [No match]<br>` + label
         }
         if (this.features) {
           for (let feature of this.features) {
-            if (feature.Residue === resNum) {
+            if (feature.Residue === seqResNum) {
               label += `<br>Feature: ${feature.Name}`
             }
           }
         }
-        return label
       } else {
-        return residue.label
+        label = `Sequence: [No match]<br>` + label
       }
+      return label
     }
   }
 
