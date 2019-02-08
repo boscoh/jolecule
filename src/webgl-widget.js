@@ -95,6 +95,7 @@ class WebglWidget {
     this.buildLights()
 
     // div to display processing messages
+    this.messageOffset = { x: 5, y: 60 }
     this.messageDiv = $('<div>')
       .attr('id', 'loading-message')
       .addClass('jolecule-overlay-text')
@@ -248,7 +249,12 @@ class WebglWidget {
     this.webglDiv.css('left', this.x() + position.left)
     this.webglDiv.css('top', this.y() + position.top)
 
-    util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 5, 60)
+    util.stickJqueryDivInTopLeft(
+      this.div,
+      this.messageDiv,
+      this.messageOffset.x,
+      this.messageOffset.y
+    )
     this.messageDiv.css('max-width', this.div.width() - 200)
 
     this.camera.aspect = this.width() / this.height()

@@ -290,7 +290,7 @@ class AquariaAlignment {
         let pdbRes = this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain)
         let seqLabel = ''
         if (seqName) {
-          seqLabel = `Seq: ${seqName}: ${c}${seqResNum}<br>`
+          seqLabel = `Sequence: ${seqName} ${c}${seqResNum}<br>`
         }
         if (_.isNil(pdbRes)) {
           // Entries of residues without PDB matches
@@ -300,7 +300,7 @@ class AquariaAlignment {
             c: c,
             startLabel: null,
             ss: '.',
-            label: `${seqLabel}PDB: [No match]`,
+            label: `${seqLabel}Structure: [No match]`,
             resNum: iResOfSeq + 1
           }
           sequenceWidget.charEntries.push(entry)
@@ -315,7 +315,7 @@ class AquariaAlignment {
               c: c,
               startLabel: null,
               ss: '.',
-              label: `${seqLabel}PDB: [No match]`,
+              label: `${seqLabel}Structure: [No match]`,
               resNum: iResOfSeq + 1
             }
             sequenceWidget.charEntries.push(entry)
@@ -328,7 +328,7 @@ class AquariaAlignment {
               startLabel: null,
               iRes: residue.iRes,
               ss: residue.ss,
-              label: `${seqLabel}PDB: ${pdbId}-${chain} ${pdbC}${pdbResNum}`,
+              label: `${seqLabel}Structure: ${pdbId}-${chain} ${pdbC}${pdbResNum}`,
               resNum: iResOfSeq + 1
             }
             sequenceWidget.charEntries.push(entry)
@@ -428,13 +428,13 @@ class AquariaAlignment {
       )
       if (!_.isNil(resNum)) {
         let pdbC = _.get(data.resToAa, residue.resType, '.')
-        let label = `PDB: ${pdbId}-${residue.chain}: ${pdbC}${
+        let label = `Structure: ${pdbId}-${residue.chain} ${pdbC}${
           residue.resNum
         } <br>Atom: ${atom.atomType}`
         if (seqName) {
-          label = `Seq: ${seqName}: ${c}${resNum} <br>` + label
+          label = `Sequence: ${seqName} ${c}${resNum} <br>` + label
         } else {
-          label = `Seq: [No match]<br>` + label
+          label = `Sequence: [No match]<br>` + label
         }
         if (this.features) {
           for (let feature of this.features) {

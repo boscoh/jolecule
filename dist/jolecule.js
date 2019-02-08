@@ -80004,7 +80004,7 @@ var CanvasWidget = function () {
     this.parentDiv = (0, _jquery2.default)(selector);
     this.parentDivId = this.parentDiv.attr('id');
 
-    this.div = (0, _jquery2.default)('<div>').css('position', 'absolute').css('user-select', 'none');
+    this.div = (0, _jquery2.default)('<div>').css('user-select', 'none');
 
     this.parentDiv.append(this.div);
 
@@ -81249,7 +81249,6 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
   _createClass(ClippingPlaneWidget, [{
     key: 'resize',
     value: function resize() {
-      console.log('ClippingPlaneWidget.resize');
       this.div.css({
         width: this.width(),
         height: this.height()
@@ -81293,7 +81292,6 @@ var ClippingPlaneWidget = function (_CanvasWidget2) {
   }, {
     key: 'update',
     value: function update() {
-      console.log('ClippingPlaneWidget.update');
       var soup = this.soupView.soup;
       var cameraParams = this.soupView.currentView.cameraParams;
       this.maxZLength = 2 * soup.maxLength;
@@ -82218,33 +82216,6 @@ var ToggleAnimateWidget = function (_ToggleWidget2) {
   return ToggleAnimateWidget;
 }(ToggleWidget);
 
-var ViewTextWidget = function () {
-  function ViewTextWidget(soupWidget, selector) {
-    _classCallCheck(this, ViewTextWidget);
-
-    this.soupView = soupWidget.soupView;
-    this.div = (0, _jquery2.default)(selector);
-    soupWidget.addObserver(this);
-    this.update();
-  }
-
-  _createClass(ViewTextWidget, [{
-    key: 'update',
-    value: function update() {
-      var n = this.soupView.savedViews.length;
-      if (n === 0) {
-        this.div.text('');
-      } else {
-        var i = this.soupView.currentView.order + 1;
-        var text = this.soupView.currentView.text;
-        this.div.html(i + '/' + n + ': ' + text);
-      }
-    }
-  }]);
-
-  return ViewTextWidget;
-}();
-
 var HudTextWidget = function (_ToggleWidget3) {
   _inherits(HudTextWidget, _ToggleWidget3);
 
@@ -82255,10 +82226,7 @@ var HudTextWidget = function (_ToggleWidget3) {
 
     _this16.selector = selector;
     _this16.soupView = _this16.soupWidget.soupView;
-    _this16.id = selector + '-text-overlay';
-    // this.hudDiv = $(`<div id="${this.id}">`).addClass('jolecule-overlay-text')
     _this16.isText = true;
-    _this16.resize();
     return _this16;
   }
 
@@ -82278,13 +82246,6 @@ var HudTextWidget = function (_ToggleWidget3) {
       this.isText = val;
     }
   }, {
-    key: 'resize',
-    value: function resize() {
-      // let div = this.soupWidget.div
-      // util.stickJqueryDivInTopLeft(div, this.hudDiv, 5, 5)
-      // this.hudDiv.css('max-width', div.width() - 40)
-    }
-  }, {
     key: 'update',
     value: function () {
       var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
@@ -82294,10 +82255,9 @@ var HudTextWidget = function (_ToggleWidget3) {
             switch (_context.prev = _context.next) {
               case 0:
                 _get(HudTextWidget.prototype.__proto__ || Object.getPrototypeOf(HudTextWidget.prototype), 'update', this).call(this);
-                console.log('HudTextWidget.update', this.soupWidget);
 
                 if (!(this.isText && this.soupWidget)) {
-                  _context.next = 10;
+                  _context.next = 9;
                   break;
                 }
 
@@ -82311,18 +82271,17 @@ var HudTextWidget = function (_ToggleWidget3) {
 
                   text = i + '/' + n + ': ' + this.soupView.currentView.text;
                 }
-                _context.next = 8;
+                _context.next = 7;
                 return this.soupWidget.asyncSetMesssage(text);
 
-              case 8:
-                _context.next = 11;
+              case 7:
+                _context.next = 10;
                 break;
 
-              case 10:
-                // this.hudDiv.hide()
+              case 9:
                 this.soupWidget.cleanupMessage();
 
-              case 11:
+              case 10:
               case 'end':
                 return _context.stop();
             }
@@ -82361,7 +82320,8 @@ var ToggleToolbarWidget = function () {
     this.toolbarDiv = (0, _jquery2.default)('<div id="jolecule-toggle-toolbar">').css({
       display: 'flex',
       'flex-wrap': 'nowrap',
-      'flex-direction': 'row'
+      'flex-direction': 'row',
+      'overflow': 'hidden'
     }).addClass('jolecule-embed-toolbar');
     this.wrapperDiv.append(this.toolbarDiv);
 
@@ -82388,7 +82348,7 @@ var ToggleToolbarWidget = function () {
     value: function resize() {
       console.log('ToggleToolbarWidget.resize');
       this.toolbarDiv.width(this.div.width() - 10);
-      util.stickJqueryDivInTopLeft(this.div, this.wrapperDiv, 0, 0);
+      util.stickJqueryDivInTopLeft(this.div, this.wrapperDiv, 0, 5);
     }
   }, {
     key: 'update',
@@ -82405,11 +82365,12 @@ var ToggleToolbarWidget = function () {
           this.toolbarDiv.hide();
         }
         this.resize();
-        var messageDiv = this.soupWidget.messageDiv;
         if (this.on) {
-          util.stickJqueryDivInTopLeft(this.div, messageDiv, 5, 55);
+          this.soupWidget.messageOffset.x = 15;
+          this.soupWidget.messageOffset.y = 70;
         } else {
-          util.stickJqueryDivInTopLeft(this.div, messageDiv, 35, 5);
+          this.soupWidget.messageOffset.x = 35;
+          this.soupWidget.messageOffset.y = 10;
         }
         this.soupWidget.resize();
       }
@@ -82432,7 +82393,6 @@ exports.default = {
   ResidueSelectorWidget: ResidueSelectorWidget,
   ToggleOptionWidget: ToggleOptionWidget,
   ToggleAnimateWidget: ToggleAnimateWidget,
-  ViewTextWidget: ViewTextWidget,
   MenuWidget: MenuWidget,
   HudTextWidget: HudTextWidget,
   ToggleToolbarWidget: ToggleToolbarWidget
@@ -101922,6 +101882,7 @@ var WebglWidget = function () {
     this.buildLights();
 
     // div to display processing messages
+    this.messageOffset = { x: 5, y: 60 };
     this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-overlay-text');
     this.setMesssage('Initialized jolecule.');
 
@@ -102094,7 +102055,7 @@ var WebglWidget = function () {
       this.webglDiv.css('left', this.x() + position.left);
       this.webglDiv.css('top', this.y() + position.top);
 
-      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, 5, 60);
+      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, this.messageOffset.x, this.messageOffset.y);
       this.messageDiv.css('max-width', this.div.width() - 200);
 
       this.camera.aspect = this.width() / this.height();
@@ -103755,7 +103716,7 @@ var AquariaAlignment = function () {
           var pdbRes = this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain);
           var seqLabel = '';
           if (seqName) {
-            seqLabel = 'Seq: ' + seqName + ': ' + c + seqResNum + '<br>';
+            seqLabel = 'Sequence: ' + seqName + ' ' + c + seqResNum + '<br>';
           }
           if (_lodash2.default.isNil(pdbRes)) {
             // Entries of residues without PDB matches
@@ -103765,7 +103726,7 @@ var AquariaAlignment = function () {
               c: c,
               startLabel: null,
               ss: '.',
-              label: seqLabel + 'PDB: [No match]',
+              label: seqLabel + 'Structure: [No match]',
               resNum: iResOfSeq + 1
             };
             sequenceWidget.charEntries.push(_entry2);
@@ -103784,7 +103745,7 @@ var AquariaAlignment = function () {
                 c: c,
                 startLabel: null,
                 ss: '.',
-                label: seqLabel + 'PDB: [No match]',
+                label: seqLabel + 'Structure: [No match]',
                 resNum: iResOfSeq + 1
               };
               sequenceWidget.charEntries.push(_entry3);
@@ -103797,7 +103758,7 @@ var AquariaAlignment = function () {
                 startLabel: null,
                 iRes: residue.iRes,
                 ss: residue.ss,
-                label: seqLabel + 'PDB: ' + _pdbId + '-' + _chain + ' ' + pdbC + pdbResNum,
+                label: seqLabel + 'Structure: ' + _pdbId + '-' + _chain + ' ' + pdbC + pdbResNum,
                 resNum: iResOfSeq + 1
               };
               sequenceWidget.charEntries.push(_entry4);
@@ -104008,11 +103969,11 @@ var AquariaAlignment = function () {
 
         if (!_lodash2.default.isNil(resNum)) {
           var pdbC = _lodash2.default.get(data.resToAa, residue.resType, '.');
-          var label = 'PDB: ' + pdbId + '-' + residue.chain + ': ' + pdbC + residue.resNum + ' <br>Atom: ' + atom.atomType;
+          var label = 'Structure: ' + pdbId + '-' + residue.chain + ' ' + pdbC + residue.resNum + ' <br>Atom: ' + atom.atomType;
           if (seqName) {
-            label = 'Seq: ' + seqName + ': ' + c + resNum + ' <br>' + label;
+            label = 'Sequence: ' + seqName + ' ' + c + resNum + ' <br>' + label;
           } else {
-            label = 'Seq: [No match]<br>' + label;
+            label = 'Sequence: [No match]<br>' + label;
           }
           if (_this.features) {
             var _iteratorNormalCompletion17 = true;

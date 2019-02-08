@@ -101,7 +101,6 @@ class CanvasWidget {
     this.parentDivId = this.parentDiv.attr('id')
 
     this.div = $('<div>')
-      .css('position', 'absolute')
       .css('user-select', 'none')
 
     this.parentDiv.append(this.div)
@@ -1246,7 +1245,6 @@ class ClippingPlaneWidget extends CanvasWidget {
   }
 
   resize() {
-    console.log('ClippingPlaneWidget.resize')
     this.div.css({
       width: this.width(),
       height: this.height()
@@ -1283,7 +1281,6 @@ class ClippingPlaneWidget extends CanvasWidget {
   }
 
   update() {
-    console.log('ClippingPlaneWidget.update')
     let soup = this.soupView.soup
     let cameraParams = this.soupView.currentView.cameraParams
     this.maxZLength = 2 * soup.maxLength
@@ -2083,35 +2080,12 @@ class ToggleAnimateWidget extends ToggleWidget {
   }
 }
 
-class ViewTextWidget {
-  constructor(soupWidget, selector) {
-    this.soupView = soupWidget.soupView
-    this.div = $(selector)
-    soupWidget.addObserver(this)
-    this.update()
-  }
-
-  update() {
-    let n = this.soupView.savedViews.length
-    if (n === 0) {
-      this.div.text('')
-    } else {
-      let i = this.soupView.currentView.order + 1
-      let text = this.soupView.currentView.text
-      this.div.html(`${i}/${n}: ${text}`)
-    }
-  }
-}
-
 class HudTextWidget extends ToggleWidget {
   constructor(soupWidget, selector) {
     super(soupWidget, selector)
     this.selector = selector
     this.soupView = this.soupWidget.soupView
-    this.id = selector + '-text-overlay'
-    // this.hudDiv = $(`<div id="${this.id}">`).addClass('jolecule-overlay-text')
     this.isText = true
-    this.resize()
   }
 
   html() {
@@ -2126,15 +2100,8 @@ class HudTextWidget extends ToggleWidget {
     this.isText = val
   }
 
-  resize() {
-    // let div = this.soupWidget.div
-    // util.stickJqueryDivInTopLeft(div, this.hudDiv, 5, 5)
-    // this.hudDiv.css('max-width', div.width() - 40)
-  }
-
   async update() {
     super.update()
-    console.log('HudTextWidget.update', this.soupWidget)
     if (this.isText && this.soupWidget) {
       let text
       let n = this.soupView.savedViews.length
@@ -2145,10 +2112,7 @@ class HudTextWidget extends ToggleWidget {
         text = `${i}/${n}: ${this.soupView.currentView.text}`
       }
       await this.soupWidget.asyncSetMesssage(text)
-      // this.hudDiv.html(text)
-      // this.hudDiv.show()
     } else {
-      // this.hudDiv.hide()
       this.soupWidget.cleanupMessage()
     }
   }
@@ -2169,7 +2133,8 @@ class ToggleToolbarWidget {
       .css({
         display: 'flex',
         'flex-wrap': 'nowrap',
-        'flex-direction': 'row'
+        'flex-direction': 'row',
+        'overflow': 'hidden'
       })
       .addClass('jolecule-embed-toolbar')
     this.wrapperDiv.append(this.toolbarDiv)
@@ -2203,7 +2168,7 @@ class ToggleToolbarWidget {
   resize() {
     console.log('ToggleToolbarWidget.resize')
     this.toolbarDiv.width(this.div.width() - 10)
-    util.stickJqueryDivInTopLeft(this.div, this.wrapperDiv, 0, 0)
+    util.stickJqueryDivInTopLeft(this.div, this.wrapperDiv, 0, 5)
   }
 
   update() {
@@ -2219,11 +2184,12 @@ class ToggleToolbarWidget {
         this.toolbarDiv.hide()
       }
       this.resize()
-      let messageDiv = this.soupWidget.messageDiv
       if (this.on) {
-        util.stickJqueryDivInTopLeft(this.div, messageDiv, 5, 55)
+        this.soupWidget.messageOffset.x = 15
+        this.soupWidget.messageOffset.y = 70
       } else {
-        util.stickJqueryDivInTopLeft(this.div, messageDiv, 35, 5)
+        this.soupWidget.messageOffset.x = 35
+        this.soupWidget.messageOffset.y = 10
       }
       this.soupWidget.resize()
     }
@@ -2243,7 +2209,6 @@ export default {
   ResidueSelectorWidget,
   ToggleOptionWidget,
   ToggleAnimateWidget,
-  ViewTextWidget,
   MenuWidget,
   HudTextWidget,
   ToggleToolbarWidget

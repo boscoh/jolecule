@@ -139,6 +139,9 @@ body {
   color: #333;
   margin-bottom: 5px;
 }
+.jolecule-view-text::selection {
+  background-color: #CCC;
+}
 .jolecule-view-text.textarea {
   font-size: 12px;
   letter-spacing: 0.1em;
