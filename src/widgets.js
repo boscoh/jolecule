@@ -2219,13 +2219,13 @@ class ToggleToolbarWidget {
         this.toolbarDiv.hide()
       }
       this.resize()
-      this.soupWidget.resize()
       let messageDiv = this.soupWidget.messageDiv
       if (this.on) {
         util.stickJqueryDivInTopLeft(this.div, messageDiv, 5, 55)
       } else {
         util.stickJqueryDivInTopLeft(this.div, messageDiv, 35, 5)
       }
+      this.soupWidget.resize()
     }
   }
 }

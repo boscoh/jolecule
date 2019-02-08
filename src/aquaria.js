@@ -217,34 +217,10 @@ class AquariaAlignment {
         if (!_.includes(allowedChains, residue.chain)) {
           residue.customColor = '#999999'
         } else if (getConservation(c, pdbC) === 'conserved') {
-          residue.customColor = '#666666'
+          residue.customColor = '#586C7C'
         } else if (getConservation(c, pdbC) === 'nonconserved') {
-          residue.customColor = '#000000'
+          residue.customColor = '#4D4D4D'
         }
-        // if (_.has(this.data, 'conservationArray')) {
-        //   if (!_.includes(allowedChains, residue.chain)) {
-        //     residue.customColor = '#999999'
-        //   } else if (chain === this.data.pdb_chain[0]) {
-        //     if (this.data.conservationArray[seqResNum] === 'conserved') {
-        //       residue.customColor = '#666666'
-        //     } else if (
-        //       this.data.conservationArray[seqResNum] === 'nonconserved'
-        //     ) {
-        //       residue.customColor = '#000000'
-        //     }
-        //   }
-        // } else {
-        //   if (!_.includes(allowedChains, residue.chain)) {
-        //     residue.customColor = '#999999'
-        //   } else if (chain in this.data.conservations) {
-        //     let conservations = this.data.conservations[chain]
-        //     if (_.includes(conservations.conserved, seqResNum)) {
-        //       residue.customColor = '#666666'
-        //     } else if (_.includes(conservations.nonconserved, seqResNum)) {
-        //       residue.customColor = '#000000'
-        //     }
-        //   }
-        // }
       }
     }
     soup.colorResidues()
@@ -314,7 +290,7 @@ class AquariaAlignment {
         let pdbRes = this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain)
         let seqLabel = ''
         if (seqName) {
-          seqLabel = `${seqName}: ${c}${seqResNum}<br>`
+          seqLabel = `Seq: ${seqName}: ${c}${seqResNum}<br>`
         }
         if (_.isNil(pdbRes)) {
           // Entries of residues without PDB matches
@@ -324,7 +300,7 @@ class AquariaAlignment {
             c: c,
             startLabel: null,
             ss: '.',
-            label: `${seqLabel}[No PDB]`,
+            label: `${seqLabel}PDB: [No match]`,
             resNum: iResOfSeq + 1
           }
           sequenceWidget.charEntries.push(entry)
@@ -339,7 +315,7 @@ class AquariaAlignment {
               c: c,
               startLabel: null,
               ss: '.',
-              label: `${seqLabel}[No PDB]`,
+              label: `${seqLabel}PDB: [No match]`,
               resNum: iResOfSeq + 1
             }
             sequenceWidget.charEntries.push(entry)
@@ -352,7 +328,7 @@ class AquariaAlignment {
               startLabel: null,
               iRes: residue.iRes,
               ss: residue.ss,
-              label: `${seqLabel}${pdbId}-${chain}: ${pdbC}${pdbResNum}`,
+              label: `${seqLabel}PDB: ${pdbId}-${chain} ${pdbC}${pdbResNum}`,
               resNum: iResOfSeq + 1
             }
             sequenceWidget.charEntries.push(entry)
@@ -361,14 +337,6 @@ class AquariaAlignment {
       }
     }
     sequenceWidget.nChar = sequenceWidget.charEntries.length
-    // sequenceWidget.iCharStructStart = 0
-    // sequenceWidget.nCharStruct = sequenceWidget.nChar
-    // sequenceWidget.iCharStructEnd = sequenceWidget.nChar
-    // for (let iChar = 0; iChar < sequenceWidget.nChar; iChar += 1) {
-    //   if (_.has(sequenceWidget.charEntries[iChar], 'iRes')) {
-    //     sequenceWidget.iCharSeqStart = iChar
-    //   }
-    // }
   }
 
   colorFromFeatures(embededJolecule, features, seqId, name) {
@@ -460,11 +428,13 @@ class AquariaAlignment {
       )
       if (!_.isNil(resNum)) {
         let pdbC = _.get(data.resToAa, residue.resType, '.')
-        let label = `${pdbId}-${residue.chain}: ${pdbC}${
+        let label = `PDB: ${pdbId}-${residue.chain}: ${pdbC}${
           residue.resNum
         } <br>Atom: ${atom.atomType}`
         if (seqName) {
-          label = `${seqName}: ${c}${resNum} <br>` + label
+          label = `Seq: ${seqName}: ${c}${resNum} <br>` + label
+        } else {
+          label = `Seq: [No match]<br>` + label
         }
         if (this.features) {
           for (let feature of this.features) {

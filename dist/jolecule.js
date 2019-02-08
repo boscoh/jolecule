@@ -77370,9 +77370,9 @@ var rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
 
 // Color constants
 
-var green = new THREE.Color(0x639941);
-var blue = new THREE.Color(0x568ab5);
-var yellow = new THREE.Color(0xf6c719);
+var green = new THREE.Color(0x6F9E52);
+var blue = new THREE.Color(0x6491B6);
+var yellow = new THREE.Color(0xF6C619);
 var purple = new THREE.Color(0x9578aa);
 var grey = new THREE.Color(0xbbbbbb);
 var red = new THREE.Color(0x993333);
@@ -82405,13 +82405,13 @@ var ToggleToolbarWidget = function () {
           this.toolbarDiv.hide();
         }
         this.resize();
-        this.soupWidget.resize();
         var messageDiv = this.soupWidget.messageDiv;
         if (this.on) {
           util.stickJqueryDivInTopLeft(this.div, messageDiv, 5, 55);
         } else {
           util.stickJqueryDivInTopLeft(this.div, messageDiv, 35, 5);
         }
+        this.soupWidget.resize();
       }
     }
   }]);
@@ -93585,8 +93585,11 @@ var SoupWidget = function (_WebglWidget) {
 
       if (util.exists(iResPressed) && iResPressed === this.iResFirstPressed) {
         if (!event.metaKey && !event.shiftKey) {
+          var res = this.soup.getResidueProxy(iResPressed);
+          var val = !res.selected;
+          console.log('SoupWidget.click', iResPressed, val);
           this.controller.clearSelectedResidues();
-          this.controller.selectResidue(this.iResFirstPressed);
+          this.controller.selectResidue(iResPressed, val);
         } else if (event.shiftKey) {
           this.controller.selectAdditionalRangeToResidue(this.iResFirstPressed);
         } else {
@@ -103660,34 +103663,10 @@ var AquariaAlignment = function () {
           if (!_lodash2.default.includes(allowedChains, residue.chain)) {
             residue.customColor = '#999999';
           } else if (getConservation(c, pdbC) === 'conserved') {
-            residue.customColor = '#666666';
+            residue.customColor = '#586C7C';
           } else if (getConservation(c, pdbC) === 'nonconserved') {
-            residue.customColor = '#000000';
+            residue.customColor = '#4D4D4D';
           }
-          // if (_.has(this.data, 'conservationArray')) {
-          //   if (!_.includes(allowedChains, residue.chain)) {
-          //     residue.customColor = '#999999'
-          //   } else if (chain === this.data.pdb_chain[0]) {
-          //     if (this.data.conservationArray[seqResNum] === 'conserved') {
-          //       residue.customColor = '#666666'
-          //     } else if (
-          //       this.data.conservationArray[seqResNum] === 'nonconserved'
-          //     ) {
-          //       residue.customColor = '#000000'
-          //     }
-          //   }
-          // } else {
-          //   if (!_.includes(allowedChains, residue.chain)) {
-          //     residue.customColor = '#999999'
-          //   } else if (chain in this.data.conservations) {
-          //     let conservations = this.data.conservations[chain]
-          //     if (_.includes(conservations.conserved, seqResNum)) {
-          //       residue.customColor = '#666666'
-          //     } else if (_.includes(conservations.nonconserved, seqResNum)) {
-          //       residue.customColor = '#000000'
-          //     }
-          //   }
-          // }
         }
       }
       soup.colorResidues();
@@ -103776,7 +103755,7 @@ var AquariaAlignment = function () {
           var pdbRes = this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain);
           var seqLabel = '';
           if (seqName) {
-            seqLabel = seqName + ': ' + c + seqResNum + '<br>';
+            seqLabel = 'Seq: ' + seqName + ': ' + c + seqResNum + '<br>';
           }
           if (_lodash2.default.isNil(pdbRes)) {
             // Entries of residues without PDB matches
@@ -103786,7 +103765,7 @@ var AquariaAlignment = function () {
               c: c,
               startLabel: null,
               ss: '.',
-              label: seqLabel + '[No PDB]',
+              label: seqLabel + 'PDB: [No match]',
               resNum: iResOfSeq + 1
             };
             sequenceWidget.charEntries.push(_entry2);
@@ -103805,7 +103784,7 @@ var AquariaAlignment = function () {
                 c: c,
                 startLabel: null,
                 ss: '.',
-                label: seqLabel + '[No PDB]',
+                label: seqLabel + 'PDB: [No match]',
                 resNum: iResOfSeq + 1
               };
               sequenceWidget.charEntries.push(_entry3);
@@ -103818,7 +103797,7 @@ var AquariaAlignment = function () {
                 startLabel: null,
                 iRes: residue.iRes,
                 ss: residue.ss,
-                label: '' + seqLabel + _pdbId + '-' + _chain + ': ' + pdbC + pdbResNum,
+                label: seqLabel + 'PDB: ' + _pdbId + '-' + _chain + ' ' + pdbC + pdbResNum,
                 resNum: iResOfSeq + 1
               };
               sequenceWidget.charEntries.push(_entry4);
@@ -103827,14 +103806,6 @@ var AquariaAlignment = function () {
         }
       }
       sequenceWidget.nChar = sequenceWidget.charEntries.length;
-      // sequenceWidget.iCharStructStart = 0
-      // sequenceWidget.nCharStruct = sequenceWidget.nChar
-      // sequenceWidget.iCharStructEnd = sequenceWidget.nChar
-      // for (let iChar = 0; iChar < sequenceWidget.nChar; iChar += 1) {
-      //   if (_.has(sequenceWidget.charEntries[iChar], 'iRes')) {
-      //     sequenceWidget.iCharSeqStart = iChar
-      //   }
-      // }
     }
   }, {
     key: 'colorFromFeatures',
@@ -104037,9 +104008,11 @@ var AquariaAlignment = function () {
 
         if (!_lodash2.default.isNil(resNum)) {
           var pdbC = _lodash2.default.get(data.resToAa, residue.resType, '.');
-          var label = pdbId + '-' + residue.chain + ': ' + pdbC + residue.resNum + ' <br>Atom: ' + atom.atomType;
+          var label = 'PDB: ' + pdbId + '-' + residue.chain + ': ' + pdbC + residue.resNum + ' <br>Atom: ' + atom.atomType;
           if (seqName) {
-            label = seqName + ': ' + c + resNum + ' <br>' + label;
+            label = 'Seq: ' + seqName + ': ' + c + resNum + ' <br>' + label;
+          } else {
+            label = 'Seq: [No match]<br>' + label;
           }
           if (_this.features) {
             var _iteratorNormalCompletion17 = true;
