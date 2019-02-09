@@ -1608,6 +1608,7 @@ class GridControlWidget extends CanvasWidget {
 class ColorLegendWidget extends CanvasWidget {
   constructor(soupWidget) {
     super(soupWidget.divTag)
+    this.offset = { x: 5, y: 5 }
 
     this.canvas.hide()
 
@@ -1703,13 +1704,16 @@ class ColorLegendWidget extends CanvasWidget {
 
   x() {
     let parentDivPos = this.parentDiv.position()
-    return parentDivPos.left + 5
+    return parentDivPos.left + this.offset.x
   }
 
   y() {
     let parentDivPos = this.parentDiv.position()
     return (
-      parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - 5
+      parentDivPos.top +
+      this.parentDiv.height() -
+      this.div.outerHeight() -
+      this.offset.y
     )
   }
 
@@ -1729,7 +1733,7 @@ class SelectionWidget extends CanvasWidget {
   constructor(soupWidget) {
     super(soupWidget.divTag)
     this.soupWidget = soupWidget
-
+    this.offset = {x:5, y:5}
     this.canvas.hide()
 
     this.div.css('display', 'block')
@@ -1762,14 +1766,14 @@ class SelectionWidget extends CanvasWidget {
   x() {
     let parentDivPos = this.parentDiv.position()
     return (
-      parentDivPos.left + this.parentDiv.width() - this.div.outerWidth() - 5
+      parentDivPos.left + this.parentDiv.width() - this.div.outerWidth() - this.offset.x
     )
   }
 
   y() {
     let parentDivPos = this.parentDiv.position()
     return (
-      parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - 5
+      parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - this.offset.y
     )
   }
 
@@ -1921,7 +1925,6 @@ class MenuWidget {
     this.panelDiv.css({
       position: 'absolute',
       'z-index': 1,
-      border: '2px solid #AAA',
       padding: '4px 5px'
     })
     this.div.parent().append(this.panelDiv)
@@ -2121,12 +2124,16 @@ class HudTextWidget extends ToggleWidget {
 }
 
 class ToggleToolbarWidget {
-  constructor(soupWidget, selector, isOn = true) {
-    console.log('ToggleToolbarWidget.constructor', selector)
+  constructor(soupWidget, selector, isOn = true, isAbove = true) {
     this.soupWidget = soupWidget
     this.on = !isOn
     this.isChange = true
+    this.isAbove = isAbove
     this.div = $(selector)
+    this.offset = {x: 0, y: 5}
+    if (!this.isAbove) {
+      this.offset.y = 0
+    }
 
     this.wrapperDiv = $('<div>')
     this.div.append(this.wrapperDiv)
@@ -2136,7 +2143,7 @@ class ToggleToolbarWidget {
         display: 'flex',
         'flex-wrap': 'nowrap',
         'flex-direction': 'row',
-        'overflow': 'hidden'
+        overflow: 'hidden'
       })
       .addClass('jolecule-embed-toolbar')
     this.wrapperDiv.append(this.toolbarDiv)
@@ -2144,7 +2151,7 @@ class ToggleToolbarWidget {
     this.buttonDiv = $('<div id="toggle-toolbar-button">')
       .html('J')
       .addClass('jolecule-button')
-      .css({ 'margin-top': '5px', 'margin-left': '5px' })
+      .css({ 'margin': '5px'})
       .on('click touch', e => {
         this.isChange = true
         this.update()
@@ -2168,14 +2175,16 @@ class ToggleToolbarWidget {
   }
 
   resize() {
-    console.log('ToggleToolbarWidget.resize')
     this.toolbarDiv.width(this.div.width() - 10)
-    util.stickJqueryDivInTopLeft(this.div, this.wrapperDiv, 0, 5)
+    if (this.isAbove) {
+      util.stickJqueryDivInTopLeft(this.div, this.wrapperDiv, this.offset.x, this.offset.y)
+    } else {
+      util.stickJqueryDivInBottomLeft(this.div, this.wrapperDiv, this.offset.x, this.offset.y)
+    }
   }
 
   update() {
     if (this.isChange) {
-      console.log('ToggleToolbarWidget.update isChange')
       this.on = !this.on
       this.isChange = false
       if (this.on) {
@@ -2186,11 +2195,16 @@ class ToggleToolbarWidget {
         this.toolbarDiv.hide()
       }
       this.resize()
-      if (this.on) {
-        this.soupWidget.messageOffset.x = 15
-        this.soupWidget.messageOffset.y = 70
+      if (this.isAbove) {
+        if (this.on) {
+          this.soupWidget.messageOffset.x = 15
+          this.soupWidget.messageOffset.y = 70
+        } else {
+          this.soupWidget.messageOffset.x = 35
+          this.soupWidget.messageOffset.y = 10
+        }
       } else {
-        this.soupWidget.messageOffset.x = 35
+        this.soupWidget.messageOffset.x = 10
         this.soupWidget.messageOffset.y = 10
       }
       this.soupWidget.resize()

@@ -79468,7 +79468,7 @@ var defaultArgs = {
   msPerStep: 17,
   maxWaitStep: 30,
   isToolbarOnTop: true,
-  isToolbarOn: false,
+  isToolbarOn: true,
   isMenu: true,
   isTextOverlay: true
 };
@@ -79690,8 +79690,14 @@ var EmbedJolecule = function () {
 
       this.widget.colorLegend = new _widgets2.default.ColorLegendWidget(this.soupWidget);
       this.widget.colorLegend.isShow = this.params.isLegend;
+      if (!this.params.isToolbarOnTop) {
+        this.widget.colorLegend.offset.y = 60;
+      }
 
       this.widget.selection = new _widgets2.default.SelectionWidget(this.soupWidget);
+      if (!this.params.isToolbarOnTop) {
+        this.widget.selection.offset.y = 60;
+      }
 
       var isToolbar = this.params.isPlayable || this.params.isEditable || this.params.isExtraEditable;
 
@@ -79712,7 +79718,7 @@ var EmbedJolecule = function () {
         // } else {
         //   this.footerDiv.append(this.toolbarDiv)
         // }
-        this.widget.toolbar = new _widgets2.default.ToggleToolbarWidget(this.soupWidget, '#' + this.divId + '-jolecule-soup-display', this.params.isToolbarOn);
+        this.widget.toolbar = new _widgets2.default.ToggleToolbarWidget(this.soupWidget, '#' + this.divId + '-jolecule-soup-display', this.params.isToolbarOn, this.params.isToolbarOnTop);
         this.toolbarDiv = this.widget.toolbar.toolbarDiv;
       }
 
@@ -81663,6 +81669,8 @@ var ColorLegendWidget = function (_CanvasWidget4) {
 
     var _this9 = _possibleConstructorReturn(this, (ColorLegendWidget.__proto__ || Object.getPrototypeOf(ColorLegendWidget)).call(this, soupWidget.divTag));
 
+    _this9.offset = { x: 5, y: 5 };
+
     _this9.canvas.hide();
 
     _this9.default();
@@ -81775,13 +81783,13 @@ var ColorLegendWidget = function (_CanvasWidget4) {
     key: 'x',
     value: function x() {
       var parentDivPos = this.parentDiv.position();
-      return parentDivPos.left + 5;
+      return parentDivPos.left + this.offset.x;
     }
   }, {
     key: 'y',
     value: function y() {
       var parentDivPos = this.parentDiv.position();
-      return parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - 5;
+      return parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - this.offset.y;
     }
   }, {
     key: 'update',
@@ -81811,7 +81819,7 @@ var SelectionWidget = function (_CanvasWidget5) {
     var _this10 = _possibleConstructorReturn(this, (SelectionWidget.__proto__ || Object.getPrototypeOf(SelectionWidget)).call(this, soupWidget.divTag));
 
     _this10.soupWidget = soupWidget;
-
+    _this10.offset = { x: 5, y: 5 };
     _this10.canvas.hide();
 
     _this10.div.css('display', 'block');
@@ -81847,13 +81855,13 @@ var SelectionWidget = function (_CanvasWidget5) {
     key: 'x',
     value: function x() {
       var parentDivPos = this.parentDiv.position();
-      return parentDivPos.left + this.parentDiv.width() - this.div.outerWidth() - 5;
+      return parentDivPos.left + this.parentDiv.width() - this.div.outerWidth() - this.offset.x;
     }
   }, {
     key: 'y',
     value: function y() {
       var parentDivPos = this.parentDiv.position();
-      return parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - 5;
+      return parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - this.offset.y;
     }
   }, {
     key: 'getText',
@@ -82043,7 +82051,6 @@ var MenuWidget = function () {
     this.panelDiv.css({
       position: 'absolute',
       'z-index': 1,
-      border: '2px solid #AAA',
       padding: '4px 5px'
     });
     this.div.parent().append(this.panelDiv);
@@ -82306,14 +82313,19 @@ var ToggleToolbarWidget = function () {
     var _this17 = this;
 
     var isOn = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+    var isAbove = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
 
     _classCallCheck(this, ToggleToolbarWidget);
 
-    console.log('ToggleToolbarWidget.constructor', selector);
     this.soupWidget = soupWidget;
     this.on = !isOn;
     this.isChange = true;
+    this.isAbove = isAbove;
     this.div = (0, _jquery2.default)(selector);
+    this.offset = { x: 0, y: 5 };
+    if (!this.isAbove) {
+      this.offset.y = 0;
+    }
 
     this.wrapperDiv = (0, _jquery2.default)('<div>');
     this.div.append(this.wrapperDiv);
@@ -82322,11 +82334,11 @@ var ToggleToolbarWidget = function () {
       display: 'flex',
       'flex-wrap': 'nowrap',
       'flex-direction': 'row',
-      'overflow': 'hidden'
+      overflow: 'hidden'
     }).addClass('jolecule-embed-toolbar');
     this.wrapperDiv.append(this.toolbarDiv);
 
-    this.buttonDiv = (0, _jquery2.default)('<div id="toggle-toolbar-button">').html('J').addClass('jolecule-button').css({ 'margin-top': '5px', 'margin-left': '5px' }).on('click touch', function (e) {
+    this.buttonDiv = (0, _jquery2.default)('<div id="toggle-toolbar-button">').html('J').addClass('jolecule-button').css({ 'margin': '5px' }).on('click touch', function (e) {
       _this17.isChange = true;
       _this17.update();
       e.preventDefault();
@@ -82347,15 +82359,17 @@ var ToggleToolbarWidget = function () {
   _createClass(ToggleToolbarWidget, [{
     key: 'resize',
     value: function resize() {
-      console.log('ToggleToolbarWidget.resize');
       this.toolbarDiv.width(this.div.width() - 10);
-      util.stickJqueryDivInTopLeft(this.div, this.wrapperDiv, 0, 5);
+      if (this.isAbove) {
+        util.stickJqueryDivInTopLeft(this.div, this.wrapperDiv, this.offset.x, this.offset.y);
+      } else {
+        util.stickJqueryDivInBottomLeft(this.div, this.wrapperDiv, this.offset.x, this.offset.y);
+      }
     }
   }, {
     key: 'update',
     value: function update() {
       if (this.isChange) {
-        console.log('ToggleToolbarWidget.update isChange');
         this.on = !this.on;
         this.isChange = false;
         if (this.on) {
@@ -82366,11 +82380,16 @@ var ToggleToolbarWidget = function () {
           this.toolbarDiv.hide();
         }
         this.resize();
-        if (this.on) {
-          this.soupWidget.messageOffset.x = 15;
-          this.soupWidget.messageOffset.y = 70;
+        if (this.isAbove) {
+          if (this.on) {
+            this.soupWidget.messageOffset.x = 15;
+            this.soupWidget.messageOffset.y = 70;
+          } else {
+            this.soupWidget.messageOffset.x = 35;
+            this.soupWidget.messageOffset.y = 10;
+          }
         } else {
-          this.soupWidget.messageOffset.x = 35;
+          this.soupWidget.messageOffset.x = 10;
           this.soupWidget.messageOffset.y = 10;
         }
         this.soupWidget.resize();
@@ -91676,11 +91695,15 @@ var Soup = function () {
         residue1.iRes = iRes2 - 1;
         residue2.iRes = iRes2;
         if (residue2.isProteinConnectedToPrev()) {
-          atom1.iAtom = residue1.getIAtom('C');
-          atom2.iAtom = residue2.getIAtom('N');
+          if (residue1.checkAtomTypes(['C']) && residue2.checkAtomTypes(['N'])) {
+            atom1.iAtom = residue1.getIAtom('C');
+            atom2.iAtom = residue2.getIAtom('N');
+          }
         } else if (residue2.isNucleotideConnectedToPrev()) {
-          atom1.iAtom = residue1.getIAtom('O3\'');
-          atom2.iAtom = residue2.getIAtom('P');
+          if (residue1.checkAtomTypes(["O3'"]) && residue2.checkAtomTypes(['P'])) {
+            atom1.iAtom = residue1.getIAtom('O3\'');
+            atom2.iAtom = residue2.getIAtom('P');
+          }
         } else {
           continue;
         }
@@ -103638,12 +103661,12 @@ var AquariaAlignment = function () {
     value: function setColorLegend(colorLegendWidget) {
       colorLegendWidget.default();
       colorLegendWidget.colorEntries.push({
-        color: '#666666',
+        color: '#586C7C',
         label: 'Conserved'
       });
       colorLegendWidget.colorEntries.push({
         color: '#000000',
-        label: 'Nonconserved'
+        label: '4D4D4D'
       });
       colorLegendWidget.rebuild();
     }

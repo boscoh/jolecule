@@ -1016,11 +1016,18 @@ class Soup {
       residue1.iRes = iRes2 - 1
       residue2.iRes = iRes2
       if (residue2.isProteinConnectedToPrev()) {
-        atom1.iAtom = residue1.getIAtom('C')
-        atom2.iAtom = residue2.getIAtom('N')
+        if (residue1.checkAtomTypes(['C']) && residue2.checkAtomTypes(['N'])) {
+          atom1.iAtom = residue1.getIAtom('C')
+          atom2.iAtom = residue2.getIAtom('N')
+        }
       } else if (residue2.isNucleotideConnectedToPrev()) {
-        atom1.iAtom = residue1.getIAtom(`O3'`)
-        atom2.iAtom = residue2.getIAtom('P')
+        if (
+          residue1.checkAtomTypes(["O3'"]) &&
+          residue2.checkAtomTypes(['P'])
+        ) {
+          atom1.iAtom = residue1.getIAtom(`O3'`)
+          atom2.iAtom = residue2.getIAtom('P')
+        }
       } else {
         continue
       }

@@ -229,12 +229,12 @@ class AquariaAlignment {
   setColorLegend(colorLegendWidget) {
     colorLegendWidget.default()
     colorLegendWidget.colorEntries.push({
-      color: '#666666',
+      color: '#586C7C',
       label: 'Conserved'
     })
     colorLegendWidget.colorEntries.push({
       color: '#000000',
-      label: 'Nonconserved'
+      label: '4D4D4D'
     })
     colorLegendWidget.rebuild()
   }

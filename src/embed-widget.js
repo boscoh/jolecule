@@ -32,7 +32,7 @@ let defaultArgs = {
   msPerStep: 17,
   maxWaitStep: 30,
   isToolbarOnTop: true,
-  isToolbarOn: false,
+  isToolbarOn: true,
   isMenu: true,
   isTextOverlay: true
 }
@@ -191,8 +191,14 @@ class EmbedJolecule {
 
     this.widget.colorLegend = new widgets.ColorLegendWidget(this.soupWidget)
     this.widget.colorLegend.isShow = this.params.isLegend
+    if (!this.params.isToolbarOnTop) {
+      this.widget.colorLegend.offset.y = 60
+    }
 
     this.widget.selection = new widgets.SelectionWidget(this.soupWidget)
+    if (!this.params.isToolbarOnTop) {
+      this.widget.selection.offset.y = 60
+    }
 
     let isToolbar =
       this.params.isPlayable ||
@@ -219,7 +225,8 @@ class EmbedJolecule {
       this.widget.toolbar = new widgets.ToggleToolbarWidget(
         this.soupWidget,
         `#${this.divId}-jolecule-soup-display`,
-        this.params.isToolbarOn
+        this.params.isToolbarOn,
+        this.params.isToolbarOnTop
       )
       this.toolbarDiv = this.widget.toolbar.toolbarDiv
     }
