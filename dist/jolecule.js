@@ -74963,7 +74963,7 @@ function linkButton(text, classTag, callback) {
 function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
   target.css({
     position: 'absolute',
-    'z-index': '9000'
+    'z-index': '2'
   });
   var top = parent.position().top;
   var left = parent.position().left;
@@ -74977,7 +74977,7 @@ function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
 function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
   target.css({
     position: 'absolute',
-    'z-index': '9000'
+    'z-index': '2'
   });
   var top = parent.position().top;
   var left = parent.position().left;
@@ -79940,7 +79940,7 @@ var LineElement = function () {
 
     this.div = (0, _jquery2.default)('<canvas>').css({
       position: 'absolute',
-      'z-index': '1000',
+      'z-index': '1',
       display: 'none',
       'pointer-events': 'none'
     });
@@ -80233,7 +80233,7 @@ var PopupText = function () {
       padding: '5',
       opacity: 0.8,
       display: 'none',
-      'z-index': 1000,
+      'z-index': 1,
       cursor: 'pointer',
       'user-select': 'none',
       'pointer-events': 'none'
@@ -80251,7 +80251,7 @@ var PopupText = function () {
       'border-top': this.heightArrow + 'px solid white',
       opacity: 0.8,
       display: 'none',
-      'z-index': 1000,
+      'z-index': 1,
       'pointer-events': 'none',
       'user-select': 'none'
     });
@@ -81941,7 +81941,7 @@ var ResidueSelectorWidget = function () {
     this.soupWidget = soupWidget;
     this.soupWidget.addObserver(this);
 
-    this.div = (0, _jquery2.default)(selector).css('z-index', 10000);
+    this.div = (0, _jquery2.default)(selector).css('z-index', 2);
     this.divId = this.div.attr('id');
     this.selectId = this.divId + '-residue-select';
     this.$select = (0, _jquery2.default)('<select>').attr('id', this.selectId);
@@ -82042,7 +82042,7 @@ var MenuWidget = function () {
     this.panelDiv = (0, _jquery2.default)('<div>').addClass('jolecule-embed-view');
     this.panelDiv.css({
       position: 'absolute',
-      'z-index': '1000',
+      'z-index': 1,
       border: '2px solid #AAA',
       padding: '4px 5px'
     });
@@ -101884,7 +101884,7 @@ var WebglWidget = function () {
 
     // div to display processing messages
     this.messageOffset = { x: 5, y: 60 };
-    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').addClass('jolecule-overlay-text');
+    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').css('z-index', '1').addClass('jolecule-overlay-text');
     this.setMesssage('Initialized jolecule.');
 
     // input control parameters

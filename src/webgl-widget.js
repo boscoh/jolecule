@@ -98,6 +98,7 @@ class WebglWidget {
     this.messageOffset = { x: 5, y: 60 }
     this.messageDiv = $('<div>')
       .attr('id', 'loading-message')
+      .css('z-index', '1')
       .addClass('jolecule-overlay-text')
     this.setMesssage('Initialized jolecule.')
 

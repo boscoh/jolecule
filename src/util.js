@@ -25,7 +25,7 @@ function linkButton(text, classTag, callback) {
 function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
   target.css({
     position: 'absolute',
-    'z-index': '9000'
+    'z-index': '2'
   })
   let top = parent.position().top
   let left = parent.position().left
@@ -39,7 +39,7 @@ function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
 function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
   target.css({
     position: 'absolute',
-    'z-index': '9000'
+    'z-index': '2'
   })
   let top = parent.position().top
   let left = parent.position().left

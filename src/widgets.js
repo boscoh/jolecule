@@ -43,7 +43,7 @@ class LineElement {
 
     this.div = $('<canvas>').css({
       position: 'absolute',
-      'z-index': '1000',
+      'z-index': '1',
       display: 'none',
       'pointer-events': 'none'
     })
@@ -288,7 +288,7 @@ class PopupText {
       padding: '5',
       opacity: 0.8,
       display: 'none',
-      'z-index': 1000,
+      'z-index': 1,
       cursor: 'pointer',
       'user-select': 'none',
       'pointer-events': 'none'
@@ -306,7 +306,7 @@ class PopupText {
       'border-top': this.heightArrow + 'px solid white',
       opacity: 0.8,
       display: 'none',
-      'z-index': 1000,
+      'z-index': 1,
       'pointer-events': 'none',
       'user-select': 'none'
     })
@@ -1849,7 +1849,7 @@ class ResidueSelectorWidget {
     this.soupWidget = soupWidget
     this.soupWidget.addObserver(this)
 
-    this.div = $(selector).css('z-index', 10000)
+    this.div = $(selector).css('z-index', 2)
     this.divId = this.div.attr('id')
     this.selectId = `${this.divId}-residue-select`
     this.$select = $('<select>').attr('id', this.selectId)
@@ -1920,7 +1920,7 @@ class MenuWidget {
     this.panelDiv = $('<div>').addClass('jolecule-embed-view')
     this.panelDiv.css({
       position: 'absolute',
-      'z-index': '1000',
+      'z-index': 1,
       border: '2px solid #AAA',
       padding: '4px 5px'
     })
