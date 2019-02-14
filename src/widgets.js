@@ -30,6 +30,8 @@ import '../dist/select2.css' // eslint-disable-line no-alert
 
 import * as data from './data'
 import * as util from './util'
+import { linkButton } from './util'
+import { stickJqueryDivInCenter } from './util'
 
 /**
  * LineElement
@@ -627,7 +629,7 @@ class SequenceWidget extends CanvasWidget {
   }
 
   height() {
-    return this.yBottom + 1
+    return this.yBottom + 4
   }
 
   resize() {
@@ -1733,7 +1735,7 @@ class SelectionWidget extends CanvasWidget {
   constructor(soupWidget) {
     super(soupWidget.divTag)
     this.soupWidget = soupWidget
-    this.offset = {x:5, y:5}
+    this.offset = { x: 5, y: 5 }
     this.canvas.hide()
 
     this.div.css('display', 'block')
@@ -1766,14 +1768,20 @@ class SelectionWidget extends CanvasWidget {
   x() {
     let parentDivPos = this.parentDiv.position()
     return (
-      parentDivPos.left + this.parentDiv.width() - this.div.outerWidth() - this.offset.x
+      parentDivPos.left +
+      this.parentDiv.width() -
+      this.div.outerWidth() -
+      this.offset.x
     )
   }
 
   y() {
     let parentDivPos = this.parentDiv.position()
     return (
-      parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - this.offset.y
+      parentDivPos.top +
+      this.parentDiv.height() -
+      this.div.outerHeight() -
+      this.offset.y
     )
   }
 
@@ -1904,7 +1912,7 @@ class ResidueSelectorWidget {
   }
 }
 
-class MenuWidget {
+class GraphicsMenuWidget {
   constructor(soupWidget, selector, isPopAbove = true) {
     this.soupWidget = soupWidget
     this.controller = soupWidget.controller
@@ -1912,7 +1920,7 @@ class MenuWidget {
     this.isPopAbove = isPopAbove
 
     this.div = $(selector)
-      .html('&#9776;')
+      .html('Graphics')
       .addClass('jolecule-button')
       .on('click touch', e => {
         this.isShowPanel = !this.isShowPanel
@@ -1921,52 +1929,53 @@ class MenuWidget {
       })
     this.divId = this.div.attr('id')
 
-    this.panelDiv = $('<div>').addClass('jolecule-embed-view')
-    this.panelDiv.css({
-      position: 'absolute',
-      'z-index': 1,
-      padding: '4px 5px'
-    })
-    this.div.parent().append(this.panelDiv)
+    this.popOutPanelDiv = $('<div>')
+      .addClass('jolecule-embed-view')
+      .css({
+        position: 'absolute',
+        'z-index': 1,
+        padding: '4px 5px'
+      })
+    this.div.parent().append(this.popOutPanelDiv)
 
     this.widget = {}
 
-    this.panelDiv.append($(`<div id="${this.divId}-transparent">`))
+    this.popOutPanelDiv.append($(`<div id="${this.divId}-transparent">`))
     this.widget.transparent = new ToggleOptionWidget(
       soupWidget,
       `#${this.divId}-transparent`,
       'transparent'
     )
 
-    this.panelDiv.append($(`<div id="${this.divId}-sphere">`))
+    this.popOutPanelDiv.append($(`<div id="${this.divId}-sphere">`))
     this.widget.sphere = new ToggleOptionWidget(
       soupWidget,
       `#${this.divId}-sphere`,
       'sphere'
     )
 
-    this.panelDiv.append($(`<div id="${this.divId}-backbone">`))
+    this.popOutPanelDiv.append($(`<div id="${this.divId}-backbone">`))
     this.widget.backbone = new ToggleOptionWidget(
       soupWidget,
       `#${this.divId}-backbone`,
       'backbone'
     )
 
-    this.panelDiv.append($(`<div id="${this.divId}-water">`))
+    this.popOutPanelDiv.append($(`<div id="${this.divId}-water">`))
     this.widget.water = new ToggleOptionWidget(
       soupWidget,
       `#${this.divId}-water`,
       'water'
     )
 
-    this.panelDiv.append($(`<div id="${this.divId}-ribbon">`))
+    this.popOutPanelDiv.append($(`<div id="${this.divId}-ribbon">`))
     this.widget.ribbon = new ToggleOptionWidget(
       soupWidget,
       `#${this.divId}-ribbon`,
       'ribbon'
     )
 
-    this.panelDiv.append($(`<div id="${this.divId}-ligand">`))
+    this.popOutPanelDiv.append($(`<div id="${this.divId}-ligand">`))
     this.widget.ligand = new ToggleOptionWidget(
       soupWidget,
       `#${this.divId}-ligand`,
@@ -1978,7 +1987,7 @@ class MenuWidget {
   }
 
   update() {
-    this.panelDiv.css('display', this.isShowPanel ? 'block' : 'none')
+    this.popOutPanelDiv.css('display', this.isShowPanel ? 'block' : 'none')
     if (this.isShowPanel) {
       this.div.addClass('jolecule-button-toggle-on')
     } else {
@@ -1986,21 +1995,22 @@ class MenuWidget {
     }
     let position = this.div.position()
     if (this.isPopAbove) {
-      this.panelDiv.css({
-        top: position.top - this.panelDiv.outerHeight() - 4,
+      this.popOutPanelDiv.css({
+        top: position.top - this.popOutPanelDiv.outerHeight() - 4,
         left: position.left - 7
       })
     } else {
-      this.panelDiv.css({
+      this.popOutPanelDiv.css({
         top: position.top + this.div.outerHeight() + 4,
         left: position.left - 7
       })
     }
-    let xRight = this.panelDiv.position().left + this.panelDiv.width()
+    let xRight =
+      this.popOutPanelDiv.position().left + this.popOutPanelDiv.width()
     if (xRight > position.left + this.div.width()) {
-      this.panelDiv.css(
+      this.popOutPanelDiv.css(
         'left',
-        position.left + this.div.width() - this.panelDiv.width()
+        position.left + this.div.width() - this.popOutPanelDiv.width()
       )
     }
   }
@@ -2088,7 +2098,6 @@ class ToggleAnimateWidget extends ToggleWidget {
 class HudTextWidget extends ToggleWidget {
   constructor(soupWidget, selector) {
     super(soupWidget, selector)
-    this.selector = selector
     this.soupView = this.soupWidget.soupView
     this.isText = true
   }
@@ -2110,57 +2119,102 @@ class HudTextWidget extends ToggleWidget {
     if (this.isText && this.soupWidget) {
       let text
       let n = this.soupView.savedViews.length
-      if (n === 0) {
-        text = ''
-      } else {
+      if (n > 0) {
         let i = this.soupView.currentView.order + 1
         text = `${i}/${n}: ${this.soupView.currentView.text}`
+        await this.soupWidget.asyncSetMesssage(text)
       }
-      await this.soupWidget.asyncSetMesssage(text)
     } else {
       this.soupWidget.cleanupMessage()
     }
   }
 }
 
+function openAboutDialog(parentDiv) {
+  window.keyboardLock = true
+
+  let dialog = $('<div>')
+    .addClass('jolecule-dialog')
+    .css('display', 'block')
+    .css('z-index', '5')
+    .css('width', Math.min(400, parentDiv.width() - 100))
+
+  function cleanup() {
+    dialog.remove()
+    window.keyboardLock = false
+  }
+
+  let closeButton = util.linkButton('close', 'jolecule-small-button', cleanup)
+
+  let textarea = $('<div>')
+    .css({
+      width: '100%',
+      'box-sizing': 'border-box',
+      'margin-bottom': '0.5em',
+      padding: '1em'
+    })
+    .addClass('jolecule-view-text')
+    .html(
+      `<label>About this WebGL Molecular Viewer:
+         <a href="https://jolecule.com">jolecule.com</a>
+       </label>`
+    )
+    .keydown(function(e) {
+      if (e.keyCode === 27) {
+        cleanup()
+        return true
+      }
+    })
+
+  let editbox = $('<div>')
+    .css('width', '100%')
+    .append(textarea)
+    .append(' ')
+    .append(closeButton)
+  dialog.append(editbox)
+
+  util.stickJqueryDivInCenter(parentDiv, dialog, 0, 20)
+
+  setTimeout(() => {
+    editbox.find('textarea').focus()
+  }, 100)
+}
+
 class ToggleToolbarWidget {
-  constructor(soupWidget, selector, isOn = true, isAbove = true) {
-    this.soupWidget = soupWidget
-    this.on = !isOn
+  constructor(
+    embedJolecule,
+    buttonSelector,
+    toolbarSelector,
+    isToggleOn = true,
+    isToolbarOnTop = true
+  ) {
+    this.embedJolecule = embedJolecule
+    this.soupWidget = this.embedJolecule.soupWidget
+    this.proteinDisplayDiv = $(buttonSelector)
+    this.isToolbarOnTop = isToolbarOnTop
     this.isChange = true
-    this.isAbove = isAbove
-    this.div = $(selector)
-    this.offset = {x: 0, y: 5}
-    if (!this.isAbove) {
-      this.offset.y = 0
+    this.isToggleOn = !isToggleOn
+
+    this.buttonInDisplayOffset = { x: 0, y: 0 }
+    if (!this.isToolbarOnTop) {
+      this.buttonInDisplayOffset.y = 10
     }
 
-    this.wrapperDiv = $('<div>')
-    this.div.append(this.wrapperDiv)
+    this.toolbarDiv = $(toolbarSelector)
 
-    this.toolbarDiv = $('<div id="jolecule-toggle-toolbar">')
-      .css({
-        display: 'flex',
-        'flex-wrap': 'nowrap',
-        'flex-direction': 'row',
-        overflow: 'hidden'
-      })
-      .addClass('jolecule-embed-toolbar')
-    this.wrapperDiv.append(this.toolbarDiv)
-
-    this.buttonDiv = $('<div id="toggle-toolbar-button">')
-      .html('J')
+    this.buttonInDisplayDiv = $('<div id="toggle-toolbar-button">')
+      .html('&#9776;')
       .addClass('jolecule-button')
-      .css({ 'margin': '5px'})
+      .css({ margin: '5px' })
       .on('click touch', e => {
         this.isChange = true
         this.update()
         e.preventDefault()
       })
-    this.wrapperDiv.append(this.buttonDiv)
+    this.proteinDisplayDiv.append(this.buttonInDisplayDiv)
 
-    this.buttonDiv2 = $('<div id="toggle-toolbar-button2">')
-      .html('J')
+    this.buttonInToolbarDiv = $('<div id="toggle-toolbar-button2">')
+      .html('&#9776;')
       .addClass('jolecule-button')
       .addClass('jolecule-button-toggle-on')
       .on('click touch', e => {
@@ -2168,46 +2222,59 @@ class ToggleToolbarWidget {
         this.update()
         e.preventDefault()
       })
-    this.toolbarDiv.append(this.buttonDiv2)
+    this.toolbarDiv.append(this.buttonInToolbarDiv)
 
     this.soupWidget.addObserver(this)
     this.resize()
   }
 
   resize() {
-    this.toolbarDiv.width(this.div.width() - 10)
-    if (this.isAbove) {
-      util.stickJqueryDivInTopLeft(this.div, this.wrapperDiv, this.offset.x, this.offset.y)
+    if (this.isToolbarOnTop) {
+      util.stickJqueryDivInTopLeft(
+        this.proteinDisplayDiv,
+        this.buttonInDisplayDiv,
+        this.buttonInDisplayOffset.x,
+        this.buttonInDisplayOffset.y
+      )
     } else {
-      util.stickJqueryDivInBottomLeft(this.div, this.wrapperDiv, this.offset.x, this.offset.y)
+      util.stickJqueryDivInBottomLeft(
+        this.proteinDisplayDiv,
+        this.buttonInDisplayDiv,
+        this.buttonInDisplayOffset.x,
+        this.buttonInDisplayOffset.y
+      )
     }
   }
 
-  update() {
+  async update() {
     if (this.isChange) {
-      this.on = !this.on
+      this.isToggleOn = !this.isToggleOn
       this.isChange = false
-      if (this.on) {
-        this.buttonDiv.hide()
+      if (this.isToggleOn) {
+        this.buttonInDisplayDiv.hide()
         this.toolbarDiv.show()
       } else {
-        this.buttonDiv.show()
+        this.buttonInDisplayDiv.show()
         this.toolbarDiv.hide()
       }
-      this.resize()
-      if (this.isAbove) {
-        if (this.on) {
-          this.soupWidget.messageOffset.x = 15
-          this.soupWidget.messageOffset.y = 70
+      if (this.isToolbarOnTop) {
+        if (this.isToggleOn) {
+          this.soupWidget.messageOffset.x = 5
+          this.soupWidget.messageOffset.y = 5
         } else {
           this.soupWidget.messageOffset.x = 35
-          this.soupWidget.messageOffset.y = 10
+          this.soupWidget.messageOffset.y = 5
         }
       } else {
-        this.soupWidget.messageOffset.x = 10
-        this.soupWidget.messageOffset.y = 10
+        if (this.isToggleOn) {
+          this.embedJolecule.widget.colorLegend.offset.y = 5
+        } else {
+          this.embedJolecule.widget.colorLegend.offset.y = 50
+        }
       }
-      this.soupWidget.resize()
+      this.resize()
+      this.embedJolecule.resize()
+      this.embedJolecule.resize()
     }
   }
 }
@@ -2225,7 +2292,8 @@ export default {
   ResidueSelectorWidget,
   ToggleOptionWidget,
   ToggleAnimateWidget,
-  MenuWidget,
+  GraphicsMenuWidget,
   HudTextWidget,
+  openAboutDialog,
   ToggleToolbarWidget
 }

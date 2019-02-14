@@ -31,8 +31,8 @@ let defaultArgs = {
   maxUpdateStep: 50,
   msPerStep: 17,
   maxWaitStep: 30,
-  isToolbarOnTop: true,
-  isToolbarOn: true,
+  isToolbarOnTop: false,
+  isToolbarOn: false,
   isMenu: true,
   isTextOverlay: true
 }
@@ -165,8 +165,6 @@ class EmbedJolecule {
       })
     this.div.append(this.footerDiv)
 
-    this.bodyDiv.append($(`<div id="${this.divId}-toogle-toolbar">`))
-
     this.sequenceBarDiv = $('<div>')
       .attr('id', `${this.divId}-sequence-widget`)
       .css({
@@ -179,7 +177,7 @@ class EmbedJolecule {
     }
 
     if (this.params.isSequenceBar) {
-      this.sequenceWidget = new widgets.SequenceWidget(
+      this.widget.sequence = new widgets.SequenceWidget(
         `#${this.divId}-sequence-widget`,
         this.soupWidget
       )
@@ -191,13 +189,15 @@ class EmbedJolecule {
 
     this.widget.colorLegend = new widgets.ColorLegendWidget(this.soupWidget)
     this.widget.colorLegend.isShow = this.params.isLegend
-    if (!this.params.isToolbarOnTop) {
-      this.widget.colorLegend.offset.y = 60
-    }
 
     this.widget.selection = new widgets.SelectionWidget(this.soupWidget)
-    if (!this.params.isToolbarOnTop) {
-      this.widget.selection.offset.y = 60
+
+    if (this.params.isToolbarOnTop) {
+      this.toolbarDiv = this.headerDiv
+    } else {
+      this.toolbarDiv = this.footerDiv
+      this.widget.selection.offset.y = 5
+      this.widget.colorLegend.offset.y = 5
     }
 
     let isToolbar =
@@ -209,39 +209,32 @@ class EmbedJolecule {
       return
     }
 
-    if (isToolbar) {
-      // this.toolbarDiv = $('<div>')
-      //   .css({
-      //     display: 'flex',
-      //     'flex-wrap': 'wrap',
-      //     'flex-direction': 'row'
-      //   })
-      //   .addClass('jolecule-embed-toolbar')
-      // if (this.params.isToolbarOnTop) {
-      //   this.headerDiv.append(this.toolbarDiv)
-      // } else {
-      //   this.footerDiv.append(this.toolbarDiv)
-      // }
+    this.toolbarDiv
+      .css({
+        display: 'flex',
+        'flex-wrap': 'wrap',
+        'flex-direction': 'row'
+      })
+      .addClass('jolecule-embed-toolbar')
+
+    if (this.params.isToolbarOn) {
       this.widget.toolbar = new widgets.ToggleToolbarWidget(
-        this.soupWidget,
+        this,
         `#${this.divId}-jolecule-soup-display`,
-        this.params.isToolbarOn,
+        `.jolecule-embed-toolbar`,
+        false,
         this.params.isToolbarOnTop
       )
-      this.toolbarDiv = this.widget.toolbar.toolbarDiv
     }
 
-    if (this.params.isPlayable) {
-      this.playableDiv = $('<div>')
-        .attr('id', `${this.divId}-playable`)
-        .css({
-          // width: '100%',
-          display: 'flex',
-          'flex-direction': 'row'
-        })
-      this.toolbarDiv.append(this.playableDiv)
+    this.toolbarDiv.append(
+      linkButton('?', 'jolecule-button', () => {
+        widgets.openAboutDialog(this.soupWidget.div)
+      })
+    )
 
-      this.playableDiv.append($(`<div id="${this.divId}-rotate">`))
+    if (this.params.isPlayable) {
+      this.toolbarDiv.append($(`<div id="${this.divId}-rotate">`))
       this.widget.rotate = new widgets.ToggleAnimateWidget(
         this.soupWidget,
         `#${this.divId}-rotate`,
@@ -249,7 +242,7 @@ class EmbedJolecule {
         '&orarr;'
       )
 
-      this.playableDiv.append($(`<div id="${this.divId}-rock">`))
+      this.toolbarDiv.append($(`<div id="${this.divId}-rock">`))
       this.widget.rotate = new widgets.ToggleAnimateWidget(
         this.soupWidget,
         `#${this.divId}-rock`,
@@ -257,13 +250,13 @@ class EmbedJolecule {
         '&hArr;'
       )
 
-      this.playableDiv.append(
+      this.toolbarDiv.append(
         linkButton('<', 'jolecule-button', () => {
           this.controller.setTargetToPrevView()
         })
       )
 
-      this.playableDiv.append($(`<div id="${this.divId}-loop">`))
+      this.toolbarDiv.append($(`<div id="${this.divId}-loop">`))
       this.widget.loop = new widgets.ToggleAnimateWidget(
         this.soupWidget,
         `#${this.divId}-loop`,
@@ -271,39 +264,20 @@ class EmbedJolecule {
         'Play'
       )
 
-      this.playableDiv.append(
+      this.toolbarDiv.append(
         linkButton('>', 'jolecule-button', () => {
           this.controller.setTargetToNextView()
         })
       )
 
       if (this.params.isTextOverlay) {
-        this.playableDiv.append($(`<div id="${this.divId}-hud">`))
+        this.toolbarDiv.append($(`<div id="${this.divId}-hud">`))
         this.widget.hud = new widgets.HudTextWidget(
           this.soupWidget,
           `#${this.divId}-hud`
         )
       }
-
-      // this.playableDiv.append(
-      //   $('<div>')
-      //     .attr('id', `${this.divId}-view-text`)
-      //     .addClass('jolecule-button')
-      //     .css({
-      //       'background-color': '#BBB',
-      //       flex: '1 1',
-      //       'box-sizing': 'content-box',
-      //       'white-space': 'nowrap',
-      //       overflow: 'hidden',
-      //       'text-align': 'left'
-      //     })
-      // )
-      // this.widget.view = new widgets.ViewTextWidget(
-      //   this.soupWidget,
-      //   `#${this.divId}-view-text`
-      // )
     }
-
 
     if (this.params.isEditable) {
       if (this.params.isResidueSelector) {
@@ -328,10 +302,11 @@ class EmbedJolecule {
           .attr('id', `${this.divId}-clipping-plane`)
           .addClass('jolecule-button')
           .css({
-            flex: '1 0 120px',
+            flex: '1 1 80px',
             display: 'flex',
             'flex-diretion': 'row',
-            'justify-content': 'center'
+            'justify-content': 'center',
+            'max-width': '40%'
           })
       )
       this.widget.clippingPlane = new widgets.ClippingPlaneWidget(
@@ -348,11 +323,11 @@ class EmbedJolecule {
       )
 
       this.toolbarDiv
-        // .append(
-        //   linkButton('Clear', 'jolecule-button', () => {
-        //     this.controller.clear()
-        //   })
-        // )
+        .append(
+          linkButton('Clear', 'jolecule-button', () => {
+            this.controller.clear()
+          })
+        )
         .append(
           linkButton('Sidechains', 'jolecule-button', () => {
             this.controller.toggleSelectedSidechains()
@@ -373,7 +348,7 @@ class EmbedJolecule {
             .addClass('jolecule-button')
         )
 
-        this.menuWidget = new widgets.MenuWidget(
+        this.widget.graphicsMenu = new widgets.GraphicsMenuWidget(
           this.soupWidget,
           `#${this.divId}-menu`,
           !this.params.isToolbarOnTop
@@ -418,8 +393,23 @@ class EmbedJolecule {
   resize() {
     this.bodyDiv.width(this.div.width())
     let height = this.div.outerHeight()
-    height -= this.headerDiv.outerHeight()
-    height -= this.footerDiv.outerHeight()
+    if (this.headerDiv.is(':visible')) {
+      height -= this.headerDiv.outerHeight()
+    }
+    if (this.footerDiv.is(':visible')) {
+      height -= this.footerDiv.outerHeight()
+    }
+    height = parseInt(height)
+    console.log(
+      'EmbedJoleculeWidget.resize',
+      this.div.outerHeight(),
+      this.headerDiv.outerHeight(),
+      this.footerDiv.outerHeight(),
+      height,
+      this.headerDiv,
+      this.bodyDiv,
+      this.div
+    )
     this.bodyDiv.css('height', height)
     this.soupWidget.resize()
   }

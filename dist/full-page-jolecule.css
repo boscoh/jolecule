@@ -19,37 +19,6 @@ body {
   font-weight: normal;
   font-family: "Helvetica Neue", Helvetica, sans-serif;
 }
-#jolecule-header {
-  padding: 5px 5px;
-  background-color: #CCC;
-  display: flex;
-  display: -webkit-flex;
-  flex-direction: row;
-  -webkit-flex-direction: row;
-  align-items: center;
-  -webkit-align-items: center;
-  font-size: 12px;
-  font-family: helvetica;
-  letter-spacing: 0.1em;
-}
-#jolecule-header,
-#jolecule-header a {
-  color: #777;
-  text-decoration: none;
-}
-#jolecule-header form {
-  -webkit-flex: 1;
-  flex: 1;
-  text-align: right;
-  margin: 0;
-  padding-left: 15px;
-  padding-right: 15px;
-}
-.jolecule-search-box {
-  background-color: #888;
-  padding: 3px 5px;
-  border: 0px;
-}
 #jolecule-body {
   overflow: hidden;
   -webkit-flex: 1 1;
@@ -161,7 +130,7 @@ body {
   text-transform: uppercase;
 }
 .jolecule-selected-box {
-  border: 2px solid #A88; 
+  border: 2px solid #A88;
 }
 .jolecule-unselected-box {
   border: 2px solid rgba(100, 100, 100, 0);
@@ -171,12 +140,6 @@ body {
   html, body {
     font-size: 14px;
     line-height: 1.3em;
-  }
-  #jolecule-header form {
-    width: 100%;
-  }
-  #jolecule-header {
-    width: 100%;
   }
   #jolecule-sequence-container {
     border: 0;

@@ -90,6 +90,7 @@ a.jolecule-large-button:active {
     font-size: 12px;
     letter-spacing: 0.05em;
     overflow: hidden;
+    box-sizing: border-box;
 }
 .jolecule-embed-toolbar,
 .jolecule-embed-toolbar a {
@@ -136,7 +137,7 @@ a.jolecule-large-button:active {
     /*color: #CCC;*/
     /*background-color: #444;*/
     background-color: rgba(200, 200, 200, 0.8);
-    color: #000
+    color: #333
 }
 
 .jolecule-overlay-text a {

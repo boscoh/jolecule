@@ -95,7 +95,7 @@ class WebglWidget {
     this.buildLights()
 
     // div to display processing messages
-    this.messageOffset = { x: 5, y: 60 }
+    this.messageOffset = { x: 5, y: 5 }
     this.messageDiv = $('<div>')
       .attr('id', 'loading-message')
       .css('z-index', '1')
@@ -247,8 +247,12 @@ class WebglWidget {
   resize() {
     console.log('Webgl.resize')
     let position = this.div.position()
+
     this.webglDiv.css('left', this.x() + position.left)
     this.webglDiv.css('top', this.y() + position.top)
+
+    this.webglDiv.css('width', this.div.outerWidth() - this.x())
+    this.webglDiv.css('height', this.div.outerHeight() - this.y())
 
     util.stickJqueryDivInTopLeft(
       this.div,

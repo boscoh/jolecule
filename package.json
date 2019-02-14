@@ -15,6 +15,7 @@
     "mustache": "^2.3.1",
     "nopt": "^3.0.6",
     "opener": "^1.5.0",
+    "protip": "^1.4.21",
     "ramda": "^0.25.0",
     "requirejs": "^2.3.2",
     "select2": "^4.0.6-rc.1",

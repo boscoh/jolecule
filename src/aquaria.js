@@ -233,8 +233,8 @@ class AquariaAlignment {
       label: 'Conserved'
     })
     colorLegendWidget.colorEntries.push({
-      color: '#000000',
-      label: '4D4D4D'
+      color: '#4D4D4D',
+      label: 'Nonconserved'
     })
     colorLegendWidget.rebuild()
   }
@@ -577,8 +577,8 @@ class AquariaAlignment {
     embedJolecule.soupWidget.isCrossHairs = false
     embedJolecule.soupWidget.crossHairs.visible = false
     embedJolecule.soupView.setMode('chain')
-    this.setFullSequence(embedJolecule.sequenceWidget)
-    embedJolecule.sequenceWidget.update()
+    this.setFullSequence(embedJolecule.widget.sequence)
+    embedJolecule.widget.sequence.update()
     for (let [iChain, sequence] of this.data.sequences.entries()) {
       if (!_.isNil(sequence.primary_accession)) {
         let chain = this.data.pdb_chain[iChain]
