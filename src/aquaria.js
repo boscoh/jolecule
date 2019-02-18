@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import * as THREE from 'three'
 import * as data from './data'
+import * as util from './util'
 
 function getHexColor(hex) {
   let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
@@ -565,6 +566,71 @@ class AquariaAlignment {
       }
     }
     return text
+  }
+
+  copyToClipboard() {
+    let result = ''
+    let soup = this.embedJolecule.soup
+    let chains = this.data.pdb_chain
+    let pdbId = this.data.pdb_id
+    for (let iChain = 0; iChain < chains.length; iChain += 1) {
+      let chain = chains[iChain]
+      let masterSeq = this.data.sequences[iChain].sequence
+      let seqId = this.data.sequences[iChain].primary_accession
+      let masterSeqName = this.data.common_names[iChain]
+      let pdbSeqName = `${pdbId}-${chain}`
+      let copySeqName = pdbSeqName + '_SELECTED'
+      if (_.isNil(seqId)) {
+        seqId = ''
+      }
+      if (_.isNil(masterSeqName)) {
+        masterSeqName = 'SEQUENCE'
+      }
+      let pdbSeq = ''
+      let copySeq = ''
+      for (let iResOfSeq = 0; iResOfSeq < masterSeq.length; iResOfSeq += 1) {
+        let seqResNum = iResOfSeq + 1
+        let pdbRes = this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain)
+        let pdbC = '-'
+        let copyC = '-'
+        if (!_.isNil(pdbRes)) {
+          let [, chain, pdbResNum] = pdbRes
+          let residue = soup.findFirstResidue(chain, pdbResNum)
+          if (!_.isNil(residue)) {
+            pdbC = _.get(data.resToAa, residue.resType, '-')
+            if (residue.selected) {
+              copyC = pdbC
+            }
+          }
+        }
+        pdbSeq += pdbC
+        copySeq += copyC
+      }
+      let entries = [
+        { name: masterSeqName, seq: masterSeq },
+        { name: pdbSeqName, seq: pdbSeq },
+        { name: copySeqName, seq: copySeq }
+      ]
+      let nameLen = _.max(_.map(entries, e => e.name.length))
+      let seqLen = _.max(_.map(entries, e => e.seq.length))
+      let width = 50
+      let nSection = Math.ceil(seqLen / width)
+      let s = ''
+      for (let iSection = 0; iSection < nSection; iSection += 1) {
+        for (let iEntry = 0; iEntry < entries.length; iEntry += 1) {
+          let entry = entries[iEntry]
+          s += _.padEnd(entry.name, nameLen) + ' '
+          s += entry.seq.substring(iSection * width, (iSection + 1) * width)
+          s += '\n'
+        }
+        s += '\n'
+      }
+      result += s
+    }
+    console.log('AquariaAlignment.copyToClipboard')
+    console.log(result)
+    util.copyTextToClipboard(result)
+    return result
   }
 
   setSelectionPanel(embedJolecule) {

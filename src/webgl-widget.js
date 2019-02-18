@@ -251,9 +251,6 @@ class WebglWidget {
     this.webglDiv.css('left', this.x() + position.left)
     this.webglDiv.css('top', this.y() + position.top)
 
-    this.webglDiv.css('width', this.div.outerWidth() - this.x())
-    this.webglDiv.css('height', this.div.outerHeight() - this.y())
-
     util.stickJqueryDivInTopLeft(
       this.div,
       this.messageDiv,

@@ -32,6 +32,8 @@
                 backgroundColor: 0xCCCCCC
               });
 
+            let alignment = new jolecule.AquariaAlignment()
+
             let controller = widget.embedJolecule.controller
             document.onkeydown = function (event) {
               let c = String.fromCharCode(event.keyCode).toUpperCase()
@@ -52,10 +54,7 @@
                 "./P04637.4qo1.B.json",
             ], function(dataServer0, alignData) {
               widget.asyncAddDataServer(dataServer0).then(function() {
-                let alignment = new jolecule.AquariaAlignment(alignData)
-                alignment.setEmbedJolecule(widget.embedJolecule)
-                widget.embedJolecule.soupView.setMode('chain')
-                widget.embedJolecule.sequenceWidget.update()
+                alignment.reload(alignData, widget.embedJolecule)
                 alignment.selectNewChain = function(seqId, pdbId, chain) {
                   console.log('4q01.html.selectNewChain', seqId, pdbId, chain)
                 }

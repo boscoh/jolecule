@@ -411,6 +411,7 @@ class EmbedJolecule {
       this.div
     )
     this.bodyDiv.css('height', height)
+    this.soupWidget.webglDiv.css('height', height)
     this.soupWidget.resize()
   }
 }

@@ -34,6 +34,7 @@
                 backgroundColor: 0xCCCCCC
               });
 
+            let alignment = new jolecule.AquariaAlignment()
             let controller = widget.embedJolecule.controller
             document.onkeydown = function (event) {
               let c = String.fromCharCode(event.keyCode).toUpperCase()
@@ -46,44 +47,23 @@
                 controller.zoomToSelection()
               } else if (event.keyCode === 27) {
                 controller.clearSelectedResidues()
+              } else if (c === "C" && event.metaKey) {
+                alignment.copyToClipboard()
               }
             }
 
             require([
+              "./3q05-jol/data-server0",
               "./P04637.3q05.A.json",
-            ], function( alignData) {
-
-              var dataServer0 = jolecule.makePdbDataServer({
-                pdbId: '3q05',
-                biounit: 1
-              })
-
-              function selectNewChain(seqId, pdbId, chain) {
-                console.log('3q05.html.selectNewChain', seqId, pdbId, chain)
-              }
-
+            ], function(dataServer0, alignData) {
               widget.asyncAddDataServer(dataServer0).then(function() {
                 console.log('3q05.html loading done')
-                let alignment = new jolecule.AquariaAlignment(alignData)
-                alignment.setEmbedJolecule(widget.embedJolecule)
-                alignment.selectNewChain = selectNewChain
+                alignment.reload(alignData, widget.embedJolecule)
+                alignment.selectNewChain = function(seqId, pdbId, chain) {
+                  console.log('3q05.html.selectNewChain', seqId, pdbId, chain)
+                }
               });
             });
-
-            // require([
-            //     "./3q05-jol/data-server0",
-            //     "./P04637.3q05.A.json",
-            // ], function(dataServer0, alignData) {
-            //   j.asyncAddDataServer(dataServer0).then(function() {
-            //     let alignment = new jolecule.AquariaAlignment(alignData)
-            //     j.embedJolecule.soupView.setMode('chain')
-            //     alignment.setEmbedJolecule(j.embedJolecule)
-            //     j.embedJolecule.sequenceWidget.update()
-            //     alignment.selectNewChain = function(seqId, pdbId, chain) {
-            //       console.log('selectNewChain', seqId, pdbId, chain)
-            //     }
-            //   });
-            // });
           });
         })();
       </script>
