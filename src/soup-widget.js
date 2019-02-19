@@ -469,17 +469,6 @@ class SoupWidget extends WebglWidget {
    * Click is triggered on a mouseup following a mousedown
    */
   click(event) {
-    this.getPointer(event)
-
-    let diffX = this.mouseX - this.saveMouseX
-    let diffY = this.mouseY - this.saveMouseY
-
-    if (diffX !== 0 || diffY !== 0) {
-      return
-    }
-
-    this.updateHover()
-
     let iAtomPressed = this.iAtomHover
     let iResPressed = this.soup.getAtomProxy(iAtomPressed).iRes
 
@@ -487,8 +476,6 @@ class SoupWidget extends WebglWidget {
       if (!event.metaKey && !event.shiftKey) {
         let res = this.soup.getResidueProxy(iResPressed)
         let val = !res.selected
-        console.log('SoupWidget.click', iResPressed, val)
-        this.controller.clearSelectedResidues()
         this.controller.selectResidue(iResPressed, val)
       } else if (event.shiftKey) {
         this.controller.selectAdditionalRangeToResidue(this.iResFirstPressed)
@@ -501,6 +488,9 @@ class SoupWidget extends WebglWidget {
 
     this.iAtomFirstPressed = null
     this.iResFirstPressed = null
+
+    this.getPointer(event)
+    this.updateHover()
   }
 
   mousedown(event) {
@@ -522,6 +512,9 @@ class SoupWidget extends WebglWidget {
     let now = new Date().getTime()
     let elapsedTime = this.timePressed ? now - this.timePressed : 0
 
+    console.log('SoupWidget.mousedown isGesture', this.isGesture)
+    console.log('SoupWidget.mousedown isClickInitiated', this.isClickInitiated)
+    console.log('SoupWidget.mousedown iAtomHover', this.iAtomHover)
     if (!this.isClickInitiated) {
       this.iAtomPreClick = this.iAtomHover
       this.isClickInitiated = true
