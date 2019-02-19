@@ -47,6 +47,8 @@ function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
   })
   let top = parent.position().top
   let left = parent.position().left
+  top = 0
+  left = 0
   let widthParent = parent.outerWidth()
   let heightParent = parent.outerHeight()
   parent.prepend(target)
@@ -145,7 +147,7 @@ function textEntryDialog(parentDiv, label, callback) {
     .css('width', Math.min(400, parentDiv.width() - 100))
     .append(editbox)
 
-  stickJqueryDivInCenter(parentDiv, dialog, 0, 70)
+  stickJqueryDivInCenter(parentDiv, dialog, 0, 20)
 
   setTimeout(() => {
     editbox.find('textarea').focus()

@@ -64542,6 +64542,8 @@ function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
   });
   var top = parent.position().top;
   var left = parent.position().left;
+  top = 0;
+  left = 0;
   var widthParent = parent.outerWidth();
   var heightParent = parent.outerHeight();
   parent.prepend(target);
@@ -64625,7 +64627,7 @@ function textEntryDialog(parentDiv, label, callback) {
 
   var dialog = (0, _jquery2.default)('<div>').addClass('jolecule-dialog').css('display', 'block').css('z-index', '2000').css('width', Math.min(400, parentDiv.width() - 100)).append(editbox);
 
-  stickJqueryDivInCenter(parentDiv, dialog, 0, 70);
+  stickJqueryDivInCenter(parentDiv, dialog, 0, 20);
 
   setTimeout(function () {
     editbox.find('textarea').focus();
@@ -82357,7 +82359,7 @@ function openAboutDialog(parentDiv) {
     'box-sizing': 'border-box',
     'margin-bottom': '0.5em',
     padding: '1em'
-  }).addClass('jolecule-view-text').html('<label>About this WebGL Molecular Viewer:\n         <a href="https://jolecule.com">jolecule.com</a>\n       </label>').keydown(function (e) {
+  }).addClass('jolecule-view-text').html('<label>Jolecule is an embeddable WebGL molecular viewer with easy facilities to\n         make interactive slide shows. For more info, see\n         <a href="https://jolecule.com">jolecule.com</a>\n       </label>').keydown(function (e) {
     if (e.keyCode === 27) {
       cleanup();
       return true;
@@ -82367,7 +82369,7 @@ function openAboutDialog(parentDiv) {
   var editbox = (0, _jquery2.default)('<div>').css('width', '100%').append(textarea).append(' ').append(closeButton);
   dialog.append(editbox);
 
-  util.stickJqueryDivInCenter(parentDiv, dialog, 0, 20);
+  util.stickJqueryDivInCenter(parentDiv, dialog, 0, 0);
 
   setTimeout(function () {
     editbox.find('textarea').focus();
@@ -102435,7 +102437,7 @@ exports = module.exports = __webpack_require__(134)();
 
 
 // module
-exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    font-family: Helvetica, Arial, sans-serif;\n    text-align: center;\n    font-size: 12px;\n    line-height: 1.5em;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: middle;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-toolbar {\n    padding: 5px 5px 2px 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n    box-sizing: border-box;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    background-color: rgba(180, 180, 180, 0.9);\n    color: #333\n}\n\n.jolecule-overlay-text {\n    z-index: 5001;\n    padding: 10px;\n    opacity: 0.7;\n    text-align: left;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n\n    border: 1px solid #888;\n    /*color: #CCC;*/\n    /*background-color: #444;*/\n    background-color: rgba(200, 200, 200, 0.8);\n    color: #333\n}\n\n.jolecule-overlay-text a {\n    color: #447;\n}\n", ""]);
+exports.push([module.i, ".jolecule-button {\n    border-radius: 3px;\n    margin-right: 2px;\n    margin-bottom: 2px;\n    padding: 10px 7px;\n    font-family: Helvetica, Arial, sans-serif;\n    text-align: center;\n    font-size: 12px;\n    line-height: 1.5em;\n    font-weight: normal;\n    letter-spacing: 0.1em;\n    cursor: pointer;\n    box-sizing: content-box;\n    height: 20px;\n    user-select: none;\n    vertical-align: middle;\n}\n.jolecule-button,\na.jolecule-button input a,\na.jolecule-button,\na.jolecule-button:link,\na.jolecule-button:visited,\na.jolecule-button:hover {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    background-color: #999;\n    color: #333;\n    text-decoration: none;\n}\n.jolecule-button-toggle-on,\na.jolecule-button-toggle-on:link,\na.jolecule-button-toggle-on:visited {\n    background-color: #777;\n    color: #333;\n}\n.jolecule-small-button,\na.jolecule-small-button,\na.jolecule-small-button:visited {\n    -moz-border-radius: 3px;\n    border-radius: 3px;\n    text-align: center;\n    margin-right: 2px;\n    margin-bottom: 5px;\n    padding: 6px 8px;\n    font-weight: normal;\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    line-height: 15px;\n    cursor: pointer;\n}\n.jolecule-button:active,\na.jolecule-button:active,\na.jolecule-small-button:active,\na.jolecule-large-button:active {\n    background-color: #A99;\n}\n.jolecule-author {\n    font-size: 10px;\n    letter-spacing: 0.1em;\n    color: #888;\n    margin-left: 5px;\n    padding: 0;\n    font-weight: normal;\n}\n.jolecule-dialog {\n    background-color: #CCC;\n    padding: 10px;\n    border: 2px solid #AAA;\n    font-size: 12px;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n    display: block\n}\n.jolecule-textbox {\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.1em;\n    line-height: 1em;\n}\n.jolecule-embed-toolbar {\n    padding: 5px 5px 2px 5px;\n    vertical-align: middle;\n    background-color: #CCC;\n    color: #666;\n    font-family: helvetica;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    overflow: hidden;\n    box-sizing: border-box;\n}\n.jolecule-embed-toolbar,\n.jolecule-embed-toolbar a {\n    color: #777;\n    text-decoration: none;\n}\n.jolecule-embed-body {\n    font-size: 12px;\n    font-family: helvetica;\n    letter-spacing: 0.05em;\n    line-height: 1.2em;\n    color: #666;\n}\n.jolecule-embed-view {\n    background-color: #CCC;\n    color: #777;\n    font-size: 12px;\n    font-family: Helvetica, Arial, sans-serif;\n    letter-spacing: 0.05em;\n    line-height: 1em;\n}\n\n.jolecule-loading-message {\n    z-index: 5000;\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n    letter-spacing: 0.05em;\n    padding: 5px 15px;\n    background-color: rgba(180, 180, 180, 0.9);\n    color: #333\n}\n\n.jolecule-overlay-text {\n    z-index: 5001;\n    padding: 10px;\n    opacity: 0.7;\n    text-align: left;\n    letter-spacing: 0.1em;\n    line-height: 1.5em;\n    font-family: Helvetica, Arial, sans-serif;\n    font-size: 12px;\n\n    border: 1px solid #888;\n    /*color: #CCC;*/\n    /*background-color: #444;*/\n    background-color: rgba(200, 200, 200, 0.8);\n    color: #333\n}\n\n.jolecule-overlay-text a {\n    color: #447;\n}\n", ""]);
 
 // exports
 

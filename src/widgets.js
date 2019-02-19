@@ -2114,7 +2114,8 @@ function openAboutDialog(parentDiv) {
     })
     .addClass('jolecule-view-text')
     .html(
-      `<label>About this WebGL Molecular Viewer:
+      `<label>Jolecule is an embeddable WebGL molecular viewer with easy facilities to
+         make interactive slide shows. For more info, see
          <a href="https://jolecule.com">jolecule.com</a>
        </label>`
     )
@@ -2132,7 +2133,7 @@ function openAboutDialog(parentDiv) {
     .append(closeButton)
   dialog.append(editbox)
 
-  util.stickJqueryDivInCenter(parentDiv, dialog, 0, 20)
+  util.stickJqueryDivInCenter(parentDiv, dialog, 0, 0)
 
   setTimeout(() => {
     editbox.find('textarea').focus()

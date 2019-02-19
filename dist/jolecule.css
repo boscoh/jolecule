@@ -74,6 +74,7 @@ a.jolecule-large-button:active {
     font-size: 12px;
     letter-spacing: 0.1em;
     line-height: 1.5em;
+    display: block
 }
 .jolecule-textbox {
     font-size: 12px;
