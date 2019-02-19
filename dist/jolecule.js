@@ -81852,24 +81852,22 @@ var SelectionWidget = function (_CanvasWidget5) {
   function SelectionWidget(soupWidget) {
     _classCallCheck(this, SelectionWidget);
 
-    var _this10 = _possibleConstructorReturn(this, (SelectionWidget.__proto__ || Object.getPrototypeOf(SelectionWidget)).call(this, soupWidget.divTag));
+    var _this10 = _possibleConstructorReturn(this, (SelectionWidget.__proto__ || Object.getPrototypeOf(SelectionWidget)).call(this, '#' + soupWidget.webglDivId));
 
     _this10.soupWidget = soupWidget;
     _this10.offset = { x: 5, y: 5 };
     _this10.canvas.hide();
 
     _this10.div.css('display', 'block');
-    _this10.div.attr('id', 'selection');
+    _this10.div.attr('id', soupWidget.webglDivId + '-selection');
     _this10.div.addClass('jolecule-button');
     _this10.div.css({
       padding: '8px',
       position: 'absolute',
       'max-width': '180px',
-      'max-height': '200px',
-      'font-size': '0.8em',
       height: 'auto',
-      width: 'auto',
-      'box-sizing': 'border-box',
+      'font-size': '0.8em',
+      // 'box-sizing': 'border-box',
       'text-align': 'left'
     });
 
@@ -81882,9 +81880,11 @@ var SelectionWidget = function (_CanvasWidget5) {
   _createClass(SelectionWidget, [{
     key: 'resize',
     value: function resize() {
+      var parentDivPos = this.parentDiv.position();
+      console.log('SelectoinWidget.resize parentDiv', this.parentDiv);
       this.div.css({
-        top: this.y(),
-        left: this.x()
+        bottom: this.offset.y,
+        right: this.offset.x
       });
     }
   }, {
@@ -81897,7 +81897,7 @@ var SelectionWidget = function (_CanvasWidget5) {
     key: 'y',
     value: function y() {
       var parentDivPos = this.parentDiv.position();
-      return parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - this.offset.y;
+      return parentDivPos.top + this.parentDiv.outerHeight() - this.div.outerHeight() - this.offset.y;
     }
   }, {
     key: 'getText',
@@ -81959,16 +81959,37 @@ var SelectionWidget = function (_CanvasWidget5) {
     }
   }, {
     key: 'update',
-    value: function update() {
-      var s = this.getText();
-      if (!s) {
-        this.div.hide();
-      } else {
-        this.div.html(s);
-        this.div.show();
-        this.resize();
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var s;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                s = this.getText();
+
+                if (!s) {
+                  this.div.hide();
+                } else {
+                  this.div.show();
+                  this.div.html(s);
+                  this.resize();
+                }
+
+              case 2:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function update() {
+        return _ref.apply(this, arguments);
       }
-    }
+
+      return update;
+    }()
   }]);
 
   return SelectionWidget;
@@ -82290,16 +82311,16 @@ var HudTextWidget = function (_ToggleWidget3) {
   }, {
     key: 'update',
     value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
         var text, n, i;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context.prev = _context.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
                 _get(HudTextWidget.prototype.__proto__ || Object.getPrototypeOf(HudTextWidget.prototype), 'update', this).call(this);
 
                 if (!(this.isText && this.soupWidget)) {
-                  _context.next = 11;
+                  _context2.next = 11;
                   break;
                 }
 
@@ -82307,18 +82328,18 @@ var HudTextWidget = function (_ToggleWidget3) {
                 n = this.soupView.savedViews.length;
 
                 if (!(n > 0)) {
-                  _context.next = 9;
+                  _context2.next = 9;
                   break;
                 }
 
                 i = this.soupView.currentView.order + 1;
 
                 text = i + '/' + n + ': ' + this.soupView.currentView.text;
-                _context.next = 9;
+                _context2.next = 9;
                 return this.soupWidget.asyncSetMesssage(text);
 
               case 9:
-                _context.next = 12;
+                _context2.next = 12;
                 break;
 
               case 11:
@@ -82326,14 +82347,14 @@ var HudTextWidget = function (_ToggleWidget3) {
 
               case 12:
               case 'end':
-                return _context.stop();
+                return _context2.stop();
             }
           }
-        }, _callee, this);
+        }, _callee2, this);
       }));
 
       function update() {
-        return _ref.apply(this, arguments);
+        return _ref2.apply(this, arguments);
       }
 
       return update;
@@ -82430,10 +82451,10 @@ var ToggleToolbarWidget = function () {
   }, {
     key: 'update',
     value: function () {
-      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context2.prev = _context2.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
                 if (this.isChange) {
                   this.isToggleOn = !this.isToggleOn;
@@ -82467,14 +82488,14 @@ var ToggleToolbarWidget = function () {
 
               case 1:
               case 'end':
-                return _context2.stop();
+                return _context3.stop();
             }
           }
-        }, _callee2, this);
+        }, _callee3, this);
       }));
 
       function update() {
-        return _ref2.apply(this, arguments);
+        return _ref3.apply(this, arguments);
       }
 
       return update;
@@ -101937,7 +101958,7 @@ var WebglWidget = function () {
     // WebGL related properties
     // div to instantiate WebGL renderer
     this.webglDivId = this.div.attr('id') + '-canvas-wrapper';
-    this.webglDiv = (0, _jquery2.default)('<div>').attr('id', this.webglDivId).css('overflow', 'hidden').css('z-index', '0').css('background-color', '#CCC').css('position', 'absolute');
+    this.webglDiv = (0, _jquery2.default)('<div>').attr('id', this.webglDivId).css('overflow', 'hidden').css('box-sizing', 'border-box').css('z-index', '0').css('background-color', '#CCC').css('position', 'relative');
     this.webglDiv.contextmenu(function () {
       return false;
     });
@@ -102153,10 +102174,10 @@ var WebglWidget = function () {
     key: 'resize',
     value: function resize() {
       console.log('Webgl.resize');
-      var position = this.div.position();
+      // let position = this.div.position()
 
-      this.webglDiv.css('left', this.x() + position.left);
-      this.webglDiv.css('top', this.y() + position.top);
+      // this.webglDiv.css('left', this.x() + position.left)
+      // this.webglDiv.css('top', this.y() + position.top)
 
       util.stickJqueryDivInTopLeft(this.div, this.messageDiv, this.messageOffset.x, this.messageOffset.y);
       this.messageDiv.css('max-width', this.div.width() - 200);

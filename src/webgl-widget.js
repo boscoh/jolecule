@@ -44,9 +44,10 @@ class WebglWidget {
     this.webglDiv = $('<div>')
       .attr('id', this.webglDivId)
       .css('overflow', 'hidden')
+      .css('box-sizing', 'border-box')
       .css('z-index', '0')
       .css('background-color', '#CCC')
-      .css('position', 'absolute')
+      .css('position', 'relative')
     this.webglDiv.contextmenu(() => false)
     this.div.append(this.webglDiv)
 
@@ -246,10 +247,10 @@ class WebglWidget {
 
   resize() {
     console.log('Webgl.resize')
-    let position = this.div.position()
+    // let position = this.div.position()
 
-    this.webglDiv.css('left', this.x() + position.left)
-    this.webglDiv.css('top', this.y() + position.top)
+    // this.webglDiv.css('left', this.x() + position.left)
+    // this.webglDiv.css('top', this.y() + position.top)
 
     util.stickJqueryDivInTopLeft(
       this.div,

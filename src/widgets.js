@@ -30,8 +30,6 @@ import '../dist/select2.css' // eslint-disable-line no-alert
 
 import * as data from './data'
 import * as util from './util'
-import { linkButton } from './util'
-import { stickJqueryDivInCenter } from './util'
 
 /**
  * LineElement
@@ -1733,23 +1731,21 @@ class ColorLegendWidget extends CanvasWidget {
  */
 class SelectionWidget extends CanvasWidget {
   constructor(soupWidget) {
-    super(soupWidget.divTag)
+    super('#' + soupWidget.webglDivId)
     this.soupWidget = soupWidget
     this.offset = { x: 5, y: 5 }
     this.canvas.hide()
 
     this.div.css('display', 'block')
-    this.div.attr('id', 'selection')
+    this.div.attr('id', soupWidget.webglDivId + '-selection')
     this.div.addClass('jolecule-button')
     this.div.css({
       padding: '8px',
       position: 'absolute',
       'max-width': '180px',
-      'max-height': '200px',
-      'font-size': '0.8em',
       height: 'auto',
-      width: 'auto',
-      'box-sizing': 'border-box',
+      'font-size': '0.8em',
+      // 'box-sizing': 'border-box',
       'text-align': 'left'
     })
 
@@ -1759,9 +1755,11 @@ class SelectionWidget extends CanvasWidget {
   }
 
   resize() {
+    let parentDivPos = this.parentDiv.position()
+    console.log('SelectoinWidget.resize parentDiv', this.parentDiv)
     this.div.css({
-      top: this.y(),
-      left: this.x()
+      bottom: this.offset.y,
+      right: this.offset.x
     })
   }
 
@@ -1779,7 +1777,7 @@ class SelectionWidget extends CanvasWidget {
     let parentDivPos = this.parentDiv.position()
     return (
       parentDivPos.top +
-      this.parentDiv.height() -
+      this.parentDiv.outerHeight() -
       this.div.outerHeight() -
       this.offset.y
     )
@@ -1842,13 +1840,13 @@ class SelectionWidget extends CanvasWidget {
     return text
   }
 
-  update() {
+  async update() {
     let s = this.getText()
     if (!s) {
       this.div.hide()
     } else {
-      this.div.html(s)
       this.div.show()
+      this.div.html(s)
       this.resize()
     }
   }
