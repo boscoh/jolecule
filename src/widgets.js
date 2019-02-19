@@ -102,7 +102,7 @@ class CanvasWidget {
 
     this.div = $('<div>')
       .css('user-select', 'none')
-      .css('position', 'absolute')
+      // .css('position', 'absolute')
 
     this.parentDiv.append(this.div)
 
@@ -317,8 +317,6 @@ class PopupText {
   }
 
   move(x, y) {
-    let parentDivPos = this.parentDiv.position()
-
     this.div.css({ display: 'block' })
     let rect = this.div[0].getBoundingClientRect()
     let width = rect.width
@@ -337,13 +335,13 @@ class PopupText {
     }
 
     this.arrow.css({
-      top: y - this.heightArrow + parentDivPos.top,
-      left: x - 5 + parentDivPos.left
+      top: y - this.heightArrow,
+      left: x - 5
     })
 
     this.div.css({
-      top: y - this.heightArrow + parentDivPos.top - height,
-      left: x + parentDivPos.left - width / 2
+      top: y - this.heightArrow - height,
+      left: x - width / 2
     })
   }
 
@@ -585,7 +583,7 @@ class SequenceWidget extends CanvasWidget {
     this.spacingY = 12
     this.yTopSequence =
       this.offsetY + this.heightStructureBar + this.spacingY * 2
-    this.yBottom = this.yTopSequence + +this.spacingY * 2.7 + this.charHeight
+    this.yBottom = parseInt(this.yTopSequence + +this.spacingY * 2.7 + this.charHeight)
     this.yMidSequence =
       this.yTopSequence + this.spacingY * 1.2 + this.charHeight / 2
 
@@ -597,10 +595,8 @@ class SequenceWidget extends CanvasWidget {
 
     this.div.attr('id', `${this.parentDivId}-inner`)
     this.div.css({
-      width: this.parentDiv.width(),
-      height: this.height(),
-      position: 'relative',
-      'background-color': '#CCC'
+      'background-color': '#CCC',
+      'position': 'relative'
     })
 
     this.isWaitForDoubleClick = false
@@ -617,7 +613,7 @@ class SequenceWidget extends CanvasWidget {
 
     this.nPadChar = 0 // number of padding entries to delineate chains
 
-    this.hover = new PopupText(`#${this.parentDivId}`, 15)
+    this.hover = new PopupText(`#${this.parentDivId}-inner`, 15)
 
     this.pressSection = 'none'
   }
@@ -627,12 +623,13 @@ class SequenceWidget extends CanvasWidget {
   }
 
   height() {
-    return this.yBottom + 4
+    return this.yBottom
   }
 
   resize() {
     super.resize()
-    this.div.css('width', this.parentDiv.width())
+    this.div.height(this.height())
+    this.parentDiv.height(this.height())
   }
 
   iCharFromXStruct(x) {
@@ -1619,7 +1616,7 @@ class ColorLegendWidget extends CanvasWidget {
     this.div.addClass('jolecule-button')
     this.div.css({
       padding: '8px',
-      'box-sizing': 'border-box',
+      position: 'absolute',
       height: 'auto',
       width: 'auto'
     })
@@ -1689,8 +1686,8 @@ class ColorLegendWidget extends CanvasWidget {
 
   resize() {
     this.div.css({
-      top: this.y(),
-      left: this.x()
+      bottom: this.offset.y,
+      left: this.offset.x
     })
   }
 
@@ -1700,21 +1697,6 @@ class ColorLegendWidget extends CanvasWidget {
 
   height() {
     return this.buttonsDiv.height()
-  }
-
-  x() {
-    let parentDivPos = this.parentDiv.position()
-    return parentDivPos.left + this.offset.x
-  }
-
-  y() {
-    let parentDivPos = this.parentDiv.position()
-    return (
-      parentDivPos.top +
-      this.parentDiv.height() -
-      this.div.outerHeight() -
-      this.offset.y
-    )
   }
 
   update() {
@@ -1731,7 +1713,8 @@ class ColorLegendWidget extends CanvasWidget {
  */
 class SelectionWidget extends CanvasWidget {
   constructor(soupWidget) {
-    super('#' + soupWidget.webglDivId)
+    // super('#' + soupWidget.webglDivId)
+    super(soupWidget.divTag)
     this.soupWidget = soupWidget
     this.offset = { x: 5, y: 5 }
     this.canvas.hide()
@@ -1755,32 +1738,10 @@ class SelectionWidget extends CanvasWidget {
   }
 
   resize() {
-    let parentDivPos = this.parentDiv.position()
-    console.log('SelectoinWidget.resize parentDiv', this.parentDiv)
     this.div.css({
       bottom: this.offset.y,
       right: this.offset.x
     })
-  }
-
-  x() {
-    let parentDivPos = this.parentDiv.position()
-    return (
-      parentDivPos.left +
-      this.parentDiv.width() -
-      this.div.outerWidth() -
-      this.offset.x
-    )
-  }
-
-  y() {
-    let parentDivPos = this.parentDiv.position()
-    return (
-      parentDivPos.top +
-      this.parentDiv.outerHeight() -
-      this.div.outerHeight() -
-      this.offset.y
-    )
   }
 
   getText() {
@@ -2194,16 +2155,13 @@ class ToggleToolbarWidget {
     this.isToggleOn = !isToggleOn
 
     this.buttonInDisplayOffset = { x: 0, y: 0 }
-    if (!this.isToolbarOnTop) {
-      this.buttonInDisplayOffset.y = 10
-    }
 
     this.toolbarDiv = $(toolbarSelector)
 
     this.buttonInDisplayDiv = $('<div id="toggle-toolbar-button">')
       .html('&#9776;')
       .addClass('jolecule-button')
-      .css({ margin: '5px' })
+      .css({ margin: '5px', position: 'absolute' })
       .on('click touch', e => {
         this.isChange = true
         this.update()
@@ -2228,19 +2186,15 @@ class ToggleToolbarWidget {
 
   resize() {
     if (this.isToolbarOnTop) {
-      util.stickJqueryDivInTopLeft(
-        this.proteinDisplayDiv,
-        this.buttonInDisplayDiv,
-        this.buttonInDisplayOffset.x,
-        this.buttonInDisplayOffset.y
-      )
+      this.buttonInDisplayDiv.css({
+        top: this.buttonInDisplayOffset.y,
+        left: this.buttonInDisplayOffset.x
+      })
     } else {
-      util.stickJqueryDivInBottomLeft(
-        this.proteinDisplayDiv,
-        this.buttonInDisplayDiv,
-        this.buttonInDisplayOffset.x,
-        this.buttonInDisplayOffset.y
-      )
+      this.buttonInDisplayDiv.css({
+        bottom: this.buttonInDisplayOffset.y,
+        left: this.buttonInDisplayOffset.x
+      })
     }
   }
 
@@ -2271,7 +2225,6 @@ class ToggleToolbarWidget {
         }
       }
       this.resize()
-      this.embedJolecule.resize()
       this.embedJolecule.resize()
     }
   }

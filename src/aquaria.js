@@ -55,8 +55,6 @@ for (let code of conservedPairs.split(/\s+/)) {
   conservationSet[reverseCode] = 1
 }
 
-console.log('conservationSet', conservationSet)
-
 function getConservation(a, b) {
   if (a === b) {
     return 'identical'

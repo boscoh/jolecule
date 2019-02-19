@@ -140,12 +140,24 @@ class EmbedJolecule {
   }
 
   createDivs() {
-    this.headerDiv = $('<div>').addClass('jolecule-embed-header')
+    this.div.css({
+      display: 'flex',
+      'flex-direction': 'column'
+    })
+
+    this.headerDiv = $('<div>')
+      .addClass('jolecule-embed-header')
+      .css({
+        display: 'flex',
+        'flex-wrap': 'wrap',
+        'flex-direction': 'row'
+      })
     this.div.append(this.headerDiv)
 
     this.bodyDiv = $('<div>')
       .attr('id', `${this.divId}-jolecule-soup-display`)
       .addClass('jolecule-embed-body')
+      .css({ flex: '1 1', position: 'relative' })
     this.div.append(this.bodyDiv)
 
     this.soupWidget = new SoupWidget(
@@ -220,7 +232,7 @@ class EmbedJolecule {
     if (this.params.isToolbarOn) {
       this.widget.toolbar = new widgets.ToggleToolbarWidget(
         this,
-        `#${this.divId}-jolecule-soup-display`,
+        this.soupWidget.divTag, // `#${this.divId}-jolecule-soup-display`,
         `.jolecule-embed-toolbar`,
         false,
         this.params.isToolbarOnTop
@@ -391,27 +403,6 @@ class EmbedJolecule {
   }
 
   resize() {
-    this.bodyDiv.width(this.div.width())
-    let height = this.div.outerHeight()
-    if (this.headerDiv.is(':visible')) {
-      height -= this.headerDiv.outerHeight()
-    }
-    if (this.footerDiv.is(':visible')) {
-      height -= this.footerDiv.outerHeight()
-    }
-    height = parseInt(height)
-    console.log(
-      'EmbedJoleculeWidget.resize',
-      this.div.outerHeight(),
-      this.headerDiv.outerHeight(),
-      this.footerDiv.outerHeight(),
-      height,
-      this.headerDiv,
-      this.bodyDiv,
-      this.div
-    )
-    this.bodyDiv.css('height', height)
-    this.soupWidget.webglDiv.css('height', height)
     this.soupWidget.resize()
   }
 }

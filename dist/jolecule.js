@@ -64525,9 +64525,13 @@ function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
   var top = parent.position().top;
   var left = parent.position().left;
   parent.append(target);
+  // target.css({
+  //   top: top + yOffset,
+  //   left: left + xOffset
+  // })
   target.css({
-    top: top + yOffset,
-    left: left + xOffset
+    top: yOffset,
+    left: xOffset
   });
 }
 
@@ -79714,10 +79718,19 @@ var EmbedJolecule = function () {
     value: function createDivs() {
       var _this3 = this;
 
-      this.headerDiv = (0, _jquery2.default)('<div>').addClass('jolecule-embed-header');
+      this.div.css({
+        display: 'flex',
+        'flex-direction': 'column'
+      });
+
+      this.headerDiv = (0, _jquery2.default)('<div>').addClass('jolecule-embed-header').css({
+        display: 'flex',
+        'flex-wrap': 'wrap',
+        'flex-direction': 'row'
+      });
       this.div.append(this.headerDiv);
 
-      this.bodyDiv = (0, _jquery2.default)('<div>').attr('id', this.divId + '-jolecule-soup-display').addClass('jolecule-embed-body');
+      this.bodyDiv = (0, _jquery2.default)('<div>').attr('id', this.divId + '-jolecule-soup-display').addClass('jolecule-embed-body').css({ flex: '1 1', position: 'relative' });
       this.div.append(this.bodyDiv);
 
       this.soupWidget = new _soupWidget.SoupWidget(this.soupView, '#' + this.divId + '-jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
@@ -79772,7 +79785,8 @@ var EmbedJolecule = function () {
       }).addClass('jolecule-embed-toolbar');
 
       if (this.params.isToolbarOn) {
-        this.widget.toolbar = new _widgets2.default.ToggleToolbarWidget(this, '#' + this.divId + '-jolecule-soup-display', '.jolecule-embed-toolbar', false, this.params.isToolbarOnTop);
+        this.widget.toolbar = new _widgets2.default.ToggleToolbarWidget(this, this.soupWidget.divTag, // `#${this.divId}-jolecule-soup-display`,
+        '.jolecule-embed-toolbar', false, this.params.isToolbarOnTop);
       }
 
       this.toolbarDiv.append((0, _util.linkButton)('?', 'jolecule-button', function () {
@@ -79869,18 +79883,6 @@ var EmbedJolecule = function () {
   }, {
     key: 'resize',
     value: function resize() {
-      this.bodyDiv.width(this.div.width());
-      var height = this.div.outerHeight();
-      if (this.headerDiv.is(':visible')) {
-        height -= this.headerDiv.outerHeight();
-      }
-      if (this.footerDiv.is(':visible')) {
-        height -= this.footerDiv.outerHeight();
-      }
-      height = parseInt(height);
-      console.log('EmbedJoleculeWidget.resize', this.div.outerHeight(), this.headerDiv.outerHeight(), this.footerDiv.outerHeight(), height, this.headerDiv, this.bodyDiv, this.div);
-      this.bodyDiv.css('height', height);
-      this.soupWidget.webglDiv.css('height', height);
       this.soupWidget.resize();
     }
   }]);
@@ -80046,7 +80048,8 @@ var CanvasWidget = function () {
     this.parentDiv = (0, _jquery2.default)(selector);
     this.parentDivId = this.parentDiv.attr('id');
 
-    this.div = (0, _jquery2.default)('<div>').css('user-select', 'none').css('position', 'absolute');
+    this.div = (0, _jquery2.default)('<div>').css('user-select', 'none');
+    // .css('position', 'absolute')
 
     this.parentDiv.append(this.div);
 
@@ -80306,8 +80309,6 @@ var PopupText = function () {
   _createClass(PopupText, [{
     key: 'move',
     value: function move(x, y) {
-      var parentDivPos = this.parentDiv.position();
-
       this.div.css({ display: 'block' });
       var rect = this.div[0].getBoundingClientRect();
       var width = rect.width;
@@ -80321,13 +80322,13 @@ var PopupText = function () {
       }
 
       this.arrow.css({
-        top: y - this.heightArrow + parentDivPos.top,
-        left: x - 5 + parentDivPos.left
+        top: y - this.heightArrow,
+        left: x - 5
       });
 
       this.div.css({
-        top: y - this.heightArrow + parentDivPos.top - height,
-        left: x + parentDivPos.left - width / 2
+        top: y - this.heightArrow - height,
+        left: x - width / 2
       });
     }
   }, {
@@ -80594,7 +80595,7 @@ var SequenceWidget = function (_CanvasWidget) {
     _this5.heightStructureBar = 7;
     _this5.spacingY = 12;
     _this5.yTopSequence = _this5.offsetY + _this5.heightStructureBar + _this5.spacingY * 2;
-    _this5.yBottom = _this5.yTopSequence + +_this5.spacingY * 2.7 + _this5.charHeight;
+    _this5.yBottom = parseInt(_this5.yTopSequence + +_this5.spacingY * 2.7 + _this5.charHeight);
     _this5.yMidSequence = _this5.yTopSequence + _this5.spacingY * 1.2 + _this5.charHeight / 2;
 
     _this5.unclickableColor = '#AAA';
@@ -80605,10 +80606,8 @@ var SequenceWidget = function (_CanvasWidget) {
 
     _this5.div.attr('id', _this5.parentDivId + '-inner');
     _this5.div.css({
-      width: _this5.parentDiv.width(),
-      height: _this5.height(),
-      position: 'relative',
-      'background-color': '#CCC'
+      'background-color': '#CCC',
+      'position': 'relative'
     });
 
     _this5.isWaitForDoubleClick = false;
@@ -80625,7 +80624,7 @@ var SequenceWidget = function (_CanvasWidget) {
 
     _this5.nPadChar = 0; // number of padding entries to delineate chains
 
-    _this5.hover = new PopupText('#' + _this5.parentDivId, 15);
+    _this5.hover = new PopupText('#' + _this5.parentDivId + '-inner', 15);
 
     _this5.pressSection = 'none';
     return _this5;
@@ -80639,13 +80638,14 @@ var SequenceWidget = function (_CanvasWidget) {
   }, {
     key: 'height',
     value: function height() {
-      return this.yBottom + 4;
+      return this.yBottom;
     }
   }, {
     key: 'resize',
     value: function resize() {
       _get(SequenceWidget.prototype.__proto__ || Object.getPrototypeOf(SequenceWidget.prototype), 'resize', this).call(this);
-      this.div.css('width', this.parentDiv.width());
+      this.div.height(this.height());
+      this.parentDiv.height(this.height());
     }
   }, {
     key: 'iCharFromXStruct',
@@ -81716,7 +81716,7 @@ var ColorLegendWidget = function (_CanvasWidget4) {
     _this9.div.addClass('jolecule-button');
     _this9.div.css({
       padding: '8px',
-      'box-sizing': 'border-box',
+      position: 'absolute',
       height: 'auto',
       width: 'auto'
     });
@@ -81801,8 +81801,8 @@ var ColorLegendWidget = function (_CanvasWidget4) {
     key: 'resize',
     value: function resize() {
       this.div.css({
-        top: this.y(),
-        left: this.x()
+        bottom: this.offset.y,
+        left: this.offset.x
       });
     }
   }, {
@@ -81814,18 +81814,6 @@ var ColorLegendWidget = function (_CanvasWidget4) {
     key: 'height',
     value: function height() {
       return this.buttonsDiv.height();
-    }
-  }, {
-    key: 'x',
-    value: function x() {
-      var parentDivPos = this.parentDiv.position();
-      return parentDivPos.left + this.offset.x;
-    }
-  }, {
-    key: 'y',
-    value: function y() {
-      var parentDivPos = this.parentDiv.position();
-      return parentDivPos.top + this.parentDiv.height() - this.div.outerHeight() - this.offset.y;
     }
   }, {
     key: 'update',
@@ -81852,7 +81840,9 @@ var SelectionWidget = function (_CanvasWidget5) {
   function SelectionWidget(soupWidget) {
     _classCallCheck(this, SelectionWidget);
 
-    var _this10 = _possibleConstructorReturn(this, (SelectionWidget.__proto__ || Object.getPrototypeOf(SelectionWidget)).call(this, '#' + soupWidget.webglDivId));
+    var _this10 = _possibleConstructorReturn(this, (SelectionWidget.__proto__ || Object.getPrototypeOf(SelectionWidget)).call(this, soupWidget.divTag));
+    // super('#' + soupWidget.webglDivId)
+
 
     _this10.soupWidget = soupWidget;
     _this10.offset = { x: 5, y: 5 };
@@ -81880,24 +81870,10 @@ var SelectionWidget = function (_CanvasWidget5) {
   _createClass(SelectionWidget, [{
     key: 'resize',
     value: function resize() {
-      var parentDivPos = this.parentDiv.position();
-      console.log('SelectoinWidget.resize parentDiv', this.parentDiv);
       this.div.css({
         bottom: this.offset.y,
         right: this.offset.x
       });
-    }
-  }, {
-    key: 'x',
-    value: function x() {
-      var parentDivPos = this.parentDiv.position();
-      return parentDivPos.left + this.parentDiv.width() - this.div.outerWidth() - this.offset.x;
-    }
-  }, {
-    key: 'y',
-    value: function y() {
-      var parentDivPos = this.parentDiv.position();
-      return parentDivPos.top + this.parentDiv.outerHeight() - this.div.outerHeight() - this.offset.y;
     }
   }, {
     key: 'getText',
@@ -82415,13 +82391,10 @@ var ToggleToolbarWidget = function () {
     this.isToggleOn = !isToggleOn;
 
     this.buttonInDisplayOffset = { x: 0, y: 0 };
-    if (!this.isToolbarOnTop) {
-      this.buttonInDisplayOffset.y = 10;
-    }
 
     this.toolbarDiv = (0, _jquery2.default)(toolbarSelector);
 
-    this.buttonInDisplayDiv = (0, _jquery2.default)('<div id="toggle-toolbar-button">').html('&#9776;').addClass('jolecule-button').css({ margin: '5px' }).on('click touch', function (e) {
+    this.buttonInDisplayDiv = (0, _jquery2.default)('<div id="toggle-toolbar-button">').html('&#9776;').addClass('jolecule-button').css({ margin: '5px', position: 'absolute' }).on('click touch', function (e) {
       _this17.isChange = true;
       _this17.update();
       e.preventDefault();
@@ -82443,9 +82416,15 @@ var ToggleToolbarWidget = function () {
     key: 'resize',
     value: function resize() {
       if (this.isToolbarOnTop) {
-        util.stickJqueryDivInTopLeft(this.proteinDisplayDiv, this.buttonInDisplayDiv, this.buttonInDisplayOffset.x, this.buttonInDisplayOffset.y);
+        this.buttonInDisplayDiv.css({
+          top: this.buttonInDisplayOffset.y,
+          left: this.buttonInDisplayOffset.x
+        });
       } else {
-        util.stickJqueryDivInBottomLeft(this.proteinDisplayDiv, this.buttonInDisplayDiv, this.buttonInDisplayOffset.x, this.buttonInDisplayOffset.y);
+        this.buttonInDisplayDiv.css({
+          bottom: this.buttonInDisplayOffset.y,
+          left: this.buttonInDisplayOffset.x
+        });
       }
     }
   }, {
@@ -82482,7 +82461,6 @@ var ToggleToolbarWidget = function () {
                     }
                   }
                   this.resize();
-                  this.embedJolecule.resize();
                   this.embedJolecule.resize();
                 }
 
@@ -93629,8 +93607,8 @@ var SoupWidget = function (_WebglWidget) {
   }, {
     key: 'resize',
     value: function resize() {
-      this.observers.resized.dispatch();
       _get(SoupWidget.prototype.__proto__ || Object.getPrototypeOf(SoupWidget.prototype), 'resize', this).call(this);
+      this.observers.resized.dispatch();
       this.soupView.isUpdateObservers = true;
       this.controller.setChangeFlag();
     }
@@ -93703,9 +93681,6 @@ var SoupWidget = function (_WebglWidget) {
       var now = new Date().getTime();
       var elapsedTime = this.timePressed ? now - this.timePressed : 0;
 
-      console.log('SoupWidget.mousedown isGesture', this.isGesture);
-      console.log('SoupWidget.mousedown isClickInitiated', this.isClickInitiated);
-      console.log('SoupWidget.mousedown iAtomHover', this.iAtomHover);
       if (!this.isClickInitiated) {
         this.iAtomPreClick = this.iAtomHover;
         this.isClickInitiated = true;
@@ -102006,7 +101981,8 @@ var WebglWidget = function () {
 
     // div to display processing messages
     this.messageOffset = { x: 5, y: 5 };
-    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').css('z-index', '1').addClass('jolecule-overlay-text');
+    this.messageDiv = (0, _jquery2.default)('<div>').attr('id', 'loading-message').css('position', 'absolute').addClass('jolecule-overlay-text');
+    this.div.append(this.messageDiv);
     this.setMesssage('Initialized jolecule.');
 
     // input control parameters
@@ -102173,14 +102149,18 @@ var WebglWidget = function () {
   }, {
     key: 'resize',
     value: function resize() {
-      console.log('Webgl.resize');
-      // let position = this.div.position()
+      var height = this.div.outerHeight();
+      this.webglDiv.css('height', height);
 
-      // this.webglDiv.css('left', this.x() + position.left)
-      // this.webglDiv.css('top', this.y() + position.top)
+      var width = this.div.outerWidth();
+      this.webglDiv.css('width', width);
 
-      util.stickJqueryDivInTopLeft(this.div, this.messageDiv, this.messageOffset.x, this.messageOffset.y);
-      this.messageDiv.css('max-width', this.div.width() - 200);
+      this.messageDiv.css({
+        top: this.messageOffset.y,
+        left: this.messageOffset.x
+      });
+
+      this.messageDiv.css('max-width', Math.max(0.9 * this.div.width() - 40, this.div.width() - 200));
 
       this.camera.aspect = this.width() / this.height();
       this.camera.updateProjectionMatrix();
@@ -103364,8 +103344,6 @@ try {
     }
   }
 }
-
-console.log('conservationSet', conservationSet);
 
 function getConservation(a, b) {
   if (a === b) {

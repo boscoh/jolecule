@@ -443,8 +443,8 @@ class SoupWidget extends WebglWidget {
    */
 
   resize() {
-    this.observers.resized.dispatch()
     super.resize()
+    this.observers.resized.dispatch()
     this.soupView.isUpdateObservers = true
     this.controller.setChangeFlag()
   }
@@ -512,9 +512,6 @@ class SoupWidget extends WebglWidget {
     let now = new Date().getTime()
     let elapsedTime = this.timePressed ? now - this.timePressed : 0
 
-    console.log('SoupWidget.mousedown isGesture', this.isGesture)
-    console.log('SoupWidget.mousedown isClickInitiated', this.isClickInitiated)
-    console.log('SoupWidget.mousedown iAtomHover', this.iAtomHover)
     if (!this.isClickInitiated) {
       this.iAtomPreClick = this.iAtomHover
       this.isClickInitiated = true

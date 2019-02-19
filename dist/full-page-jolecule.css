@@ -58,17 +58,14 @@ body {
   min-height: 0;
   min-width: 0;
   flex: 1;
-  -webkit-flex: 1;
+  display: flex;
+  flex-direction: column;
   margin: 0;
   padding: 0;
   font-size: 14px;
   line-height: 1.5em;
   letter-spacing: 0.1em;
   color: #666;
-  display: flex;
-  display: -webkit-flex;
-  flex-direction: column;
-  -webkit-flex-direction: column;
 }
 #jolecule-views-container {
   background-color: #CCC;

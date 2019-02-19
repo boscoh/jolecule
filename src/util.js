@@ -30,9 +30,13 @@ function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
   let top = parent.position().top
   let left = parent.position().left
   parent.append(target)
+  // target.css({
+  //   top: top + yOffset,
+  //   left: left + xOffset
+  // })
   target.css({
-    top: top + yOffset,
-    left: left + xOffset
+    top: yOffset,
+    left: xOffset
   })
 }
 

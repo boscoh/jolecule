@@ -99,8 +99,9 @@ class WebglWidget {
     this.messageOffset = { x: 5, y: 5 }
     this.messageDiv = $('<div>')
       .attr('id', 'loading-message')
-      .css('z-index', '1')
+      .css('position', 'absolute')
       .addClass('jolecule-overlay-text')
+    this.div.append(this.messageDiv)
     this.setMesssage('Initialized jolecule.')
 
     // input control parameters
@@ -246,19 +247,21 @@ class WebglWidget {
   }
 
   resize() {
-    console.log('Webgl.resize')
-    // let position = this.div.position()
+    let height = this.div.outerHeight()
+    this.webglDiv.css('height', height)
 
-    // this.webglDiv.css('left', this.x() + position.left)
-    // this.webglDiv.css('top', this.y() + position.top)
+    let width = this.div.outerWidth()
+    this.webglDiv.css('width', width)
 
-    util.stickJqueryDivInTopLeft(
-      this.div,
-      this.messageDiv,
-      this.messageOffset.x,
-      this.messageOffset.y
+    this.messageDiv.css({
+      top: this.messageOffset.y,
+      left: this.messageOffset.x
+    })
+
+    this.messageDiv.css(
+      'max-width',
+      Math.max(0.9 * this.div.width() - 40, this.div.width() - 200)
     )
-    this.messageDiv.css('max-width', this.div.width() - 200)
 
     this.camera.aspect = this.width() / this.height()
     this.camera.updateProjectionMatrix()
