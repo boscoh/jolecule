@@ -80014,7 +80014,7 @@ var LineElement = function () {
       var left = Math.min(x1, x2);
       var top = Math.min(y1, y2);
 
-      this.div.css('display', 'block').css('width', width).css('height', height).css('top', top + parentDivPos.top).css('left', left + parentDivPos.left);
+      this.div.css('display', 'block').css('width', width).css('height', height).css('top', top).css('left', left);
 
       this.canvas.width = width;
       this.canvas.height = height;
@@ -80546,8 +80546,8 @@ var DistanceMeasuresWidget = function () {
         var width = distanceMeasure.div.innerHeight();
         var height = distanceMeasure.div.innerWidth();
         distanceMeasure.div.css({
-          top: y - width / 2 + parentDivPos.top,
-          left: x - height / 2 + parentDivPos.left,
+          top: y - width / 2,
+          left: x - height / 2,
           display: 'block',
           cursor: 'pointer',
           opacity: opacity

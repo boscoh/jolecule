@@ -47,7 +47,8 @@
               './P04637.features.json',
               './lodash.min.js'
             ], function(dataServer0, alignData, featuresData, _) {
-              let alignment = new jolecule.AquariaAlignment(alignData)
+              let alignment = new jolecule.AquariaAlignment()
+              alignment.reload(alignData, j)
               for (let dataServer of [dataServer0]) {
                 j.asyncAddDataServer(dataServer).then(function() {
                   alignment.colorFromFeatures(

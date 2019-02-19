@@ -72,8 +72,8 @@ class LineElement {
       .css('display', 'block')
       .css('width', width)
       .css('height', height)
-      .css('top', top + parentDivPos.top)
-      .css('left', left + parentDivPos.left)
+      .css('top', top)
+      .css('left', left)
 
     this.canvas.width = width
     this.canvas.height = height
@@ -540,8 +540,8 @@ class DistanceMeasuresWidget {
       let width = distanceMeasure.div.innerHeight()
       let height = distanceMeasure.div.innerWidth()
       distanceMeasure.div.css({
-        top: y - width / 2 + parentDivPos.top,
-        left: x - height / 2 + parentDivPos.left,
+        top: y - width / 2,
+        left: x - height / 2,
         display: 'block',
         cursor: 'pointer',
         opacity: opacity
