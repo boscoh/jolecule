@@ -64481,311 +64481,6 @@ module.exports = {
 /* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.copyTextToClipboard = exports.delay = exports.textEntryDialog = exports.randomId = exports.inArray = exports.stickJqueryDivInBottomLeft = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.linkButton = exports.exists = undefined;
-
-var _jquery = __webpack_require__(34);
-
-var _jquery2 = _interopRequireDefault(_jquery);
-
-var _lodash = __webpack_require__(15);
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- *
- * Utility functions mainly to do with HTML elements
- * that can be deferred to functions
- *
- */
-
-function exists(x) {
-  return !_lodash2.default.isNil(x);
-}
-
-function linkButton(text, classTag, callback) {
-  return (0, _jquery2.default)('<span>').html(text).addClass(classTag).on('click touch', function (e) {
-    e.preventDefault();
-    callback();
-  });
-}
-
-function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
-  target.css({
-    position: 'absolute',
-    'z-index': '2'
-  });
-  var top = parent.position().top;
-  var left = parent.position().left;
-  parent.append(target);
-  // target.css({
-  //   top: top + yOffset,
-  //   left: left + xOffset
-  // })
-  target.css({
-    top: yOffset,
-    left: xOffset
-  });
-}
-
-function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
-  target.css({
-    position: 'absolute',
-    'z-index': '2'
-  });
-  var top = parent.position().top;
-  var left = parent.position().left;
-  top = 0;
-  left = 0;
-  var widthParent = parent.outerWidth();
-  var heightParent = parent.outerHeight();
-  parent.prepend(target);
-  var widthTarget = target.outerWidth();
-  var heightTarget = target.outerHeight();
-  target.css({
-    top: top + heightParent / 2 - heightTarget / 2 - yOffset,
-    left: left + widthParent / 2 - widthTarget / 2 - xOffset
-  });
-}
-
-function stickJqueryDivInBottomLeft(parent, target, xOffset, yOffset) {
-  target.css({
-    position: 'absolute',
-    'z-index': '9000'
-  });
-  var top = parent.position().top;
-  var left = parent.position().left;
-  var heightParent = parent.outerHeight();
-  parent.prepend(target);
-  var heightTarget = target.outerHeight();
-  target.css({
-    top: top + heightParent - heightTarget - yOffset,
-    left: left + xOffset
-  });
-}
-
-function inArray(v, aList) {
-  return aList.indexOf(v) >= 0;
-}
-
-function randomString(nChar) {
-  var chars = '0123456789abcdefghiklmnopqrstuvwxyz';
-  var s = '';
-  for (var i = 0; i < nChar; i++) {
-    var j = Math.floor(Math.random() * chars.length);
-    s += chars.substring(j, j + 1);
-  }
-  return s;
-}
-
-function randomId() {
-  return 'view:' + randomString(6);
-}
-
-function textEntryDialog(parentDiv, label, callback) {
-  if (!label) {
-    label = '';
-  }
-
-  window.keyboardLock = true;
-
-  function cleanup() {
-    dialog.remove();
-    window.keyboardLock = false;
-  }
-
-  function accept() {
-    callback(textarea.val());
-    cleanup();
-    window.keyboardLock = false;
-  }
-
-  function discard() {
-    cleanup();
-    window.keyboardLock = false;
-  }
-
-  var saveButton = linkButton('okay', 'jolecule-small-button', accept);
-
-  var discardButton = linkButton('discard', 'jolecule-small-button', discard);
-
-  var textarea = (0, _jquery2.default)('<textarea>').css('width', '100%').css('margin-bottom', '0.5em').addClass('jolecule-view-text').keydown(function (e) {
-    if (e.keyCode === 27) {
-      discard();
-      return true;
-    }
-  });
-
-  var editbox = (0, _jquery2.default)('<div>').css('width', '100%').append(label).append(textarea).append(saveButton).append(' ').append(discardButton);
-
-  var dialog = (0, _jquery2.default)('<div>').addClass('jolecule-dialog').css('display', 'block').css('z-index', '2000').css('width', Math.min(400, parentDiv.width() - 100)).append(editbox);
-
-  stickJqueryDivInCenter(parentDiv, dialog, 0, 20);
-
-  setTimeout(function () {
-    editbox.find('textarea').focus();
-  }, 100);
-}
-
-function delay(timeMs) {
-  return new Promise(function (resolve) {
-    setTimeout(resolve, timeMs);
-  });
-}
-
-/**
- * Copies to the clipboard https://stackoverflow.com/a/30810322
- */
-function copyTextToClipboard(text) {
-  var textArea = document.createElement('textarea');
-
-  //
-  // *** This styling is an extra step which is likely not required. ***
-  //
-  // Why is it here? To ensure:
-  // 1. the element is able to have focus and selection.
-  // 2. if element was to flash render it has minimal visual impact.
-  // 3. less flakyness with selection and copying which **might** occur if
-  //    the textarea element is not visible.
-  //
-  // The likelihood is the element won't even render, not even a flash,
-  // so some of these are just precautions. However in IE the element
-  // is visible whilst the popup box asking the user for permission for
-  // the web page to copy to the clipboard.
-  //
-
-  // Place in top-left corner of screen regardless of scroll position.
-  textArea.style.position = 'fixed';
-  textArea.style.top = 0;
-  textArea.style.left = 0;
-
-  // Ensure it has a small width and height. Setting to 1px / 1em
-  // doesn't work as this gives a negative w/h on some browsers.
-  textArea.style.width = '2em';
-  textArea.style.height = '2em';
-
-  // We don't need padding, reducing the size if it does flash render.
-  textArea.style.padding = 0;
-
-  // Clean up any borders.
-  textArea.style.border = 'none';
-  textArea.style.outline = 'none';
-  textArea.style.boxShadow = 'none';
-
-  // Avoid flash of white box if rendered for any reason.
-  textArea.style.background = 'transparent';
-
-  textArea.value = text;
-
-  document.body.appendChild(textArea);
-
-  textArea.select();
-
-  try {
-    var successful = document.execCommand('copy');
-    var msg = successful ? 'successful' : 'unsuccessful';
-    console.log('> copyTextToClipboard', msg);
-  } catch (err) {
-    console.log('> copyTextToClipboard failed');
-  }
-
-  document.body.removeChild(textArea);
-}
-
-exports.exists = exists;
-exports.linkButton = linkButton;
-exports.stickJqueryDivInCenter = stickJqueryDivInCenter;
-exports.stickJqueryDivInTopLeft = stickJqueryDivInTopLeft;
-exports.stickJqueryDivInBottomLeft = stickJqueryDivInBottomLeft;
-exports.inArray = inArray;
-exports.randomId = randomId;
-exports.textEntryDialog = textEntryDialog;
-exports.delay = delay;
-exports.copyTextToClipboard = copyTextToClipboard;
-
-/***/ }),
-/* 32 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var META = __webpack_require__(36)('meta');
-var isObject = __webpack_require__(4);
-var has = __webpack_require__(11);
-var setDesc = __webpack_require__(7).f;
-var id = 0;
-var isExtensible = Object.isExtensible || function () {
-  return true;
-};
-var FREEZE = !__webpack_require__(3)(function () {
-  return isExtensible(Object.preventExtensions({}));
-});
-var setMeta = function (it) {
-  setDesc(it, META, { value: {
-    i: 'O' + ++id, // object ID
-    w: {}          // weak collections IDs
-  } });
-};
-var fastKey = function (it, create) {
-  // return primitive with prefix
-  if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
-  if (!has(it, META)) {
-    // can't set metadata to uncaught frozen object
-    if (!isExtensible(it)) return 'F';
-    // not necessary to add metadata
-    if (!create) return 'E';
-    // add missing metadata
-    setMeta(it);
-  // return object ID
-  } return it[META].i;
-};
-var getWeak = function (it, create) {
-  if (!has(it, META)) {
-    // can't set metadata to uncaught frozen object
-    if (!isExtensible(it)) return true;
-    // not necessary to add metadata
-    if (!create) return false;
-    // add missing metadata
-    setMeta(it);
-  // return hash weak collections IDs
-  } return it[META].w;
-};
-// add metadata on freeze-family methods calling
-var onFreeze = function (it) {
-  if (FREEZE && meta.NEED && isExtensible(it) && !has(it, META)) setMeta(it);
-  return it;
-};
-var meta = module.exports = {
-  KEY: META,
-  NEED: false,
-  fastKey: fastKey,
-  getWeak: getWeak,
-  onFreeze: onFreeze
-};
-
-
-/***/ }),
-/* 33 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 22.1.3.31 Array.prototype[@@unscopables]
-var UNSCOPABLES = __webpack_require__(5)('unscopables');
-var ArrayProto = Array.prototype;
-if (ArrayProto[UNSCOPABLES] == undefined) __webpack_require__(12)(ArrayProto, UNSCOPABLES, {});
-module.exports = function (key) {
-  ArrayProto[UNSCOPABLES][key] = true;
-};
-
-
-/***/ }),
-/* 34 */
-/***/ (function(module, exports, __webpack_require__) {
-
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -75154,6 +74849,311 @@ return jQuery;
 
 
 /***/ }),
+/* 32 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.copyTextToClipboard = exports.delay = exports.textEntryDialog = exports.randomId = exports.inArray = exports.stickJqueryDivInBottomLeft = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.linkButton = exports.exists = undefined;
+
+var _jquery = __webpack_require__(31);
+
+var _jquery2 = _interopRequireDefault(_jquery);
+
+var _lodash = __webpack_require__(15);
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ *
+ * Utility functions mainly to do with HTML elements
+ * that can be deferred to functions
+ *
+ */
+
+function exists(x) {
+  return !_lodash2.default.isNil(x);
+}
+
+function linkButton(text, classTag, callback) {
+  return (0, _jquery2.default)('<span>').html(text).addClass(classTag).on('click touch', function (e) {
+    e.preventDefault();
+    callback();
+  });
+}
+
+function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
+  target.css({
+    position: 'absolute',
+    'z-index': '2'
+  });
+  var top = parent.position().top;
+  var left = parent.position().left;
+  parent.append(target);
+  // target.css({
+  //   top: top + yOffset,
+  //   left: left + xOffset
+  // })
+  target.css({
+    top: yOffset,
+    left: xOffset
+  });
+}
+
+function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
+  target.css({
+    position: 'absolute',
+    'z-index': '2'
+  });
+  var top = parent.position().top;
+  var left = parent.position().left;
+  top = 0;
+  left = 0;
+  var widthParent = parent.outerWidth();
+  var heightParent = parent.outerHeight();
+  parent.prepend(target);
+  var widthTarget = target.outerWidth();
+  var heightTarget = target.outerHeight();
+  target.css({
+    top: top + heightParent / 2 - heightTarget / 2 - yOffset,
+    left: left + widthParent / 2 - widthTarget / 2 - xOffset
+  });
+}
+
+function stickJqueryDivInBottomLeft(parent, target, xOffset, yOffset) {
+  target.css({
+    position: 'absolute',
+    'z-index': '9000'
+  });
+  var top = parent.position().top;
+  var left = parent.position().left;
+  var heightParent = parent.outerHeight();
+  parent.prepend(target);
+  var heightTarget = target.outerHeight();
+  target.css({
+    top: top + heightParent - heightTarget - yOffset,
+    left: left + xOffset
+  });
+}
+
+function inArray(v, aList) {
+  return aList.indexOf(v) >= 0;
+}
+
+function randomString(nChar) {
+  var chars = '0123456789abcdefghiklmnopqrstuvwxyz';
+  var s = '';
+  for (var i = 0; i < nChar; i++) {
+    var j = Math.floor(Math.random() * chars.length);
+    s += chars.substring(j, j + 1);
+  }
+  return s;
+}
+
+function randomId() {
+  return 'view:' + randomString(6);
+}
+
+function textEntryDialog(parentDiv, label, callback) {
+  if (!label) {
+    label = '';
+  }
+
+  window.keyboardLock = true;
+
+  function cleanup() {
+    dialog.remove();
+    window.keyboardLock = false;
+  }
+
+  function accept() {
+    callback(textarea.val());
+    cleanup();
+    window.keyboardLock = false;
+  }
+
+  function discard() {
+    cleanup();
+    window.keyboardLock = false;
+  }
+
+  var saveButton = linkButton('okay', 'jolecule-small-button', accept);
+
+  var discardButton = linkButton('discard', 'jolecule-small-button', discard);
+
+  var textarea = (0, _jquery2.default)('<textarea>').css('width', '100%').css('margin-bottom', '0.5em').addClass('jolecule-view-text').keydown(function (e) {
+    if (e.keyCode === 27) {
+      discard();
+      return true;
+    }
+  });
+
+  var editbox = (0, _jquery2.default)('<div>').css('width', '100%').append(label).append(textarea).append(saveButton).append(' ').append(discardButton);
+
+  var dialog = (0, _jquery2.default)('<div>').addClass('jolecule-dialog').css('display', 'block').css('z-index', '2000').css('width', Math.min(400, parentDiv.width() - 100)).append(editbox);
+
+  stickJqueryDivInCenter(parentDiv, dialog, 0, 20);
+
+  setTimeout(function () {
+    editbox.find('textarea').focus();
+  }, 100);
+}
+
+function delay(timeMs) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, timeMs);
+  });
+}
+
+/**
+ * Copies to the clipboard https://stackoverflow.com/a/30810322
+ */
+function copyTextToClipboard(text) {
+  var textArea = document.createElement('textarea');
+
+  //
+  // *** This styling is an extra step which is likely not required. ***
+  //
+  // Why is it here? To ensure:
+  // 1. the element is able to have focus and selection.
+  // 2. if element was to flash render it has minimal visual impact.
+  // 3. less flakyness with selection and copying which **might** occur if
+  //    the textarea element is not visible.
+  //
+  // The likelihood is the element won't even render, not even a flash,
+  // so some of these are just precautions. However in IE the element
+  // is visible whilst the popup box asking the user for permission for
+  // the web page to copy to the clipboard.
+  //
+
+  // Place in top-left corner of screen regardless of scroll position.
+  textArea.style.position = 'fixed';
+  textArea.style.top = 0;
+  textArea.style.left = 0;
+
+  // Ensure it has a small width and height. Setting to 1px / 1em
+  // doesn't work as this gives a negative w/h on some browsers.
+  textArea.style.width = '2em';
+  textArea.style.height = '2em';
+
+  // We don't need padding, reducing the size if it does flash render.
+  textArea.style.padding = 0;
+
+  // Clean up any borders.
+  textArea.style.border = 'none';
+  textArea.style.outline = 'none';
+  textArea.style.boxShadow = 'none';
+
+  // Avoid flash of white box if rendered for any reason.
+  textArea.style.background = 'transparent';
+
+  textArea.value = text;
+
+  document.body.appendChild(textArea);
+
+  textArea.select();
+
+  try {
+    var successful = document.execCommand('copy');
+    var msg = successful ? 'successful' : 'unsuccessful';
+    console.log('> copyTextToClipboard', msg);
+  } catch (err) {
+    console.log('> copyTextToClipboard failed');
+  }
+
+  document.body.removeChild(textArea);
+}
+
+exports.exists = exists;
+exports.linkButton = linkButton;
+exports.stickJqueryDivInCenter = stickJqueryDivInCenter;
+exports.stickJqueryDivInTopLeft = stickJqueryDivInTopLeft;
+exports.stickJqueryDivInBottomLeft = stickJqueryDivInBottomLeft;
+exports.inArray = inArray;
+exports.randomId = randomId;
+exports.textEntryDialog = textEntryDialog;
+exports.delay = delay;
+exports.copyTextToClipboard = copyTextToClipboard;
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var META = __webpack_require__(36)('meta');
+var isObject = __webpack_require__(4);
+var has = __webpack_require__(11);
+var setDesc = __webpack_require__(7).f;
+var id = 0;
+var isExtensible = Object.isExtensible || function () {
+  return true;
+};
+var FREEZE = !__webpack_require__(3)(function () {
+  return isExtensible(Object.preventExtensions({}));
+});
+var setMeta = function (it) {
+  setDesc(it, META, { value: {
+    i: 'O' + ++id, // object ID
+    w: {}          // weak collections IDs
+  } });
+};
+var fastKey = function (it, create) {
+  // return primitive with prefix
+  if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
+  if (!has(it, META)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return 'F';
+    // not necessary to add metadata
+    if (!create) return 'E';
+    // add missing metadata
+    setMeta(it);
+  // return object ID
+  } return it[META].i;
+};
+var getWeak = function (it, create) {
+  if (!has(it, META)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return true;
+    // not necessary to add metadata
+    if (!create) return false;
+    // add missing metadata
+    setMeta(it);
+  // return hash weak collections IDs
+  } return it[META].w;
+};
+// add metadata on freeze-family methods calling
+var onFreeze = function (it) {
+  if (FREEZE && meta.NEED && isExtensible(it) && !has(it, META)) setMeta(it);
+  return it;
+};
+var meta = module.exports = {
+  KEY: META,
+  NEED: false,
+  fastKey: fastKey,
+  getWeak: getWeak,
+  onFreeze: onFreeze
+};
+
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 22.1.3.31 Array.prototype[@@unscopables]
+var UNSCOPABLES = __webpack_require__(5)('unscopables');
+var ArrayProto = Array.prototype;
+if (ArrayProto[UNSCOPABLES] == undefined) __webpack_require__(12)(ArrayProto, UNSCOPABLES, {});
+module.exports = function (key) {
+  ArrayProto[UNSCOPABLES][key] = true;
+};
+
+
+/***/ }),
 /* 35 */
 /***/ (function(module, exports) {
 
@@ -75827,7 +75827,7 @@ var global = __webpack_require__(2);
 var $export = __webpack_require__(0);
 var redefine = __webpack_require__(13);
 var redefineAll = __webpack_require__(45);
-var meta = __webpack_require__(32);
+var meta = __webpack_require__(33);
 var forOf = __webpack_require__(44);
 var anInstance = __webpack_require__(43);
 var isObject = __webpack_require__(4);
@@ -78014,7 +78014,7 @@ module.exports = function fill(value /* , start = 0, end = @length */) {
 
 "use strict";
 
-var addToUnscopables = __webpack_require__(33);
+var addToUnscopables = __webpack_require__(34);
 var step = __webpack_require__(115);
 var Iterators = __webpack_require__(48);
 var toIObject = __webpack_require__(16);
@@ -78978,7 +78978,7 @@ var $iterDefine = __webpack_require__(83);
 var step = __webpack_require__(115);
 var setSpecies = __webpack_require__(42);
 var DESCRIPTORS = __webpack_require__(6);
-var fastKey = __webpack_require__(32).fastKey;
+var fastKey = __webpack_require__(33).fastKey;
 var validate = __webpack_require__(49);
 var SIZE = DESCRIPTORS ? '_s' : 'size';
 
@@ -79142,7 +79142,7 @@ module.exports = __webpack_require__(63)(SET, function (get) {
 
 var each = __webpack_require__(27)(0);
 var redefine = __webpack_require__(13);
-var meta = __webpack_require__(32);
+var meta = __webpack_require__(33);
 var assign = __webpack_require__(103);
 var weak = __webpack_require__(123);
 var isObject = __webpack_require__(4);
@@ -79207,7 +79207,7 @@ if (fails(function () { return new $WeakMap().set((Object.freeze || Object)(tmp)
 "use strict";
 
 var redefineAll = __webpack_require__(45);
-var getWeak = __webpack_require__(32).getWeak;
+var getWeak = __webpack_require__(33).getWeak;
 var anObject = __webpack_require__(1);
 var isObject = __webpack_require__(4);
 var anInstance = __webpack_require__(43);
@@ -79480,7 +79480,7 @@ exports.defaultArgs = exports.EmbedJolecule = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _jquery = __webpack_require__(34);
+var _jquery = __webpack_require__(31);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -79494,7 +79494,7 @@ var _soup = __webpack_require__(342);
 
 var _soupWidget = __webpack_require__(345);
 
-var _util = __webpack_require__(31);
+var _util = __webpack_require__(32);
 
 var _widgets = __webpack_require__(133);
 
@@ -79937,7 +79937,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 // eslint-disable-line no-alert
 // eslint-disable-line no-alert
 
-var _jquery = __webpack_require__(34);
+var _jquery = __webpack_require__(31);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -79957,7 +79957,7 @@ var _data = __webpack_require__(69);
 
 var data = _interopRequireWildcard(_data);
 
-var _util = __webpack_require__(31);
+var _util = __webpack_require__(32);
 
 var util = _interopRequireWildcard(_util);
 
@@ -83071,7 +83071,7 @@ var has = __webpack_require__(11);
 var DESCRIPTORS = __webpack_require__(6);
 var $export = __webpack_require__(0);
 var redefine = __webpack_require__(13);
-var META = __webpack_require__(32).KEY;
+var META = __webpack_require__(33).KEY;
 var $fails = __webpack_require__(3);
 var shared = __webpack_require__(54);
 var setToStringTag = __webpack_require__(46);
@@ -83409,7 +83409,7 @@ __webpack_require__(26)('getOwnPropertyNames', function () {
 
 // 19.1.2.5 Object.freeze(O)
 var isObject = __webpack_require__(4);
-var meta = __webpack_require__(32).onFreeze;
+var meta = __webpack_require__(33).onFreeze;
 
 __webpack_require__(26)('freeze', function ($freeze) {
   return function freeze(it) {
@@ -83424,7 +83424,7 @@ __webpack_require__(26)('freeze', function ($freeze) {
 
 // 19.1.2.17 Object.seal(O)
 var isObject = __webpack_require__(4);
-var meta = __webpack_require__(32).onFreeze;
+var meta = __webpack_require__(33).onFreeze;
 
 __webpack_require__(26)('seal', function ($seal) {
   return function seal(it) {
@@ -83439,7 +83439,7 @@ __webpack_require__(26)('seal', function ($seal) {
 
 // 19.1.2.15 Object.preventExtensions(O)
 var isObject = __webpack_require__(4);
-var meta = __webpack_require__(32).onFreeze;
+var meta = __webpack_require__(33).onFreeze;
 
 __webpack_require__(26)('preventExtensions', function ($preventExtensions) {
   return function preventExtensions(it) {
@@ -85084,7 +85084,7 @@ var $export = __webpack_require__(0);
 
 $export($export.P, 'Array', { copyWithin: __webpack_require__(114) });
 
-__webpack_require__(33)('copyWithin');
+__webpack_require__(34)('copyWithin');
 
 
 /***/ }),
@@ -85096,7 +85096,7 @@ var $export = __webpack_require__(0);
 
 $export($export.P, 'Array', { fill: __webpack_require__(91) });
 
-__webpack_require__(33)('fill');
+__webpack_require__(34)('fill');
 
 
 /***/ }),
@@ -85117,7 +85117,7 @@ $export($export.P + $export.F * forced, 'Array', {
     return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
-__webpack_require__(33)(KEY);
+__webpack_require__(34)(KEY);
 
 
 /***/ }),
@@ -85138,7 +85138,7 @@ $export($export.P + $export.F * forced, 'Array', {
     return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
-__webpack_require__(33)(KEY);
+__webpack_require__(34)(KEY);
 
 
 /***/ }),
@@ -86169,7 +86169,7 @@ $export($export.P, 'Array', {
   }
 });
 
-__webpack_require__(33)('includes');
+__webpack_require__(34)('includes');
 
 
 /***/ }),
@@ -86198,7 +86198,7 @@ $export($export.P, 'Array', {
   }
 });
 
-__webpack_require__(33)('flatMap');
+__webpack_require__(34)('flatMap');
 
 
 /***/ }),
@@ -86226,7 +86226,7 @@ $export($export.P, 'Array', {
   }
 });
 
-__webpack_require__(33)('flatten');
+__webpack_require__(34)('flatten');
 
 
 /***/ }),
@@ -88149,7 +88149,7 @@ var _lodash = __webpack_require__(15);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _jquery = __webpack_require__(34);
+var _jquery = __webpack_require__(31);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -88384,7 +88384,7 @@ var _v = __webpack_require__(53);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _util = __webpack_require__(31);
+var _util = __webpack_require__(32);
 
 var _glgeom = __webpack_require__(68);
 
@@ -90382,7 +90382,7 @@ var _v = __webpack_require__(53);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _util = __webpack_require__(31);
+var _util = __webpack_require__(32);
 
 var _glgeom = __webpack_require__(68);
 
@@ -93098,7 +93098,7 @@ var _v = __webpack_require__(53);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _util = __webpack_require__(31);
+var _util = __webpack_require__(32);
 
 var util = _interopRequireWildcard(_util);
 
@@ -93730,14 +93730,16 @@ var SoupWidget = function (_WebglWidget) {
           // cancel any down/up motion
           this.isClickInitiated = false;
 
-          if (rightMouse || event.ctrlKey) {
+          if (rightMouse || event.metaKey) {
             zRotationAngle = this.mouseT - this.saveMouseT;
-
             if (this.mouseR > 0.0) {
               zoomRatio = this.saveMouseR / this.mouseR;
             }
           } else if (event.shiftKey) {
             zRotationAngle = this.mouseT - this.saveMouseT;
+          } else if (event.ctrlKey) {
+            var wheel = diffY / 100;
+            zoomRatio = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1);
           } else {
             yRotationAngle = _v2.default.degToRad(diffX);
             xRotationAngle = _v2.default.degToRad(diffY);
@@ -94317,7 +94319,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 ;(function (factory) {
   if (true) {
     // AMD. Register as an anonymous module.
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(34)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(31)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -100225,7 +100227,7 @@ var _three = __webpack_require__(28);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _util = __webpack_require__(31);
+var _util = __webpack_require__(32);
 
 var util = _interopRequireWildcard(_util);
 
@@ -101874,7 +101876,7 @@ exports.WebglWidget = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _jquery = __webpack_require__(34);
+var _jquery = __webpack_require__(31);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -101890,7 +101892,7 @@ var _v = __webpack_require__(53);
 
 var _v2 = _interopRequireDefault(_v);
 
-var _util = __webpack_require__(31);
+var _util = __webpack_require__(32);
 
 var util = _interopRequireWildcard(_util);
 
@@ -102465,7 +102467,7 @@ exports.FullPageWidget = undefined;
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // eslint-disable-line
 
 
-var _jquery = __webpack_require__(34);
+var _jquery = __webpack_require__(31);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -102479,7 +102481,7 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var _embedWidget = __webpack_require__(132);
 
-var _util = __webpack_require__(31);
+var _util = __webpack_require__(32);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -103046,7 +103048,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 	'use strict';
 	if (true) {
 		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(34)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(31)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -103276,11 +103278,11 @@ var _data = __webpack_require__(69);
 
 var data = _interopRequireWildcard(_data);
 
-var _util = __webpack_require__(31);
+var _util = __webpack_require__(32);
 
 var util = _interopRequireWildcard(_util);
 
-var _jquery = __webpack_require__(34);
+var _jquery = __webpack_require__(31);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -104412,7 +104414,6 @@ var AquariaAlignment = function () {
       var soup = this.embedJolecule.soup;
       this.embedJolecule.controller.clearSelectedResidues();
       var chains = this.data.pdb_chain;
-      var nSelected = 0;
       var nSeq = this.selectSeq.length;
       for (var iChain = 0; iChain < chains.length; iChain += 1) {
         var chain = chains[iChain];
@@ -104439,7 +104440,6 @@ var AquariaAlignment = function () {
                 var residue = soup.findFirstResidue(_chain3, pdbResNum);
                 if (!_lodash2.default.isNil(residue)) {
                   this.embedJolecule.controller.setResidueSelect(residue.iRes, true);
-                  nSelected += 1;
                 }
               }
             }

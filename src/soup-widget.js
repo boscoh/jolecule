@@ -28,7 +28,14 @@ class SoupWidget extends WebglWidget {
    * @param isGrid - flat to show autodock 3D grid control panel
    * @param backgroundColor - the background color of canvas and webgl
    */
-  constructor(soupView, divTag, controller, isGrid, backgroundColor, isMouseWheel) {
+  constructor(
+    soupView,
+    divTag,
+    controller,
+    isGrid,
+    backgroundColor,
+    isMouseWheel
+  ) {
     super(divTag, backgroundColor)
 
     this.observers = {
@@ -562,14 +569,16 @@ class SoupWidget extends WebglWidget {
         // cancel any down/up motion
         this.isClickInitiated = false
 
-        if (rightMouse || event.ctrlKey) {
+        if (rightMouse || event.metaKey) {
           zRotationAngle = this.mouseT - this.saveMouseT
-
           if (this.mouseR > 0.0) {
             zoomRatio = this.saveMouseR / this.mouseR
           }
         } else if (event.shiftKey) {
           zRotationAngle = this.mouseT - this.saveMouseT
+        } else if (event.ctrlKey) {
+          let wheel = diffY / 100
+          zoomRatio = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1)
         } else {
           yRotationAngle = v3.degToRad(diffX)
           xRotationAngle = v3.degToRad(diffY)

@@ -37,6 +37,9 @@
             let selectText = ''
             let alignment = new jolecule.AquariaAlignment()
             let controller = widget.embedJolecule.controller
+
+            let body = document.body
+
             document.onkeydown = function (event) {
               let c = String.fromCharCode(event.keyCode).toUpperCase()
               if (false) {
@@ -52,11 +55,16 @@
               } else if (c === "C" && event.metaKey) {
                 alignment.copyToClipboard()
               } else {
+                console.log('onkeydown', document.activeElement, body)
+                if (document.activeElement !== body) {
+                  return
+                }
                 if (c.match( /^[a-zA-Z]+$/i)) {
                   alignment.selectNextChar(c)
                 }
               }
             }
+
             document.addEventListener('paste', e => {
               let data = e.clipboardData
               if (data && data.getData) {
