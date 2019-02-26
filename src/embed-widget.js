@@ -34,7 +34,8 @@ let defaultArgs = {
   isToolbarOnTop: false,
   isToolbarOn: false,
   isMenu: true,
-  isTextOverlay: true
+  isTextOverlay: true,
+  isMouseWheel: true
 }
 
 class EmbedJolecule {
@@ -165,7 +166,8 @@ class EmbedJolecule {
       `#${this.divId}-jolecule-soup-display`,
       this.controller,
       this.params.isGrid,
-      this.params.backgroundColor
+      this.params.backgroundColor,
+      this.params.isMouseWheel
     )
 
     this.footerDiv = $('<div>')

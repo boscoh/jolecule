@@ -28,7 +28,7 @@ class SoupWidget extends WebglWidget {
    * @param isGrid - flat to show autodock 3D grid control panel
    * @param backgroundColor - the background color of canvas and webgl
    */
-  constructor(soupView, divTag, controller, isGrid, backgroundColor) {
+  constructor(soupView, divTag, controller, isGrid, backgroundColor, isMouseWheel) {
     super(divTag, backgroundColor)
 
     this.observers = {
@@ -60,6 +60,8 @@ class SoupWidget extends WebglWidget {
 
     // Docking display control
     this.isGrid = isGrid
+
+    this.isMouseWheel = isMouseWheel
 
     // Widgets that decorate the display
     // display distance measures between atoms
@@ -618,6 +620,11 @@ class SoupWidget extends WebglWidget {
   }
 
   mousewheel(event) {
+    console.log('SoupWidget.mousewheel', this.isMouseWheel)
+    if (!this.isMouseWheel) {
+      return
+    }
+
     if (this.isGesture) {
       return
     }

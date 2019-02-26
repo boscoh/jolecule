@@ -2,6 +2,7 @@ import _ from 'lodash'
 import * as THREE from 'three'
 import * as data from './data'
 import * as util from './util'
+import $ from 'jquery'
 
 function getHexColor(hex) {
   let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
@@ -23,19 +24,39 @@ function makeRgbStringFromHexString(hex) {
   return `rgb(${r}, ${g}, ${b})`
 }
 
+function getIndexes(sourceText, findText) {
+  if (!sourceText) {
+    return []
+  }
+  // if find is empty string return all indexes.
+  if (!findText) {
+    // or shorter arrow function:
+    // return source.split('').map((_,i) => i);
+    return sourceText.split('').map(function(_, i) {
+      return i
+    })
+  }
+  let result = []
+  for (let i = 0; i < sourceText.length; i += 1) {
+    // If you want to search case insensitive use
+    // if (source.substring(i, i + find.length).toLowerCase() == find) {
+    if (sourceText.substring(i, i + findText.length) === findText) {
+      result.push(i)
+    }
+  }
+  return result
+}
+
 /*
- * ￼420
  * A. D. MCLACHLAN 1972
- * Here's the Japanese version - search for "McLachlan, 1972"
- * ftp://ftp.genome.jp/pub/db/community/aaindex/aaindex2
  * TABLE 1
  * Chemical similarity scores for the amino acids
- * ￼￼score
- * 6 - ￼FF MM YY HH CC WW RR GG
+ * score
+ * 6 - FF MM YY HH CC WW RR GG
  * 5 - LL II VV SS PP TT AA QQ NN KK DD EE
  * 3 - FY FW LI LM IM ST AG QE ND KR
- * 2 - ￼FL FM FH IV YH YW SC HQ QN DE
- * 1 - FI FV LV LP LY LW IT IY ￼IW MV MY MW VP SA SN SQ PT PA TA TN HN HW QK QD NE
+ * 2 - FL FM FH IV YH YW SC HQ QN DE
+ * 1 - FI FV LV LP LY LW IT IY IW MV MY MW VP SA SN SQ PT PA TA TN HN HW QK QD NE
  * 0 - All others, including unknowns and deletions
  **/
 
@@ -69,9 +90,15 @@ function getConservation(a, b) {
 class AquariaAlignment {
   reload(aquariaAlignData, embedJolecule) {
     this.data = aquariaAlignData
-    this.seqId = this.data.sequences[0].primary_accession
+    this.selectSeqId = this.data.sequences[0].primary_accession
     this.pdbId = this.data.pdb_id
-    console.log('AquariaAlignment.reload', this.data, this.pdbId, this.seqId)
+    this.selectSeq = ''
+    console.log(
+      'AquariaAlignment.reload',
+      this.data,
+      this.pdbId,
+      this.selectSeqId
+    )
     this.alignEntries = []
     for (let alignStr of this.data.alignment.split(';')) {
       let pieces = alignStr.split(',')
@@ -505,40 +532,37 @@ class AquariaAlignment {
 
     let text = ''
 
+    if (this.selectSeq) {
+      text += `SEQUENCE: "${this.selectSeq}" <br>`
+    }
+
     if (pieces.length > 0) {
-      for (let piece of pieces) {
-        if (piece.pdbResRanges.length === 0) {
-          continue
+      for (let [iPiece, piece] of pieces.entries()) {
+        if (iPiece > 0) {
         }
+        if (piece.pdbResRanges.length > 0) {
+          text += piece.pdbChain + ': '
 
-        text += piece.pdbChain + ': '
+          let first = piece.pdbResRanges[0]
+          let isFirstSolo = first[0] === first[1]
 
-        let first = piece.pdbResRanges[0]
-        let isFirstSolo = first[0] === first[1]
-
-        if (piece.pdbResRanges.length === 1 && isFirstSolo) {
-          text += piece.firstPdbRes
-          text += '<br>'
-        } else {
-          for (let [i, r] of _.toPairs(piece.pdbResRanges)) {
-            if (i > 0) {
-              text += ', '
-            }
-            if (r[0] === r[1]) {
-              text += r[0]
-            } else {
-              text += ` ${r[0]}-${r[1]}`
+          if (piece.pdbResRanges.length === 1 && isFirstSolo) {
+            text += piece.firstPdbRes
+          } else {
+            for (let [i, r] of _.toPairs(piece.pdbResRanges)) {
+              if (i > 0) {
+                text += ', '
+              }
+              if (r[0] === r[1]) {
+                text += r[0]
+              } else {
+                text += ` ${r[0]}-${r[1]}`
+              }
             }
           }
           text += '<br>'
         }
-      }
-      for (let piece of pieces) {
-        if (piece.seqName) {
-          if (piece.seqResRanges.length === 0) {
-            continue
-          }
-
+        if (piece.seqName && piece.seqResRanges.length > 0) {
           text += piece.seqName + ': '
 
           let first = piece.seqResRanges[0]
@@ -546,7 +570,6 @@ class AquariaAlignment {
 
           if (piece.seqResRanges.length === 1 && isFirstSolo) {
             text += piece.firstSeqRes
-            text += '<br>'
           } else {
             for (let [i, r] of _.toPairs(piece.seqResRanges)) {
               if (i > 0) {
@@ -558,11 +581,12 @@ class AquariaAlignment {
                 text += ` ${r[0]}-${r[1]}`
               }
             }
-            text += '<br>'
           }
+          text += '<br>'
         }
       }
     }
+
     return text
   }
 
@@ -631,6 +655,44 @@ class AquariaAlignment {
     return result
   }
 
+  selectNextChar(c) {
+    this.selectSeq += c
+    let soup = this.embedJolecule.soup
+    this.embedJolecule.controller.clearSelectedResidues()
+    let chains = this.data.pdb_chain
+    let nSeq = this.selectSeq.length
+    for (let iChain = 0; iChain < chains.length; iChain += 1) {
+      let chain = chains[iChain]
+      let masterSeq = this.data.sequences[iChain].sequence
+      let seqId = this.data.sequences[iChain].primary_accession
+      if (_.isNil(seqId)) {
+        seqId = ''
+      }
+      for (let iResOfSeq of getIndexes(masterSeq, this.selectSeq)) {
+        for (let iRes = iResOfSeq; iRes < iResOfSeq + nSeq; iRes += 1) {
+          let pdbRes = this.mapSeqResToPdbResOfChain(seqId, iRes + 1, chain)
+          if (!_.isNil(pdbRes)) {
+            let [, chain, pdbResNum] = pdbRes
+            let residue = soup.findFirstResidue(chain, pdbResNum)
+            if (!_.isNil(residue)) {
+              this.embedJolecule.controller.setResidueSelect(residue.iRes, true)
+            }
+          }
+        }
+      }
+    }
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId)
+    }
+    this.timeoutId = setTimeout(() => {
+      this.timeoutId = null
+      this.selectSeq = ''
+      this.embedJolecule.soupView.isUpdateObservers = true
+      this.embedJolecule.soupView.isChanged = true
+      console.log('AquariaAlignment.selectNextChar settimeout cancel')
+    }, 4000)
+  }
+
   setSelectionPanel(embedJolecule) {
     let widget = embedJolecule.widget.selection
     widget.getText = () => this.getSelectionText()
@@ -670,12 +732,17 @@ class AquariaAlignment {
     } else {
       let iChain = _.findIndex(this.data.pdb_chain, c => c === result.chain)
       if (iChain >= 0) {
-        this.seqId = this.data.sequences[iChain].primary_accession
+        this.selectSeqId = this.data.sequences[iChain].primary_accession
         let seqName = this.data.common_names[iChain]
         let structureId = this.embedJolecule.soup.structureIds[
           result.iStructure
         ]
-        this.selectNewChain(this.seqId, seqName, structureId, result.chain)
+        this.selectNewChain(
+          this.selectSeqId,
+          seqName,
+          structureId,
+          result.chain
+        )
       } else {
         console.log(
           'AquariaAlignment.update error, chain not found in alignment:',

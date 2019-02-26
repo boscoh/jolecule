@@ -79536,7 +79536,8 @@ var defaultArgs = {
   isToolbarOnTop: false,
   isToolbarOn: false,
   isMenu: true,
-  isTextOverlay: true
+  isTextOverlay: true,
+  isMouseWheel: true
 };
 
 var EmbedJolecule = function () {
@@ -79735,7 +79736,7 @@ var EmbedJolecule = function () {
       this.bodyDiv = (0, _jquery2.default)('<div>').attr('id', this.divId + '-jolecule-soup-display').addClass('jolecule-embed-body').css({ flex: '1 1', position: 'relative' });
       this.div.append(this.bodyDiv);
 
-      this.soupWidget = new _soupWidget.SoupWidget(this.soupView, '#' + this.divId + '-jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor);
+      this.soupWidget = new _soupWidget.SoupWidget(this.soupView, '#' + this.divId + '-jolecule-soup-display', this.controller, this.params.isGrid, this.params.backgroundColor, this.params.isMouseWheel);
 
       this.footerDiv = (0, _jquery2.default)('<div>').addClass('jolecule-embed-footer').css({
         display: 'flex',
@@ -93143,7 +93144,7 @@ var SoupWidget = function (_WebglWidget) {
    * @param isGrid - flat to show autodock 3D grid control panel
    * @param backgroundColor - the background color of canvas and webgl
    */
-  function SoupWidget(soupView, divTag, controller, isGrid, backgroundColor) {
+  function SoupWidget(soupView, divTag, controller, isGrid, backgroundColor, isMouseWheel) {
     _classCallCheck(this, SoupWidget);
 
     var _this = _possibleConstructorReturn(this, (SoupWidget.__proto__ || Object.getPrototypeOf(SoupWidget)).call(this, divTag, backgroundColor));
@@ -93176,6 +93177,8 @@ var SoupWidget = function (_WebglWidget) {
 
     // Docking display control
     _this.isGrid = isGrid;
+
+    _this.isMouseWheel = isMouseWheel;
 
     // Widgets that decorate the display
     // display distance measures between atoms
@@ -93783,6 +93786,11 @@ var SoupWidget = function (_WebglWidget) {
   }, {
     key: 'mousewheel',
     value: function mousewheel(event) {
+      console.log('SoupWidget.mousewheel', this.isMouseWheel);
+      if (!this.isMouseWheel) {
+        return;
+      }
+
       if (this.isGesture) {
         return;
       }
@@ -103272,6 +103280,10 @@ var _util = __webpack_require__(31);
 
 var util = _interopRequireWildcard(_util);
 
+var _jquery = __webpack_require__(34);
+
+var _jquery2 = _interopRequireDefault(_jquery);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -103299,19 +103311,39 @@ function makeRgbStringFromHexString(hex) {
   return 'rgb(' + r + ', ' + g + ', ' + b + ')';
 }
 
+function getIndexes(sourceText, findText) {
+  if (!sourceText) {
+    return [];
+  }
+  // if find is empty string return all indexes.
+  if (!findText) {
+    // or shorter arrow function:
+    // return source.split('').map((_,i) => i);
+    return sourceText.split('').map(function (_, i) {
+      return i;
+    });
+  }
+  var result = [];
+  for (var i = 0; i < sourceText.length; i += 1) {
+    // If you want to search case insensitive use
+    // if (source.substring(i, i + find.length).toLowerCase() == find) {
+    if (sourceText.substring(i, i + findText.length) === findText) {
+      result.push(i);
+    }
+  }
+  return result;
+}
+
 /*
- * ￼420
  * A. D. MCLACHLAN 1972
- * Here's the Japanese version - search for "McLachlan, 1972"
- * ftp://ftp.genome.jp/pub/db/community/aaindex/aaindex2
  * TABLE 1
  * Chemical similarity scores for the amino acids
- * ￼￼score
- * 6 - ￼FF MM YY HH CC WW RR GG
+ * score
+ * 6 - FF MM YY HH CC WW RR GG
  * 5 - LL II VV SS PP TT AA QQ NN KK DD EE
  * 3 - FY FW LI LM IM ST AG QE ND KR
- * 2 - ￼FL FM FH IV YH YW SC HQ QN DE
- * 1 - FI FV LV LP LY LW IT IY ￼IW MV MY MW VP SA SN SQ PT PA TA TN HN HW QK QD NE
+ * 2 - FL FM FH IV YH YW SC HQ QN DE
+ * 1 - FI FV LV LP LY LW IT IY IW MV MY MW VP SA SN SQ PT PA TA TN HN HW QK QD NE
  * 0 - All others, including unknowns and deletions
  **/
 
@@ -103367,9 +103399,10 @@ var AquariaAlignment = function () {
     key: 'reload',
     value: function reload(aquariaAlignData, embedJolecule) {
       this.data = aquariaAlignData;
-      this.seqId = this.data.sequences[0].primary_accession;
+      this.selectSeqId = this.data.sequences[0].primary_accession;
       this.pdbId = this.data.pdb_id;
-      console.log('AquariaAlignment.reload', this.data, this.pdbId, this.seqId);
+      this.selectSeq = '';
+      console.log('AquariaAlignment.reload', this.data, this.pdbId, this.selectSeqId);
       this.alignEntries = [];
       var _iteratorNormalCompletion2 = true;
       var _didIteratorError2 = false;
@@ -104176,62 +104209,110 @@ var AquariaAlignment = function () {
 
       var text = '';
 
+      if (this.selectSeq) {
+        text += 'SEQUENCE: "' + this.selectSeq + '" <br>';
+      }
+
       if (pieces.length > 0) {
         var _iteratorNormalCompletion18 = true;
         var _didIteratorError18 = false;
         var _iteratorError18 = undefined;
 
         try {
-          for (var _iterator18 = pieces[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-            var _piece = _step18.value;
+          for (var _iterator18 = pieces.entries()[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+            var _step18$value = _slicedToArray(_step18.value, 2),
+                iPiece = _step18$value[0],
+                _piece = _step18$value[1];
 
-            if (_piece.pdbResRanges.length === 0) {
-              continue;
-            }
+            if (iPiece > 0) {}
+            if (_piece.pdbResRanges.length > 0) {
+              text += _piece.pdbChain + ': ';
 
-            text += _piece.pdbChain + ': ';
+              var first = _piece.pdbResRanges[0];
+              var isFirstSolo = first[0] === first[1];
 
-            var first = _piece.pdbResRanges[0];
-            var isFirstSolo = first[0] === first[1];
+              if (_piece.pdbResRanges.length === 1 && isFirstSolo) {
+                text += _piece.firstPdbRes;
+              } else {
+                var _iteratorNormalCompletion19 = true;
+                var _didIteratorError19 = false;
+                var _iteratorError19 = undefined;
 
-            if (_piece.pdbResRanges.length === 1 && isFirstSolo) {
-              text += _piece.firstPdbRes;
-              text += '<br>';
-            } else {
-              var _iteratorNormalCompletion20 = true;
-              var _didIteratorError20 = false;
-              var _iteratorError20 = undefined;
-
-              try {
-                for (var _iterator20 = _lodash2.default.toPairs(_piece.pdbResRanges)[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-                  var _step20$value = _slicedToArray(_step20.value, 2),
-                      _i = _step20$value[0],
-                      r = _step20$value[1];
-
-                  if (_i > 0) {
-                    text += ', ';
-                  }
-                  if (r[0] === r[1]) {
-                    text += r[0];
-                  } else {
-                    text += ' ' + r[0] + '-' + r[1];
-                  }
-                }
-              } catch (err) {
-                _didIteratorError20 = true;
-                _iteratorError20 = err;
-              } finally {
                 try {
-                  if (!_iteratorNormalCompletion20 && _iterator20.return) {
-                    _iterator20.return();
+                  for (var _iterator19 = _lodash2.default.toPairs(_piece.pdbResRanges)[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+                    var _step19$value = _slicedToArray(_step19.value, 2),
+                        _i = _step19$value[0],
+                        r = _step19$value[1];
+
+                    if (_i > 0) {
+                      text += ', ';
+                    }
+                    if (r[0] === r[1]) {
+                      text += r[0];
+                    } else {
+                      text += ' ' + r[0] + '-' + r[1];
+                    }
                   }
+                } catch (err) {
+                  _didIteratorError19 = true;
+                  _iteratorError19 = err;
                 } finally {
-                  if (_didIteratorError20) {
-                    throw _iteratorError20;
+                  try {
+                    if (!_iteratorNormalCompletion19 && _iterator19.return) {
+                      _iterator19.return();
+                    }
+                  } finally {
+                    if (_didIteratorError19) {
+                      throw _iteratorError19;
+                    }
                   }
                 }
               }
+              text += '<br>';
+            }
+            if (_piece.seqName && _piece.seqResRanges.length > 0) {
+              text += _piece.seqName + ': ';
 
+              var _first = _piece.seqResRanges[0];
+              var _isFirstSolo = _first[0] === _first[1];
+
+              if (_piece.seqResRanges.length === 1 && _isFirstSolo) {
+                text += _piece.firstSeqRes;
+              } else {
+                var _iteratorNormalCompletion20 = true;
+                var _didIteratorError20 = false;
+                var _iteratorError20 = undefined;
+
+                try {
+                  for (var _iterator20 = _lodash2.default.toPairs(_piece.seqResRanges)[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+                    var _step20$value = _slicedToArray(_step20.value, 2),
+                        _i2 = _step20$value[0],
+                        r = _step20$value[1];
+
+                    if (_i2 > 0) {
+                      text += ', ';
+                    }
+                    if (r[0] === r[1]) {
+                      text += r[0];
+                    } else {
+                      text += ' ' + r[0] + '-' + r[1];
+                    }
+                  }
+                } catch (err) {
+                  _didIteratorError20 = true;
+                  _iteratorError20 = err;
+                } finally {
+                  try {
+                    if (!_iteratorNormalCompletion20 && _iterator20.return) {
+                      _iterator20.return();
+                    }
+                  } finally {
+                    if (_didIteratorError20) {
+                      throw _iteratorError20;
+                    }
+                  }
+                }
+              }
               text += '<br>';
             }
           }
@@ -104249,82 +104330,8 @@ var AquariaAlignment = function () {
             }
           }
         }
-
-        var _iteratorNormalCompletion19 = true;
-        var _didIteratorError19 = false;
-        var _iteratorError19 = undefined;
-
-        try {
-          for (var _iterator19 = pieces[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-            var _piece2 = _step19.value;
-
-            if (_piece2.seqName) {
-              if (_piece2.seqResRanges.length === 0) {
-                continue;
-              }
-
-              text += _piece2.seqName + ': ';
-
-              var _first = _piece2.seqResRanges[0];
-              var _isFirstSolo = _first[0] === _first[1];
-
-              if (_piece2.seqResRanges.length === 1 && _isFirstSolo) {
-                text += _piece2.firstSeqRes;
-                text += '<br>';
-              } else {
-                var _iteratorNormalCompletion21 = true;
-                var _didIteratorError21 = false;
-                var _iteratorError21 = undefined;
-
-                try {
-                  for (var _iterator21 = _lodash2.default.toPairs(_piece2.seqResRanges)[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-                    var _step21$value = _slicedToArray(_step21.value, 2),
-                        _i2 = _step21$value[0],
-                        r = _step21$value[1];
-
-                    if (_i2 > 0) {
-                      text += ', ';
-                    }
-                    if (r[0] === r[1]) {
-                      text += r[0];
-                    } else {
-                      text += ' ' + r[0] + '-' + r[1];
-                    }
-                  }
-                } catch (err) {
-                  _didIteratorError21 = true;
-                  _iteratorError21 = err;
-                } finally {
-                  try {
-                    if (!_iteratorNormalCompletion21 && _iterator21.return) {
-                      _iterator21.return();
-                    }
-                  } finally {
-                    if (_didIteratorError21) {
-                      throw _iteratorError21;
-                    }
-                  }
-                }
-
-                text += '<br>';
-              }
-            }
-          }
-        } catch (err) {
-          _didIteratorError19 = true;
-          _iteratorError19 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion19 && _iterator19.return) {
-              _iterator19.return();
-            }
-          } finally {
-            if (_didIteratorError19) {
-              throw _iteratorError19;
-            }
-          }
-        }
       }
+
       return text;
     }
   }, {
@@ -104397,13 +104404,80 @@ var AquariaAlignment = function () {
       return result;
     }
   }, {
+    key: 'selectNextChar',
+    value: function selectNextChar(c) {
+      var _this2 = this;
+
+      this.selectSeq += c;
+      var soup = this.embedJolecule.soup;
+      this.embedJolecule.controller.clearSelectedResidues();
+      var chains = this.data.pdb_chain;
+      var nSelected = 0;
+      var nSeq = this.selectSeq.length;
+      for (var iChain = 0; iChain < chains.length; iChain += 1) {
+        var chain = chains[iChain];
+        var masterSeq = this.data.sequences[iChain].sequence;
+        var seqId = this.data.sequences[iChain].primary_accession;
+        if (_lodash2.default.isNil(seqId)) {
+          seqId = '';
+        }
+        var _iteratorNormalCompletion21 = true;
+        var _didIteratorError21 = false;
+        var _iteratorError21 = undefined;
+
+        try {
+          for (var _iterator21 = getIndexes(masterSeq, this.selectSeq)[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+            var iResOfSeq = _step21.value;
+
+            for (var iRes = iResOfSeq; iRes < iResOfSeq + nSeq; iRes += 1) {
+              var pdbRes = this.mapSeqResToPdbResOfChain(seqId, iRes + 1, chain);
+              if (!_lodash2.default.isNil(pdbRes)) {
+                var _pdbRes3 = _slicedToArray(pdbRes, 3),
+                    _chain3 = _pdbRes3[1],
+                    pdbResNum = _pdbRes3[2];
+
+                var residue = soup.findFirstResidue(_chain3, pdbResNum);
+                if (!_lodash2.default.isNil(residue)) {
+                  this.embedJolecule.controller.setResidueSelect(residue.iRes, true);
+                  nSelected += 1;
+                }
+              }
+            }
+          }
+        } catch (err) {
+          _didIteratorError21 = true;
+          _iteratorError21 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion21 && _iterator21.return) {
+              _iterator21.return();
+            }
+          } finally {
+            if (_didIteratorError21) {
+              throw _iteratorError21;
+            }
+          }
+        }
+      }
+      if (this.timeoutId) {
+        clearTimeout(this.timeoutId);
+      }
+      this.timeoutId = setTimeout(function () {
+        _this2.timeoutId = null;
+        _this2.selectSeq = '';
+        _this2.embedJolecule.soupView.isUpdateObservers = true;
+        _this2.embedJolecule.soupView.isChanged = true;
+        console.log('AquariaAlignment.selectNextChar settimeout cancel');
+      }, 4000);
+    }
+  }, {
     key: 'setSelectionPanel',
     value: function setSelectionPanel(embedJolecule) {
-      var _this2 = this;
+      var _this3 = this;
 
       var widget = embedJolecule.widget.selection;
       widget.getText = function () {
-        return _this2.getSelectionText();
+        return _this3.getSelectionText();
       };
     }
   }, {
@@ -104469,10 +104543,10 @@ var AquariaAlignment = function () {
           return c === result.chain;
         });
         if (iChain >= 0) {
-          this.seqId = this.data.sequences[iChain].primary_accession;
+          this.selectSeqId = this.data.sequences[iChain].primary_accession;
           var seqName = this.data.common_names[iChain];
           var structureId = this.embedJolecule.soup.structureIds[result.iStructure];
-          this.selectNewChain(this.seqId, seqName, structureId, result.chain);
+          this.selectNewChain(this.selectSeqId, seqName, structureId, result.chain);
         } else {
           console.log('AquariaAlignment.update error, chain not found in alignment:', result.chain, this.data.pdb_chain, this.data);
         }
