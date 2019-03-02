@@ -1,9 +1,9 @@
 {
   "scripts": {
-    "test": "cd test && webpack && mocha"
+    "test": "cd test && ./test.sh",
+    "format": "prettier-standard src/*js && eslint --fix src/*js"
   },
   "dependencies": {
-    "chosen-js": "^1.8.7",
     "fs": "0.0.1-security",
     "fs-extra": "^1.0.0",
     "jquery": "^3.3.1",
@@ -13,13 +13,11 @@
     "mustache": "^2.3.1",
     "nopt": "^3.0.6",
     "opener": "^1.5.0",
-    "protip": "^1.4.21",
-    "prune": "0.0.2",
-    "ramda": "^0.25.0",
     "requirejs": "^2.3.2",
     "select2": "^4.0.6-rc.1",
     "shortid": "^2.2.12",
     "signals": "^1.0.0",
+    "test": "^0.6.0",
     "three": "^0.92.0"
   },
   "devDependencies": {
@@ -33,7 +31,6 @@
     "electron": "^2.0.4",
     "eslint": "^5.14.1",
     "eslint-config-prettier": "^4.1.0",
-    "eslint-config-prettier-standard": "^2.0.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-friendly-formatter": "^4.0.1",
     "eslint-loader": "^2.1.2",
@@ -45,6 +42,7 @@
     "eslint-plugin-vue": "^5.2.2",
     "prettier": "^1.16.4",
     "prettier-standard": "^9.1.1",
-    "style-loader": "^0.13.1"
+    "style-loader": "^0.13.1",
+    "webpack": "^3.12.0"
   }
 }
