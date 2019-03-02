@@ -466,6 +466,12 @@ class AquariaAlignment {
           for (let feature of this.features) {
             if (feature.Residue === seqResNum) {
               label += `<br>Feature: ${feature.Name}`
+              if (feature.Description) {
+                if (feature.Name) {
+                  label += ' - '
+                }
+                label += `${feature.Description}`
+              }
             }
           }
         }

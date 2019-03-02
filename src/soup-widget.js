@@ -451,6 +451,10 @@ class SoupWidget extends WebglWidget {
    ********************************************
    */
 
+  focus() {
+    console.log('SoupWidget.focus')
+  }
+
   resize() {
     super.resize()
     this.observers.resized.dispatch()
@@ -503,6 +507,8 @@ class SoupWidget extends WebglWidget {
   }
 
   mousedown(event) {
+    this.focus()
+
     if (this.isGesture) {
       return
     }
@@ -574,9 +580,9 @@ class SoupWidget extends WebglWidget {
           if (this.mouseR > 0.0) {
             zoomRatio = this.saveMouseR / this.mouseR
           }
-        } else if (event.shiftKey) {
-          zRotationAngle = this.mouseT - this.saveMouseT
         } else if (event.ctrlKey) {
+          zRotationAngle = this.mouseT - this.saveMouseT
+        } else if (event.shiftKey) {
           let wheel = diffY / 100
           zoomRatio = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1)
         } else {

@@ -288,6 +288,7 @@ class PopupText {
       padding: '5',
       opacity: 0.8,
       display: 'none',
+      'max-width': '300px',
       'z-index': 1,
       cursor: 'pointer',
       'user-select': 'none',

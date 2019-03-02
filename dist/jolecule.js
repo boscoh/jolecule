@@ -353,7 +353,7 @@ module.exports = function (NAME, exec) {
   var undefined;
 
   /** Used as the semantic version number. */
-  var VERSION = '4.17.10';
+  var VERSION = '4.17.11';
 
   /** Used as the size to enable large array optimizations. */
   var LARGE_ARRAY_SIZE = 200;
@@ -617,7 +617,7 @@ module.exports = function (NAME, exec) {
   var reHasUnicode = RegExp('[' + rsZWJ + rsAstralRange  + rsComboRange + rsVarRange + ']');
 
   /** Used to detect strings that need a more robust regexp to match words. */
-  var reHasUnicodeWord = /[a-z][A-Z]|[A-Z]{2,}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
+  var reHasUnicodeWord = /[a-z][A-Z]|[A-Z]{2}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
 
   /** Used to assign default `context` object properties. */
   var contextProps = [
@@ -1563,20 +1563,6 @@ module.exports = function (NAME, exec) {
       }
     }
     return result;
-  }
-
-  /**
-   * Gets the value at `key`, unless `key` is "__proto__".
-   *
-   * @private
-   * @param {Object} object The object to query.
-   * @param {string} key The key of the property to get.
-   * @returns {*} Returns the property value.
-   */
-  function safeGet(object, key) {
-    return key == '__proto__'
-      ? undefined
-      : object[key];
   }
 
   /**
@@ -4036,7 +4022,7 @@ module.exports = function (NAME, exec) {
           if (isArguments(objValue)) {
             newValue = toPlainObject(objValue);
           }
-          else if (!isObject(objValue) || (srcIndex && isFunction(objValue))) {
+          else if (!isObject(objValue) || isFunction(objValue)) {
             newValue = initCloneObject(srcValue);
           }
         }
@@ -6957,6 +6943,22 @@ module.exports = function (NAME, exec) {
         array[length] = isIndex(index, arrLength) ? oldArray[index] : undefined;
       }
       return array;
+    }
+
+    /**
+     * Gets the value at `key`, unless `key` is "__proto__".
+     *
+     * @private
+     * @param {Object} object The object to query.
+     * @param {string} key The key of the property to get.
+     * @returns {*} Returns the property value.
+     */
+    function safeGet(object, key) {
+      if (key == '__proto__') {
+        return;
+      }
+
+      return object[key];
     }
 
     /**
@@ -80281,6 +80283,7 @@ var PopupText = function () {
       padding: '5',
       opacity: 0.8,
       display: 'none',
+      'max-width': '300px',
       'z-index': 1,
       cursor: 'pointer',
       'user-select': 'none',
@@ -93610,6 +93613,11 @@ var SoupWidget = function (_WebglWidget) {
      */
 
   }, {
+    key: 'focus',
+    value: function focus() {
+      console.log('SoupWidget.focus');
+    }
+  }, {
     key: 'resize',
     value: function resize() {
       _get(SoupWidget.prototype.__proto__ || Object.getPrototypeOf(SoupWidget.prototype), 'resize', this).call(this);
@@ -93668,6 +93676,8 @@ var SoupWidget = function (_WebglWidget) {
   }, {
     key: 'mousedown',
     value: function mousedown(event) {
+      this.focus();
+
       if (this.isGesture) {
         return;
       }
@@ -93735,9 +93745,9 @@ var SoupWidget = function (_WebglWidget) {
             if (this.mouseR > 0.0) {
               zoomRatio = this.saveMouseR / this.mouseR;
             }
-          } else if (event.shiftKey) {
-            zRotationAngle = this.mouseT - this.saveMouseT;
           } else if (event.ctrlKey) {
+            zRotationAngle = this.mouseT - this.saveMouseT;
+          } else if (event.shiftKey) {
             var wheel = diffY / 100;
             zoomRatio = Math.pow(1 + Math.abs(wheel) / 2, wheel > 0 ? 1 : -1);
           } else {
@@ -104129,6 +104139,12 @@ var AquariaAlignment = function () {
 
                 if (_feature.Residue === seqResNum) {
                   label += '<br>Feature: ' + _feature.Name;
+                  if (_feature.Description) {
+                    if (_feature.Name) {
+                      label += ' - ';
+                    }
+                    label += '' + _feature.Description;
+                  }
                 }
               }
             } catch (err) {
