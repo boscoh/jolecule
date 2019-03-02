@@ -9,9 +9,19 @@ module.exports = {
   env: {
     browser: true,
   },
-  extends: ["prettier-standard", "plugin:vue/recommended"],
-  plugins: ["vue", "prettier"],
+  extends: ['plugin:vue/recommended', 'prettier/standard'],
   rules: {
-    "prettier/prettier": "error"
-  },
+    'vue/html-self-closing': [
+      'error',
+      {
+        html: {
+          void: 'never',
+          normal: 'never',
+          component: 'never'
+        },
+        svg: 'always',
+        math: 'always'
+      }
+    ]
+  }
 }

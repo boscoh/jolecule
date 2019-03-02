@@ -39,7 +39,7 @@ let defaultArgs = {
 }
 
 class EmbedJolecule {
-  constructor(params) {
+  constructor (params) {
     this.params = _.cloneDeep(defaultArgs)
     _.assign(this.params, params)
     console.log('EmbedJolecule.constructor', this.params)
@@ -73,7 +73,7 @@ class EmbedJolecule {
     resizeFn()
   }
 
-  async asyncAddDataServer(dataServer) {
+  async asyncAddDataServer (dataServer) {
     while (this.isProcessing.flag) {
       await delay(100)
     }
@@ -133,14 +133,14 @@ class EmbedJolecule {
     console.log('EmbedJolecule.asyncAddDataServer finished')
   }
 
-  clear() {
+  clear () {
     while (this.soupWidget.soup.structureIds.length > 0) {
       this.soupWidget.deleteStructure(0)
     }
     // this.soupWidget.soup.selectedTraces.length = 0
   }
 
-  createDivs() {
+  createDivs () {
     this.div.css({
       display: 'flex',
       'flex-direction': 'column'
@@ -404,7 +404,7 @@ class EmbedJolecule {
     }
   }
 
-  resize() {
+  resize () {
     this.soupWidget.resize()
   }
 }

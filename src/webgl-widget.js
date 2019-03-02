@@ -30,7 +30,7 @@ import * as glgeom from './glgeom'
  *
  */
 class WebglWidget {
-  constructor(divTag, backgroundColor) {
+  constructor (divTag, backgroundColor) {
     this.divTag = divTag
     this.div = $(this.divTag)
     this.div.css('overflow', 'hidden')
@@ -115,7 +115,7 @@ class WebglWidget {
     this.mouseT = null
   }
 
-  initWebglRenderer() {
+  initWebglRenderer () {
     this.renderer = new THREE.WebGLRenderer({ antialias: true })
     this.renderer.setClearColor(this.backgroundColor)
     this.renderer.setSize(this.width(), this.height())
@@ -141,7 +141,7 @@ class WebglWidget {
     bind('gestureend', e => this.gestureend(e))
   }
 
-  render() {
+  render () {
     // leave this to the very last moment
     // to avoid the dreaded black canvas
     if (!util.exists(this.renderer)) {
@@ -152,7 +152,7 @@ class WebglWidget {
     this.renderer.render(this.displayScene, this.camera)
   }
 
-  getPosXY(pos) {
+  getPosXY (pos) {
     let widthHalf = 0.5 * this.width()
     let heightHalf = 0.5 * this.height()
 
@@ -164,7 +164,7 @@ class WebglWidget {
     }
   }
 
-  getPickColorFromMouse() {
+  getPickColorFromMouse () {
     let x = this.mouseX
     let y = this.mouseY
 
@@ -192,7 +192,7 @@ class WebglWidget {
     return (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | pixelBuffer[2]
   }
 
-  setCameraParams(cameraParams) {
+  setCameraParams (cameraParams) {
     // rotate lights to soupView orientation
     let cameraDirection = this.cameraParams.position
       .clone()
@@ -229,7 +229,7 @@ class WebglWidget {
     this.displayScene.fog.far = far
   }
 
-  buildLights() {
+  buildLights () {
     this.lights.length = 0
 
     let directedLight = new THREE.DirectionalLight(0xffffff)
@@ -246,7 +246,7 @@ class WebglWidget {
     }
   }
 
-  resize() {
+  resize () {
     let height = this.div.outerHeight()
     this.webglDiv.css('height', height)
 
@@ -273,23 +273,23 @@ class WebglWidget {
     }
   }
 
-  setMesssage(message) {
+  setMesssage (message) {
     console.log('SoupWidget.setMesssage:', message)
     this.messageDiv.html(message).show()
   }
 
-  async asyncSetMesssage(message) {
+  async asyncSetMesssage (message) {
     this.setMesssage(message)
     await util.delay(0)
   }
 
-  async asyncFlashMesssage(message, timeMs) {
+  async asyncFlashMesssage (message, timeMs) {
     this.setMesssage(message)
     await util.delay(timeMs)
     this.messageDiv.hide().html('')
   }
 
-  cleanupMessage() {
+  cleanupMessage () {
     this.messageDiv.hide()
   }
 
@@ -309,7 +309,7 @@ class WebglWidget {
    * Rebuild soupView from meshes in this.displayMeshes &
    * this.pickingMeshes
    */
-  rebuildSceneFromMeshes() {
+  rebuildSceneFromMeshes () {
     glgeom.clearObject3D(this.displayScene)
     glgeom.clearObject3D(this.pickingScene)
     for (let mesh of _.values(this.displayMeshes)) {
@@ -332,7 +332,7 @@ class WebglWidget {
    * @param meshName
    * @param visible
    */
-  setMeshVisible(meshName, visible) {
+  setMeshVisible (meshName, visible) {
     if (meshName in this.displayMeshes) {
       glgeom.setVisible(this.displayMeshes[meshName], visible)
     }
@@ -341,25 +341,25 @@ class WebglWidget {
     }
   }
 
-  x() {
+  x () {
     return 0
   }
 
-  y() {
+  y () {
     return 0
   }
 
-  width() {
+  width () {
     let width = this.div.width() - this.x()
     return width
   }
 
-  height() {
+  height () {
     let height = this.div.height() - this.y()
     return height
   }
 
-  getPointer(event) {
+  getPointer (event) {
     if (util.exists(event.touches) && event.touches.length > 0) {
       this.eventX = event.touches[0].clientX
       this.eventY = event.touches[0].clientY
@@ -387,7 +387,7 @@ class WebglWidget {
     }
   }
 
-  savePointer() {
+  savePointer () {
     this.saveMouseX = this.mouseX
     this.saveMouseY = this.mouseY
     this.saveMouseR = this.mouseR

@@ -8,21 +8,21 @@
 import $ from 'jquery'
 import _ from 'lodash'
 
-function exists(x) {
+function exists (x) {
   return !_.isNil(x)
 }
 
-function linkButton(text, classTag, callback) {
+function linkButton (text, classTag, callback) {
   return $('<span>')
     .html(text)
     .addClass(classTag)
-    .on('click touch', function(e) {
+    .on('click touch', function (e) {
       e.preventDefault()
       callback()
     })
 }
 
-function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
+function stickJqueryDivInTopLeft (parent, target, xOffset, yOffset) {
   target.css({
     position: 'absolute',
     'z-index': '2'
@@ -40,7 +40,7 @@ function stickJqueryDivInTopLeft(parent, target, xOffset, yOffset) {
   })
 }
 
-function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
+function stickJqueryDivInCenter (parent, target, xOffset, yOffset) {
   target.css({
     position: 'absolute',
     'z-index': '2'
@@ -60,7 +60,7 @@ function stickJqueryDivInCenter(parent, target, xOffset, yOffset) {
   })
 }
 
-function stickJqueryDivInBottomLeft(parent, target, xOffset, yOffset) {
+function stickJqueryDivInBottomLeft (parent, target, xOffset, yOffset) {
   target.css({
     position: 'absolute',
     'z-index': '9000'
@@ -76,11 +76,11 @@ function stickJqueryDivInBottomLeft(parent, target, xOffset, yOffset) {
   })
 }
 
-function inArray(v, aList) {
+function inArray (v, aList) {
   return aList.indexOf(v) >= 0
 }
 
-function randomString(nChar) {
+function randomString (nChar) {
   let chars = '0123456789abcdefghiklmnopqrstuvwxyz'
   let s = ''
   for (let i = 0; i < nChar; i++) {
@@ -90,29 +90,29 @@ function randomString(nChar) {
   return s
 }
 
-function randomId() {
+function randomId () {
   return 'view:' + randomString(6)
 }
 
-function textEntryDialog(parentDiv, label, callback) {
+function textEntryDialog (parentDiv, label, callback) {
   if (!label) {
     label = ''
   }
 
   window.keyboardLock = true
 
-  function cleanup() {
+  function cleanup () {
     dialog.remove()
     window.keyboardLock = false
   }
 
-  function accept() {
+  function accept () {
     callback(textarea.val())
     cleanup()
     window.keyboardLock = false
   }
 
-  function discard() {
+  function discard () {
     cleanup()
     window.keyboardLock = false
   }
@@ -125,7 +125,7 @@ function textEntryDialog(parentDiv, label, callback) {
     .css('width', '100%')
     .css('margin-bottom', '0.5em')
     .addClass('jolecule-view-text')
-    .keydown(function(e) {
+    .keydown(function (e) {
       if (e.keyCode === 27) {
         discard()
         return true
@@ -154,7 +154,7 @@ function textEntryDialog(parentDiv, label, callback) {
   }, 100)
 }
 
-function delay(timeMs) {
+function delay (timeMs) {
   return new Promise(resolve => {
     setTimeout(resolve, timeMs)
   })
@@ -163,7 +163,7 @@ function delay(timeMs) {
 /**
  * Copies to the clipboard https://stackoverflow.com/a/30810322
  */
-function copyTextToClipboard(text) {
+function copyTextToClipboard (text) {
   let textArea = document.createElement('textarea')
 
   //

@@ -5,7 +5,7 @@
 
 import v3 from './v3'
 
-function assert(condition, message) {
+function assert (condition, message) {
   if (!condition) {
     throw message || 'Assertion failed'
   }
@@ -14,18 +14,18 @@ function assert(condition, message) {
 /**
  * @returns {number} - from [-1.0, 1.0]
  */
-function get_random_real() {
+function get_random_real () {
   return (Math.random() - 0.5) * 2.0
 }
 
 /**
  * @returns {THREE.Vector3} - random vector in the unit circle
  */
-function get_random_vector() {
+function get_random_vector () {
   return v3.create(get_random_real(), get_random_real(), get_random_real())
 }
 
-function radians(degrees) {
+function radians (degrees) {
   return (degrees / 180.0) * Math.PI
 }
 

@@ -11,7 +11,7 @@ import * as THREE from 'three'
 import v3 from './v3'
 import _ from 'lodash'
 
-function CatmullRom(t, p0, p1, p2, p3) {
+function CatmullRom (t, p0, p1, p2, p3) {
   let v0 = (p2 - p0) * 0.5
   let v1 = (p3 - p1) * 0.5
   let t2 = t * t
@@ -36,7 +36,7 @@ function CatmullRom(t, p0, p1, p2, p3) {
  * @param {THREE.Vector3} p4
  * @returns {THREE.Vector3} the interpolated point
  */
-function catmulRomSpline(t, p1, p2, p3, p4) {
+function catmulRomSpline (t, p1, p2, p3, p4) {
   return v3.create(
     CatmullRom(t, p1.x, p2.x, p3.x, p4.x),
     CatmullRom(t, p1.y, p2.y, p3.y, p4.y),
@@ -52,7 +52,7 @@ function catmulRomSpline(t, p1, p2, p3, p4) {
  * that produces a sub-portion of the path.
  */
 class PathAndFrenetFrames {
-  constructor() {
+  constructor () {
     this.points = []
     this.normals = []
     this.tangents = []
@@ -64,7 +64,7 @@ class PathAndFrenetFrames {
     this.refIndices = []
   }
 
-  slice(i, j) {
+  slice (i, j) {
     let subPath = new PathAndFrenetFrames()
     subPath.points = this.points.slice(i, j)
     subPath.normals = this.normals.slice(i, j)
@@ -87,7 +87,7 @@ class PathAndFrenetFrames {
  * @param {Number} jOldPoint
  * @returns {PathAndFrenetFrames}
  */
-function expandPath(oldPath, n, iOldPoint, jOldPoint) {
+function expandPath (oldPath, n, iOldPoint, jOldPoint) {
   let newPath = new PathAndFrenetFrames()
 
   newPath.points.push(oldPath.points[iOldPoint])
@@ -190,13 +190,13 @@ function expandPath(oldPath, n, iOldPoint, jOldPoint) {
  * controlled.
  */
 class Trace extends PathAndFrenetFrames {
-  constructor() {
+  constructor () {
     super()
     this.indices = []
     this.detail = 4
   }
 
-  getReference(i) {
+  getReference (i) {
     let iRef = this.indices[i]
     return this.referenceObjects[iRef]
   }
@@ -205,7 +205,7 @@ class Trace extends PathAndFrenetFrames {
    * Calculates tangents as an average on neighbouring points
    * so that we get a smooth path.
    */
-  calcTangents() {
+  calcTangents () {
     let iStart = 0
     let iEnd = this.points.length
     let iLast = iEnd - 1
@@ -246,7 +246,7 @@ class Trace extends PathAndFrenetFrames {
    * it will use the normal, otherwise it will generate own
    * normal from the path curvature
    */
-  calcNormals() {
+  calcNormals () {
     let iStart = 0
     let iEnd = this.points.length
     let iLast = iEnd - 1
@@ -292,7 +292,7 @@ class Trace extends PathAndFrenetFrames {
     }
   }
 
-  calcBinormals() {
+  calcBinormals () {
     let iStart = 0
     let iEnd = this.points.length
     for (let i = iStart; i < iEnd; i += 1) {
@@ -302,11 +302,11 @@ class Trace extends PathAndFrenetFrames {
     }
   }
 
-  expand() {
+  expand () {
     this.detailedPath = expandPath(this, 2 * this.detail, 0, this.points.length)
   }
 
-  getGeometry(face, isRound, isFront, isBack, color) {
+  getGeometry (face, isRound, isFront, isBack, color) {
     let path = this.detailedPath
     let iResStart = 0
     let iResEnd = this.points.length
@@ -359,7 +359,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
    * @param {PathAndFrenetFrames} path - collection of points, normals, and binormals
    * @param {boolean} round - normals are draw from centre, otherwise perp to edge
    */
-  constructor(traces, shape, isIndexColor = false) {
+  constructor (traces, shape, isIndexColor = false) {
     super()
 
     this.type = 'BufferRibbonGeometry'
@@ -384,7 +384,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.setColors()
   }
 
-  countVertexAndFacesOfPath() {
+  countVertexAndFacesOfPath () {
     this.nVertex = 0
     this.nFace = 0
 
@@ -407,7 +407,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     }
   }
 
-  build() {
+  build () {
     for (let iPath of _.range(this.paths.length)) {
       let path = this.paths[iPath]
       let trace = this.parameters.traces[iPath]
@@ -417,7 +417,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
       let iTraceStart = 0
       let iTraceEnd = trace.points.length
 
-      function getWidth(iTracePoint) {
+      function getWidth (iTracePoint) {
         return trace.segmentTypes[iTracePoint] === 'C' ? 0.7 : 8
       }
 
@@ -520,7 +520,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
             }
           }
 
-          function getRoundedShapeNormals(iPathPoint) {
+          function getRoundedShapeNormals (iPathPoint) {
             let nVertex = shapePoints.length
             let shapeNormals = []
             let x, y
@@ -543,7 +543,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
             return shapeNormals
           }
 
-          function getFlatShapeNormals(iPathPoint) {
+          function getFlatShapeNormals (iPathPoint) {
             let nVertex = shapePoints.length
             let shapeNormals = []
             let x, y
@@ -654,7 +654,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     // this.computeVertexNormals()
   }
 
-  setColors() {
+  setColors () {
     let vertexCount = 0
     for (let iPath of _.range(this.paths.length)) {
       let path = this.paths[iPath]
@@ -726,7 +726,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.attributes.color.needsUpdate = true
   }
 
-  setAttributes() {
+  setAttributes () {
     let positions = new Float32Array(this.nVertex * 3)
     let normals = new Float32Array(this.nVertex * 3)
     let indices = new Int32Array(this.nFace * 3)
@@ -750,14 +750,14 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.vertexCount = 0
   }
 
-  setColor(iVertex, color) {
+  setColor (iVertex, color) {
     let iPosition = 3 * iVertex
     this.colors[iPosition] = color.r
     this.colors[iPosition + 1] = color.g
     this.colors[iPosition + 2] = color.b
   }
 
-  pushVertex(vertex) {
+  pushVertex (vertex) {
     this.positions[this.positionCount] = vertex.x
     this.positions[this.positionCount + 1] = vertex.y
     this.positions[this.positionCount + 2] = vertex.z
@@ -766,7 +766,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.vertexCount += 1
   }
 
-  pushVerticesNormalsOfFace(v0, v1, v2, normalI, normalJ, normalK) {
+  pushVerticesNormalsOfFace (v0, v1, v2, normalI, normalJ, normalK) {
     this.pushVertex(v0)
     this.pushVertex(v1)
     this.pushVertex(v2)
@@ -794,7 +794,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
     this.normals[k * 3 + 2] = normalK.z
   }
 
-  getVertex(iVertex) {
+  getVertex (iVertex) {
     return v3.create(
       this.positions[iVertex * 3],
       this.positions[iVertex * 3 + 1],
@@ -808,7 +808,7 @@ class BufferRibbonGeometry extends THREE.BufferGeometry {
  * a polygon, and raises it to a certain thickness.
  */
 class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
-  constructor(verticesList, colorList, thickness) {
+  constructor (verticesList, colorList, thickness) {
     super()
 
     this.type = 'BufferRaisedShapesGeometry'
@@ -825,7 +825,7 @@ class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
     this.setPath()
   }
 
-  countVertexAndFacesOfPath(front, back) {
+  countVertexAndFacesOfPath (front, back) {
     this.nVertex = 0
     this.nFace = 0
 
@@ -842,7 +842,7 @@ class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
     this.nVertex = 3 * this.nFace
   }
 
-  setPath() {
+  setPath () {
     for (let [i, vertices] of this.parameters.verticesList.entries()) {
       let normal = threePointNormal(vertices.slice(0, 3))
       let displacement = normal
@@ -901,14 +901,14 @@ class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
     this.computeVertexNormals()
   }
 
-  setColor(iVertex, color) {
+  setColor (iVertex, color) {
     let iPosition = 3 * iVertex
     this.colors[iPosition] = color.r
     this.colors[iPosition + 1] = color.g
     this.colors[iPosition + 2] = color.b
   }
 
-  recolor(newColorList) {
+  recolor (newColorList) {
     this.parameters.colorList = newColorList
     let iVertexTotal = 0
     for (let [iVertexSet, vertices] of this.parameters.verticesList.entries()) {
@@ -923,7 +923,7 @@ class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
     this.attributes.color.needsUpdate = true
   }
 
-  setAttributes() {
+  setAttributes () {
     let positions = new Float32Array(this.nVertex * 3)
     let normals = new Float32Array(this.nVertex * 3)
     let indices = new Int32Array(this.nFace * 3)
@@ -947,7 +947,7 @@ class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
     this.vertexCount = 0
   }
 
-  pushVertex(vertex, color) {
+  pushVertex (vertex, color) {
     this.positions[this.positionCount] = vertex.x
     this.positions[this.positionCount + 1] = vertex.y
     this.positions[this.positionCount + 2] = vertex.z
@@ -960,7 +960,7 @@ class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
     this.vertexCount += 1
   }
 
-  pushVerticesOfFace(v0, v1, v2, color) {
+  pushVerticesOfFace (v0, v1, v2, color) {
     this.pushVertex(v0, color)
     this.pushVertex(v1, color)
     this.pushVertex(v2, color)
@@ -973,7 +973,7 @@ class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
     this.indexCount += 3
   }
 
-  getVertex(iVertex) {
+  getVertex (iVertex) {
     return v3.create(
       this.positions[iVertex * 3],
       this.positions[iVertex * 3 + 1],
@@ -987,7 +987,7 @@ class BufferRaisedShapesGeometry extends THREE.BufferGeometry {
  * It can be reorientated using a lookAt() call
  */
 class BlockArrowGeometry extends THREE.ExtrudeGeometry {
-  constructor() {
+  constructor () {
     let shape = new THREE.Shape([
       new THREE.Vector2(-0.25, -0.5),
       new THREE.Vector2(0.0, +0.5),
@@ -1022,11 +1022,11 @@ class BlockArrowGeometry extends THREE.ExtrudeGeometry {
  * @param {THREE.Object3D} obj
  * @param {boolean} visibility
  */
-function setVisible(obj, visibility) {
+function setVisible (obj, visibility) {
   if (_.isUndefined(obj)) {
     return
   }
-  obj.traverse(function(c) {
+  obj.traverse(function (c) {
     c.visible = visibility
   })
 }
@@ -1039,7 +1039,7 @@ function setVisible(obj, visibility) {
  *
  * @param {THREE.Object3D} obj
  */
-function clearObject3D(obj) {
+function clearObject3D (obj) {
   let iLast = obj.children.length - 1
   for (let i = iLast; i >= 0; i -= 1) {
     let child = obj.children[i]
@@ -1056,13 +1056,13 @@ function clearObject3D(obj) {
   }
 }
 
-function perpVector(ref, vec) {
+function perpVector (ref, vec) {
   let vecAlongRef = ref.clone().multiplyScalar(vec.dot(ref))
 
   return vec.clone().sub(vecAlongRef)
 }
 
-function threePointNormal(vertices) {
+function threePointNormal (vertices) {
   let cb = new THREE.Vector3()
   let ab = new THREE.Vector3()
 
@@ -1075,15 +1075,15 @@ function threePointNormal(vertices) {
   return cb
 }
 
-function getUnitVectorRotation(reference, target) {
+function getUnitVectorRotation (reference, target) {
   return new THREE.Quaternion().setFromUnitVectors(reference, target)
 }
 
-function fraction(reference, target, f) {
+function fraction (reference, target, f) {
   return f * (target - reference) + reference
 }
 
-function getFractionRotation(rotation, t) {
+function getFractionRotation (rotation, t) {
   let identity = new THREE.Quaternion()
   return identity.slerp(rotation, t)
 }
@@ -1096,7 +1096,7 @@ function getFractionRotation(rotation, t) {
  * @param {Number} radius
  * @returns {THREE.Matrix4}
  */
-function getSphereMatrix(pos, radius) {
+function getSphereMatrix (pos, radius) {
   let obj = new THREE.Object3D()
   obj.matrix.identity()
   obj.position.copy(pos)
@@ -1105,7 +1105,7 @@ function getSphereMatrix(pos, radius) {
   return obj.matrix
 }
 
-function makeBufferZCylinderGeometry(radius, radialSegments) {
+function makeBufferZCylinderGeometry (radius, radialSegments) {
   if (_.isUndefined(radialSegments)) {
     radialSegments = 4
   }
@@ -1134,7 +1134,7 @@ function makeBufferZCylinderGeometry(radius, radialSegments) {
  * @param {Number} radius
  * @returns {THREE.Matrix4}
  */
-function getCylinderMatrix(from, to, radius) {
+function getCylinderMatrix (from, to, radius) {
   let obj = new THREE.Object3D()
   obj.scale.set(radius, radius, from.distanceTo(to))
   obj.position
@@ -1146,7 +1146,7 @@ function getCylinderMatrix(from, to, radius) {
   return obj.matrix
 }
 
-function applyMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
+function applyMatrix4toVector3array (matrix, vec3Array, iStart, iEnd) {
   let elems = matrix.elements
   for (let i = iStart; i < iEnd; i += 3) {
     let x = vec3Array[i]
@@ -1158,7 +1158,12 @@ function applyMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
   }
 }
 
-function applyRotationOfMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
+function applyRotationOfMatrix4toVector3array (
+  matrix,
+  vec3Array,
+  iStart,
+  iEnd
+) {
   let elems = matrix.elements
   for (let i = iStart; i < iEnd; i += 3) {
     let x = vec3Array[i]
@@ -1170,7 +1175,7 @@ function applyRotationOfMatrix4toVector3array(matrix, vec3Array, iStart, iEnd) {
   }
 }
 
-function expandFloatArray(refArray, nCopy) {
+function expandFloatArray (refArray, nCopy) {
   let nElem = refArray.length
   let targetArray = new Float32Array(nElem * nCopy)
   for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
@@ -1182,7 +1187,7 @@ function expandFloatArray(refArray, nCopy) {
   return targetArray
 }
 
-function applyColorToVector3array(color, vec3Array, iStart, iEnd) {
+function applyColorToVector3array (color, vec3Array, iStart, iEnd) {
   for (let i = iStart; i < iEnd; i += 3) {
     vec3Array[i] = color.r
     vec3Array[i + 1] = color.g
@@ -1190,7 +1195,7 @@ function applyColorToVector3array(color, vec3Array, iStart, iEnd) {
   }
 }
 
-function expandIndices(refArray, nCopy, nIndexInCopy) {
+function expandIndices (refArray, nCopy, nIndexInCopy) {
   let nElem = refArray.length
   let targetArray = new Uint32Array(nElem * nCopy)
   for (let iCopy = 0; iCopy < nCopy; iCopy += 1) {
@@ -1209,7 +1214,7 @@ function expandIndices(refArray, nCopy, nIndexInCopy) {
  * efficiently creating a large dataset
  */
 class CopyBufferGeometry extends THREE.BufferGeometry {
-  constructor(copyBufferGeometry, nCopy) {
+  constructor (copyBufferGeometry, nCopy) {
     super()
 
     this.type = 'CopyBufferGeometry'
@@ -1254,7 +1259,7 @@ class CopyBufferGeometry extends THREE.BufferGeometry {
     this.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
   }
 
-  applyMatrixToCopy(matrix, iCopy) {
+  applyMatrixToCopy (matrix, iCopy) {
     let nElemRef = this.refBufferGeometry.attributes.position.array.length
     let positions = this.attributes.position.array
     let normals = this.attributes.normal.array
@@ -1264,7 +1269,7 @@ class CopyBufferGeometry extends THREE.BufferGeometry {
     applyRotationOfMatrix4toVector3array(matrix, normals, iElemStart, iElemEnd)
   }
 
-  applyColorToCopy(color, iCopy) {
+  applyColorToCopy (color, iCopy) {
     let nElemRef = this.refBufferGeometry.attributes.position.array.length
     let colors = this.attributes.color.array
     let iElemStart = iCopy * nElemRef

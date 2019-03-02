@@ -38,7 +38,7 @@ import * as util from './util'
  * - used to display the mouse tool for making distance labels
  */
 class LineElement {
-  constructor(soupWidget, color) {
+  constructor (soupWidget, color) {
     this.color = color
 
     this.div = $('<canvas>').css({
@@ -55,11 +55,11 @@ class LineElement {
     this.parentDiv.append(this.div)
   }
 
-  hide() {
+  hide () {
     this.div.css('display', 'none')
   }
 
-  move(x1, y1, x2, y2) {
+  move (x1, y1, x2, y2) {
     let parentDivPos = this.parentDiv.position()
 
     let width = Math.abs(x1 - x2)
@@ -96,13 +96,12 @@ class LineElement {
  *   - creates methods that redirects mouse commands to that canvas
  */
 class CanvasWidget {
-  constructor(selector) {
+  constructor (selector) {
     this.parentDiv = $(selector)
     this.parentDivId = this.parentDiv.attr('id')
 
-    this.div = $('<div>')
-      .css('user-select', 'none')
-      // .css('position', 'absolute')
+    this.div = $('<div>').css('user-select', 'none')
+    // .css('position', 'absolute')
 
     this.parentDiv.append(this.div)
 
@@ -128,25 +127,25 @@ class CanvasWidget {
     bind('touchcancel', e => this.mouseup(e))
   }
 
-  width() {
+  width () {
     return this.parentDiv.width()
   }
 
-  height() {
+  height () {
     return this.parentDiv.height()
   }
 
-  x() {
+  x () {
     let parentDivPos = this.parentDiv.position()
     return parentDivPos.left
   }
 
-  y() {
+  y () {
     let parentDivPos = this.parentDiv.position()
     return parentDivPos.top
   }
 
-  inside(x, y) {
+  inside (x, y) {
     return (
       x >= this.x() &&
       x <= this.x() + this.width() &&
@@ -155,25 +154,25 @@ class CanvasWidget {
     )
   }
 
-  update() {}
+  update () {}
 
-  resize() {
+  resize () {
     this.canvasDom.width = this.width()
     this.canvasDom.height = this.height()
   }
 
-  strokeRect(x, y, w, h, strokeStyle) {
+  strokeRect (x, y, w, h, strokeStyle) {
     this.drawContext.strokeStyle = strokeStyle
     this.drawContext.strokeRect(x, y, w, h)
   }
 
-  fillRect(x, y, w, h, fillStyle) {
+  fillRect (x, y, w, h, fillStyle) {
     this.drawContext.fillStyle = fillStyle
     this.drawContext.strokeStyle = 'none'
     this.drawContext.fillRect(x, y, w, h)
   }
 
-  line(x1, y1, x2, y2, lineWidth, color) {
+  line (x1, y1, x2, y2, lineWidth, color) {
     this.drawContext.fillStyle = color
     this.drawContext.strokeStyle = color
     this.drawContext.beginPath()
@@ -183,7 +182,7 @@ class CanvasWidget {
     this.drawContext.stroke()
   }
 
-  text(text, x, y, font, color, align) {
+  text (text, x, y, font, color, align) {
     this.drawContext.fillStyle = color
     this.drawContext.font = font
     this.drawContext.textAlign = align
@@ -191,24 +190,24 @@ class CanvasWidget {
     this.drawContext.fillText(text, x, y)
   }
 
-  textWidth(text, font) {
+  textWidth (text, font) {
     this.drawContext.font = font
     this.drawContext.textAlign = 'center'
     return this.drawContext.measureText(text).width
   }
 
-  saveMouse() {
+  saveMouse () {
     this.saveMouseX = this.pointerX
     this.saveMouseY = this.pointerY
     this.saveMouseR = this.mouseR
     this.saveMouseT = this.mouseT
   }
 
-  click(event) {}
+  click (event) {}
 
-  doubleclick(event) {}
+  doubleclick (event) {}
 
-  mousedown(event) {
+  mousedown (event) {
     event.preventDefault()
 
     this.getPointer(event)
@@ -226,16 +225,16 @@ class CanvasWidget {
     this.mousemove(event)
   }
 
-  mousemove(event) {}
+  mousemove (event) {}
 
-  mouseout(event) {}
+  mouseout (event) {}
 
-  mouseup(event) {
+  mouseup (event) {
     event.preventDefault()
     this.mousePressed = false
   }
 
-  getPointer(event) {
+  getPointer (event) {
     if (util.exists(event.touches) && event.touches.length > 0) {
       this.eventX = event.touches[0].clientX
       this.eventY = event.touches[0].clientY
@@ -270,7 +269,7 @@ class CanvasWidget {
  * within a parent div denoted by selector
  */
 class PopupText {
-  constructor(divTag, heightArrow) {
+  constructor (divTag, heightArrow) {
     if (_.isUndefined(heightArrow)) {
       this.heightArrow = 30
     } else {
@@ -317,7 +316,7 @@ class PopupText {
     this.parentDiv.append(this.arrow)
   }
 
-  move(x, y) {
+  move (x, y) {
     this.div.css({ display: 'block' })
     let rect = this.div[0].getBoundingClientRect()
     let width = rect.width
@@ -346,16 +345,16 @@ class PopupText {
     })
   }
 
-  hide() {
+  hide () {
     this.div.css('display', 'none')
     this.arrow.css('display', 'none')
   }
 
-  html(text) {
+  html (text) {
     this.div.html(text)
   }
 
-  remove() {
+  remove () {
     this.div.remove()
     this.arrow.remove()
   }
@@ -367,20 +366,20 @@ class PopupText {
  * of the given z position of the associated atoms
  */
 class AtomLabelsWidget {
-  constructor(soupWidget) {
+  constructor (soupWidget) {
     this.soupWidget = soupWidget
     this.soupView = soupWidget.soupView
     this.controller = soupWidget.controller
     this.popups = []
   }
 
-  removePopup(i) {
+  removePopup (i) {
     this.controller.deleteAtomLabel(i)
     this.popups[i].remove()
     this.popups.splice(i, 1)
   }
 
-  createPopup(i) {
+  createPopup (i) {
     let popup = new PopupText(this.soupWidget.divTag)
     popup.i = i
     popup.div.css('pointer-events', 'auto')
@@ -390,7 +389,7 @@ class AtomLabelsWidget {
     return popup
   }
 
-  drawFrame() {
+  drawFrame () {
     let labels = this.soupView.currentView.labels
 
     if (labels.length > this.popups.length) {
@@ -434,7 +433,7 @@ class AtomLabelsWidget {
  * tags
  */
 class DistanceMeasuresWidget {
-  constructor(soupWidget) {
+  constructor (soupWidget) {
     this.distanceMeasures = []
     this.scene = soupWidget.displayScene
     this.soupView = soupWidget.soupView
@@ -444,14 +443,14 @@ class DistanceMeasuresWidget {
     this.divs = []
   }
 
-  removeDistance(i) {
+  removeDistance (i) {
     this.scene.remove(this.distanceMeasures[i].line)
     this.distanceMeasures[i].div.remove()
     this.controller.deleteDistance(i)
     this.distanceMeasures.splice(i, 1)
   }
 
-  createDistanceMeasure(i) {
+  createDistanceMeasure (i) {
     let div = $('<div>').css({
       position: 'absolute',
       top: 0,
@@ -483,7 +482,7 @@ class DistanceMeasuresWidget {
     return { line, div }
   }
 
-  drawFrame() {
+  drawFrame () {
     let distances = this.soupView.currentView.distances
 
     if (distances.length > this.distanceMeasures.length) {
@@ -567,7 +566,7 @@ class DistanceMeasuresWidget {
  *   - these two are integrated so that they share state
  */
 class SequenceWidget extends CanvasWidget {
-  constructor(selector, soupWidget) {
+  constructor (selector, soupWidget) {
     super(selector)
 
     this.soupWidget = soupWidget
@@ -584,7 +583,9 @@ class SequenceWidget extends CanvasWidget {
     this.spacingY = 12
     this.yTopSequence =
       this.offsetY + this.heightStructureBar + this.spacingY * 2
-    this.yBottom = parseInt(this.yTopSequence + +this.spacingY * 2.7 + this.charHeight)
+    this.yBottom = parseInt(
+      this.yTopSequence + +this.spacingY * 2.7 + this.charHeight
+    )
     this.yMidSequence =
       this.yTopSequence + this.spacingY * 1.2 + this.charHeight / 2
 
@@ -597,7 +598,7 @@ class SequenceWidget extends CanvasWidget {
     this.div.attr('id', `${this.parentDivId}-inner`)
     this.div.css({
       'background-color': '#CCC',
-      'position': 'relative'
+      position: 'relative'
     })
 
     this.isWaitForDoubleClick = false
@@ -619,48 +620,48 @@ class SequenceWidget extends CanvasWidget {
     this.pressSection = 'none'
   }
 
-  width() {
+  width () {
     return this.parentDiv.width()
   }
 
-  height() {
+  height () {
     return this.yBottom
   }
 
-  resize() {
+  resize () {
     super.resize()
     this.div.height(this.height())
     this.parentDiv.height(this.height())
   }
 
-  iCharFromXStruct(x) {
+  iCharFromXStruct (x) {
     return (
       parseInt((x * this.nCharStruct) / this.textWidth()) +
       this.iCharStructStart
     )
   }
 
-  xStructFromIChar(iRes) {
+  xStructFromIChar (iRes) {
     return parseInt(
       ((iRes - this.iCharStructStart) / this.nCharStruct) * this.textWidth()
     )
   }
 
-  textWidth() {
+  textWidth () {
     return this.width()
   }
 
-  iCharFromXSeq(x) {
+  iCharFromXSeq (x) {
     return parseInt((x * this.nCharSeq) / this.textWidth()) + this.iCharSeqStart
   }
 
-  xSeqFromIChar(iRes) {
+  xSeqFromIChar (iRes) {
     return parseInt(
       ((iRes - this.iCharSeqStart) / this.nCharSeq) * this.textWidth()
     )
   }
 
-  calcNPad() {
+  calcNPad () {
     let polymerLengths = []
     for (let i of _.range(this.soup.structureIds.length)) {
       polymerLengths.push(0)
@@ -677,7 +678,7 @@ class SequenceWidget extends CanvasWidget {
     this.nPadChar = parseInt(0.02 * averageLength)
   }
 
-  rebuild() {
+  rebuild () {
     this.charEntries.length = 0
     this.calcNPad()
 
@@ -739,7 +740,7 @@ class SequenceWidget extends CanvasWidget {
     this.iCharStructEnd = this.nChar
   }
 
-  centerSeqOnIChar(iChar) {
+  centerSeqOnIChar (iChar) {
     this.iCharSeqStart = Math.max(iChar - 0.5 * this.nCharSeq, 0)
     this.iCharSeqStart = Math.min(
       this.iCharSeqStart,
@@ -749,7 +750,7 @@ class SequenceWidget extends CanvasWidget {
     this.iCharSeqEnd = this.iCharSeqStart + this.nCharSeq
   }
 
-  getColorStyle(iChar) {
+  getColorStyle (iChar) {
     if (iChar >= this.charEntries.length) {
       return this.unclickableColor
     }
@@ -765,7 +766,7 @@ class SequenceWidget extends CanvasWidget {
     }
   }
 
-  findFirstResidue(iCharStart) {
+  findFirstResidue (iCharStart) {
     for (let iChar = iCharStart; iChar < this.nChar - 1; iChar += 1) {
       let charEntry = this.charEntries[iChar + 1]
       if (!_.isNil(charEntry.iRes)) {
@@ -775,10 +776,9 @@ class SequenceWidget extends CanvasWidget {
     return null
   }
 
-  checkChain() {
+  checkChain () {
     this.nCharSeq = Math.ceil(this.width() / this.charWidth)
 
-    let nCharStructOld = this.nCharStruct
     let oldChain = this.chain
 
     // Set structure bar to full length
@@ -850,7 +850,7 @@ class SequenceWidget extends CanvasWidget {
   /**
    * Draw when updated from 3D display or mouse activity
    */
-  draw() {
+  draw () {
     this.checkChain()
 
     let yTopStructure = this.offsetY - 2
@@ -1066,7 +1066,7 @@ class SequenceWidget extends CanvasWidget {
     }
   }
 
-  update() {
+  update () {
     let iAtom = _.get(this.soupView, 'targetView.iAtom')
     let iResCurrent = this.soupView.soup.getAtomProxy(iAtom).iRes
 
@@ -1087,7 +1087,7 @@ class SequenceWidget extends CanvasWidget {
     this.draw()
   }
 
-  mousemove(event) {
+  mousemove (event) {
     this.getPointer(event)
 
     if (this.pointerY < this.yTopSequence) {
@@ -1119,12 +1119,12 @@ class SequenceWidget extends CanvasWidget {
     }
   }
 
-  mouseout() {
+  mouseout () {
     this.hover.hide()
     this.mousePressed = ''
   }
 
-  mouseup() {
+  mouseup () {
     if (this.isWaitForDoubleClick) {
       this.click(event)
     }
@@ -1132,7 +1132,7 @@ class SequenceWidget extends CanvasWidget {
     this.mousePressed = ''
   }
 
-  doubleclick(event) {
+  doubleclick (event) {
     console.log(
       'SequenceWidget.doubleclick',
       this.pressSection,
@@ -1158,7 +1158,7 @@ class SequenceWidget extends CanvasWidget {
     }
   }
 
-  click(event) {
+  click (event) {
     let iChar = null
     if (this.pressSection === 'bottom') {
       // mouse event in sequence bar
@@ -1192,7 +1192,7 @@ class SequenceWidget extends CanvasWidget {
     }
   }
 
-  mousedown(event) {
+  mousedown (event) {
     event.preventDefault()
 
     this.getPointer(event)
@@ -1233,7 +1233,7 @@ class SequenceWidget extends CanvasWidget {
  * ClippingPlaneWidget
  */
 class ClippingPlaneWidget extends CanvasWidget {
-  constructor(soupWidget, selector) {
+  constructor (soupWidget, selector) {
     super(selector)
     this.div.css('position', 'relative')
     this.soupView = soupWidget.soupView
@@ -1244,7 +1244,7 @@ class ClippingPlaneWidget extends CanvasWidget {
     this.zFrontColor = 'rgb(150, 90, 90)'
   }
 
-  resize() {
+  resize () {
     this.div.css({
       width: this.width(),
       height: this.height()
@@ -1253,34 +1253,34 @@ class ClippingPlaneWidget extends CanvasWidget {
     this.update()
   }
 
-  x() {
+  x () {
     return 0
   }
 
-  y() {
+  y () {
     return 0
   }
 
-  width() {
+  width () {
     let box = this.parentDiv[0].getBoundingClientRect()
     return box.width - 20
   }
 
-  height() {
+  height () {
     return this.parentDiv.height()
   }
 
-  xToZ(x) {
+  xToZ (x) {
     let fraction = x / this.width()
     return (0.5 - fraction) * this.maxZLength
   }
 
-  zToX(z) {
+  zToX (z) {
     let fraction = z / this.maxZLength
     return (0.5 - fraction) * this.width()
   }
 
-  update() {
+  update () {
     let soup = this.soupView.soup
     let cameraParams = this.soupView.currentView.cameraParams
     this.maxZLength = 2 * soup.maxLength
@@ -1323,12 +1323,12 @@ class ClippingPlaneWidget extends CanvasWidget {
     this.line(xMid, 0, xMid, this.height(), 1, '#995555')
   }
 
-  getZ(event) {
+  getZ (event) {
     this.getPointer(event)
     this.z = this.xToZ(this.pointerX)
   }
 
-  mousedown(event) {
+  mousedown (event) {
     this.getZ(event)
 
     if (this.z > 0) {
@@ -1342,7 +1342,7 @@ class ClippingPlaneWidget extends CanvasWidget {
     super.mousedown(event)
   }
 
-  mousemove(event) {
+  mousemove (event) {
     event.preventDefault()
     super.mousemove(event)
 
@@ -1365,7 +1365,7 @@ class ClippingPlaneWidget extends CanvasWidget {
 }
 
 class GridToggleButtonWidget {
-  constructor(soupWidget, selector, elem, x, y, color) {
+  constructor (soupWidget, selector, elem, x, y, color) {
     this.soupView = soupWidget.soupView
     this.controller = soupWidget.controller
     this.elem = elem
@@ -1386,16 +1386,16 @@ class GridToggleButtonWidget {
     soupWidget.addObserver(this)
   }
 
-  getToggle() {
+  getToggle () {
     return this.soupView.soup.grid.isElem[this.elem]
   }
 
-  toggle() {
+  toggle () {
     this.controller.toggleGridElem(this.elem)
     this.update()
   }
 
-  update() {
+  update () {
     if (this.getToggle()) {
       if (this.color) {
         this.div.css('background-color', this.color)
@@ -1416,7 +1416,7 @@ class GridToggleButtonWidget {
  * GridControlWidget
  */
 class GridControlWidget extends CanvasWidget {
-  constructor(soupWidget) {
+  constructor (soupWidget) {
     super(soupWidget.divTag)
 
     this.soupWidget = soupWidget
@@ -1438,7 +1438,7 @@ class GridControlWidget extends CanvasWidget {
     this.div.append(this.buttonsDiv)
   }
 
-  rebuild() {
+  rebuild () {
     if (!this.isGrid) {
       return
     }
@@ -1458,7 +1458,7 @@ class GridControlWidget extends CanvasWidget {
     }
   }
 
-  makeElemButton(elem, y) {
+  makeElemButton (elem, y) {
     let color = data.ElementColors[elem]
     let colorHexStr = '#' + color.getHexString()
     let id = 'grid-button-' + elem.toLowerCase()
@@ -1474,7 +1474,7 @@ class GridControlWidget extends CanvasWidget {
     )
   }
 
-  resize() {
+  resize () {
     if (!this.isGrid) {
       return
     }
@@ -1488,25 +1488,25 @@ class GridControlWidget extends CanvasWidget {
     this.canvasDom.height = this.height()
   }
 
-  width() {
+  width () {
     return 84
   }
 
-  height() {
+  height () {
     return this.buttonHeight * 6 + 10
   }
 
-  x() {
+  x () {
     let parentDivPos = this.parentDiv.position()
     return parentDivPos.left + 5
   }
 
-  y() {
+  y () {
     let parentDivPos = this.parentDiv.position()
     return parentDivPos.top + 50
   }
 
-  yToZ(y) {
+  yToZ (y) {
     let fraction = (y - 20) / this.sliderHeight
     let grid = this.soupView.soup.grid
     let diff = grid.bMax - grid.bMin
@@ -1520,13 +1520,13 @@ class GridControlWidget extends CanvasWidget {
     return z
   }
 
-  zToY(z) {
+  zToY (z) {
     let grid = this.soupView.soup.grid
     let diff = grid.bMax - grid.bMin
     return ((z - grid.bMin) / diff) * this.sliderHeight + 20
   }
 
-  update() {
+  update () {
     if (!this.isGrid) {
       return
     }
@@ -1565,13 +1565,13 @@ class GridControlWidget extends CanvasWidget {
     this.text(text, xm, yBottom + 6, font, textColor, 'center')
   }
 
-  getZ(event) {
+  getZ (event) {
     this.getPointer(event)
 
     this.z = this.yToZ(this.pointerY)
   }
 
-  mousedown(event) {
+  mousedown (event) {
     event.preventDefault()
 
     this.getZ(event)
@@ -1581,7 +1581,7 @@ class GridControlWidget extends CanvasWidget {
     this.mousemove(event)
   }
 
-  mousemove(event) {
+  mousemove (event) {
     event.preventDefault()
 
     if (!this.mousePressed) {
@@ -1593,7 +1593,7 @@ class GridControlWidget extends CanvasWidget {
     this.update()
   }
 
-  mouseup(event) {
+  mouseup (event) {
     event.preventDefault()
 
     this.mousePressed = false
@@ -1604,7 +1604,7 @@ class GridControlWidget extends CanvasWidget {
  * ColorLegendWidget
  */
 class ColorLegendWidget extends CanvasWidget {
-  constructor(soupWidget) {
+  constructor (soupWidget) {
     super(soupWidget.divTag)
     this.offset = { x: 5, y: 5 }
 
@@ -1634,7 +1634,7 @@ class ColorLegendWidget extends CanvasWidget {
     this.rebuild()
   }
 
-  default() {
+  default () {
     let getSSColor = ss => '#' + data.getSsColor(ss).getHexString()
     this.title = 'Secondary Structure'
     this.colorEntries = [
@@ -1645,7 +1645,7 @@ class ColorLegendWidget extends CanvasWidget {
     ]
   }
 
-  rebuild() {
+  rebuild () {
     this.buttonsDiv.empty()
 
     if (this.title) {
@@ -1685,22 +1685,22 @@ class ColorLegendWidget extends CanvasWidget {
     this.update()
   }
 
-  resize() {
+  resize () {
     this.div.css({
       bottom: this.offset.y,
       left: this.offset.x
     })
   }
 
-  width() {
+  width () {
     return 80
   }
 
-  height() {
+  height () {
     return this.buttonsDiv.height()
   }
 
-  update() {
+  update () {
     if (this.isShow) {
       this.div.show()
     } else {
@@ -1713,7 +1713,7 @@ class ColorLegendWidget extends CanvasWidget {
  * SelectionWidget
  */
 class SelectionWidget extends CanvasWidget {
-  constructor(soupWidget) {
+  constructor (soupWidget) {
     // super('#' + soupWidget.webglDivId)
     super(soupWidget.divTag)
     this.soupWidget = soupWidget
@@ -1738,14 +1738,14 @@ class SelectionWidget extends CanvasWidget {
     soupWidget.addObserver(this)
   }
 
-  resize() {
+  resize () {
     this.div.css({
       bottom: this.offset.y,
       right: this.offset.x
     })
   }
 
-  getText() {
+  getText () {
     let soup = this.soupWidget.soup
     let residue = soup.getResidueProxy()
 
@@ -1802,7 +1802,7 @@ class SelectionWidget extends CanvasWidget {
     return text
   }
 
-  async update() {
+  async update () {
     let s = this.getText()
     if (!s) {
       this.div.hide()
@@ -1815,7 +1815,7 @@ class SelectionWidget extends CanvasWidget {
 }
 
 class ResidueSelectorWidget {
-  constructor(soupWidget, selector) {
+  constructor (soupWidget, selector) {
     this.controller = soupWidget.controller
     this.soupView = soupWidget.soupView
     this.soupWidget = soupWidget
@@ -1830,7 +1830,7 @@ class ResidueSelectorWidget {
     this.$select.select2({ width: '150px' })
   }
 
-  change() {
+  change () {
     let iRes = parseInt(this.$select.val())
     let residue = this.soupView.soup.getResidueProxy(iRes)
     this.controller.clearSelectedResidues()
@@ -1838,7 +1838,7 @@ class ResidueSelectorWidget {
     this.controller.setTargetViewByIAtom(residue.iAtom)
   }
 
-  rebuild() {
+  rebuild () {
     this.$select.empty()
     // rebuild selector
     this.soup = this.soupView.soup
@@ -1853,7 +1853,7 @@ class ResidueSelectorWidget {
     }
   }
 
-  update() {
+  update () {
     if (this.$select) {
       let iAtom = this.soupView.currentView.iAtom
       let iRes = this.soupView.soup.getAtomProxy(iAtom).iRes
@@ -1873,7 +1873,7 @@ class ResidueSelectorWidget {
 }
 
 class GraphicsMenuWidget {
-  constructor(soupWidget, selector, isPopAbove = true) {
+  constructor (soupWidget, selector, isPopAbove = true) {
     this.soupWidget = soupWidget
     this.controller = soupWidget.controller
     this.isShowPanel = false
@@ -1946,7 +1946,7 @@ class GraphicsMenuWidget {
     this.update()
   }
 
-  update() {
+  update () {
     this.popOutPanelDiv.css('display', this.isShowPanel ? 'block' : 'none')
     if (this.isShowPanel) {
       this.div.addClass('jolecule-button-toggle-on')
@@ -1977,7 +1977,7 @@ class GraphicsMenuWidget {
 }
 
 class ToggleWidget {
-  constructor(soupWidget, selector) {
+  constructor (soupWidget, selector) {
     this.soupWidget = soupWidget
     this.controller = soupWidget.controller
     this.div = $(selector)
@@ -1991,13 +1991,13 @@ class ToggleWidget {
     this.soupWidget.addObserver(this)
   }
 
-  html() {}
+  html () {}
 
-  get() {}
+  get () {}
 
-  set(val) {}
+  set (val) {}
 
-  update() {
+  update () {
     if (this.get()) {
       if (!this.div.hasClass('jolecule-button-toggle-on')) {
         this.div.addClass('jolecule-button-toggle-on')
@@ -2011,42 +2011,42 @@ class ToggleWidget {
 }
 
 class ToggleOptionWidget extends ToggleWidget {
-  constructor(soupWidget, selector, option) {
+  constructor (soupWidget, selector, option) {
     super(soupWidget, selector)
     this.option = option
     this.div.html(this.html())
   }
 
-  html() {
+  html () {
     return _.capitalize(this.option)
   }
 
-  get() {
+  get () {
     return this.controller.getShowOption(this.option)
   }
 
-  set(val) {
+  set (val) {
     this.controller.setShowOption(this.option, val)
   }
 }
 
 class ToggleAnimateWidget extends ToggleWidget {
-  constructor(soupWidget, selector, state, text) {
+  constructor (soupWidget, selector, state, text) {
     super(soupWidget, selector)
     this.state = state
     this.text = text
     this.div.html(this.html())
   }
 
-  html() {
+  html () {
     return this.text
   }
 
-  get() {
+  get () {
     return this.controller.getAnimateState() === this.state
   }
 
-  set(val) {
+  set (val) {
     if (val) {
       this.controller.setAnimateState(this.state)
     } else {
@@ -2056,25 +2056,25 @@ class ToggleAnimateWidget extends ToggleWidget {
 }
 
 class HudTextWidget extends ToggleWidget {
-  constructor(soupWidget, selector) {
+  constructor (soupWidget, selector) {
     super(soupWidget, selector)
     this.soupView = this.soupWidget.soupView
     this.isText = true
   }
 
-  html() {
+  html () {
     return 'Text'
   }
 
-  get() {
+  get () {
     return this.isText
   }
 
-  set(val) {
+  set (val) {
     this.isText = val
   }
 
-  async update() {
+  async update () {
     super.update()
     if (this.isText && this.soupWidget) {
       let text
@@ -2090,7 +2090,7 @@ class HudTextWidget extends ToggleWidget {
   }
 }
 
-function openAboutDialog(parentDiv) {
+function openAboutDialog (parentDiv) {
   window.keyboardLock = true
 
   let dialog = $('<div>')
@@ -2099,7 +2099,7 @@ function openAboutDialog(parentDiv) {
     .css('z-index', '5')
     .css('width', Math.min(400, parentDiv.width() - 100))
 
-  function cleanup() {
+  function cleanup () {
     dialog.remove()
     window.keyboardLock = false
   }
@@ -2120,7 +2120,7 @@ function openAboutDialog(parentDiv) {
          <a href="https://jolecule.com">jolecule.com</a>
        </label>`
     )
-    .keydown(function(e) {
+    .keydown(function (e) {
       if (e.keyCode === 27) {
         cleanup()
         return true
@@ -2142,7 +2142,7 @@ function openAboutDialog(parentDiv) {
 }
 
 class ToggleToolbarWidget {
-  constructor(
+  constructor (
     embedJolecule,
     buttonSelector,
     toolbarSelector,
@@ -2186,7 +2186,7 @@ class ToggleToolbarWidget {
     this.resize()
   }
 
-  resize() {
+  resize () {
     if (this.isToolbarOnTop) {
       this.buttonInDisplayDiv.css({
         top: this.buttonInDisplayOffset.y,
@@ -2200,7 +2200,7 @@ class ToggleToolbarWidget {
     }
   }
 
-  async update() {
+  async update () {
     if (this.isChange) {
       this.isToggleOn = !this.isToggleOn
       this.isChange = false

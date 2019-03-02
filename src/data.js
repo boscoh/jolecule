@@ -33,9 +33,9 @@ const rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U']
 
 // Color constants
 
-const green = new THREE.Color(0x6F9E52)
-const blue = new THREE.Color(0x6491B6)
-const yellow = new THREE.Color(0xF6C619)
+const green = new THREE.Color(0x6f9e52)
+const blue = new THREE.Color(0x6491b6)
+const yellow = new THREE.Color(0xf6c619)
 const purple = new THREE.Color(0x9578aa)
 const grey = new THREE.Color(0xbbbbbb)
 const red = new THREE.Color(0x993333)
@@ -66,7 +66,7 @@ for (let [k, v] of _.toPairs(ElementColors)) {
   ElementColors[k] = new THREE.Color(v)
 }
 
-function getSsColor(ss) {
+function getSsColor (ss) {
   if (ss === 'E') {
     return yellow
   } else if (ss === 'H') {
@@ -157,7 +157,7 @@ const coilFace = new THREE.Shape([
   new THREE.Vector2(+0.2, -0.2)
 ])
 
-function getNucleotideBaseAtomTypes(resType) {
+function getNucleotideBaseAtomTypes (resType) {
   let atomTypes = []
   if (resType === 'DA' || resType === 'A') {
     atomTypes = ['N9', 'C8', 'N7', 'C5', 'C6', 'N1', 'C2', 'N3', 'C4']
@@ -171,7 +171,7 @@ function getNucleotideBaseAtomTypes(resType) {
   return atomTypes
 }
 
-function getNucleotideConnectorBondAtomTypes(resType) {
+function getNucleotideConnectorBondAtomTypes (resType) {
   let bondTypes = []
   if (resType === 'DA' || resType === 'A') {
     bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']]

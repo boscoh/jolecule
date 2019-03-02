@@ -17,7 +17,7 @@ import $ from 'jquery'
  * }
  * @returns {EmbedJolecule}
  */
-function initEmbedJolecule(args) {
+function initEmbedJolecule (args) {
   return new EmbedJolecule(_.merge(defaultArgs, args))
 }
 
@@ -26,7 +26,7 @@ function initEmbedJolecule(args) {
  * @param viewsDisplayTag
  * @param params
  */
-function initFullPageJolecule(...args) {
+function initFullPageJolecule (...args) {
   return new FullPageWidget(...args)
 }
 
@@ -52,7 +52,7 @@ let defaultDataServerArgs = {
  * }
  * @returns dataServer obj
  */
-function makePdbDataServer(args) {
+function makePdbDataServer (args) {
   args = _.merge(defaultDataServerArgs, args)
   console.log('makePdbDataServer', args)
   return makeDataServer(
@@ -77,7 +77,7 @@ function makePdbDataServer(args) {
  * @param viewId: Str - id of view
  * @returns DataServer object
  */
-function makeDataServer(
+function makeDataServer (
   pdbId,
   userId = null,
   isDisableSaveViews = false,
@@ -98,7 +98,7 @@ function makeDataServer(
      *   pdbText: Str - text in PDB format of a protein structure
      * }
      */
-    getProteinData: function(asyncCallback) {
+    getProteinData: function (asyncCallback) {
       let url
       if (pdbId.length === 4) {
         if (!biounit) {
@@ -131,7 +131,7 @@ function makeDataServer(
      *  - list [ View dictionary as defined by View.getDict() ]
      *  - initViewId
      */
-    getViews: function(callback) {
+    getViews: function (callback) {
       if (!isLoadViews) {
         callback([])
         return
@@ -155,7 +155,7 @@ function makeDataServer(
      * @param views - list of View.dicts to be saved
      * @param callback(Boolean) - that is triggered on successful save
      */
-    saveViews: function(views, callback) {
+    saveViews: function (views, callback) {
       if (isDisableSaveViews) {
         callback()
         return
@@ -175,7 +175,7 @@ function makeDataServer(
      * @param viewId - Str: id of view to be deleted
      * @param callback(Boolean) - that is triggered on successful delete with
      */
-    deleteView: function(viewId, callback) {
+    deleteView: function (viewId, callback) {
       if (isDisableSaveViews) {
         callback()
         return

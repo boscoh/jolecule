@@ -77438,9 +77438,9 @@ var rnaResTypes = ['RA', 'RU', 'RC', 'RG', 'A', 'G', 'C', 'U'];
 
 // Color constants
 
-var green = new THREE.Color(0x6F9E52);
-var blue = new THREE.Color(0x6491B6);
-var yellow = new THREE.Color(0xF6C619);
+var green = new THREE.Color(0x6f9e52);
+var blue = new THREE.Color(0x6491b6);
+var yellow = new THREE.Color(0xf6c619);
 var purple = new THREE.Color(0x9578aa);
 var grey = new THREE.Color(0xbbbbbb);
 var red = new THREE.Color(0x993333);
@@ -80613,7 +80613,7 @@ var SequenceWidget = function (_CanvasWidget) {
     _this5.div.attr('id', _this5.parentDivId + '-inner');
     _this5.div.css({
       'background-color': '#CCC',
-      'position': 'relative'
+      position: 'relative'
     });
 
     _this5.isWaitForDoubleClick = false;
@@ -80888,7 +80888,6 @@ var SequenceWidget = function (_CanvasWidget) {
     value: function checkChain() {
       this.nCharSeq = Math.ceil(this.width() / this.charWidth);
 
-      var nCharStructOld = this.nCharStruct;
       var oldChain = this.chain;
 
       // Set structure bar to full length

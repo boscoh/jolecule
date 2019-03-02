@@ -28,7 +28,7 @@ class SoupWidget extends WebglWidget {
    * @param isGrid - flat to show autodock 3D grid control panel
    * @param backgroundColor - the background color of canvas and webgl
    */
-  constructor(
+  constructor (
     soupView,
     divTag,
     controller,
@@ -81,7 +81,7 @@ class SoupWidget extends WebglWidget {
     registerGlobalAnimationLoop(this)
   }
 
-  addObserver(observer) {
+  addObserver (observer) {
     if ('update' in observer) {
       this.observers.updated.add(() => {
         observer.update()
@@ -99,7 +99,7 @@ class SoupWidget extends WebglWidget {
     }
   }
 
-  buildCrossHairs() {
+  buildCrossHairs () {
     let radius = 2.0
     let segments = 60
     let material = new THREE.LineBasicMaterial({ color: 0xff5555 })
@@ -119,15 +119,15 @@ class SoupWidget extends WebglWidget {
    ******************************************
    */
 
-  setTargetViewByIAtom(iAtom) {
+  setTargetViewByIAtom (iAtom) {
     this.controller.setTargetViewByIAtom(iAtom)
   }
 
-  getCameraOfCurrentView() {
+  getCameraOfCurrentView () {
     return this.soupView.currentView.cameraParams
   }
 
-  getZ(pos) {
+  getZ (pos) {
     let cameraParams = this.getCameraOfCurrentView()
     let cameraDir = cameraParams.focus
       .clone()
@@ -137,13 +137,13 @@ class SoupWidget extends WebglWidget {
     return posRelativeToOrigin.dot(cameraDir)
   }
 
-  inZlab(pos) {
+  inZlab (pos) {
     let z = this.getZ(pos)
     let cameraParams = this.getCameraOfCurrentView()
     return z >= cameraParams.zFront && z <= cameraParams.zBack
   }
 
-  opacity(pos) {
+  opacity (pos) {
     let z = this.getZ(pos)
 
     let cameraParams = this.getCameraOfCurrentView()
@@ -167,14 +167,14 @@ class SoupWidget extends WebglWidget {
    ******************************************
    */
 
-  updateCrossHairs() {
+  updateCrossHairs () {
     let cameraParams = this.getCameraOfCurrentView()
     this.crossHairs.position.copy(cameraParams.focus)
     this.crossHairs.lookAt(cameraParams.position)
     this.crossHairs.updateMatrix()
   }
 
-  atomLabelDialog() {
+  atomLabelDialog () {
     let iAtom = this.soupView.currentView.iAtom
     if (iAtom >= 0) {
       let atom = this.soup.getAtomProxy(iAtom)
@@ -186,7 +186,7 @@ class SoupWidget extends WebglWidget {
     }
   }
 
-  getIAtomHover() {
+  getIAtomHover () {
     let i = this.getPickColorFromMouse()
     if (i > 0 && i < this.soup.getAtomCount() + 1) {
       return i - 1
@@ -194,7 +194,7 @@ class SoupWidget extends WebglWidget {
     return null
   }
 
-  popupText(iAtomHover) {
+  popupText (iAtomHover) {
     let atom = this.soup.getAtomProxy(iAtomHover)
     let label = atom.label
     let iAtom = atom.iAtom
@@ -214,7 +214,7 @@ class SoupWidget extends WebglWidget {
     return text
   }
 
-  updateHover() {
+  updateHover () {
     this.iAtomHover = this.getIAtomHover()
     if (this.iAtomHover) {
       this.hover.html(this.popupText(this.iAtomHover))
@@ -238,14 +238,14 @@ class SoupWidget extends WebglWidget {
    **********************************************************
    */
 
-  addRepresentation(name, repr) {
+  addRepresentation (name, repr) {
     this.representations[name] = repr
     this.displayMeshes[name] = repr.displayObj
     this.pickingMeshes[name] = repr.pickingObj
     this.updateMeshesInScene = true
   }
 
-  buildScene() {
+  buildScene () {
     // clear this.displayMeshes and this.pickingMeshes
     for (let key of _.keys(this.displayMeshes)) {
       _.unset(this.displayMeshes, key)
@@ -289,7 +289,7 @@ class SoupWidget extends WebglWidget {
     this.soupView.isUpdateObservers = true
   }
 
-  deleteStructure(iStructure) {
+  deleteStructure (iStructure) {
     this.controller.deleteStructure(iStructure)
     this.buildScene()
     this.observers.rebuilt.dispatch()
@@ -305,11 +305,11 @@ class SoupWidget extends WebglWidget {
    * Status function to work with registerAnimation Loop
    * @returns Boolean
    */
-  isChanged() {
+  isChanged () {
     return this.soupView.isChanged
   }
 
-  drawFrame() {
+  drawFrame () {
     if (!this.isChanged()) {
       return
     }
@@ -440,7 +440,7 @@ class SoupWidget extends WebglWidget {
     this.soupView.isChanged = false
   }
 
-  animate(elapsedTime) {
+  animate (elapsedTime) {
     this.soupView.animate(elapsedTime)
     this.updateHover()
   }
@@ -451,18 +451,18 @@ class SoupWidget extends WebglWidget {
    ********************************************
    */
 
-  focus() {
+  focus () {
     console.log('SoupWidget.focus')
   }
 
-  resize() {
+  resize () {
     super.resize()
     this.observers.resized.dispatch()
     this.soupView.isUpdateObservers = true
     this.controller.setChangeFlag()
   }
 
-  doubleclick(event) {
+  doubleclick (event) {
     if (this.iAtomHover !== null) {
       if (this.iAtomHover === this.soupView.getICenteredAtom()) {
         this.atomLabelDialog()
@@ -481,7 +481,7 @@ class SoupWidget extends WebglWidget {
   /**
    * Click is triggered on a mouseup following a mousedown
    */
-  click(event) {
+  click (event) {
     let iAtomPressed = this.iAtomHover
     let iResPressed = this.soup.getAtomProxy(iAtomPressed).iRes
 
@@ -506,7 +506,7 @@ class SoupWidget extends WebglWidget {
     this.updateHover()
   }
 
-  mousedown(event) {
+  mousedown (event) {
     this.focus()
 
     if (this.isGesture) {
@@ -541,7 +541,7 @@ class SoupWidget extends WebglWidget {
     this.pointerPressedAndInDiv = true
   }
 
-  mousemove(event) {
+  mousemove (event) {
     event.preventDefault()
     if (this.isGesture) {
       return
@@ -602,12 +602,12 @@ class SoupWidget extends WebglWidget {
     }
   }
 
-  mouseout(event) {
+  mouseout (event) {
     this.hover.hide()
     this.pointerPressedAndInDiv = false
   }
 
-  mouseup(event) {
+  mouseup (event) {
     this.getPointer(event)
 
     event.preventDefault()
@@ -634,7 +634,7 @@ class SoupWidget extends WebglWidget {
     this.pointerPressedAndInDiv = false
   }
 
-  mousewheel(event) {
+  mousewheel (event) {
     console.log('SoupWidget.mousewheel', this.isMouseWheel)
     if (!this.isMouseWheel) {
       return
@@ -665,14 +665,14 @@ class SoupWidget extends WebglWidget {
     this.controller.adjustCamera(0, 0, 0, zoom)
   }
 
-  gesturestart(event) {
+  gesturestart (event) {
     event.preventDefault()
     this.isGesture = true
     this.lastPinchRotation = 0
     this.lastScale = event.scale * event.scale
   }
 
-  gesturechange(event) {
+  gesturechange (event) {
     event.preventDefault()
     this.controller.adjustCamera(
       0,
@@ -684,7 +684,7 @@ class SoupWidget extends WebglWidget {
     this.lastScale = event.scale * event.scale
   }
 
-  gestureend(event) {
+  gestureend (event) {
     event.preventDefault()
     this.isGesture = false
     this.iAtomFirstPressed = null

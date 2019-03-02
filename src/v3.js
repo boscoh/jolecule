@@ -12,37 +12,37 @@ import * as THREE from 'three'
 
 const SMALL = 1e-6
 
-function isNearZero(a) {
+function isNearZero (a) {
   return Math.abs(a) < SMALL
 }
 
-function create(x, y, z) {
+function create (x, y, z) {
   return new THREE.Vector3(x, y, z)
 }
 
-function clone(v) {
+function clone (v) {
   return v.clone()
 }
 
-function scaled(v, s) {
+function scaled (v, s) {
   let w = create(v.x, v.y, v.z)
   w.multiplyScalar(s)
   return w
 }
 
-function normalized(v) {
+function normalized (v) {
   return scaled(v, 1.0 / v.length())
 }
 
-function diff(b, a) {
+function diff (b, a) {
   return create(b.x - a.x, b.y - a.y, b.z - a.z)
 }
 
-function sum(a, b) {
+function sum (a, b) {
   return create(b.x + a.x, b.y + a.y, b.z + a.z)
 }
 
-function parallel(v, axis) {
+function parallel (v, axis) {
   let axisLen = axis.length()
   let result
   if (isNearZero(axisLen)) {
@@ -54,23 +54,23 @@ function parallel(v, axis) {
   return result
 }
 
-function perpendicular(v, axis) {
+function perpendicular (v, axis) {
   return diff(v, parallel(v, axis))
 }
 
-function crossProduct(a, b) {
+function crossProduct (a, b) {
   return new THREE.Vector3().crossVectors(a, b)
 }
 
-function dotProduct(a, b) {
+function dotProduct (a, b) {
   return a.x * b.x + a.y * b.y + a.z * b.z
 }
 
-function distance(p1, p2) {
+function distance (p1, p2) {
   return diff(p1, p2).length()
 }
 
-function angle(a, b) {
+function angle (a, b) {
   let aLen = a.length()
   let bLen = b.length()
   if (isNearZero(aLen * bLen)) {
@@ -86,7 +86,7 @@ function angle(a, b) {
   return Math.acos(c)
 }
 
-function dihedral(ref, axis, v) {
+function dihedral (ref, axis, v) {
   // + values: right-hand screw rotation of v
   //           around axis relative to ref
   let refPerp = perpendicular(ref, axis)
@@ -99,16 +99,16 @@ function dihedral(ref, axis, v) {
   return a
 }
 
-function midPoint(p, q) {
+function midPoint (p, q) {
   let s = sum(p, q)
   return scaled(s, 0.5)
 }
 
-function random() {
+function random () {
   return create(Math.random(), Math.random(), Math.random())
 }
 
-function isEqual(v, w) {
+function isEqual (v, w) {
   if (!isNearZero(v.x - w.x)) {
     return false
   } else if (!isNearZero(v.y - w.y)) {
@@ -119,29 +119,29 @@ function isEqual(v, w) {
   return true
 }
 
-function isAligned(v, w) {
+function isAligned (v, w) {
   return isNearZero(angle(v, w))
 }
 
 let Matrix4 = THREE.Matrix4
 
-function matrixProduct(lhs, rhs) {
+function matrixProduct (lhs, rhs) {
   let c = new Matrix4()
   c.multiplyMatrices(lhs, rhs)
   return c
 }
 
-function rotation(axis, theta) {
+function rotation (axis, theta) {
   let a = axis.clone().normalize()
   return new Matrix4().makeRotationAxis(a, theta)
 }
 
-function translation(p) {
+function translation (p) {
   let c = new Matrix4()
   return c.makeTranslation(p.x, p.y, p.z)
 }
 
-function degToRad(deg) {
+function degToRad (deg) {
   return (deg * Math.PI) / 180.0
 }
 
