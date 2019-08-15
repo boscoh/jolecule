@@ -18,28 +18,35 @@
  * - window.lastTime
  *
  * typically MS_PER_STEP = 17
+ *
+ * VR devices provide their own animation loop tied to the refresh rate of the hardware
+ * Using three.js animation loop enables a global animation loop for normal widgets while
+ * properly supporting VR hardware when required
  */
-
 function loop () {
-  requestAnimationFrame(loop)
 
-  if (window.globalWidgets === []) {
-    return
-  }
-  let currTime = new Date().getTime()
-  let elapsedTime = currTime - window.lastTime
-
-  for (let widget of window.globalWidgets) {
-    widget.animate(elapsedTime)
-  }
-
-  for (let widget of window.globalWidgets) {
-    if (widget.isChanged()) {
-      widget.drawFrame()
+    if (window.globalWidgets.length === 0) {
+      window.requestAnimationFrame(loop); // horrible hack to wait for widgets to register
+      return
     }
-  }
 
-  window.lastTime = currTime
+    for (let widget of window.globalWidgets) {
+
+      let lastTime = 0;
+
+      function widgetRenderLoop () {
+        let currTime = new Date().getTime()
+        let elapsedTime = currTime - window.lastTime
+
+        widget.animate(elapsedTime)
+        widget.drawFrame()
+
+        lastTime = currTime
+      }
+
+      widget.initWebglRenderer(); // initialise renderer now
+      widget.renderer.setAnimationLoop(() => widgetRenderLoop()); // use the renderer to set loop (account for VR render loops etc)
+  }
 }
 
 /**

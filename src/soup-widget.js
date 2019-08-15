@@ -34,9 +34,10 @@ class SoupWidget extends WebglWidget {
     controller,
     isGrid,
     backgroundColor,
-    isMouseWheel
+    isMouseWheel,
+    enableVr
   ) {
-    super(divTag, backgroundColor)
+    super(divTag, backgroundColor, enableVr)
 
     this.observers = {
       rebuilt: new Signal(),
@@ -310,10 +311,6 @@ class SoupWidget extends WebglWidget {
   }
 
   drawFrame () {
-    if (!this.isChanged()) {
-      return
-    }
-
     let isNoMoreChanges =
       !this.soupView.soup.grid.isChanged &&
       !this.soupView.isUpdateSidechain &&

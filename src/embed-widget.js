@@ -35,7 +35,8 @@ let defaultArgs = {
   isToolbarOn: false,
   isMenu: true,
   isTextOverlay: true,
-  isMouseWheel: true
+  isMouseWheel: true,
+  enableVr: false
 }
 
 class EmbedJolecule {
@@ -58,6 +59,8 @@ class EmbedJolecule {
     this.soupView.maxUpdateStep = this.params.maxUpdateStep
     this.soupView.msPerStep = this.params.msPerStep
     this.soupView.maxWaitStep = this.params.maxWaitStep
+
+    this.enableVr = this.params.enableVr;
 
     if (this.params.bCutoff !== null) {
       this.soup.grid.bCutoff = this.params.bCutoff
@@ -167,7 +170,8 @@ class EmbedJolecule {
       this.controller,
       this.params.isGrid,
       this.params.backgroundColor,
-      this.params.isMouseWheel
+      this.params.isMouseWheel,
+      this.enableVr
     )
 
     this.footerDiv = $('<div>')

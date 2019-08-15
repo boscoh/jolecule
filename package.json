@@ -1,4 +1,7 @@
 {
+  "name": "jolecule",
+  "version": "0.1.0",
+  "main": "src/main.js",
   "scripts": {
     "test": "cd test && ./test.sh",
     "format": "prettier-standard src/*js && eslint --fix src/*js"
@@ -18,7 +21,7 @@
     "shortid": "^2.2.12",
     "signals": "^1.0.0",
     "test": "^0.6.0",
-    "three": "^0.92.0"
+    "three": "^0.107.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
