@@ -257,10 +257,15 @@ class WebglWidget {
   buildLights () {
     this.lights.length = 0
 
-    let directedLight = new THREE.DirectionalLight(0xffffff)
-    directedLight.position.copy(v3.create(0.2, 0.2, -100).normalize())
-    directedLight.dontDelete = true
-    this.lights.push(directedLight)
+    let directedLight1 = new THREE.DirectionalLight(0xffffff)
+    directedLight1.position.copy(v3.create(0.2, 0.2, -100).normalize())
+    directedLight1.dontDelete = true
+    this.lights.push(directedLight1)
+
+	let directedLight2 = new THREE.DirectionalLight(0xffffff)
+    directedLight2.position.copy(v3.create(0.2, 0.2, 100).normalize())
+    directedLight2.dontDelete = true
+    this.lights.push(directedLight2)
 
     let ambientLight = new THREE.AmbientLight(0x606060, 1)
     ambientLight.dontDelete = true
