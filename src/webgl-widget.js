@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import v3 from './v3'
 import * as util from './util'
 import * as glgeom from './glgeom'
+import { WEBVR } from 'three/examples/jsm/vr/WebVR';
 
 /**
  * Utility class to handle a three.js HTML object with
@@ -30,13 +31,15 @@ import * as glgeom from './glgeom'
  *
  */
 class WebglWidget {
-  constructor (divTag, backgroundColor) {
+  constructor (divTag, backgroundColor, enableVr) {
     this.divTag = divTag
     this.div = $(this.divTag)
     this.div.css('overflow', 'hidden')
 
     this.backgroundColor = backgroundColor
     this.div.css('background-color', this.backgroundColor)
+
+    this.enableVr = enableVr;
 
     // WebGL related properties
     // div to instantiate WebGL renderer
@@ -68,7 +71,10 @@ class WebglWidget {
 
     this.displayScene = new THREE.Scene()
     this.displayScene.background = new THREE.Color(this.backgroundColor)
-    this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
+
+    if (!this.enableVr) { // disable fog in VR for now
+        this.displayScene.fog = new THREE.Fog(this.backgroundColor, 1, 100)
+    }
 
     // this.representations is a dictionary that holds representations
     // that transform this.soup into meshes that will be inserted into
@@ -123,6 +129,12 @@ class WebglWidget {
     let dom = this.renderer.domElement
     this.webglDiv[0].appendChild(dom)
 
+    if (this.enableVr) {
+        this.renderer.vr.enabled = true;
+        const vrButton = WEBVR.createButton(this.renderer);
+        this.webglDiv[0].appendChild(vrButton);
+    }
+
     const bind = (w, fn) => {
       dom.addEventListener(w, fn)
     }
@@ -176,7 +188,9 @@ class WebglWidget {
     let pixelBuffer = new Uint8Array(4)
 
     // render the picking soupView off-screen
-    this.renderer.render(this.pickingScene, this.camera, this.pickingTexture)
+    this.renderer.setRenderTarget(this.pickingTexture);
+    this.renderer.render(this.pickingScene, this.camera)
+    this.renderer.setRenderTarget(null);
 
     // read the pixel under the mouse from the texture
     this.renderer.readRenderTargetPixels(
@@ -218,24 +232,40 @@ class WebglWidget {
       near = 1
     }
 
+    const vrDisplay = this.enableVr ? this.renderer.vr.getDevice() : null;
+    const inVrNow = this.enableVr && vrDisplay && vrDisplay.isPresenting;
+
     this.camera.position.copy(this.cameraParams.position)
     this.camera.up.copy(this.cameraParams.up)
     this.camera.lookAt(this.cameraParams.focus)
-    this.camera.near = near
-    this.camera.far = far
+    if (inVrNow) {
+        this.camera.near = 0.1;
+        this.camera.far = 100;
+    }
+    else {
+        this.camera.near = near;
+        this.camera.far = far;
+    }
     this.camera.updateProjectionMatrix()
 
-    this.displayScene.fog.near = this.cameraParams.zoom
-    this.displayScene.fog.far = far
+    if (!this.enableVr) {
+        this.displayScene.fog.near = this.cameraParams.zoom
+        this.displayScene.fog.far = far
+    }
   }
 
   buildLights () {
     this.lights.length = 0
 
-    let directedLight = new THREE.DirectionalLight(0xffffff)
-    directedLight.position.copy(v3.create(0.2, 0.2, -100).normalize())
-    directedLight.dontDelete = true
-    this.lights.push(directedLight)
+    let directedLight1 = new THREE.DirectionalLight(0xffffff)
+    directedLight1.position.copy(v3.create(0.2, 0.2, -100).normalize())
+    directedLight1.dontDelete = true
+    this.lights.push(directedLight1)
+
+	let directedLight2 = new THREE.DirectionalLight(0xffffff)
+    directedLight2.position.copy(v3.create(0.2, 0.2, 100).normalize())
+    directedLight2.dontDelete = true
+    this.lights.push(directedLight2)
 
     let ambientLight = new THREE.AmbientLight(0x606060, 1)
     ambientLight.dontDelete = true
