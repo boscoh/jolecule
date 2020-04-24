@@ -79527,7 +79527,6 @@ var defaultArgs = {
   isResidueSelector: true,
   isLegend: false,
   isEditable: true,
-  isExtraEditable: false,
   animateState: 'none', // 'loop', 'rotate', 'rock'
   isGrid: false,
   bCutoff: 0.5,
@@ -79537,7 +79536,6 @@ var defaultArgs = {
   maxWaitStep: 30,
   isToolbarOnTop: false,
   isToolbarOn: false,
-  isMenu: true,
   isTextOverlay: true,
   isMouseWheel: true
 };
@@ -79853,24 +79851,9 @@ var EmbedJolecule = function () {
           _this3.controller.toggleSelectedSidechains();
         })).append((0, _util.linkButton)('Neighbors', 'jolecule-button', function () {
           _this3.controller.toggleResidueNeighbors();
-        }));
-      }
+        })).append((0, _jquery2.default)('<div>').attr('id', this.divId + '-menu').addClass('jolecule-button'));
 
-      if (this.params.isExtraEditable) {
-        if (this.params.isMenu) {
-          this.toolbarDiv.append((0, _jquery2.default)('<div>').attr('id', this.divId + '-menu').addClass('jolecule-button'));
-
-          this.widget.graphicsMenu = new _widgets2.default.GraphicsMenuWidget(this.soupWidget, '#' + this.divId + '-menu', !this.params.isToolbarOnTop);
-        } else {
-          this.toolbarDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-sphere">'));
-          this.widget.sphere = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-sphere', 'sphere');
-
-          this.toolbarDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-backbone">'));
-          this.widget.backbone = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-backbone', 'backbone');
-
-          this.toolbarDiv.append((0, _jquery2.default)('<div id="' + this.divId + '-transparent">'));
-          this.widget.transparent = new _widgets2.default.ToggleOptionWidget(this.soupWidget, '#' + this.divId + '-transparent', 'transparent');
-        }
+        this.widget.graphicsMenu = new _widgets2.default.GraphicsMenuWidget(this.soupWidget, '#' + this.divId + '-menu', !this.params.isToolbarOnTop);
       }
 
       if (this.headerDiv.contents().length > 0) {
@@ -91096,7 +91079,7 @@ var Soup = function () {
               var iRes = _step5.value;
 
               residue.iRes = iRes;
-              while (residue.resNum <= resNumEnd) {
+              while (residue.resNum <= resNumEnd && chain === residue.chain) {
                 residue.ss = 'H';
                 residue.iRes = residue.iRes + 1;
               }
@@ -91131,7 +91114,7 @@ var Soup = function () {
               var _iRes = _step6.value;
 
               residue.iRes = _iRes;
-              while (residue.resNum <= _resNumEnd) {
+              while (residue.resNum <= _resNumEnd && _chain === residue.chain) {
                 residue.ss = 'E';
                 residue.iRes = residue.iRes + 1;
               }

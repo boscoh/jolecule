@@ -587,7 +587,7 @@ class Soup {
           resNumStart
         )) {
           residue.iRes = iRes
-          while (residue.resNum <= resNumEnd) {
+          while ((residue.resNum <= resNumEnd) && (chain === residue.chain)){
             residue.ss = 'H'
             residue.iRes = residue.iRes + 1
           }
@@ -605,7 +605,7 @@ class Soup {
           resNumStart
         )) {
           residue.iRes = iRes
-          while (residue.resNum <= resNumEnd) {
+          while ((residue.resNum <= resNumEnd) && (chain === residue.chain)) {
             residue.ss = 'E'
             residue.iRes = residue.iRes + 1
           }

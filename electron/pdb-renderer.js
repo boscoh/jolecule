@@ -4,11 +4,11 @@ const jolecule = require('../dist/jolecule')
 const $ = require('jquery')
 const shortid = require('shortid')
 
-function makeDataServer(pdb) {
+function makeDataServer (pdb) {
   let messageId = shortid.generate()
   return {
     id: messageId,
-    getProteinData: function(loadProteinData) {
+    getProteinData: function (loadProteinData) {
       console.log('ipcRenderer:get-protein-text', messageId, pdb)
       ipcRenderer.send('get-protein-text', messageId, pdb)
       ipcRenderer.once('get-protein-text', (event, returnId, pdbText) => {
@@ -25,7 +25,7 @@ function makeDataServer(pdb) {
         loadProteinData({ pdbId, pdbText })
       })
     },
-    getViews: function(loadViewDicts) {
+    getViews: function (loadViewDicts) {
       ipcRenderer.send('get-view-dicts', messageId, pdb)
       console.log('ipcRenderer:get-view-dicts', messageId, pdb)
       ipcRenderer.once('get-view-dicts', (event, returnId, viewDicts) => {
@@ -36,7 +36,7 @@ function makeDataServer(pdb) {
         loadViewDicts(viewDicts)
       })
     },
-    saveViews: function(views, success) {
+    saveViews: function (views, success) {
       ipcRenderer.send('save-view-dicts', messageId, pdb, views)
       console.log('ipcRenderer:save-view-dicts', messageId, pdb)
       ipcRenderer.once('save-view-dicts', (event, returnId) => {
@@ -47,7 +47,7 @@ function makeDataServer(pdb) {
         success()
       })
     },
-    deleteView: function(viewId, success) {
+    deleteView: function (viewId, success) {
       ipcRenderer.send('delete-protein-view', messageId, pdb, viewId)
       ipcRenderer.once('delete-protein-view', (event, returnId) => {
         if (messageId !== returnId) {
@@ -60,17 +60,17 @@ function makeDataServer(pdb) {
   }
 }
 
-function getPdbId(pdb) {
+function getPdbId (pdb) {
   return path.basename(pdb).replace('.pdb', '')
 }
 
-function loadPdb(pdb) {
+function loadPdb (pdb) {
   document.title = 'jolecule - ' + getPdbId(pdb)
   joleculeInstance.clear()
   joleculeInstance.asyncAddDataServer(makeDataServer(pdb))
 }
 
-function buildFileDiv(entry) {
+function buildFileDiv (entry) {
   let s = `<span style="text-transform: uppercase">[${entry.name}]</span>`
   if (entry.title) {
     s += ` <span style="">${entry.title}</span>`
@@ -83,7 +83,7 @@ function buildFileDiv(entry) {
   return entryDiv
 }
 
-function buildDirDiv(entry, directory) {
+function buildDirDiv (entry, directory) {
   let entryDiv = $('<div class="file-entry">')
     .append($('<span>').text('> ' + entry))
     .click(e => {
@@ -93,7 +93,7 @@ function buildDirDiv(entry, directory) {
   return entryDiv
 }
 
-function registerHandlers() {
+function registerHandlers () {
   ipcRenderer.on('get-init', (event, dirname, pdbs) => {
     console.log('ipcRenderer:get-init', dirname, pdbs)
     joleculeInstance.clear()
@@ -119,8 +119,12 @@ function registerHandlers() {
 registerHandlers()
 
 let $download = $('#download')
-let $text = $('<input type="text" style="width: 90px" class="jolecule-view-text">')
-let $button = $('<div class="jolecule-small-button" style="display: inline; padding-left: 1em; width: 2em">FETCH</div>')
+let $text = $(
+  '<input type="text" style="width: 90px" class="jolecule-view-text">'
+)
+let $button = $(
+  '<div class="jolecule-small-button" style="display: inline; padding-left: 1em; width: 2em">FETCH</div>'
+)
 $download.append($text)
 $download.append('&nbsp;')
 $download.append($button)

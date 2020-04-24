@@ -23,7 +23,6 @@ let defaultArgs = {
   isResidueSelector: true,
   isLegend: false,
   isEditable: true,
-  isExtraEditable: false,
   animateState: 'none', // 'loop', 'rotate', 'rock'
   isGrid: false,
   bCutoff: 0.5,
@@ -33,7 +32,6 @@ let defaultArgs = {
   maxWaitStep: 30,
   isToolbarOnTop: false,
   isToolbarOn: false,
-  isMenu: true,
   isTextOverlay: true,
   isMouseWheel: true
 }
@@ -352,43 +350,17 @@ class EmbedJolecule {
             this.controller.toggleResidueNeighbors()
           })
         )
-    }
-
-    if (this.params.isExtraEditable) {
-      if (this.params.isMenu) {
-        this.toolbarDiv.append(
+        .append(
           $('<div>')
             .attr('id', `${this.divId}-menu`)
             .addClass('jolecule-button')
         )
 
-        this.widget.graphicsMenu = new widgets.GraphicsMenuWidget(
-          this.soupWidget,
-          `#${this.divId}-menu`,
-          !this.params.isToolbarOnTop
-        )
-      } else {
-        this.toolbarDiv.append($(`<div id="${this.divId}-sphere">`))
-        this.widget.sphere = new widgets.ToggleOptionWidget(
-          this.soupWidget,
-          `#${this.divId}-sphere`,
-          'sphere'
-        )
-
-        this.toolbarDiv.append($(`<div id="${this.divId}-backbone">`))
-        this.widget.backbone = new widgets.ToggleOptionWidget(
-          this.soupWidget,
-          `#${this.divId}-backbone`,
-          'backbone'
-        )
-
-        this.toolbarDiv.append($(`<div id="${this.divId}-transparent">`))
-        this.widget.transparent = new widgets.ToggleOptionWidget(
-          this.soupWidget,
-          `#${this.divId}-transparent`,
-          'transparent'
-        )
-      }
+      this.widget.graphicsMenu = new widgets.GraphicsMenuWidget(
+        this.soupWidget,
+        `#${this.divId}-menu`,
+        !this.params.isToolbarOnTop
+      )
     }
 
     if (this.headerDiv.contents().length > 0) {

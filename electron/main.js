@@ -23,7 +23,6 @@ let initDir
 let initPdb
 let initPdbs = []
 
-
 function createWindow (windowId) {
   // Create the browser window.
   windows[windowId] = new BrowserWindow({
@@ -74,7 +73,7 @@ function getViewsJson (pdb) {
 function showOpen () {
   let files = dialog.showOpenDialog({
     properties: ['openFile'],
-    filters: [{name: 'PDB', extensions: ['pdb']}]
+    filters: [{ name: 'PDB', extensions: ['pdb'] }]
   })
   console.log('showOpen', files)
   let pdb = files[0]
@@ -128,16 +127,14 @@ function parsetTitleFromPdbText (text) {
 function isDirectory (f) {
   try {
     return fs.statSync(f).isDirectory()
-  } catch (e) {
-  }
+  } catch (e) {}
   return false
 }
 
 function isFile (f) {
   try {
     return fs.statSync(f).isFile()
-  } catch (e) {
-  }
+  } catch (e) {}
   return false
 }
 
@@ -230,9 +227,8 @@ function parsePdb (f) {
   return null
 }
 
-
-let knownOpts = {debug: [Boolean, false], fileDir: [String, '']}
-let shortHands = {d: ['--debug'], f: ['--fileDir']}
+let knownOpts = { debug: [Boolean, false], fileDir: [String, ''] }
+let shortHands = { d: ['--debug'], f: ['--fileDir'] }
 let parsed = nopt(knownOpts, shortHands, process.argv, 2)
 let remain = parsed.argv.remain
 
@@ -246,11 +242,11 @@ if (parsed.fileDir) {
 initPdbs = _.filter(_.map(remain, parsePdb))
 initDirs = _.filter(remain, isDirectory)
 
-if ((initPdbs.length === 0) && (initDirs.length === 0)) {
+if (initPdbs.length === 0 && initDirs.length === 0) {
   initPdbs.push(path.join(__dirname, '../examples/1mbo.pdb'))
 }
 
-if ((initPdbs.length > 0) && (initDirs.length == 0)) {
+if (initPdbs.length > 0 && initDirs.length == 0) {
   initDirs.push(path.dirname(initPdbs[0]))
 }
 
