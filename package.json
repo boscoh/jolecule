@@ -1,4 +1,7 @@
 {
+  "name": "jolecule",
+  "version": "2.0.0",
+  "main": "src/main.js",
   "scripts": {
     "test": "cd test && ./test.sh",
     "format": "prettier-standard src/*js && eslint --fix src/*js"
