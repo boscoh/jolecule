@@ -104185,7 +104185,8 @@ var AquariaAlignment = function () {
               seqResRanges: []
             };
             pieces.push(piece);
-            piece.firstPdbRes = c + residue.resNum;
+            var pdbC = _lodash2.default.get(data.resToAa, residue.resType, '.');
+            piece.firstPdbRes = pdbC + residue.resNum;
             piece.firstSeqRes = c + seqResNum;
             chain = residue.chain;
           }

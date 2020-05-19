@@ -514,7 +514,8 @@ class AquariaAlignment {
             seqResRanges: []
           }
           pieces.push(piece)
-          piece.firstPdbRes = c + residue.resNum
+          let pdbC = _.get(data.resToAa, residue.resType, '.')
+          piece.firstPdbRes = pdbC + residue.resNum
           piece.firstSeqRes = c + seqResNum
           chain = residue.chain
         }
