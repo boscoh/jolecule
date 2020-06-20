@@ -100708,9 +100708,14 @@ var NucleotideRepresentation = function (_Representation3) {
 
       var residue = this.soup.getResidueProxy();
       var atom = this.soup.getAtomProxy();
-      var getVecFromAtomType = function getVecFromAtomType(a) {
-        return atom.load(residue.getIAtom(a)).pos.clone();
-      };
+
+      function getVecFromAtomType(a) {
+        var iAtom = residue.getIAtom(a);
+        if (iAtom === null) {
+          return null;
+        }
+        return atom.load(iAtom).pos.clone();
+      }
 
       var verticesList = [];
       this.nucleotideColorList = [];
@@ -100769,10 +100774,16 @@ var NucleotideRepresentation = function (_Representation3) {
               // for (let iRes of _.range(this.soup.getResidueCount())) {
               residue.iRes = iRes;
               if (residue.ss === 'D' && residue.isPolymer) {
-                this.nucleotideColorList.push(residue.activeColor);
-                indexColorList.push(getIndexColor(residue.iAtom));
                 var atomTypes = data.getNucleotideBaseAtomTypes(residue.resType);
-                verticesList.push(_lodash2.default.map(atomTypes, getVecFromAtomType));
+                var vertices = _lodash2.default.map(atomTypes, getVecFromAtomType);
+                if (_lodash2.default.some(vertices, function (v) {
+                  return v === null;
+                })) {
+                  continue;
+                }
+                verticesList.push(vertices);
+                indexColorList.push(getIndexColor(residue.iAtom));
+                this.nucleotideColorList.push(residue.activeColor);
               }
             }
           } catch (err) {
@@ -100839,7 +100850,12 @@ var NucleotideRepresentation = function (_Representation3) {
                   for (var _iterator16 = data.getNucleotideConnectorBondAtomTypes(residue.resType)[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
                     var bond = _step16.value;
 
-                    this.nucleotideConnectList.push([getVecFromAtomType(bond[0]), getVecFromAtomType(bond[1]), _iRes]);
+                    var iAtom1 = getVecFromAtomType(bond[0]);
+                    var iAtom2 = getVecFromAtomType(bond[1]);
+                    if (iAtom1 == null || iAtom2 == null) {
+                      continue;
+                    }
+                    this.nucleotideConnectList.push([iAtom1, iAtom2, _iRes]);
                   }
                 } catch (err) {
                   _didIteratorError16 = true;

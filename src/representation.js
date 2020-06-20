@@ -213,7 +213,14 @@ class NucleotideRepresentation extends Representation {
 
     let residue = this.soup.getResidueProxy()
     let atom = this.soup.getAtomProxy()
-    let getVecFromAtomType = a => atom.load(residue.getIAtom(a)).pos.clone()
+
+    function getVecFromAtomType(a) {
+      let iAtom = residue.getIAtom(a)
+      if (iAtom === null) {
+        return null
+      }
+      return atom.load(iAtom).pos.clone()
+    }
 
     let verticesList = []
     this.nucleotideColorList = []
@@ -235,10 +242,14 @@ class NucleotideRepresentation extends Representation {
         // for (let iRes of _.range(this.soup.getResidueCount())) {
         residue.iRes = iRes
         if (residue.ss === 'D' && residue.isPolymer) {
-          this.nucleotideColorList.push(residue.activeColor)
-          indexColorList.push(getIndexColor(residue.iAtom))
           let atomTypes = data.getNucleotideBaseAtomTypes(residue.resType)
-          verticesList.push(_.map(atomTypes, getVecFromAtomType))
+          let vertices = _.map(atomTypes, getVecFromAtomType)
+          if (_.some(vertices, v => v === null)) {
+            continue
+          }
+          verticesList.push(vertices)
+          indexColorList.push(getIndexColor(residue.iAtom))
+          this.nucleotideColorList.push(residue.activeColor)
         }
       }
     }
@@ -267,11 +278,12 @@ class NucleotideRepresentation extends Representation {
           for (let bond of data.getNucleotideConnectorBondAtomTypes(
             residue.resType
           )) {
-            this.nucleotideConnectList.push([
-              getVecFromAtomType(bond[0]),
-              getVecFromAtomType(bond[1]),
-              iRes
-            ])
+            let iAtom1 = getVecFromAtomType(bond[0])
+            let iAtom2 = getVecFromAtomType(bond[1])
+            if ((iAtom1 == null) || (iAtom2 == null)) {
+              continue
+            }
+            this.nucleotideConnectList.push([iAtom1, iAtom2, iRes])
           }
         }
       }
