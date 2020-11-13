@@ -12,16 +12,15 @@
  */
 
 const path = require('path')
+const _ = require('lodash')
 const express = require('express')
-
+const fs = require('fs')
+const nopt = require('nopt')
 const config = require('./config')
+const handlers = require('./handler')
 
-// Defines express app and sqlalchemy db here to avoid circular dependencies
-const conn = require('./conn')
-let app = conn.app
+const app = express()
 module.exports = app
-
-
 
 // Middleware Configuration
 
@@ -47,63 +46,53 @@ const bodyParser = require('body-parser')
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 
-// Session management for validated users
-const session = require('express-session')
-app.use(session({
-  secret: config.secretKey,
-  saveUninitialized: true,
-  resave: true
-}))
+/**
+ * This is the main interface to the JSON-RPC api. It is a post
+ * handler, where the function name and args are passed in
+ * the body as JSON.
+ *
+ * Because of the special semantics in initiating/terminating
+ * user sessions with login/logut, they are specially
+ * handled here, otherwise all functions are sent to the matching
+ * functions found in the exports of `handlers.js`.
+ */
+const router = express.Router()
+app.use(router)
+router.post('/api/rpc-run', (req, res, next) => {
+  let params = req.body.params
+  let method = req.body.method
+  console.log(`>> router.rpc-run.${method}`)
 
-// User authentication and session management
-const passport = require('passport')
-app.use(passport.initialize())
-app.use(passport.session())
+  if (method in handlers) {
+    const runFn = handlers[method]
 
-// Hook user in models.js to authentication manager
-const dbmodel = require('./dbmodel')
-passport.serializeUser((user, done) => {
-  done(null, user.id)
-})
-
-passport.deserializeUser((id, done) => {
-  dbmodel
-    .fetchUser({id})
-    .then(user => done(null, user))
-    .catch(error => done(error, null))
-})
-
-// Define the method to authenticate user for sessions
-const LocalStrategy = require('passport-local').Strategy
-passport.use(new LocalStrategy(
-  {
-    usernameField: 'email',
-    passwordField: 'password'
-  },
-  function (email, password, done) {
-    dbmodel
-      .fetchUser({email: email})
-      .then(user => {
-        console.log('>> passport.LocalStrategy has email', email, password)
-        if (user) {
-          dbmodel
-            .checkUserWithPassword(user, password)
-            .then((user) => {
-              if (user === null) {
-                done(null, false)
-              } else {
-                done(null, user, {name: user.name})
-              }
-            })
-        } else {
-          done(null, false)
-        }
+    runFn(...params)
+      .then(result => {
+        res.json({
+          result,
+          jsonrpc: '2.0'
+        })
       })
-  })
-)
-
-// Load routes for api
-app.use(require('./router'))
+      .catch(e => {
+        console.log(e.toString())
+        res.json({
+          error: {
+            code: -1,
+            message: e.toString()
+          },
+          jsonrpc: '2.0'
+        })
+      })
+  } else {
+    res.json({
+      error: {
+        code: -1,
+        message: `Remote runFn ${method} not found`
+      },
+      jsonrpc: '2.0'
+    })
+  }
+})
 
 // Load compiled production client
 const clientDir = path.join(__dirname, '..', '..', 'client', 'dist')
@@ -111,7 +100,6 @@ app.use(express.static(clientDir))
 
 // Load static files
 app.use('/file', express.static('files'))
-
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(clientDir, 'index.html'))
@@ -143,3 +131,43 @@ app.use((err, req, res) => {
   res.status(err.status || 500)
     .render('error', {message: err.message, error: {}})
 })
+
+// Parse command line
+
+let knownOpts = {debug: [Boolean, false]}
+let shortHands = {d: ['--debug']}
+let parsed = nopt(knownOpts, shortHands, process.argv, 2)
+let remain = parsed.argv.remain
+
+function isDirectory (d) {
+  return fs.statSync(d).isDirectory()
+}
+
+if (remain.length === 0) {
+  config.initFile = path.join(__dirname, '../../../examples/1mbo.pdb')
+  config.initDir = path.dirname(config.initFile)
+} else {
+  const testPdb = remain[0]
+
+  config.initFile = testPdb
+  config.initDir = path.dirname(config.initFile)
+
+  if (isDirectory(testPdb)) {
+    config.initDir = testPdb
+    config.initFile = ''
+  } else if (!fs.existsSync(testPdb)) {
+    let testInitFile = testPdb + '.pdb'
+    if (fs.existsSync(testInitFile)) {
+      config.initFile = testInitFile
+      config.initDir = path.dirname(config.initFile)
+    }
+  }
+  if (config.initFile && !fs.existsSync(config.initFile)) {
+    console.log('file not found', config.initFile)
+    process.exit(1);
+  }
+  if (!isDirectory(config.initDir)) {
+    console.log('directory not found', config.initDir)
+    process.exit(1);
+  }
+}

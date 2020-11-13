@@ -7,6 +7,7 @@
     "format": "prettier-standard src/*js && eslint --fix src/*js"
   },
   "dependencies": {
+    "@vue/eslint-config-prettier": "^6.0.0",
     "fs": "0.0.1-security",
     "fs-extra": "^1.0.0",
     "jquery": "^3.3.1",

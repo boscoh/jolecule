@@ -3,4 +3,3 @@
 files
 database.sqlite
 yarn.lock
-src/config.js

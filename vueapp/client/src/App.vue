@@ -1,29 +1,26 @@
 <template>
-  <div id='app'>
-    <md-toolbar>
-      <h3
-        class="md-title">
-        {{  title  }}
-      </h3>
-    </md-toolbar>
-    <router-view></router-view>
-  </div>
+    <v-app id="app">
+        <v-main>
+            <v-toolbar dense>
+                <v-toolbar-title>{{ title }}</v-toolbar-title>
+                <v-spacer></v-spacer>
+                <v-btn text to="/">Home</v-btn>
+                <v-btn text to="/about">About</v-btn>
+            </v-toolbar>
+            <router-view />
+        </v-main>
+    </v-app>
 </template>
 
-<style>
-  @import "../node_modules/vue-material/dist/vue-material.css";
-  @import "http://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic";
-  @import "http://fonts.googleapis.com/icon?family=Material+Icons";
-</style>
+<style></style>
 
 <script>
 import config from './config'
 export default {
-  name: 'app',
-  data () {
-    return {
-      title: config.title
-    }
-  }
+    data () {
+        return {
+            title: config.title,
+        }
+    },
 }
 </script>
