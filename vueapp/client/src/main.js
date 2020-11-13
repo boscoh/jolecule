@@ -4,29 +4,36 @@
 
 import Vue from 'vue'
 import VueMaterial from 'vue-material'
+import Router from 'vue-router'
 
 import config from './config.js'
-import auth from './modules/auth'
+import Home from './components/Home'
 import App from './App'
-import router from './router.js'
-import store from './store'
+
+Vue.use(Router)
+
+let router = new Router({
+  routes: [
+    {
+      path: '/',
+      name: 'home',
+      component: Home
+    }
+  ]
+})
 
 Vue.config.productionTip = false
 Vue.use(VueMaterial)
 Vue.material.registerTheme('default', {
-  primary: 'black'
+  primary: 'white'
 })
 
 document.title = config.title
 
 async function init () {
-  if (config.isUser) {
-    await auth.restoreLastUser()
-  }
   return new Vue({
     el: '#app',
     router,
-    store,
     template: '<App/>',
     components: {App}
   })

@@ -25,6 +25,7 @@
     "vue-material": "^0.7.4",
     "vue-router": "^3.0.1",
     "vue-slider-component": "^2.3.4",
+    "vuetify": "^2.3.17",
     "vuex": "^3.0.1"
   },
   "devDependencies": {
