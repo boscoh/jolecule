@@ -17,11 +17,9 @@
   "license": "MIT",
   "dependencies": {
     "babel-eslint": "^8.2.1",
-    "bcryptjs": "*",
     "body-parser": "*",
     "debug": "*",
     "del": "*",
-    "denodeify": "*",
     "eslint": "^4.15.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-friendly-formatter": "^3.0.0",
@@ -35,15 +33,7 @@
     "express-session": "*",
     "fs-extra": "^5.0.0",
     "morgan": "*",
-    "multer": "*",
     "opn": "^5.3.0",
-    "passport": "*",
-    "passport-local": "*",
-    "pretty-ms": "*",
-    "rimraf": "*",
-    "sequelize": "*",
-    "sequelize-json": "*",
-    "shortid": "*",
-    "sqlite3": "*"
+    "shortid": "*"
   }
 }

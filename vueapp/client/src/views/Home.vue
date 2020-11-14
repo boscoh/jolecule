@@ -44,7 +44,7 @@
                         <v-list>
                             <v-list-item
                                 v-for="(structureId, i) in structureIds"
-                                :key="i"
+                                :key="i + 's'"
                             >
                                 <v-list-item-content>
                                     {{ structureId }}
@@ -71,7 +71,7 @@
                             <v-list-item
                                 class="entry"
                                 v-for="(file, j) in drawer.directories"
-                                :key="j"
+                                :key="j + 'f'"
                                 @click="openDir(drawer.dirname, file)"
                             >
                                 <v-icon class="mr-2">fa-folder</v-icon>
@@ -80,7 +80,7 @@
                             <v-list-item
                                 class="entry"
                                 v-for="(file, k) in drawer.files"
-                                :key="k"
+                                :key="k + 'e'"
                                 @click="openFile(file)"
                             >
                                 <v-list-item-content>
@@ -106,10 +106,14 @@
 </style>
 
 <script>
+import axios from 'axios'
 import $ from 'jquery'
 import { initEmbedJolecule } from '../../../../src/main'
-import rpc from '../modules/rpc'
+import * as rpc from '../modules/rpc'
 import path from 'path'
+import _ from 'lodash'
+
+axios.defaults.withCredentials = true
 
 function delay(time) {
     return new Promise(function(resolve) {
@@ -120,7 +124,6 @@ function delay(time) {
 }
 
 export default {
-    name: 'experiments',
     data() {
         return {
             pdbId: '',
@@ -142,25 +145,33 @@ export default {
             backgroundColor: 0x000000,
         })
 
-        let res = await rpc.rpcRun('publicGetInit')
-        let dataServer7 = require('../../../dataservers/1mbo-data-server')
+        let dataServer = require('../../../dataservers/1mbo-data-server')
+        let res = await rpc.remote.publicGetInit()
         if (res.result) {
             const result = res.result
             if (result.initFile) {
-                dataServer7 = this.makeServerPdbDataServer(result.initFile)
+                dataServer = this.makeServerPdbDataServer(result.initFile)
             }
             if (result.initDir) {
-                res = await rpc.rpcRun('publicGetFiles', res.result.initDir)
+                res = await rpc.run('publicGetFiles', res.result.initDir)
                 if (res.result) {
                     this.drawer = res.result
                 }
             }
         }
-        await this.joleculeWidget.asyncAddDataServer(dataServer7)
-
+        await this.joleculeWidget.asyncAddDataServer(dataServer)
         this.structureIds = this.joleculeWidget.soupWidget.soup.structureIds
     },
     methods: {
+        openFile(file) {
+            this.loadFromDataServer(this.makeServerPdbDataServer(file.filename))
+        },
+        async openDir(topDir, dir) {
+            let res = await rpc.remote.publicGetFiles(path.join(topDir, dir))
+            if (res.result) {
+                this.drawer = res.result
+            }
+        },
         async deleteProtein(i) {
             this.joleculeWidget.soupWidget.deleteStructure(i)
             this.joleculeWidget.controller.zoomOut()
@@ -183,23 +194,24 @@ export default {
             let _this = this
             return {
                 pdbId: pdbId,
-                getProteinData: function(parsePdb) {
+                async getProteinData(parsePdb) {
                     let url = `https://files.rcsb.org/download/${pdbId}.pdb1`
-                    $.get(url, pdbText => {
-                        parsePdb({ pdbId: pdbId, pdbText: pdbText })
+                    try {
+                        let response = await $.get(url)
+                        parsePdb({ pdbId: pdbId, pdbText: response })
                         _this.isDownloading = false
-                    }).fail(() => {
+                    } catch {
                         _this.isDownloading = false
                         _this.error = 'Error: failed to load'
-                    })
+                    }
                 },
-                getViews: function(processViews) {
+                getViews(processViews) {
                     processViews({})
                 },
-                saveViews: function(views, success) {
+                saveViews(views, success) {
                     success()
                 },
-                deleteView: function(viewId, success) {
+                deleteView(viewId, success) {
                     success()
                 },
             }
@@ -211,37 +223,38 @@ export default {
             let pdbId = path.basename(pdb)
             return {
                 pdbId: pdbId,
-                getProteinData: function(parsePdb) {
-                    rpc.rpcRun('publicGetProteinText', pdb)
-                        .then(res => {
-                            let pdbText = res.result.pdbText
-                            parsePdb({ pdbId: pdbId, pdbText: pdbText })
-                            _this.isDownloading = false
-                        })
-                        .catch(() => {
-                            _this.isDownloading = false
-                            _this.error = 'Error: failed to load'
-                        })
+                async getProteinData(parsePdb) {
+                    try {
+                        let res = await rpc.remote.publicGetProteinText(pdb)
+                        parsePdb({ pdbId: pdbId, pdbText: res.result.pdbText })
+                        _this.isDownloading = false
+                    } catch {
+                        _this.isDownloading = false
+                        _this.error = 'Error: failed to load'
+                    }
                 },
-                getViews: function(processViews) {
-                    processViews({})
+                async getViews(processViews) {
+                    try {
+                        let res = await rpc.remote.publicGetViewDicts(pdb)
+                        processViews(res.result.views)
+                        _this.isDownloading = false
+                    } catch {
+                        _this.isDownloading = false
+                        _this.error = 'Error: failed to load'
+                    }
                 },
-                saveViews: function(views, success) {
-                    success()
+                async saveViews(views, success) {
+                    let resp = await rpc.remote.publicSaveViewDicts(views)
+                    if (_.get(resp, 'result.success')) {
+                        success()
+                    }
                 },
-                deleteView: function(viewId, success) {
-                    success()
+                async deleteView(viewId, success) {
+                    let resp = await rpc.remote.publicDeleteView(viewId)
+                    if (_.get(resp, 'result.success')) {
+                        success()
+                    }
                 },
-            }
-        },
-        openFile(file) {
-            this.loadFromDataServer(this.makeServerPdbDataServer(file.filename))
-        },
-        async openDir(topDir, dir) {
-            console.log('openDir', topDir, dir)
-            let res = await rpc.rpcRun('publicGetFiles', path.join(topDir, dir))
-            if (res.result) {
-                this.drawer = res.result
             }
         },
     },

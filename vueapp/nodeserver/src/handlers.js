@@ -83,36 +83,45 @@ async function publicGetProteinText(pdb) {
     return { pdbText }
 }
 
-// async function publicGetViewDicts(pdb) {
-//     let viewJson = getViewsJson(pdb)
-//     let views = {}
-//     let text = ''
-//     if (fs.existsSync(viewJson)) {
-//         text = fs.readFileSync(viewJson, 'utf8')
-//         views = JSON.parse(text)
-//     }
-//     return { views }
-// }
-//
-// async function publicSaveViewDicts(pdb, views) {
-//     let viewJson = getViewsJson(pdb)
-//     fs.writeFileSync(viewJson, JSON.stringify(views, null, 2))
-//     return { success: True }
-// }
-//
-// async function publicDeleteView(pdb, viewId) {
-//     let viewJson = getViewsJson(pdb)
-//     if (fs.existsSync(viewJson)) {
-//         let text = fs.readFileSync(viewJson, 'utf8')
-//         let views = JSON.parse(text)
-//         _.remove(views, v => v.view_id === viewId)
-//         fs.writeFileSync(viewJson, JSON.stringify(views, null, 2))
-//     }
-//     return { success: True }
-// }
+function getViewsJson(pdb) {
+    let viewsJson = pdb.replace('.pdb', '')
+    viewsJson += ".views.json"
+    return viewsJson
+}
+
+async function publicGetViewDicts(pdb) {
+    let viewJson = getViewsJson(pdb)
+    let views = {}
+    let text = ''
+    if (fs.existsSync(viewJson)) {
+        text = fs.readFileSync(viewJson, 'utf8')
+        views = JSON.parse(text)
+    }
+    return { views }
+}
+
+async function publicSaveViewDicts(pdb, views) {
+    let viewJson = getViewsJson(pdb)
+    fs.writeFileSync(viewJson, JSON.stringify(views, null, 2))
+    return { success: True }
+}
+
+async function publicDeleteView(pdb, viewId) {
+    let viewJson = getViewsJson(pdb)
+    if (fs.existsSync(viewJson)) {
+        let text = fs.readFileSync(viewJson, 'utf8')
+        let views = JSON.parse(text)
+        _.remove(views, v => v.view_id === viewId)
+        fs.writeFileSync(viewJson, JSON.stringify(views, null, 2))
+    }
+    return { success: True }
+}
 
 module.exports = {
     publicGetInit,
     publicGetFiles,
     publicGetProteinText,
+    publicGetViewDicts,
+    publicSaveViewDicts,
+    publicDeleteView
 }

@@ -61,11 +61,12 @@ async function openWebClient () {
   opn(url)
 }
 
-openWebClient()
-// for (let arg of process.argv) {
-//     break
-//   }
-// }
+for (let arg of process.argv) {
+  if (arg === "-c") {
+    openWebClient()
+    break
+  }
+}
 
 /**
  * Get port from environment and store in Express.

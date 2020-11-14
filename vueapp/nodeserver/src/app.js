@@ -17,7 +17,49 @@ const express = require('express')
 const fs = require('fs')
 const nopt = require('nopt')
 const config = require('./config')
-const handlers = require('./handler')
+const handlers = require('./handlers')
+
+function isDirectory (d) {
+  return fs.statSync(d).isDirectory()
+}
+
+function parseCommandLineArguments() {
+  let knownOpts = { debug: [Boolean, false] }
+  let shortHands = { d: ['--debug'] }
+  let parsed = nopt(knownOpts, shortHands, process.argv, 2)
+  let remain = parsed.argv.remain
+
+  if (remain.length === 0) {
+    config.initFile = path.join(__dirname, '../../../examples/1mbo.pdb')
+    config.initDir = path.dirname(config.initFile)
+  } else {
+    const testPdb = remain[0]
+
+    config.initFile = testPdb
+    config.initDir = path.dirname(config.initFile)
+
+    if (isDirectory(testPdb)) {
+      config.initDir = testPdb
+      config.initFile = ''
+    } else if (!fs.existsSync(testPdb)) {
+      let testInitFile = testPdb + '.pdb'
+      if (fs.existsSync(testInitFile)) {
+        config.initFile = testInitFile
+        config.initDir = path.dirname(config.initFile)
+      }
+    }
+    if (config.initFile && !fs.existsSync(config.initFile)) {
+      console.log('file not found', config.initFile)
+      process.exit(1);
+    }
+    if (!isDirectory(config.initDir)) {
+      console.log('directory not found', config.initDir)
+      process.exit(1);
+    }
+  }
+}
+
+parseCommandLineArguments()
 
 const app = express()
 module.exports = app
@@ -131,43 +173,3 @@ app.use((err, req, res) => {
   res.status(err.status || 500)
     .render('error', {message: err.message, error: {}})
 })
-
-// Parse command line
-
-let knownOpts = {debug: [Boolean, false]}
-let shortHands = {d: ['--debug']}
-let parsed = nopt(knownOpts, shortHands, process.argv, 2)
-let remain = parsed.argv.remain
-
-function isDirectory (d) {
-  return fs.statSync(d).isDirectory()
-}
-
-if (remain.length === 0) {
-  config.initFile = path.join(__dirname, '../../../examples/1mbo.pdb')
-  config.initDir = path.dirname(config.initFile)
-} else {
-  const testPdb = remain[0]
-
-  config.initFile = testPdb
-  config.initDir = path.dirname(config.initFile)
-
-  if (isDirectory(testPdb)) {
-    config.initDir = testPdb
-    config.initFile = ''
-  } else if (!fs.existsSync(testPdb)) {
-    let testInitFile = testPdb + '.pdb'
-    if (fs.existsSync(testInitFile)) {
-      config.initFile = testInitFile
-      config.initDir = path.dirname(config.initFile)
-    }
-  }
-  if (config.initFile && !fs.existsSync(config.initFile)) {
-    console.log('file not found', config.initFile)
-    process.exit(1);
-  }
-  if (!isDirectory(config.initDir)) {
-    console.log('directory not found', config.initDir)
-    process.exit(1);
-  }
-}
