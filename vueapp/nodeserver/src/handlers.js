@@ -103,7 +103,7 @@ async function publicGetViewDicts(pdb) {
 async function publicSaveViewDicts(pdb, views) {
     let viewJson = getViewsJson(pdb)
     fs.writeFileSync(viewJson, JSON.stringify(views, null, 2))
-    return { success: True }
+    return { success: true }
 }
 
 async function publicDeleteView(pdb, viewId) {
@@ -114,7 +114,7 @@ async function publicDeleteView(pdb, viewId) {
         _.remove(views, v => v.view_id === viewId)
         fs.writeFileSync(viewJson, JSON.stringify(views, null, 2))
     }
-    return { success: True }
+    return { success: true }
 }
 
 module.exports = {

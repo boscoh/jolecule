@@ -1,67 +1,65 @@
 <template>
-    <v-container fluid>
-        <v-row>
-            <v-col lg="8" md="6" sm="6">
-                <div id="jolecule" style="height: calc(100vh - 110px)"></div>
-            </v-col>
-
+    <v-container fluid style="margin: 0; padding: 0">
+        <v-row no-gutters>
             <v-col lg="4" md="6" sm="6">
-                <v-row class="p3" style="width: 8em;">
-                    <v-col cols="8" align-self="center">
-                        <v-text-field
-                            style="width: 5em;"
-                            v-model="pdbId"
-                            label="PdbId"
-                            v-on:keyup.enter="loadFromPdbId()"
-                        ></v-text-field>
-                    </v-col>
+                <v-card class="pa-3">
+                    <v-row no-gutters style="width: 8em;">
+                        <v-col cols="8" align-self="center">
+                            <v-text-field
+                                style="width: 5em;"
+                                v-model="pdbId"
+                                label="PdbId"
+                                v-on:keyup.enter="loadFromPdbId()"
+                            ></v-text-field>
+                        </v-col>
 
-                    <v-col cols="4" align="right" align-self="center">
-                        <v-btn
-                            class="px-2"
-                            v-bind:loading="isDownloading"
-                            icon
-                            small
-                            @click="loadFromPdbId()"
-                        >
-                            <v-icon>fa-download</v-icon>
-                        </v-btn>
-                    </v-col>
-                </v-row>
+                        <v-col cols="4" align="right" align-self="center">
+                            <v-btn
+                                class="px-2"
+                                v-bind:loading="isDownloading"
+                                icon
+                                small
+                                @click="loadFromPdbId()"
+                            >
+                                <v-icon>fa-download</v-icon>
+                            </v-btn>
+                        </v-col>
+                    </v-row>
 
-                <v-alert v-if="error" type="error" dismissible text>
-                    {{ error }}
-                </v-alert>
+                    <v-alert v-if="error" type="error" dismissible text>
+                        {{ error }}
+                    </v-alert>
+                </v-card>
 
                 <v-card
                     class="p-3"
-                    style="height: calc(100vh - 200px); overflow: scroll"
+                    style="height: calc(100vh - 48px - 94px); overflow: scroll"
                 >
-                    <v-card>
-                        <v-card-title>
-                            Structures
-                        </v-card-title>
-                        <v-list>
-                            <v-list-item
-                                v-for="(structureId, i) in structureIds"
-                                :key="i + 's'"
-                            >
-                                <v-list-item-content>
-                                    {{ structureId }}
-                                </v-list-item-content>
-                                <v-list-item-action>
-                                    <v-btn
-                                        icon
-                                        small
-                                        class="ml-2"
-                                        @click="deleteProtein(i)"
-                                    >
-                                        <v-icon>fa-trash</v-icon>
-                                    </v-btn>
-                                </v-list-item-action>
-                            </v-list-item>
-                        </v-list>
-                    </v-card>
+<!--                    <v-card>-->
+<!--                        <v-card-title>-->
+<!--                            Structures-->
+<!--                        </v-card-title>-->
+<!--                        <v-list>-->
+<!--                            <v-list-item-->
+<!--                                v-for="(structureId, i) in structureIds"-->
+<!--                                :key="i + 's'"-->
+<!--                            >-->
+<!--                                <v-list-item-content>-->
+<!--                                    {{ structureId }}-->
+<!--                                </v-list-item-content>-->
+<!--                                <v-list-item-action>-->
+<!--                                    <v-btn-->
+<!--                                        icon-->
+<!--                                        small-->
+<!--                                        class="ml-2"-->
+<!--                                        @click="deleteProtein(i)"-->
+<!--                                    >-->
+<!--                                        <v-icon>fa-trash</v-icon>-->
+<!--                                    </v-btn>-->
+<!--                                </v-list-item-action>-->
+<!--                            </v-list-item>-->
+<!--                        </v-list>-->
+<!--                    </v-card>-->
 
                     <v-card>
                         <v-card-title>
@@ -81,7 +79,7 @@
                                 class="entry"
                                 v-for="(file, k) in drawer.files"
                                 :key="k + 'e'"
-                                @click="openFile(file)"
+                                @click="openFileReplace(file)"
                             >
                                 <v-list-item-content>
                                     <v-list-item-title>{{
@@ -96,19 +94,32 @@
                     </v-card>
                 </v-card>
             </v-col>
+
+            <v-col lg="8" md="6" sm="6">
+                <v-row no-gutters>
+                    <v-col cols="8">
+                        <div id="jolecule" style="height: calc(100vh - 48px)"></div>
+                    </v-col>
+                    <v-col cols="4">
+                        <div id="jolecule-views" style="height: calc(100vh - 48px); overflow: scroll"></div>
+                    </v-col>
+                </v-row>
+
+            </v-col>
+
         </v-row>
     </v-container>
 </template>
 
 <style>
-@import '../../../../dist/jolecule.css';
+@import '../../../../dist/full-page-jolecule.css';
 @import '../../../../dist/select2.css';
 </style>
 
 <script>
 import axios from 'axios'
 import $ from 'jquery'
-import { initEmbedJolecule } from '../../../../src/main'
+import { initFullPageJolecule } from '../../../../src/main'
 import * as rpc from '../modules/rpc'
 import path from 'path'
 import _ from 'lodash'
@@ -134,16 +145,20 @@ export default {
         }
     },
     async mounted() {
-        this.joleculeWidget = initEmbedJolecule({
-            divTag: '#jolecule',
-            viewId: 'view:45c4gq',
-            isGrid: true,
-            isEditable: true,
-            isPlayable: true,
-            isEternalRotate: true,
-            isSequenceBar: true,
-            backgroundColor: 0x000000,
-        })
+        this.joleculeWidget = initFullPageJolecule(
+            '#jolecule',
+            '#jolecule-views',
+            {
+                divTag: '#jolecule',
+                viewId: 'view:45c4gq',
+                isGrid: true,
+                isEditable: true,
+                isPlayable: true,
+                isEternalRotate: true,
+                isSequenceBar: true,
+                backgroundColor: 0x000000,
+            }
+        )
 
         let dataServer = require('../../../dataservers/1mbo-data-server')
         let res = await rpc.remote.publicGetInit()
@@ -166,6 +181,10 @@ export default {
         openFile(file) {
             this.loadFromDataServer(this.makeServerPdbDataServer(file.filename))
         },
+        openFileReplace(file) {
+            this.joleculeWidget.clear()
+            this.loadFromDataServer(this.makeServerPdbDataServer(file.filename))
+        },
         async openDir(topDir, dir) {
             let res = await rpc.remote.publicGetFiles(path.join(topDir, dir))
             if (res.result) {
@@ -186,6 +205,7 @@ export default {
         },
         async loadFromPdbId() {
             await delay(100)
+            this.joleculeWidget.clear()
             this.loadFromDataServer(this.makeRcsbDataServer(this.pdbId))
         },
         makeRcsbDataServer(pdbId) {

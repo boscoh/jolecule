@@ -11,10 +11,6 @@ Vue.use(Vuetify)
 new Vue({
     router,
     store,
-    vuetify: new Vuetify({
-        icons: {
-            iconfont: 'fa4',
-        },
-    }),
+    vuetify: new Vuetify({ icons: { iconfont: 'fa4' }, theme: { light: true } }),
     render: h => h(App),
 }).$mount('#app')

@@ -18,9 +18,7 @@
 import config from './config'
 export default {
     data() {
-        return {
-            title: config.title,
-        }
+        return { title: config.title }
     },
 }
 </script>
