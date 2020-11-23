@@ -138,17 +138,9 @@ body {
     font-size: 14px;
     line-height: 1.3em;
   }
-  #jolecule-sequence-container {
-    border: 0;
-    width: 0;
-    height: 0;
-    padding: 0;
-    visibility: collapse;
-  }
 }
 
 @media screen and (max-width: 700px) {
-  #jolecule-sequence-container,
   #jolecule-views-container,
   #jolecule-views {
     border: 0;

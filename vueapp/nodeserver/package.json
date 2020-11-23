@@ -33,6 +33,7 @@
     "express-session": "*",
     "fs-extra": "^5.0.0",
     "morgan": "*",
+    "nodemon": "^2.0.6",
     "opn": "^5.3.0",
     "shortid": "*"
   }

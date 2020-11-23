@@ -1,0 +1,414 @@
+[
+  {
+    "camera": {
+      "in": [
+        10.199999809265137,
+        7.78000020980835,
+        18.860000610351562
+      ],
+      "pos": [
+        10.199999809265137,
+        7.78000020980835,
+        17.860000610351562
+      ],
+      "slab": {
+        "z_back": 33.43000030517578,
+        "z_front": -33.43000030517578,
+        "zoom": 27.429641240003402
+      },
+      "up": [
+        10.199999809265137,
+        6.78000020980835,
+        17.860000610351562
+      ]
+    },
+    "distances": [],
+    "grid": {
+      "bCutoff": 0.5,
+      "isElem": {}
+    },
+    "i_atom": 250,
+    "labels": [],
+    "order": 1,
+    "pdb_id": "1a0a",
+    "selected": [],
+    "selected_traces": [
+      0
+    ],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "sphere": false,
+      "trace": true,
+      "transparent": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "user_id": "",
+    "version": 2,
+    "view_id": "view:d1g0nz"
+  },
+  {
+    "camera": {
+      "in": [
+        17.19750451339976,
+        14.595169038180115,
+        37.83165848109211
+      ],
+      "pos": [
+        16.446327087632262,
+        13.965398979266283,
+        37.63386528628252
+      ],
+      "slab": {
+        "z_back": 33.43000030517578,
+        "z_front": -33.43000030517578,
+        "zoom": 117.00500106811566
+      },
+      "up": [
+        16.890771698635632,
+        13.261325420750474,
+        38.187714915648606
+      ]
+    },
+    "distances": [],
+    "grid": {
+      "bCutoff": 0.5,
+      "isElem": {}
+    },
+    "i_atom": -1,
+    "labels": [],
+    "order": 3,
+    "pdb_id": "1a0a",
+    "selected": [
+      10,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      115,
+      116,
+      117,
+      118,
+      119,
+      120,
+      125,
+      146,
+      149,
+      150,
+      154,
+      160,
+      161,
+      173,
+      20,
+      208,
+      21,
+      214,
+      22,
+      220,
+      23,
+      24,
+      25,
+      47,
+      6,
+      60,
+      61,
+      62,
+      65,
+      7,
+      76,
+      77,
+      78,
+      8,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      9,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99
+    ],
+    "selected_traces": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "sphere": false,
+      "trace": true,
+      "transparent": false,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "user_id": "",
+    "version": 2,
+    "view_id": "view:l9h79g"
+  },
+  {
+    "camera": {
+      "in": [
+        15.519835224201364,
+        8.740168794225674,
+        16.242614299870826
+      ],
+      "pos": [
+        14.760000228881836,
+        8.890000343322754,
+        15.609999656677246
+      ],
+      "slab": {
+        "z_back": 33.43000030517578,
+        "z_front": -33.43000030517578,
+        "zoom": 30.692449272551112
+      },
+      "up": [
+        14.666135193642967,
+        7.9018326281729205,
+        15.488698700806477
+      ]
+    },
+    "distances": [
+      {
+        "i_atom1": 1070,
+        "i_atom2": 271
+      },
+      {
+        "i_atom1": 846,
+        "i_atom2": 271
+      }
+    ],
+    "grid": {
+      "bCutoff": 0.5,
+      "isElem": {}
+    },
+    "i_atom": 271,
+    "labels": [
+      {
+        "i_atom": 271,
+        "text": "aa"
+      }
+    ],
+    "order": 4,
+    "pdb_id": "1a0a",
+    "selected": [],
+    "selected_traces": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "sphere": false,
+      "trace": true,
+      "transparent": true,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "user_id": "",
+    "version": 2,
+    "view_id": "view:3a1nep"
+  },
+  {
+    "camera": {
+      "in": [
+        10.959834804584665,
+        7.63016866071127,
+        18.492615253545143
+      ],
+      "pos": [
+        10.199999809265137,
+        7.78000020980835,
+        17.860000610351562
+      ],
+      "slab": {
+        "z_back": 33.43000030517578,
+        "z_front": -33.43000030517578,
+        "zoom": 30.692449272551112
+      },
+      "up": [
+        10.106134774026268,
+        6.791832494658516,
+        17.738699654480794
+      ]
+    },
+    "distances": [
+      {
+        "i_atom1": 1070,
+        "i_atom2": 271
+      },
+      {
+        "i_atom1": 846,
+        "i_atom2": 271
+      }
+    ],
+    "grid": {
+      "bCutoff": 0.5,
+      "isElem": {}
+    },
+    "i_atom": 250,
+    "labels": [
+      {
+        "i_atom": 271,
+        "text": "aa"
+      }
+    ],
+    "order": 5,
+    "pdb_id": "1a0a",
+    "selected": [],
+    "selected_traces": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "sphere": false,
+      "trace": true,
+      "transparent": true,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "user_id": "",
+    "version": 2,
+    "view_id": "view:00l7pp"
+  },
+  {
+    "camera": {
+      "in": [
+        7.336950752517403,
+        3.1710024340472622,
+        39.64335560576703
+      ],
+      "pos": [
+        6.389999866485596,
+        3.3399999141693115,
+        39.369998931884766
+      ],
+      "slab": {
+        "z_back": 33.43000030517578,
+        "z_front": -33.43000030517578,
+        "zoom": 117.00500106811528
+      },
+      "up": [
+        6.267220588641482,
+        2.3637045678060122,
+        39.191750101309516
+      ]
+    },
+    "distances": [],
+    "grid": {
+      "bCutoff": 0.5,
+      "isElem": {}
+    },
+    "i_atom": 530,
+    "labels": [],
+    "order": 6,
+    "pdb_id": "1a0a",
+    "selected": [],
+    "selected_traces": [
+      1
+    ],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "sphere": false,
+      "trace": true,
+      "transparent": true,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "user_id": "",
+    "version": 2,
+    "view_id": "view:qs1orq"
+  },
+  {
+    "camera": {
+      "in": [
+        14.136950466415108,
+        31.121003435405296,
+        43.783354995415465
+      ],
+      "pos": [
+        13.1899995803833,
+        31.290000915527344,
+        43.5099983215332
+      ],
+      "slab": {
+        "z_back": 33.43000030517578,
+        "z_front": -33.43000030517578,
+        "zoom": 117.00500106811525
+      },
+      "up": [
+        13.067220302539187,
+        30.313705569164043,
+        43.331749490957954
+      ]
+    },
+    "distances": [],
+    "grid": {
+      "bCutoff": 0.5,
+      "isElem": {}
+    },
+    "i_atom": 1584,
+    "labels": [],
+    "order": 7,
+    "pdb_id": "1a0a",
+    "selected": [],
+    "selected_traces": [
+      3
+    ],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "peptide": true,
+      "ribbon": true,
+      "sidechain": false,
+      "sphere": false,
+      "trace": true,
+      "transparent": true,
+      "water": false
+    },
+    "text": "Click edit to change this text.",
+    "user_id": "",
+    "version": 2,
+    "view_id": "view:ctyeg7"
+  }
+]

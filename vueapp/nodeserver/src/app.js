@@ -116,10 +116,9 @@ router.post('/api/rpc-run', (req, res, next) => {
         })
       })
       .catch(e => {
-        console.log(e.toString())
         res.json({
           error: {
-            code: -1,
+            code: -32603,
             message: e.toString()
           },
           jsonrpc: '2.0'
@@ -128,8 +127,8 @@ router.post('/api/rpc-run', (req, res, next) => {
   } else {
     res.json({
       error: {
-        code: -1,
-        message: `Remote runFn ${method} not found`
+        code: -32601,
+        message: `Method not found`
       },
       jsonrpc: '2.0'
     })

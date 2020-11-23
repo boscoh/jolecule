@@ -1,0 +1,513 @@
+[
+  {
+    "camera": {
+      "in": [
+        14.144988425426066,
+        13.874028586744313,
+        1.0743097424998538
+      ],
+      "pos": [
+        13.860000000000673,
+        13.029999999999806,
+        0.619999999998524
+      ],
+      "slab": {
+        "z_back": 27.396983240223452,
+        "z_front": -23.523016759776546,
+        "zoom": 120.35486387217648
+      },
+      "up": [
+        14.761473352983558,
+        12.95507735443775,
+        0.19369917775702478
+      ]
+    },
+    "creator": "~ apposite @27/5/2015",
+    "distances": [],
+    "i_atom": 873,
+    "labels": [
+      {
+        "i_atom": 1,
+        "text": "N-terminal"
+      },
+      {
+        "i_atom": 1223,
+        "text": "C-terminal"
+      }
+    ],
+    "order": 3,
+    "pdb_id": "1mbo",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": false,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "Myoglobin is a long single chain polymer of amino-acids that folds up into five α-helices.",
+    "version": 2,
+    "view_id": "view:eagu1g"
+  },
+  {
+    "camera": {
+      "in": [
+        18.61162633704652,
+        25.24319664220601,
+        5.018693704050929
+      ],
+      "pos": [
+        19.179999999998742,
+        26.050000000001305,
+        5.179999999999071
+      ],
+      "slab": {
+        "z_back": 27.396983240223452,
+        "z_front": -23.523016759776546,
+        "zoom": 69.28452731387468
+      },
+      "up": [
+        19.228697779635795,
+        26.212721086500764,
+        4.194530378819982
+      ]
+    },
+    "creator": "~ apposite @28/5/2015",
+    "distances": [],
+    "i_atom": 547,
+    "labels": [
+      {
+        "i_atom": 831,
+        "text": "bottom of cavity"
+      }
+    ],
+    "order": 4,
+    "pdb_id": "1mbo",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": false,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "The structure of the myoglobin provides a cavity in the middle of the protein.",
+    "version": 2,
+    "view_id": "view:coun7l"
+  },
+  {
+    "camera": {
+      "in": [
+        16.335088270340503,
+        29.567119397741568,
+        1.8034105013822062
+      ],
+      "pos": [
+        16.729999999994085,
+        30.480000000003347,
+        1.6999999999996858
+      ],
+      "slab": {
+        "z_back": 27.396983240223452,
+        "z_front": -23.523016759776546,
+        "zoom": 32.406336890591106
+      },
+      "up": [
+        16.65189795504742,
+        30.401206876192365,
+        0.706173197073111
+      ]
+    },
+    "creator": "~ apposite @28/5/2015",
+    "distances": [],
+    "i_atom": 1236,
+    "labels": [
+      {
+        "i_atom": 1240,
+        "text": "heme"
+      }
+    ],
+    "order": 5,
+    "pdb_id": "1mbo",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "This cavity is designed to bind a heme molecule.",
+    "version": 2,
+    "view_id": "view:z5dpfp"
+  },
+  {
+    "camera": {
+      "in": [
+        17.00123423615934,
+        25.682855200046887,
+        -0.1600056890155509
+      ],
+      "pos": [
+        17.410000000001787,
+        26.58999999999918,
+        -0.2600000000028232
+      ],
+      "slab": {
+        "z_back": 5.58086661002549,
+        "z_front": -7.753908948194662,
+        "zoom": 29.280544867878536
+      },
+      "up": [
+        16.501362135372435,
+        26.98427451475052,
+        -0.3975675760496816
+      ]
+    },
+    "creator": "~ apposite @28/5/2015",
+    "distances": [],
+    "i_atom": 1276,
+    "labels": [],
+    "order": 6,
+    "pdb_id": "1mbo",
+    "selected": [
+      42,
+      63,
+      67,
+      92,
+      154,
+      155,
+      341
+    ],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "The surrounding residues around the oxygen is crucial for oxygen molecule binding.",
+    "version": 2,
+    "view_id": "view:e9mx4p"
+  },
+  {
+    "camera": {
+      "in": [
+        14.365440765250709,
+        27.888464655689724,
+        0.6440555174814825
+      ],
+      "pos": [
+        15.359999999976905,
+        27.95000000001393,
+        0.5599999999960467
+      ],
+      "slab": {
+        "z_back": 13.627697536108753,
+        "z_front": -2.3794392523364434,
+        "zoom": 36.26482675698667
+      },
+      "up": [
+        15.31524611040343,
+        27.4737644253482,
+        -0.3181780951480112
+      ]
+    },
+    "creator": "~ apposite @27/5/2015",
+    "distances": [],
+    "i_atom": 1274,
+    "labels": [
+      {
+        "i_atom": 1274,
+        "text": "Iron atom"
+      }
+    ],
+    "order": 7,
+    "pdb_id": "1mbo",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "Specifically, the heme group traps an iron atom in its centre.\n",
+    "version": 2,
+    "view_id": "view:77smzs"
+  },
+  {
+    "camera": {
+      "in": [
+        14.41946231879145,
+        28.281583486049204,
+        0.4862350896306356
+      ],
+      "pos": [
+        15.360000000002508,
+        27.949999999999722,
+        0.5599999999972702
+      ],
+      "slab": {
+        "z_back": 13.627697536108753,
+        "z_front": -2.3794392523364434,
+        "zoom": 73.21182399734002
+      },
+      "up": [
+        15.406719302241672,
+        27.861180022537074,
+        -0.43495141509887425
+      ]
+    },
+    "creator": "~ apposite @27/5/2015",
+    "distances": [],
+    "i_atom": 1274,
+    "labels": [
+      {
+        "i_atom": 1233,
+        "text": "heme"
+      }
+    ],
+    "order": 8,
+    "pdb_id": "1mbo",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "The heme group is the molecule responsible for binding oxygen to the molecule.",
+    "version": 2,
+    "view_id": "view:ekemch"
+  },
+  {
+    "camera": {
+      "in": [
+        16.15280442554322,
+        26.915043079460567,
+        0.9557622601739797
+      ],
+      "pos": [
+        17.050000000004935,
+        27.259999999998165,
+        0.6799999999940791
+      ],
+      "slab": {
+        "z_back": 5.58086661002549,
+        "z_front": -2,
+        "zoom": 14.868044541781543
+      },
+      "up": [
+        16.824599703395478,
+        27.080705061072702,
+        -0.27762624816544346
+      ]
+    },
+    "creator": "~ apposite @28/5/2015",
+    "distances": [],
+    "i_atom": 1275,
+    "labels": [
+      {
+        "i_atom": 1274,
+        "text": "Iron atom"
+      },
+      {
+        "i_atom": 1275,
+        "text": "O1 of oxygen molecule"
+      },
+      {
+        "i_atom": 1276,
+        "text": "O2 of oxygen molecule"
+      }
+    ],
+    "order": 9,
+    "pdb_id": "1mbo",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "The iron atom, in turn, has a high affinity for oxygen molecules.",
+    "version": 2,
+    "view_id": "view:l74skx"
+  },
+  {
+    "camera": {
+      "in": [
+        26.442510387563498,
+        20.389275062291787,
+        9.710224968790408
+      ],
+      "pos": [
+        26.259999999998318,
+        21.37000000000411,
+        9.7799999999976
+      ],
+      "slab": {
+        "z_back": 12.23039246467818,
+        "z_front": -2,
+        "zoom": 69.28452731387465
+      },
+      "up": [
+        25.38460083250035,
+        21.24022005054768,
+        9.314346199129451
+      ]
+    },
+    "creator": "~ apposite @28/5/2015",
+    "distances": [],
+    "i_atom": 166,
+    "labels": [
+      {
+        "i_atom": 153,
+        "text": "kink in alpha-helix"
+      }
+    ],
+    "order": 10,
+    "pdb_id": "1mbo",
+    "selected": [],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": false,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "The first alpha-helix is long with a large kink in the helix.",
+    "version": 2,
+    "view_id": "view:cc8izq"
+  },
+  {
+    "camera": {
+      "in": [
+        20.709588659445995,
+        26.712172377861318,
+        0.32415961043628183
+      ],
+      "pos": [
+        21.16000000000296,
+        27.419999999998726,
+        -0.22000000000626052
+      ],
+      "slab": {
+        "z_back": 5.58086661002549,
+        "z_front": -7.753908948194662,
+        "zoom": 18.56435170180574
+      },
+      "up": [
+        20.383243209498293,
+        28.031169367579384,
+        -0.06794444260717364
+      ]
+    },
+    "creator": "~ apposite @28/5/2015",
+    "distances": [],
+    "i_atom": 525,
+    "labels": [
+      {
+        "i_atom": 525,
+        "text": "blocking histidine"
+      }
+    ],
+    "order": 11,
+    "pdb_id": "1mbo",
+    "selected": [
+      42,
+      63,
+      67,
+      92,
+      154,
+      155,
+      341
+    ],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "A crucial histidine makes contact with the oxygen molecule.",
+    "version": 2,
+    "view_id": "view:4vbozk"
+  },
+  {
+    "camera": {
+      "in": [
+        19.787737884292653,
+        27.835231838168752,
+        0.987055284640157
+      ],
+      "pos": [
+        19.8500000000011,
+        27.880000000000567,
+        -0.010000000002429177
+      ],
+      "slab": {
+        "z_back": 4.55642072213501,
+        "z_front": -2,
+        "zoom": 18.564351701805748
+      },
+      "up": [
+        20.124179198711857,
+        28.83979151500971,
+        0.050216399016241677
+      ]
+    },
+    "creator": "~ apposite @28/5/2015",
+    "distances": [],
+    "i_atom": 527,
+    "labels": [
+      {
+        "i_atom": 527,
+        "text": "blocks potential carbon monoxide binding"
+      }
+    ],
+    "order": 12,
+    "pdb_id": "1mbo",
+    "selected": [
+      42,
+      63,
+      67,
+      92,
+      154,
+      155,
+      341
+    ],
+    "show": {
+      "all_atom": false,
+      "hydrogen": false,
+      "ligands": true,
+      "ribbon": true,
+      "sidechain": false,
+      "trace": false,
+      "water": false
+    },
+    "text": "The histidine sits right on top of the oxygen atom. The reason is that carbon monoxide (C=O) also likes to bind to the iron atom. But this is prevented by the blocking histidine which sits exactly where the C of the carbon monoxide would like to sit. Therefore myoglobin binds oxygen molecules over carbon monoxide molecules.",
+    "version": 2,
+    "view_id": "view:1mg5ap"
+  }
+]
