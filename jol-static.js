@@ -131,7 +131,7 @@ const fullPageIndexHtmlMustache = `
           require(['jolecule'], function(jolecule) {
             var j = jolecule.initFullPageJolecule(
               '#jolecule-protein-container',
-              '#jolecule-views-container',
+              '#jolecule-components-container',
               { 
                 isEditable: true,
                 isExtraEditable: true,
@@ -198,7 +198,7 @@ if (remain.length < 1) {
     let pdbLines = pdbText.split(/\r?\n/)
     pdbLines = _.map(pdbLines, l => l.replace(/"/g, '\\"'))
     let pdbId = base
-    let viewsJson = pdb.replace('.pdb', '') + '.views.json'
+    let viewsJson = pdb.replace('.pdb', '') + '.components.json'
     console.log(`Checking ${viewsJson}`)
     let views = {}
     if (fs.existsSync(viewsJson)) {

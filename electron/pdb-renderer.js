@@ -136,7 +136,7 @@ $button.click(() => {
 
 let joleculeInstance = jolecule.initFullPageJolecule(
   '#jolecule-protein-container',
-  '#jolecule-views-container',
+  '#jolecule-components-container',
   {
     isEditable: true,
     isExtraEditable: true,

@@ -214,7 +214,7 @@ class NucleotideRepresentation extends Representation {
     let residue = this.soup.getResidueProxy()
     let atom = this.soup.getAtomProxy()
 
-    function getVecFromAtomType(a) {
+    function getVecFromAtomType (a) {
       let iAtom = residue.getIAtom(a)
       if (iAtom === null) {
         return null
@@ -280,7 +280,7 @@ class NucleotideRepresentation extends Representation {
           )) {
             let iAtom1 = getVecFromAtomType(bond[0])
             let iAtom2 = getVecFromAtomType(bond[1])
-            if ((iAtom1 == null) || (iAtom2 == null)) {
+            if (iAtom1 == null || iAtom2 == null) {
               continue
             }
             this.nucleotideConnectList.push([iAtom1, iAtom2, iRes])

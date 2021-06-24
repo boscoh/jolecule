@@ -7523,7 +7523,7 @@ module.exports = function (it) {
      */
     var getTag = baseGetTag;
 
-    // Fallback for data views, maps, sets, and weak maps in IE 11 and promises in Node.js < 6.
+    // Fallback for data components, maps, sets, and weak maps in IE 11 and promises in Node.js < 6.
     if ((DataView && getTag(new DataView(new ArrayBuffer(1))) != dataViewTag) ||
         (Map && getTag(new Map) != mapTag) ||
         (Promise && getTag(Promise.resolve()) != promiseTag) ||
@@ -74122,13 +74122,13 @@ it('check load soup', function() {
   soup.parsePdbData(pdbText, '1mbo')
 })
 
-it('check load soup views', function() {
+it('check load soup components', function() {
   let f = '../examples/1mbo.pdb'
   let pdbText = __WEBPACK_IMPORTED_MODULE_0_fs___default.a.readFileSync(f).toString()
   let soup = new __WEBPACK_IMPORTED_MODULE_1__src_soup__["a" /* Soup */]()
   soup.parsePdbData(pdbText, '1mbo')
 
-  let g = '../examples/1mbo.views.json'
+  let g = '../examples/1mbo.components.json'
   let jsonText = __WEBPACK_IMPORTED_MODULE_0_fs___default.a.readFileSync(g).toString()
   let viewDicts = JSON.parse(jsonText)
 
@@ -87007,7 +87007,7 @@ function interpolateCameras (oldCamera, futureCamera, fraction) {
 
 /**
  * The SoupView contains a soup and a list of
- * views of the soup, including the current
+ * components of the soup, including the current
  * view, and a target view for animation
  */
 class SoupView {
@@ -87035,7 +87035,7 @@ class SoupView {
     // residues
     this.currentView = new View()
 
-    // stores other views that can be reloaded
+    // stores other components that can be reloaded
     this.savedViewsByViewId = {}
     this.savedViews = []
     this.iLastViewSelected = 0
@@ -87054,7 +87054,7 @@ class SoupView {
     // until it becomes negative
     this.nUpdateStep = -1
 
-    // this is to set the time between transitions of views
+    // this is to set the time between transitions of components
     this.maxUpdateStep = 70
     this.msPerStep = 17
 

@@ -171,12 +171,16 @@ class ViewPanelList {
     }
   }
 
-  saveViewsToDataServer (success) {
+  async saveViewsToDataServer (success) {
     console.log('ViewPanelList.saveViewsToDataServer')
-    this.soupWidget.dataServer.saveViews(
-      this.controller.getViewDicts(),
-      success
-    )
+    let views = this.controller.getViewDicts()
+    if (this.soupWidget.dataServer.version === 2) {
+      await this.soupWidget.dataServer.saveViews(views)
+    } else {
+      return new Promise(
+        resolve => {this.soupWidget.dataServer.saveViews(views, resolve)}
+      )
+    }
   }
 
   update () {
@@ -257,13 +261,20 @@ class ViewPanelList {
     this.update()
   }
 
-  removeView (id) {
+  async removeView (id) {
     console.log('ViewPanelList.removeView')
     this.viewPiece[id].div.css('background-color', 'lightgray')
-    this.soupWidget.dataServer.deleteView(id, () => {
+    if (this.soupWidget.dataServer.version === 3) {
+      await this.soupWidget.dataServer.deleteView(id)
       this.controller.deleteView(id)
       this.update()
-    })
+    } else {
+      await new Promise(
+        resolve => this.soupWidget.dataServer.deleteView(id, resolve)
+      )
+      this.controller.deleteView(id)
+      this.update()
+    }
   }
 
   swapViews (i, j) {
@@ -358,20 +369,20 @@ class ViewPanelList {
     }
   }
 
-  saveCurrentView () {
+  async saveCurrentView () {
     console.log('ViewPanelList.saveCurrentView')
     let newId = this.controller.saveCurrentView()
     this.insertNewViewDiv(newId)
     this.update()
     let div = this.viewPiece[newId].div
     div.css('background-color', 'lightgray')
-    this.saveViewsToDataServer(() => {
-      console.log('ViewPieceList.saveCurrentView success')
-      div.css('background-color', '')
-      $('#jolecule-views')
-        .stop()
-        .scrollTo(div, 1000, { offset: { top: -80 } })
-    })
+    await this.saveViewsToDataServer()
+
+    console.log('ViewPieceList.saveCurrentView success')
+    div.css('background-color', '')
+    $('#jolecule-views')
+      .stop()
+      .scrollTo(div, 1000, { offset: { top: -80 } })
   }
 }
 

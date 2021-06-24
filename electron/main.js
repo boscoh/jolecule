@@ -67,7 +67,7 @@ function createWindow (windowId) {
 
 function getViewsJson (pdb) {
   let base = pdb.replace('.pdb', '')
-  return base + '.views.json'
+  return base + '.components.json'
 }
 
 function showOpen () {

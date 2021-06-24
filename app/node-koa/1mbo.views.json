@@ -1,9 +1,117 @@
 [
   {
     "version": 2,
-    "view_id": "view:eagu1g",
+    "view_id": "view:ht9mu7",
+    "user_id": "",
     "pdb_id": "1mbo",
     "order": 1,
+    "show": {
+      "sidechain": false,
+      "peptide": true,
+      "hydrogen": false,
+      "water": false,
+      "ligands": true,
+      "trace": true,
+      "ribbon": true,
+      "sphere": false,
+      "transparent": false,
+      "all_atom": false
+    },
+    "grid": {
+      "isElem": {},
+      "bCutoff": 0.5,
+      "isChanged": false
+    },
+    "text": "Click edit to change this text.",
+    "i_atom": -1,
+    "labels": [],
+    "selected": [],
+    "selected_traces": [],
+    "distances": [],
+    "camera": {
+      "slab": {
+        "z_front": -25.459999084472656,
+        "z_back": 25.459999084472656,
+        "zoom": 89.1099967956543
+      },
+      "pos": [
+        15.513836110654749,
+        20.896995673697237,
+        4.723016759148301
+      ],
+      "up": [
+        15.513836110654749,
+        19.896995673697237,
+        4.723016759148301
+      ],
+      "in": [
+        15.513836110654749,
+        20.896995673697237,
+        5.723016759148301
+      ]
+    },
+    "lock": false,
+    "creator": "public"
+  },
+  {
+    "version": 2,
+    "view_id": "view:vfficu",
+    "user_id": "",
+    "pdb_id": "1mbo",
+    "order": 2,
+    "show": {
+      "sidechain": false,
+      "peptide": true,
+      "hydrogen": false,
+      "water": false,
+      "ligands": true,
+      "trace": true,
+      "ribbon": true,
+      "sphere": false,
+      "transparent": false,
+      "all_atom": false
+    },
+    "grid": {
+      "isElem": {},
+      "bCutoff": 0.5,
+      "isChanged": false
+    },
+    "text": "Click edit to change this text.",
+    "i_atom": -1,
+    "labels": [],
+    "selected": [],
+    "selected_traces": [],
+    "distances": [],
+    "camera": {
+      "slab": {
+        "z_front": -25.459999084472656,
+        "z_back": 25.459999084472656,
+        "zoom": 89.1099967956543
+      },
+      "pos": [
+        15.513836110654749,
+        20.896995673697237,
+        4.723016759148301
+      ],
+      "up": [
+        15.513836110654749,
+        19.896995673697237,
+        4.723016759148301
+      ],
+      "in": [
+        15.513836110654749,
+        20.896995673697237,
+        5.723016759148301
+      ]
+    },
+    "lock": false,
+    "creator": "public"
+  },
+  {
+    "version": 2,
+    "view_id": "view:eagu1g",
+    "pdb_id": "1mbo",
+    "order": 3,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -40,7 +148,7 @@
       "slab": {
         "z_front": -23.523016759776546,
         "z_back": 27.396983240223452,
-        "zoom": 120.35486387217624
+        "zoom": 120.35486387217642
       },
       "pos": [
         13.860000000000673,
@@ -55,7 +163,7 @@
       "in": [
         14.144988425426066,
         13.874028586744313,
-        1.0743097424998547
+        1.074309742499854
       ]
     },
     "creator": "~ apposite @27/5/2015"
@@ -64,7 +172,7 @@
     "version": 2,
     "view_id": "view:coun7l",
     "pdb_id": "1mbo",
-    "order": 2,
+    "order": 4,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -121,7 +229,7 @@
     "version": 2,
     "view_id": "view:z5dpfp",
     "pdb_id": "1mbo",
-    "order": 3,
+    "order": 5,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -154,7 +262,7 @@
       "slab": {
         "z_front": -23.523016759776546,
         "z_back": 27.396983240223452,
-        "zoom": 32.40633689059063
+        "zoom": 32.40633689059107
       },
       "pos": [
         16.729999999994085,
@@ -169,7 +277,7 @@
       "in": [
         16.335088270340503,
         29.567119397741568,
-        1.8034105013822077
+        1.8034105013822064
       ]
     },
     "creator": "~ apposite @28/5/2015"
@@ -178,7 +286,7 @@
     "version": 2,
     "view_id": "view:e9mx4p",
     "pdb_id": "1mbo",
-    "order": 5,
+    "order": 6,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -214,7 +322,7 @@
       "slab": {
         "z_front": -7.753908948194662,
         "z_back": 5.58086661002549,
-        "zoom": 29.28054486787871
+        "zoom": 29.28054486787855
       },
       "pos": [
         17.410000000001787,
@@ -229,7 +337,7 @@
       "in": [
         17.00123423615934,
         25.682855200046887,
-        -0.1600056890155515
+        -0.16000568901555096
       ]
     },
     "creator": "~ apposite @28/5/2015"
@@ -238,7 +346,7 @@
     "version": 2,
     "view_id": "view:77smzs",
     "pdb_id": "1mbo",
-    "order": 6,
+    "order": 7,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -271,7 +379,7 @@
       "slab": {
         "z_front": -2.3794392523364434,
         "z_back": 13.627697536108753,
-        "zoom": 36.26482675698686
+        "zoom": 36.264826756986686
       },
       "pos": [
         15.359999999976905,
@@ -295,7 +403,7 @@
     "version": 2,
     "view_id": "view:ekemch",
     "pdb_id": "1mbo",
-    "order": 7,
+    "order": 8,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -328,7 +436,7 @@
       "slab": {
         "z_front": -2.3794392523364434,
         "z_back": 13.627697536108753,
-        "zoom": 73.21182399733924
+        "zoom": 73.21182399733995
       },
       "pos": [
         15.360000000002508,
@@ -343,7 +451,7 @@
       "in": [
         14.41946231879145,
         28.281583486049204,
-        0.4862350896306349
+        0.48623508963063555
       ]
     },
     "creator": "~ apposite @27/5/2015"
@@ -352,7 +460,7 @@
     "version": 2,
     "view_id": "view:l74skx",
     "pdb_id": "1mbo",
-    "order": 8,
+    "order": 9,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -393,7 +501,7 @@
       "slab": {
         "z_front": -2,
         "z_back": 5.58086661002549,
-        "zoom": 14.868044541781385
+        "zoom": 14.868044541781524
       },
       "pos": [
         17.050000000004935,
@@ -408,7 +516,7 @@
       "in": [
         16.15280442554322,
         26.915043079460567,
-        0.9557622601739826
+        0.9557622601739801
       ]
     },
     "creator": "~ apposite @28/5/2015"
@@ -417,7 +525,7 @@
     "version": 2,
     "view_id": "view:cc8izq",
     "pdb_id": "1mbo",
-    "order": 9,
+    "order": 10,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -450,7 +558,7 @@
       "slab": {
         "z_front": -2,
         "z_back": 12.23039246467818,
-        "zoom": 69.28452731387425
+        "zoom": 69.28452731387462
       },
       "pos": [
         26.259999999998318,
@@ -474,7 +582,7 @@
     "version": 2,
     "view_id": "view:4vbozk",
     "pdb_id": "1mbo",
-    "order": 10,
+    "order": 11,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -515,7 +623,7 @@
       "slab": {
         "z_front": -7.753908948194662,
         "z_back": 5.58086661002549,
-        "zoom": 18.564351701805727
+        "zoom": 18.56435170180573
       },
       "pos": [
         21.16000000000296,
@@ -530,7 +638,7 @@
       "in": [
         20.709588659445995,
         26.712172377861318,
-        0.3241596104362823
+        0.32415961043628216
       ]
     },
     "creator": "~ apposite @28/5/2015"
@@ -539,7 +647,7 @@
     "version": 2,
     "view_id": "view:1mg5ap",
     "pdb_id": "1mbo",
-    "order": 11,
+    "order": 12,
     "show": {
       "sidechain": false,
       "peptide": true,

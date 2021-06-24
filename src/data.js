@@ -174,13 +174,29 @@ function getNucleotideBaseAtomTypes (resType) {
 function getNucleotideConnectorBondAtomTypes (resType) {
   let bondTypes = []
   if (resType === 'DA' || resType === 'A') {
-    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']]
+    bondTypes = [
+      ["C3'", "C2'"],
+      ["C2'", "C1'"],
+      ["C1'", 'N9']
+    ]
   } else if (resType === 'DG' || resType === 'G') {
-    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N9']]
+    bondTypes = [
+      ["C3'", "C2'"],
+      ["C2'", "C1'"],
+      ["C1'", 'N9']
+    ]
   } else if (resType === 'DT' || resType === 'U') {
-    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']]
+    bondTypes = [
+      ["C3'", "C2'"],
+      ["C2'", "C1'"],
+      ["C1'", 'N1']
+    ]
   } else if (resType === 'DC' || resType === 'C') {
-    bondTypes = [["C3'", "C2'"], ["C2'", "C1'"], ["C1'", 'N1']]
+    bondTypes = [
+      ["C3'", "C2'"],
+      ["C2'", "C1'"],
+      ["C1'", 'N1']
+    ]
   }
   return bondTypes
 }

@@ -1,12 +1,13 @@
 import $ from 'jquery'
 import _ from 'lodash'
-import { SoupViewController, SoupView } from './soup-view'
+import { SoupView } from './soup-view'
 import { Soup } from './soup'
 import { SoupWidget } from './soup-widget'
+import { SoupViewController } from './soup-view-controller' // eslint-disable-line no-alert
 import { linkButton, delay } from './util.js'
 import widgets from './widgets'
 
-import '../dist/jolecule.css' // eslint-disable-line no-alert
+import '../dist/jolecule.css'
 
 /**
  * EmbedJolecule - the widget that shows proteins and
@@ -84,15 +85,25 @@ class EmbedJolecule {
 
     let asyncSetMesssage = m => this.soupWidget.asyncSetMesssage(m)
 
-    await new Promise(resolve => {
-      dataServer.getProteinData(async proteinData => {
-        await this.controller.asyncLoadProteinData(
-          proteinData,
-          asyncSetMesssage
-        )
-        resolve()
+    if (dataServer.version === 2) {
+      await this.controller.asyncLoadProteinData(
+        dataServer.pdbId,
+        await dataServer.asyncGetPdbText(),
+        asyncSetMesssage
+      )
+    } else {
+      // the old way of loading eergh
+      await new Promise(resolve => {
+        dataServer.getProteinData(async proteinData => {
+          await this.controller.asyncLoadProteinData(
+            proteinData.pdbId,
+            proteinData.pdbText,
+            asyncSetMesssage
+          )
+          resolve()
+        })
       })
-    })
+    }
 
     this.soupWidget.buildScene()
 
@@ -106,20 +117,30 @@ class EmbedJolecule {
       // save only first loaded dataServer for saving and deleting
       this.soupWidget.dataServer = dataServer
 
-      await new Promise(resolve => {
-        dataServer.getViews((viewDicts, viewId) => {
-          this.controller.loadViewsFromViewDicts(viewDicts)
-          if (viewId) {
-            this.params.viewId = viewId
-          }
-          let isDefaultViewId =
-            this.params.viewId in this.soupView.savedViewsByViewId
-          if (isDefaultViewId) {
-            this.controller.setTargetViewByViewId(this.params.viewId)
-          }
-          resolve()
+      if (dataServer.version === 2) {
+        let views = await dataServer.asyncGetViews()
+        this.controller.loadViewsFromViewDicts(views)
+        let isDefaultViewId =
+          this.params.viewId in this.soupView.savedViewsByViewId
+        if (isDefaultViewId) {
+          this.controller.setTargetViewByViewId(this.params.viewId)
+        }
+      } else {
+        await new Promise(resolve => {
+          dataServer.getViews((viewDicts, viewId) => {
+            this.controller.loadViewsFromViewDicts(viewDicts)
+            if (viewId) {
+              this.params.viewId = viewId
+            }
+            let isDefaultViewId =
+              this.params.viewId in this.soupView.savedViewsByViewId
+            if (isDefaultViewId) {
+              this.controller.setTargetViewByViewId(this.params.viewId)
+            }
+            resolve()
+          })
         })
-      })
+      }
 
       this.soupView.isUpdateObservers = true
     }

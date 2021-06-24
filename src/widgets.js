@@ -21,12 +21,19 @@
  */
 
 import $ from 'jquery'
+// to support cross-browser styled drop-down selectors
+import select2 from 'select2' // eslint-disable-line no-alert
+import '../dist/select2.css' // eslint-disable-line no-alert
+try {
+  // for webpack
+  $('.select2-enable').select2()
+} catch (e) {
+  // for vite
+  select2($)
+}
+
 import * as THREE from 'three'
 import _ from 'lodash'
-
-// to support cross-browser styled drop-down selectors
-import 'select2' // eslint-disable-line no-alert
-import '../dist/select2.css' // eslint-disable-line no-alert
 
 import * as data from './data'
 import * as util from './util'

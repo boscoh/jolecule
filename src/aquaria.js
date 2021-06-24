@@ -453,9 +453,7 @@ class AquariaAlignment {
         residue.resNum
       )
       let pdbC = _.get(data.resToAa, residue.resType, '.')
-      let label = `Structure: ${pdbId}-${residue.chain} ${pdbC}${
-        residue.resNum
-      } <br>Atom: ${atom.atomType}`
+      let label = `Structure: ${pdbId}-${residue.chain} ${pdbC}${residue.resNum} <br>Atom: ${atom.atomType}`
       if (!_.isNil(seqResNum)) {
         if (seqName) {
           label = `Sequence: ${seqName} ${c}${seqResNum} <br>` + label

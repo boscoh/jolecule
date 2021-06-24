@@ -6,10 +6,7 @@ import { SpaceHash } from './pairs.js'
 import Store from './store.js'
 import * as data from './data'
 import * as THREE from 'three'
-
-function deleteNumbers (text) {
-  return text.replace(/\d+/, '')
-}
+import { PdbParser } from './parsers'
 
 function pushToListInDict (dict, key, value) {
   if (!(key in dict)) {
@@ -49,17 +46,6 @@ function intToChar (i) {
 
 function charToInt (c) {
   return c.charCodeAt(0)
-}
-
-function parsetTitleFromPdbText (text) {
-  let result = ''
-  let lines = text.split(/\r?\n/)
-  for (let line of lines) {
-    if (line.substring(0, 5) === 'TITLE') {
-      result += line.substring(10)
-    }
-  }
-  return result
 }
 
 function getIndexColor (i) {
@@ -438,7 +424,10 @@ class ResidueProxy {
   }
 }
 
-const bondStoreFields = [['iAtom1', 1, 'int32'], ['iAtom2', 1, 'int32']]
+const bondStoreFields = [
+  ['iAtom1', 1, 'int32'],
+  ['iAtom2', 1, 'int32']
+]
 
 class BondProxy {
   constructor (soup, iBond) {
@@ -481,8 +470,6 @@ class Soup {
 
     this.chains = []
 
-    this.maxLength = null
-
     // stores trace of protein/nucleotide backbones for ribbons
     this.traces = []
     // stores selected chain
@@ -505,6 +492,8 @@ class Soup {
     this.resTypeTable = []
     this.colorTable = []
 
+    this.maxLength = null
+
     this.grid = {
       bCutoff: 0.8,
       bMax: 2,
@@ -519,186 +508,23 @@ class Soup {
     return this.getAtomCount() === 0
   }
 
-  parseAtomLines (pdbLines) {
-    let x, y, z, chain, resType
-    let atomType, bfactor, elem, alt, resNum, insCode
-
-    for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
-      let line = pdbLines[iLine]
-
-      if (line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM') {
-        try {
-          atomType = _.trim(line.substr(12, 4))
-          alt = _.trim(line.substr(16, 1))
-          resType = _.trim(line.substr(17, 3))
-          chain = line[21]
-          resNum = parseInt(line.substr(22, 4))
-          insCode = line.substr(26, 1)
-          x = parseFloat(line.substr(30, 7))
-          y = parseFloat(line.substr(38, 7))
-          z = parseFloat(line.substr(46, 7))
-          bfactor = parseFloat(line.substr(60, 6))
-          elem = deleteNumbers(_.trim(line.substr(76, 2)))
-        } catch (e) {
-          this.parsingError = 'line ' + iLine
-          console.log(`Error: "${line}"`)
-          continue
-        }
-
-        if (elem === '') {
-          elem = deleteNumbers(_.trim(atomType)).substr(0, 1)
-        }
-
-        this.addAtom(
-          x,
-          y,
-          z,
-          bfactor,
-          alt,
-          atomType,
-          elem,
-          resType,
-          resNum,
-          insCode,
-          chain
-        )
-      }
-    }
-  }
-
-  parseSecondaryStructureLines (pdbLines) {
-    this.assignResidueProperties(this.iStructure)
-
-    this.parsedSecondaryStructure = false
-
-    let residue = this.getResidueProxy()
-
-    for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
-      let line = pdbLines[iLine]
-
-      if (line.substr(0, 5) === 'HELIX') {
-        this.parsedSecondaryStructure = true
-        let chain = line.substr(19, 1)
-        let resNumStart = parseInt(line.substr(21, 4))
-        let resNumEnd = parseInt(line.substr(33, 4))
-        for (let iRes of this.findResidueIndices(
-          this.iStructure,
-          chain,
-          resNumStart
-        )) {
-          residue.iRes = iRes
-          while ((residue.resNum <= resNumEnd) && (chain === residue.chain)){
-            residue.ss = 'H'
-            residue.iRes = residue.iRes + 1
-          }
-        }
-      }
-
-      if (line.substr(0, 5) === 'SHEET') {
-        this.parsedSecondaryStructure = true
-        let chain = line.substr(21, 1)
-        let resNumStart = parseInt(line.substr(22, 4))
-        let resNumEnd = parseInt(line.substr(33, 4))
-        for (let iRes of this.findResidueIndices(
-          this.iStructure,
-          chain,
-          resNumStart
-        )) {
-          residue.iRes = iRes
-          while ((residue.resNum <= resNumEnd) && (chain === residue.chain)) {
-            residue.ss = 'E'
-            residue.iRes = residue.iRes + 1
-          }
-        }
-      }
-    }
-  }
-
-  parsePdbData (pdbText, pdbId) {
-    this.structureId = pdbId
-    this.structureIds.push(pdbId)
-    this.iStructure = this.structureIds.length - 1
-
-    let title = parsetTitleFromPdbText(pdbText)
+  pushStructureId (structureId, title) {
+    this.structureId = structureId
+    this.structureIds.push(structureId)
+    this.iStructure = _.findIndex(this.structureIds, i => i === structureId)
     let id = this.structureId.toUpperCase()
-    this.title =
-      `[<a href="http://www.rcsb.org/structure/${id}">${id}</a>] ` + title
-
-    let pdbLines = pdbText.split(/\r?\n/)
-
-    if (pdbLines.length === 0) {
-      this.parsingError = 'No atom lines'
-      return
+    if (title) {
+      this.title =
+        `[<a href="http://www.rcsb.org/structure/${id}">${id}</a>] ` + title
     }
-
-    for (let i of _.range(pdbLines.length)) {
-      if (_.includes(['END'], pdbLines[i].slice(0, 3))) {
-        pdbLines = pdbLines.slice(0, i)
-        break
-      }
-    }
-
-    this.parseAtomLines(pdbLines)
-    this.parseSecondaryStructureLines(pdbLines)
   }
 
-  load (pdbData) {
-    console.log(`Soup.load parse ${this.structureId}...`)
-
-    this.parsePdbData(pdbData.pdbText, this.structureId)
-
-    console.log(
-      `Soup.load processed ${this.getAtomCount()} atoms, ` +
-        `${this.getResidueCount()} residues`
-    )
-
-    console.log('Soup.load finding bonds...')
+  calcAtomConfiguration () {
     this.calcBondsStrategic()
-
-    console.log(`Soup.load calculated ${this.getBondCount()} bonds`)
-  }
-
-  async asyncLoadProteinData (proteinData, asyncSetMessageFn) {
-    let pdbText = proteinData.pdbText
-    let pdbId = proteinData.pdbId
-
-    if (proteinData.pdbText.length === 0) {
-      await asyncSetMessageFn('Error: no soup data')
-      return
-    }
-
-    await asyncSetMessageFn(`Parsing '${pdbId}'`)
-    this.parsePdbData(pdbText, pdbId)
-
-    if (this.parsingError) {
-      let err = this.soup.parsingError
-      await asyncSetMessageFn(`Error parsing soup: ${err}`)
-      return
-    }
-
-    let nAtom = this.getAtomCount()
-    let nRes = this.getResidueCount()
-    await asyncSetMessageFn(
-      `Calculating bonds for ${nAtom} atoms, ${nRes} residues...`
-    )
-
-    this.calcBondsStrategic()
-
-    if (!this.parsedSecondaryStructure) {
-      await asyncSetMessageFn(
-        `Calculated ${this.getBondCount()} bonds. Calculating secondary structure...`
-      )
-      this.findSecondaryStructure()
-    }
-
     this.maxLength = this.calcMaxLength()
-
     this.findGridLimits()
-
     this.setSecondaryStructureColorResidues()
-
     this.colorResidues()
-
     this.calculateTracesForRibbons()
   }
 
