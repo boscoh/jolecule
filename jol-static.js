@@ -15,54 +15,30 @@ const mustache = require('mustache')
 const opener = require('opener')
 const _ = require('lodash')
 
+// language="javascript"
 const dataServerMustache = `
-
 define(function() {
 
-var result = {
-  getProteinData: function(callback) {
-    var payload = {
-      pdbId: "{{pdbId}}",
-      pdbText: getPdbLines(),
-    }
-    console.log('dataserver.getProteinData', payload)
-    callback(payload);
-  },
-  getViews: function(callback) {
-    var payload = getViewDicts()
-    console.log('dataserver.getView', payload)
-    callback(payload);
-  },
-  saveViews: function(views, callback) { 
-    console.log('dataserver.saveViews dummy')
-    callback() 
-  },
-  deleteView: function(viewId, callback) { 
-    console.log('dataserver.deleteView dummy')
-    callback() 
-  }
+const result = {
+  version: 2,
+  pdbId: "{{pdbId}}",
+  asyncGetPdbText: async () => pdbLines.join('\\n'),
+  asyncGetViews: async () => views,
+  async asyncSaveViews() {},
+  async asyncDeleteViews() {},
 };
   
-function getPdbLines() {
-    return pdbLines.join('\\n');
-}  
-
-function getViewDicts() {
-    return views;
-}  
-
 var views = {{{viewsJsonStr}}};
 
 var pdbLines = [
   {{#pdbLines}} 
-    "{{{.}}}", 
+  "{{{.}}}", 
   {{/pdbLines}}
 ];
 
 return result;
     
 });
-
 `
 
 const embedIndexHtmlMustache = `
@@ -198,7 +174,7 @@ if (remain.length < 1) {
     let pdbLines = pdbText.split(/\r?\n/)
     pdbLines = _.map(pdbLines, l => l.replace(/"/g, '\\"'))
     let pdbId = base
-    let viewsJson = pdb.replace('.pdb', '') + '.components.json'
+    let viewsJson = pdb.replace('.pdb', '').replace('.pdb1', '') + '.views.json'
     console.log(`Checking ${viewsJson}`)
     let views = {}
     if (fs.existsSync(viewsJson)) {
