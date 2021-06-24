@@ -1,6 +1,7 @@
-import config from '../../../config.json'
-const remoteUrl = `http://${config.host}:${config.port}/${config.apiUrl}`
 import _ from 'lodash'
+import config from '../../../config.json'
+
+const remoteUrl = config.apiUrl
 
 /**
  * RPC interface to talk to a function on a server.

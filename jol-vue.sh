@@ -1,3 +1,3 @@
-cd vueapp
-node gui.js "$@"
+cd app/node-koa
+npm run start
 

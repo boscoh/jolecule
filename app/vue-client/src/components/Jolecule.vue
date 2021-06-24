@@ -87,7 +87,6 @@
 <script>
 import { initFullPageJolecule } from '../../../../src/main'
 import * as rpc from '../modules/rpc'
-import _ from 'lodash'
 import defaultDataServer from '../modules/1mbo-data-server.es6.js'
 
 function delay (time) {
@@ -175,78 +174,48 @@ export default {
       this.loadFromDataServer(this.makeRcsbDataServer(this.pdbId))
     },
     makeRcsbDataServer (pdbId) {
-      this.isDownloading = true
-      this.error = ''
-      let _this = this
       return {
         pdbId: pdbId,
-        async getProteinData (parsePdb) {
+        version: 2,
+        async asyncGetPdbText() {
           let url = `https://files.rcsb.org/download/${pdbId}.pdb1`
           try {
-            let response = await fetch(url, {
-              method: 'get',
-              mode: 'cors',
-              cache: 'no-cache',
-            })
-            let text = await response.text()
-            parsePdb({ pdbId: pdbId, pdbText: text })
-            _this.isDownloading = false
+            let response = await fetch(url, {method: 'get', mode: 'cors'})
+            return await response.text()
           } catch {
-            _this.isDownloading = false
-            _this.error = 'Error: failed to load'
+            return ''
           }
         },
-        getViews (processViews) {
-          processViews({})
-        },
-        saveViews (views, success) {
-          success()
-        },
-        deleteView (viewId, success) {
-          success()
-        }
+        async asyncGetViews () {},
+        async asyncSaveViews (views) {},
+        async deleteView (viewId) {},
       }
     },
     makeServerPdbDataServer (pdb) {
-      console.log('makeServerPdbDataServer', pdb)
-      this.isDownloading = true
-      this.error = ''
-      let _this = this
-      let pdbId = baseName(pdb)
       return {
-        pdbId: pdbId,
-        async getProteinData (parsePdb) {
+        pdbId: baseName(pdb),
+        version: 2,
+        async asyncGetPdbText() {
           try {
             let res = await rpc.remote.publicGetProteinText(pdb)
-            parsePdb({ pdbId: pdbId, pdbText: res.result.pdbText })
-            _this.isDownloading = false
+            return res.result.pdbText
           } catch {
-            _this.isDownloading = false
-            _this.error = 'Error: failed to load'
+            return ''
           }
         },
-        async getViews (processViews) {
+        async asyncGetViews () {
           try {
             let res = await rpc.remote.publicGetViewDicts(pdb)
-            processViews(res.result.views)
-            _this.isDownloading = false
+            return res.result.views
           } catch {
-            _this.isDownloading = false
-            _this.error = 'Error: failed to load'
+            return []
           }
         },
-        async saveViews (views, success) {
-          let resp = await rpc.remote.publicSaveViewDicts(pdb, views)
-          console.log('saveViews', resp)
-          if (_.get(resp, 'result.success')) {
-            success()
-          }
+        async asyncSaveViews (views) {
+          await rpc.remote.publicSaveViewDicts(pdb, views)
         },
-        async deleteView (viewId, success) {
-          let resp = await rpc.remote.publicDeleteView(pdb, viewId)
-          if (_.get(resp, 'result.success')) {
-            success()
-          }
+        async asyncDeleteView (viewId) {
+          await rpc.remote.publicDeleteView(pdb, viewId)
         }
       }
     }

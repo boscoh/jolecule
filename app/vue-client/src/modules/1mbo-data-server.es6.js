@@ -1,33 +1,10 @@
 const result = {
   version: 2,
   pdbId: '1mbo',
-  async asyncGetPdbText () {
-    return pdbLines.join('\n')
-  },
-  async asyncGetViews () {
-    return views
-  },
-  async asyncSaveViews (views) {
-    return {}
-  },
-  async asyncDeleteView (viewId) {
-    return {}
-  },
-  getProteinData: function (loadProteinData) {
-    loadProteinData({
-      pdbId: '1mbo',
-      pdbText: pdbLines.join('\n')
-    })
-  },
-  getViews: function (loadViewDicts) {
-    loadViewDicts(views)
-  },
-  saveViews: function (views, success) {
-    success()
-  },
-  deleteView: function (viewId, success) {
-    sucess()
-  }
+  asyncGetPdbText: async () => pdbLines.join('\n'),
+  asyncGetViews: async () => views,
+  asyncSaveViews: async (views) => ({}),
+  asyncDeleteView: async (viewId) => ({}),
 }
 
 export default result

@@ -6,6 +6,7 @@ const koaBody = require('koa-body')
 const Router = require('koa-router')
 const cors = require('@koa/cors')
 const send = require('koa-send')
+const serve = require('koa-static')
 
 const destroyable = require('server-destroy')
 const http = require('http')
@@ -13,49 +14,21 @@ const http = require('http')
 const { openUrlInBackground } = require('./url.js')
 const handlers = require('./handlers.js')
 
-let configFname = path.join(path.dirname(__filename), `../../config.json`)
-const config = require(configFname)
-console.log(config)
+let appDir = path.join(path.dirname(__filename), '../..')
 
+const config = require(path.join(appDir, `config.json`))
 for (let [k, v] of Object.entries(config)) {
   handlers.setConfig(k, v)
 }
-
-const clientDir = path.join(path.dirname(configFname), `${config.clientDir}`)
-
+const clientDir = path.join(appDir, `${config.clientDir}`)
 const port = config.port
 const host = config.host
+
 const router = new Router()
 
 router.get('/', async context => {
   await send(context, 'index.html', { root: clientDir })
 })
-
-/**
- * All routes with get are redirected to the client_dir for static assets
- */
-router.get('/:path', async context => {
-  if (context.params?.path) {
-    const f = `${clientDir}/${context.params.path}`
-    if (fs.existsSync(f)) {
-      await send(context, context.params.path, { root: clientDir })
-    } else {
-      await send(context, 'index.html', { root: clientDir })
-    }
-  }
-})
-
-
-router.get('/assets/:path', async context => {
-  if (context.params?.path) {
-    let assetsDir = clientDir + "/assets"
-    const f = `${assetsDir}/${context.params.path}`
-    if (fs.existsSync(f)) {
-      await send(context, context.params.path, { root: assetsDir })
-    }
-  }
-})
-
 
 /**
  * RPC receiver for a web-client.
@@ -133,15 +106,16 @@ router.post('/rpc-run', async context => {
   context.response.body = responseBody
 })
 
-openUrlInBackground(`http://localhost:${port}`)
-
 const app = new Koa()
 app.use(koaBody())
 app.use(cors())
 app.use(router.routes())
 app.use(router.allowedMethods())
+app.use(serve(clientDir))
 
+openUrlInBackground(`http://${host}:${port}`)
 console.log(`Listening on http://${host}:${port}`)
+
 const server = http.createServer(app.callback())
 server.listen(port)
 destroyable(server)
