@@ -177,7 +177,8 @@ export default {
       return {
         pdbId: pdbId,
         version: 2,
-        async asyncGetPdbText() {
+        format: 'pdb',
+        async asyncGetData() {
           let url = `https://files.rcsb.org/download/${pdbId}.pdb1`
           try {
             let response = await fetch(url, {method: 'get', mode: 'cors'})
@@ -186,30 +187,23 @@ export default {
             return ''
           }
         },
-        async asyncGetViews () {},
-        async asyncSaveViews (views) {},
-        async deleteView (viewId) {},
+        asyncGetViews: async () => [],
+        asyncSaveViews: async views => null,
+        asyncDeleteView: async (viewId) => null,
       }
     },
     makeServerPdbDataServer (pdb) {
       return {
         pdbId: baseName(pdb),
         version: 2,
-        async asyncGetPdbText() {
-          try {
-            let res = await rpc.remote.publicGetProteinText(pdb)
-            return res.result.pdbText
-          } catch {
-            return ''
-          }
+        format: 'pdb',
+        async asyncGetData() {
+          let res = await rpc.remote.publicGetProteinText(pdb)
+          return res.result ? res.result.pdbText : ''
         },
         async asyncGetViews () {
-          try {
-            let res = await rpc.remote.publicGetViewDicts(pdb)
-            return res.result.views
-          } catch {
-            return []
-          }
+          let res = await rpc.remote.publicGetViewDicts(pdb)
+          return res.result ? res.result.views : ''
         },
         async asyncSaveViews (views) {
           await rpc.remote.publicSaveViewDicts(pdb, views)

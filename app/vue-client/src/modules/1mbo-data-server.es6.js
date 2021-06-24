@@ -1,7 +1,8 @@
 const result = {
   version: 2,
   pdbId: '1mbo',
-  asyncGetPdbText: async () => pdbLines.join('\n'),
+  format: 'pdb',
+  asyncGetData: async () => pdbLines.join('\n'),
   asyncGetViews: async () => views,
   asyncSaveViews: async (views) => ({}),
   asyncDeleteView: async (viewId) => ({}),

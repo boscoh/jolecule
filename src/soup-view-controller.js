@@ -437,10 +437,10 @@ class SoupViewController {
     }
 
     // Parse into atoms and secondary structure residues
-    let parser = new PdbParser(this.soup)
     if (asyncSetMessageFn) {
       await asyncSetMessageFn(`Parsing '${pdbId}'`)
     }
+    let parser = new PdbParser(this.soup)
     parser.parsePdbData(pdbText, pdbId)
 
     if (parser.error) {
@@ -466,7 +466,7 @@ class SoupViewController {
     }
     this.soup.calcAtomConfiguration()
 
-    // Now build meshes
+    // Build meshes
     this.soupView.build()
 
     this.soupView.isChanged = true

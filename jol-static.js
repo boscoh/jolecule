@@ -22,7 +22,7 @@ define(function() {
 const result = {
   version: 2,
   pdbId: "{{pdbId}}",
-  asyncGetPdbText: async () => pdbLines.join('\\n'),
+  asyncGetData: async () => pdbLines.join('\\n'),
   asyncGetViews: async () => views,
   async asyncSaveViews() {},
   async asyncDeleteViews() {},

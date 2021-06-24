@@ -80465,7 +80465,7 @@ var EmbedJolecule = function () {
                 _context2.t0 = this.controller;
                 _context2.t1 = dataServer.pdbId;
                 _context2.next = 15;
-                return dataServer.asyncGetPdbText();
+                return dataServer.asyncGetData();
 
               case 15:
                 _context2.t2 = _context2.sent;
@@ -81727,7 +81727,7 @@ var PdbParser = function () {
         var line = pdbLines[iLine];
 
         if (line.substr(0, 5) === 'HELIX') {
-          this.parsedSecondaryStructure = true;
+          this.hasSecondaryStructure = true;
           var chain = line.substr(19, 1);
           var resNumStart = parseInt(line.substr(21, 4));
           var resNumEnd = parseInt(line.substr(33, 4));
@@ -81762,7 +81762,7 @@ var PdbParser = function () {
         }
 
         if (line.substr(0, 5) === 'SHEET') {
-          this.parsedSecondaryStructure = true;
+          this.hasSecondaryStructure = true;
           var _chain = line.substr(21, 1);
           var _resNumStart = parseInt(line.substr(22, 4));
           var _resNumEnd = parseInt(line.substr(33, 4));
@@ -103260,19 +103260,17 @@ var SoupViewController = function () {
                 return _context.abrupt('return');
 
               case 4:
-
-                // Parse into atoms and secondary structure residues
-                parser = new _parsers.PdbParser(this.soup);
-
                 if (!asyncSetMessageFn) {
-                  _context.next = 8;
+                  _context.next = 7;
                   break;
                 }
 
-                _context.next = 8;
+                _context.next = 7;
                 return asyncSetMessageFn('Parsing \'' + pdbId + '\'');
 
-              case 8:
+              case 7:
+                parser = new _parsers.PdbParser(this.soup);
+
                 parser.parsePdbData(pdbText, pdbId);
 
                 if (!parser.error) {
@@ -103317,7 +103315,7 @@ var SoupViewController = function () {
               case 23:
                 this.soup.calcAtomConfiguration();
 
-                // Now build meshes
+                // Build meshes
                 this.soupView.build();
 
                 this.soupView.isChanged = true;
@@ -104103,7 +104101,7 @@ var ViewPanelList = function () {
   _createClass(ViewPanelList, [{
     key: 'saveViewsToDataServer',
     value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(success) {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
         var _this4 = this;
 
         var views;
@@ -104111,27 +104109,26 @@ var ViewPanelList = function () {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                console.log('ViewPanelList.saveViewsToDataServer');
                 views = this.controller.getViewDicts();
 
                 if (!(this.soupWidget.dataServer.version === 2)) {
-                  _context.next = 7;
+                  _context.next = 6;
                   break;
                 }
 
-                _context.next = 5;
-                return this.soupWidget.dataServer.saveViews(views);
+                _context.next = 4;
+                return this.soupWidget.dataServer.asyncSaveViews(views);
 
-              case 5:
-                _context.next = 8;
+              case 4:
+                _context.next = 7;
                 break;
 
-              case 7:
+              case 6:
                 return _context.abrupt('return', new Promise(function (resolve) {
                   _this4.soupWidget.dataServer.saveViews(views, resolve);
                 }));
 
-              case 8:
+              case 7:
               case 'end':
                 return _context.stop();
             }
@@ -104139,7 +104136,7 @@ var ViewPanelList = function () {
         }, _callee, this);
       }));
 
-      function saveViewsToDataServer(_x) {
+      function saveViewsToDataServer() {
         return _ref.apply(this, arguments);
       }
 
@@ -104232,34 +104229,31 @@ var ViewPanelList = function () {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                console.log('ViewPanelList.removeView');
                 this.viewPiece[id].div.css('background-color', 'lightgray');
 
-                if (!(this.soupWidget.dataServer.version === 3)) {
-                  _context2.next = 9;
+                if (!(this.soupWidget.dataServer.version === 2)) {
+                  _context2.next = 6;
                   break;
                 }
 
-                _context2.next = 5;
-                return this.soupWidget.dataServer.deleteView(id);
+                _context2.next = 4;
+                return this.soupWidget.dataServer.asyncDeleteView(id);
 
-              case 5:
-                this.controller.deleteView(id);
-                this.update();
-                _context2.next = 13;
+              case 4:
+                _context2.next = 8;
                 break;
 
-              case 9:
-                _context2.next = 11;
+              case 6:
+                _context2.next = 8;
                 return new Promise(function (resolve) {
                   return _this5.soupWidget.dataServer.deleteView(id, resolve);
                 });
 
-              case 11:
+              case 8:
                 this.controller.deleteView(id);
                 this.update();
 
-              case 13:
+              case 10:
               case 'end':
                 return _context2.stop();
             }
@@ -104267,7 +104261,7 @@ var ViewPanelList = function () {
         }, _callee2, this);
       }));
 
-      function removeView(_x2) {
+      function removeView(_x) {
         return _ref2.apply(this, arguments);
       }
 
@@ -104275,26 +104269,48 @@ var ViewPanelList = function () {
     }()
   }, {
     key: 'swapViews',
-    value: function swapViews(i, j) {
-      var _this6 = this;
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(i, j) {
+        var iId, jId, iDiv, jDiv;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                iId = this.soupView.savedViews[i].id;
+                jId = this.soupView.savedViews[j].id;
+                iDiv = this.viewPiece[iId].div;
+                jDiv = this.viewPiece[jId].div;
 
-      var iId = this.soupView.savedViews[i].id;
-      var jId = this.soupView.savedViews[j].id;
-      var iDiv = this.viewPiece[iId].div;
-      var jDiv = this.viewPiece[jId].div;
 
-      this.controller.swapViews(i, j);
+                this.controller.swapViews(i, j);
 
-      iDiv.css('background-color', 'lightgray');
-      jDiv.css('background-color', 'lightgray');
+                iDiv.css('background-color', 'lightgray');
+                jDiv.css('background-color', 'lightgray');
 
-      this.saveViewsToDataServer(function () {
-        jDiv.insertBefore(iDiv);
-        _this6.update();
-        iDiv.css('background-color', '');
-        jDiv.css('background-color', '');
-      });
-    }
+                _context3.next = 9;
+                return this.saveViewsToDataServer();
+
+              case 9:
+
+                jDiv.insertBefore(iDiv);
+                this.update();
+                iDiv.css('background-color', '');
+                jDiv.css('background-color', '');
+
+              case 13:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function swapViews(_x2, _x3) {
+        return _ref3.apply(this, arguments);
+      }
+
+      return swapViews;
+    }()
   }, {
     key: 'swapUp',
     value: function swapUp(viewId) {
@@ -104316,36 +104332,57 @@ var ViewPanelList = function () {
   }, {
     key: 'makeViewDiv',
     value: function makeViewDiv(id) {
-      var _this7 = this;
+      var _this6 = this;
 
       var view = this.soupView.savedViewsByViewId[id];
       this.viewPiece[id] = new ViewPanel({
         view: view,
         isEditable: this.isEditable,
         deleteView: function deleteView() {
-          _this7.removeView(id);
+          _this6.removeView(id);
         },
-        saveChange: function saveChange(changedText) {
-          var SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-          while (SCRIPT_REGEX.test(changedText)) {
-            changedText = changedText.replace(SCRIPT_REGEX, '');
-          }
-          view.text = changedText;
-          _this7.viewPiece[id].div.css('background-color', 'lightgray');
-          _this7.saveViewsToDataServer(function () {
-            _this7.viewPiece[id].div.css('background-color', '');
-            _this7.soupView.isChanged = true;
-            _this7.update();
-          });
-        },
+        saveChange: function () {
+          var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(changedText) {
+            var SCRIPT_REGEX;
+            return regeneratorRuntime.wrap(function _callee4$(_context4) {
+              while (1) {
+                switch (_context4.prev = _context4.next) {
+                  case 0:
+                    SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+
+                    while (SCRIPT_REGEX.test(changedText)) {
+                      changedText = changedText.replace(SCRIPT_REGEX, '');
+                    }
+                    view.text = changedText;
+                    _this6.viewPiece[id].div.css('background-color', 'lightgray');
+                    _context4.next = 6;
+                    return _this6.saveViewsToDataServer();
+
+                  case 6:
+                    _this6.viewPiece[id].div.css('background-color', '');
+                    _this6.soupView.isChanged = true;
+                    _this6.update();
+
+                  case 9:
+                  case 'end':
+                    return _context4.stop();
+                }
+              }
+            }, _callee4, _this6);
+          }));
+
+          return function saveChange(_x4) {
+            return _ref4.apply(this, arguments);
+          };
+        }(),
         pick: function pick() {
-          _this7.setTargetByViewId(id);
+          _this6.setTargetByViewId(id);
         },
         swapUp: function swapUp() {
-          _this7.swapUp(id);
+          _this6.swapUp(id);
         },
         swapDown: function swapDown() {
-          _this7.swapDown(id);
+          _this6.swapDown(id);
         }
       });
       return this.viewPiece[id].div;
@@ -104375,11 +104412,11 @@ var ViewPanelList = function () {
   }, {
     key: 'saveCurrentView',
     value: function () {
-      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
         var newId, div;
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
                 console.log('ViewPanelList.saveCurrentView');
                 newId = this.controller.saveCurrentView();
@@ -104389,25 +104426,23 @@ var ViewPanelList = function () {
                 div = this.viewPiece[newId].div;
 
                 div.css('background-color', 'lightgray');
-                _context3.next = 8;
+                _context5.next = 8;
                 return this.saveViewsToDataServer();
 
               case 8:
-
-                console.log('ViewPieceList.saveCurrentView success');
                 div.css('background-color', '');
                 (0, _jquery2.default)('#jolecule-views').stop().scrollTo(div, 1000, { offset: { top: -80 } });
 
-              case 11:
+              case 10:
               case 'end':
-                return _context3.stop();
+                return _context5.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee5, this);
       }));
 
       function saveCurrentView() {
-        return _ref3.apply(this, arguments);
+        return _ref5.apply(this, arguments);
       }
 
       return saveCurrentView;
@@ -104442,7 +104477,7 @@ var FullPageWidget = function () {
    * @param params
    */
   function FullPageWidget(proteinDisplayTag, viewsDisplayTag, params) {
-    var _this8 = this;
+    var _this7 = this;
 
     _classCallCheck(this, FullPageWidget);
 
@@ -104473,7 +104508,7 @@ var FullPageWidget = function () {
     this.embedJolecule.soupWidget.addObserver(this);
     document.oncontextmenu = _lodash2.default.noop;
     document.onkeydown = function (e) {
-      _this8.onkeydown(e);
+      _this7.onkeydown(e);
     };
   }
 
@@ -104485,13 +104520,13 @@ var FullPageWidget = function () {
   }, {
     key: 'asyncAddDataServer',
     value: function () {
-      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(dataServer) {
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(dataServer) {
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
                 console.log('FullPageWidget.asyncAddDataServer');
-                _context4.next = 3;
+                _context6.next = 3;
                 return this.embedJolecule.asyncAddDataServer(dataServer);
 
               case 3:
@@ -104508,14 +104543,14 @@ var FullPageWidget = function () {
 
               case 6:
               case 'end':
-                return _context4.stop();
+                return _context6.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee6, this);
       }));
 
-      function asyncAddDataServer(_x3) {
-        return _ref4.apply(this, arguments);
+      function asyncAddDataServer(_x5) {
+        return _ref6.apply(this, arguments);
       }
 
       return asyncAddDataServer;

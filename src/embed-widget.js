@@ -88,7 +88,7 @@ class EmbedJolecule {
     if (dataServer.version === 2) {
       await this.controller.asyncLoadProteinData(
         dataServer.pdbId,
-        await dataServer.asyncGetPdbText(),
+        await dataServer.asyncGetData(),
         asyncSetMesssage
       )
     } else {

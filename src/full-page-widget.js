@@ -171,11 +171,10 @@ class ViewPanelList {
     }
   }
 
-  async saveViewsToDataServer (success) {
-    console.log('ViewPanelList.saveViewsToDataServer')
+  async saveViewsToDataServer () {
     let views = this.controller.getViewDicts()
     if (this.soupWidget.dataServer.version === 2) {
-      await this.soupWidget.dataServer.saveViews(views)
+      await this.soupWidget.dataServer.asyncSaveViews(views)
     } else {
       return new Promise(
         resolve => {this.soupWidget.dataServer.saveViews(views, resolve)}
@@ -262,22 +261,19 @@ class ViewPanelList {
   }
 
   async removeView (id) {
-    console.log('ViewPanelList.removeView')
     this.viewPiece[id].div.css('background-color', 'lightgray')
-    if (this.soupWidget.dataServer.version === 3) {
-      await this.soupWidget.dataServer.deleteView(id)
-      this.controller.deleteView(id)
-      this.update()
+    if (this.soupWidget.dataServer.version === 2) {
+      await this.soupWidget.dataServer.asyncDeleteView(id)
     } else {
       await new Promise(
         resolve => this.soupWidget.dataServer.deleteView(id, resolve)
       )
-      this.controller.deleteView(id)
-      this.update()
     }
+    this.controller.deleteView(id)
+    this.update()
   }
 
-  swapViews (i, j) {
+  async swapViews (i, j) {
     let iId = this.soupView.savedViews[i].id
     let jId = this.soupView.savedViews[j].id
     let iDiv = this.viewPiece[iId].div
@@ -288,12 +284,12 @@ class ViewPanelList {
     iDiv.css('background-color', 'lightgray')
     jDiv.css('background-color', 'lightgray')
 
-    this.saveViewsToDataServer(() => {
-      jDiv.insertBefore(iDiv)
-      this.update()
-      iDiv.css('background-color', '')
-      jDiv.css('background-color', '')
-    })
+    await this.saveViewsToDataServer()
+
+    jDiv.insertBefore(iDiv)
+    this.update()
+    iDiv.css('background-color', '')
+    jDiv.css('background-color', '')
   }
 
   swapUp (viewId) {
@@ -320,18 +316,17 @@ class ViewPanelList {
       deleteView: () => {
         this.removeView(id)
       },
-      saveChange: changedText => {
+      saveChange: async changedText => {
         const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi
         while (SCRIPT_REGEX.test(changedText)) {
           changedText = changedText.replace(SCRIPT_REGEX, '')
         }
         view.text = changedText
         this.viewPiece[id].div.css('background-color', 'lightgray')
-        this.saveViewsToDataServer(() => {
-          this.viewPiece[id].div.css('background-color', '')
-          this.soupView.isChanged = true
-          this.update()
-        })
+        await this.saveViewsToDataServer()
+        this.viewPiece[id].div.css('background-color', '')
+        this.soupView.isChanged = true
+        this.update()
       },
       pick: () => {
         this.setTargetByViewId(id)
@@ -377,8 +372,6 @@ class ViewPanelList {
     let div = this.viewPiece[newId].div
     div.css('background-color', 'lightgray')
     await this.saveViewsToDataServer()
-
-    console.log('ViewPieceList.saveCurrentView success')
     div.css('background-color', '')
     $('#jolecule-views')
       .stop()

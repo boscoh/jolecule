@@ -67,7 +67,7 @@ class PdbParser {
       let line = pdbLines[iLine]
 
       if (line.substr(0, 5) === 'HELIX') {
-        this.parsedSecondaryStructure = true
+        this.hasSecondaryStructure = true
         let chain = line.substr(19, 1)
         let resNumStart = parseInt(line.substr(21, 4))
         let resNumEnd = parseInt(line.substr(33, 4))
@@ -85,7 +85,7 @@ class PdbParser {
       }
 
       if (line.substr(0, 5) === 'SHEET') {
-        this.parsedSecondaryStructure = true
+        this.hasSecondaryStructure = true
         let chain = line.substr(21, 1)
         let resNumStart = parseInt(line.substr(22, 4))
         let resNumEnd = parseInt(line.substr(33, 4))
