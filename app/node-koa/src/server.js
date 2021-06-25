@@ -113,7 +113,7 @@ app.use(router.routes())
 app.use(router.allowedMethods())
 app.use(serve(clientDir))
 
-openUrlInBackground(`http://${host}:${port}`)
+// openUrlInBackground(`http://${host}:${port}`)
 console.log(`Listening on http://${host}:${port}`)
 
 const server = http.createServer(app.callback())

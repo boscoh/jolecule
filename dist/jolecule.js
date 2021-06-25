@@ -80335,7 +80335,7 @@ var _soup = __webpack_require__(348);
 
 var _soupWidget = __webpack_require__(351);
 
-var _soupViewController = __webpack_require__(359);
+var _soupController = __webpack_require__(359);
 
 var _util = __webpack_require__(29);
 
@@ -80397,7 +80397,7 @@ var EmbedJolecule = function () {
 
     this.soup = new _soup.Soup();
     this.soupView = new _soupView.SoupView(this.soup);
-    this.controller = new _soupViewController.SoupViewController(this.soupView);
+    this.controller = new _soupController.SoupController(this.soupView);
 
     this.soupView.animateState = this.params.animateState;
     this.soupView.maxUpdateStep = this.params.maxUpdateStep;
@@ -81672,6 +81672,11 @@ var PdbParser = function () {
   }
 
   _createClass(PdbParser, [{
+    key: 'isAtomLine',
+    value: function isAtomLine(line) {
+      return line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM';
+    }
+  }, {
     key: 'parseAtomLines',
     value: function parseAtomLines(pdbLines) {
       var x = void 0,
@@ -81689,7 +81694,7 @@ var PdbParser = function () {
       for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
         var line = pdbLines[iLine];
 
-        if (line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM') {
+        if (this.isAtomLine(line)) {
           try {
             atomType = _lodash2.default.trim(line.substr(12, 4));
             alt = _lodash2.default.trim(line.substr(16, 1));
@@ -81720,9 +81725,7 @@ var PdbParser = function () {
     key: 'parseSecondaryStructureLines',
     value: function parseSecondaryStructureLines(pdbLines) {
       this.soup.assignResidueProperties(this.soup.iStructure);
-
       var residue = this.soup.getResidueProxy();
-
       for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
         var line = pdbLines[iLine];
 
@@ -81759,9 +81762,7 @@ var PdbParser = function () {
               }
             }
           }
-        }
-
-        if (line.substr(0, 5) === 'SHEET') {
+        } else if (line.substr(0, 5) === 'SHEET') {
           this.hasSecondaryStructure = true;
           var _chain = line.substr(21, 1);
           var _resNumStart = parseInt(line.substr(22, 4));
@@ -81838,18 +81839,24 @@ var PdbParser = function () {
         this.parsingError = 'No atom lines';
         return;
       }
+
       var title = this.parseTitle(lines);
+
+      var models = [[]];
+      var iModel = 0;
       var _iteratorNormalCompletion4 = true;
       var _didIteratorError4 = false;
       var _iteratorError4 = undefined;
 
       try {
-        for (var _iterator4 = _lodash2.default.range(lines.length)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-          var i = _step4.value;
+        for (var _iterator4 = lines[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+          var line = _step4.value;
 
-          if (_lodash2.default.includes(['END'], lines[i].slice(0, 3))) {
-            lines = lines.slice(0, i);
-            break;
+          if (this.isAtomLine(line)) {
+            models[iModel].push(line);
+          } else if (line.substr(0, 3) === 'END') {
+            models.push([]);
+            iModel += 1;
           }
         }
       } catch (err) {
@@ -81867,9 +81874,20 @@ var PdbParser = function () {
         }
       }
 
-      this.soup.pushStructureId(pdbId, title);
-      this.parseAtomLines(lines);
-      this.parseSecondaryStructureLines(lines);
+      if (models[iModel].length === 0) {
+        models.pop();
+      }
+
+      var nModel = models.length;
+      for (var _iModel = 0; _iModel < nModel; _iModel += 1) {
+        var structureId = pdbId;
+        if (nModel > 1) {
+          structureId = structureId + '[' + (_iModel + 1) + ']';
+        }
+        this.soup.pushStructureId(structureId, title);
+        this.parseAtomLines(models[_iModel]);
+        this.parseSecondaryStructureLines(lines);
+      }
     }
   }]);
 
@@ -102664,7 +102682,7 @@ exports.WebglWidget = WebglWidget;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.SoupViewController = undefined;
+exports.SoupController = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -102690,16 +102708,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * The Controller for SoupView. All mutations
  * to a Soup and its Views go through here.
  */
-var SoupViewController = function () {
-  function SoupViewController(soupView) {
-    _classCallCheck(this, SoupViewController);
+var SoupController = function () {
+  function SoupController(soupView) {
+    _classCallCheck(this, SoupController);
 
     this.soup = soupView.soup;
     this.soupView = soupView;
     this.iResLastSelected = null;
   }
 
-  _createClass(SoupViewController, [{
+  _createClass(SoupController, [{
     key: 'deleteDistance',
     value: function deleteDistance(iDistance) {
       this.soupView.currentView.distances.splice(iDistance, 1);
@@ -103868,10 +103886,10 @@ var SoupViewController = function () {
     }
   }]);
 
-  return SoupViewController;
+  return SoupController;
 }();
 
-exports.SoupViewController = SoupViewController;
+exports.SoupController = SoupController;
 
 /***/ }),
 /* 360 */
@@ -104526,16 +104544,17 @@ var FullPageWidget = function () {
             switch (_context6.prev = _context6.next) {
               case 0:
                 console.log('FullPageWidget.asyncAddDataServer');
+
                 _context6.next = 3;
                 return this.embedJolecule.asyncAddDataServer(dataServer);
 
               case 3:
+
                 if (!this.viewPanelList) {
                   this.soupView = this.embedJolecule.soupView;
                   this.controller = this.embedJolecule.controller;
                   this.soupWidget = this.embedJolecule.soupWidget;
                   this.viewPanelList = new ViewPanelList(this.viewsDisplayTag, this.soupWidget, this.params.isEditable);
-
                   this.viewPanelList.makeAllViews();
                 }
                 this.viewPanelList.update();

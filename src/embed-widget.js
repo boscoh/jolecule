@@ -3,7 +3,7 @@ import _ from 'lodash'
 import { SoupView } from './soup-view'
 import { Soup } from './soup'
 import { SoupWidget } from './soup-widget'
-import { SoupViewController } from './soup-view-controller' // eslint-disable-line no-alert
+import { SoupController } from './soup-controller' // eslint-disable-line no-alert
 import { linkButton, delay } from './util.js'
 import widgets from './widgets'
 
@@ -51,7 +51,7 @@ class EmbedJolecule {
 
     this.soup = new Soup()
     this.soupView = new SoupView(this.soup)
-    this.controller = new SoupViewController(this.soupView)
+    this.controller = new SoupController(this.soupView)
 
     this.soupView.animateState = this.params.animateState
     this.soupView.maxUpdateStep = this.params.maxUpdateStep

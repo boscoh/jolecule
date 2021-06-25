@@ -11,6 +11,10 @@ class PdbParser {
     this.error = ''
   }
 
+  isAtomLine(line) {
+    return line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM'
+  }
+
   parseAtomLines (pdbLines) {
     let x, y, z, chain, resType
     let atomType, bfactor, elem, alt, resNum, insCode
@@ -18,7 +22,7 @@ class PdbParser {
     for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
       let line = pdbLines[iLine]
 
-      if (line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM') {
+      if (this.isAtomLine(line)) {
         try {
           atomType = _.trim(line.substr(12, 4))
           alt = _.trim(line.substr(16, 1))
@@ -60,9 +64,7 @@ class PdbParser {
 
   parseSecondaryStructureLines (pdbLines) {
     this.soup.assignResidueProperties(this.soup.iStructure)
-
     let residue = this.soup.getResidueProxy()
-
     for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
       let line = pdbLines[iLine]
 
@@ -82,9 +84,7 @@ class PdbParser {
             residue.iRes = residue.iRes + 1
           }
         }
-      }
-
-      if (line.substr(0, 5) === 'SHEET') {
+      } else if (line.substr(0, 5) === 'SHEET') {
         this.hasSecondaryStructure = true
         let chain = line.substr(21, 1)
         let resNumStart = parseInt(line.substr(22, 4))
@@ -120,16 +120,33 @@ class PdbParser {
       this.parsingError = 'No atom lines'
       return
     }
+
     let title = this.parseTitle(lines)
-    for (let i of _.range(lines.length)) {
-      if (_.includes(['END'], lines[i].slice(0, 3))) {
-        lines = lines.slice(0, i)
-        break
+
+    let models = [[]]
+    let iModel = 0
+    for (let line of lines) {
+      if (this.isAtomLine(line)) {
+        models[iModel].push(line)
+      } else if (line.substr(0, 3) === 'END') {
+        models.push([])
+        iModel += 1
       }
     }
-    this.soup.pushStructureId(pdbId, title)
-    this.parseAtomLines(lines)
-    this.parseSecondaryStructureLines(lines)
+    if (models[iModel].length === 0) {
+      models.pop()
+    }
+
+    let nModel = models.length
+    for (let iModel=0; iModel<nModel; iModel+=1) {
+      let structureId = pdbId
+      if (nModel > 1) {
+        structureId = `${structureId}[${iModel+1}]`
+      }
+      this.soup.pushStructureId(structureId, title)
+      this.parseAtomLines(models[iModel])
+      this.parseSecondaryStructureLines(lines)
+    }
   }
 }
 

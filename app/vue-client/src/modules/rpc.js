@@ -37,7 +37,7 @@ async function rpc (method, ...params) {
   const id = Math.random()
     .toString(36)
     .slice(-6)
-  console.log(`rpc-run send -> ${method}:`, _.cloneDeep(params))
+  console.log(`rpc-run ${method} send: :`, _.cloneDeep(params))
   try {
     const payload = { method, params, jsonrpc: '2.0', id }
     if ('electron' in window) {
@@ -55,7 +55,7 @@ async function rpc (method, ...params) {
       return result
     }
   } catch (e) {
-    console.log(`rpc-run [fail] ${method} ${e}`)
+    console.log(`rpc-run ${method} fail: ${e}`)
     return { error: { message: `${e}`, code: -32000 }, jsonrpc: '2.0', id }
   }
 }

@@ -7,7 +7,7 @@ import { View } from './soup-view'
  * The Controller for SoupView. All mutations
  * to a Soup and its Views go through here.
  */
-class SoupViewController {
+class SoupController {
   constructor (soupView) {
     this.soup = soupView.soup
     this.soupView = soupView
@@ -811,4 +811,4 @@ class SoupViewController {
   }
 }
 
-export { SoupViewController }
+export { SoupController }

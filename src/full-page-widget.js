@@ -438,7 +438,9 @@ class FullPageWidget {
 
   async asyncAddDataServer (dataServer) {
     console.log('FullPageWidget.asyncAddDataServer')
+
     await this.embedJolecule.asyncAddDataServer(dataServer)
+
     if (!this.viewPanelList) {
       this.soupView = this.embedJolecule.soupView
       this.controller = this.embedJolecule.controller
@@ -448,7 +450,6 @@ class FullPageWidget {
         this.soupWidget,
         this.params.isEditable
       )
-
       this.viewPanelList.makeAllViews()
     }
     this.viewPanelList.update()
