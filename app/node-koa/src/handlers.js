@@ -48,37 +48,38 @@ function parsetTitleFromPdbText (text) {
 function isDirectory (f) {
   try {
     return fs.statSync(f).isDirectory()
-  } catch (e) {}
-  return false
+  } catch (e) {
+    return false
+  }
 }
 
 async function publicGetInit () {
-  let payload = { initDir: config.initDir, initFile: config.initFile }
-  console.log('publicGetInit', payload)
-  return payload
+  return { initDir: config.initDir, initFile: config.initFile }
 }
 
 async function publicGetFiles (dirname) {
-  let files = fs.readdirSync(dirname)
   let payload = {
     dirname,
     files: [],
-    directories: [],
-    time: ''
+    directories: ['..'],
   }
-  payload.directories.push('..')
-  for (let filename of files) {
-    if (isDirectory(path.join(dirname, filename))) {
-      payload.directories.push(filename)
-    } else if (_.endsWith(filename, '.pdb') || _.endsWith(filename, '.pdb1')) {
-      try {
-        const pdbText = fs.readFileSync(path.join(dirname, filename), 'utf8')
-        payload.files.push({
-          title: parsetTitleFromPdbText(pdbText),
-          filename: path.join(dirname, filename),
-          name: filename
-        })
-      } catch (error) {}
+  const exts = ['.pdb', '.pdb1', '.cif']
+  for (let name of fs.readdirSync(dirname)) {
+    const filename = path.join(dirname, name)
+    if (isDirectory(filename)) {
+      payload.directories.push(name)
+    } else {
+      for (let ext of exts) {
+        if (_.endsWith(name, ext)) {
+          try {
+            const title = parsetTitleFromPdbText(fs.readFileSync(filename, 'utf8'))
+            const format = _.includes(ext, 'pdb') ? 'pdb' : 'cif'
+            payload.files.push({title, filename, name, format})
+          } catch (error) {
+            console.log(`publicGetFiles error ${error}`)
+          }
+        }
+      }
     }
   }
   return payload
@@ -90,25 +91,23 @@ async function publicGetProteinText (pdb) {
 }
 
 function getViewsJson (pdb) {
-  let viewsJson = pdb.replace('.pdb', '').replace('pdb1', '')
-  viewsJson += '.views.json'
-  return viewsJson
+  let filename = pdb.replace('.pdb', '').replace('.pdb1', '').replace('.cif', '')
+  filename += '.views.json'
+  return filename
 }
 
 async function publicGetViewDicts (pdb) {
-  let viewJson = getViewsJson(pdb)
+  let filename = getViewsJson(pdb)
   let views = {}
-  let text = ''
-  if (fs.existsSync(viewJson)) {
-    text = fs.readFileSync(viewJson, 'utf8')
-    views = JSON.parse(text)
+  if (fs.existsSync(filename)) {
+    views = JSON.parse(fs.readFileSync(filename, 'utf8'))
   }
   return { views }
 }
 
 async function publicSaveViewDicts (pdb, views) {
-  let viewJson = getViewsJson(pdb)
-  fs.writeFileSync(viewJson, JSON.stringify(views, null, 2))
+  let filename = getViewsJson(pdb)
+  fs.writeFileSync(filename, JSON.stringify(views, null, 2))
   return { success: true }
 }
 

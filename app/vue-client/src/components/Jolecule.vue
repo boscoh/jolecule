@@ -69,7 +69,6 @@
 
 <style>
 @import '../../../../dist/full-page-jolecule.css';
-@import '../../../../dist/select2.css';
 .file-entry {
   cursor: pointer;
   font-size: 12px;
@@ -100,7 +99,7 @@ function delay (time) {
 function baseName(str)
 {
   var base = new String(str).substring(str.lastIndexOf('/') + 1);
-  if(base.lastIndexOf(".") != -1)
+  if(base.lastIndexOf(".") !== -1)
     base = base.substring(0, base.lastIndexOf("."));
   return base;
 }
@@ -196,7 +195,7 @@ export default {
       return {
         pdbId: baseName(pdb),
         version: 2,
-        format: 'pdb',
+        format: pdb.endsWith('cif') ? 'cif' : 'pdb',
         async asyncGetData() {
           let res = await rpc.remote.publicGetProteinText(pdb)
           return res.result ? res.result.pdbText : ''

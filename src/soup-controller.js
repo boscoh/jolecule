@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { PdbParser } from './parsers'
+import { PdbParser, CifParser } from './parsers'
 import { exists } from './util'
 import { View } from './soup-view'
 
@@ -429,7 +429,7 @@ class SoupController {
     this.sortViewsByOrder()
   }
 
-  async asyncLoadProteinData (pdbId, pdbText, asyncSetMessageFn) {
+  async asyncLoadProteinData (format, pdbId, pdbText, asyncSetMessageFn) {
     // Check text length
     if (pdbText.length === 0) {
       await asyncSetMessageFn('Error: no soup data')
@@ -440,7 +440,12 @@ class SoupController {
     if (asyncSetMessageFn) {
       await asyncSetMessageFn(`Parsing '${pdbId}'`)
     }
-    let parser = new PdbParser(this.soup)
+    let parser
+    if (format === 'pdb') {
+      parser = new PdbParser(this.soup)
+    } else if (format === 'cif') {
+      parser = new CifParser(this.soup)
+    }
     parser.parsePdbData(pdbText, pdbId)
 
     if (parser.error) {

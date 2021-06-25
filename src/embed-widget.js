@@ -87,6 +87,7 @@ class EmbedJolecule {
 
     if (dataServer.version === 2) {
       await this.controller.asyncLoadProteinData(
+        dataServer.format,
         dataServer.pdbId,
         await dataServer.asyncGetData(),
         asyncSetMesssage
@@ -96,6 +97,7 @@ class EmbedJolecule {
       await new Promise(resolve => {
         dataServer.getProteinData(async proteinData => {
           await this.controller.asyncLoadProteinData(
+            'pdb',
             proteinData.pdbId,
             proteinData.pdbText,
             asyncSetMesssage
