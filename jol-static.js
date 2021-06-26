@@ -22,6 +22,7 @@ define(function() {
 const result = {
   version: 2,
   pdbId: "{{pdbId}}",
+  format: "{{format}}",
   asyncGetData: async () => pdbLines.join('\\n'),
   asyncGetViews: async () => views,
   async asyncSaveViews() {},
@@ -159,10 +160,15 @@ if (remain.length < 1) {
   let dataServerArgStr = ''
   for (let i = 0; i < remain.length; i++) {
     let pdb = remain[i]
-    if (!_.endsWith(pdb, '.pdb')) {
-      pdb += '.pdb'
+    const exts = ['.pdb', '.pdb1', '.cif']
+    let format = ''
+    let base = ''
+    for (let ext of exts) {
+      if (_.endsWith(pdb, ext)) {
+        format = _.includes(ext, 'pdb') ? 'pdb' : 'cif'
+        base = path.basename(pdb.replace(ext, ''))
+      }
     }
-    let base = path.basename(pdb.replace('.pdb', ''))
     const dataJs = path.join(targetDir, `data-server${i}.js`)
     const pdbText = fs.readFileSync(pdb, 'utf8')
     if (i > 0) {
@@ -185,7 +191,8 @@ if (remain.length < 1) {
     let dataJsText = mustache.render(dataServerMustache, {
       pdbId,
       pdbLines,
-      viewsJsonStr
+      viewsJsonStr,
+      format,
     })
     fs.writeFileSync(dataJs, dataJsText)
   }

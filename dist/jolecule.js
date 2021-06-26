@@ -80458,27 +80458,28 @@ var EmbedJolecule = function () {
                 };
 
                 if (!(dataServer.version === 2)) {
-                  _context2.next = 21;
+                  _context2.next = 22;
                   break;
                 }
 
                 _context2.t0 = this.controller;
-                _context2.t1 = dataServer.pdbId;
-                _context2.next = 15;
+                _context2.t1 = dataServer.format;
+                _context2.t2 = dataServer.pdbId;
+                _context2.next = 16;
                 return dataServer.asyncGetData();
 
-              case 15:
-                _context2.t2 = _context2.sent;
-                _context2.t3 = asyncSetMesssage;
-                _context2.next = 19;
-                return _context2.t0.asyncLoadProteinData.call(_context2.t0, _context2.t1, _context2.t2, _context2.t3);
+              case 16:
+                _context2.t3 = _context2.sent;
+                _context2.t4 = asyncSetMesssage;
+                _context2.next = 20;
+                return _context2.t0.asyncLoadProteinData.call(_context2.t0, _context2.t1, _context2.t2, _context2.t3, _context2.t4);
 
-              case 19:
-                _context2.next = 23;
+              case 20:
+                _context2.next = 24;
                 break;
 
-              case 21:
-                _context2.next = 23;
+              case 22:
+                _context2.next = 24;
                 return new Promise(function (resolve) {
                   dataServer.getProteinData(function () {
                     var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(proteinData) {
@@ -80487,7 +80488,7 @@ var EmbedJolecule = function () {
                           switch (_context.prev = _context.next) {
                             case 0:
                               _context.next = 2;
-                              return _this2.controller.asyncLoadProteinData(proteinData.pdbId, proteinData.pdbText, asyncSetMesssage);
+                              return _this2.controller.asyncLoadProteinData('pdb', proteinData.pdbId, proteinData.pdbText, asyncSetMesssage);
 
                             case 2:
                               resolve();
@@ -80506,7 +80507,7 @@ var EmbedJolecule = function () {
                   }());
                 });
 
-              case 23:
+              case 24:
 
                 this.soupWidget.buildScene();
 
@@ -80515,27 +80516,27 @@ var EmbedJolecule = function () {
                 this.controller.zoomOut();
 
                 if (!_lodash2.default.isNil(this.soupView.dataServer)) {
-                  _context2.next = 42;
+                  _context2.next = 43;
                   break;
                 }
 
-                _context2.next = 29;
+                _context2.next = 30;
                 return this.soupWidget.asyncSetMesssage('Preparing views...');
 
-              case 29:
+              case 30:
 
                 // save only first loaded dataServer for saving and deleting
                 this.soupWidget.dataServer = dataServer;
 
                 if (!(dataServer.version === 2)) {
-                  _context2.next = 39;
+                  _context2.next = 40;
                   break;
                 }
 
-                _context2.next = 33;
+                _context2.next = 34;
                 return dataServer.asyncGetViews();
 
-              case 33:
+              case 34:
                 views = _context2.sent;
 
                 this.controller.loadViewsFromViewDicts(views);
@@ -80544,11 +80545,11 @@ var EmbedJolecule = function () {
                 if (isDefaultViewId) {
                   this.controller.setTargetViewByViewId(this.params.viewId);
                 }
-                _context2.next = 41;
+                _context2.next = 42;
                 break;
 
-              case 39:
-                _context2.next = 41;
+              case 40:
+                _context2.next = 42;
                 return new Promise(function (resolve) {
                   dataServer.getViews(function (viewDicts, viewId) {
                     _this2.controller.loadViewsFromViewDicts(viewDicts);
@@ -80563,11 +80564,11 @@ var EmbedJolecule = function () {
                   });
                 });
 
-              case 41:
+              case 42:
 
                 this.soupView.isUpdateObservers = true;
 
-              case 42:
+              case 43:
 
                 this.soupWidget.cleanupMessage();
 
@@ -80575,7 +80576,7 @@ var EmbedJolecule = function () {
 
                 console.log('EmbedJolecule.asyncAddDataServer finished');
 
-              case 45:
+              case 46:
               case 'end':
                 return _context2.stop();
             }
@@ -81646,7 +81647,7 @@ exports.View = View;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.PdbParser = undefined;
+exports.CifParser = exports.PdbParser = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -81894,7 +81895,243 @@ var PdbParser = function () {
   return PdbParser;
 }();
 
+var CifParser = function () {
+  function CifParser(soup) {
+    _classCallCheck(this, CifParser);
+
+    this.soup = soup;
+    this.hasSecondaryStructure = false;
+    this.error = '';
+  }
+
+  _createClass(CifParser, [{
+    key: 'isAtomLine',
+    value: function isAtomLine(line) {
+      return line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM';
+    }
+  }, {
+    key: 'parseAtomLines',
+    value: function parseAtomLines(pdbLines) {
+      var x = void 0,
+          y = void 0,
+          z = void 0,
+          chain = void 0,
+          resType = void 0;
+      var atomType = void 0,
+          bfactor = void 0,
+          elem = void 0,
+          alt = void 0,
+          resNum = void 0,
+          insCode = void 0;
+
+      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
+        var line = pdbLines[iLine];
+
+        if (this.isAtomLine(line)) {
+          var tokens = line.split(' ');
+          try {
+            elem = tokens[2];
+            atomType = tokens[3];
+            alt = tokens[4] === "." ? "" : tokens[4];
+            resType = tokens[5];
+            chain = tokens[6];
+            resNum = parseInt(tokens[8]);
+            insCode = tokens[9] === "?" ? "" : tokens[9];
+            x = parseFloat(tokens[10]);
+            y = parseFloat(tokens[11]);
+            z = parseFloat(tokens[12]);
+            bfactor = parseFloat(tokens[14]);
+            console.log({ atomType: atomType, alt: alt, resType: resType, chain: chain, resNum: resNum, insCode: insCode, x: x, y: y, z: z, bfactor: bfactor, elem: elem });
+          } catch (e) {
+            this.error = 'line ' + iLine;
+            console.log('parseAtomLines ' + e + ': "' + line + '"');
+            continue;
+          }
+
+          if (elem === '') {
+            elem = deleteNumbers(_lodash2.default.trim(atomType)).substr(0, 1);
+          }
+
+          this.soup.addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain);
+        }
+      }
+    }
+  }, {
+    key: 'parseSecondaryStructureLines',
+    value: function parseSecondaryStructureLines(pdbLines) {
+      this.soup.assignResidueProperties(this.soup.iStructure);
+      var residue = this.soup.getResidueProxy();
+      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
+        var line = pdbLines[iLine];
+
+        if (line.substr(0, 5) === 'HELIX') {
+          this.hasSecondaryStructure = true;
+          var chain = line.substr(19, 1);
+          var resNumStart = parseInt(line.substr(21, 4));
+          var resNumEnd = parseInt(line.substr(33, 4));
+          var _iteratorNormalCompletion5 = true;
+          var _didIteratorError5 = false;
+          var _iteratorError5 = undefined;
+
+          try {
+            for (var _iterator5 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+              var iRes = _step5.value;
+
+              residue.iRes = iRes;
+              while (residue.resNum <= resNumEnd && chain === residue.chain) {
+                residue.ss = 'H';
+                residue.iRes = residue.iRes + 1;
+              }
+            }
+          } catch (err) {
+            _didIteratorError5 = true;
+            _iteratorError5 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                _iterator5.return();
+              }
+            } finally {
+              if (_didIteratorError5) {
+                throw _iteratorError5;
+              }
+            }
+          }
+        } else if (line.substr(0, 5) === 'SHEET') {
+          this.hasSecondaryStructure = true;
+          var _chain2 = line.substr(21, 1);
+          var _resNumStart2 = parseInt(line.substr(22, 4));
+          var _resNumEnd2 = parseInt(line.substr(33, 4));
+          var _iteratorNormalCompletion6 = true;
+          var _didIteratorError6 = false;
+          var _iteratorError6 = undefined;
+
+          try {
+            for (var _iterator6 = this.soup.findResidueIndices(this.soup.iStructure, _chain2, _resNumStart2)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+              var _iRes2 = _step6.value;
+
+              residue.iRes = _iRes2;
+              while (residue.resNum <= _resNumEnd2 && _chain2 === residue.chain) {
+                residue.ss = 'E';
+                residue.iRes = residue.iRes + 1;
+              }
+            }
+          } catch (err) {
+            _didIteratorError6 = true;
+            _iteratorError6 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                _iterator6.return();
+              }
+            } finally {
+              if (_didIteratorError6) {
+                throw _iteratorError6;
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    key: 'parseTitle',
+    value: function parseTitle(lines) {
+      var result = '';
+      var _iteratorNormalCompletion7 = true;
+      var _didIteratorError7 = false;
+      var _iteratorError7 = undefined;
+
+      try {
+        for (var _iterator7 = lines[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          var line = _step7.value;
+
+          if (line.substring(0, 5) === 'TITLE') {
+            result += line.substring(10);
+          }
+        }
+      } catch (err) {
+        _didIteratorError7 = true;
+        _iteratorError7 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion7 && _iterator7.return) {
+            _iterator7.return();
+          }
+        } finally {
+          if (_didIteratorError7) {
+            throw _iteratorError7;
+          }
+        }
+      }
+
+      return result;
+    }
+  }, {
+    key: 'parsePdbData',
+    value: function parsePdbData(pdbText, pdbId) {
+      console.log('CifParser.parsePdbData got here');
+      var lines = pdbText.split(/\r?\n/);
+      if (lines.length === 0) {
+        this.parsingError = 'No atom lines';
+        return;
+      }
+
+      var title = this.parseTitle(lines);
+
+      var models = [[]];
+      var iModel = 0;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
+
+      try {
+        for (var _iterator8 = lines[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var line = _step8.value;
+
+          if (this.isAtomLine(line)) {
+            models[iModel].push(line);
+          } else if (line.substr(0, 3) === 'END') {
+            models.push([]);
+            iModel += 1;
+          }
+        }
+      } catch (err) {
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
+          }
+        } finally {
+          if (_didIteratorError8) {
+            throw _iteratorError8;
+          }
+        }
+      }
+
+      if (models[iModel].length === 0) {
+        models.pop();
+      }
+
+      var nModel = models.length;
+      for (var _iModel2 = 0; _iModel2 < nModel; _iModel2 += 1) {
+        var structureId = pdbId;
+        if (nModel > 1) {
+          structureId = structureId + '[' + (_iModel2 + 1) + ']';
+        }
+        this.soup.pushStructureId(structureId, title);
+        this.parseAtomLines(models[_iModel2]);
+        this.parseSecondaryStructureLines(lines);
+      }
+    }
+  }]);
+
+  return CifParser;
+}();
+
 exports.PdbParser = PdbParser;
+exports.CifParser = CifParser;
 
 /***/ }),
 /* 140 */
@@ -103260,7 +103497,7 @@ var SoupController = function () {
   }, {
     key: 'asyncLoadProteinData',
     value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(pdbId, pdbText, asyncSetMessageFn) {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(format, pdbId, pdbText, asyncSetMessageFn) {
         var parser, nAtom, nRes;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
@@ -103287,50 +103524,55 @@ var SoupController = function () {
                 return asyncSetMessageFn('Parsing \'' + pdbId + '\'');
 
               case 7:
-                parser = new _parsers.PdbParser(this.soup);
+                parser = void 0;
 
+                if (format === 'pdb') {
+                  parser = new _parsers.PdbParser(this.soup);
+                } else if (format === 'cif') {
+                  parser = new _parsers.CifParser(this.soup);
+                }
                 parser.parsePdbData(pdbText, pdbId);
 
                 if (!parser.error) {
-                  _context.next = 13;
+                  _context.next = 14;
                   break;
                 }
 
-                _context.next = 12;
+                _context.next = 13;
                 return asyncSetMessageFn('Error parsing soup: ' + parser.error);
 
-              case 12:
+              case 13:
                 return _context.abrupt('return');
 
-              case 13:
+              case 14:
                 if (parser.hasSecondaryStructure) {
+                  _context.next = 19;
+                  break;
+                }
+
+                if (!asyncSetMessageFn) {
                   _context.next = 18;
                   break;
                 }
 
-                if (!asyncSetMessageFn) {
-                  _context.next = 17;
-                  break;
-                }
-
-                _context.next = 17;
+                _context.next = 18;
                 return asyncSetMessageFn('Calculating secondary structure...');
 
-              case 17:
+              case 18:
                 this.soup.findSecondaryStructure();
 
-              case 18:
+              case 19:
                 if (!asyncSetMessageFn) {
-                  _context.next = 23;
+                  _context.next = 24;
                   break;
                 }
 
                 nAtom = this.soup.getAtomCount();
                 nRes = this.soup.getResidueCount();
-                _context.next = 23;
+                _context.next = 24;
                 return asyncSetMessageFn('Calculating bonds for ' + nAtom + ' atoms, ' + nRes + ' residues...');
 
-              case 23:
+              case 24:
                 this.soup.calcAtomConfiguration();
 
                 // Build meshes
@@ -103339,7 +103581,7 @@ var SoupController = function () {
                 this.soupView.isChanged = true;
                 this.soupView.isUpdateObservers = true;
 
-              case 27:
+              case 28:
               case 'end':
                 return _context.stop();
             }
@@ -103347,7 +103589,7 @@ var SoupController = function () {
         }, _callee, this);
       }));
 
-      function asyncLoadProteinData(_x4, _x5, _x6) {
+      function asyncLoadProteinData(_x4, _x5, _x6, _x7) {
         return _ref.apply(this, arguments);
       }
 
