@@ -4,6 +4,6 @@
   "apiUrl": "http://localhost:3000/rpc-run",
   "clientDir": "./vue-client/dist",
   "initDir": "../../examples",
-  "initFile": "1mbo.pdb",
+  "initFile": "1rvc.pdb",
   "title": "Jolecule"
 }

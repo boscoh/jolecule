@@ -162,26 +162,44 @@ class CifParser {
   }
 
   parseAtomLines (pdbLines) {
-    let x, y, z, chain, resType
+    let x, y, z, chain, resType, entity
     let atomType, bfactor, elem, alt, resNum, insCode
-
+    let nextResNum = null
+    let lastChain = null
+    let lastEntity = null
+    let token
     for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
       let line = pdbLines[iLine]
 
       if (this.isAtomLine(line)) {
-        let tokens = line.split(' ')
+        let tokens = line.split(/[ ,]+/)
         try {
           elem = tokens[2]
           atomType = tokens[3]
           alt = tokens[4] === '.' ? '' : tokens[4]
           resType = tokens[5]
           chain = tokens[6]
-          resNum = parseInt(tokens[8])
+          entity = tokens[7]
           insCode = tokens[9] === '?' ? '' : tokens[9]
           x = parseFloat(tokens[10])
           y = parseFloat(tokens[11])
           z = parseFloat(tokens[12])
           bfactor = parseFloat(tokens[14])
+          token = tokens[8]
+          if (token === ".") {
+            let isSameChainAndEntity = (chain === lastChain) && (entity === lastEntity)
+            if (!isSameChainAndEntity || (resType === "HOH")) {
+              nextResNum += 1
+              lastChain = chain
+              lastEntity = entity
+            }
+            resNum = nextResNum
+          } else {
+            resNum = parseInt(tokens[8])
+            lastChain = chain
+            lastEntity = entity
+            nextResNum = resNum + 1
+          }
           console.log({
             atomType,
             alt,
@@ -225,6 +243,8 @@ class CifParser {
   parseSecondaryStructureLines (pdbLines) {
     this.soup.assignResidueProperties(this.soup.iStructure)
     let residue = this.soup.getResidueProxy()
+    let isHeader = false
+    let isRead = false
     for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
       let line = pdbLines[iLine]
 
