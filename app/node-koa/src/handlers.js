@@ -61,7 +61,7 @@ async function publicGetFiles (dirname) {
   let payload = {
     dirname,
     files: [],
-    directories: ['..'],
+    directories: ['..']
   }
   const exts = ['.pdb', '.pdb1', '.cif']
   for (let name of fs.readdirSync(dirname)) {
@@ -72,9 +72,11 @@ async function publicGetFiles (dirname) {
       for (let ext of exts) {
         if (_.endsWith(name, ext)) {
           try {
-            const title = parsetTitleFromPdbText(fs.readFileSync(filename, 'utf8'))
+            const title = parsetTitleFromPdbText(
+              fs.readFileSync(filename, 'utf8')
+            )
             const format = _.includes(ext, 'pdb') ? 'pdb' : 'cif'
-            payload.files.push({title, filename, name, format})
+            payload.files.push({ title, filename, name, format })
           } catch (error) {
             console.log(`publicGetFiles error ${error}`)
           }
@@ -91,7 +93,10 @@ async function publicGetProteinText (pdb) {
 }
 
 function getViewsJson (pdb) {
-  let filename = pdb.replace('.pdb', '').replace('.pdb1', '').replace('.cif', '')
+  let filename = pdb
+    .replace('.pdb', '')
+    .replace('.pdb1', '')
+    .replace('.cif', '')
   filename += '.views.json'
   return filename
 }

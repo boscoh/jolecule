@@ -7,7 +7,7 @@ module.exports = {
     ecmaVersion: 7
   },
   env: {
-    browser: true,
+    browser: true
   },
   extends: ['plugin:vue/recommended', 'prettier/standard'],
   rules: {

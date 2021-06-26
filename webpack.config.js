@@ -1,5 +1,5 @@
-"use strict";
-let path = require('path');
+'use strict'
+let path = require('path')
 module.exports = {
   entry: ['babel-polyfill', './src/main.js'],
   devtool: 'source-map',
@@ -17,12 +17,12 @@ module.exports = {
         exclude: /node_modules/,
         query: {
           presets: 'stage-0'
-        },
+        }
       },
       {
         test: /\.css$/,
         use: ['style-loader', 'css-loader']
-      },
+      }
     ]
-  },
-};
+  }
+}

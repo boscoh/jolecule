@@ -1,5 +1,3 @@
-
-
 # Jolecule - viewer for proteins & DNA with animated views
 
 Jolecule is a viewer for proteins and DNA designed for making animated slideshows. It runs on web-browsers using WebGL via the [three.js](http://threejs.org) library. Jolecule makes it easy to explore and store annotated views. By animating between these stored views, custom slideshows can be created for presentations.
@@ -14,13 +12,13 @@ The core package is a javascript module that can display PDB structures. The mod
 
 ## Demo and Explore
 
-The easiest way to try Jolecule is to go to <http://jolecule.com>. 
+The easiest way to try Jolecule is to go to <http://jolecule.com>.
 
 Or if you know the PDB id of your protein structure, just type in `http://jolecule.com/pdb/PDB-ID`
 
 ## Installation
 
-To use Jolecule as a local Desktop app, or to build static webapps, you need to first download the github zip file: 
+To use Jolecule as a local Desktop app, or to build static webapps, you need to first download the github zip file:
 
 &nbsp; &nbsp; [jolecule-master.zip](https://github.com/boscoh/jolecule/archive/master.zip)
 
@@ -40,39 +38,27 @@ An [Electron](electronjs.org) app is provided that allows Jolecule to access you
 > ./jol-electron.sh [PDB-FILE|DIRECTORY]
 ```
 
-If a specified PDB is given, the PDB will be loaded. All other PDB structures in the directory will also be listed in a left-handed side-bar. 
+If a specified PDB is given, the PDB will be loaded. All other PDB structures in the directory will also be listed in a left-handed side-bar.
 
 More importantly, the Desktop app allows the creation of views that will be directly saved as a file together with the original PDB file. For a given PDB file, say `1be9.pdb`, the Desktop will save any views in the file `1be9.views.json`. This `views.json` will be used to generate static webapps that you can distribute to other users.
 
 ## Views and Animated Slideshows
 
-An key component of Jolecule is the ability to save and re-display views of a molecule. An animated slideshow can then be displayed by cycling smoothly through these views. 
+An key component of Jolecule is the ability to save and re-display views of a molecule. An animated slideshow can then be displayed by cycling smoothly through these views.
 
 The particular view of a molecular is saves as a list of JSON data structure, with the following structure:
 
 ```json
 {
   "camera": {
-    "in": [
-      17.00123423615934,
-      25.682855200046887,
-      -0.1600056890155509
-    ],
-    "pos": [
-      17.410000000001787,
-      26.58999999999918,
-      -0.2600000000028232
-    ],
+    "in": [17.00123423615934, 25.682855200046887, -0.1600056890155509],
+    "pos": [17.410000000001787, 26.58999999999918, -0.2600000000028232],
     "slab": {
       "z_back": 5.58086661002549,
       "z_front": -7.753908948194662,
       "zoom": 29.280544867878536
     },
-    "up": [
-      16.501362135372435,
-      26.98427451475052,
-      -0.3975675760496816
-    ]
+    "up": [16.501362135372435, 26.98427451475052, -0.3975675760496816]
   },
   "creator": "~ apposite @28/5/2015",
   "distances": [],
@@ -80,15 +66,7 @@ The particular view of a molecular is saves as a list of JSON data structure, wi
   "labels": [],
   "order": 6,
   "pdbId": "1mbo",
-  "selected": [
-    42,
-    63,
-    67,
-    92,
-    154,
-    155,
-    341
-  ],
+  "selected": [42, 63, 67, 92, 154, 155, 341],
   "show": {
     "all_atom": false,
     "hydrogen": false,
@@ -104,14 +82,13 @@ The particular view of a molecular is saves as a list of JSON data structure, wi
 }
 ```
 
-The views are in a Json file with the same basename as the associated PDB file. For instance, `1mbo.pdb` will have a view file in `1mbo.views.json`. 
+The views are in a Json file with the same basename as the associated PDB file. For instance, `1mbo.pdb` will have a view file in `1mbo.views.json`.
 
 On the public server, the views of a PDB structure <http://jolecule.com/pdb/1mbo> will be accessible at <http://jolecule.com/pdb/1mbo.views.json>. You can download and modify these files.
 
-Jolecule knows how to animate smoothly between views. This will create a slideshow of your structure. Press `Play` in the bottom-left hand to start the slideshow. 
+Jolecule knows how to animate smoothly between views. This will create a slideshow of your structure. Press `Play` in the bottom-left hand to start the slideshow.
 
-A slideshow between the views by clicking on `Play`. It's easiest to create the `views.json` file using the electron app. 
-
+A slideshow between the views by clicking on `Play`. It's easiest to create the `views.json` file using the electron app.
 
 ## Make static animated slideshows
 
@@ -127,7 +104,7 @@ This will create a directory `1be9-jol` and a completely contained webpage is av
 
 ## Embedding jolecule on other webpages
 
-Javascript was designed to be embedded in other webpages. The easiest way is to 
+Javascript was designed to be embedded in other webpages. The easiest way is to
 [embed a Jolecule widget via the website](http://jolecule.com/embed/pdb?pdb_id=1mbo).
 
 However, you may want to create your own webpage that embeds a Jolecule widget locally. This requires the creation of a javascript `dataserver.js` module that holds all the protein and view data. The way to do this is to co-opt the static webpapps created by `jol-static.js`, and repurpose those files for your website.
@@ -147,7 +124,7 @@ This would be the loading code in your HTML:
 <div id="jolecule-embed"></div>
 <script type="text/javascript" src="./require.js"></script>
 <script>
-  require(['./jolecule.js'], function(jolecule) {
+  require(['./jolecule.js'], function (jolecule) {
     var widget = jolecule.initEmbedJolecule({
       divTag: '#jolecule-embed', // jquery Tag to your div element
       animateState: 'none', // 'none', 'loop', 'rotate', 'rock'
@@ -159,9 +136,9 @@ This would be the loading code in your HTML:
       maxWaitStep: 50, // time to wait per view in looping mode
       viewId: ''
     })
-    require(["data-server0"], function(dataServer) {
-       widget.asyncAddDataServer(dataServer);
-    });
+    require(['data-server0'], function (dataServer) {
+      widget.asyncAddDataServer(dataServer)
+    })
   })
 </script>
 ```
@@ -191,8 +168,7 @@ Alternatively, to create a watcher for changes, run:
 
 In the watch mode, open the static webapp in `dist/index.html`, and reload the webpage after the automatic compilation is finished.
 
-
-## Visual Graphic Design 
+## Visual Graphic Design
 
 Jolecule has a focused design for rendering proteins and DNA. The visual design focuses on being able to transition between an overall cartoon view with detailed stereochemical views of bonds and atoms. To enable that, ribbons are drawn through the C-alpha atoms in the backbone chain. This gives a pleated look to the beta-sheets, but has the advantage that sidechains can be draw to protrube clearly from the ribbon in both helices and sidechains.
 
@@ -205,43 +181,42 @@ In the display of nucleotides, the cartoon tube shows the bases as a well-define
 ## Changelog
 
 - 5.0 (Sep 2018)
-  * Proper fly-weight for loading data structures
-  * Drawing uses only typed-arrays 
-  * colors implemented on residue level
-  * spherical views
-  * transparent chain mode
-  * embedded works a lot more flexibly
-  * file-browser sidebar for electron app
-  * slideshow modes with rock and rotate
-  * select residue selector
-  * improved sequence bar (with help from Sean O'Donoghue)
+  - Proper fly-weight for loading data structures
+  - Drawing uses only typed-arrays
+  - colors implemented on residue level
+  - spherical views
+  - transparent chain mode
+  - embedded works a lot more flexibly
+  - file-browser sidebar for electron app
+  - slideshow modes with rock and rotate
+  - select residue selector
+  - improved sequence bar (with help from Sean O'Donoghue)
 - 4.0 (Dec 2016)
-  * converted to ES6 using import/export
-  * webpack to transpile to bundled ES5 UMD module
-  * data delivered as AMD modules
-  * modules loaded through require.js
-  * converted all 3D vector map to use three.js
-  * upgraded to three.js 0.79
-  * electron cross-platform GUI
-  * switched from python to node for file processing
+  - converted to ES6 using import/export
+  - webpack to transpile to bundled ES5 UMD module
+  - data delivered as AMD modules
+  - modules loaded through require.js
+  - converted all 3D vector map to use three.js
+  - upgraded to three.js 0.79
+  - electron cross-platform GUI
+  - switched from python to node for file processing
 - 3.0 (Oct 2015)
-  * switched rendering to three.js/WebGL
-  * DNA ribbon representation
-  * arrow for Calphas
-  * sequence-bar 
-  * peptide-bond block representation
+  - switched rendering to three.js/WebGL
+  - DNA ribbon representation
+  - arrow for Calphas
+  - sequence-bar
+  - peptide-bond block representation
 - 2.0 (June 2015)
-  * bond detector 
-  * global animation loop
-  * correct embedding of widgets in DOM
-  * json representation of views
-  * parses PDB files in javascript
-  * local web-server
-  * multiple local loading options
-  * integrated visual/residue controls in widgets
-  * generation of self-contained webapp
-  * single codebase for appengine/local-web/self-contained
-  * responsive/iOS-touch web design
-- 1.0 (May 2011) 
-  * original release
-
+  - bond detector
+  - global animation loop
+  - correct embedding of widgets in DOM
+  - json representation of views
+  - parses PDB files in javascript
+  - local web-server
+  - multiple local loading options
+  - integrated visual/residue controls in widgets
+  - generation of self-contained webapp
+  - single codebase for appengine/local-web/self-contained
+  - responsive/iOS-touch web design
+- 1.0 (May 2011)
+  - original release

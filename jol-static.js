@@ -192,7 +192,7 @@ if (remain.length < 1) {
       pdbId,
       pdbLines,
       viewsJsonStr,
-      format,
+      format
     })
     fs.writeFileSync(dataJs, dataJsText)
   }

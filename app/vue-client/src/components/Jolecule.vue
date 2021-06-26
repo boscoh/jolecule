@@ -96,12 +96,11 @@ function delay (time) {
   })
 }
 
-function baseName(str)
-{
-  var base = new String(str).substring(str.lastIndexOf('/') + 1);
-  if(base.lastIndexOf(".") !== -1)
-    base = base.substring(0, base.lastIndexOf("."));
-  return base;
+function baseName (str) {
+  var base = new String(str).substring(str.lastIndexOf('/') + 1)
+  if (base.lastIndexOf('.') !== -1)
+    base = base.substring(0, base.lastIndexOf('.'))
+  return base
 }
 
 export default {
@@ -137,7 +136,9 @@ export default {
         }
       }
       if (result.initFile) {
-        dataServer = this.makeServerPdbDataServer(`${result.initDir}/${result.initFile}`)
+        dataServer = this.makeServerPdbDataServer(
+          `${result.initDir}/${result.initFile}`
+        )
       }
     }
     await this.joleculeWidget.asyncAddDataServer(dataServer)
@@ -177,10 +178,10 @@ export default {
         pdbId: pdbId,
         version: 2,
         format: 'pdb',
-        async asyncGetData() {
+        async asyncGetData () {
           let url = `https://files.rcsb.org/download/${pdbId}.pdb1`
           try {
-            let response = await fetch(url, {method: 'get', mode: 'cors'})
+            let response = await fetch(url, { method: 'get', mode: 'cors' })
             return await response.text()
           } catch {
             return ''
@@ -188,7 +189,7 @@ export default {
         },
         asyncGetViews: async () => [],
         asyncSaveViews: async views => null,
-        asyncDeleteView: async (viewId) => null,
+        asyncDeleteView: async viewId => null
       }
     },
     makeServerPdbDataServer (pdb) {
@@ -196,7 +197,7 @@ export default {
         pdbId: baseName(pdb),
         version: 2,
         format: pdb.endsWith('cif') ? 'cif' : 'pdb',
-        async asyncGetData() {
+        async asyncGetData () {
           let res = await rpc.remote.publicGetProteinText(pdb)
           return res.result ? res.result.pdbText : ''
         },

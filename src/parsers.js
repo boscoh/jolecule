@@ -11,7 +11,7 @@ class PdbParser {
     this.error = ''
   }
 
-  isAtomLine(line) {
+  isAtomLine (line) {
     return line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM'
   }
 
@@ -138,10 +138,10 @@ class PdbParser {
     }
 
     let nModel = models.length
-    for (let iModel=0; iModel<nModel; iModel+=1) {
+    for (let iModel = 0; iModel < nModel; iModel += 1) {
       let structureId = pdbId
       if (nModel > 1) {
-        structureId = `${structureId}[${iModel+1}]`
+        structureId = `${structureId}[${iModel + 1}]`
       }
       this.soup.pushStructureId(structureId, title)
       this.parseAtomLines(models[iModel])
@@ -157,7 +157,7 @@ class CifParser {
     this.error = ''
   }
 
-  isAtomLine(line) {
+  isAtomLine (line) {
     return line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM'
   }
 
@@ -173,19 +173,28 @@ class CifParser {
         try {
           elem = tokens[2]
           atomType = tokens[3]
-          alt = tokens[4] === "." ? "": tokens[4]
+          alt = tokens[4] === '.' ? '' : tokens[4]
           resType = tokens[5]
           chain = tokens[6]
           resNum = parseInt(tokens[8])
-          insCode = tokens[9] === "?" ? "": tokens[9]
+          insCode = tokens[9] === '?' ? '' : tokens[9]
           x = parseFloat(tokens[10])
           y = parseFloat(tokens[11])
           z = parseFloat(tokens[12])
           bfactor = parseFloat(tokens[14])
-          console.log(
-            {atomType, alt, resType, chain, resNum, insCode, x, y, z, bfactor, elem}
-          )
-
+          console.log({
+            atomType,
+            alt,
+            resType,
+            chain,
+            resNum,
+            insCode,
+            x,
+            y,
+            z,
+            bfactor,
+            elem
+          })
         } catch (e) {
           this.error = 'line ' + iLine
           console.log(`parseAtomLines ${e}: "${line}"`)
@@ -290,10 +299,10 @@ class CifParser {
     }
 
     let nModel = models.length
-    for (let iModel=0; iModel<nModel; iModel+=1) {
+    for (let iModel = 0; iModel < nModel; iModel += 1) {
       let structureId = pdbId
       if (nModel > 1) {
-        structureId = `${structureId}[${iModel+1}]`
+        structureId = `${structureId}[${iModel + 1}]`
       }
       this.soup.pushStructureId(structureId, title)
       this.parseAtomLines(models[iModel])

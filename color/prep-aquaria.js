@@ -1,6 +1,6 @@
 const fs = require('fs')
 
-function wrapJson(wrapJsFname, jsonText) {
+function wrapJson (wrapJsFname, jsonText) {
   let wrappedText = `define(function() {
     
 return ${jsonText}

@@ -4,8 +4,8 @@ const result = {
   format: 'pdb',
   asyncGetData: async () => pdbLines.join('\n'),
   asyncGetViews: async () => views,
-  asyncSaveViews: async (views) => ({}),
-  asyncDeleteView: async (viewId) => ({}),
+  asyncSaveViews: async views => ({}),
+  asyncDeleteView: async viewId => ({})
 }
 
 export default result

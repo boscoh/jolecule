@@ -1,16 +1,16 @@
 import fs from 'fs'
 import { Soup } from '../src/soup'
-import { SoupView} from '../src/soup-view'
-import {SoupController} from "../src/soup-controller";
+import { SoupView } from '../src/soup-view'
+import { SoupController } from '../src/soup-controller'
 
-it('check load soup', function() {
+it('check load soup', function () {
   let f = '../examples/1mbo.pdb'
   let pdbText = fs.readFileSync(f).toString()
   let soup = new Soup()
   soup.parsePdbData(pdbText, '1mbo')
 })
 
-it('check load soup components', function() {
+it('check load soup components', function () {
   let f = '../examples/1mbo.pdb'
   let pdbText = fs.readFileSync(f).toString()
   let soup = new Soup()

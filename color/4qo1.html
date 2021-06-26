@@ -1,70 +1,75 @@
-
 <html>
+  <head>
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="./3q05-jol/full-page-jolecule.css"
+    />
+    <title>jolecule</title>
+  </head>
 
-<head>
-  <meta name="mobile-web-app-capable" content="yes"/> 
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
-  <link rel="stylesheet" type="text/css" href="./3q05-jol/full-page-jolecule.css" />
-  <title>jolecule</title>
-</head>
-
-<body>
-  <div id="jolecule-container">
-    <div id="jolecule-body">
-      <div id="jolecule-protein-container"></div>
-      <div id="jolecule-views-container"></div>
-      <script src="../dist/require.js"></script>
-      <script>
-        (function() {
-          require(['../dist/jolecule'], function(jolecule) {
-            var widget = jolecule.initFullPageJolecule(
-              '#jolecule-protein-container',
-              '#jolecule-views-container',
-              { 
-                isEditable: true,
-                isResidueSelector: false,
-                isLegend: true,
-                isExtraEditable: false,
-                isGrid: false,
-                isPlayable: false,
-                isMenu: true,
-                isToolbarOnTop: true,
-                backgroundColor: 0xCCCCCC
-              });
-
-            let alignment = new jolecule.AquariaAlignment()
-
-            let controller = widget.embedJolecule.controller
-            document.onkeydown = function (event) {
-              let c = String.fromCharCode(event.keyCode).toUpperCase()
-              if (false) {
-              } else if (c === 'J' || event.keyCode === 37) {
-                controller.selectPrevResidue()
-              } else if (c === 'K' || event.keyCode === 39) {
-                controller.selectNextResidue()
-              } else if (event.keyCode === 13) {
-                controller.zoomToSelection()
-              } else if (event.keyCode === 27) {
-                controller.clearSelectedResidues()
-              }
-            }
-
-            require([
-                "./4qo1-jol/data-server0",
-                "./P04637.4qo1.B.json",
-            ], function(dataServer0, alignData) {
-              widget.asyncAddDataServer(dataServer0).then(function() {
-                alignment.reload(alignData, widget.embedJolecule)
-                alignment.selectNewChain = function(seqId, pdbId, chain) {
-                  console.log('4q01.html.selectNewChain', seqId, pdbId, chain)
+  <body>
+    <div id="jolecule-container">
+      <div id="jolecule-body">
+        <div id="jolecule-protein-container"></div>
+        <div id="jolecule-views-container"></div>
+        <script src="../dist/require.js"></script>
+        <script>
+          ;(function () {
+            require(['../dist/jolecule'], function (jolecule) {
+              var widget = jolecule.initFullPageJolecule(
+                '#jolecule-protein-container',
+                '#jolecule-views-container',
+                {
+                  isEditable: true,
+                  isResidueSelector: false,
+                  isLegend: true,
+                  isExtraEditable: false,
+                  isGrid: false,
+                  isPlayable: false,
+                  isMenu: true,
+                  isToolbarOnTop: true,
+                  backgroundColor: 0xcccccc
                 }
-              });
-            });
-          });
-        })();
-      </script>
-    </div>
-  </div>
-</body>
+              )
 
+              let alignment = new jolecule.AquariaAlignment()
+
+              let controller = widget.embedJolecule.controller
+              document.onkeydown = function (event) {
+                let c = String.fromCharCode(event.keyCode).toUpperCase()
+                if (false) {
+                } else if (c === 'J' || event.keyCode === 37) {
+                  controller.selectPrevResidue()
+                } else if (c === 'K' || event.keyCode === 39) {
+                  controller.selectNextResidue()
+                } else if (event.keyCode === 13) {
+                  controller.zoomToSelection()
+                } else if (event.keyCode === 27) {
+                  controller.clearSelectedResidues()
+                }
+              }
+
+              require([
+                './4qo1-jol/data-server0',
+                './P04637.4qo1.B.json'
+              ], function (dataServer0, alignData) {
+                widget.asyncAddDataServer(dataServer0).then(function () {
+                  alignment.reload(alignData, widget.embedJolecule)
+                  alignment.selectNewChain = function (seqId, pdbId, chain) {
+                    console.log('4q01.html.selectNewChain', seqId, pdbId, chain)
+                  }
+                })
+              })
+            })
+          })()
+        </script>
+      </div>
+    </div>
+  </body>
 </html>

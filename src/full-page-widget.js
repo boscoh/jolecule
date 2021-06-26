@@ -176,9 +176,9 @@ class ViewPanelList {
     if (this.soupWidget.dataServer.version === 2) {
       await this.soupWidget.dataServer.asyncSaveViews(views)
     } else {
-      return new Promise(
-        resolve => {this.soupWidget.dataServer.saveViews(views, resolve)}
-      )
+      return new Promise(resolve => {
+        this.soupWidget.dataServer.saveViews(views, resolve)
+      })
     }
   }
 
@@ -265,8 +265,8 @@ class ViewPanelList {
     if (this.soupWidget.dataServer.version === 2) {
       await this.soupWidget.dataServer.asyncDeleteView(id)
     } else {
-      await new Promise(
-        resolve => this.soupWidget.dataServer.deleteView(id, resolve)
+      await new Promise(resolve =>
+        this.soupWidget.dataServer.deleteView(id, resolve)
       )
     }
     this.controller.deleteView(id)

@@ -7,6 +7,6 @@
 <script>
 import Jolecule from './components/Jolecule.vue'
 export default {
-  components: {Jolecule}
+  components: { Jolecule }
 }
 </script>

@@ -7,7 +7,7 @@ import { SoupController } from './soup-controller' // eslint-disable-line no-ale
 import { linkButton, delay } from './util.js'
 import widgets from './widgets'
 
-import '../dist/jolecule.css'
+import './assets/jolecule.css'
 
 /**
  * EmbedJolecule - the widget that shows proteins and
