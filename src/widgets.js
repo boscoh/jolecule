@@ -22,7 +22,7 @@
 
 import $ from 'jquery'
 import select2 from 'select2' // eslint-disable-line no-alert
-import 'select2/dist/css/select2.css' // eslint-disable-line no-alert
+import './assets/select2.css' // eslint-disable-line no-alert
 
 try {
   // for webpack
