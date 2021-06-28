@@ -17,8 +17,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/server.js"
+    "serve": "node src/server.js",
+    "start": "node src/server.js -o"
   },
   "author": "",
   "license": "ISC"

@@ -150,6 +150,19 @@ class PdbParser {
   }
 }
 
+
+function removeQuotes(s) {
+  let n = s.length
+  if ((s[0] === '"') && (s[n-1] === '"')) {
+    return s.slice(1, n-1)
+  }
+  if ((s[0] === "'") && (s[n-1] === "'")) {
+    return s.slice(1, n-1)
+  }
+  return s
+}
+
+
 class CifParser {
   constructor (soup) {
     this.soup = soup
@@ -175,7 +188,7 @@ class CifParser {
         let tokens = line.split(/[ ,]+/)
         try {
           elem = tokens[2]
-          atomType = tokens[3]
+          atomType = removeQuotes(tokens[3])
           alt = tokens[4] === '.' ? '' : tokens[4]
           resType = tokens[5]
           chain = tokens[6]
@@ -200,19 +213,19 @@ class CifParser {
             lastEntity = entity
             nextResNum = resNum + 1
           }
-          console.log({
-            atomType,
-            alt,
-            resType,
-            chain,
-            resNum,
-            insCode,
-            x,
-            y,
-            z,
-            bfactor,
-            elem
-          })
+          // console.log({
+          //   atomType,
+          //   alt,
+          //   resType,
+          //   chain,
+          //   resNum,
+          //   insCode,
+          //   x,
+          //   y,
+          //   z,
+          //   bfactor,
+          //   elem
+          // })
         } catch (e) {
           this.error = 'line ' + iLine
           console.log(`parseAtomLines ${e}: "${line}"`)
@@ -241,18 +254,35 @@ class CifParser {
   }
 
   parseSecondaryStructureLines (pdbLines) {
+    this.hasSecondaryStructure = false
     this.soup.assignResidueProperties(this.soup.iStructure)
+    this.parseHelixLines(pdbLines)
+    this.parseSheetLines(pdbLines)
+  }
+
+  parseHelixLines (pdbLines) {
+    console.log("CifParser.parseHelixLines")
     let residue = this.soup.getResidueProxy()
-    let isHeader = false
-    let isRead = false
+    let isHelixLoop = false
     for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
       let line = pdbLines[iLine]
-
-      if (line.substr(0, 5) === 'HELIX') {
+      if (!isHelixLoop) {
+        if (_.startsWith(line, "_struct_conf.pdbx_PDB_helix_id")) {
+          isHelixLoop = true
+        }
+      }
+      if (!isHelixLoop) {
+        continue
+      }
+      if ((_.startsWith(line, "#"))) {
+        break
+      }
+      if (!_.startsWith(line, '_struct_conf')) {
         this.hasSecondaryStructure = true
-        let chain = line.substr(19, 1)
-        let resNumStart = parseInt(line.substr(21, 4))
-        let resNumEnd = parseInt(line.substr(33, 4))
+        let tokens = line.split(/[ ,]+/)
+        let chain = tokens[4]
+        let resNumStart = parseInt(tokens[5])
+        let resNumEnd = parseInt(tokens[9])
         for (let iRes of this.soup.findResidueIndices(
           this.soup.iStructure,
           chain,
@@ -264,11 +294,33 @@ class CifParser {
             residue.iRes = residue.iRes + 1
           }
         }
-      } else if (line.substr(0, 5) === 'SHEET') {
+      }
+    }
+  }
+
+  parseSheetLines (pdbLines) {
+    console.log("CifParser.parseSheetLines")
+    let residue = this.soup.getResidueProxy()
+    let isSheetLoop = false
+    for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
+      let line = pdbLines[iLine]
+      if (!isSheetLoop) {
+        if (_.startsWith(line, "_struct_sheet_range.sheet_id")) {
+          isSheetLoop = true
+        }
+      }
+      if (!isSheetLoop) {
+        continue
+      }
+      if ((_.startsWith(line, "#"))) {
+        break
+      }
+      if (line.substr(0, 6) !== '_struct') {
         this.hasSecondaryStructure = true
-        let chain = line.substr(21, 1)
-        let resNumStart = parseInt(line.substr(22, 4))
-        let resNumEnd = parseInt(line.substr(33, 4))
+        let tokens = line.split(/[ ,]+/)
+        let chain = tokens[3]
+        let resNumStart = parseInt(tokens[4])
+        let resNumEnd = parseInt(tokens[8])
         for (let iRes of this.soup.findResidueIndices(
           this.soup.iStructure,
           chain,
@@ -285,49 +337,25 @@ class CifParser {
   }
 
   parseTitle (lines) {
-    let result = ''
+    let prevLine = ''
     for (let line of lines) {
-      if (line.substring(0, 5) === 'TITLE') {
-        result += line.substring(10)
+      if (_.startsWith(prevLine, "_struct.title")) {
+        return removeQuotes(_.trim(line))
       }
+      prevLine = line
     }
-    return result
+    return ''
   }
 
   parsePdbData (pdbText, pdbId) {
-    console.log('CifParser.parsePdbData got here')
     let lines = pdbText.split(/\r?\n/)
     if (lines.length === 0) {
       this.parsingError = 'No atom lines'
       return
     }
-
-    let title = this.parseTitle(lines)
-
-    let models = [[]]
-    let iModel = 0
-    for (let line of lines) {
-      if (this.isAtomLine(line)) {
-        models[iModel].push(line)
-      } else if (line.substr(0, 3) === 'END') {
-        models.push([])
-        iModel += 1
-      }
-    }
-    if (models[iModel].length === 0) {
-      models.pop()
-    }
-
-    let nModel = models.length
-    for (let iModel = 0; iModel < nModel; iModel += 1) {
-      let structureId = pdbId
-      if (nModel > 1) {
-        structureId = `${structureId}[${iModel + 1}]`
-      }
-      this.soup.pushStructureId(structureId, title)
-      this.parseAtomLines(models[iModel])
-      this.parseSecondaryStructureLines(lines)
-    }
+    this.soup.pushStructureId(pdbId, this.parseTitle(lines))
+    this.parseAtomLines(lines)
+    this.parseSecondaryStructureLines(lines)
   }
 }
 

@@ -1,4 +1,3 @@
-const fs = require('fs')
 const path = require('path')
 
 const Koa = require('koa')
@@ -14,15 +13,15 @@ const http = require('http')
 const { openUrlInBackground } = require('./url.js')
 const handlers = require('./handlers.js')
 
-let appDir = path.join(path.dirname(__filename), '../..')
-
+const appDir = path.join(path.dirname(__filename), '../..')
 const config = require(path.join(appDir, `config.json`))
-for (let [k, v] of Object.entries(config)) {
-  handlers.setConfig(k, v)
-}
 const clientDir = path.join(appDir, `${config.clientDir}`)
 const port = config.port
 const host = config.host
+
+for (let [k, v] of Object.entries(config)) {
+  handlers.setConfig(k, v)
+}
 
 const router = new Router()
 
@@ -113,7 +112,10 @@ app.use(router.routes())
 app.use(router.allowedMethods())
 app.use(serve(clientDir))
 
-// openUrlInBackground(`http://${host}:${port}`)
+const args = process.argv;
+if (args.includes("-o")) {
+  openUrlInBackground(`http://${host}:${port}`)
+}
 console.log(`Listening on http://${host}:${port}`)
 
 const server = http.createServer(app.callback())

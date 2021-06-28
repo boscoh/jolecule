@@ -43,7 +43,6 @@ return result;
 `
 
 const embedIndexHtmlMustache = `
-
 <html>
 <head>
     <meta name="viewport" 
@@ -71,7 +70,7 @@ const embedIndexHtmlMustache = `
   <script src="require.js"></script>
   <script>
   require( ['jolecule'], function(jolecule) {
-    var j = jolecule.initEmbedJolecule({
+    let widget = jolecule.initEmbedJolecule({
       divTag: '#jolecule',
       isGrid: true,
       isEditable: true,
@@ -79,7 +78,7 @@ const embedIndexHtmlMustache = `
     require([{{{dataServerLoadStr}}}], function({{{dataServerArgStr}}}) {
       var dataServers = [{{{dataServerArgStr}}}];
       for (var dataServer of dataServers) {
-        j.asyncAddDataServer(dataServer);
+        widget.asyncAddDataServer(dataServer);
       }
     });
   });
@@ -108,7 +107,7 @@ const fullPageIndexHtmlMustache = `
           require(['jolecule'], function(jolecule) {
             var j = jolecule.initFullPageJolecule(
               '#jolecule-protein-container',
-              '#jolecule-components-container',
+              '#jolecule-views-container',
               { 
                 isEditable: true,
                 isExtraEditable: true,
@@ -149,8 +148,7 @@ if (remain.length < 1) {
   console.log(doc)
 } else {
   const pdb = remain[0]
-  let base = path.basename(pdb.replace('.pdb', ''))
-  let targetDir = path.join(path.dirname(pdb), base + '-jol')
+  let targetDir = path.join(path.dirname(pdb), pdb + '-jol')
   if (parsed.out) {
     targetDir = parsed.out
   }
