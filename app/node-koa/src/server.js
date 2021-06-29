@@ -112,8 +112,8 @@ app.use(router.routes())
 app.use(router.allowedMethods())
 app.use(serve(clientDir))
 
-const args = process.argv;
-if (args.includes("-o")) {
+const args = process.argv
+if (args.includes('-o')) {
   openUrlInBackground(`http://${host}:${port}`)
 }
 console.log(`Listening on http://${host}:${port}`)

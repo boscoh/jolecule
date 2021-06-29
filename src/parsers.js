@@ -4,6 +4,17 @@ function deleteNumbers (text) {
   return text.replace(/\d+/, '')
 }
 
+function removeQuotes (s) {
+  let n = s.length
+  if (s[0] === '"' && s[n - 1] === '"') {
+    return s.slice(1, n - 1)
+  }
+  if (s[0] === "'" && s[n - 1] === "'") {
+    return s.slice(1, n - 1)
+  }
+  return s
+}
+
 class PdbParser {
   constructor (soup) {
     this.soup = soup
@@ -150,19 +161,6 @@ class PdbParser {
   }
 }
 
-
-function removeQuotes(s) {
-  let n = s.length
-  if ((s[0] === '"') && (s[n-1] === '"')) {
-    return s.slice(1, n-1)
-  }
-  if ((s[0] === "'") && (s[n-1] === "'")) {
-    return s.slice(1, n-1)
-  }
-  return s
-}
-
-
 class CifParser {
   constructor (soup) {
     this.soup = soup
@@ -199,9 +197,10 @@ class CifParser {
           z = parseFloat(tokens[12])
           bfactor = parseFloat(tokens[14])
           token = tokens[8]
-          if (token === ".") {
-            let isSameChainAndEntity = (chain === lastChain) && (entity === lastEntity)
-            if (!isSameChainAndEntity || (resType === "HOH")) {
+          if (token === '.') {
+            let isSameChainAndEntity =
+              chain === lastChain && entity === lastEntity
+            if (!isSameChainAndEntity || resType === 'HOH') {
               nextResNum += 1
               lastChain = chain
               lastEntity = entity
@@ -261,20 +260,20 @@ class CifParser {
   }
 
   parseHelixLines (pdbLines) {
-    console.log("CifParser.parseHelixLines")
+    console.log('CifParser.parseHelixLines')
     let residue = this.soup.getResidueProxy()
     let isHelixLoop = false
     for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
       let line = pdbLines[iLine]
       if (!isHelixLoop) {
-        if (_.startsWith(line, "_struct_conf.pdbx_PDB_helix_id")) {
+        if (_.startsWith(line, '_struct_conf.pdbx_PDB_helix_id')) {
           isHelixLoop = true
         }
       }
       if (!isHelixLoop) {
         continue
       }
-      if ((_.startsWith(line, "#"))) {
+      if (_.startsWith(line, '#')) {
         break
       }
       if (!_.startsWith(line, '_struct_conf')) {
@@ -299,20 +298,20 @@ class CifParser {
   }
 
   parseSheetLines (pdbLines) {
-    console.log("CifParser.parseSheetLines")
+    console.log('CifParser.parseSheetLines')
     let residue = this.soup.getResidueProxy()
     let isSheetLoop = false
     for (let iLine = 0; iLine < pdbLines.length; iLine += 1) {
       let line = pdbLines[iLine]
       if (!isSheetLoop) {
-        if (_.startsWith(line, "_struct_sheet_range.sheet_id")) {
+        if (_.startsWith(line, '_struct_sheet_range.sheet_id')) {
           isSheetLoop = true
         }
       }
       if (!isSheetLoop) {
         continue
       }
-      if ((_.startsWith(line, "#"))) {
+      if (_.startsWith(line, '#')) {
         break
       }
       if (line.substr(0, 6) !== '_struct') {
@@ -339,7 +338,7 @@ class CifParser {
   parseTitle (lines) {
     let prevLine = ''
     for (let line of lines) {
-      if (_.startsWith(prevLine, "_struct.title")) {
+      if (_.startsWith(prevLine, '_struct.title')) {
         return removeQuotes(_.trim(line))
       }
       prevLine = line

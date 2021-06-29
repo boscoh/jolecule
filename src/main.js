@@ -55,15 +55,83 @@ let defaultDataServerArgs = {
 function makePdbDataServer (args) {
   args = _.merge(defaultDataServerArgs, args)
   console.log('makePdbDataServer', args)
-  return makeDataServer(
-    args.pdbId,
-    args.userId,
-    args.isDisableSaveViews,
-    args.saveViewsUrl,
-    args.isLoadViews,
-    args.biounit,
-    args.viewId
-  )
+  return {
+    pdbId: args.pdbId,
+    version: 2,
+    format: 'pdb',
+    async asyncGetData () {
+      let url
+      if (args.pdbId.length === 4) {
+        if (!args.biounit) {
+          // 0, null or undefined
+          url = `https://files.rcsb.org/download/${args.pdbId}.pdb`
+        } else {
+          url = `https://files.rcsb.org/download/${args.pdbId}.pdb${args.biounit}`
+        }
+      } else {
+        url = `${args.saveViewsUrl}/pdb/${args.pdbId}.txt`
+      }
+      try {
+        let response = await fetch(url, { method: 'get', mode: 'cors' })
+        return await response.text()
+      } catch (e) {
+        return ''
+      }
+    },
+    async asyncGetViews () {
+      if (!args.isLoadViews) {
+        return []
+      }
+      let url = `${args.saveViewsUrl}/pdb/${args.pdbId}.views.json`
+      if (args.userId) {
+        url += `?user_id=${args.userId}`
+      }
+      try {
+        let response = await fetch(url, { method: 'get', mode: 'cors' })
+        return response.json()
+      } catch (e) {
+        return []
+      }
+    },
+    async asyncSaveViews (views) {
+      if (args.isDisableSaveViews) {
+        return
+      }
+      try {
+        let response = await fetch(`${args.saveViewsUrl}/save/views`, {
+          method: 'post',
+          mode: 'cors',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(views)
+        })
+        return response.json()
+      } catch (e) {
+        return ''
+      }
+    },
+    async asyncDeleteView (viewId) {
+      if (args.isDisableSaveViews) {
+        return
+      }
+      try {
+        let response = await fetch(`${args.saveViewsUrl}/delete/view`, {
+          method: 'post',
+          mode: 'cors',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ pdbId: args.pdbId, viewId })
+        })
+        return response.json()
+      } catch (e) {
+        return ''
+      }
+    }
+  }
 }
 
 /**

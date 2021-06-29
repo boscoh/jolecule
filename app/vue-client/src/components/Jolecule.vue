@@ -84,7 +84,7 @@
 </style>
 
 <script>
-import { initFullPageJolecule } from '../../../../src/main'
+import { initFullPageJolecule, makePdbDataServer } from '../../../../src/main'
 import * as rpc from '../modules/rpc'
 import defaultDataServer from '../modules/1mbo-data-server.es6.js'
 
@@ -136,7 +136,7 @@ export default {
         }
       }
       if (result.initFile) {
-        dataServer = this.makeServerPdbDataServer(
+        dataServer = this.makeLocalPdbDataServer(
           `${result.initDir}/${result.initFile}`
         )
       }
@@ -145,11 +145,11 @@ export default {
   },
   methods: {
     openFile (file) {
-      this.loadFromDataServer(this.makeServerPdbDataServer(file.filename))
+      this.loadFromDataServer(this.makeLocalPdbDataServer(file.filename))
     },
     openFileReplace (file) {
       this.joleculeWidget.clear()
-      this.loadFromDataServer(this.makeServerPdbDataServer(file.filename))
+      this.loadFromDataServer(this.makeLocalPdbDataServer(file.filename))
     },
     async openDir (topDir, dir) {
       let res = await rpc.remote.publicGetFiles(`${topDir}/${dir}`)
@@ -171,28 +171,15 @@ export default {
     async loadFromPdbId () {
       await delay(100)
       this.joleculeWidget.clear()
-      this.loadFromDataServer(this.makeRcsbDataServer(this.pdbId))
+      this.loadFromDataServer(
+        makePdbDataServer({
+          pdbId: this.pdbId,
+          isDisableSaveViews: true,
+          isLoadViews: false
+        })
+      )
     },
-    makeRcsbDataServer (pdbId) {
-      return {
-        pdbId: pdbId,
-        version: 2,
-        format: 'pdb',
-        async asyncGetData () {
-          let url = `https://files.rcsb.org/download/${pdbId}.pdb1`
-          try {
-            let response = await fetch(url, { method: 'get', mode: 'cors' })
-            return await response.text()
-          } catch {
-            return ''
-          }
-        },
-        asyncGetViews: async () => [],
-        asyncSaveViews: async views => null,
-        asyncDeleteView: async viewId => null
-      }
-    },
-    makeServerPdbDataServer (pdb) {
+    makeLocalPdbDataServer (pdb) {
       return {
         pdbId: baseName(pdb),
         version: 2,

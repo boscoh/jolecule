@@ -81663,6 +81663,17 @@ function deleteNumbers(text) {
   return text.replace(/\d+/, '');
 }
 
+function removeQuotes(s) {
+  var n = s.length;
+  if (s[0] === '"' && s[n - 1] === '"') {
+    return s.slice(1, n - 1);
+  }
+  if (s[0] === "'" && s[n - 1] === "'") {
+    return s.slice(1, n - 1);
+  }
+  return s;
+}
+
 var PdbParser = function () {
   function PdbParser(soup) {
     _classCallCheck(this, PdbParser);
@@ -81895,14 +81906,6 @@ var PdbParser = function () {
   return PdbParser;
 }();
 
-function removeQuotes(s) {
-  var n = s.length;
-  if (s[0] === '"' && s[n - 1] === '"') {
-    return s.slice(1, n - 1);
-  }
-  return s;
-}
-
 var CifParser = function () {
   function CifParser(soup) {
     _classCallCheck(this, CifParser);
@@ -81954,9 +81957,9 @@ var CifParser = function () {
             z = parseFloat(tokens[12]);
             bfactor = parseFloat(tokens[14]);
             token = tokens[8];
-            if (token === ".") {
+            if (token === '.') {
               var isSameChainAndEntity = chain === lastChain && entity === lastEntity;
-              if (!isSameChainAndEntity || resType === "HOH") {
+              if (!isSameChainAndEntity || resType === 'HOH') {
                 nextResNum += 1;
                 lastChain = chain;
                 lastEntity = entity;
@@ -81968,19 +81971,19 @@ var CifParser = function () {
               lastEntity = entity;
               nextResNum = resNum + 1;
             }
-            console.log({
-              atomType: atomType,
-              alt: alt,
-              resType: resType,
-              chain: chain,
-              resNum: resNum,
-              insCode: insCode,
-              x: x,
-              y: y,
-              z: z,
-              bfactor: bfactor,
-              elem: elem
-            });
+            // console.log({
+            //   atomType,
+            //   alt,
+            //   resType,
+            //   chain,
+            //   resNum,
+            //   insCode,
+            //   x,
+            //   y,
+            //   z,
+            //   bfactor,
+            //   elem
+            // })
           } catch (e) {
             this.error = 'line ' + iLine;
             console.log('parseAtomLines ' + e + ': "' + line + '"');
@@ -81998,18 +82001,36 @@ var CifParser = function () {
   }, {
     key: 'parseSecondaryStructureLines',
     value: function parseSecondaryStructureLines(pdbLines) {
+      this.hasSecondaryStructure = false;
       this.soup.assignResidueProperties(this.soup.iStructure);
+      this.parseHelixLines(pdbLines);
+      this.parseSheetLines(pdbLines);
+    }
+  }, {
+    key: 'parseHelixLines',
+    value: function parseHelixLines(pdbLines) {
+      console.log('CifParser.parseHelixLines');
       var residue = this.soup.getResidueProxy();
-      var isHeader = false;
-      var isRead = false;
+      var isHelixLoop = false;
       for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
         var line = pdbLines[iLine];
-
-        if (line.substr(0, 5) === 'HELIX') {
+        if (!isHelixLoop) {
+          if (_lodash2.default.startsWith(line, '_struct_conf.pdbx_PDB_helix_id')) {
+            isHelixLoop = true;
+          }
+        }
+        if (!isHelixLoop) {
+          continue;
+        }
+        if (_lodash2.default.startsWith(line, '#')) {
+          break;
+        }
+        if (!_lodash2.default.startsWith(line, '_struct_conf')) {
           this.hasSecondaryStructure = true;
-          var chain = line.substr(19, 1);
-          var resNumStart = parseInt(line.substr(21, 4));
-          var resNumEnd = parseInt(line.substr(33, 4));
+          var tokens = line.split(/[ ,]+/);
+          var chain = tokens[4];
+          var resNumStart = parseInt(tokens[5]);
+          var resNumEnd = parseInt(tokens[9]);
           var _iteratorNormalCompletion5 = true;
           var _didIteratorError5 = false;
           var _iteratorError5 = undefined;
@@ -82038,21 +82059,44 @@ var CifParser = function () {
               }
             }
           }
-        } else if (line.substr(0, 5) === 'SHEET') {
+        }
+      }
+    }
+  }, {
+    key: 'parseSheetLines',
+    value: function parseSheetLines(pdbLines) {
+      console.log('CifParser.parseSheetLines');
+      var residue = this.soup.getResidueProxy();
+      var isSheetLoop = false;
+      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
+        var line = pdbLines[iLine];
+        if (!isSheetLoop) {
+          if (_lodash2.default.startsWith(line, '_struct_sheet_range.sheet_id')) {
+            isSheetLoop = true;
+          }
+        }
+        if (!isSheetLoop) {
+          continue;
+        }
+        if (_lodash2.default.startsWith(line, '#')) {
+          break;
+        }
+        if (line.substr(0, 6) !== '_struct') {
           this.hasSecondaryStructure = true;
-          var _chain2 = line.substr(21, 1);
-          var _resNumStart2 = parseInt(line.substr(22, 4));
-          var _resNumEnd2 = parseInt(line.substr(33, 4));
+          var tokens = line.split(/[ ,]+/);
+          var chain = tokens[3];
+          var resNumStart = parseInt(tokens[4]);
+          var resNumEnd = parseInt(tokens[8]);
           var _iteratorNormalCompletion6 = true;
           var _didIteratorError6 = false;
           var _iteratorError6 = undefined;
 
           try {
-            for (var _iterator6 = this.soup.findResidueIndices(this.soup.iStructure, _chain2, _resNumStart2)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-              var _iRes2 = _step6.value;
+            for (var _iterator6 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+              var iRes = _step6.value;
 
-              residue.iRes = _iRes2;
-              while (residue.resNum <= _resNumEnd2 && _chain2 === residue.chain) {
+              residue.iRes = iRes;
+              while (residue.resNum <= resNumEnd && chain === residue.chain) {
                 residue.ss = 'E';
                 residue.iRes = residue.iRes + 1;
               }
@@ -82077,7 +82121,7 @@ var CifParser = function () {
   }, {
     key: 'parseTitle',
     value: function parseTitle(lines) {
-      var result = '';
+      var prevLine = '';
       var _iteratorNormalCompletion7 = true;
       var _didIteratorError7 = false;
       var _iteratorError7 = undefined;
@@ -82086,9 +82130,10 @@ var CifParser = function () {
         for (var _iterator7 = lines[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
           var line = _step7.value;
 
-          if (line.substring(0, 5) === 'TITLE') {
-            result += line.substring(10);
+          if (_lodash2.default.startsWith(prevLine, '_struct.title')) {
+            return removeQuotes(_lodash2.default.trim(line));
           }
+          prevLine = line;
         }
       } catch (err) {
         _didIteratorError7 = true;
@@ -82105,66 +82150,19 @@ var CifParser = function () {
         }
       }
 
-      return result;
+      return '';
     }
   }, {
     key: 'parsePdbData',
     value: function parsePdbData(pdbText, pdbId) {
-      console.log('CifParser.parsePdbData got here');
       var lines = pdbText.split(/\r?\n/);
       if (lines.length === 0) {
         this.parsingError = 'No atom lines';
         return;
       }
-
-      var title = this.parseTitle(lines);
-
-      var models = [[]];
-      var iModel = 0;
-      var _iteratorNormalCompletion8 = true;
-      var _didIteratorError8 = false;
-      var _iteratorError8 = undefined;
-
-      try {
-        for (var _iterator8 = lines[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-          var line = _step8.value;
-
-          if (this.isAtomLine(line)) {
-            models[iModel].push(line);
-          } else if (line.substr(0, 3) === 'END') {
-            models.push([]);
-            iModel += 1;
-          }
-        }
-      } catch (err) {
-        _didIteratorError8 = true;
-        _iteratorError8 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-            _iterator8.return();
-          }
-        } finally {
-          if (_didIteratorError8) {
-            throw _iteratorError8;
-          }
-        }
-      }
-
-      if (models[iModel].length === 0) {
-        models.pop();
-      }
-
-      var nModel = models.length;
-      for (var _iModel2 = 0; _iModel2 < nModel; _iModel2 += 1) {
-        var structureId = pdbId;
-        if (nModel > 1) {
-          structureId = structureId + '[' + (_iModel2 + 1) + ']';
-        }
-        this.soup.pushStructureId(structureId, title);
-        this.parseAtomLines(models[_iModel2]);
-        this.parseSecondaryStructureLines(lines);
-      }
+      this.soup.pushStructureId(pdbId, this.parseTitle(lines));
+      this.parseAtomLines(lines);
+      this.parseSecondaryStructureLines(lines);
     }
   }]);
 
@@ -90701,6 +90699,8 @@ var _jquery2 = _interopRequireDefault(_jquery);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 /**
  *
  * @param args = {
@@ -90755,7 +90755,192 @@ var defaultDataServerArgs = {
 };function makePdbDataServer(args) {
   args = _lodash2.default.merge(defaultDataServerArgs, args);
   console.log('makePdbDataServer', args);
-  return makeDataServer(args.pdbId, args.userId, args.isDisableSaveViews, args.saveViewsUrl, args.isLoadViews, args.biounit, args.viewId);
+  return {
+    pdbId: args.pdbId,
+    version: 2,
+    format: 'pdb',
+    asyncGetData: function asyncGetData() {
+      var _this = this;
+
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var url, response;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                url = void 0;
+
+                if (args.pdbId.length === 4) {
+                  if (!args.biounit) {
+                    // 0, null or undefined
+                    url = 'https://files.rcsb.org/download/' + args.pdbId + '.pdb';
+                  } else {
+                    url = 'https://files.rcsb.org/download/' + args.pdbId + '.pdb' + args.biounit;
+                  }
+                } else {
+                  url = args.saveViewsUrl + '/pdb/' + args.pdbId + '.txt';
+                }
+                _context.prev = 2;
+                _context.next = 5;
+                return fetch(url, { method: 'get', mode: 'cors' });
+
+              case 5:
+                response = _context.sent;
+                _context.next = 8;
+                return response.text();
+
+              case 8:
+                return _context.abrupt('return', _context.sent);
+
+              case 11:
+                _context.prev = 11;
+                _context.t0 = _context['catch'](2);
+                return _context.abrupt('return', '');
+
+              case 14:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, _this, [[2, 11]]);
+      }))();
+    },
+    asyncGetViews: function asyncGetViews() {
+      var _this2 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+        var url, response;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                if (args.isLoadViews) {
+                  _context2.next = 2;
+                  break;
+                }
+
+                return _context2.abrupt('return', []);
+
+              case 2:
+                url = args.saveViewsUrl + '/pdb/' + args.pdbId + '.views.json';
+
+                if (args.userId) {
+                  url += '?user_id=' + args.userId;
+                }
+                _context2.prev = 4;
+                _context2.next = 7;
+                return fetch(url, { method: 'get', mode: 'cors' });
+
+              case 7:
+                response = _context2.sent;
+                return _context2.abrupt('return', response.json());
+
+              case 11:
+                _context2.prev = 11;
+                _context2.t0 = _context2['catch'](4);
+                return _context2.abrupt('return', []);
+
+              case 14:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, _this2, [[4, 11]]);
+      }))();
+    },
+    asyncSaveViews: function asyncSaveViews(views) {
+      var _this3 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+        var response;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                if (!args.isDisableSaveViews) {
+                  _context3.next = 2;
+                  break;
+                }
+
+                return _context3.abrupt('return');
+
+              case 2:
+                _context3.prev = 2;
+                _context3.next = 5;
+                return fetch(args.saveViewsUrl + '/save/views', {
+                  method: 'post',
+                  mode: 'cors',
+                  headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(views)
+                });
+
+              case 5:
+                response = _context3.sent;
+                return _context3.abrupt('return', response.json());
+
+              case 9:
+                _context3.prev = 9;
+                _context3.t0 = _context3['catch'](2);
+                return _context3.abrupt('return', '');
+
+              case 12:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, _this3, [[2, 9]]);
+      }))();
+    },
+    asyncDeleteView: function asyncDeleteView(viewId) {
+      var _this4 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
+        var response;
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                if (!args.isDisableSaveViews) {
+                  _context4.next = 2;
+                  break;
+                }
+
+                return _context4.abrupt('return');
+
+              case 2:
+                _context4.prev = 2;
+                _context4.next = 5;
+                return fetch(args.saveViewsUrl + '/delete/view', {
+                  method: 'post',
+                  mode: 'cors',
+                  headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ pdbId: args.pdbId, viewId: viewId })
+                });
+
+              case 5:
+                response = _context4.sent;
+                return _context4.abrupt('return', response.json());
+
+              case 9:
+                _context4.prev = 9;
+                _context4.t0 = _context4['catch'](2);
+                return _context4.abrupt('return', '');
+
+              case 12:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, _this4, [[2, 9]]);
+      }))();
+    }
+  };
 }
 
 /**
