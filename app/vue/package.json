@@ -1,18 +1,17 @@
 {
   "name": "client",
-  "version": "0.1.0",
-  "private": true,
   "scripts": {
     "dev": "vite",
     "build": "vite build"
   },
   "dependencies": {
+    "bootstrap": "^5.0.2",
     "lodash": "^4.17.21",
-    "vue": "^2.6.11"
+    "vue": "^2.6.14"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^1.2.3",
     "vite": "^2.3.8",
+    "vite-plugin-pug": "^0.3.0",
     "vite-plugin-vue2": "^1.6.2"
   },
   "browserslist": [

@@ -2,6 +2,6 @@
 # on mac, need to change
 #   System Prefs -> Security -> Privacy -> Accessibility: add Terminal
 ttab "cd node-koa; npm run serve"
-ttab "cd vue-client; npm run dev"
+ttab "cd vue; npm run dev"
 sleep 0.5
 open http://localhost:5200

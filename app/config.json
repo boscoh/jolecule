@@ -2,8 +2,8 @@
   "host": "localhost",
   "port": 3000,
   "apiUrl": "http://localhost:3000/rpc-run",
-  "clientDir": "./vue-client/dist",
+  "clientDir": "./vue/dist",
   "initDir": "../../examples",
-  "initFile": "5mg7.cif",
+  "initFile": "1mbo.pdb",
   "title": "Jolecule"
 }

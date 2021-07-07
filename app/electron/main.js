@@ -12,10 +12,10 @@ function createWindow (clientDir) {
     }
   })
   mainWindow.loadFile(path.join(clientDir, 'index.html'))
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 }
 
-const handlers = require('../node-koa/src/handlers')
+const handlers = require('../handlers')
 
 let fname = path.join(path.dirname(__filename), `../config.json`)
 const config = JSON.parse(fs.readFileSync(fname))

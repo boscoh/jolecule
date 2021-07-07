@@ -11,7 +11,7 @@ const destroyable = require('server-destroy')
 const http = require('http')
 
 const { openUrlInBackground } = require('./url.js')
-const handlers = require('./handlers.js')
+const handlers = require('../../handlers.js')
 
 const appDir = path.join(path.dirname(__filename), '../..')
 const config = require(path.join(appDir, `config.json`))
