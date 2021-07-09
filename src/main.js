@@ -42,35 +42,42 @@ let defaultDataServerArgs = {
 
 /**
  * @param args = {
- *   pdbId: '', # Str - id of RCSB protein structure
- *   userId: '', # Str - id of user on http://jolecule.com; default: ''
- *   isDisableSaveViews: false, # Bool - prevents save/delete to server
- *   saveViewsUrl: true, # Str - base URL of views server (e.g. "http://jolecule.com")
- *   isLoadViews: 'none', # bool - if false: creates dummy view get methods
- *   biounit: 0, # int - biounit
- *   viewId: '', # Str - id of user on http://jolecule.com; default: ''
+ *   pdbId: '', // Str - id of RCSB protein structure
+ *   userId: '', // Str - id of user on http://jolecule.com; default: ''
+ *   isDisableSaveViews: false, // Bool - prevents save/delete to server
+ *   saveViewsUrl: true, // Str - base URL of views server (e.g. "http://jolecule.com")
+ *   isLoadViews: 'none', // bool - if false: creates dummy view get methods
+ *   biounit: 0, // int - biounit
+ *   viewId: '', // Str - id of user on http://jolecule.com; default: ''
+ *   format: 'pdb' // 'pdb' or 'pdb1' or 'cif'
  * }
  * @returns dataServer obj
  */
 function makePdbDataServer (args) {
   args = _.merge(defaultDataServerArgs, args)
   console.log('makePdbDataServer', args)
+  const format = _.get(args, 'format', 'pdb')
   return {
     pdbId: args.pdbId,
     version: 2,
-    format: 'pdb',
+    format,
     async asyncGetData () {
       let url
       if (args.pdbId.length === 4) {
         if (!args.biounit) {
           // 0, null or undefined
-          url = `https://files.rcsb.org/download/${args.pdbId}.pdb`
+          if (format === 'cif') {
+            url = `https://files.rcsb.org/download/${args.pdbId}.cif`
+          } else if (format === 'pdb') {
+            url = `https://files.rcsb.org/download/${args.pdbId}.pdb`
+          }
         } else {
           url = `https://files.rcsb.org/download/${args.pdbId}.pdb${args.biounit}`
         }
       } else {
         url = `${args.saveViewsUrl}/pdb/${args.pdbId}.txt`
       }
+      console.log('makePdbDataServer.fetch', url)
       try {
         let response = await fetch(url, { method: 'get', mode: 'cors' })
         return await response.text()

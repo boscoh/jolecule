@@ -490,7 +490,7 @@ class SoupView {
     this.setTargetView(view)
   }
 
-  getTracesOfChainContainingResidue (iRes) {
+  getTracesOfResidue (iRes) {
     let result = []
     let residue = this.soup.getResidueProxy(iRes)
     let chain = residue.chain
@@ -508,7 +508,7 @@ class SoupView {
     let atom = this.soup.getAtomProxy(iAtom)
     let view = this.currentView.getViewTranslatedTo(atom.pos)
     view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus)
-    view.selectedTraces = this.getTracesOfChainContainingResidue(atom.iRes)
+    view.selectedTraces = this.getTracesOfResidue(atom.iRes)
     this.setTargetView(view)
   }
 

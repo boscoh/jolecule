@@ -1295,6 +1295,21 @@ class Soup {
     return indices
   }
 
+  isSameChainSelected(iRes) {
+    let residue = this.getResidueProxy(iRes)
+    let chain = residue.chain
+    let iStructure = residue.iStructure
+    if (this.selectedTraces.length > 0) {
+      let iTrace = this.selectedTraces[0]
+      let iRes = this.traces[iTrace].indices[0]
+      let residue = this.getResidueProxy(iRes)
+      if (residue.iStructure === iStructure && residue.chain === chain) {
+        return true
+      }
+    }
+    return false
+  }
+
   setSecondaryStructureColorResidues () {
     let residue = this.getResidueProxy()
     for (let iRes of _.range(this.getResidueCount())) {

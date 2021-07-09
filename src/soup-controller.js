@@ -234,6 +234,19 @@ class SoupController {
     this.soupView.isChanged = true
   }
 
+  toggleSelectResidue (iRes) {
+    let value = !this.soup.getResidueProxy(iRes).selected
+    this.selectResidue(iRes, value)
+  }
+
+  selectTraceOfResidue(iRes) {
+    let newView = this.soupView.currentView.clone()
+    newView.show.transparent = true
+    newView.selectedTraces = this.soupView.getTracesOfResidue(iRes)
+    this.soupView.setCurrentView(newView)
+    this.soupView.isUpdateObservers = true
+  }
+
   selectAllSidechains (val) {
     for (let iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
       this.setResidueSelect(iRes, val)
@@ -374,25 +387,31 @@ class SoupController {
     }
 
     if (nSelected === 0) {
-      console.log('Controller.toggleResidueNeighbors none selected')
+      console.log('Controller.toggleResidueNeighbors none selected: use centre of rotation')
       let pos = this.soupView.currentView.cameraParams.focus
       indices = this.soup.getNeighboursOfPoint(pos)
     }
 
-    if (indices.length === 0) {
-      let iAtom = this.soupView.currentView.iAtom
-      let iRes = this.soup.getAtomProxy(iAtom).iRes
-      indices = _.concat(indices, this.soup.getNeighbours(iRes))
-    }
-    let nSidechain = 0
-    for (let iRes of indices) {
-      if (residue.load(iRes).sidechain) {
-        nSidechain += 1
-      }
-    }
-    let isSidechain = nSidechain < indices.length
+    // if (indices.length === 0) {
+    //   let iAtom = this.soupView.currentView.iAtom
+    //   let iRes = this.soup.getAtomProxy(iAtom).iRes
+    //   indices = _.concat(indices, this.soup.getNeighbours(iRes))
+    // }
+    // let nSidechain = 0
+    // for (let iRes of indices) {
+    //   if (residue.load(iRes).sidechain) {
+    //     nSidechain += 1
+    //   }
+    // }
+    // let isSidechain = nSidechain < indices.length
+
+    let isSidechain = true
 
     this.soup.setSidechainOfResidues(indices, isSidechain)
+    for (let iRes of indices) {
+      this.selectResidue(iRes, true)
+    }
+
     this.soupView.currentView.selected = this.soup.makeSelectedResidueList()
     this.soupView.isChanged = true
     this.soupView.isUpdateSidechain = true
@@ -760,7 +779,7 @@ class SoupController {
     let atom = this.soup.getAtomProxy(iAtom)
     let atomIndices = this.soup.getAtomsOfChainContainingResidue(atom.iRes)
     let view = this.soupView.getZoomedOutViewOf(atomIndices)
-    view.selectedTraces = this.soupView.getTracesOfChainContainingResidue(
+    view.selectedTraces = this.soupView.getTracesOfResidue(
       atom.iRes
     )
     this.setTargetView(view)
@@ -788,20 +807,8 @@ class SoupController {
       this.zoomOut()
     } else {
       let atom = this.soup.getAtomProxy(iAtomHover)
-      let residue = this.soup.getResidueProxy(atom.iRes)
-      let chain = residue.chain
-      let iStructure = residue.iStructure
-      let isSameChainSelected = false
       if (this.soupView.getMode() === 'chain') {
-        if (this.soup.selectedTraces.length > 0) {
-          let iTrace = this.soup.selectedTraces[0]
-          let iRes = this.soup.traces[iTrace].indices[0]
-          let residue = this.soup.getResidueProxy(iRes)
-          if (residue.iStructure === iStructure && residue.chain === chain) {
-            isSameChainSelected = true
-          }
-        }
-        if (!isSameChainSelected) {
+        if (!this.soup.isSameChainSelected(atom.iRes)) {
           this.clearSelectedResidues()
           this.zoomToChainContainingAtom(atom.iAtom)
           return

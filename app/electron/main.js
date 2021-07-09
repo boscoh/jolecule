@@ -12,7 +12,6 @@ function createWindow (clientDir) {
     }
   })
   mainWindow.loadFile(path.join(clientDir, 'index.html'))
-  // mainWindow.webContents.openDevTools()
 }
 
 const handlers = require('../handlers')

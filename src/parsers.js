@@ -26,6 +26,17 @@ class PdbParser {
     return line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM'
   }
 
+  isNmr(lines) {
+    for (let line of lines) {
+      if (line.startsWith('EXPDTA')) {
+        if (line.includes('NMR')) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
   parseAtomLines (pdbLines) {
     let x, y, z, chain, resType
     let atomType, bfactor, elem, alt, resNum, insCode
@@ -134,16 +145,22 @@ class PdbParser {
 
     let title = this.parseTitle(lines)
 
+    let isNmr = this.isNmr(lines)
+
     let models = [[]]
     let iModel = 0
     for (let line of lines) {
       if (this.isAtomLine(line)) {
         models[iModel].push(line)
       } else if (line.substr(0, 3) === 'END') {
+        if (isNmr) {
+          break
+        }
         models.push([])
         iModel += 1
       }
     }
+
     if (models[iModel].length === 0) {
       models.pop()
     }

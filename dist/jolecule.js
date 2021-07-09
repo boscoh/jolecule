@@ -81294,8 +81294,8 @@ var SoupView = function () {
       this.setTargetView(view);
     }
   }, {
-    key: 'getTracesOfChainContainingResidue',
-    value: function getTracesOfChainContainingResidue(iRes) {
+    key: 'getTracesOfResidue',
+    value: function getTracesOfResidue(iRes) {
       var result = [];
       var residue = this.soup.getResidueProxy(iRes);
       var chain = residue.chain;
@@ -81338,7 +81338,7 @@ var SoupView = function () {
       var atom = this.soup.getAtomProxy(iAtom);
       var view = this.currentView.getViewTranslatedTo(atom.pos);
       view.iAtom = this.soup.getIAtomAtPosition(view.cameraParams.focus);
-      view.selectedTraces = this.getTracesOfChainContainingResidue(atom.iRes);
+      view.selectedTraces = this.getTracesOfResidue(atom.iRes);
       this.setTargetView(view);
     }
   }, {
@@ -81689,6 +81689,40 @@ var PdbParser = function () {
       return line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM';
     }
   }, {
+    key: 'isNmr',
+    value: function isNmr(lines) {
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = lines[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var line = _step.value;
+
+          if (line.startsWith('EXPDTA')) {
+            if (line.includes('NMR')) {
+              return true;
+            }
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      return false;
+    }
+  }, {
     key: 'parseAtomLines',
     value: function parseAtomLines(pdbLines) {
       var x = void 0,
@@ -81746,50 +81780,17 @@ var PdbParser = function () {
           var chain = line.substr(19, 1);
           var resNumStart = parseInt(line.substr(21, 4));
           var resNumEnd = parseInt(line.substr(33, 4));
-          var _iteratorNormalCompletion = true;
-          var _didIteratorError = false;
-          var _iteratorError = undefined;
-
-          try {
-            for (var _iterator = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-              var iRes = _step.value;
-
-              residue.iRes = iRes;
-              while (residue.resNum <= resNumEnd && chain === residue.chain) {
-                residue.ss = 'H';
-                residue.iRes = residue.iRes + 1;
-              }
-            }
-          } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion && _iterator.return) {
-                _iterator.return();
-              }
-            } finally {
-              if (_didIteratorError) {
-                throw _iteratorError;
-              }
-            }
-          }
-        } else if (line.substr(0, 5) === 'SHEET') {
-          this.hasSecondaryStructure = true;
-          var _chain = line.substr(21, 1);
-          var _resNumStart = parseInt(line.substr(22, 4));
-          var _resNumEnd = parseInt(line.substr(33, 4));
           var _iteratorNormalCompletion2 = true;
           var _didIteratorError2 = false;
           var _iteratorError2 = undefined;
 
           try {
-            for (var _iterator2 = this.soup.findResidueIndices(this.soup.iStructure, _chain, _resNumStart)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-              var _iRes = _step2.value;
+            for (var _iterator2 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+              var iRes = _step2.value;
 
-              residue.iRes = _iRes;
-              while (residue.resNum <= _resNumEnd && _chain === residue.chain) {
-                residue.ss = 'E';
+              residue.iRes = iRes;
+              while (residue.resNum <= resNumEnd && chain === residue.chain) {
+                residue.ss = 'H';
                 residue.iRes = residue.iRes + 1;
               }
             }
@@ -81807,6 +81808,39 @@ var PdbParser = function () {
               }
             }
           }
+        } else if (line.substr(0, 5) === 'SHEET') {
+          this.hasSecondaryStructure = true;
+          var _chain = line.substr(21, 1);
+          var _resNumStart = parseInt(line.substr(22, 4));
+          var _resNumEnd = parseInt(line.substr(33, 4));
+          var _iteratorNormalCompletion3 = true;
+          var _didIteratorError3 = false;
+          var _iteratorError3 = undefined;
+
+          try {
+            for (var _iterator3 = this.soup.findResidueIndices(this.soup.iStructure, _chain, _resNumStart)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+              var _iRes = _step3.value;
+
+              residue.iRes = _iRes;
+              while (residue.resNum <= _resNumEnd && _chain === residue.chain) {
+                residue.ss = 'E';
+                residue.iRes = residue.iRes + 1;
+              }
+            }
+          } catch (err) {
+            _didIteratorError3 = true;
+            _iteratorError3 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                _iterator3.return();
+              }
+            } finally {
+              if (_didIteratorError3) {
+                throw _iteratorError3;
+              }
+            }
+          }
         }
       }
     }
@@ -81814,29 +81848,29 @@ var PdbParser = function () {
     key: 'parseTitle',
     value: function parseTitle(lines) {
       var result = '';
-      var _iteratorNormalCompletion3 = true;
-      var _didIteratorError3 = false;
-      var _iteratorError3 = undefined;
+      var _iteratorNormalCompletion4 = true;
+      var _didIteratorError4 = false;
+      var _iteratorError4 = undefined;
 
       try {
-        for (var _iterator3 = lines[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-          var line = _step3.value;
+        for (var _iterator4 = lines[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+          var line = _step4.value;
 
           if (line.substring(0, 5) === 'TITLE') {
             result += line.substring(10);
           }
         }
       } catch (err) {
-        _didIteratorError3 = true;
-        _iteratorError3 = err;
+        _didIteratorError4 = true;
+        _iteratorError4 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion3 && _iterator3.return) {
-            _iterator3.return();
+          if (!_iteratorNormalCompletion4 && _iterator4.return) {
+            _iterator4.return();
           }
         } finally {
-          if (_didIteratorError3) {
-            throw _iteratorError3;
+          if (_didIteratorError4) {
+            throw _iteratorError4;
           }
         }
       }
@@ -81854,34 +81888,39 @@ var PdbParser = function () {
 
       var title = this.parseTitle(lines);
 
+      var isNmr = this.isNmr(lines);
+
       var models = [[]];
       var iModel = 0;
-      var _iteratorNormalCompletion4 = true;
-      var _didIteratorError4 = false;
-      var _iteratorError4 = undefined;
+      var _iteratorNormalCompletion5 = true;
+      var _didIteratorError5 = false;
+      var _iteratorError5 = undefined;
 
       try {
-        for (var _iterator4 = lines[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-          var line = _step4.value;
+        for (var _iterator5 = lines[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+          var line = _step5.value;
 
           if (this.isAtomLine(line)) {
             models[iModel].push(line);
           } else if (line.substr(0, 3) === 'END') {
+            if (isNmr) {
+              break;
+            }
             models.push([]);
             iModel += 1;
           }
         }
       } catch (err) {
-        _didIteratorError4 = true;
-        _iteratorError4 = err;
+        _didIteratorError5 = true;
+        _iteratorError5 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-            _iterator4.return();
+          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+            _iterator5.return();
           }
         } finally {
-          if (_didIteratorError4) {
-            throw _iteratorError4;
+          if (_didIteratorError5) {
+            throw _iteratorError5;
           }
         }
       }
@@ -82031,13 +82070,13 @@ var CifParser = function () {
           var chain = tokens[4];
           var resNumStart = parseInt(tokens[5]);
           var resNumEnd = parseInt(tokens[9]);
-          var _iteratorNormalCompletion5 = true;
-          var _didIteratorError5 = false;
-          var _iteratorError5 = undefined;
+          var _iteratorNormalCompletion6 = true;
+          var _didIteratorError6 = false;
+          var _iteratorError6 = undefined;
 
           try {
-            for (var _iterator5 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-              var iRes = _step5.value;
+            for (var _iterator6 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+              var iRes = _step6.value;
 
               residue.iRes = iRes;
               while (residue.resNum <= resNumEnd && chain === residue.chain) {
@@ -82046,16 +82085,16 @@ var CifParser = function () {
               }
             }
           } catch (err) {
-            _didIteratorError5 = true;
-            _iteratorError5 = err;
+            _didIteratorError6 = true;
+            _iteratorError6 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                _iterator5.return();
+              if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                _iterator6.return();
               }
             } finally {
-              if (_didIteratorError5) {
-                throw _iteratorError5;
+              if (_didIteratorError6) {
+                throw _iteratorError6;
               }
             }
           }
@@ -82087,13 +82126,13 @@ var CifParser = function () {
           var chain = tokens[3];
           var resNumStart = parseInt(tokens[4]);
           var resNumEnd = parseInt(tokens[8]);
-          var _iteratorNormalCompletion6 = true;
-          var _didIteratorError6 = false;
-          var _iteratorError6 = undefined;
+          var _iteratorNormalCompletion7 = true;
+          var _didIteratorError7 = false;
+          var _iteratorError7 = undefined;
 
           try {
-            for (var _iterator6 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-              var iRes = _step6.value;
+            for (var _iterator7 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+              var iRes = _step7.value;
 
               residue.iRes = iRes;
               while (residue.resNum <= resNumEnd && chain === residue.chain) {
@@ -82102,16 +82141,16 @@ var CifParser = function () {
               }
             }
           } catch (err) {
-            _didIteratorError6 = true;
-            _iteratorError6 = err;
+            _didIteratorError7 = true;
+            _iteratorError7 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                _iterator6.return();
+              if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                _iterator7.return();
               }
             } finally {
-              if (_didIteratorError6) {
-                throw _iteratorError6;
+              if (_didIteratorError7) {
+                throw _iteratorError7;
               }
             }
           }
@@ -82122,13 +82161,13 @@ var CifParser = function () {
     key: 'parseTitle',
     value: function parseTitle(lines) {
       var prevLine = '';
-      var _iteratorNormalCompletion7 = true;
-      var _didIteratorError7 = false;
-      var _iteratorError7 = undefined;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
 
       try {
-        for (var _iterator7 = lines[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-          var line = _step7.value;
+        for (var _iterator8 = lines[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var line = _step8.value;
 
           if (_lodash2.default.startsWith(prevLine, '_struct.title')) {
             return removeQuotes(_lodash2.default.trim(line));
@@ -82136,16 +82175,16 @@ var CifParser = function () {
           prevLine = line;
         }
       } catch (err) {
-        _didIteratorError7 = true;
-        _iteratorError7 = err;
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion7 && _iterator7.return) {
-            _iterator7.return();
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
           }
         } finally {
-          if (_didIteratorError7) {
-            throw _iteratorError7;
+          if (_didIteratorError8) {
+            throw _iteratorError8;
           }
         }
       }
@@ -90742,23 +90781,25 @@ var defaultDataServerArgs = {
 
   /**
    * @param args = {
-   *   pdbId: '', # Str - id of RCSB protein structure
-   *   userId: '', # Str - id of user on http://jolecule.com; default: ''
-   *   isDisableSaveViews: false, # Bool - prevents save/delete to server
-   *   saveViewsUrl: true, # Str - base URL of views server (e.g. "http://jolecule.com")
-   *   isLoadViews: 'none', # bool - if false: creates dummy view get methods
-   *   biounit: 0, # int - biounit
-   *   viewId: '', # Str - id of user on http://jolecule.com; default: ''
+   *   pdbId: '', // Str - id of RCSB protein structure
+   *   userId: '', // Str - id of user on http://jolecule.com; default: ''
+   *   isDisableSaveViews: false, // Bool - prevents save/delete to server
+   *   saveViewsUrl: true, // Str - base URL of views server (e.g. "http://jolecule.com")
+   *   isLoadViews: 'none', // bool - if false: creates dummy view get methods
+   *   biounit: 0, // int - biounit
+   *   viewId: '', // Str - id of user on http://jolecule.com; default: ''
+   *   format: 'pdb' // 'pdb' or 'pdb1' or 'cif'
    * }
    * @returns dataServer obj
    */
 };function makePdbDataServer(args) {
   args = _lodash2.default.merge(defaultDataServerArgs, args);
   console.log('makePdbDataServer', args);
+  var format = _lodash2.default.get(args, 'format', 'pdb');
   return {
     pdbId: args.pdbId,
     version: 2,
-    format: 'pdb',
+    format: format,
     asyncGetData: function asyncGetData() {
       var _this = this;
 
@@ -90773,36 +90814,41 @@ var defaultDataServerArgs = {
                 if (args.pdbId.length === 4) {
                   if (!args.biounit) {
                     // 0, null or undefined
-                    url = 'https://files.rcsb.org/download/' + args.pdbId + '.pdb';
+                    if (format === 'cif') {
+                      url = 'https://files.rcsb.org/download/' + args.pdbId + '.cif';
+                    } else if (format === 'pdb') {
+                      url = 'https://files.rcsb.org/download/' + args.pdbId + '.pdb';
+                    }
                   } else {
                     url = 'https://files.rcsb.org/download/' + args.pdbId + '.pdb' + args.biounit;
                   }
                 } else {
                   url = args.saveViewsUrl + '/pdb/' + args.pdbId + '.txt';
                 }
-                _context.prev = 2;
-                _context.next = 5;
+                console.log('makePdbDataServer.fetch', url);
+                _context.prev = 3;
+                _context.next = 6;
                 return fetch(url, { method: 'get', mode: 'cors' });
 
-              case 5:
+              case 6:
                 response = _context.sent;
-                _context.next = 8;
+                _context.next = 9;
                 return response.text();
 
-              case 8:
+              case 9:
                 return _context.abrupt('return', _context.sent);
 
-              case 11:
-                _context.prev = 11;
-                _context.t0 = _context['catch'](2);
+              case 12:
+                _context.prev = 12;
+                _context.t0 = _context['catch'](3);
                 return _context.abrupt('return', '');
 
-              case 14:
+              case 15:
               case 'end':
                 return _context.stop();
             }
           }
-        }, _callee, _this, [[2, 11]]);
+        }, _callee, _this, [[3, 12]]);
       }))();
     },
     asyncGetViews: function asyncGetViews() {
@@ -92891,6 +92937,22 @@ var Soup = function () {
       return indices;
     }
   }, {
+    key: 'isSameChainSelected',
+    value: function isSameChainSelected(iRes) {
+      var residue = this.getResidueProxy(iRes);
+      var chain = residue.chain;
+      var iStructure = residue.iStructure;
+      if (this.selectedTraces.length > 0) {
+        var iTrace = this.selectedTraces[0];
+        var _iRes7 = this.traces[iTrace].indices[0];
+        var _residue = this.getResidueProxy(_iRes7);
+        if (_residue.iStructure === iStructure && _residue.chain === chain) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }, {
     key: 'setSecondaryStructureColorResidues',
     value: function setSecondaryStructureColorResidues() {
       var residue = this.getResidueProxy();
@@ -92959,9 +93021,9 @@ var Soup = function () {
 
       try {
         for (var _iterator23 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-          var _iRes7 = _step23.value;
+          var _iRes8 = _step23.value;
 
-          residue.iRes = _iRes7;
+          residue.iRes = _iRes8;
           residue.color = isGridActive ? data.darkGrey : residue.customColor;
         }
       } catch (err) {
@@ -94090,10 +94152,13 @@ var SoupWidget = function (_WebglWidget) {
       var iResPressed = this.soup.getAtomProxy(iAtomPressed).iRes;
 
       if (util.exists(iResPressed) && iResPressed === this.iResFirstPressed) {
+        if (this.soupView.currentView.show.transparent) {
+          if (!this.soup.isSameChainSelected(iResPressed)) {
+            this.controller.selectTraceOfResidue(iResPressed);
+          }
+        }
         if (!event.metaKey && !event.shiftKey) {
-          var res = this.soup.getResidueProxy(iResPressed);
-          var val = !res.selected;
-          this.controller.selectResidue(iResPressed, val);
+          this.controller.toggleSelectResidue(iResPressed);
         } else if (event.shiftKey) {
           this.controller.selectAdditionalRangeToResidue(this.iResFirstPressed);
         } else {
@@ -103452,6 +103517,21 @@ var SoupController = function () {
       this.soupView.isChanged = true;
     }
   }, {
+    key: 'toggleSelectResidue',
+    value: function toggleSelectResidue(iRes) {
+      var value = !this.soup.getResidueProxy(iRes).selected;
+      this.selectResidue(iRes, value);
+    }
+  }, {
+    key: 'selectTraceOfResidue',
+    value: function selectTraceOfResidue(iRes) {
+      var newView = this.soupView.currentView.clone();
+      newView.show.transparent = true;
+      newView.selectedTraces = this.soupView.getTracesOfResidue(iRes);
+      this.soupView.setCurrentView(newView);
+      this.soupView.isUpdateObservers = true;
+    }
+  }, {
     key: 'selectAllSidechains',
     value: function selectAllSidechains(val) {
       for (var iRes = 0; iRes < this.soup.getResidueCount(); iRes += 1) {
@@ -103645,28 +103725,36 @@ var SoupController = function () {
       }
 
       if (nSelected === 0) {
-        console.log('Controller.toggleResidueNeighbors none selected');
+        console.log('Controller.toggleResidueNeighbors none selected: use centre of rotation');
         var pos = this.soupView.currentView.cameraParams.focus;
         indices = this.soup.getNeighboursOfPoint(pos);
       }
 
-      if (indices.length === 0) {
-        var iAtom = this.soupView.currentView.iAtom;
-        var _iRes6 = this.soup.getAtomProxy(iAtom).iRes;
-        indices = _lodash2.default.concat(indices, this.soup.getNeighbours(_iRes6));
-      }
-      var nSidechain = 0;
+      // if (indices.length === 0) {
+      //   let iAtom = this.soupView.currentView.iAtom
+      //   let iRes = this.soup.getAtomProxy(iAtom).iRes
+      //   indices = _.concat(indices, this.soup.getNeighbours(iRes))
+      // }
+      // let nSidechain = 0
+      // for (let iRes of indices) {
+      //   if (residue.load(iRes).sidechain) {
+      //     nSidechain += 1
+      //   }
+      // }
+      // let isSidechain = nSidechain < indices.length
+
+      var isSidechain = true;
+
+      this.soup.setSidechainOfResidues(indices, isSidechain);
       var _iteratorNormalCompletion4 = true;
       var _didIteratorError4 = false;
       var _iteratorError4 = undefined;
 
       try {
         for (var _iterator4 = indices[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-          var _iRes7 = _step4.value;
+          var _iRes6 = _step4.value;
 
-          if (residue.load(_iRes7).sidechain) {
-            nSidechain += 1;
-          }
+          this.selectResidue(_iRes6, true);
         }
       } catch (err) {
         _didIteratorError4 = true;
@@ -103683,9 +103771,6 @@ var SoupController = function () {
         }
       }
 
-      var isSidechain = nSidechain < indices.length;
-
-      this.soup.setSidechainOfResidues(indices, isSidechain);
       this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
       this.soupView.isChanged = true;
       this.soupView.isUpdateSidechain = true;
@@ -104050,9 +104135,9 @@ var SoupController = function () {
 
           try {
             for (var _iterator13 = trace.indices[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-              var _iRes10 = _step13.value;
+              var _iRes9 = _step13.value;
 
-              if (isInInterval(_iRes10, iResStart, iResEnd)) {
+              if (isInInterval(_iRes9, iResStart, iResEnd)) {
                 if (_lodash2.default.isNil(iTraceStart)) {
                   iTraceStart = iTrace;
                   iTraceEnd = iTrace + 1;
@@ -104226,22 +104311,22 @@ var SoupController = function () {
         }
       }
 
-      for (var _iRes8 = nResNew; _iRes8 < nRes; _iRes8 += 1) {
-        delete this.soup.residueNormal[_iRes8];
+      for (var _iRes7 = nResNew; _iRes7 < nRes; _iRes7 += 1) {
+        delete this.soup.residueNormal[_iRes7];
       }
 
       this.soup.residueStore.copyWithin(iResStart, iResEnd, nResCopy);
       this.soup.residueStore.count -= nResOffset;
       this.soup.resIds.splice(iResStart, nResOffset);
 
-      for (var _iRes9 = 0; _iRes9 < nResNew; _iRes9 += 1) {
-        res.iRes = _iRes9;
+      for (var _iRes8 = 0; _iRes8 < nResNew; _iRes8 += 1) {
+        res.iRes = _iRes8;
         if (res.iAtom >= iAtomStart) {
           res.iAtom -= nAtomOffset;
           atom.iAtom = res.iAtom;
         }
-        if (this.soup.residueStore.atomOffset[_iRes9] >= iAtomStart) {
-          this.soup.residueStore.atomOffset[_iRes9] -= nAtomOffset;
+        if (this.soup.residueStore.atomOffset[_iRes8] >= iAtomStart) {
+          this.soup.residueStore.atomOffset[_iRes8] -= nAtomOffset;
         }
         if (res.iStructure >= iStructure) {
           res.iStructure -= 1;
@@ -104307,7 +104392,7 @@ var SoupController = function () {
       var atom = this.soup.getAtomProxy(iAtom);
       var atomIndices = this.soup.getAtomsOfChainContainingResidue(atom.iRes);
       var view = this.soupView.getZoomedOutViewOf(atomIndices);
-      view.selectedTraces = this.soupView.getTracesOfChainContainingResidue(atom.iRes);
+      view.selectedTraces = this.soupView.getTracesOfResidue(atom.iRes);
       this.setTargetView(view);
     }
   }, {
@@ -104331,20 +104416,8 @@ var SoupController = function () {
         this.zoomOut();
       } else {
         var atom = this.soup.getAtomProxy(iAtomHover);
-        var residue = this.soup.getResidueProxy(atom.iRes);
-        var chain = residue.chain;
-        var iStructure = residue.iStructure;
-        var isSameChainSelected = false;
         if (this.soupView.getMode() === 'chain') {
-          if (this.soup.selectedTraces.length > 0) {
-            var iTrace = this.soup.selectedTraces[0];
-            var iRes = this.soup.traces[iTrace].indices[0];
-            var _residue = this.soup.getResidueProxy(iRes);
-            if (_residue.iStructure === iStructure && _residue.chain === chain) {
-              isSameChainSelected = true;
-            }
-          }
-          if (!isSameChainSelected) {
+          if (!this.soup.isSameChainSelected(atom.iRes)) {
             this.clearSelectedResidues();
             this.zoomToChainContainingAtom(atom.iAtom);
             return;

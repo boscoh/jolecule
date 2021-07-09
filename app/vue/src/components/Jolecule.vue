@@ -4,12 +4,18 @@
     .header PDB
     .d-flex.flex-row.flex-wrap.align-items-center
       .input-group.input-group-sm(style='width: 90px')
-        input.form-control.m-0.view-text(type='text' v-model='pdbId')
+        input.form-control.m-0.view-text(
+          type='text'
+          v-model='pdbId'
+          @focus="lockKeyboard()"
+          @blur="unlockKeyboard()"
+          v-on:keyup.enter="loadFromPdbId()"
+        )
       .jolecule-small-button.m-0(@click='loadFromPdbId()')
         | fetch
     span(v-if="error") {{ error }}
     .header Files
-    .overflow-auto.pe-2
+    .overflow-auto.pe-3
       .view-card.view-text.pointer(v-for='(file, j) in drawer.directories' :key="j + 'f'" @click='openDir(drawer.dirname, file)')
         i.fa.fa-folder
         | {{ file }}
@@ -21,16 +27,22 @@
     .header Views
     div
       .d-inline.jolecule-small-button(@click='createView') save
-    .mt-2.overflow-scroll.pe-2
+    .mt-2.overflow-scroll.pe-3
       .view-card(
         :class="{'active-border': view.isSelect}"
-        v-for='(view, i) in views' :key='i'
+        v-for='(view, i) in views'
+        :key='i'
       )
         template(v-if="view.isEdit")
-          textarea.view-text.p-2.w-100(v-model="view.editText" rows="6")
+          textarea.view-text.p-2.w-100(
+            v-model="view.editText"
+            rows="6"
+            @focus="lockKeyboard()"
+            @blur="unlockKeyboard()"
+          )
           .mt-2.d-flex.flex-row
             .jolecule-small-button(@click='saveEditText(view.id)') save
-            .jolecule-small-button.ms-2(@click='editOffView(view.id)') discard
+            .jolecule-small-button(@click='editOffView(view.id)') discard
         template(v-else)
           .view-text.pointer(@click='setTargetByViewId(view.id)')
             span {{ view.head }}{{ " " }}
@@ -39,9 +51,9 @@
           .mt-2.d-flex.flex-row.justify-content-between(v-if="i > 0")
             .d-flex.flex-row
               .jolecule-small-button( @click='editView(view.id)') edit
-              .jolecule-small-button.ms-2(v-if="i > 1" @click='swapUp(view.id)') &uarr;
-              .jolecule-small-button.ms-2(v-if="i < views.length - 1" @click='swapDown(view.id)') &darr;
-            .jolecule-small-button.ms-2(@click='deleteView(view.id)') x
+              .jolecule-small-button(v-if="i > 1" @click='swapUp(view.id)') &uarr;
+              .jolecule-small-button(v-if="i < views.length - 1" @click='swapDown(view.id)') &darr;
+            .jolecule-small-button(@click='deleteView(view.id)') x
 </template>
 
 <style>
@@ -95,17 +107,29 @@ body {
   border-left: 2px solid #aaa;
   width: 300px;
 }
+@media (max-width: 778px) {
+  .file-title {
+    display: none
+  }
+  #file-column {
+    width: 120px;
+  }
+  #view-column {
+    display: none !important;
+  }
+}
 @media (max-width: 992px) {
   .file-title {
     display: none
   }
   #file-column {
-    width: 140px;
+    width: 120px;
   }
   #view-column {
     width: 200px;
   }
 }
+
 </style>
 
 <script>
@@ -132,7 +156,7 @@ function baseName (str) {
 }
 
 export default {
-  name: 'Home',
+  name: 'Jolecule',
   data () {
     return {
       pdbId: '',
@@ -201,6 +225,7 @@ export default {
     },
     async loadFromDataServer (dataServer) {
       this.dataServer = dataServer
+      document.title = `Jolecule - ${dataServer.pdbId}`
       await this.jolecule.asyncAddDataServer(dataServer)
       this.update()
       this.controller.zoomOut()
@@ -212,7 +237,8 @@ export default {
         makePdbDataServer({
           pdbId: this.pdbId,
           isDisableSaveViews: true,
-          isLoadViews: false
+          isLoadViews: false,
+          format: 'cif'
         })
       )
     },
@@ -270,10 +296,12 @@ export default {
       let view = _.find(this.views, { id: viewId })
       view.editText = view.text
       view.isEdit = true
+      window.keyboardLock = true
     },
     editOffView (viewId) {
       let view = _.find(this.views, { id: viewId })
       view.isEdit = false
+      window.keyboardLock = false
     },
     async saveEditText (viewId) {
       let view = _.find(this.views, { id: viewId })
@@ -335,6 +363,12 @@ export default {
     },
     getViewId(i) {
       return this.soupView.savedViews[i].id
+    },
+    lockKeyboard() {
+      window.keyboardLock = true
+    },
+    unlockKeyboard() {
+      window.keyboardLock = false
     },
     onkeydown (event) {
       if (!window.keyboardLock) {
