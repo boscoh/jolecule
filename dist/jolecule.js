@@ -90925,12 +90925,12 @@ var defaultDataServerArgs = {
 
               case 5:
                 response = _context3.sent;
-                return _context3.abrupt('return', response.json());
+                return _context3.abrupt('return', response.status);
 
               case 9:
                 _context3.prev = 9;
                 _context3.t0 = _context3['catch'](2);
-                return _context3.abrupt('return', '');
+                return _context3.abrupt('return', 400);
 
               case 12:
               case 'end':
@@ -90971,12 +90971,12 @@ var defaultDataServerArgs = {
 
               case 5:
                 response = _context4.sent;
-                return _context4.abrupt('return', response.json());
+                return _context4.abrupt('return', response.status);
 
               case 9:
                 _context4.prev = 9;
                 _context4.t0 = _context4['catch'](2);
-                return _context4.abrupt('return', '');
+                return _context4.abrupt('return', 400);
 
               case 12:
               case 'end':
@@ -90998,6 +90998,7 @@ var defaultDataServerArgs = {
  * @param isLoadViews: bool - if false: creates dummy view get methods
  * @param biounit: int - indicates biological assembly in PDB
  * @param viewId: Str - id of view
+ * @param format: Str - 'pdb' or 'cif'
  * @returns DataServer object
  */
 function makeDataServer(pdbId) {
@@ -91007,100 +91008,18 @@ function makeDataServer(pdbId) {
   var isLoadViews = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
   var biounit = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
   var viewId = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : '';
+  var format = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : 'pdb';
 
-  return {
-    // Id of structure accessed by this DataServer
+  return makePdbDataServer({
     pdbId: pdbId,
-
-    // getProteinPromise: getProteinPromise,
-
-    /**
-     * @param asyncCallback - function that takes a dictionary {
-     *   pdbId: Str - id/name of protein structure
-     *   pdbText: Str - text in PDB format of a protein structure
-     * }
-     */
-    getProteinData: function getProteinData(asyncCallback) {
-      var url = void 0;
-      if (pdbId.length === 4) {
-        if (!biounit) {
-          // 0, null or undefined
-          url = 'https://files.rcsb.org/download/' + pdbId + '.pdb';
-        } else {
-          url = 'https://files.rcsb.org/download/' + pdbId + '.pdb' + biounit;
-        }
-      } else {
-        url = saveViewsUrl + '/pdb/' + pdbId + '.txt';
-      }
-      _jquery2.default.get(url).done(function (pdbText) {
-        var result = { pdbId: pdbId, pdbText: pdbText };
-        console.log('makeDataServer.getProteinData success ' + url + ' biounit:' + biounit);
-        asyncCallback(result);
-      }).fail(function () {
-        console.log('makeDataServer.getProteinData fail ' + url + ' biounit:' + biounit);
-        asyncCallback({ pdbId: pdbId, pdbText: '' });
-      });
-    },
-
-    /**
-     * @param callback - function that takes a
-     *  - list [ View dictionary as defined by View.getDict() ]
-     *  - initViewId
-     */
-    getViews: function getViews(callback) {
-      if (!isLoadViews) {
-        callback([]);
-        return;
-      }
-      var url = saveViewsUrl + '/pdb/' + pdbId + '.views.json';
-      if (userId) {
-        url += '?user_id=' + userId;
-      }
-      _jquery2.default.getJSON(url).done(function (views) {
-        console.log('makeDataServer.getViews', url, views);
-        callback(views, viewId);
-      }).fail(function () {
-        console.log('makeDataServer.getViews fail', url);
-        callback([]);
-      });
-    },
-
-    /**
-     * @param views - list of View.dicts to be saved
-     * @param callback(Boolean) - that is triggered on successful save
-     */
-    saveViews: function saveViews(views, callback) {
-      if (isDisableSaveViews) {
-        callback();
-        return;
-      }
-      _jquery2.default.post(saveViewsUrl + '/save/views', JSON.stringify(views)).done(function () {
-        console.log('makeDataServer.saveViews success', '/save/views', views);
-        callback(true);
-      }).fail(function () {
-        console.log('makeDataServer.saveViews fail', '/save/views', views);
-        callback(false);
-      });
-    },
-
-    /**
-     * @param viewId - Str: id of view to be deleted
-     * @param callback(Boolean) - that is triggered on successful delete with
-     */
-    deleteView: function deleteView(viewId, callback) {
-      if (isDisableSaveViews) {
-        callback();
-        return;
-      }
-      _jquery2.default.post(saveViewsUrl + '/delete/view', JSON.stringify({ pdbId: pdbId, viewId: viewId })).done(function () {
-        console.log('makeDataServer.deleteView success', viewId);
-        callback(true);
-      }).fail(function () {
-        console.log('makeDataServer.deleteView fail', viewId);
-        callback(false);
-      });
-    }
-  };
+    userId: userId,
+    isDisableSaveViews: isDisableSaveViews,
+    saveViewsUrl: saveViewsUrl,
+    isLoadViews: isLoadViews,
+    biounit: biounit,
+    viewId: viewId,
+    format: format
+  });
 }
 
 exports.initEmbedJolecule = initEmbedJolecule;

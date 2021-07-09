@@ -114,9 +114,9 @@ function makePdbDataServer (args) {
           },
           body: JSON.stringify(views)
         })
-        return response.json()
+        return response.status
       } catch (e) {
-        return ''
+        return 400
       }
     },
     async asyncDeleteView (viewId) {
@@ -133,13 +133,14 @@ function makePdbDataServer (args) {
           },
           body: JSON.stringify({ pdbId: args.pdbId, viewId })
         })
-        return response.json()
+        return response.status
       } catch (e) {
-        return ''
+        return 400
       }
     }
   }
 }
+
 
 /**
  * @param pdbId: Str - id of RCSB protein structure
@@ -150,6 +151,7 @@ function makePdbDataServer (args) {
  * @param isLoadViews: bool - if false: creates dummy view get methods
  * @param biounit: int - indicates biological assembly in PDB
  * @param viewId: Str - id of view
+ * @param format: Str - 'pdb' or 'cif'
  * @returns DataServer object
  */
 function makeDataServer (
@@ -159,114 +161,21 @@ function makeDataServer (
   saveViewsUrl = '',
   isLoadViews = true,
   biounit = 0,
-  viewId = ''
+  viewId = '',
+  format = 'pdb'
 ) {
-  return {
-    // Id of structure accessed by this DataServer
-    pdbId: pdbId,
-
-    // getProteinPromise: getProteinPromise,
-
-    /**
-     * @param asyncCallback - function that takes a dictionary {
-     *   pdbId: Str - id/name of protein structure
-     *   pdbText: Str - text in PDB format of a protein structure
-     * }
-     */
-    getProteinData: function (asyncCallback) {
-      let url
-      if (pdbId.length === 4) {
-        if (!biounit) {
-          // 0, null or undefined
-          url = `https://files.rcsb.org/download/${pdbId}.pdb`
-        } else {
-          url = `https://files.rcsb.org/download/${pdbId}.pdb${biounit}`
-        }
-      } else {
-        url = `${saveViewsUrl}/pdb/${pdbId}.txt`
-      }
-      $.get(url)
-        .done(pdbText => {
-          let result = { pdbId: pdbId, pdbText: pdbText }
-          console.log(
-            `makeDataServer.getProteinData success ${url} biounit:${biounit}`
-          )
-          asyncCallback(result)
-        })
-        .fail(() => {
-          console.log(
-            `makeDataServer.getProteinData fail ${url} biounit:${biounit}`
-          )
-          asyncCallback({ pdbId: pdbId, pdbText: '' })
-        })
-    },
-
-    /**
-     * @param callback - function that takes a
-     *  - list [ View dictionary as defined by View.getDict() ]
-     *  - initViewId
-     */
-    getViews: function (callback) {
-      if (!isLoadViews) {
-        callback([])
-        return
-      }
-      let url = `${saveViewsUrl}/pdb/${pdbId}.views.json`
-      if (userId) {
-        url += `?user_id=${userId}`
-      }
-      $.getJSON(url)
-        .done(views => {
-          console.log('makeDataServer.getViews', url, views)
-          callback(views, viewId)
-        })
-        .fail(() => {
-          console.log('makeDataServer.getViews fail', url)
-          callback([])
-        })
-    },
-
-    /**
-     * @param views - list of View.dicts to be saved
-     * @param callback(Boolean) - that is triggered on successful save
-     */
-    saveViews: function (views, callback) {
-      if (isDisableSaveViews) {
-        callback()
-        return
-      }
-      $.post(`${saveViewsUrl}/save/views`, JSON.stringify(views))
-        .done(() => {
-          console.log('makeDataServer.saveViews success', '/save/views', views)
-          callback(true)
-        })
-        .fail(() => {
-          console.log('makeDataServer.saveViews fail', '/save/views', views)
-          callback(false)
-        })
-    },
-
-    /**
-     * @param viewId - Str: id of view to be deleted
-     * @param callback(Boolean) - that is triggered on successful delete with
-     */
-    deleteView: function (viewId, callback) {
-      if (isDisableSaveViews) {
-        callback()
-        return
-      }
-      $.post(`${saveViewsUrl}/delete/view`, JSON.stringify({ pdbId, viewId }))
-        .done(() => {
-          console.log('makeDataServer.deleteView success', viewId)
-          callback(true)
-        })
-        .fail(() => {
-          console.log('makeDataServer.deleteView fail', viewId)
-          callback(false)
-        })
-    }
-  }
+  return makePdbDataServer({
+    pdbId,
+    userId,
+    isDisableSaveViews,
+    saveViewsUrl,
+    isLoadViews,
+    biounit,
+    viewId,
+    format
+  })
 }
+
 
 export {
   initEmbedJolecule,
