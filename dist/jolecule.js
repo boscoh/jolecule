@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 143);
+/******/ 	return __webpack_require__(__webpack_require__.s = 142);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -17464,7 +17464,7 @@ module.exports = function (it) {
   }
 }.call(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(73), __webpack_require__(347)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(73), __webpack_require__(346)(module)))
 
 /***/ }),
 /* 12 */
@@ -17488,7 +17488,7 @@ var global = __webpack_require__(2);
 var hide = __webpack_require__(12);
 var has = __webpack_require__(15);
 var SRC = __webpack_require__(37)('src');
-var $toString = __webpack_require__(147);
+var $toString = __webpack_require__(146);
 var TO_STRING = 'toString';
 var TPL = ('' + $toString).split(TO_STRING);
 
@@ -64049,7 +64049,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.copyTextToClipboard = exports.delay = exports.textEntryDialog = exports.randomId = exports.inArray = exports.stickJqueryDivInBottomLeft = exports.stickJqueryDivInTopLeft = exports.stickJqueryDivInCenter = exports.linkButton = exports.exists = undefined;
 
-var _jquery = __webpack_require__(32);
+var _jquery = __webpack_require__(35);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -64277,7 +64277,7 @@ exports.copyTextToClipboard = copyTextToClipboard;
 "use strict";
 
 if (__webpack_require__(7)) {
-  var LIBRARY = __webpack_require__(33);
+  var LIBRARY = __webpack_require__(32);
   var global = __webpack_require__(2);
   var fails = __webpack_require__(3);
   var $export = __webpack_require__(0);
@@ -64816,6 +64816,85 @@ module.exports = {
 
 /***/ }),
 /* 32 */
+/***/ (function(module, exports) {
+
+module.exports = false;
+
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var META = __webpack_require__(37)('meta');
+var isObject = __webpack_require__(4);
+var has = __webpack_require__(15);
+var setDesc = __webpack_require__(8).f;
+var id = 0;
+var isExtensible = Object.isExtensible || function () {
+  return true;
+};
+var FREEZE = !__webpack_require__(3)(function () {
+  return isExtensible(Object.preventExtensions({}));
+});
+var setMeta = function (it) {
+  setDesc(it, META, { value: {
+    i: 'O' + ++id, // object ID
+    w: {}          // weak collections IDs
+  } });
+};
+var fastKey = function (it, create) {
+  // return primitive with prefix
+  if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
+  if (!has(it, META)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return 'F';
+    // not necessary to add metadata
+    if (!create) return 'E';
+    // add missing metadata
+    setMeta(it);
+  // return object ID
+  } return it[META].i;
+};
+var getWeak = function (it, create) {
+  if (!has(it, META)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return true;
+    // not necessary to add metadata
+    if (!create) return false;
+    // add missing metadata
+    setMeta(it);
+  // return hash weak collections IDs
+  } return it[META].w;
+};
+// add metadata on freeze-family methods calling
+var onFreeze = function (it) {
+  if (FREEZE && meta.NEED && isExtensible(it) && !has(it, META)) setMeta(it);
+  return it;
+};
+var meta = module.exports = {
+  KEY: META,
+  NEED: false,
+  fastKey: fastKey,
+  getWeak: getWeak,
+  onFreeze: onFreeze
+};
+
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 22.1.3.31 Array.prototype[@@unscopables]
+var UNSCOPABLES = __webpack_require__(5)('unscopables');
+var ArrayProto = Array.prototype;
+if (ArrayProto[UNSCOPABLES] == undefined) __webpack_require__(12)(ArrayProto, UNSCOPABLES, {});
+module.exports = function (key) {
+  ArrayProto[UNSCOPABLES][key] = true;
+};
+
+
+/***/ }),
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -75703,85 +75782,6 @@ return jQuery;
 
 
 /***/ }),
-/* 33 */
-/***/ (function(module, exports) {
-
-module.exports = false;
-
-
-/***/ }),
-/* 34 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var META = __webpack_require__(37)('meta');
-var isObject = __webpack_require__(4);
-var has = __webpack_require__(15);
-var setDesc = __webpack_require__(8).f;
-var id = 0;
-var isExtensible = Object.isExtensible || function () {
-  return true;
-};
-var FREEZE = !__webpack_require__(3)(function () {
-  return isExtensible(Object.preventExtensions({}));
-});
-var setMeta = function (it) {
-  setDesc(it, META, { value: {
-    i: 'O' + ++id, // object ID
-    w: {}          // weak collections IDs
-  } });
-};
-var fastKey = function (it, create) {
-  // return primitive with prefix
-  if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
-  if (!has(it, META)) {
-    // can't set metadata to uncaught frozen object
-    if (!isExtensible(it)) return 'F';
-    // not necessary to add metadata
-    if (!create) return 'E';
-    // add missing metadata
-    setMeta(it);
-  // return object ID
-  } return it[META].i;
-};
-var getWeak = function (it, create) {
-  if (!has(it, META)) {
-    // can't set metadata to uncaught frozen object
-    if (!isExtensible(it)) return true;
-    // not necessary to add metadata
-    if (!create) return false;
-    // add missing metadata
-    setMeta(it);
-  // return hash weak collections IDs
-  } return it[META].w;
-};
-// add metadata on freeze-family methods calling
-var onFreeze = function (it) {
-  if (FREEZE && meta.NEED && isExtensible(it) && !has(it, META)) setMeta(it);
-  return it;
-};
-var meta = module.exports = {
-  KEY: META,
-  NEED: false,
-  fastKey: fastKey,
-  getWeak: getWeak,
-  onFreeze: onFreeze
-};
-
-
-/***/ }),
-/* 35 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 22.1.3.31 Array.prototype[@@unscopables]
-var UNSCOPABLES = __webpack_require__(5)('unscopables');
-var ArrayProto = Array.prototype;
-if (ArrayProto[UNSCOPABLES] == undefined) __webpack_require__(12)(ArrayProto, UNSCOPABLES, {});
-module.exports = function (key) {
-  ArrayProto[UNSCOPABLES][key] = true;
-};
-
-
-/***/ }),
 /* 36 */
 /***/ (function(module, exports) {
 
@@ -76074,7 +76074,7 @@ var store = global[SHARED] || (global[SHARED] = {});
   return store[key] || (store[key] = value !== undefined ? value : {});
 })('versions', []).push({
   version: core.version,
-  mode: __webpack_require__(33) ? 'pure' : 'global',
+  mode: __webpack_require__(32) ? 'pure' : 'global',
   copyright: '© 2020 Denis Pushkarev (zloirock.ru)'
 });
 
@@ -76583,7 +76583,7 @@ var global = __webpack_require__(2);
 var $export = __webpack_require__(0);
 var redefine = __webpack_require__(13);
 var redefineAll = __webpack_require__(45);
-var meta = __webpack_require__(34);
+var meta = __webpack_require__(33);
 var forOf = __webpack_require__(44);
 var anInstance = __webpack_require__(43);
 var isObject = __webpack_require__(4);
@@ -76706,7 +76706,7 @@ module.exports = {
 "use strict";
 
 // Forced replacement prototype accessors methods
-module.exports = __webpack_require__(33) || !__webpack_require__(3)(function () {
+module.exports = __webpack_require__(32) || !__webpack_require__(3)(function () {
   var K = Math.random();
   // In FF throws only define methods
   // eslint-disable-next-line no-undef, no-useless-call
@@ -78397,7 +78397,7 @@ module.exports = function (it) {
 
 var global = __webpack_require__(2);
 var core = __webpack_require__(19);
-var LIBRARY = __webpack_require__(33);
+var LIBRARY = __webpack_require__(32);
 var wksExt = __webpack_require__(102);
 var defineProperty = __webpack_require__(8).f;
 module.exports = function (name) {
@@ -78541,7 +78541,7 @@ module.exports = (!$expm1
 
 "use strict";
 
-var LIBRARY = __webpack_require__(33);
+var LIBRARY = __webpack_require__(32);
 var $export = __webpack_require__(0);
 var redefine = __webpack_require__(13);
 var hide = __webpack_require__(12);
@@ -78711,7 +78711,7 @@ module.exports = __webpack_require__(19).getIteratorMethod = function (it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 9.4.2.3 ArraySpeciesCreate(originalArray, length)
-var speciesConstructor = __webpack_require__(236);
+var speciesConstructor = __webpack_require__(235);
 
 module.exports = function (original, length) {
   return new (speciesConstructor(original))(length);
@@ -78746,7 +78746,7 @@ module.exports = function fill(value /* , start = 0, end = @length */) {
 
 "use strict";
 
-var addToUnscopables = __webpack_require__(35);
+var addToUnscopables = __webpack_require__(34);
 var step = __webpack_require__(119);
 var Iterators = __webpack_require__(50);
 var toIObject = __webpack_require__(16);
@@ -79059,7 +79059,7 @@ module.exports.f = function (C) {
 
 var global = __webpack_require__(2);
 var DESCRIPTORS = __webpack_require__(7);
-var LIBRARY = __webpack_require__(33);
+var LIBRARY = __webpack_require__(32);
 var $typed = __webpack_require__(67);
 var hide = __webpack_require__(12);
 var redefineAll = __webpack_require__(45);
@@ -79812,7 +79812,7 @@ var $iterDefine = __webpack_require__(85);
 var step = __webpack_require__(119);
 var setSpecies = __webpack_require__(42);
 var DESCRIPTORS = __webpack_require__(7);
-var fastKey = __webpack_require__(34).fastKey;
+var fastKey = __webpack_require__(33).fastKey;
 var validate = __webpack_require__(46);
 var SIZE = DESCRIPTORS ? '_s' : 'size';
 
@@ -79977,7 +79977,7 @@ module.exports = __webpack_require__(66)(SET, function (get) {
 var global = __webpack_require__(2);
 var each = __webpack_require__(27)(0);
 var redefine = __webpack_require__(13);
-var meta = __webpack_require__(34);
+var meta = __webpack_require__(33);
 var assign = __webpack_require__(106);
 var weak = __webpack_require__(128);
 var isObject = __webpack_require__(4);
@@ -80042,7 +80042,7 @@ if (NATIVE_WEAK_MAP && IS_IE11) {
 "use strict";
 
 var redefineAll = __webpack_require__(45);
-var getWeak = __webpack_require__(34).getWeak;
+var getWeak = __webpack_require__(33).getWeak;
 var anObject = __webpack_require__(1);
 var isObject = __webpack_require__(4);
 var anInstance = __webpack_require__(43);
@@ -80321,7 +80321,7 @@ exports.defaultArgs = exports.EmbedJolecule = undefined;
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // eslint-disable-line no-alert
 
 
-var _jquery = __webpack_require__(32);
+var _jquery = __webpack_require__(35);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -80331,15 +80331,15 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var _soupView = __webpack_require__(138);
 
-var _soup = __webpack_require__(348);
+var _soup = __webpack_require__(347);
 
-var _soupWidget = __webpack_require__(351);
+var _soupWidget = __webpack_require__(350);
 
-var _soupController = __webpack_require__(359);
+var _soupController = __webpack_require__(358);
 
 var _util = __webpack_require__(29);
 
-var _widgets = __webpack_require__(140);
+var _widgets = __webpack_require__(139);
 
 var _widgets2 = _interopRequireDefault(_widgets);
 
@@ -81647,580 +81647,6 @@ exports.View = View;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.CifParser = exports.PdbParser = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _lodash = __webpack_require__(11);
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function deleteNumbers(text) {
-  return text.replace(/\d+/, '');
-}
-
-function removeQuotes(s) {
-  var n = s.length;
-  if (s[0] === '"' && s[n - 1] === '"') {
-    return s.slice(1, n - 1);
-  }
-  if (s[0] === "'" && s[n - 1] === "'") {
-    return s.slice(1, n - 1);
-  }
-  return s;
-}
-
-var PdbParser = function () {
-  function PdbParser(soup) {
-    _classCallCheck(this, PdbParser);
-
-    this.soup = soup;
-    this.hasSecondaryStructure = false;
-    this.error = '';
-  }
-
-  _createClass(PdbParser, [{
-    key: 'isAtomLine',
-    value: function isAtomLine(line) {
-      return line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM';
-    }
-  }, {
-    key: 'isNmr',
-    value: function isNmr(lines) {
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = lines[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var line = _step.value;
-
-          if (line.startsWith('EXPDTA')) {
-            if (line.includes('NMR')) {
-              return true;
-            }
-          }
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-      }
-
-      return false;
-    }
-  }, {
-    key: 'parseAtomLines',
-    value: function parseAtomLines(pdbLines) {
-      var x = void 0,
-          y = void 0,
-          z = void 0,
-          chain = void 0,
-          resType = void 0;
-      var atomType = void 0,
-          bfactor = void 0,
-          elem = void 0,
-          alt = void 0,
-          resNum = void 0,
-          insCode = void 0;
-
-      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
-        var line = pdbLines[iLine];
-
-        if (this.isAtomLine(line)) {
-          try {
-            atomType = _lodash2.default.trim(line.substr(12, 4));
-            alt = _lodash2.default.trim(line.substr(16, 1));
-            resType = _lodash2.default.trim(line.substr(17, 3));
-            chain = line[21];
-            resNum = parseInt(line.substr(22, 4));
-            insCode = line.substr(26, 1);
-            x = parseFloat(line.substr(30, 7));
-            y = parseFloat(line.substr(38, 7));
-            z = parseFloat(line.substr(46, 7));
-            bfactor = parseFloat(line.substr(60, 6));
-            elem = deleteNumbers(_lodash2.default.trim(line.substr(76, 2)));
-          } catch (e) {
-            this.error = 'line ' + iLine;
-            console.log('parseAtomLines: "' + line + '"');
-            continue;
-          }
-
-          if (elem === '') {
-            elem = deleteNumbers(_lodash2.default.trim(atomType)).substr(0, 1);
-          }
-
-          this.soup.addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain);
-        }
-      }
-    }
-  }, {
-    key: 'parseSecondaryStructureLines',
-    value: function parseSecondaryStructureLines(pdbLines) {
-      this.soup.assignResidueProperties(this.soup.iStructure);
-      var residue = this.soup.getResidueProxy();
-      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
-        var line = pdbLines[iLine];
-
-        if (line.substr(0, 5) === 'HELIX') {
-          this.hasSecondaryStructure = true;
-          var chain = line.substr(19, 1);
-          var resNumStart = parseInt(line.substr(21, 4));
-          var resNumEnd = parseInt(line.substr(33, 4));
-          var _iteratorNormalCompletion2 = true;
-          var _didIteratorError2 = false;
-          var _iteratorError2 = undefined;
-
-          try {
-            for (var _iterator2 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-              var iRes = _step2.value;
-
-              residue.iRes = iRes;
-              while (residue.resNum <= resNumEnd && chain === residue.chain) {
-                residue.ss = 'H';
-                residue.iRes = residue.iRes + 1;
-              }
-            }
-          } catch (err) {
-            _didIteratorError2 = true;
-            _iteratorError2 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                _iterator2.return();
-              }
-            } finally {
-              if (_didIteratorError2) {
-                throw _iteratorError2;
-              }
-            }
-          }
-        } else if (line.substr(0, 5) === 'SHEET') {
-          this.hasSecondaryStructure = true;
-          var _chain = line.substr(21, 1);
-          var _resNumStart = parseInt(line.substr(22, 4));
-          var _resNumEnd = parseInt(line.substr(33, 4));
-          var _iteratorNormalCompletion3 = true;
-          var _didIteratorError3 = false;
-          var _iteratorError3 = undefined;
-
-          try {
-            for (var _iterator3 = this.soup.findResidueIndices(this.soup.iStructure, _chain, _resNumStart)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-              var _iRes = _step3.value;
-
-              residue.iRes = _iRes;
-              while (residue.resNum <= _resNumEnd && _chain === residue.chain) {
-                residue.ss = 'E';
-                residue.iRes = residue.iRes + 1;
-              }
-            }
-          } catch (err) {
-            _didIteratorError3 = true;
-            _iteratorError3 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                _iterator3.return();
-              }
-            } finally {
-              if (_didIteratorError3) {
-                throw _iteratorError3;
-              }
-            }
-          }
-        }
-      }
-    }
-  }, {
-    key: 'parseTitle',
-    value: function parseTitle(lines) {
-      var result = '';
-      var _iteratorNormalCompletion4 = true;
-      var _didIteratorError4 = false;
-      var _iteratorError4 = undefined;
-
-      try {
-        for (var _iterator4 = lines[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-          var line = _step4.value;
-
-          if (line.substring(0, 5) === 'TITLE') {
-            result += line.substring(10);
-          }
-        }
-      } catch (err) {
-        _didIteratorError4 = true;
-        _iteratorError4 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-            _iterator4.return();
-          }
-        } finally {
-          if (_didIteratorError4) {
-            throw _iteratorError4;
-          }
-        }
-      }
-
-      return result;
-    }
-  }, {
-    key: 'parsePdbData',
-    value: function parsePdbData(pdbText, pdbId) {
-      var lines = pdbText.split(/\r?\n/);
-      if (lines.length === 0) {
-        this.parsingError = 'No atom lines';
-        return;
-      }
-
-      var title = this.parseTitle(lines);
-
-      var isNmr = this.isNmr(lines);
-
-      var models = [[]];
-      var iModel = 0;
-      var _iteratorNormalCompletion5 = true;
-      var _didIteratorError5 = false;
-      var _iteratorError5 = undefined;
-
-      try {
-        for (var _iterator5 = lines[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-          var line = _step5.value;
-
-          if (this.isAtomLine(line)) {
-            models[iModel].push(line);
-          } else if (line.substr(0, 3) === 'END') {
-            if (isNmr) {
-              break;
-            }
-            models.push([]);
-            iModel += 1;
-          }
-        }
-      } catch (err) {
-        _didIteratorError5 = true;
-        _iteratorError5 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion5 && _iterator5.return) {
-            _iterator5.return();
-          }
-        } finally {
-          if (_didIteratorError5) {
-            throw _iteratorError5;
-          }
-        }
-      }
-
-      if (models[iModel].length === 0) {
-        models.pop();
-      }
-
-      var nModel = models.length;
-      for (var _iModel = 0; _iModel < nModel; _iModel += 1) {
-        var structureId = pdbId;
-        if (nModel > 1) {
-          structureId = structureId + '[' + (_iModel + 1) + ']';
-        }
-        this.soup.pushStructureId(structureId, title);
-        this.parseAtomLines(models[_iModel]);
-        this.parseSecondaryStructureLines(lines);
-      }
-    }
-  }]);
-
-  return PdbParser;
-}();
-
-var CifParser = function () {
-  function CifParser(soup) {
-    _classCallCheck(this, CifParser);
-
-    this.soup = soup;
-    this.hasSecondaryStructure = false;
-    this.error = '';
-  }
-
-  _createClass(CifParser, [{
-    key: 'isAtomLine',
-    value: function isAtomLine(line) {
-      return line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM';
-    }
-  }, {
-    key: 'parseAtomLines',
-    value: function parseAtomLines(pdbLines) {
-      var x = void 0,
-          y = void 0,
-          z = void 0,
-          chain = void 0,
-          resType = void 0,
-          entity = void 0;
-      var atomType = void 0,
-          bfactor = void 0,
-          elem = void 0,
-          alt = void 0,
-          resNum = void 0,
-          insCode = void 0;
-      var nextResNum = null;
-      var lastChain = null;
-      var lastEntity = null;
-      var token = void 0;
-      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
-        var line = pdbLines[iLine];
-
-        if (this.isAtomLine(line)) {
-          var tokens = line.split(/[ ,]+/);
-          try {
-            elem = tokens[2];
-            atomType = removeQuotes(tokens[3]);
-            alt = tokens[4] === '.' ? '' : tokens[4];
-            resType = tokens[5];
-            chain = tokens[6];
-            entity = tokens[7];
-            insCode = tokens[9] === '?' ? '' : tokens[9];
-            x = parseFloat(tokens[10]);
-            y = parseFloat(tokens[11]);
-            z = parseFloat(tokens[12]);
-            bfactor = parseFloat(tokens[14]);
-            token = tokens[8];
-            if (token === '.') {
-              var isSameChainAndEntity = chain === lastChain && entity === lastEntity;
-              if (!isSameChainAndEntity || resType === 'HOH') {
-                nextResNum += 1;
-                lastChain = chain;
-                lastEntity = entity;
-              }
-              resNum = nextResNum;
-            } else {
-              resNum = parseInt(tokens[8]);
-              lastChain = chain;
-              lastEntity = entity;
-              nextResNum = resNum + 1;
-            }
-            // console.log({
-            //   atomType,
-            //   alt,
-            //   resType,
-            //   chain,
-            //   resNum,
-            //   insCode,
-            //   x,
-            //   y,
-            //   z,
-            //   bfactor,
-            //   elem
-            // })
-          } catch (e) {
-            this.error = 'line ' + iLine;
-            console.log('parseAtomLines ' + e + ': "' + line + '"');
-            continue;
-          }
-
-          if (elem === '') {
-            elem = deleteNumbers(_lodash2.default.trim(atomType)).substr(0, 1);
-          }
-
-          this.soup.addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain);
-        }
-      }
-    }
-  }, {
-    key: 'parseSecondaryStructureLines',
-    value: function parseSecondaryStructureLines(pdbLines) {
-      this.hasSecondaryStructure = false;
-      this.soup.assignResidueProperties(this.soup.iStructure);
-      this.parseHelixLines(pdbLines);
-      this.parseSheetLines(pdbLines);
-    }
-  }, {
-    key: 'parseHelixLines',
-    value: function parseHelixLines(pdbLines) {
-      console.log('CifParser.parseHelixLines');
-      var residue = this.soup.getResidueProxy();
-      var isHelixLoop = false;
-      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
-        var line = pdbLines[iLine];
-        if (!isHelixLoop) {
-          if (_lodash2.default.startsWith(line, '_struct_conf.pdbx_PDB_helix_id')) {
-            isHelixLoop = true;
-          }
-        }
-        if (!isHelixLoop) {
-          continue;
-        }
-        if (_lodash2.default.startsWith(line, '#')) {
-          break;
-        }
-        if (!_lodash2.default.startsWith(line, '_struct_conf')) {
-          this.hasSecondaryStructure = true;
-          var tokens = line.split(/[ ,]+/);
-          var chain = tokens[4];
-          var resNumStart = parseInt(tokens[5]);
-          var resNumEnd = parseInt(tokens[9]);
-          var _iteratorNormalCompletion6 = true;
-          var _didIteratorError6 = false;
-          var _iteratorError6 = undefined;
-
-          try {
-            for (var _iterator6 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-              var iRes = _step6.value;
-
-              residue.iRes = iRes;
-              while (residue.resNum <= resNumEnd && chain === residue.chain) {
-                residue.ss = 'H';
-                residue.iRes = residue.iRes + 1;
-              }
-            }
-          } catch (err) {
-            _didIteratorError6 = true;
-            _iteratorError6 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                _iterator6.return();
-              }
-            } finally {
-              if (_didIteratorError6) {
-                throw _iteratorError6;
-              }
-            }
-          }
-        }
-      }
-    }
-  }, {
-    key: 'parseSheetLines',
-    value: function parseSheetLines(pdbLines) {
-      console.log('CifParser.parseSheetLines');
-      var residue = this.soup.getResidueProxy();
-      var isSheetLoop = false;
-      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
-        var line = pdbLines[iLine];
-        if (!isSheetLoop) {
-          if (_lodash2.default.startsWith(line, '_struct_sheet_range.sheet_id')) {
-            isSheetLoop = true;
-          }
-        }
-        if (!isSheetLoop) {
-          continue;
-        }
-        if (_lodash2.default.startsWith(line, '#')) {
-          break;
-        }
-        if (line.substr(0, 6) !== '_struct') {
-          this.hasSecondaryStructure = true;
-          var tokens = line.split(/[ ,]+/);
-          var chain = tokens[3];
-          var resNumStart = parseInt(tokens[4]);
-          var resNumEnd = parseInt(tokens[8]);
-          var _iteratorNormalCompletion7 = true;
-          var _didIteratorError7 = false;
-          var _iteratorError7 = undefined;
-
-          try {
-            for (var _iterator7 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-              var iRes = _step7.value;
-
-              residue.iRes = iRes;
-              while (residue.resNum <= resNumEnd && chain === residue.chain) {
-                residue.ss = 'E';
-                residue.iRes = residue.iRes + 1;
-              }
-            }
-          } catch (err) {
-            _didIteratorError7 = true;
-            _iteratorError7 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion7 && _iterator7.return) {
-                _iterator7.return();
-              }
-            } finally {
-              if (_didIteratorError7) {
-                throw _iteratorError7;
-              }
-            }
-          }
-        }
-      }
-    }
-  }, {
-    key: 'parseTitle',
-    value: function parseTitle(lines) {
-      var prevLine = '';
-      var _iteratorNormalCompletion8 = true;
-      var _didIteratorError8 = false;
-      var _iteratorError8 = undefined;
-
-      try {
-        for (var _iterator8 = lines[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-          var line = _step8.value;
-
-          if (_lodash2.default.startsWith(prevLine, '_struct.title')) {
-            return removeQuotes(_lodash2.default.trim(line));
-          }
-          prevLine = line;
-        }
-      } catch (err) {
-        _didIteratorError8 = true;
-        _iteratorError8 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-            _iterator8.return();
-          }
-        } finally {
-          if (_didIteratorError8) {
-            throw _iteratorError8;
-          }
-        }
-      }
-
-      return '';
-    }
-  }, {
-    key: 'parsePdbData',
-    value: function parsePdbData(pdbText, pdbId) {
-      var lines = pdbText.split(/\r?\n/);
-      if (lines.length === 0) {
-        this.parsingError = 'No atom lines';
-        return;
-      }
-      this.soup.pushStructureId(pdbId, this.parseTitle(lines));
-      this.parseAtomLines(lines);
-      this.parseSecondaryStructureLines(lines);
-    }
-  }]);
-
-  return CifParser;
-}();
-
-exports.PdbParser = PdbParser;
-exports.CifParser = CifParser;
-
-/***/ }),
-/* 140 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -82251,15 +81677,15 @@ var _createClass = function () { function defineProperties(target, props) { for 
 // eslint-disable-line no-alert
 
 
-var _jquery = __webpack_require__(32);
+var _jquery = __webpack_require__(35);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _select = __webpack_require__(353);
+var _select = __webpack_require__(352);
 
 var _select2 = _interopRequireDefault(_select);
 
-__webpack_require__(354);
+__webpack_require__(353);
 
 var _three = __webpack_require__(28);
 
@@ -84255,8 +83681,7 @@ var SelectionWidget = function (_CanvasWidget5) {
             var iTrace = soup.selectedTraces[0];
             var iRes = soup.traces[iTrace].indices[0];
             var _residue = soup.getResidueProxy(iRes);
-            var structureId = soup.structureIds[_residue.iStructure];
-            text += structureId + '-' + _residue.chain;
+            text += _residue.structureId + '-' + _residue.chain;
           }
         }
       }
@@ -84832,7 +84257,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 141 */
+/* 140 */
 /***/ (function(module, exports) {
 
 /*
@@ -84888,7 +84313,7 @@ module.exports = function() {
 
 
 /***/ }),
-/* 142 */
+/* 141 */
 /***/ (function(module, exports) {
 
 /*
@@ -85140,25 +84565,25 @@ function updateLink(linkElement, obj) {
 
 
 /***/ }),
-/* 143 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(144);
-module.exports = __webpack_require__(346);
+__webpack_require__(143);
+module.exports = __webpack_require__(345);
 
 
 /***/ }),
-/* 144 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
-__webpack_require__(145);
+__webpack_require__(144);
+
+__webpack_require__(341);
 
 __webpack_require__(342);
-
-__webpack_require__(343);
 
 if (global._babelPolyfill) {
   throw new Error("only one instance of babel-polyfill is allowed");
@@ -85183,10 +84608,11 @@ define(String.prototype, "padRight", "".padEnd);
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(73)))
 
 /***/ }),
-/* 145 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(146);
+__webpack_require__(145);
+__webpack_require__(148);
 __webpack_require__(149);
 __webpack_require__(150);
 __webpack_require__(151);
@@ -85262,16 +84688,16 @@ __webpack_require__(220);
 __webpack_require__(221);
 __webpack_require__(222);
 __webpack_require__(223);
-__webpack_require__(224);
+__webpack_require__(225);
 __webpack_require__(226);
-__webpack_require__(227);
+__webpack_require__(228);
 __webpack_require__(229);
 __webpack_require__(230);
 __webpack_require__(231);
 __webpack_require__(232);
 __webpack_require__(233);
 __webpack_require__(234);
-__webpack_require__(235);
+__webpack_require__(236);
 __webpack_require__(237);
 __webpack_require__(238);
 __webpack_require__(239);
@@ -85284,20 +84710,20 @@ __webpack_require__(245);
 __webpack_require__(246);
 __webpack_require__(247);
 __webpack_require__(248);
-__webpack_require__(249);
 __webpack_require__(94);
-__webpack_require__(250);
+__webpack_require__(249);
 __webpack_require__(120);
-__webpack_require__(251);
+__webpack_require__(250);
 __webpack_require__(121);
+__webpack_require__(251);
 __webpack_require__(252);
 __webpack_require__(253);
 __webpack_require__(254);
 __webpack_require__(255);
-__webpack_require__(256);
 __webpack_require__(124);
 __webpack_require__(126);
 __webpack_require__(127);
+__webpack_require__(256);
 __webpack_require__(257);
 __webpack_require__(258);
 __webpack_require__(259);
@@ -85382,12 +84808,11 @@ __webpack_require__(337);
 __webpack_require__(338);
 __webpack_require__(339);
 __webpack_require__(340);
-__webpack_require__(341);
 module.exports = __webpack_require__(19);
 
 
 /***/ }),
-/* 146 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85398,7 +84823,7 @@ var has = __webpack_require__(15);
 var DESCRIPTORS = __webpack_require__(7);
 var $export = __webpack_require__(0);
 var redefine = __webpack_require__(13);
-var META = __webpack_require__(34).KEY;
+var META = __webpack_require__(33).KEY;
 var $fails = __webpack_require__(3);
 var shared = __webpack_require__(51);
 var setToStringTag = __webpack_require__(47);
@@ -85406,7 +84831,7 @@ var uid = __webpack_require__(37);
 var wks = __webpack_require__(5);
 var wksExt = __webpack_require__(102);
 var wksDefine = __webpack_require__(75);
-var enumKeys = __webpack_require__(148);
+var enumKeys = __webpack_require__(147);
 var isArray = __webpack_require__(59);
 var anObject = __webpack_require__(1);
 var isObject = __webpack_require__(4);
@@ -85546,7 +84971,7 @@ if (!USE_NATIVE) {
   __webpack_require__(53).f = $propertyIsEnumerable;
   $GOPS.f = $getOwnPropertySymbols;
 
-  if (DESCRIPTORS && !__webpack_require__(33)) {
+  if (DESCRIPTORS && !__webpack_require__(32)) {
     redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
   }
 
@@ -85640,14 +85065,14 @@ setToStringTag(global.JSON, 'JSON', true);
 
 
 /***/ }),
-/* 147 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(51)('native-function-to-string', Function.toString);
 
 
 /***/ }),
-/* 148 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // all enumerable object keys, includes symbols
@@ -85668,7 +85093,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 149 */
+/* 148 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -85677,7 +85102,7 @@ $export($export.S, 'Object', { create: __webpack_require__(40) });
 
 
 /***/ }),
-/* 150 */
+/* 149 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -85686,7 +85111,7 @@ $export($export.S + $export.F * !__webpack_require__(7), 'Object', { definePrope
 
 
 /***/ }),
-/* 151 */
+/* 150 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -85695,7 +85120,7 @@ $export($export.S + $export.F * !__webpack_require__(7), 'Object', { definePrope
 
 
 /***/ }),
-/* 152 */
+/* 151 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
@@ -85710,7 +85135,7 @@ __webpack_require__(26)('getOwnPropertyDescriptor', function () {
 
 
 /***/ }),
-/* 153 */
+/* 152 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.9 Object.getPrototypeOf(O)
@@ -85725,7 +85150,7 @@ __webpack_require__(26)('getPrototypeOf', function () {
 
 
 /***/ }),
-/* 154 */
+/* 153 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.14 Object.keys(O)
@@ -85740,7 +85165,7 @@ __webpack_require__(26)('keys', function () {
 
 
 /***/ }),
-/* 155 */
+/* 154 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.7 Object.getOwnPropertyNames(O)
@@ -85750,12 +85175,12 @@ __webpack_require__(26)('getOwnPropertyNames', function () {
 
 
 /***/ }),
-/* 156 */
+/* 155 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.5 Object.freeze(O)
 var isObject = __webpack_require__(4);
-var meta = __webpack_require__(34).onFreeze;
+var meta = __webpack_require__(33).onFreeze;
 
 __webpack_require__(26)('freeze', function ($freeze) {
   return function freeze(it) {
@@ -85765,12 +85190,12 @@ __webpack_require__(26)('freeze', function ($freeze) {
 
 
 /***/ }),
-/* 157 */
+/* 156 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.17 Object.seal(O)
 var isObject = __webpack_require__(4);
-var meta = __webpack_require__(34).onFreeze;
+var meta = __webpack_require__(33).onFreeze;
 
 __webpack_require__(26)('seal', function ($seal) {
   return function seal(it) {
@@ -85780,12 +85205,12 @@ __webpack_require__(26)('seal', function ($seal) {
 
 
 /***/ }),
-/* 158 */
+/* 157 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.15 Object.preventExtensions(O)
 var isObject = __webpack_require__(4);
-var meta = __webpack_require__(34).onFreeze;
+var meta = __webpack_require__(33).onFreeze;
 
 __webpack_require__(26)('preventExtensions', function ($preventExtensions) {
   return function preventExtensions(it) {
@@ -85795,7 +85220,7 @@ __webpack_require__(26)('preventExtensions', function ($preventExtensions) {
 
 
 /***/ }),
-/* 159 */
+/* 158 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.12 Object.isFrozen(O)
@@ -85809,7 +85234,7 @@ __webpack_require__(26)('isFrozen', function ($isFrozen) {
 
 
 /***/ }),
-/* 160 */
+/* 159 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.13 Object.isSealed(O)
@@ -85823,7 +85248,7 @@ __webpack_require__(26)('isSealed', function ($isSealed) {
 
 
 /***/ }),
-/* 161 */
+/* 160 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.11 Object.isExtensible(O)
@@ -85837,7 +85262,7 @@ __webpack_require__(26)('isExtensible', function ($isExtensible) {
 
 
 /***/ }),
-/* 162 */
+/* 161 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.3.1 Object.assign(target, source)
@@ -85847,7 +85272,7 @@ $export($export.S + $export.F, 'Object', { assign: __webpack_require__(106) });
 
 
 /***/ }),
-/* 163 */
+/* 162 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.3.10 Object.is(value1, value2)
@@ -85856,7 +85281,7 @@ $export($export.S, 'Object', { is: __webpack_require__(107) });
 
 
 /***/ }),
-/* 164 */
+/* 163 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.3.19 Object.setPrototypeOf(O, proto)
@@ -85865,7 +85290,7 @@ $export($export.S, 'Object', { setPrototypeOf: __webpack_require__(79).set });
 
 
 /***/ }),
-/* 165 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85882,7 +85307,7 @@ if (test + '' != '[object z]') {
 
 
 /***/ }),
-/* 166 */
+/* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.2.3.2 / 15.3.4.5 Function.prototype.bind(thisArg, args...)
@@ -85892,7 +85317,7 @@ $export($export.P, 'Function', { bind: __webpack_require__(108) });
 
 
 /***/ }),
-/* 167 */
+/* 166 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP = __webpack_require__(8).f;
@@ -85914,7 +85339,7 @@ NAME in FProto || __webpack_require__(7) && dP(FProto, NAME, {
 
 
 /***/ }),
-/* 168 */
+/* 167 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -85934,7 +85359,7 @@ if (!(HAS_INSTANCE in FunctionProto)) __webpack_require__(8).f(FunctionProto, HA
 
 
 /***/ }),
-/* 169 */
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -85944,7 +85369,7 @@ $export($export.G + $export.F * (parseInt != $parseInt), { parseInt: $parseInt }
 
 
 /***/ }),
-/* 170 */
+/* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -85954,7 +85379,7 @@ $export($export.G + $export.F * (parseFloat != $parseFloat), { parseFloat: $pars
 
 
 /***/ }),
-/* 171 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86030,7 +85455,7 @@ if (!$Number(' 0o1') || !$Number('0b1') || $Number('+0x1')) {
 
 
 /***/ }),
-/* 172 */
+/* 171 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86151,7 +85576,7 @@ $export($export.P + $export.F * (!!$toFixed && (
 
 
 /***/ }),
-/* 173 */
+/* 172 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86176,7 +85601,7 @@ $export($export.P + $export.F * ($fails(function () {
 
 
 /***/ }),
-/* 174 */
+/* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.1 Number.EPSILON
@@ -86186,7 +85611,7 @@ $export($export.S, 'Number', { EPSILON: Math.pow(2, -52) });
 
 
 /***/ }),
-/* 175 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.2 Number.isFinite(number)
@@ -86201,7 +85626,7 @@ $export($export.S, 'Number', {
 
 
 /***/ }),
-/* 176 */
+/* 175 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.3 Number.isInteger(number)
@@ -86211,7 +85636,7 @@ $export($export.S, 'Number', { isInteger: __webpack_require__(113) });
 
 
 /***/ }),
-/* 177 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.4 Number.isNaN(number)
@@ -86226,7 +85651,7 @@ $export($export.S, 'Number', {
 
 
 /***/ }),
-/* 178 */
+/* 177 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.5 Number.isSafeInteger(number)
@@ -86242,7 +85667,7 @@ $export($export.S, 'Number', {
 
 
 /***/ }),
-/* 179 */
+/* 178 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.6 Number.MAX_SAFE_INTEGER
@@ -86252,7 +85677,7 @@ $export($export.S, 'Number', { MAX_SAFE_INTEGER: 0x1fffffffffffff });
 
 
 /***/ }),
-/* 180 */
+/* 179 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.10 Number.MIN_SAFE_INTEGER
@@ -86262,7 +85687,7 @@ $export($export.S, 'Number', { MIN_SAFE_INTEGER: -0x1fffffffffffff });
 
 
 /***/ }),
-/* 181 */
+/* 180 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -86272,7 +85697,7 @@ $export($export.S + $export.F * (Number.parseFloat != $parseFloat), 'Number', { 
 
 
 /***/ }),
-/* 182 */
+/* 181 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -86282,7 +85707,7 @@ $export($export.S + $export.F * (Number.parseInt != $parseInt), 'Number', { pars
 
 
 /***/ }),
-/* 183 */
+/* 182 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.3 Math.acosh(x)
@@ -86306,7 +85731,7 @@ $export($export.S + $export.F * !($acosh
 
 
 /***/ }),
-/* 184 */
+/* 183 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.5 Math.asinh(x)
@@ -86322,7 +85747,7 @@ $export($export.S + $export.F * !($asinh && 1 / $asinh(0) > 0), 'Math', { asinh:
 
 
 /***/ }),
-/* 185 */
+/* 184 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.7 Math.atanh(x)
@@ -86338,7 +85763,7 @@ $export($export.S + $export.F * !($atanh && 1 / $atanh(-0) < 0), 'Math', {
 
 
 /***/ }),
-/* 186 */
+/* 185 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.9 Math.cbrt(x)
@@ -86353,7 +85778,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 187 */
+/* 186 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.11 Math.clz32(x)
@@ -86367,7 +85792,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 188 */
+/* 187 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.12 Math.cosh(x)
@@ -86382,7 +85807,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 189 */
+/* 188 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.14 Math.expm1(x)
@@ -86393,7 +85818,7 @@ $export($export.S + $export.F * ($expm1 != Math.expm1), 'Math', { expm1: $expm1 
 
 
 /***/ }),
-/* 190 */
+/* 189 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.16 Math.fround(x)
@@ -86403,7 +85828,7 @@ $export($export.S, 'Math', { fround: __webpack_require__(115) });
 
 
 /***/ }),
-/* 191 */
+/* 190 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.17 Math.hypot([value1[, value2[, … ]]])
@@ -86434,7 +85859,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 192 */
+/* 191 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.18 Math.imul(x, y)
@@ -86457,7 +85882,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 193 */
+/* 192 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.21 Math.log10(x)
@@ -86471,7 +85896,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 194 */
+/* 193 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.20 Math.log1p(x)
@@ -86481,7 +85906,7 @@ $export($export.S, 'Math', { log1p: __webpack_require__(114) });
 
 
 /***/ }),
-/* 195 */
+/* 194 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.22 Math.log2(x)
@@ -86495,7 +85920,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 196 */
+/* 195 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.28 Math.sign(x)
@@ -86505,7 +85930,7 @@ $export($export.S, 'Math', { sign: __webpack_require__(83) });
 
 
 /***/ }),
-/* 197 */
+/* 196 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.30 Math.sinh(x)
@@ -86526,7 +85951,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 198 */
+/* 197 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.33 Math.tanh(x)
@@ -86544,7 +85969,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 199 */
+/* 198 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.2.2.34 Math.trunc(x)
@@ -86558,7 +85983,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 200 */
+/* 199 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -86587,7 +86012,7 @@ $export($export.S + $export.F * (!!$fromCodePoint && $fromCodePoint.length != 1)
 
 
 /***/ }),
-/* 201 */
+/* 200 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -86611,7 +86036,7 @@ $export($export.S, 'String', {
 
 
 /***/ }),
-/* 202 */
+/* 201 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86625,7 +86050,7 @@ __webpack_require__(49)('trim', function ($trim) {
 
 
 /***/ }),
-/* 203 */
+/* 202 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86649,7 +86074,7 @@ __webpack_require__(85)(String, 'String', function (iterated) {
 
 
 /***/ }),
-/* 204 */
+/* 203 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86665,7 +86090,7 @@ $export($export.P, 'String', {
 
 
 /***/ }),
-/* 205 */
+/* 204 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86692,7 +86117,7 @@ $export($export.P + $export.F * __webpack_require__(88)(ENDS_WITH), 'String', {
 
 
 /***/ }),
-/* 206 */
+/* 205 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86711,7 +86136,7 @@ $export($export.P + $export.F * __webpack_require__(88)(INCLUDES), 'String', {
 
 
 /***/ }),
-/* 207 */
+/* 206 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -86723,7 +86148,7 @@ $export($export.P, 'String', {
 
 
 /***/ }),
-/* 208 */
+/* 207 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86748,7 +86173,7 @@ $export($export.P + $export.F * __webpack_require__(88)(STARTS_WITH), 'String', 
 
 
 /***/ }),
-/* 209 */
+/* 208 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86762,7 +86187,7 @@ __webpack_require__(14)('anchor', function (createHTML) {
 
 
 /***/ }),
-/* 210 */
+/* 209 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86776,7 +86201,7 @@ __webpack_require__(14)('big', function (createHTML) {
 
 
 /***/ }),
-/* 211 */
+/* 210 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86790,7 +86215,7 @@ __webpack_require__(14)('blink', function (createHTML) {
 
 
 /***/ }),
-/* 212 */
+/* 211 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86804,7 +86229,7 @@ __webpack_require__(14)('bold', function (createHTML) {
 
 
 /***/ }),
-/* 213 */
+/* 212 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86818,7 +86243,7 @@ __webpack_require__(14)('fixed', function (createHTML) {
 
 
 /***/ }),
-/* 214 */
+/* 213 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86832,7 +86257,7 @@ __webpack_require__(14)('fontcolor', function (createHTML) {
 
 
 /***/ }),
-/* 215 */
+/* 214 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86846,7 +86271,7 @@ __webpack_require__(14)('fontsize', function (createHTML) {
 
 
 /***/ }),
-/* 216 */
+/* 215 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86860,7 +86285,7 @@ __webpack_require__(14)('italics', function (createHTML) {
 
 
 /***/ }),
-/* 217 */
+/* 216 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86874,7 +86299,7 @@ __webpack_require__(14)('link', function (createHTML) {
 
 
 /***/ }),
-/* 218 */
+/* 217 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86888,7 +86313,7 @@ __webpack_require__(14)('small', function (createHTML) {
 
 
 /***/ }),
-/* 219 */
+/* 218 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86902,7 +86327,7 @@ __webpack_require__(14)('strike', function (createHTML) {
 
 
 /***/ }),
-/* 220 */
+/* 219 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86916,7 +86341,7 @@ __webpack_require__(14)('sub', function (createHTML) {
 
 
 /***/ }),
-/* 221 */
+/* 220 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86930,7 +86355,7 @@ __webpack_require__(14)('sup', function (createHTML) {
 
 
 /***/ }),
-/* 222 */
+/* 221 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.3.3.1 / 15.9.4.4 Date.now()
@@ -86940,7 +86365,7 @@ $export($export.S, 'Date', { now: function () { return new Date().getTime(); } }
 
 
 /***/ }),
-/* 223 */
+/* 222 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86963,12 +86388,12 @@ $export($export.P + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 224 */
+/* 223 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.3.4.36 / 15.9.5.43 Date.prototype.toISOString()
 var $export = __webpack_require__(0);
-var toISOString = __webpack_require__(225);
+var toISOString = __webpack_require__(224);
 
 // PhantomJS / old WebKit has a broken implementations
 $export($export.P + $export.F * (Date.prototype.toISOString !== toISOString), 'Date', {
@@ -86977,7 +86402,7 @@ $export($export.P + $export.F * (Date.prototype.toISOString !== toISOString), 'D
 
 
 /***/ }),
-/* 225 */
+/* 224 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87010,7 +86435,7 @@ module.exports = (fails(function () {
 
 
 /***/ }),
-/* 226 */
+/* 225 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var DateProto = Date.prototype;
@@ -87028,17 +86453,17 @@ if (new Date(NaN) + '' != INVALID_DATE) {
 
 
 /***/ }),
-/* 227 */
+/* 226 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var TO_PRIMITIVE = __webpack_require__(5)('toPrimitive');
 var proto = Date.prototype;
 
-if (!(TO_PRIMITIVE in proto)) __webpack_require__(12)(proto, TO_PRIMITIVE, __webpack_require__(228));
+if (!(TO_PRIMITIVE in proto)) __webpack_require__(12)(proto, TO_PRIMITIVE, __webpack_require__(227));
 
 
 /***/ }),
-/* 228 */
+/* 227 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87054,7 +86479,7 @@ module.exports = function (hint) {
 
 
 /***/ }),
-/* 229 */
+/* 228 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.2.2 / 15.4.3.2 Array.isArray(arg)
@@ -87064,7 +86489,7 @@ $export($export.S, 'Array', { isArray: __webpack_require__(59) });
 
 
 /***/ }),
-/* 230 */
+/* 229 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87108,7 +86533,7 @@ $export($export.S + $export.F * !__webpack_require__(62)(function (iter) { Array
 
 
 /***/ }),
-/* 231 */
+/* 230 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87134,7 +86559,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 232 */
+/* 231 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87153,7 +86578,7 @@ $export($export.P + $export.F * (__webpack_require__(52) != Object || !__webpack
 
 
 /***/ }),
-/* 233 */
+/* 232 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87188,7 +86613,7 @@ $export($export.P + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 234 */
+/* 233 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87218,7 +86643,7 @@ $export($export.P + $export.F * (fails(function () {
 
 
 /***/ }),
-/* 235 */
+/* 234 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87236,7 +86661,7 @@ $export($export.P + $export.F * !STRICT, 'Array', {
 
 
 /***/ }),
-/* 236 */
+/* 235 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(4);
@@ -87258,7 +86683,7 @@ module.exports = function (original) {
 
 
 /***/ }),
-/* 237 */
+/* 236 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87275,7 +86700,7 @@ $export($export.P + $export.F * !__webpack_require__(23)([].map, true), 'Array',
 
 
 /***/ }),
-/* 238 */
+/* 237 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87292,7 +86717,7 @@ $export($export.P + $export.F * !__webpack_require__(23)([].filter, true), 'Arra
 
 
 /***/ }),
-/* 239 */
+/* 238 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87309,7 +86734,7 @@ $export($export.P + $export.F * !__webpack_require__(23)([].some, true), 'Array'
 
 
 /***/ }),
-/* 240 */
+/* 239 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87326,7 +86751,7 @@ $export($export.P + $export.F * !__webpack_require__(23)([].every, true), 'Array
 
 
 /***/ }),
-/* 241 */
+/* 240 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87343,7 +86768,7 @@ $export($export.P + $export.F * !__webpack_require__(23)([].reduce, true), 'Arra
 
 
 /***/ }),
-/* 242 */
+/* 241 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87360,7 +86785,7 @@ $export($export.P + $export.F * !__webpack_require__(23)([].reduceRight, true), 
 
 
 /***/ }),
-/* 243 */
+/* 242 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87382,7 +86807,7 @@ $export($export.P + $export.F * (NEGATIVE_ZERO || !__webpack_require__(23)($nati
 
 
 /***/ }),
-/* 244 */
+/* 243 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87411,7 +86836,7 @@ $export($export.P + $export.F * (NEGATIVE_ZERO || !__webpack_require__(23)($nati
 
 
 /***/ }),
-/* 245 */
+/* 244 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
@@ -87419,11 +86844,11 @@ var $export = __webpack_require__(0);
 
 $export($export.P, 'Array', { copyWithin: __webpack_require__(118) });
 
-__webpack_require__(35)('copyWithin');
+__webpack_require__(34)('copyWithin');
 
 
 /***/ }),
-/* 246 */
+/* 245 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
@@ -87431,11 +86856,11 @@ var $export = __webpack_require__(0);
 
 $export($export.P, 'Array', { fill: __webpack_require__(93) });
 
-__webpack_require__(35)('fill');
+__webpack_require__(34)('fill');
 
 
 /***/ }),
-/* 247 */
+/* 246 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87452,11 +86877,11 @@ $export($export.P + $export.F * forced, 'Array', {
     return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
-__webpack_require__(35)(KEY);
+__webpack_require__(34)(KEY);
 
 
 /***/ }),
-/* 248 */
+/* 247 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87473,18 +86898,18 @@ $export($export.P + $export.F * forced, 'Array', {
     return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
-__webpack_require__(35)(KEY);
+__webpack_require__(34)(KEY);
 
 
 /***/ }),
-/* 249 */
+/* 248 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(42)('Array');
 
 
 /***/ }),
-/* 250 */
+/* 249 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(2);
@@ -87533,7 +86958,7 @@ __webpack_require__(42)('RegExp');
 
 
 /***/ }),
-/* 251 */
+/* 250 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87565,7 +86990,7 @@ if (__webpack_require__(3)(function () { return $toString.call({ source: 'a', fl
 
 
 /***/ }),
-/* 252 */
+/* 251 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87612,7 +87037,7 @@ __webpack_require__(64)('match', 1, function (defined, MATCH, $match, maybeCallN
 
 
 /***/ }),
-/* 253 */
+/* 252 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87737,7 +87162,7 @@ __webpack_require__(64)('replace', 2, function (defined, REPLACE, $replace, mayb
 
 
 /***/ }),
-/* 254 */
+/* 253 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87775,7 +87200,7 @@ __webpack_require__(64)('search', 1, function (defined, SEARCH, $search, maybeCa
 
 
 /***/ }),
-/* 255 */
+/* 254 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87916,12 +87341,12 @@ __webpack_require__(64)('split', 2, function (defined, SPLIT, $split, maybeCallN
 
 
 /***/ }),
-/* 256 */
+/* 255 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var LIBRARY = __webpack_require__(33);
+var LIBRARY = __webpack_require__(32);
 var global = __webpack_require__(2);
 var ctx = __webpack_require__(20);
 var classof = __webpack_require__(48);
@@ -88209,7 +87634,7 @@ $export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(62)(function
 
 
 /***/ }),
-/* 257 */
+/* 256 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88230,7 +87655,7 @@ __webpack_require__(66)(WEAK_SET, function (get) {
 
 
 /***/ }),
-/* 258 */
+/* 257 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88283,7 +87708,7 @@ __webpack_require__(42)(ARRAY_BUFFER);
 
 
 /***/ }),
-/* 259 */
+/* 258 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -88293,7 +87718,7 @@ $export($export.G + $export.W + $export.F * !__webpack_require__(67).ABV, {
 
 
 /***/ }),
-/* 260 */
+/* 259 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(30)('Int8', 1, function (init) {
@@ -88304,7 +87729,7 @@ __webpack_require__(30)('Int8', 1, function (init) {
 
 
 /***/ }),
-/* 261 */
+/* 260 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(30)('Uint8', 1, function (init) {
@@ -88315,7 +87740,7 @@ __webpack_require__(30)('Uint8', 1, function (init) {
 
 
 /***/ }),
-/* 262 */
+/* 261 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(30)('Uint8', 1, function (init) {
@@ -88326,7 +87751,7 @@ __webpack_require__(30)('Uint8', 1, function (init) {
 
 
 /***/ }),
-/* 263 */
+/* 262 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(30)('Int16', 2, function (init) {
@@ -88337,7 +87762,7 @@ __webpack_require__(30)('Int16', 2, function (init) {
 
 
 /***/ }),
-/* 264 */
+/* 263 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(30)('Uint16', 2, function (init) {
@@ -88348,7 +87773,7 @@ __webpack_require__(30)('Uint16', 2, function (init) {
 
 
 /***/ }),
-/* 265 */
+/* 264 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(30)('Int32', 4, function (init) {
@@ -88359,7 +87784,7 @@ __webpack_require__(30)('Int32', 4, function (init) {
 
 
 /***/ }),
-/* 266 */
+/* 265 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(30)('Uint32', 4, function (init) {
@@ -88370,7 +87795,7 @@ __webpack_require__(30)('Uint32', 4, function (init) {
 
 
 /***/ }),
-/* 267 */
+/* 266 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(30)('Float32', 4, function (init) {
@@ -88381,7 +87806,7 @@ __webpack_require__(30)('Float32', 4, function (init) {
 
 
 /***/ }),
-/* 268 */
+/* 267 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(30)('Float64', 8, function (init) {
@@ -88392,7 +87817,7 @@ __webpack_require__(30)('Float64', 8, function (init) {
 
 
 /***/ }),
-/* 269 */
+/* 268 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.1 Reflect.apply(target, thisArgument, argumentsList)
@@ -88414,7 +87839,7 @@ $export($export.S + $export.F * !__webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 270 */
+/* 269 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.2 Reflect.construct(target, argumentsList [, newTarget])
@@ -88467,7 +87892,7 @@ $export($export.S + $export.F * (NEW_TARGET_BUG || ARGS_BUG), 'Reflect', {
 
 
 /***/ }),
-/* 271 */
+/* 270 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.3 Reflect.defineProperty(target, propertyKey, attributes)
@@ -88496,7 +87921,7 @@ $export($export.S + $export.F * __webpack_require__(3)(function () {
 
 
 /***/ }),
-/* 272 */
+/* 271 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.4 Reflect.deleteProperty(target, propertyKey)
@@ -88513,7 +87938,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 273 */
+/* 272 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88546,7 +87971,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 274 */
+/* 273 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.6 Reflect.get(target, propertyKey [, receiver])
@@ -88573,7 +87998,7 @@ $export($export.S, 'Reflect', { get: get });
 
 
 /***/ }),
-/* 275 */
+/* 274 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.7 Reflect.getOwnPropertyDescriptor(target, propertyKey)
@@ -88589,7 +88014,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 276 */
+/* 275 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.8 Reflect.getPrototypeOf(target)
@@ -88605,7 +88030,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 277 */
+/* 276 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.9 Reflect.has(target, propertyKey)
@@ -88619,7 +88044,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 278 */
+/* 277 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.10 Reflect.isExtensible(target)
@@ -88636,7 +88061,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 279 */
+/* 278 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.11 Reflect.ownKeys(target)
@@ -88646,7 +88071,7 @@ $export($export.S, 'Reflect', { ownKeys: __webpack_require__(130) });
 
 
 /***/ }),
-/* 280 */
+/* 279 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.12 Reflect.preventExtensions(target)
@@ -88668,7 +88093,7 @@ $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 281 */
+/* 280 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.13 Reflect.set(target, propertyKey, V [, receiver])
@@ -88707,7 +88132,7 @@ $export($export.S, 'Reflect', { set: set });
 
 
 /***/ }),
-/* 282 */
+/* 281 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 26.1.14 Reflect.setPrototypeOf(target, proto)
@@ -88728,7 +88153,7 @@ if (setProto) $export($export.S, 'Reflect', {
 
 
 /***/ }),
-/* 283 */
+/* 282 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88743,11 +88168,11 @@ $export($export.P, 'Array', {
   }
 });
 
-__webpack_require__(35)('includes');
+__webpack_require__(34)('includes');
 
 
 /***/ }),
-/* 284 */
+/* 283 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88772,11 +88197,11 @@ $export($export.P, 'Array', {
   }
 });
 
-__webpack_require__(35)('flatMap');
+__webpack_require__(34)('flatMap');
 
 
 /***/ }),
-/* 285 */
+/* 284 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88800,11 +88225,11 @@ $export($export.P, 'Array', {
   }
 });
 
-__webpack_require__(35)('flatten');
+__webpack_require__(34)('flatten');
 
 
 /***/ }),
-/* 286 */
+/* 285 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88826,7 +88251,7 @@ $export($export.P + $export.F * FORCED, 'String', {
 
 
 /***/ }),
-/* 287 */
+/* 286 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88847,7 +88272,7 @@ $export($export.P + $export.F * WEBKIT_BUG, 'String', {
 
 
 /***/ }),
-/* 288 */
+/* 287 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88868,7 +88293,7 @@ $export($export.P + $export.F * WEBKIT_BUG, 'String', {
 
 
 /***/ }),
-/* 289 */
+/* 288 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88882,7 +88307,7 @@ __webpack_require__(49)('trimLeft', function ($trim) {
 
 
 /***/ }),
-/* 290 */
+/* 289 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88896,7 +88321,7 @@ __webpack_require__(49)('trimRight', function ($trim) {
 
 
 /***/ }),
-/* 291 */
+/* 290 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -88933,21 +88358,21 @@ $export($export.P, 'String', {
 
 
 /***/ }),
-/* 292 */
+/* 291 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(75)('asyncIterator');
 
 
 /***/ }),
-/* 293 */
+/* 292 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(75)('observable');
 
 
 /***/ }),
-/* 294 */
+/* 293 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-getownpropertydescriptors
@@ -88975,7 +88400,7 @@ $export($export.S, 'Object', {
 
 
 /***/ }),
-/* 295 */
+/* 294 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-values-entries
@@ -88990,7 +88415,7 @@ $export($export.S, 'Object', {
 
 
 /***/ }),
-/* 296 */
+/* 295 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-values-entries
@@ -89005,7 +88430,7 @@ $export($export.S, 'Object', {
 
 
 /***/ }),
-/* 297 */
+/* 296 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -89024,7 +88449,7 @@ __webpack_require__(7) && $export($export.P + __webpack_require__(68), 'Object',
 
 
 /***/ }),
-/* 298 */
+/* 297 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -89043,7 +88468,7 @@ __webpack_require__(7) && $export($export.P + __webpack_require__(68), 'Object',
 
 
 /***/ }),
-/* 299 */
+/* 298 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -89068,7 +88493,7 @@ __webpack_require__(7) && $export($export.P + __webpack_require__(68), 'Object',
 
 
 /***/ }),
-/* 300 */
+/* 299 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -89093,7 +88518,7 @@ __webpack_require__(7) && $export($export.P + __webpack_require__(68), 'Object',
 
 
 /***/ }),
-/* 301 */
+/* 300 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/DavidBruant/Map-Set.prototype.toJSON
@@ -89103,7 +88528,7 @@ $export($export.P + $export.R, 'Map', { toJSON: __webpack_require__(134)('Map') 
 
 
 /***/ }),
-/* 302 */
+/* 301 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/DavidBruant/Map-Set.prototype.toJSON
@@ -89113,7 +88538,7 @@ $export($export.P + $export.R, 'Set', { toJSON: __webpack_require__(134)('Set') 
 
 
 /***/ }),
-/* 303 */
+/* 302 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-map.of
@@ -89121,7 +88546,7 @@ __webpack_require__(69)('Map');
 
 
 /***/ }),
-/* 304 */
+/* 303 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-set.of
@@ -89129,7 +88554,7 @@ __webpack_require__(69)('Set');
 
 
 /***/ }),
-/* 305 */
+/* 304 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-weakmap.of
@@ -89137,7 +88562,7 @@ __webpack_require__(69)('WeakMap');
 
 
 /***/ }),
-/* 306 */
+/* 305 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-weakset.of
@@ -89145,7 +88570,7 @@ __webpack_require__(69)('WeakSet');
 
 
 /***/ }),
-/* 307 */
+/* 306 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-map.from
@@ -89153,7 +88578,7 @@ __webpack_require__(70)('Map');
 
 
 /***/ }),
-/* 308 */
+/* 307 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-set.from
@@ -89161,7 +88586,7 @@ __webpack_require__(70)('Set');
 
 
 /***/ }),
-/* 309 */
+/* 308 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-weakmap.from
@@ -89169,7 +88594,7 @@ __webpack_require__(70)('WeakMap');
 
 
 /***/ }),
-/* 310 */
+/* 309 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-weakset.from
@@ -89177,7 +88602,7 @@ __webpack_require__(70)('WeakSet');
 
 
 /***/ }),
-/* 311 */
+/* 310 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-global
@@ -89187,7 +88612,7 @@ $export($export.G, { global: __webpack_require__(2) });
 
 
 /***/ }),
-/* 312 */
+/* 311 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-global
@@ -89197,7 +88622,7 @@ $export($export.S, 'System', { global: __webpack_require__(2) });
 
 
 /***/ }),
-/* 313 */
+/* 312 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/ljharb/proposal-is-error
@@ -89212,7 +88637,7 @@ $export($export.S, 'Error', {
 
 
 /***/ }),
-/* 314 */
+/* 313 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -89226,7 +88651,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 315 */
+/* 314 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -89236,7 +88661,7 @@ $export($export.S, 'Math', { DEG_PER_RAD: Math.PI / 180 });
 
 
 /***/ }),
-/* 316 */
+/* 315 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -89251,7 +88676,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 317 */
+/* 316 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -89267,7 +88692,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 318 */
+/* 317 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
@@ -89284,7 +88709,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 319 */
+/* 318 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
@@ -89301,7 +88726,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 320 */
+/* 319 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
@@ -89323,7 +88748,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 321 */
+/* 320 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -89333,7 +88758,7 @@ $export($export.S, 'Math', { RAD_PER_DEG: 180 / Math.PI });
 
 
 /***/ }),
-/* 322 */
+/* 321 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -89348,7 +88773,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 323 */
+/* 322 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://rwaldron.github.io/proposal-math-extensions/
@@ -89358,7 +88783,7 @@ $export($export.S, 'Math', { scale: __webpack_require__(136) });
 
 
 /***/ }),
-/* 324 */
+/* 323 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
@@ -89380,7 +88805,7 @@ $export($export.S, 'Math', {
 
 
 /***/ }),
-/* 325 */
+/* 324 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // http://jfbastien.github.io/papers/Math.signbit.html
@@ -89393,7 +88818,7 @@ $export($export.S, 'Math', { signbit: function signbit(x) {
 
 
 /***/ }),
-/* 326 */
+/* 325 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -89420,7 +88845,7 @@ $export($export.P + $export.R, 'Promise', { 'finally': function (onFinally) {
 
 
 /***/ }),
-/* 327 */
+/* 326 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -89439,7 +88864,7 @@ $export($export.S, 'Promise', { 'try': function (callbackfn) {
 
 
 /***/ }),
-/* 328 */
+/* 327 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(31);
@@ -89453,7 +88878,7 @@ metadata.exp({ defineMetadata: function defineMetadata(metadataKey, metadataValu
 
 
 /***/ }),
-/* 329 */
+/* 328 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(31);
@@ -89474,7 +88899,7 @@ metadata.exp({ deleteMetadata: function deleteMetadata(metadataKey, target /* , 
 
 
 /***/ }),
-/* 330 */
+/* 329 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(31);
@@ -89497,7 +88922,7 @@ metadata.exp({ getMetadata: function getMetadata(metadataKey, target /* , target
 
 
 /***/ }),
-/* 331 */
+/* 330 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Set = __webpack_require__(126);
@@ -89522,7 +88947,7 @@ metadata.exp({ getMetadataKeys: function getMetadataKeys(target /* , targetKey *
 
 
 /***/ }),
-/* 332 */
+/* 331 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(31);
@@ -89537,7 +88962,7 @@ metadata.exp({ getOwnMetadata: function getOwnMetadata(metadataKey, target /* , 
 
 
 /***/ }),
-/* 333 */
+/* 332 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(31);
@@ -89551,7 +88976,7 @@ metadata.exp({ getOwnMetadataKeys: function getOwnMetadataKeys(target /* , targe
 
 
 /***/ }),
-/* 334 */
+/* 333 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(31);
@@ -89573,7 +88998,7 @@ metadata.exp({ hasMetadata: function hasMetadata(metadataKey, target /* , target
 
 
 /***/ }),
-/* 335 */
+/* 334 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metadata = __webpack_require__(31);
@@ -89588,7 +89013,7 @@ metadata.exp({ hasOwnMetadata: function hasOwnMetadata(metadataKey, target /* , 
 
 
 /***/ }),
-/* 336 */
+/* 335 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $metadata = __webpack_require__(31);
@@ -89609,7 +89034,7 @@ $metadata.exp({ metadata: function metadata(metadataKey, metadataValue) {
 
 
 /***/ }),
-/* 337 */
+/* 336 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/rwaldron/tc39-notes/blob/master/es6/2014-09/sept-25.md#510-globalasap-for-enqueuing-a-microtask
@@ -89627,7 +89052,7 @@ $export($export.G, {
 
 
 /***/ }),
-/* 338 */
+/* 337 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -89833,7 +89258,7 @@ __webpack_require__(42)('Observable');
 
 
 /***/ }),
-/* 339 */
+/* 338 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // ie9- setTimeout & setInterval additional parameters fix
@@ -89859,7 +89284,7 @@ $export($export.G + $export.B + $export.F * MSIE, {
 
 
 /***/ }),
-/* 340 */
+/* 339 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
@@ -89871,7 +89296,7 @@ $export($export.G + $export.B, {
 
 
 /***/ }),
-/* 341 */
+/* 340 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $iterators = __webpack_require__(94);
@@ -89935,7 +89360,7 @@ for (var collections = getKeys(DOMIterables), i = 0; i < collections.length; i++
 
 
 /***/ }),
-/* 342 */
+/* 341 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -90678,26 +90103,26 @@ for (var collections = getKeys(DOMIterables), i = 0; i < collections.length; i++
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(73)))
 
 /***/ }),
-/* 343 */
+/* 342 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(344);
+__webpack_require__(343);
 module.exports = __webpack_require__(19).RegExp.escape;
 
 
 /***/ }),
-/* 344 */
+/* 343 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/benjamingr/RexExp.escape
 var $export = __webpack_require__(0);
-var $re = __webpack_require__(345)(/[\\^$*+?.()|[\]{}]/g, '\\$&');
+var $re = __webpack_require__(344)(/[\\^$*+?.()|[\]{}]/g, '\\$&');
 
 $export($export.S, 'RegExp', { escape: function escape(it) { return $re(it); } });
 
 
 /***/ }),
-/* 345 */
+/* 344 */
 /***/ (function(module, exports) {
 
 module.exports = function (regExp, replace) {
@@ -90711,7 +90136,7 @@ module.exports = function (regExp, replace) {
 
 
 /***/ }),
-/* 346 */
+/* 345 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -90731,10 +90156,6 @@ var _aquaria = __webpack_require__(364);
 var _lodash = __webpack_require__(11);
 
 var _lodash2 = _interopRequireDefault(_lodash);
-
-var _jquery = __webpack_require__(32);
-
-var _jquery2 = _interopRequireDefault(_jquery);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -90784,7 +90205,7 @@ var defaultDataServerArgs = {
    *   pdbId: '', // Str - id of RCSB protein structure
    *   userId: '', // Str - id of user on http://jolecule.com; default: ''
    *   isDisableSaveViews: false, // Bool - prevents save/delete to server
-   *   saveViewsUrl: true, // Str - base URL of views server (e.g. "http://jolecule.com")
+   *   saveViewsUrl: '', // Str - base URL of views server (e.g. "http://jolecule.com")
    *   isLoadViews: 'none', // bool - if false: creates dummy view get methods
    *   biounit: 0, // int - biounit
    *   viewId: '', // Str - id of user on http://jolecule.com; default: ''
@@ -90991,8 +90412,7 @@ var defaultDataServerArgs = {
 
 /**
  * @param pdbId: Str - id of RCSB protein structure
- * @param userId: Str - optional id of user on http://jolecule.com;
- *                      default: ''
+ * @param userId: Str - optional user id from http://jolecule.com; default: ''
  * @param isDisableSaveViews: Bool - prevents save/delete to server
  * @param saveViewsUrl: Str - base URL of views server (e.g. "http://jolecule.com")
  * @param isLoadViews: bool - if false: creates dummy view get methods
@@ -91029,7 +90449,7 @@ exports.makeDataServer = makeDataServer;
 exports.AquariaAlignment = _aquaria.AquariaAlignment;
 
 /***/ }),
-/* 347 */
+/* 346 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -91057,7 +90477,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 348 */
+/* 347 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -91086,9 +90506,9 @@ var _glgeom = __webpack_require__(71);
 
 var glgeom = _interopRequireWildcard(_glgeom);
 
-var _pairs = __webpack_require__(349);
+var _pairs = __webpack_require__(348);
 
-var _store = __webpack_require__(350);
+var _store = __webpack_require__(349);
 
 var _store2 = _interopRequireDefault(_store);
 
@@ -91099,8 +90519,6 @@ var data = _interopRequireWildcard(_data);
 var _three = __webpack_require__(28);
 
 var THREE = _interopRequireWildcard(_three);
-
-var _parsers = __webpack_require__(139);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -91483,6 +90901,11 @@ var ResidueProxy = function () {
       this.soup.residueStore.iStructure[this.iRes] = iStructure;
     }
   }, {
+    key: 'structureId',
+    get: function get() {
+      return this.soup.structureIds[this.iStructure];
+    }
+  }, {
     key: 'resId',
     get: function get() {
       return this.soup.resIds[this.iRes];
@@ -91781,6 +91204,8 @@ var Soup = function () {
   }, {
     key: 'findFirstResidue',
     value: function findFirstResidue(chain, resNum) {
+      var pdbId = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
       var residue = this.getResidueProxy();
       var _iteratorNormalCompletion4 = true;
       var _didIteratorError4 = false;
@@ -91791,6 +91216,11 @@ var Soup = function () {
           var iRes = _step4.value;
 
           residue.iRes = iRes;
+          if (pdbId) {
+            if (residue.structureId !== pdbId) {
+              continue;
+            }
+          }
           if (residue.chain === chain && residue.resNum === resNum) {
             return residue;
           }
@@ -93022,7 +92452,7 @@ var Soup = function () {
 exports.Soup = Soup;
 
 /***/ }),
-/* 349 */
+/* 348 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -93159,7 +92589,7 @@ var SpaceHash = function () {
 exports.SpaceHash = SpaceHash;
 
 /***/ }),
-/* 350 */
+/* 349 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -93487,7 +92917,7 @@ var Store = function () {
 exports.default = Store;
 
 /***/ }),
-/* 351 */
+/* 350 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -93510,7 +92940,7 @@ var _three = __webpack_require__(28);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _signals = __webpack_require__(352);
+var _signals = __webpack_require__(351);
 
 var _signals2 = _interopRequireDefault(_signals);
 
@@ -93522,17 +92952,17 @@ var _util = __webpack_require__(29);
 
 var util = _interopRequireWildcard(_util);
 
-var _widgets = __webpack_require__(140);
+var _widgets = __webpack_require__(139);
 
 var _widgets2 = _interopRequireDefault(_widgets);
 
-var _representation = __webpack_require__(356);
+var _representation = __webpack_require__(355);
 
 var representation = _interopRequireWildcard(_representation);
 
-var _animation = __webpack_require__(357);
+var _animation = __webpack_require__(356);
 
-var _webglWidget = __webpack_require__(358);
+var _webglWidget = __webpack_require__(357);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -94032,6 +93462,7 @@ var SoupWidget = function (_WebglWidget) {
   }, {
     key: 'focus',
     value: function focus() {
+      this.div.focus();
       console.log('SoupWidget.focus');
     }
   }, {
@@ -94284,7 +93715,7 @@ var SoupWidget = function (_WebglWidget) {
 exports.SoupWidget = SoupWidget;
 
 /***/ }),
-/* 352 */
+/* 351 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_RESULT__;/*jslint onevar:true, undef:true, newcap:true, regexp:true, bitwise:true, maxerr:50, indent:4, white:false, nomen:false, plusplus:false */
@@ -94736,7 +94167,7 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/*jslint onevar:true, undef:true, newcap:true,
 
 
 /***/ }),
-/* 353 */
+/* 352 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var require;var require;/*!
@@ -94749,7 +94180,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 ;(function (factory) {
   if (true) {
     // AMD. Register as an anonymous module.
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(32)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(35)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -100853,7 +100284,7 @@ S2.define('jquery.select2',[
 
 
 /***/ }),
-/* 354 */
+/* 353 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -100862,10 +100293,10 @@ S2.define('jquery.select2',[
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(355);
+var content = __webpack_require__(354);
 if (typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
-var update = __webpack_require__(142)(content, {});
+var update = __webpack_require__(141)(content, {});
 if (content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if (false) {
@@ -100884,10 +100315,10 @@ if (false) {
 }
 
 /***/ }),
-/* 355 */
+/* 354 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(141)();
+exports = module.exports = __webpack_require__(140)();
 // imports
 
 
@@ -100898,7 +100329,7 @@ exports.push([module.i, ".select2-container {\n  font-size: 12px;\n  font-family
 
 
 /***/ }),
-/* 356 */
+/* 355 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -102462,7 +101893,7 @@ exports.SidechainRepresentation = SidechainRepresentation;
 exports.BackboneRepresentation = BackboneRepresentation;
 
 /***/ }),
-/* 357 */
+/* 356 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -102575,7 +102006,7 @@ function registerGlobalAnimationLoop(widget) {
 exports.registerGlobalAnimationLoop = registerGlobalAnimationLoop;
 
 /***/ }),
-/* 358 */
+/* 357 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -102588,7 +102019,7 @@ exports.WebglWidget = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _jquery = __webpack_require__(32);
+var _jquery = __webpack_require__(35);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -103125,7 +102556,7 @@ var WebglWidget = function () {
 exports.WebglWidget = WebglWidget;
 
 /***/ }),
-/* 359 */
+/* 358 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -103144,7 +102575,7 @@ var _lodash = __webpack_require__(11);
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _parsers = __webpack_require__(139);
+var _parsers = __webpack_require__(359);
 
 var _util = __webpack_require__(29);
 
@@ -104357,6 +103788,580 @@ var SoupController = function () {
 exports.SoupController = SoupController;
 
 /***/ }),
+/* 359 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.CifParser = exports.PdbParser = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _lodash = __webpack_require__(11);
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function deleteNumbers(text) {
+  return text.replace(/\d+/, '');
+}
+
+function removeQuotes(s) {
+  var n = s.length;
+  if (s[0] === '"' && s[n - 1] === '"') {
+    return s.slice(1, n - 1);
+  }
+  if (s[0] === "'" && s[n - 1] === "'") {
+    return s.slice(1, n - 1);
+  }
+  return s;
+}
+
+var PdbParser = function () {
+  function PdbParser(soup) {
+    _classCallCheck(this, PdbParser);
+
+    this.soup = soup;
+    this.hasSecondaryStructure = false;
+    this.error = '';
+  }
+
+  _createClass(PdbParser, [{
+    key: 'isAtomLine',
+    value: function isAtomLine(line) {
+      return line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM';
+    }
+  }, {
+    key: 'isNmr',
+    value: function isNmr(lines) {
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = lines[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var line = _step.value;
+
+          if (line.startsWith('EXPDTA')) {
+            if (line.includes('NMR')) {
+              return true;
+            }
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      return false;
+    }
+  }, {
+    key: 'parseAtomLines',
+    value: function parseAtomLines(pdbLines) {
+      var x = void 0,
+          y = void 0,
+          z = void 0,
+          chain = void 0,
+          resType = void 0;
+      var atomType = void 0,
+          bfactor = void 0,
+          elem = void 0,
+          alt = void 0,
+          resNum = void 0,
+          insCode = void 0;
+
+      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
+        var line = pdbLines[iLine];
+
+        if (this.isAtomLine(line)) {
+          try {
+            atomType = _lodash2.default.trim(line.substr(12, 4));
+            alt = _lodash2.default.trim(line.substr(16, 1));
+            resType = _lodash2.default.trim(line.substr(17, 3));
+            chain = line[21];
+            resNum = parseInt(line.substr(22, 4));
+            insCode = line.substr(26, 1);
+            x = parseFloat(line.substr(30, 7));
+            y = parseFloat(line.substr(38, 7));
+            z = parseFloat(line.substr(46, 7));
+            bfactor = parseFloat(line.substr(60, 6));
+            elem = deleteNumbers(_lodash2.default.trim(line.substr(76, 2)));
+          } catch (e) {
+            this.error = 'line ' + iLine;
+            console.log('parseAtomLines: "' + line + '"');
+            continue;
+          }
+
+          if (elem === '') {
+            elem = deleteNumbers(_lodash2.default.trim(atomType)).substr(0, 1);
+          }
+
+          this.soup.addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain);
+        }
+      }
+    }
+  }, {
+    key: 'parseSecondaryStructureLines',
+    value: function parseSecondaryStructureLines(pdbLines) {
+      this.soup.assignResidueProperties(this.soup.iStructure);
+      var residue = this.soup.getResidueProxy();
+      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
+        var line = pdbLines[iLine];
+
+        if (line.substr(0, 5) === 'HELIX') {
+          this.hasSecondaryStructure = true;
+          var chain = line.substr(19, 1);
+          var resNumStart = parseInt(line.substr(21, 4));
+          var resNumEnd = parseInt(line.substr(33, 4));
+          var _iteratorNormalCompletion2 = true;
+          var _didIteratorError2 = false;
+          var _iteratorError2 = undefined;
+
+          try {
+            for (var _iterator2 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+              var iRes = _step2.value;
+
+              residue.iRes = iRes;
+              while (residue.resNum <= resNumEnd && chain === residue.chain) {
+                residue.ss = 'H';
+                residue.iRes = residue.iRes + 1;
+              }
+            }
+          } catch (err) {
+            _didIteratorError2 = true;
+            _iteratorError2 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                _iterator2.return();
+              }
+            } finally {
+              if (_didIteratorError2) {
+                throw _iteratorError2;
+              }
+            }
+          }
+        } else if (line.substr(0, 5) === 'SHEET') {
+          this.hasSecondaryStructure = true;
+          var _chain = line.substr(21, 1);
+          var _resNumStart = parseInt(line.substr(22, 4));
+          var _resNumEnd = parseInt(line.substr(33, 4));
+          var _iteratorNormalCompletion3 = true;
+          var _didIteratorError3 = false;
+          var _iteratorError3 = undefined;
+
+          try {
+            for (var _iterator3 = this.soup.findResidueIndices(this.soup.iStructure, _chain, _resNumStart)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+              var _iRes = _step3.value;
+
+              residue.iRes = _iRes;
+              while (residue.resNum <= _resNumEnd && _chain === residue.chain) {
+                residue.ss = 'E';
+                residue.iRes = residue.iRes + 1;
+              }
+            }
+          } catch (err) {
+            _didIteratorError3 = true;
+            _iteratorError3 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                _iterator3.return();
+              }
+            } finally {
+              if (_didIteratorError3) {
+                throw _iteratorError3;
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    key: 'parseTitle',
+    value: function parseTitle(lines) {
+      var result = '';
+      var _iteratorNormalCompletion4 = true;
+      var _didIteratorError4 = false;
+      var _iteratorError4 = undefined;
+
+      try {
+        for (var _iterator4 = lines[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+          var line = _step4.value;
+
+          if (line.substring(0, 5) === 'TITLE') {
+            result += line.substring(10);
+          }
+        }
+      } catch (err) {
+        _didIteratorError4 = true;
+        _iteratorError4 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion4 && _iterator4.return) {
+            _iterator4.return();
+          }
+        } finally {
+          if (_didIteratorError4) {
+            throw _iteratorError4;
+          }
+        }
+      }
+
+      return result;
+    }
+  }, {
+    key: 'parsePdbData',
+    value: function parsePdbData(pdbText, pdbId) {
+      var lines = pdbText.split(/\r?\n/);
+      if (lines.length === 0) {
+        this.parsingError = 'No atom lines';
+        return;
+      }
+
+      var title = this.parseTitle(lines);
+
+      var isNmr = this.isNmr(lines);
+
+      var models = [[]];
+      var iModel = 0;
+      var _iteratorNormalCompletion5 = true;
+      var _didIteratorError5 = false;
+      var _iteratorError5 = undefined;
+
+      try {
+        for (var _iterator5 = lines[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+          var line = _step5.value;
+
+          if (this.isAtomLine(line)) {
+            models[iModel].push(line);
+          } else if (line.substr(0, 3) === 'END') {
+            if (isNmr) {
+              break;
+            }
+            models.push([]);
+            iModel += 1;
+          }
+        }
+      } catch (err) {
+        _didIteratorError5 = true;
+        _iteratorError5 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+            _iterator5.return();
+          }
+        } finally {
+          if (_didIteratorError5) {
+            throw _iteratorError5;
+          }
+        }
+      }
+
+      if (models[iModel].length === 0) {
+        models.pop();
+      }
+
+      var nModel = models.length;
+      for (var _iModel = 0; _iModel < nModel; _iModel += 1) {
+        var structureId = pdbId;
+        if (nModel > 1) {
+          structureId = structureId + '[' + (_iModel + 1) + ']';
+        }
+        this.soup.pushStructureId(structureId, title);
+        this.parseAtomLines(models[_iModel]);
+        this.parseSecondaryStructureLines(lines);
+      }
+    }
+  }]);
+
+  return PdbParser;
+}();
+
+var CifParser = function () {
+  function CifParser(soup) {
+    _classCallCheck(this, CifParser);
+
+    this.soup = soup;
+    this.hasSecondaryStructure = false;
+    this.error = '';
+  }
+
+  _createClass(CifParser, [{
+    key: 'isAtomLine',
+    value: function isAtomLine(line) {
+      return line.substr(0, 4) === 'ATOM' || line.substr(0, 6) === 'HETATM';
+    }
+  }, {
+    key: 'parseAtomLines',
+    value: function parseAtomLines(pdbLines) {
+      var x = void 0,
+          y = void 0,
+          z = void 0,
+          chain = void 0,
+          resType = void 0,
+          entity = void 0;
+      var atomType = void 0,
+          bfactor = void 0,
+          elem = void 0,
+          alt = void 0,
+          resNum = void 0,
+          insCode = void 0;
+      var nextResNum = null;
+      var lastChain = null;
+      var lastEntity = null;
+      var token = void 0;
+      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
+        var line = pdbLines[iLine];
+
+        if (this.isAtomLine(line)) {
+          var tokens = line.split(/[ ,]+/);
+          try {
+            elem = tokens[2];
+            atomType = removeQuotes(tokens[3]);
+            alt = tokens[4] === '.' ? '' : tokens[4];
+            resType = tokens[5];
+            chain = tokens[6];
+            entity = tokens[7];
+            insCode = tokens[9] === '?' ? '' : tokens[9];
+            x = parseFloat(tokens[10]);
+            y = parseFloat(tokens[11]);
+            z = parseFloat(tokens[12]);
+            bfactor = parseFloat(tokens[14]);
+            token = tokens[8];
+            if (token === '.') {
+              var isSameChainAndEntity = chain === lastChain && entity === lastEntity;
+              if (!isSameChainAndEntity || resType === 'HOH') {
+                nextResNum += 1;
+                lastChain = chain;
+                lastEntity = entity;
+              }
+              resNum = nextResNum;
+            } else {
+              resNum = parseInt(tokens[8]);
+              lastChain = chain;
+              lastEntity = entity;
+              nextResNum = resNum + 1;
+            }
+            // console.log({
+            //   atomType,
+            //   alt,
+            //   resType,
+            //   chain,
+            //   resNum,
+            //   insCode,
+            //   x,
+            //   y,
+            //   z,
+            //   bfactor,
+            //   elem
+            // })
+          } catch (e) {
+            this.error = 'line ' + iLine;
+            console.log('parseAtomLines ' + e + ': "' + line + '"');
+            continue;
+          }
+
+          if (elem === '') {
+            elem = deleteNumbers(_lodash2.default.trim(atomType)).substr(0, 1);
+          }
+
+          this.soup.addAtom(x, y, z, bfactor, alt, atomType, elem, resType, resNum, insCode, chain);
+        }
+      }
+    }
+  }, {
+    key: 'parseSecondaryStructureLines',
+    value: function parseSecondaryStructureLines(pdbLines) {
+      this.hasSecondaryStructure = false;
+      this.soup.assignResidueProperties(this.soup.iStructure);
+      this.parseHelixLines(pdbLines);
+      this.parseSheetLines(pdbLines);
+    }
+  }, {
+    key: 'parseHelixLines',
+    value: function parseHelixLines(pdbLines) {
+      console.log('CifParser.parseHelixLines');
+      var residue = this.soup.getResidueProxy();
+      var isHelixLoop = false;
+      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
+        var line = pdbLines[iLine];
+        if (!isHelixLoop) {
+          if (_lodash2.default.startsWith(line, '_struct_conf.pdbx_PDB_helix_id')) {
+            isHelixLoop = true;
+          }
+        }
+        if (!isHelixLoop) {
+          continue;
+        }
+        if (_lodash2.default.startsWith(line, '#')) {
+          break;
+        }
+        if (!_lodash2.default.startsWith(line, '_struct_conf')) {
+          this.hasSecondaryStructure = true;
+          var tokens = line.split(/[ ,]+/);
+          var chain = tokens[4];
+          var resNumStart = parseInt(tokens[5]);
+          var resNumEnd = parseInt(tokens[9]);
+          var _iteratorNormalCompletion6 = true;
+          var _didIteratorError6 = false;
+          var _iteratorError6 = undefined;
+
+          try {
+            for (var _iterator6 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+              var iRes = _step6.value;
+
+              residue.iRes = iRes;
+              while (residue.resNum <= resNumEnd && chain === residue.chain) {
+                residue.ss = 'H';
+                residue.iRes = residue.iRes + 1;
+              }
+            }
+          } catch (err) {
+            _didIteratorError6 = true;
+            _iteratorError6 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                _iterator6.return();
+              }
+            } finally {
+              if (_didIteratorError6) {
+                throw _iteratorError6;
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    key: 'parseSheetLines',
+    value: function parseSheetLines(pdbLines) {
+      console.log('CifParser.parseSheetLines');
+      var residue = this.soup.getResidueProxy();
+      var isSheetLoop = false;
+      for (var iLine = 0; iLine < pdbLines.length; iLine += 1) {
+        var line = pdbLines[iLine];
+        if (!isSheetLoop) {
+          if (_lodash2.default.startsWith(line, '_struct_sheet_range.sheet_id')) {
+            isSheetLoop = true;
+          }
+        }
+        if (!isSheetLoop) {
+          continue;
+        }
+        if (_lodash2.default.startsWith(line, '#')) {
+          break;
+        }
+        if (line.substr(0, 6) !== '_struct') {
+          this.hasSecondaryStructure = true;
+          var tokens = line.split(/[ ,]+/);
+          var chain = tokens[3];
+          var resNumStart = parseInt(tokens[4]);
+          var resNumEnd = parseInt(tokens[8]);
+          var _iteratorNormalCompletion7 = true;
+          var _didIteratorError7 = false;
+          var _iteratorError7 = undefined;
+
+          try {
+            for (var _iterator7 = this.soup.findResidueIndices(this.soup.iStructure, chain, resNumStart)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+              var iRes = _step7.value;
+
+              residue.iRes = iRes;
+              while (residue.resNum <= resNumEnd && chain === residue.chain) {
+                residue.ss = 'E';
+                residue.iRes = residue.iRes + 1;
+              }
+            }
+          } catch (err) {
+            _didIteratorError7 = true;
+            _iteratorError7 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                _iterator7.return();
+              }
+            } finally {
+              if (_didIteratorError7) {
+                throw _iteratorError7;
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    key: 'parseTitle',
+    value: function parseTitle(lines) {
+      var prevLine = '';
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
+
+      try {
+        for (var _iterator8 = lines[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var line = _step8.value;
+
+          if (_lodash2.default.startsWith(prevLine, '_struct.title')) {
+            return removeQuotes(_lodash2.default.trim(line));
+          }
+          prevLine = line;
+        }
+      } catch (err) {
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
+          }
+        } finally {
+          if (_didIteratorError8) {
+            throw _iteratorError8;
+          }
+        }
+      }
+
+      return '';
+    }
+  }, {
+    key: 'parsePdbData',
+    value: function parsePdbData(pdbText, pdbId) {
+      var lines = pdbText.split(/\r?\n/);
+      if (lines.length === 0) {
+        this.parsingError = 'No atom lines';
+        return;
+      }
+      this.soup.pushStructureId(pdbId, this.parseTitle(lines));
+      this.parseAtomLines(lines);
+      this.parseSecondaryStructureLines(lines);
+    }
+  }]);
+
+  return CifParser;
+}();
+
+exports.PdbParser = PdbParser;
+exports.CifParser = CifParser;
+
+/***/ }),
 /* 360 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -104369,7 +104374,7 @@ exports.SoupController = SoupController;
 var content = __webpack_require__(361);
 if (typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
-var update = __webpack_require__(142)(content, {});
+var update = __webpack_require__(141)(content, {});
 if (content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if (false) {
@@ -104391,7 +104396,7 @@ if (false) {
 /* 361 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(141)();
+exports = module.exports = __webpack_require__(140)();
 // imports
 
 
@@ -104416,7 +104421,7 @@ exports.FullPageWidget = undefined;
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // eslint-disable-line
 
 
-var _jquery = __webpack_require__(32);
+var _jquery = __webpack_require__(35);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -105138,7 +105143,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 	'use strict';
 	if (true) {
 		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(32)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(35)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -105377,7 +105382,7 @@ var _util = __webpack_require__(29);
 
 var util = _interopRequireWildcard(_util);
 
-var _jquery = __webpack_require__(32);
+var _jquery = __webpack_require__(35);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -105587,6 +105592,7 @@ var AquariaAlignment = function () {
   }, {
     key: 'mapSeqResToPdbResOfChain',
     value: function mapSeqResToPdbResOfChain(seqId, resNumSeq, chain) {
+      var pdbId = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
       var _iteratorNormalCompletion4 = true;
       var _didIteratorError4 = false;
       var _iteratorError4 = undefined;
@@ -105595,6 +105601,11 @@ var AquariaAlignment = function () {
         for (var _iterator4 = this.alignEntries[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
           var entry = _step4.value;
 
+          if (pdbId) {
+            if (entry.pdbId !== pdbId) {
+              continue;
+            }
+          }
           if (resNumSeq >= entry.resNumSeqStart && resNumSeq <= entry.resNumSeqEnd && chain === entry.pdbChain) {
             var diff = resNumSeq - entry.resNumSeqStart;
             var resNumPdb = entry.resNumPdbStart + diff;
@@ -105653,9 +105664,14 @@ var AquariaAlignment = function () {
 
       return result;
     }
+
+    /**
+     * @returns [seqName, resNumSeq, c] - values are null if not found
+     */
+
   }, {
     key: 'mapPdbResOfChainToSeqRes',
-    value: function mapPdbResOfChainToSeqRes(chain, resNum) {
+    value: function mapPdbResOfChainToSeqRes(pdbId, chain, resNum) {
       var _iteratorNormalCompletion6 = true;
       var _didIteratorError6 = false;
       var _iteratorError6 = undefined;
@@ -105664,18 +105680,25 @@ var AquariaAlignment = function () {
         for (var _iterator6 = this.alignEntries[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
           var entry = _step6.value;
 
+          if (pdbId !== entry.pdbId) {
+            continue;
+          }
           if (chain !== entry.pdbChain) {
             continue;
           }
+          var iSeq = this.getISeqFromSeqId(entry.seqId);
+          if (_lodash2.default.isNil(iSeq)) {
+            continue;
+          }
+          var sequence = this.data.sequences[iSeq].sequence;
+          var seqName = this.data.common_names[iSeq];
+          if (!seqName) {
+            seqName = null;
+          }
           if (resNum >= entry.resNumPdbStart && resNum <= entry.resNumPdbEnd) {
-            var iSeq = this.getISeqFromSeqId(entry.seqId);
-            var seqName = this.data.common_names[iSeq];
-            if (!seqName) {
-              seqName = null;
-            }
             var diff = resNum - entry.resNumPdbStart;
             var resNumSeq = entry.resNumSeqStart + diff;
-            var c = this.data.sequences[iSeq].sequence[resNumSeq - 1];
+            var c = sequence[resNumSeq - 1];
             return [seqName, resNumSeq, c];
           }
         }
@@ -105846,25 +105869,26 @@ var AquariaAlignment = function () {
       var residue = soup.getResidueProxy();
       for (var iRes = 0; iRes < soup.getResidueCount(); iRes += 1) {
         residue.iRes = iRes;
-        var chain = residue.chain;
-        var resNum = residue.resNum;
         var pdbC = _lodash2.default.get(data.resToAa, residue.resType, '.');
 
-        var _mapPdbResOfChainToSe = this.mapPdbResOfChainToSeqRes(chain, resNum),
+        var _mapPdbResOfChainToSe = this.mapPdbResOfChainToSeqRes(residue.structureId, residue.chain, residue.resNum),
             _mapPdbResOfChainToSe2 = _slicedToArray(_mapPdbResOfChainToSe, 3),
+            seqName = _mapPdbResOfChainToSe2[0],
             seqResNum = _mapPdbResOfChainToSe2[1],
             c = _mapPdbResOfChainToSe2[2];
 
-        if (_lodash2.default.isNil(seqResNum)) {
-          // probably insertion, and non-alignments
-          residue.customColor = '#999999';
-        } else {
-          if (!_lodash2.default.includes(allowedChains, residue.chain)) {
+        if (seqName) {
+          if (_lodash2.default.isNil(seqResNum)) {
+            // probably insertion, and non-alignments
             residue.customColor = '#999999';
-          } else if (getConservation(c, pdbC) === 'conserved') {
-            residue.customColor = '#586C7C';
-          } else if (getConservation(c, pdbC) === 'nonconserved') {
-            residue.customColor = '#4D4D4D';
+          } else {
+            if (!_lodash2.default.includes(allowedChains, residue.chain)) {
+              residue.customColor = '#999999';
+            } else if (getConservation(c, pdbC) === 'conserved') {
+              residue.customColor = '#586C7C';
+            } else if (getConservation(c, pdbC) === 'nonconserved') {
+              residue.customColor = '#4D4D4D';
+            }
           }
         }
       }
@@ -105887,24 +105911,41 @@ var AquariaAlignment = function () {
   }, {
     key: 'setFullSequence',
     value: function setFullSequence(sequenceWidget) {
-      var soup = sequenceWidget.soup;
+      var _this = this;
 
+      var soup = sequenceWidget.soup;
+      console.log('setFullSequence', soup.chains, soup.traces);
       sequenceWidget.charEntries.length = 0;
       sequenceWidget.nChar = 0;
 
-      var pdbId = this.data.pdb_id;
-
+      var structureId = this.data.pdb_id;
+      var iStructure = _lodash2.default.findIndex(soup.structureIds, function (s) {
+        return s === structureId;
+      });
       var chains = this.data.pdb_chain;
+      var isCopy = _lodash2.default.uniq(chains).length < chains.length;
 
-      for (var iChain = 0; iChain < chains.length; iChain += 1) {
+      var _loop = function _loop(iChain) {
         var chain = chains[iChain];
-        var sequenceOfChain = this.data.sequences[iChain].sequence;
-        var seqId = this.data.sequences[iChain].primary_accession;
-        var seqName = this.data.common_names[iChain];
+
+        if (isCopy) {
+          var prevChains = _lodash2.default.filter(chains.slice(0, iChain), function (c) {
+            return c === chain;
+          });
+          var iCopy = prevChains.length + 1;
+          structureId = _this.data.pdb_id + '[' + iCopy + ']';
+          iStructure = _lodash2.default.findIndex(soup.structureIds, function (s) {
+            return s === structureId;
+          });
+        }
+
+        var sequenceOfChain = _this.data.sequences[iChain].sequence;
+        var seqId = _this.data.sequences[iChain].primary_accession;
+        var seqName = _this.data.common_names[iChain];
         if (_lodash2.default.isNil(seqId)) {
           seqId = '';
         }
-        console.log('AquariaAlignment.setFullSequence', iChain, seqId, seqName);
+
         // Fill the empty padding before every chain
         for (var iResOfSeq = 0; iResOfSeq < sequenceOfChain.length; iResOfSeq += 1) {
           if (iResOfSeq === 0) {
@@ -105922,10 +105963,10 @@ var AquariaAlignment = function () {
                   if (seqName) {
                     startLabel += seqName + ', ';
                   }
-                  startLabel += pdbId + '-' + chain;
+                  startLabel += structureId + '-' + chain;
                 }
                 var entry = {
-                  iStructure: 0,
+                  iStructure: iStructure,
                   chain: chain,
                   c: '',
                   startLabel: startLabel,
@@ -105951,7 +105992,7 @@ var AquariaAlignment = function () {
 
           var c = sequenceOfChain[iResOfSeq];
           var seqResNum = iResOfSeq + 1;
-          var pdbRes = this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain);
+          var pdbRes = _this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain, structureId);
           var seqLabel = '';
           if (seqName) {
             seqLabel = 'Sequence: ' + seqName + ' ' + c + seqResNum + '<br>';
@@ -105959,7 +106000,7 @@ var AquariaAlignment = function () {
           if (_lodash2.default.isNil(pdbRes)) {
             // Entries of residues without PDB matches
             var _entry2 = {
-              iStructure: 0,
+              iStructure: iStructure,
               chain: chain,
               c: c,
               startLabel: null,
@@ -105971,15 +106012,14 @@ var AquariaAlignment = function () {
           } else {
             // Entries of residues that match PDB residues
             var _pdbRes = _slicedToArray(pdbRes, 3),
-                _pdbId = _pdbRes[0],
                 _chain = _pdbRes[1],
                 pdbResNum = _pdbRes[2];
 
-            var residue = soup.findFirstResidue(_chain, pdbResNum);
+            var residue = soup.findFirstResidue(_chain, pdbResNum, structureId);
             if (_lodash2.default.isNil(residue)) {
               var _entry3 = {
                 chain: _chain,
-                iStructure: 0,
+                iStructure: iStructure,
                 c: c,
                 startLabel: null,
                 ss: '.',
@@ -105991,20 +106031,25 @@ var AquariaAlignment = function () {
               var pdbC = _lodash2.default.get(data.resToAa, residue.resType, '.');
               var _entry4 = {
                 chain: _chain,
-                iStructure: residue.iStructure,
+                iStructure: iStructure,
                 c: c,
                 startLabel: null,
                 iRes: residue.iRes,
                 ss: residue.ss,
-                label: seqLabel + 'Structure: ' + _pdbId + '-' + _chain + ' ' + pdbC + pdbResNum,
+                label: seqLabel + 'Structure: ' + structureId + '-' + _chain + ' ' + pdbC + pdbResNum,
                 resNum: iResOfSeq + 1
               };
               sequenceWidget.charEntries.push(_entry4);
             }
           }
         }
+      };
+
+      for (var iChain = 0; iChain < chains.length; iChain += 1) {
+        _loop(iChain);
       }
       sequenceWidget.nChar = sequenceWidget.charEntries.length;
+      console.log('setFullSequence', sequenceWidget.charEntries);
     }
   }, {
     key: 'colorFromFeatures',
@@ -106083,7 +106128,7 @@ var AquariaAlignment = function () {
       var _iteratorError14 = undefined;
 
       try {
-        var _loop = function _loop() {
+        var _loop2 = function _loop2() {
           var feature = _step14.value;
 
           var entry = _lodash2.default.find(entries, function (e) {
@@ -106097,7 +106142,7 @@ var AquariaAlignment = function () {
         };
 
         for (var _iterator14 = features[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-          _loop();
+          _loop2();
         }
       } catch (err) {
         _didIteratorError14 = true;
@@ -106190,16 +106235,16 @@ var AquariaAlignment = function () {
   }, {
     key: 'setPopup',
     value: function setPopup(embedJolecule) {
-      var _this = this;
+      var _this2 = this;
 
       var soup = embedJolecule.soup;
       embedJolecule.soupWidget.popupText = function (iAtom) {
-        var pdbId = _this.data.pdb_id;
         var atom = soup.getAtomProxy(iAtom);
         var iRes = atom.iRes;
         var residue = soup.getResidueProxy(iRes);
+        var pdbId = residue.structureId;
 
-        var _mapPdbResOfChainToSe3 = _this.mapPdbResOfChainToSeqRes(residue.chain, residue.resNum),
+        var _mapPdbResOfChainToSe3 = _this2.mapPdbResOfChainToSeqRes(residue.structureId, residue.chain, residue.resNum),
             _mapPdbResOfChainToSe4 = _slicedToArray(_mapPdbResOfChainToSe3, 3),
             seqName = _mapPdbResOfChainToSe4[0],
             seqResNum = _mapPdbResOfChainToSe4[1],
@@ -106213,13 +106258,13 @@ var AquariaAlignment = function () {
           } else {
             label = 'Sequence: [No match]<br>' + label;
           }
-          if (_this.features) {
+          if (_this2.features) {
             var _iteratorNormalCompletion17 = true;
             var _didIteratorError17 = false;
             var _iteratorError17 = undefined;
 
             try {
-              for (var _iterator17 = _this.features[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+              for (var _iterator17 = _this2.features[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
                 var _feature = _step17.value;
 
                 if (_feature.Residue === seqResNum) {
@@ -106272,16 +106317,16 @@ var AquariaAlignment = function () {
       for (var i = 0; i < soup.getResidueCount(); i += 1) {
         residue.iRes = i;
         if (residue.selected) {
-          var _mapPdbResOfChainToSe5 = this.mapPdbResOfChainToSeqRes(residue.chain, residue.resNum),
+          var _mapPdbResOfChainToSe5 = this.mapPdbResOfChainToSeqRes(residue.structureId, residue.chain, residue.resNum),
               _mapPdbResOfChainToSe6 = _slicedToArray(_mapPdbResOfChainToSe5, 3),
-              seqName = _mapPdbResOfChainToSe6[0],
+              _seqName = _mapPdbResOfChainToSe6[0],
               seqResNum = _mapPdbResOfChainToSe6[1],
               c = _mapPdbResOfChainToSe6[2];
 
           if (chain === null || chain !== residue.chain) {
             piece = {
-              pdbChain: soup.structureIds[residue.iStructure] + '-' + residue.chain,
-              seqName: seqName,
+              pdbChain: residue.structureId + '-' + residue.chain,
+              seqName: _seqName,
               firstPdbRes: null,
               firstSeqRes: null,
               pdbResRanges: [],
@@ -106446,14 +106491,14 @@ var AquariaAlignment = function () {
       var chains = this.data.pdb_chain;
       var pdbId = this.data.pdb_id;
       for (var iChain = 0; iChain < chains.length; iChain += 1) {
-        var chain = chains[iChain];
+        var _chain2 = chains[iChain];
         var masterSeq = this.data.sequences[iChain].sequence;
-        var seqId = this.data.sequences[iChain].primary_accession;
+        var _seqId = this.data.sequences[iChain].primary_accession;
         var masterSeqName = this.data.common_names[iChain];
-        var pdbSeqName = pdbId + '-' + chain;
+        var pdbSeqName = pdbId + '-' + _chain2;
         var copySeqName = pdbSeqName + '_SELECTED';
-        if (_lodash2.default.isNil(seqId)) {
-          seqId = '';
+        if (_lodash2.default.isNil(_seqId)) {
+          _seqId = '';
         }
         if (_lodash2.default.isNil(masterSeqName)) {
           masterSeqName = 'SEQUENCE';
@@ -106462,15 +106507,15 @@ var AquariaAlignment = function () {
         var copySeq = '';
         for (var iResOfSeq = 0; iResOfSeq < masterSeq.length; iResOfSeq += 1) {
           var seqResNum = iResOfSeq + 1;
-          var pdbRes = this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain);
+          var pdbRes = this.mapSeqResToPdbResOfChain(_seqId, seqResNum, _chain2);
           var pdbC = '-';
           var copyC = '-';
           if (!_lodash2.default.isNil(pdbRes)) {
             var _pdbRes2 = _slicedToArray(pdbRes, 3),
-                _chain2 = _pdbRes2[1],
+                _chain3 = _pdbRes2[1],
                 pdbResNum = _pdbRes2[2];
 
-            var residue = soup.findFirstResidue(_chain2, pdbResNum);
+            var residue = soup.findFirstResidue(_chain3, pdbResNum);
             if (!_lodash2.default.isNil(residue)) {
               pdbC = _lodash2.default.get(data.resToAa, residue.resType, '-');
               if (residue.selected) {
@@ -106510,7 +106555,7 @@ var AquariaAlignment = function () {
   }, {
     key: 'selectNextChar',
     value: function selectNextChar(c) {
-      var _this2 = this;
+      var _this3 = this;
 
       this.selectSeq += c;
       var soup = this.embedJolecule.soup;
@@ -106518,11 +106563,11 @@ var AquariaAlignment = function () {
       var chains = this.data.pdb_chain;
       var nSeq = this.selectSeq.length;
       for (var iChain = 0; iChain < chains.length; iChain += 1) {
-        var chain = chains[iChain];
+        var _chain4 = chains[iChain];
         var masterSeq = this.data.sequences[iChain].sequence;
-        var seqId = this.data.sequences[iChain].primary_accession;
-        if (_lodash2.default.isNil(seqId)) {
-          seqId = '';
+        var _seqId2 = this.data.sequences[iChain].primary_accession;
+        if (_lodash2.default.isNil(_seqId2)) {
+          _seqId2 = '';
         }
         var _iteratorNormalCompletion21 = true;
         var _didIteratorError21 = false;
@@ -106533,13 +106578,13 @@ var AquariaAlignment = function () {
             var iResOfSeq = _step21.value;
 
             for (var iRes = iResOfSeq; iRes < iResOfSeq + nSeq; iRes += 1) {
-              var pdbRes = this.mapSeqResToPdbResOfChain(seqId, iRes + 1, chain);
+              var pdbRes = this.mapSeqResToPdbResOfChain(_seqId2, iRes + 1, _chain4);
               if (!_lodash2.default.isNil(pdbRes)) {
                 var _pdbRes3 = _slicedToArray(pdbRes, 3),
-                    _chain3 = _pdbRes3[1],
+                    _chain5 = _pdbRes3[1],
                     pdbResNum = _pdbRes3[2];
 
-                var residue = soup.findFirstResidue(_chain3, pdbResNum);
+                var residue = soup.findFirstResidue(_chain5, pdbResNum);
                 if (!_lodash2.default.isNil(residue)) {
                   this.embedJolecule.controller.setResidueSelect(residue.iRes, true);
                 }
@@ -106565,27 +106610,26 @@ var AquariaAlignment = function () {
         clearTimeout(this.timeoutId);
       }
       this.timeoutId = setTimeout(function () {
-        _this2.timeoutId = null;
-        _this2.selectSeq = '';
-        _this2.embedJolecule.soupView.isUpdateObservers = true;
-        _this2.embedJolecule.soupView.isChanged = true;
+        _this3.timeoutId = null;
+        _this3.selectSeq = '';
+        _this3.embedJolecule.soupView.isUpdateObservers = true;
+        _this3.embedJolecule.soupView.isChanged = true;
         console.log('AquariaAlignment.selectNextChar settimeout cancel');
       }, 4000);
     }
   }, {
     key: 'setSelectionPanel',
     value: function setSelectionPanel(embedJolecule) {
-      var _this3 = this;
+      var _this4 = this;
 
       var widget = embedJolecule.widget.selection;
       widget.getText = function () {
-        return _this3.getSelectionText();
+        return _this4.getSelectionText();
       };
     }
   }, {
     key: 'setEmbedJolecule',
     value: function setEmbedJolecule(embedJolecule) {
-      embedJolecule.soupView.setMode('chain');
       embedJolecule.soupWidget.isCrossHairs = false;
       embedJolecule.soupWidget.crossHairs.visible = false;
       embedJolecule.soupView.setMode('chain');
@@ -106602,9 +106646,9 @@ var AquariaAlignment = function () {
               sequence = _step22$value[1];
 
           if (!_lodash2.default.isNil(sequence.primary_accession)) {
-            var chain = this.data.pdb_chain[iChain];
-            console.log('AquariaAlignment.setEmbedJolecule', chain);
-            embedJolecule.controller.selectChain(0, chain);
+            var _chain6 = this.data.pdb_chain[iChain];
+            console.log('AquariaAlignment.setEmbedJolecule', _chain6);
+            embedJolecule.controller.selectChain(0, _chain6);
             break;
           }
         }
@@ -106638,17 +106682,19 @@ var AquariaAlignment = function () {
     key: 'update',
     value: function update() {
       var result = this.embedJolecule.soup.getIStructureAndChain();
+      console.log('Aquaria.update', result, this.embedJolecule.soupView.mode);
       if (_lodash2.default.isNil(result)) {
         this.selectNewChain(null, null, null, null);
       } else {
         var iChain = _lodash2.default.findIndex(this.data.pdb_chain, function (c) {
           return c === result.chain;
         });
+        console.log('Aquaria.update', result, this.embedJolecule.soupView.mode, iChain);
         if (iChain >= 0) {
           this.selectSeqId = this.data.sequences[iChain].primary_accession;
-          var seqName = this.data.common_names[iChain];
+          var _seqName2 = this.data.common_names[iChain];
           var structureId = this.embedJolecule.soup.structureIds[result.iStructure];
-          this.selectNewChain(this.selectSeqId, seqName, structureId, result.chain);
+          this.selectNewChain(this.selectSeqId, _seqName2, structureId, result.chain);
         } else {
           console.log('AquariaAlignment.update error, chain not found in alignment:', result.chain, this.data.pdb_chain, this.data);
         }

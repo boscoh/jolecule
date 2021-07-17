@@ -452,6 +452,7 @@ class SoupWidget extends WebglWidget {
    */
 
   focus () {
+    this.div.focus()
     console.log('SoupWidget.focus')
   }
 

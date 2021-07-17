@@ -128,8 +128,13 @@ class AquariaAlignment {
     this.setEmbedJolecule(embedJolecule)
   }
 
-  mapSeqResToPdbResOfChain (seqId, resNumSeq, chain) {
+  mapSeqResToPdbResOfChain (seqId, resNumSeq, chain, pdbId=null) {
     for (let entry of this.alignEntries) {
+      if (pdbId) {
+        if (entry.pdbId !== pdbId) {
+          continue
+        }
+      }
       if (
         resNumSeq >= entry.resNumSeqStart &&
         resNumSeq <= entry.resNumSeqEnd &&
@@ -158,20 +163,30 @@ class AquariaAlignment {
     return result
   }
 
-  mapPdbResOfChainToSeqRes (chain, resNum) {
+  /**
+   * @returns [seqName, resNumSeq, c] - values are null if not found
+   */
+  mapPdbResOfChainToSeqRes (pdbId, chain, resNum) {
     for (let entry of this.alignEntries) {
+      if (pdbId !== entry.pdbId) {
+        continue
+      }
       if (chain !== entry.pdbChain) {
         continue
       }
+      let iSeq = this.getISeqFromSeqId(entry.seqId)
+      if (_.isNil(iSeq)) {
+        continue
+      }
+      let sequence = this.data.sequences[iSeq].sequence
+      let seqName = this.data.common_names[iSeq]
+      if (!seqName) {
+        seqName = null
+      }
       if (resNum >= entry.resNumPdbStart && resNum <= entry.resNumPdbEnd) {
-        let iSeq = this.getISeqFromSeqId(entry.seqId)
-        let seqName = this.data.common_names[iSeq]
-        if (!seqName) {
-          seqName = null
-        }
         let diff = resNum - entry.resNumPdbStart
         let resNumSeq = entry.resNumSeqStart + diff
-        let c = this.data.sequences[iSeq].sequence[resNumSeq - 1]
+        let c = sequence[resNumSeq - 1]
         return [seqName, resNumSeq, c]
       }
     }
@@ -232,20 +247,24 @@ class AquariaAlignment {
     let residue = soup.getResidueProxy()
     for (let iRes = 0; iRes < soup.getResidueCount(); iRes += 1) {
       residue.iRes = iRes
-      let chain = residue.chain
-      let resNum = residue.resNum
       let pdbC = _.get(data.resToAa, residue.resType, '.')
-      let [, seqResNum, c] = this.mapPdbResOfChainToSeqRes(chain, resNum)
-      if (_.isNil(seqResNum)) {
-        // probably insertion, and non-alignments
-        residue.customColor = '#999999'
-      } else {
-        if (!_.includes(allowedChains, residue.chain)) {
+      let [seqName, seqResNum, c] = this.mapPdbResOfChainToSeqRes(
+        residue.structureId,
+        residue.chain,
+        residue.resNum
+      )
+      if (seqName) {
+        if (_.isNil(seqResNum)) {
+          // probably insertion, and non-alignments
           residue.customColor = '#999999'
-        } else if (getConservation(c, pdbC) === 'conserved') {
-          residue.customColor = '#586C7C'
-        } else if (getConservation(c, pdbC) === 'nonconserved') {
-          residue.customColor = '#4D4D4D'
+        } else {
+          if (!_.includes(allowedChains, residue.chain)) {
+            residue.customColor = '#999999'
+          } else if (getConservation(c, pdbC) === 'conserved') {
+            residue.customColor = '#586C7C'
+          } else if (getConservation(c, pdbC) === 'nonconserved') {
+            residue.customColor = '#4D4D4D'
+          }
         }
       }
     }
@@ -267,23 +286,32 @@ class AquariaAlignment {
 
   setFullSequence (sequenceWidget) {
     let soup = sequenceWidget.soup
-
+    console.log('setFullSequence', soup.chains, soup.traces)
     sequenceWidget.charEntries.length = 0
     sequenceWidget.nChar = 0
 
-    let pdbId = this.data.pdb_id
-
+    let structureId = this.data.pdb_id
+    let iStructure = _.findIndex(soup.structureIds, s => s === structureId)
     let chains = this.data.pdb_chain
+    let isCopy = _.uniq(chains).length < chains.length
 
     for (let iChain = 0; iChain < chains.length; iChain += 1) {
       let chain = chains[iChain]
+
+      if (isCopy) {
+        let prevChains = _.filter(chains.slice(0, iChain), c => c === chain)
+        let iCopy = prevChains.length + 1
+        structureId = `${this.data.pdb_id}[${iCopy}]`
+        iStructure = _.findIndex(soup.structureIds, s => s === structureId)
+      }
+
       let sequenceOfChain = this.data.sequences[iChain].sequence
       let seqId = this.data.sequences[iChain].primary_accession
       let seqName = this.data.common_names[iChain]
       if (_.isNil(seqId)) {
         seqId = ''
       }
-      console.log('AquariaAlignment.setFullSequence', iChain, seqId, seqName)
+
       // Fill the empty padding before every chain
       for (
         let iResOfSeq = 0;
@@ -298,10 +326,10 @@ class AquariaAlignment {
               if (seqName) {
                 startLabel += seqName + ', '
               }
-              startLabel += pdbId + '-' + chain
+              startLabel += structureId + '-' + chain
             }
             let entry = {
-              iStructure: 0,
+              iStructure,
               chain,
               c: '',
               startLabel: startLabel,
@@ -313,7 +341,7 @@ class AquariaAlignment {
 
         let c = sequenceOfChain[iResOfSeq]
         let seqResNum = iResOfSeq + 1
-        let pdbRes = this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain)
+        let pdbRes = this.mapSeqResToPdbResOfChain(seqId, seqResNum, chain, structureId)
         let seqLabel = ''
         if (seqName) {
           seqLabel = `Sequence: ${seqName} ${c}${seqResNum}<br>`
@@ -321,7 +349,7 @@ class AquariaAlignment {
         if (_.isNil(pdbRes)) {
           // Entries of residues without PDB matches
           let entry = {
-            iStructure: 0,
+            iStructure,
             chain,
             c: c,
             startLabel: null,
@@ -332,12 +360,12 @@ class AquariaAlignment {
           sequenceWidget.charEntries.push(entry)
         } else {
           // Entries of residues that match PDB residues
-          let [pdbId, chain, pdbResNum] = pdbRes
-          let residue = soup.findFirstResidue(chain, pdbResNum)
+          let [, chain, pdbResNum] = pdbRes
+          let residue = soup.findFirstResidue(chain, pdbResNum, structureId)
           if (_.isNil(residue)) {
             let entry = {
               chain,
-              iStructure: 0,
+              iStructure,
               c: c,
               startLabel: null,
               ss: '.',
@@ -349,12 +377,12 @@ class AquariaAlignment {
             let pdbC = _.get(data.resToAa, residue.resType, '.')
             let entry = {
               chain,
-              iStructure: residue.iStructure,
+              iStructure,
               c: c,
               startLabel: null,
               iRes: residue.iRes,
               ss: residue.ss,
-              label: `${seqLabel}Structure: ${pdbId}-${chain} ${pdbC}${pdbResNum}`,
+              label: `${seqLabel}Structure: ${structureId}-${chain} ${pdbC}${pdbResNum}`,
               resNum: iResOfSeq + 1
             }
             sequenceWidget.charEntries.push(entry)
@@ -363,6 +391,7 @@ class AquariaAlignment {
       }
     }
     sequenceWidget.nChar = sequenceWidget.charEntries.length
+    console.log('setFullSequence', sequenceWidget.charEntries)
   }
 
   colorFromFeatures (embededJolecule, features, seqId, name) {
@@ -444,11 +473,12 @@ class AquariaAlignment {
   setPopup (embedJolecule) {
     let soup = embedJolecule.soup
     embedJolecule.soupWidget.popupText = iAtom => {
-      let pdbId = this.data.pdb_id
       let atom = soup.getAtomProxy(iAtom)
       let iRes = atom.iRes
       let residue = soup.getResidueProxy(iRes)
+      let pdbId = residue.structureId
       let [seqName, seqResNum, c] = this.mapPdbResOfChainToSeqRes(
+        residue.structureId,
         residue.chain,
         residue.resNum
       )
@@ -498,13 +528,13 @@ class AquariaAlignment {
       residue.iRes = i
       if (residue.selected) {
         let [seqName, seqResNum, c] = this.mapPdbResOfChainToSeqRes(
+          residue.structureId,
           residue.chain,
           residue.resNum
         )
         if (chain === null || chain !== residue.chain) {
           piece = {
-            pdbChain:
-              soup.structureIds[residue.iStructure] + '-' + residue.chain,
+            pdbChain: residue.structureId + '-' + residue.chain,
             seqName: seqName,
             firstPdbRes: null,
             firstSeqRes: null,
@@ -704,7 +734,6 @@ class AquariaAlignment {
   }
 
   setEmbedJolecule (embedJolecule) {
-    embedJolecule.soupView.setMode('chain')
     embedJolecule.soupWidget.isCrossHairs = false
     embedJolecule.soupWidget.crossHairs.visible = false
     embedJolecule.soupView.setMode('chain')
@@ -732,10 +761,12 @@ class AquariaAlignment {
 
   update () {
     let result = this.embedJolecule.soup.getIStructureAndChain()
+    console.log('Aquaria.update', result, this.embedJolecule.soupView.mode)
     if (_.isNil(result)) {
       this.selectNewChain(null, null, null, null)
     } else {
       let iChain = _.findIndex(this.data.pdb_chain, c => c === result.chain)
+      console.log('Aquaria.update', result, this.embedJolecule.soupView.mode, iChain)
       if (iChain >= 0) {
         this.selectSeqId = this.data.sequences[iChain].primary_accession
         let seqName = this.data.common_names[iChain]

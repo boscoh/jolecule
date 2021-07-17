@@ -13,6 +13,13 @@
         )
       .jolecule-small-button.m-0(@click='loadFromPdbId()')
         | fetch
+    .mt-2.d-flex.flex-row.flex-wrap.align-items-center(style="font-size: 12px")
+      .form-check
+        input.form-check-input(type="radio" v-model="format" v-bind:value="'pdb'")
+        label.form-check-label pdb
+      .ms-2.form-check
+        input.form-check-input(type="radio" v-model="format" v-bind:value="'cif'")
+        label.form-check-label cif
     span(v-if="error") {{ error }}
     .header Files
     .overflow-auto.pe-3
@@ -136,7 +143,7 @@ body {
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap'
 import _ from 'lodash'
-import { initEmbedJolecule, makePdbDataServer } from '../../../../src/main'
+import { initEmbedJolecule, makePdbDataServer, AquariaAlignment } from '../../../../src/main'
 import * as rpc from '../modules/rpc'
 import defaultDataServer from '../modules/1mbo-data-server.es6.js'
 
@@ -163,7 +170,8 @@ export default {
       error: '',
       isDownloading: false,
       drawer: {},
-      views: []
+      views: [],
+      format: 'pdb'
     }
   },
   async mounted () {
@@ -182,7 +190,9 @@ export default {
       isEditable: true,
       isGrid: true,
       bCutoff: 0.5,
-      isPlayable: true
+      isPlayable: true,
+      isLegend: true,
+      isToolbarOnTop: true
     })
     // triggers this.update when a state changes in the widget
     this.jolecule.soupWidget.addObserver(this)
@@ -227,6 +237,14 @@ export default {
       this.dataServer = dataServer
       document.title = `Jolecule - ${dataServer.pdbId}`
       await this.jolecule.asyncAddDataServer(dataServer)
+      let res = await rpc.remote.publicGetAlignment(dataServer.pdbId)
+      if (res.result) {
+        this.alignment = new AquariaAlignment()
+        this.alignment.reload(res.result, this.jolecule)
+        this.alignment.selectNewChain = function (seqId, pdbId, chain) {
+          console.log('alignment.selectNewChain', seqId, pdbId, chain)
+        }
+      }
       this.update()
       this.controller.zoomOut()
     },
@@ -238,7 +256,7 @@ export default {
           pdbId: this.pdbId,
           isDisableSaveViews: true,
           isLoadViews: false,
-          format: 'cif'
+          format: this.format
         })
       )
     },

@@ -2,7 +2,6 @@ import { EmbedJolecule, defaultArgs } from './embed-widget.js'
 import { FullPageWidget } from './full-page-widget.js'
 import { AquariaAlignment } from './aquaria.js'
 import _ from 'lodash'
-import $ from 'jquery'
 
 /**
  *
@@ -45,7 +44,7 @@ let defaultDataServerArgs = {
  *   pdbId: '', // Str - id of RCSB protein structure
  *   userId: '', // Str - id of user on http://jolecule.com; default: ''
  *   isDisableSaveViews: false, // Bool - prevents save/delete to server
- *   saveViewsUrl: true, // Str - base URL of views server (e.g. "http://jolecule.com")
+ *   saveViewsUrl: '', // Str - base URL of views server (e.g. "http://jolecule.com")
  *   isLoadViews: 'none', // bool - if false: creates dummy view get methods
  *   biounit: 0, // int - biounit
  *   viewId: '', // Str - id of user on http://jolecule.com; default: ''
@@ -144,8 +143,7 @@ function makePdbDataServer (args) {
 
 /**
  * @param pdbId: Str - id of RCSB protein structure
- * @param userId: Str - optional id of user on http://jolecule.com;
- *                      default: ''
+ * @param userId: Str - optional user id from http://jolecule.com; default: ''
  * @param isDisableSaveViews: Bool - prevents save/delete to server
  * @param saveViewsUrl: Str - base URL of views server (e.g. "http://jolecule.com")
  * @param isLoadViews: bool - if false: creates dummy view get methods

@@ -1801,8 +1801,7 @@ class SelectionWidget extends CanvasWidget {
           let iTrace = soup.selectedTraces[0]
           let iRes = soup.traces[iTrace].indices[0]
           let residue = soup.getResidueProxy(iRes)
-          let structureId = soup.structureIds[residue.iStructure]
-          text += `${structureId}-${residue.chain}`
+          text += `${residue.structureId}-${residue.chain}`
         }
       }
     }

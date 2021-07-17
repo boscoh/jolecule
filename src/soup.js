@@ -6,7 +6,6 @@ import { SpaceHash } from './pairs.js'
 import Store from './store.js'
 import * as data from './data'
 import * as THREE from 'three'
-import { PdbParser } from './parsers'
 
 function pushToListInDict (dict, key, value) {
   if (!(key in dict)) {
@@ -221,6 +220,10 @@ class ResidueProxy {
 
   set iStructure (iStructure) {
     this.soup.residueStore.iStructure[this.iRes] = iStructure
+  }
+
+  get structureId () {
+    return this.soup.structureIds[this.iStructure]
   }
 
   get resId () {
@@ -615,10 +618,15 @@ class Soup {
     this.residueStore.iStructure[iRes] = this.iStructure
   }
 
-  findFirstResidue (chain, resNum) {
+  findFirstResidue (chain, resNum, pdbId=null) {
     let residue = this.getResidueProxy()
     for (let iRes of _.range(this.getResidueCount())) {
       residue.iRes = iRes
+      if (pdbId) {
+        if (residue.structureId !== pdbId) {
+          continue
+        }
+      }
       if (residue.chain === chain && residue.resNum === resNum) {
         return residue
       }
