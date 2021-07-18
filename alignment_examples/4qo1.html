@@ -1,0 +1,75 @@
+<html>
+  <head>
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="./4qo1.pdb-jol/full-page-jolecule.css"
+    />
+    <title>jolecule</title>
+  </head>
+
+  <body>
+    <div id="jolecule-container">
+      <div id="jolecule-body">
+        <div id="jolecule-protein-container"></div>
+        <div id="jolecule-views-container"></div>
+        <script src="./4qo1.pdb-jol/require.js"></script>
+        <script>
+          ;(function () {
+            require(['./4qo1.pdb-jol/jolecule'], function (jolecule) {
+              var widget = jolecule.initFullPageJolecule(
+                '#jolecule-protein-container',
+                '#jolecule-views-container',
+                {
+                  isEditable: true,
+                  isResidueSelector: false,
+                  isLegend: true,
+                  isExtraEditable: false,
+                  isGrid: false,
+                  isPlayable: false,
+                  isMenu: true,
+                  isToolbarOnTop: true,
+                  backgroundColor: 0xcccccc
+                }
+              )
+
+              let alignment = new jolecule.AquariaAlignment()
+
+              let controller = widget.embedJolecule.controller
+              document.onkeydown = function (event) {
+                let c = String.fromCharCode(event.keyCode).toUpperCase()
+                if (false) {
+                } else if (c === 'J' || event.keyCode === 37) {
+                  controller.selectPrevResidue()
+                } else if (c === 'K' || event.keyCode === 39) {
+                  controller.selectNextResidue()
+                } else if (event.keyCode === 13) {
+                  controller.zoomToSelection()
+                } else if (event.keyCode === 27) {
+                  controller.clearSelectedResidues()
+                }
+              }
+
+              require([
+                './4qo1.pdb-jol/data-server0',
+                './P04637.4qo1.B.json'
+              ], function (dataServer0, alignData) {
+                widget.asyncAddDataServer(dataServer0).then(function () {
+                  alignment.reload(alignData, widget.embedJolecule)
+                  alignment.selectNewChain = function (seqId, pdbId, chain) {
+                    console.log('4qo1.html.selectNewChain', seqId, pdbId, chain)
+                  }
+                })
+              })
+            })
+          })()
+        </script>
+      </div>
+    </div>
+  </body>
+</html>

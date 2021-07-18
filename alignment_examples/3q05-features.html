@@ -8,7 +8,7 @@
     <link
       rel="stylesheet"
       type="text/css"
-      href="./3q05-jol/full-page-jolecule.css"
+      href="./3q05.pdb-jol/full-page-jolecule.css"
     />
     <title>jolecule</title>
   </head>
@@ -18,10 +18,10 @@
       <div id="jolecule-body">
         <div id="jolecule-protein-container"></div>
         <div id="jolecule-views-container"></div>
-        <script src="../dist/require.js"></script>
+        <script src="./3q05.pdb-jol/require.js"></script>
         <script>
           ;(function () {
-            require(['../dist/jolecule'], function (jolecule) {
+            require(['./3q05.pdb-jol/jolecule'], function (jolecule) {
               var j = jolecule.initEmbedJolecule({
                 divTag: '#jolecule-protein-container',
                 isEditable: true,
@@ -46,7 +46,7 @@
               }
 
               require([
-                './3q05-jol/data-server0',
+                './3q05.pdb-jol/data-server0',
                 './P04637.3q05.A.json',
                 './P04637.features.json',
                 './lodash.min.js'

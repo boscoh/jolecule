@@ -391,7 +391,6 @@ class AquariaAlignment {
       }
     }
     sequenceWidget.nChar = sequenceWidget.charEntries.length
-    console.log('setFullSequence', sequenceWidget.charEntries)
   }
 
   colorFromFeatures (embededJolecule, features, seqId, name) {
@@ -766,7 +765,6 @@ class AquariaAlignment {
       this.selectNewChain(null, null, null, null)
     } else {
       let iChain = _.findIndex(this.data.pdb_chain, c => c === result.chain)
-      console.log('Aquaria.update', result, this.embedJolecule.soupView.mode, iChain)
       if (iChain >= 0) {
         this.selectSeqId = this.data.sequences[iChain].primary_accession
         let seqName = this.data.common_names[iChain]

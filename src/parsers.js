@@ -353,12 +353,20 @@ class CifParser {
   }
 
   parseTitle (lines) {
-    let prevLine = ''
-    for (let line of lines) {
-      if (_.startsWith(prevLine, '_struct.title')) {
-        return removeQuotes(_.trim(line))
+    for (let i=0; i<lines.length; i+=1 ) {
+      let line = lines[i]
+      if (line.startsWith('_struct.title')) {
+        let rest = _.trim(line.replace('_struct.title', ''))
+        if (rest) {
+          return removeQuotes(_.trim(rest))
+        }
       }
-      prevLine = line
+      if (i > 0) {
+        let prevLine = lines[i - 1]
+        if (_.startsWith(prevLine, '_struct.title')) {
+          return removeQuotes(_.trim(line))
+        }
+      }
     }
     return ''
   }

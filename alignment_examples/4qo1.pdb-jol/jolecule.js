@@ -104310,21 +104310,35 @@ var CifParser = function () {
   }, {
     key: 'parseTitle',
     value: function parseTitle(lines) {
-      for (var i = 0; i < lines.length; i += 1) {
-        var line = lines[i];
-        if (line.startsWith('_struct.title')) {
-          var rest = _lodash2.default.trim(line.replace('_struct.title', ''));
-          if (rest) {
-            return removeQuotes(_lodash2.default.trim(rest));
-          }
-        }
-        if (i > 0) {
-          var prevLine = lines[i - 1];
+      var prevLine = '';
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
+
+      try {
+        for (var _iterator8 = lines[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var line = _step8.value;
+
           if (_lodash2.default.startsWith(prevLine, '_struct.title')) {
             return removeQuotes(_lodash2.default.trim(line));
           }
+          prevLine = line;
+        }
+      } catch (err) {
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
+          }
+        } finally {
+          if (_didIteratorError8) {
+            throw _iteratorError8;
+          }
         }
       }
+
       return '';
     }
   }, {
@@ -106035,6 +106049,7 @@ var AquariaAlignment = function () {
         _loop(iChain);
       }
       sequenceWidget.nChar = sequenceWidget.charEntries.length;
+      console.log('setFullSequence', sequenceWidget.charEntries);
     }
   }, {
     key: 'colorFromFeatures',
@@ -106674,6 +106689,7 @@ var AquariaAlignment = function () {
         var iChain = _lodash2.default.findIndex(this.data.pdb_chain, function (c) {
           return c === result.chain;
         });
+        console.log('Aquaria.update', result, this.embedJolecule.soupView.mode, iChain);
         if (iChain >= 0) {
           this.selectSeqId = this.data.sequences[iChain].primary_accession;
           var _seqName2 = this.data.common_names[iChain];
