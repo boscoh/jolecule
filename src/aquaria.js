@@ -286,14 +286,28 @@ class AquariaAlignment {
 
   setFullSequence (sequenceWidget) {
     let soup = sequenceWidget.soup
-    console.log('setFullSequence', soup.chains, soup.traces)
     sequenceWidget.charEntries.length = 0
     sequenceWidget.nChar = 0
 
     let structureId = this.data.pdb_id
     let iStructure = _.findIndex(soup.structureIds, s => s === structureId)
     let chains = this.data.pdb_chain
-    let isCopy = _.uniq(chains).length < chains.length
+    let isCopy = false
+    for (let entry of this.alignEntries) {
+      if (entry.pdbId.includes('[')) {
+        isCopy = true
+      }
+    }
+
+    // hack for the cases where alignment expects a model of 1
+    // but PDB has no models - force structureId to add model suffix `[1]`
+    if (isCopy && !structureId.includes('[') && (soup.structureIds.length === 1)) {
+      structureId = `${structureId}[1]`
+      soup.structureIds[iStructure] = structureId
+      console.log('setFullSequence mangle structureId to match alignment', soup.structureIds)
+    }
+
+    console.log('setFullSequence', soup.structureIds, soup.chains, soup.traces, 'isCopy', isCopy)
 
     for (let iChain = 0; iChain < chains.length; iChain += 1) {
       let chain = chains[iChain]

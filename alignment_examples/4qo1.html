@@ -38,22 +38,48 @@
                 }
               )
 
+              let selectText = ''
               let alignment = new jolecule.AquariaAlignment()
-
               let controller = widget.embedJolecule.controller
+
+              let body = document.body
+
               document.onkeydown = function (event) {
                 let c = String.fromCharCode(event.keyCode).toUpperCase()
                 if (false) {
-                } else if (c === 'J' || event.keyCode === 37) {
+                } else if (event.keyCode === 37) {
                   controller.selectPrevResidue()
-                } else if (c === 'K' || event.keyCode === 39) {
+                } else if (event.keyCode === 39) {
                   controller.selectNextResidue()
                 } else if (event.keyCode === 13) {
                   controller.zoomToSelection()
                 } else if (event.keyCode === 27) {
+                  alignment.selectSeq = ''
                   controller.clearSelectedResidues()
+                } else if (c === 'C' && event.metaKey) {
+                  alignment.copyToClipboard()
+                } else {
+                  console.log('onkeydown', document.activeElement, body)
+                  if (document.activeElement !== body) {
+                    return
+                  }
+                  if (c.match(/^[a-zA-Z]+$/i)) {
+                    alignment.selectNextChar(c)
+                  }
                 }
               }
+
+              document.addEventListener('paste', e => {
+                let data = e.clipboardData
+                if (data && data.getData) {
+                  alignment.selectSeq = ''
+                  let text = data.getData('text/plain')
+                  console.log('AlignAquaria.paste', text)
+                  for (let c of text) {
+                    alignment.selectNextChar(c)
+                  }
+                }
+              })
 
               require([
                 './4qo1.pdb-jol/data-server0',

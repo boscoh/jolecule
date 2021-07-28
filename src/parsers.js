@@ -224,7 +224,7 @@ class CifParser {
             }
             resNum = nextResNum
           } else {
-            resNum = parseInt(tokens[8])
+            resNum = parseInt(tokens[16])
             lastChain = chain
             lastEntity = entity
             nextResNum = resNum + 1
