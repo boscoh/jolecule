@@ -2,6 +2,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 const fs = require('fs')
+const _ = require('lodash')
 
 function createWindow (clientDir) {
   const mainWindow = new BrowserWindow({
@@ -14,10 +15,31 @@ function createWindow (clientDir) {
   mainWindow.loadFile(path.join(clientDir, 'index.html'))
 }
 
+function fileExists(filePath)
+{
+  try {
+    return fs.statSync(filePath).isFile();
+  } catch (err) {
+    return false;
+  }
+}
+
 const handlers = require('../handlers')
 
 let fname = path.join(path.dirname(__filename), `../config.json`)
 const config = JSON.parse(fs.readFileSync(fname))
+
+const args = _.slice(process.argv, 2)
+if (args.length >= 2) {
+  const startDir = process.argv[2]
+  const pdb = process.argv[3]
+  const start = path.join(startDir, pdb)
+  console.log(`Electron start dir: ${start}`)
+  if (fileExists(start)) {
+    config.initDir = path.dirname(start)
+    config.initFile = path.basename(start)
+  }
+}
 
 for (let [k, v] of Object.entries(config)) {
   handlers.setConfig(k, v)
