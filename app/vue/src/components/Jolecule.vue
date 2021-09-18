@@ -20,19 +20,20 @@
       .ms-2.form-check
         input.form-check-input(type="radio" v-model="format" v-bind:value="'cif'")
         label.form-check-label cif
-    .mt-2.d-flex.flex-row.flex-wrap.align-items-center(style="font-size: 12px")
-      .jolecule-small-button.m-0(@click='makeWebApp()')
-        | webapp {{ lastPdbFile }}
-
     span(v-if="error") {{ error }}
     .header Files
-    .overflow-auto.pe-3
+    .template(v-if="lastPdbFile")
+      .mt-2.d-flex.flex-row.flex-wrap.align-items-center(style="font-size: 12px")
+        .jolecule-small-button.m-0.text-start(@click='makeWebApp') Build {{ lastPdbFile.name }}-webapp
+    .overflow-auto.pe-3.mt-2
       .view-card.view-text.pointer(v-for='(file, j) in drawer.directories' :key="j + 'f'" @click='openDir(drawer.dirname, file)')
         i.fa.fa-folder
+        =" "
         | {{ file }}
-      .view-card.view-text.pointer(v-for='(file, k) in drawer.files' :key="k + 'e'" @click='openFileReplace(file)')
-        span(style='text-transform: uppercase') {{ file.name }}
-        span.file-title {{ " - " + file.title }}
+      .d-flex.flex-row.flex-nowrap(v-for='(file, k) in drawer.files' :key="k + 'e'" )
+        .view-card.view-text.pointer(@click='openFileReplace(file)')
+          span(style='text-transform: uppercase') {{ file.name }}
+          span.file-title {{ " - " + file.title }}
   #jolecule-container
   #view-column.p-2.d-flex.flex-column
     .header Views
@@ -98,6 +99,7 @@ body {
   border-radius: 3px;
   border: 1px solid #bbb;
   background-color: #bbb;
+  overflow: hidden;
 }
 .pointer {
   cursor: pointer
@@ -197,7 +199,7 @@ export default {
       isPlayable: true,
       isLegend: true,
       isToolbarOnTop: true,
-      lastPdbFile: '',
+      lastPdbFile: {},
     })
     // triggers this.update when a state changes in the widget
     this.jolecule.soupWidget.addObserver(this)
@@ -266,7 +268,10 @@ export default {
       )
     },
     makeLocalPdbDataServer (pdb) {
-      this.lastPdbFile = pdb
+      this.lastPdbFile = {
+        filename: pdb,
+        name: _.last(pdb.split('/'))
+      }
       return {
         pdbId: baseName(pdb),
         version: 2,
@@ -288,7 +293,7 @@ export default {
       }
     },
     async makeWebApp() {
-      await rpc.remote.makeWebApp([this.lastPdbFile])
+      await rpc.remote.makeWebApp([this.lastPdbFile.filename])
     },
     // Called when Jolecule is updated
     update () {

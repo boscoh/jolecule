@@ -127,7 +127,7 @@ const fullPageIndexHtmlMustache = `
 
 function makeWebApp (pdbs, options) {
     const pdb = pdbs[0]
-    let targetDir = path.join(path.dirname(pdb), path.basename(pdb) + '-jol')
+    let targetDir = path.join(path.dirname(pdb), path.basename(pdb) + '-webapp')
     if (_.get(options, 'out')) {
         targetDir = options.out
     }
@@ -196,10 +196,10 @@ function makeWebApp (pdbs, options) {
     fs.writeFileSync(html, htmlText)
 
     let fnames = [
-        '../dist/jolecule.js',
-        '../dist/jolecule.js.map',
-        '../dist/full-page-jolecule.css',
-        '../node_modules/requirejs/require.js',
+        'dist/jolecule.js',
+        'dist/jolecule.js.map',
+        'dist/full-page-jolecule.css',
+        'node_modules/requirejs/require.js',
     ]
 
     for (let fname of fnames) {
