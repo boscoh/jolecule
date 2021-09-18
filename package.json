@@ -2,9 +2,16 @@
   "name": "jolecule",
   "version": "2.0.0",
   "main": "src/main.js",
+  "bin": {
+    "jolecule": "./jolecule.js"
+  },
   "scripts": {
-    "test": "cd test && ./test.sh",
-    "format": "prettier-standard src/*js && eslint --fix src/*js"
+    "dist-build": "webpack",
+    "format": "prettier-standard src/*js && eslint --fix src/*js",
+    "serve-dev": "cd app/node-koa && node src/server.js",
+    "electron": "cd app/electron && electron main.js",
+    "client-dev": "cd app/vue && vite",
+    "client-build": "cd app/vue && vite build"
   },
   "dependencies": {
     "@vue/eslint-config-prettier": "^6.0.0",
@@ -22,9 +29,21 @@
     "shortid": "^2.2.12",
     "signals": "^1.0.0",
     "test": "^0.6.0",
-    "three": "^0.92.0"
+    "three": "^0.92.0",
+    "@koa/cors": "^3.1.0",
+    "@koa/router": "^10.0.0",
+    "koa": "^2.13.1",
+    "koa-body": "^4.2.0",
+    "koa-router": "^10.0.0",
+    "koa-send": "^5.0.1",
+    "koa-static": "^5.0.0",
+    "node-fetch": "^2.6.1",
+    "server-destroy": "^1.0.1",
+    "bootstrap": "^5.0.2",
+    "vue": "^2.6.14"
   },
   "devDependencies": {
+    "ttab": "^0.7.1",
     "babel-core": "^6.26.3",
     "babel-eslint": "^8.2.6",
     "babel-loader": "^7.1.5",
@@ -32,7 +51,7 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
     "css-loader": "^0.25.0",
-    "electron": "",
+    "electron": "^12.0.0",
     "eslint": "^5.14.1",
     "eslint-config-prettier": "^4.1.0",
     "eslint-config-standard": "^12.0.0",
@@ -47,6 +66,9 @@
     "prettier": "^1.16.4",
     "prettier-standard": "^9.1.1",
     "style-loader": "^0.13.1",
+    "vite": "^2.3.8",
+    "vite-plugin-pug": "^0.3.0",
+    "vite-plugin-vue2": "^1.6.2",
     "webpack": "^3.12.0"
   }
 }

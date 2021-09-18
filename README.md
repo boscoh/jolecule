@@ -97,7 +97,7 @@ Once you've started making views, and animating slideshows on the website, or in
 Say that you have `1be9.pdb` and created a bunch of nice views in `1be9.views.json`. Then on the linux/macosx command-line, you can run:
 
 ```bash
-> ./jol-static.js 1be9
+> ./webapp-builder.js 1be9
 ```
 
 This will create a directory `1be9-jol` and a completely contained webpage is available at `1be9-jol/index.html`. The `index.html` can be edited to setup the default rendering options of Jolecule within the webapp, such as whether you want animation as auto-start feature, or whether to rotate or rock the protein. You can also turn on/off different subsets of the controls for a different mix of clarity/flexibility.
@@ -107,7 +107,7 @@ This will create a directory `1be9-jol` and a completely contained webpage is av
 Javascript was designed to be embedded in other webpages. The easiest way is to
 [embed a Jolecule widget via the website](http://jolecule.com/embed/pdb?pdb_id=1mbo).
 
-However, you may want to create your own webpage that embeds a Jolecule widget locally. This requires the creation of a javascript `dataserver.js` module that holds all the protein and view data. The way to do this is to co-opt the static webpapps created by `jol-static.js`, and repurpose those files for your website.
+However, you may want to create your own webpage that embeds a Jolecule widget locally. This requires the creation of a javascript `dataserver.js` module that holds all the protein and view data. The way to do this is to co-opt the static webpapps created by `webapp-builder.js`, and repurpose those files for your website.
 
 First run `jol-static.sh` to generate an existing static Jolecule webapp. For arguments sake, let's say we converted `1be9.pdb` and `1be9.views.json` into a webap in the `1be9-jol` directory. In the `1be9-jol` directory, there will be a file called `dataserver0.js`, which is the module that stores all the `1be9` data.
 

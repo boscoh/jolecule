@@ -21,25 +21,25 @@
  */
 
 function loop () {
-  requestAnimationFrame(loop)
+    requestAnimationFrame(loop)
 
-  if (window.globalWidgets === []) {
-    return
-  }
-  let currTime = new Date().getTime()
-  let elapsedTime = currTime - window.lastTime
-
-  for (let widget of window.globalWidgets) {
-    widget.animate(elapsedTime)
-  }
-
-  for (let widget of window.globalWidgets) {
-    if (widget.isChanged()) {
-      widget.drawFrame()
+    if (window.globalWidgets === []) {
+        return
     }
-  }
+    let currTime = new Date().getTime()
+    let elapsedTime = currTime - window.lastTime
 
-  window.lastTime = currTime
+    for (let widget of window.globalWidgets) {
+        widget.animate(elapsedTime)
+    }
+
+    for (let widget of window.globalWidgets) {
+        if (widget.isChanged()) {
+            widget.drawFrame()
+        }
+    }
+
+    window.lastTime = currTime
 }
 
 /**
@@ -47,14 +47,14 @@ function loop () {
  * window space to lock one single copy of loop
  */
 function registerGlobalAnimationLoop (widget) {
-  // only set once by checking the global window variable
+    // only set once by checking the global window variable
 
-  if (typeof window.globalWidgets === 'undefined') {
-    window.globalWidgets = []
-    loop()
-    window.lastTime = new Date().getTime()
-  }
-  window.globalWidgets.push(widget)
+    if (typeof window.globalWidgets === 'undefined') {
+        window.globalWidgets = []
+        loop()
+        window.lastTime = new Date().getTime()
+    }
+    window.globalWidgets.push(widget)
 }
 
 export { registerGlobalAnimationLoop }

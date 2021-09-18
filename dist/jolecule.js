@@ -105922,7 +105922,8 @@ var AquariaAlignment = function () {
           }
         }
 
-        // hack for the cases where alignment expects a
+        // hack for the cases where alignment expects a model of 1
+        // but PDB has no models - force structureId to add model suffix `[1]`
       } catch (err) {
         _didIteratorError11 = true;
         _iteratorError11 = err;
@@ -105941,7 +105942,7 @@ var AquariaAlignment = function () {
       if (isCopy && !structureId.includes('[') && soup.structureIds.length === 1) {
         structureId = structureId + '[1]';
         soup.structureIds[iStructure] = structureId;
-        console.log('hack', soup.structureIds);
+        console.log('setFullSequence mangle structureId to match alignment', soup.structureIds);
       }
 
       console.log('setFullSequence', soup.structureIds, soup.chains, soup.traces, 'isCopy', isCopy);

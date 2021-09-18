@@ -20,6 +20,10 @@
       .ms-2.form-check
         input.form-check-input(type="radio" v-model="format" v-bind:value="'cif'")
         label.form-check-label cif
+    .mt-2.d-flex.flex-row.flex-wrap.align-items-center(style="font-size: 12px")
+      .jolecule-small-button.m-0(@click='makeWebApp()')
+        | webapp {{ lastPdbFile }}
+
     span(v-if="error") {{ error }}
     .header Files
     .overflow-auto.pe-3
@@ -192,7 +196,8 @@ export default {
       bCutoff: 0.5,
       isPlayable: true,
       isLegend: true,
-      isToolbarOnTop: true
+      isToolbarOnTop: true,
+      lastPdbFile: '',
     })
     // triggers this.update when a state changes in the widget
     this.jolecule.soupWidget.addObserver(this)
@@ -261,6 +266,7 @@ export default {
       )
     },
     makeLocalPdbDataServer (pdb) {
+      this.lastPdbFile = pdb
       return {
         pdbId: baseName(pdb),
         version: 2,
@@ -280,6 +286,9 @@ export default {
           await rpc.remote.publicDeleteView(pdb, viewId)
         }
       }
+    },
+    async makeWebApp() {
+      await rpc.remote.makeWebApp([this.lastPdbFile])
     },
     // Called when Jolecule is updated
     update () {

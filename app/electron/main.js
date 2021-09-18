@@ -31,12 +31,13 @@ const config = JSON.parse(fs.readFileSync(fname))
 
 const args = _.slice(process.argv, 2)
 if (args.length >= 2) {
-  const startDir = process.argv[2]
-  const pdb = process.argv[3]
+  const startDir = args[0]
+  const pdb = args[1]
   const start = path.join(startDir, pdb)
-  console.log(`Electron start dir: ${start}`)
+  console.log(`Electron start dir: ${startDir}`)
+  console.log(`Electron start file: ${start}`)
   if (fileExists(start)) {
-    config.initDir = path.dirname(start)
+    config.initDir = path.dirname(start),
     config.initFile = path.basename(start)
   }
 }
