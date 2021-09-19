@@ -90214,7 +90214,7 @@ var defaultDataServerArgs = {
      * @returns dataServer obj
      */
 };function makePdbDataServer(args) {
-    args = _lodash2.default.merge(defaultDataServerArgs, args);
+    args = _lodash2.default.merge(_lodash2.default.cloneDeep(defaultDataServerArgs), _lodash2.default.cloneDeep(args));
     console.log('makePdbDataServer', args);
     var format = _lodash2.default.get(args, 'format', 'pdb');
     return {
@@ -90300,19 +90300,23 @@ var defaultDataServerArgs = {
 
                             case 7:
                                 response = _context2.sent;
-                                return _context2.abrupt('return', response.json());
+                                _context2.next = 10;
+                                return response.json();
 
-                            case 11:
-                                _context2.prev = 11;
+                            case 10:
+                                return _context2.abrupt('return', _context2.sent);
+
+                            case 13:
+                                _context2.prev = 13;
                                 _context2.t0 = _context2['catch'](4);
                                 return _context2.abrupt('return', []);
 
-                            case 14:
+                            case 16:
                             case 'end':
                                 return _context2.stop();
                         }
                     }
-                }, _callee2, _this2, [[4, 11]]);
+                }, _callee2, _this2, [[4, 13]]);
             }))();
         },
         asyncSaveViews: function asyncSaveViews(views) {

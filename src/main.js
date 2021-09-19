@@ -53,7 +53,7 @@ let defaultDataServerArgs = {
  * @returns dataServer obj
  */
 function makePdbDataServer (args) {
-    args = _.merge(defaultDataServerArgs, args)
+    args = _.merge(_.cloneDeep(defaultDataServerArgs), _.cloneDeep(args))
     console.log('makePdbDataServer', args)
     const format = _.get(args, 'format', 'pdb')
     return {
@@ -100,7 +100,7 @@ function makePdbDataServer (args) {
             }
             try {
                 let response = await fetch(url, { method: 'get', mode: 'cors' })
-                return response.json()
+                return await response.json()
             } catch (e) {
                 return []
             }

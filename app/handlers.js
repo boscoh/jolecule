@@ -95,7 +95,6 @@ async function getFiles (dirname) {
         files: [],
         directories: ['..'],
     }
-    config.initDir = dirname
     const exts = ['.pdb', '.pdb1', '.cif']
     for (let name of fs.readdirSync(dirname)) {
         const filename = path.join(dirname, name)
@@ -126,6 +125,8 @@ async function getFiles (dirname) {
 }
 
 async function getProteinText (pdb) {
+    config.initDir = path.dirname(pdb)
+    config.initFile = path.basename(pdb)
     const pdbText = fs.readFileSync(pdb, 'utf8')
     return { pdbText }
 }
