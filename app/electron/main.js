@@ -40,6 +40,8 @@ if (args.length >= 2) {
     config.initDir = path.dirname(start),
     config.initFile = path.basename(start)
   }
+} else {
+  config.initDir = path.resolve(config.initDir)
 }
 
 for (let [k, v] of Object.entries(config)) {

@@ -177,7 +177,8 @@ export default {
       isDownloading: false,
       drawer: {},
       views: [],
-      format: 'pdb'
+      format: 'pdb',
+      lastPdbFile: {},
     }
   },
   async mounted () {
@@ -199,7 +200,6 @@ export default {
       isPlayable: true,
       isLegend: true,
       isToolbarOnTop: true,
-      lastPdbFile: {},
     })
     // triggers this.update when a state changes in the widget
     this.jolecule.soupWidget.addObserver(this)

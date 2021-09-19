@@ -95,6 +95,7 @@ async function getFiles (dirname) {
         files: [],
         directories: ['..'],
     }
+    config.initDir = dirname
     const exts = ['.pdb', '.pdb1', '.cif']
     for (let name of fs.readdirSync(dirname)) {
         const filename = path.join(dirname, name)

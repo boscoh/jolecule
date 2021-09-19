@@ -43,16 +43,20 @@ async function rpc (method, ...params) {
     if ('electron' in window) {
       return await window.electron.rpc(payload)
     } else {
-      const response = await fetch(remoteUrl, {
+      const fetchResponse = await fetch(remoteUrl, {
         method: 'post',
         mode: 'cors',
         cache: 'no-cache',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      let result = await response.json()
-      console.log(`rpc-run ${method} response:`, _.cloneDeep(result))
-      return result
+      let response = await fetchResponse.json()
+      if (_.has(response, 'result')) {
+        console.log(`rpc-run ${method} result:`, _.cloneDeep(response.result))
+      } else {
+        console.log(`rpc-run ${method} server-error:`, _.cloneDeep(response.error))
+      }
+      return response
     }
   } catch (e) {
     console.log(`rpc-run ${method} fail: ${e}`)
