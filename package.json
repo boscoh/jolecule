@@ -20,6 +20,7 @@
     "bootstrap": "^5.0.2",
     "fs": "0.0.1-security",
     "fs-extra": "^1.0.0",
+    "jq": "^1.7.2",
     "jquery": "^3.3.1",
     "jquery.scrollto": "^2.1.2",
     "koa": "^2.13.1",

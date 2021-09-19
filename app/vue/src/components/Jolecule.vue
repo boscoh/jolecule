@@ -207,11 +207,11 @@ export default {
     this.soupView = this.jolecule.soupView
 
     let dataServer = defaultDataServer
-    let res = await rpc.remote.publicGetInit()
+    let res = await rpc.remote.getInit()
     if (res.result) {
       const result = res.result
       if (result.initDir) {
-        res = await rpc.remote.publicGetFiles(res.result.initDir)
+        res = await rpc.remote.getFiles(res.result.initDir)
         if (res.result) {
           this.drawer = res.result
         }
@@ -231,7 +231,7 @@ export default {
       this.loadFromDataServer(this.makeLocalPdbDataServer(file.filename))
     },
     async openDir (topDir, dir) {
-      let res = await rpc.remote.publicGetFiles(`${topDir}/${dir}`)
+      let res = await rpc.remote.getFiles(`${topDir}/${dir}`)
       if (res.result) {
         this.drawer = res.result
       }
@@ -244,7 +244,7 @@ export default {
       this.dataServer = dataServer
       document.title = `Jolecule - ${dataServer.pdbId}`
       await this.jolecule.asyncAddDataServer(dataServer)
-      let res = await rpc.remote.publicGetAlignment(dataServer.pdbId)
+      let res = await rpc.remote.getAlignment(dataServer.pdbId)
       if (res.result) {
         this.alignment = new AquariaAlignment()
         this.alignment.reload(res.result, this.jolecule)
@@ -277,18 +277,18 @@ export default {
         version: 2,
         format: pdb.endsWith('cif') ? 'cif' : 'pdb',
         async asyncGetData () {
-          let res = await rpc.remote.publicGetProteinText(pdb)
+          let res = await rpc.remote.getProteinText(pdb)
           return res.result ? res.result.pdbText : ''
         },
         async asyncGetViews () {
-          let res = await rpc.remote.publicGetViewDicts(pdb)
+          let res = await rpc.remote.getViewDicts(pdb)
           return res.result ? res.result.views : ''
         },
         async asyncSaveViews (views) {
-          await rpc.remote.publicSaveViewDicts(pdb, views)
+          await rpc.remote.saveViewDicts(pdb, views)
         },
         async asyncDeleteView (viewId) {
-          await rpc.remote.publicDeleteView(pdb, viewId)
+          await rpc.remote.deleteView(pdb, viewId)
         }
       }
     },

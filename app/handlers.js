@@ -85,11 +85,11 @@ function isDirectory (f) {
     }
 }
 
-async function publicGetInit () {
+async function getInit () {
     return { initDir: config.initDir, initFile: config.initFile }
 }
 
-async function publicGetFiles (dirname) {
+async function getFiles (dirname) {
     let payload = {
         dirname,
         files: [],
@@ -116,7 +116,7 @@ async function publicGetFiles (dirname) {
                     const format = _.includes(ext, 'pdb') ? 'pdb' : 'cif'
                     payload.files.push({ title, filename, name, format })
                 } catch (error) {
-                    console.log(`publicGetFiles error ${error}`)
+                    console.log(`getFiles error ${error}`)
                 }
             }
         }
@@ -124,7 +124,7 @@ async function publicGetFiles (dirname) {
     return payload
 }
 
-async function publicGetProteinText (pdb) {
+async function getProteinText (pdb) {
     const pdbText = fs.readFileSync(pdb, 'utf8')
     return { pdbText }
 }
@@ -138,7 +138,7 @@ function getViewsJson (pdb) {
     return filename
 }
 
-async function publicGetViewDicts (pdb) {
+async function getViewDicts (pdb) {
     let filename = getViewsJson(pdb)
     let views = {}
     if (fs.existsSync(filename)) {
@@ -147,13 +147,13 @@ async function publicGetViewDicts (pdb) {
     return { views }
 }
 
-async function publicSaveViewDicts (pdb, views) {
+async function saveViewDicts (pdb, views) {
     let filename = getViewsJson(pdb)
     fs.writeFileSync(filename, JSON.stringify(views, null, 2))
     return { success: true }
 }
 
-async function publicDeleteView (pdb, viewId) {
+async function deleteView (pdb, viewId) {
     let viewJson = getViewsJson(pdb)
     if (fs.existsSync(viewJson)) {
         let text = fs.readFileSync(viewJson, 'utf8')
@@ -164,7 +164,7 @@ async function publicDeleteView (pdb, viewId) {
     return { success: true }
 }
 
-async function publicGetAlignment (pdbId) {
+async function getAlignment (pdbId) {
     let fname = path.join(config.initDir, `${pdbId}.align.json`)
     if (fs.existsSync(fname)) {
         return JSON.parse(fs.readFileSync(fname, 'utf8'))
@@ -179,12 +179,12 @@ async function makeWebApp (pdbs) {
 module.exports = {
     setConfig,
     getConfig,
-    publicGetInit,
-    publicGetFiles,
-    publicGetProteinText,
-    publicGetViewDicts,
-    publicSaveViewDicts,
-    publicDeleteView,
-    publicGetAlignment,
+    getInit,
+    getFiles,
+    getProteinText,
+    getViewDicts,
+    saveViewDicts,
+    deleteView,
+    getAlignment,
     makeWebApp,
 }
