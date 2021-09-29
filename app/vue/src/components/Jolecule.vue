@@ -33,7 +33,7 @@
       .d-flex.flex-row.flex-nowrap(v-for='(file, k) in drawer.files' :key="k + 'e'" )
         .view-card.view-text.pointer(@click='openFileReplace(file)')
           span(style='text-transform: uppercase') {{ file.name }}
-          span.file-title {{ " - " + file.title }}
+          span.file-title(v-if="file.title") {{ " - " + file.title }}
   #jolecule-container
   #view-column.p-2.d-flex.flex-column
     .header Views
