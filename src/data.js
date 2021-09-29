@@ -147,6 +147,12 @@ const backboneAtomTypes = [
     "H5'",
     "H5''",
     "HO3'",
+    "HN",
+    'HT1',
+    'HT2',
+    'HT3',
+    'OT1',
+    'OT2'
 ]
 
 // Cartoon cross-sections

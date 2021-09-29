@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "main": "src/main.js",
   "bin": {
-    "jolecule": "./jolecule.js"
+    "jolecule": "./jolecule"
   },
   "scripts": {
     "dist-build": "webpack",

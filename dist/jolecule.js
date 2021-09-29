@@ -78300,7 +78300,7 @@ var resToAa = {
 
     // Backbone atom names
 
-};var backboneAtomTypes = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', "C3'", 'P', 'OP1', "O5'", 'OP2', "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'", "H2'", "H2''", "H3'", "H4'", "H5'", "H5''", "HO3'"];
+};var backboneAtomTypes = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', "C3'", 'P', 'OP1', "O5'", 'OP2', "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'", "H2'", "H2''", "H3'", "H4'", "H5'", "H5''", "HO3'", "HN", 'HT1', 'HT2', 'HT3', 'OT1', 'OT2'];
 
 // Cartoon cross-sections
 var coilFace = new THREE.Shape([new THREE.Vector2(-0.2, -0.2), new THREE.Vector2(-0.2, +0.2), new THREE.Vector2(+0.2, +0.2), new THREE.Vector2(+0.2, -0.2)]);
