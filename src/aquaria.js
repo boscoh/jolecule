@@ -275,7 +275,7 @@ class AquariaAlignment {
                     }
                 }
             } else {
-              residue.customColor = '#999999'
+                residue.customColor = '#999999'
             }
         }
         soup.colorResidues()

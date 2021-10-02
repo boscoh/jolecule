@@ -78300,7 +78300,7 @@ var resToAa = {
 
     // Backbone atom names
 
-};var backboneAtomTypes = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', "C3'", 'P', 'OP1', "O5'", 'OP2', "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'", "H2'", "H2''", "H3'", "H4'", "H5'", "H5''", "HO3'", "HN", 'HT1', 'HT2', 'HT3', 'OT1', 'OT2'];
+};var backboneAtomTypes = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', "C3'", 'P', 'OP1', "O5'", 'OP2', "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'", "H2'", "H2''", "H3'", "H4'", "H5'", "H5''", "HO3'", 'HN', 'HT1', 'HT2', 'HT3', 'OT1', 'OT2'];
 
 // Cartoon cross-sections
 var coilFace = new THREE.Shape([new THREE.Vector2(-0.2, -0.2), new THREE.Vector2(-0.2, +0.2), new THREE.Vector2(+0.2, +0.2), new THREE.Vector2(+0.2, -0.2)]);
@@ -80723,10 +80723,6 @@ var EmbedJolecule = function () {
             }
 
             if (this.params.isEditable) {
-                this.toolbarDiv.append((0, _util.linkButton)('Zoom', 'jolecule-button', function () {
-                    _this3.controller.zoomToSelection();
-                }));
-
                 this.toolbarDiv.append((0, _util.linkButton)('Clear', 'jolecule-button', function () {
                     _this3.controller.clear();
                 })).append((0, _util.linkButton)('Sidechains', 'jolecule-button', function () {
@@ -82922,29 +82918,6 @@ var SequenceWidget = function (_CanvasWidget) {
             this.mousePressed = '';
         }
     }, {
-        key: 'doubleclick',
-        value: function doubleclick(event) {
-            console.log('SequenceWidget.doubleclick', this.pressSection, this.iCharPressed);
-            this.getPointer(event);
-            var iChar = null;
-            if (this.pressSection === 'bottom') {
-                // mouse event in sequence bar
-                iChar = this.iCharFromXSeq(this.pointerX);
-            } else {
-                iChar = this.iCharFromXStruct(this.pointerX);
-            }
-            var charEntry = this.charEntries[iChar];
-            if (!_lodash2.default.isNil(charEntry.iRes)) {
-                if (this.pressSection === 'top') {
-                    this.controller.selectSecondaryStructure(charEntry.iRes);
-                } else {
-                    this.controller.setResidueSelect(charEntry.iRes, true);
-                }
-                var residue = this.soup.getResidueProxy(charEntry.iRes);
-                this.controller.triggerAtom(residue.iAtom);
-            }
-        }
-    }, {
         key: 'click',
         value: function click(event) {
             var iChar = null;
@@ -82964,6 +82937,7 @@ var SequenceWidget = function (_CanvasWidget) {
                 if (!_lodash2.default.isNil(charEntry.iRes)) {
                     var iRes = charEntry.iRes;
                     this.controller.toggleSecondaryStructure(iRes);
+                    this.controller.zoomToSelection();
                 }
             } else if (this.pressSection === 'bottom') {
                 var _charEntry3 = this.charEntries[this.iCharPressed];
@@ -82971,10 +82945,14 @@ var SequenceWidget = function (_CanvasWidget) {
                     var _iRes = _charEntry3.iRes;
                     if (!event.metaKey && !event.shiftKey) {
                         this.controller.selectResidue(_iRes);
+                        var iAtom = this.soup.getResidueProxy(_iRes).iAtom;
+                        this.controller.triggerAtom(iAtom);
                     } else if (event.shiftKey) {
                         this.controller.selectAdditionalRangeToResidue(_iRes);
-                    } else {
+                        this.controller.zoomToSelection();
+                    } else if (event.metaKey) {
                         this.controller.selectAdditionalResidue(_iRes);
+                        this.controller.zoomToSelection();
                     }
                 }
             }
@@ -93482,13 +93460,11 @@ var SoupWidget = function (_WebglWidget) {
         value: function doubleclick(event) {
             if (this.iAtomHover !== null) {
                 if (this.iAtomHover === this.soupView.getICenteredAtom()) {
-                    this.atomLabelDialog();
-                } else if (this.iAtomHover === this.iAtomPreClick) {
-                    this.controller.triggerAtom(this.iAtomHover);
+                    if (!event.metaKey && !event.shiftKey) {
+                        this.atomLabelDialog();
+                    }
                 }
                 this.isDraggingCentralAtom = false;
-            } else {
-                this.controller.triggerAtom();
             }
             this.iAtomFirstPressed = null;
             this.iResFirstPressed = null;
@@ -93504,7 +93480,6 @@ var SoupWidget = function (_WebglWidget) {
         value: function click(event) {
             var iAtomPressed = this.iAtomHover;
             var iResPressed = this.soup.getAtomProxy(iAtomPressed).iRes;
-
             if (util.exists(iResPressed) && iResPressed === this.iResFirstPressed) {
                 if (this.soupView.currentView.show.transparent) {
                     if (!this.soup.isSameChainSelected(iResPressed)) {
@@ -93512,16 +93487,22 @@ var SoupWidget = function (_WebglWidget) {
                     }
                 }
                 if (!event.metaKey && !event.shiftKey) {
+                    console.log('Got here');
+                    this.controller.triggerAtom(iAtomPressed);
+                } else if (event.metaKey) {
                     this.controller.toggleSelectResidue(iResPressed);
+                    this.controller.zoomToSelection();
                 } else if (event.shiftKey) {
                     this.controller.selectAdditionalRangeToResidue(this.iResFirstPressed);
+                    this.controller.zoomToSelection();
                 } else {
                     this.controller.selectAdditionalResidue(this.iResFirstPressed);
                 }
             } else {
                 this.controller.clearSelectedResidues();
+                this.controller.clickBackground();
             }
-
+            console.log('clear press');
             this.iAtomFirstPressed = null;
             this.iResFirstPressed = null;
 
@@ -93594,6 +93575,7 @@ var SoupWidget = function (_WebglWidget) {
 
                     // cancel any down/up motion
                     this.isClickInitiated = false;
+                    console.log('mousemove cancel click due to move');
 
                     if (rightMouse || event.metaKey) {
                         zRotationAngle = this.mouseT - this.saveMouseT;
@@ -93630,6 +93612,9 @@ var SoupWidget = function (_WebglWidget) {
             event.preventDefault();
 
             if (this.isDraggingCentralAtom) {
+                if (this.iAtomHover === this.iAtomFirstPressed) {
+                    this.click(event);
+                }
                 if (this.iAtomHover !== null) {
                     var iAtomCentre = this.soupView.getICenteredAtom();
                     if (this.iAtomHover !== iAtomCentre) {
@@ -93638,9 +93623,7 @@ var SoupWidget = function (_WebglWidget) {
                 }
                 this.lineElement.hide();
                 this.isDraggingCentralAtom = false;
-            }
-
-            if (this.isClickInitiated) {
+            } else if (this.isClickInitiated) {
                 this.click(event);
             }
 
@@ -103425,6 +103408,7 @@ var SoupController = function () {
 
             this.clearSidechainResidues();
             this.clearSelectedResidues();
+            this.clickBackground();
         }
     }, {
         key: 'getAnimateState',
@@ -103752,10 +103736,11 @@ var SoupController = function () {
     }, {
         key: 'zoomToSelection',
         value: function zoomToSelection() {
-            if (!this.soup.isEmpty()) {
-                this.setTargetView(this.soupView.getZoomedOutViewOfSelection());
-                this.soupView.isChanged = true;
+            if (this.soup.isEmpty()) {
+                return;
             }
+            this.setTargetView(this.soupView.getZoomedOutViewOfSelection());
+            this.soupView.isChanged = true;
         }
     }, {
         key: 'adjustCamera',
@@ -103763,24 +103748,27 @@ var SoupController = function () {
             this.soupView.adjustCamera(xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio);
         }
     }, {
+        key: 'clickBackground',
+        value: function clickBackground() {
+            this.clearSelectedResidues();
+            this.zoomOut();
+            this.soupView.isUpdateColors = true;
+            this.soupView.isUpdateObservers = true;
+        }
+    }, {
         key: 'triggerAtom',
         value: function triggerAtom(iAtomHover) {
-            if (_lodash2.default.isNil(iAtomHover)) {
-                this.clearSelectedResidues();
-                this.zoomOut();
-            } else {
-                var atom = this.soup.getAtomProxy(iAtomHover);
-                if (this.soupView.getMode() === 'chain') {
-                    if (!this.soup.isSameChainSelected(atom.iRes)) {
-                        this.clearSelectedResidues();
-                        this.zoomToChainContainingAtom(atom.iAtom);
-                        return;
-                    }
+            var atom = this.soup.getAtomProxy(iAtomHover);
+            if (this.soupView.getMode() === 'chain') {
+                if (!this.soup.isSameChainSelected(atom.iRes)) {
+                    this.clearSelectedResidues();
+                    this.zoomToChainContainingAtom(atom.iAtom);
+                    return;
                 }
-                this.clearSelectedResidues();
-                this.selectResidue(atom.iRes, true);
-                this.setTargetViewByIAtom(iAtomHover);
             }
+            this.clearSelectedResidues();
+            this.selectResidue(atom.iRes, true);
+            this.setTargetViewByIAtom(iAtomHover);
             this.soupView.isUpdateColors = true;
             this.soupView.isUpdateObservers = true;
         }

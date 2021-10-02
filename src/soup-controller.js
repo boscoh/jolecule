@@ -587,6 +587,7 @@ class SoupController {
         }
         this.clearSidechainResidues()
         this.clearSelectedResidues()
+        this.clickBackground()
     }
 
     getAnimateState () {
@@ -796,10 +797,11 @@ class SoupController {
     }
 
     zoomToSelection () {
-        if (!this.soup.isEmpty()) {
-            this.setTargetView(this.soupView.getZoomedOutViewOfSelection())
-            this.soupView.isChanged = true
+        if (this.soup.isEmpty()) {
+            return
         }
+        this.setTargetView(this.soupView.getZoomedOutViewOfSelection())
+        this.soupView.isChanged = true
     }
 
     adjustCamera (xRotationAngle, yRotationAngle, zRotationAngle, zoomRatio) {
@@ -811,23 +813,25 @@ class SoupController {
         )
     }
 
+    clickBackground() {
+      this.clearSelectedResidues()
+      this.zoomOut()
+      this.soupView.isUpdateColors = true
+      this.soupView.isUpdateObservers = true
+    }
+
     triggerAtom (iAtomHover) {
-        if (_.isNil(iAtomHover)) {
-            this.clearSelectedResidues()
-            this.zoomOut()
-        } else {
-            let atom = this.soup.getAtomProxy(iAtomHover)
-            if (this.soupView.getMode() === 'chain') {
-                if (!this.soup.isSameChainSelected(atom.iRes)) {
-                    this.clearSelectedResidues()
-                    this.zoomToChainContainingAtom(atom.iAtom)
-                    return
-                }
+        let atom = this.soup.getAtomProxy(iAtomHover)
+        if (this.soupView.getMode() === 'chain') {
+            if (!this.soup.isSameChainSelected(atom.iRes)) {
+                this.clearSelectedResidues()
+                this.zoomToChainContainingAtom(atom.iAtom)
+                return
             }
-            this.clearSelectedResidues()
-            this.selectResidue(atom.iRes, true)
-            this.setTargetViewByIAtom(iAtomHover)
         }
+        this.clearSelectedResidues()
+        this.selectResidue(atom.iRes, true)
+        this.setTargetViewByIAtom(iAtomHover)
         this.soupView.isUpdateColors = true
         this.soupView.isUpdateObservers = true
     }

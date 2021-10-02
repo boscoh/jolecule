@@ -483,13 +483,11 @@ class SoupWidget extends WebglWidget {
     doubleclick (event) {
         if (this.iAtomHover !== null) {
             if (this.iAtomHover === this.soupView.getICenteredAtom()) {
-                this.atomLabelDialog()
-            } else if (this.iAtomHover === this.iAtomPreClick) {
-                this.controller.triggerAtom(this.iAtomHover)
+                if (!event.metaKey && !event.shiftKey) {
+                    this.atomLabelDialog()
+                }
             }
             this.isDraggingCentralAtom = false
-        } else {
-            this.controller.triggerAtom()
         }
         this.iAtomFirstPressed = null
         this.iResFirstPressed = null
@@ -502,7 +500,6 @@ class SoupWidget extends WebglWidget {
     click (event) {
         let iAtomPressed = this.iAtomHover
         let iResPressed = this.soup.getAtomProxy(iAtomPressed).iRes
-
         if (util.exists(iResPressed) && iResPressed === this.iResFirstPressed) {
             if (this.soupView.currentView.show.transparent) {
                 if (!this.soup.isSameChainSelected(iResPressed)) {
@@ -510,18 +507,24 @@ class SoupWidget extends WebglWidget {
                 }
             }
             if (!event.metaKey && !event.shiftKey) {
+                console.log('Got here')
+                this.controller.triggerAtom(iAtomPressed)
+            } else if (event.metaKey) {
                 this.controller.toggleSelectResidue(iResPressed)
+                this.controller.zoomToSelection()
             } else if (event.shiftKey) {
                 this.controller.selectAdditionalRangeToResidue(
                     this.iResFirstPressed
                 )
+                this.controller.zoomToSelection()
             } else {
                 this.controller.selectAdditionalResidue(this.iResFirstPressed)
             }
         } else {
             this.controller.clearSelectedResidues()
+            this.controller.clickBackground()
         }
-
+        console.log('clear press')
         this.iAtomFirstPressed = null
         this.iResFirstPressed = null
 
@@ -600,6 +603,7 @@ class SoupWidget extends WebglWidget {
 
                 // cancel any down/up motion
                 this.isClickInitiated = false
+                console.log('mousemove cancel click due to move')
 
                 if (rightMouse || event.metaKey) {
                     zRotationAngle = this.mouseT - this.saveMouseT
@@ -642,6 +646,9 @@ class SoupWidget extends WebglWidget {
         event.preventDefault()
 
         if (this.isDraggingCentralAtom) {
+            if (this.iAtomHover === this.iAtomFirstPressed) {
+                this.click(event)
+            }
             if (this.iAtomHover !== null) {
                 let iAtomCentre = this.soupView.getICenteredAtom()
                 if (this.iAtomHover !== iAtomCentre) {
@@ -650,9 +657,7 @@ class SoupWidget extends WebglWidget {
             }
             this.lineElement.hide()
             this.isDraggingCentralAtom = false
-        }
-
-        if (this.isClickInitiated) {
+        } else if (this.isClickInitiated) {
             this.click(event)
         }
 

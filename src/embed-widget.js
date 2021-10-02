@@ -354,12 +354,6 @@ class EmbedJolecule {
         }
 
         if (this.params.isEditable) {
-            this.toolbarDiv.append(
-                linkButton('Zoom', 'jolecule-button', () => {
-                    this.controller.zoomToSelection()
-                })
-            )
-
             this.toolbarDiv
                 .append(
                     linkButton('Clear', 'jolecule-button', () => {

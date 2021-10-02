@@ -1,6 +1,62 @@
 [
   {
     "version": 2,
+    "view_id": "view:bygcp6",
+    "user_id": "",
+    "pdb_id": "1mbo",
+    "order": 1,
+    "show": {
+      "sidechain": false,
+      "peptide": true,
+      "hydrogen": false,
+      "water": false,
+      "ligands": true,
+      "trace": true,
+      "ribbon": true,
+      "sphere": false,
+      "transparent": false,
+      "all_atom": false
+    },
+    "grid": {
+      "isElem": {},
+      "bCutoff": 0.5,
+      "isChanged": false
+    },
+    "text": "Click edit to change this text.",
+    "i_atom": -1,
+    "labels": [],
+    "selected": [],
+    "selected_traces": [
+      0
+    ],
+    "distances": [],
+    "camera": {
+      "slab": {
+        "z_front": -14.574999809265137,
+        "z_back": 14.574999809265137,
+        "zoom": 34.97999954223633
+      },
+      "pos": [
+        21.880869575168774,
+        19.68478244283925,
+        -2.7982608416806096
+      ],
+      "up": [
+        21.32096986444709,
+        19.386087094723035,
+        -2.0254132480714
+      ],
+      "in": [
+        22.242665535276245,
+        20.435783343975373,
+        -2.2459010588011523
+      ]
+    },
+    "lock": false,
+    "creator": "public"
+  },
+  {
+    "version": 2,
     "view_id": "view:z5dpfp",
     "pdb_id": "1mbo",
     "order": 2,
@@ -36,7 +92,7 @@
       "slab": {
         "z_front": -23.523016759776546,
         "z_back": 27.396983240223452,
-        "zoom": 32.40633689058986
+        "zoom": 32.406336890589834
       },
       "pos": [
         16.729999999994085,
@@ -60,7 +116,7 @@
     "version": 2,
     "view_id": "view:e9mx4p",
     "pdb_id": "1mbo",
-    "order": 5,
+    "order": 3,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -96,7 +152,7 @@
       "slab": {
         "z_front": -7.753908948194662,
         "z_back": 5.58086661002549,
-        "zoom": 29.280544867879033
+        "zoom": 29.28054486787904
       },
       "pos": [
         17.410000000001787,
@@ -111,7 +167,7 @@
       "in": [
         17.00123423615934,
         25.682855200046887,
-        -0.16000568901555265
+        -0.16000568901555268
       ]
     },
     "creator": "~ apposite @28/5/2015"
@@ -120,7 +176,7 @@
     "version": 2,
     "view_id": "view:cc8izq",
     "pdb_id": "1mbo",
-    "order": 6,
+    "order": 4,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -153,7 +209,7 @@
       "slab": {
         "z_front": -2,
         "z_back": 12.23039246467818,
-        "zoom": 69.28452731387348
+        "zoom": 69.28452731387345
       },
       "pos": [
         26.259999999998318,
@@ -177,7 +233,7 @@
     "version": 2,
     "view_id": "view:4vbozk",
     "pdb_id": "1mbo",
-    "order": 7,
+    "order": 5,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -242,7 +298,7 @@
     "version": 2,
     "view_id": "view:ekemch",
     "pdb_id": "1mbo",
-    "order": 8,
+    "order": 6,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -275,7 +331,7 @@
       "slab": {
         "z_front": -2.3794392523364434,
         "z_back": 13.627697536108753,
-        "zoom": 73.21182399733792
+        "zoom": 73.21182399733786
       },
       "pos": [
         15.360000000002508,
@@ -290,7 +346,7 @@
       "in": [
         14.41946231879145,
         28.281583486049204,
-        0.48623508963063355
+        0.4862350896306335
       ]
     },
     "creator": "~ apposite @27/5/2015"
@@ -299,7 +355,7 @@
     "version": 2,
     "view_id": "view:l74skx",
     "pdb_id": "1mbo",
-    "order": 9,
+    "order": 7,
     "show": {
       "sidechain": false,
       "peptide": true,
@@ -364,7 +420,7 @@
     "version": 2,
     "view_id": "view:1mg5ap",
     "pdb_id": "1mbo",
-    "order": 10,
+    "order": 8,
     "show": {
       "sidechain": false,
       "peptide": true,

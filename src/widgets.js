@@ -1177,32 +1177,6 @@ class SequenceWidget extends CanvasWidget {
         this.mousePressed = ''
     }
 
-    doubleclick (event) {
-        console.log(
-            'SequenceWidget.doubleclick',
-            this.pressSection,
-            this.iCharPressed
-        )
-        this.getPointer(event)
-        let iChar = null
-        if (this.pressSection === 'bottom') {
-            // mouse event in sequence bar
-            iChar = this.iCharFromXSeq(this.pointerX)
-        } else {
-            iChar = this.iCharFromXStruct(this.pointerX)
-        }
-        let charEntry = this.charEntries[iChar]
-        if (!_.isNil(charEntry.iRes)) {
-            if (this.pressSection === 'top') {
-                this.controller.selectSecondaryStructure(charEntry.iRes)
-            } else {
-                this.controller.setResidueSelect(charEntry.iRes, true)
-            }
-            let residue = this.soup.getResidueProxy(charEntry.iRes)
-            this.controller.triggerAtom(residue.iAtom)
-        }
-    }
-
     click (event) {
         let iChar = null
         if (this.pressSection === 'bottom') {
@@ -1221,6 +1195,7 @@ class SequenceWidget extends CanvasWidget {
             if (!_.isNil(charEntry.iRes)) {
                 let iRes = charEntry.iRes
                 this.controller.toggleSecondaryStructure(iRes)
+                this.controller.zoomToSelection()
             }
         } else if (this.pressSection === 'bottom') {
             let charEntry = this.charEntries[this.iCharPressed]
@@ -1228,10 +1203,14 @@ class SequenceWidget extends CanvasWidget {
                 let iRes = charEntry.iRes
                 if (!event.metaKey && !event.shiftKey) {
                     this.controller.selectResidue(iRes)
+                    let iAtom = this.soup.getResidueProxy(iRes).iAtom
+                    this.controller.triggerAtom(iAtom)
                 } else if (event.shiftKey) {
                     this.controller.selectAdditionalRangeToResidue(iRes)
-                } else {
+                    this.controller.zoomToSelection()
+                } else if (event.metaKey) {
                     this.controller.selectAdditionalResidue(iRes)
+                    this.controller.zoomToSelection()
                 }
             }
         }
