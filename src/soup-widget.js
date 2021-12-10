@@ -53,7 +53,7 @@ class SoupWidget extends WebglWidget {
         this.controller = controller
 
         // screen atom radius
-        this.atomRadius = 0.35
+        this.atomRadius = 0.22
         this.gridAtomRadius = 1.0
 
         // Cross-hairs to identify centered atom

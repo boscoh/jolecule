@@ -167,15 +167,21 @@ class PdbParser {
             }
         }
 
-        if (models[iModel].length === 0) {
+        while (models[iModel].length === 0) {
             models.pop()
+            iModel -= 1
         }
-
         let nModel = models.length
         for (let iModel = 0; iModel < nModel; iModel += 1) {
             let structureId = pdbId
             if (nModel > 1) {
                 structureId = `${structureId}[${iModel + 1}]`
+            }
+            let baseStructureId = structureId
+            let iClash = 1
+            while (_.includes(this.soup.structureIds, structureId)) {
+              structureId = `${baseStructureId}[${iClash}]`
+              iClash += 1
             }
             this.soup.pushStructureId(structureId, title)
             this.parseAtomLines(models[iModel])

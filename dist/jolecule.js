@@ -78300,7 +78300,7 @@ var resToAa = {
 
     // Backbone atom names
 
-};var backboneAtomTypes = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', "C3'", 'P', 'OP1', "O5'", 'OP2', "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'", "H2'", "H2''", "H3'", "H4'", "H5'", "H5''", "HO3'", 'HN', 'HT1', 'HT2', 'HT3', 'OT1', 'OT2'];
+};var backboneAtomTypes = ['N', 'C', 'O', 'H', 'HA', 'CA', 'OXT', "C3'", 'P', 'OP1', "O5'", 'OP2', "C5'", "O5'", "O3'", "C4'", "O4'", "C1'", "C2'", "O2'", "H2'", "H2''", "H3'", "H4'", "H5'", "H5''", "HO3'", 'HN', 'HT1', 'HT2', 'HT3', 'H2', 'H3', 'OT1', 'OT2'];
 
 // Cartoon cross-sections
 var coilFace = new THREE.Shape([new THREE.Vector2(-0.2, -0.2), new THREE.Vector2(-0.2, +0.2), new THREE.Vector2(+0.2, +0.2), new THREE.Vector2(+0.2, -0.2)]);
@@ -92995,7 +92995,7 @@ var SoupWidget = function (_WebglWidget) {
         _this.controller = controller;
 
         // screen atom radius
-        _this.atomRadius = 0.35;
+        _this.atomRadius = 0.22;
         _this.gridAtomRadius = 1.0;
 
         // Cross-hairs to identify centered atom
@@ -104067,15 +104067,21 @@ var PdbParser = function () {
                 }
             }
 
-            if (models[iModel].length === 0) {
+            while (models[iModel].length === 0) {
                 models.pop();
+                iModel -= 1;
             }
-
             var nModel = models.length;
             for (var _iModel = 0; _iModel < nModel; _iModel += 1) {
                 var structureId = pdbId;
                 if (nModel > 1) {
                     structureId = structureId + '[' + (_iModel + 1) + ']';
+                }
+                var baseStructureId = structureId;
+                var iClash = 1;
+                while (_lodash2.default.includes(this.soup.structureIds, structureId)) {
+                    structureId = baseStructureId + '[' + iClash + ']';
+                    iClash += 1;
                 }
                 this.soup.pushStructureId(structureId, title);
                 this.parseAtomLines(models[_iModel]);

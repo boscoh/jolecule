@@ -151,6 +151,8 @@ const backboneAtomTypes = [
     'HT1',
     'HT2',
     'HT3',
+    'H2',
+    'H3',
     'OT1',
     'OT2',
 ]
