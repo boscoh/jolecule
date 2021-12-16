@@ -2260,6 +2260,7 @@ class ToggleToolbarWidget {
 }
 
 export default {
+    CanvasWidget,
     LineElement,
     PopupText,
     AtomLabelsWidget,
