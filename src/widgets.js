@@ -560,6 +560,7 @@ class DistanceMeasuresWidget {
 
             distanceMeasure.line.geometry.vertices[0].copy(p1)
             distanceMeasure.line.geometry.vertices[1].copy(p2)
+            distanceMeasure.line.geometry.verticesNeedUpdate = true
 
             if (!this.soupWidget.inZlab(m)) {
                 distanceMeasure.div.css('display', 'none')
