@@ -440,7 +440,7 @@ class SoupWidget extends WebglWidget {
 
         this.setCameraParams(this.getCameraOfCurrentView())
 
-        // needs to be observers.updated before render
+        // needs to be updated before render
         // as lines must be placed in THREE.js scene
         this.distanceMeasuresWidget.drawFrame()
 

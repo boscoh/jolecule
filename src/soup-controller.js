@@ -198,7 +198,7 @@ class SoupController {
 
     clearSidechainResidues () {
         this.soup.clearSidechainResidues()
-        this.soupView.currentView.selected = this.soup.makeSelectedResidueList()
+        this.soupView.currentView.sidechain = this.soup.makeSidechainResidueList()
         this.soupView.isUpdateSidechain = true
         this.soupView.isChanged = true
     }
@@ -419,6 +419,7 @@ class SoupController {
         }
 
         this.soupView.currentView.selected = this.soup.makeSelectedResidueList()
+        this.soupView.currentView.sidechains = this.soup.makeSidechainResidueList()
         this.soupView.isChanged = true
         this.soupView.isUpdateSidechain = true
     }

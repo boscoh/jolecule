@@ -1271,6 +1271,13 @@ class Soup {
         }
     }
 
+    setSelectedOfResidues (residueIndices, isSelected) {
+        let residue = this.getResidueProxy()
+        for (let iRes of residueIndices) {
+            residue.load(iRes).selected = isSelected
+        }
+    }
+
     getAtomsOfChainContainingResidue (iRes) {
         let residue = this.getResidueProxy(iRes)
         let iStructure = residue.iStructure
@@ -1402,6 +1409,17 @@ class Soup {
     }
 
     makeSelectedResidueList () {
+        let result = []
+        let residue = this.getResidueProxy()
+        for (let i = 0; i < this.getResidueCount(); i += 1) {
+            if (residue.load(i).selected) {
+                result.push(i)
+            }
+        }
+        return result
+    }
+
+    makeSidechainResidueList () {
         let result = []
         let residue = this.getResidueProxy()
         for (let i = 0; i < this.getResidueCount(); i += 1) {

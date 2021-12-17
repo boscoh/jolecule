@@ -43,6 +43,7 @@ class View {
             zoom: 1,
         }
         this.selected = []
+        this.sidechains = []
         this.labels = []
         this.distances = []
         this.selectedTraces = []
@@ -88,6 +89,7 @@ class View {
         v.pdbId = this.pdbId
         v.iAtom = this.iAtom
         v.selected = this.selected
+        v.sidechains = this.sidechains
         v.selectedTraces = _.cloneDeep(this.selectedTraces)
         v.labels = _.cloneDeep(this.labels)
         v.distances = _.cloneDeep(this.distances)
@@ -135,6 +137,7 @@ class View {
             i_atom: this.iAtom,
             labels: this.labels,
             selected: this.selected,
+            sidechains: this.sidechains,
             selected_traces: this.selectedTraces,
             distances: this.distances,
             camera: {
@@ -165,6 +168,10 @@ class View {
 
         this.labels = flatDict.labels
         this.selected = flatDict.selected
+        this.sidechains = _.cloneDeep(flatDict.selected)
+        if (_.has(flatDict, "sidechains")) {
+            this.sidechains = flatDict.sidechains
+        }
         this.distances = flatDict.distances
 
         for (let key of _.keys(flatDict.show)) {
@@ -553,33 +560,73 @@ class SoupView {
         return newView
     }
 
-    saveCurrentView () {
+    getCurrentView() {
         let newView = this.currentView.clone()
         newView.id = randomId()
         newView.text = 'Click edit to change this text.'
         newView.pdbId = this.soup.structureIds[0]
         newView.selected = this.soup.makeSelectedResidueList()
+        newView.sidechains = this.soup.makeSidechainResidueList()
         newView.selectedTraces = _.cloneDeep(this.soup.selectedTraces)
+        return newView
+    }
 
+    saveCurrentView () {
+        let newView = this.getCurrentView()
         let iNewView = this.iLastViewSelected + 1
         this.insertView(iNewView, newView.id, newView)
         this.setTargetViewByViewId(newView.id)
         this.isChanged = true
         this.isUpdateColors = true
         console.log('Soupview.saveCurrentView', newView)
-
         return newView.id
     }
 
     setCurrentView (view) {
         let oldViewSelected = this.currentView.selected
+        let oldViewSidechains = this.currentView.sidechains
         this.currentView = view.clone()
         this.soup.selectedTraces = _.cloneDeep(view.selectedTraces)
         if (!_.isEqual(oldViewSelected.sort(), view.selected.sort())) {
-            this.soup.clearSidechainResidues()
-            this.soup.setSidechainOfResidues(view.selected, true)
+            this.soup.clearSelectedResidues()
+            this.soup.setSelectedOfResidues(view.selected, true)
             this.isUpdateSidechain = true
         }
+        if (!_.isEqual(oldViewSidechains.sort(), view.sidechains.sort())) {
+            this.soup.clearSidechainResidues()
+            this.soup.setSidechainOfResidues(view.sidechains, true)
+            this.isUpdateSidechain = true
+        }
+
+        // use view.grid parameters to reset soup.grid
+        for (let elem in view.grid.isElem) {
+            if (elem in this.soup.grid.isElem) {
+                if (view.grid.isElem[elem] !== this.soup.grid.isElem[elem]) {
+                    this.soup.grid.isElem[elem] = view.grid.isElem[elem]
+                    this.isUpdateObservers = true
+                    this.soup.grid.isChanged = true
+                }
+            }
+        }
+        if (!_.isNil(view.grid.bCutoff)) {
+            if (this.soup.grid.bCutoff !== view.grid.bCutoff) {
+                this.soup.grid.bCutoff = view.grid.bCutoff
+                this.isUpdateObservers = true
+                this.soup.grid.isChanged = true
+            }
+        }
+
+        this.isChanged = true
+    }
+
+    setHardCurrentView (view) {
+        this.currentView = view.clone()
+        this.soup.selectedTraces = _.cloneDeep(view.selectedTraces)
+        this.soup.clearSelectedResidues()
+        this.soup.setSelectedOfResidues(view.selected, true)
+        this.soup.clearSidechainResidues()
+        this.soup.setSidechainOfResidues(view.sidechains, true)
+        this.isUpdateSidechain = true
 
         // use view.grid parameters to reset soup.grid
         for (let elem in view.grid.isElem) {
