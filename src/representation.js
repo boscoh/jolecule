@@ -665,7 +665,7 @@ class WaterRepresentation extends AtomsRepresentation {
         let residue = this.soup.getResidueProxy()
         for (let iRes of _.range(this.soup.getResidueCount())) {
             residue.iRes = iRes
-            if (residue.resType === 'HOH') {
+            if (_.includes(data.solventResTypes, residue.resType)) {
                 this.atomIndices.push(residue.iAtom)
             }
         }

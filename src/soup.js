@@ -673,7 +673,7 @@ class Soup {
                 res.isPolymer = true
             } else {
                 res.isPolymer = false
-                if (res.resType === 'HOH') {
+                if (_.includes(data.solventResTypes, res.resType)) {
                     // water
                     res.ss = 'W'
                 } else if (res.resType === 'XXX') {

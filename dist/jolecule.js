@@ -78167,7 +78167,7 @@ exports.applyColorToVector3array = applyColorToVector3array;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.getNucleotideConnectorBondAtomTypes = exports.getNucleotideBaseAtomTypes = exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.darkGrey = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.coilFace = exports.backboneAtomTypes = exports.resToAa = exports.getSsColor = undefined;
+exports.getNucleotideConnectorBondAtomTypes = exports.getNucleotideBaseAtomTypes = exports.rnaResTypes = exports.dnaResTypes = exports.proteinResTypes = exports.ElementColors = exports.solventResTypes = exports.darkGrey = exports.red = exports.grey = exports.purple = exports.yellow = exports.blue = exports.green = exports.coilFace = exports.backboneAtomTypes = exports.resToAa = exports.getSsColor = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }(); /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * Central place to store constants and color
@@ -78199,6 +78199,8 @@ var purple = new THREE.Color(0x9578aa);
 var grey = new THREE.Color(0xbbbbbb);
 var red = new THREE.Color(0x993333);
 var darkGrey = new THREE.Color(0x999999);
+
+var solventResTypes = ['HOH', 'NA', 'CL'];
 
 var ElementColors = {
     H: 0xcccccc,
@@ -78344,6 +78346,7 @@ exports.purple = purple;
 exports.grey = grey;
 exports.red = red;
 exports.darkGrey = darkGrey;
+exports.solventResTypes = solventResTypes;
 exports.ElementColors = ElementColors;
 exports.proteinResTypes = proteinResTypes;
 exports.dnaResTypes = dnaResTypes;
@@ -80426,6 +80429,7 @@ var EmbedJolecule = function () {
             var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(dataServer) {
                 var _this2 = this;
 
+                var isRebuild = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
                 var asyncSetMesssage, views, isDefaultViewId;
                 return regeneratorRuntime.wrap(function _callee2$(_context2) {
                     while (1) {
@@ -80501,7 +80505,7 @@ var EmbedJolecule = function () {
                                             }, _callee, _this2);
                                         }));
 
-                                        return function (_x2) {
+                                        return function (_x3) {
                                             return _ref2.apply(this, arguments);
                                         };
                                     }());
@@ -80509,34 +80513,34 @@ var EmbedJolecule = function () {
 
                             case 24:
 
-                                this.soupWidget.buildScene();
-
-                                this.resize();
-
-                                this.controller.zoomOut();
+                                if (isRebuild) {
+                                    console.log('asyncAddDataServer rebuild', isRebuild);
+                                    this.soupWidget.buildScene(this.resize());
+                                    this.controller.zoomOut();
+                                }
 
                                 if (!_lodash2.default.isNil(this.soupView.dataServer)) {
-                                    _context2.next = 43;
+                                    _context2.next = 41;
                                     break;
                                 }
 
-                                _context2.next = 30;
+                                _context2.next = 28;
                                 return this.soupWidget.asyncSetMesssage('Preparing views...');
 
-                            case 30:
+                            case 28:
 
                                 // save only first loaded dataServer for saving and deleting
                                 this.soupWidget.dataServer = dataServer;
 
                                 if (!(dataServer.version === 2)) {
-                                    _context2.next = 40;
+                                    _context2.next = 38;
                                     break;
                                 }
 
-                                _context2.next = 34;
+                                _context2.next = 32;
                                 return dataServer.asyncGetViews();
 
-                            case 34:
+                            case 32:
                                 views = _context2.sent;
 
                                 this.controller.loadViewsFromViewDicts(views);
@@ -80545,11 +80549,11 @@ var EmbedJolecule = function () {
                                 if (isDefaultViewId) {
                                     this.controller.setTargetViewByViewId(this.params.viewId);
                                 }
-                                _context2.next = 42;
+                                _context2.next = 40;
                                 break;
 
-                            case 40:
-                                _context2.next = 42;
+                            case 38:
+                                _context2.next = 40;
                                 return new Promise(function (resolve) {
                                     dataServer.getViews(function (viewDicts, viewId) {
                                         _this2.controller.loadViewsFromViewDicts(viewDicts);
@@ -80564,11 +80568,11 @@ var EmbedJolecule = function () {
                                     });
                                 });
 
-                            case 42:
+                            case 40:
 
                                 this.soupView.isUpdateObservers = true;
 
-                            case 43:
+                            case 41:
 
                                 this.soupWidget.cleanupMessage();
 
@@ -80576,7 +80580,7 @@ var EmbedJolecule = function () {
 
                                 console.log('EmbedJolecule.asyncAddDataServer finished');
 
-                            case 46:
+                            case 44:
                             case 'end':
                                 return _context2.stop();
                         }
@@ -80840,6 +80844,7 @@ var View = function () {
             zoom: 1
         };
         this.selected = [];
+        this.sidechains = [];
         this.labels = [];
         this.distances = [];
         this.selectedTraces = [];
@@ -80889,6 +80894,7 @@ var View = function () {
             v.pdbId = this.pdbId;
             v.iAtom = this.iAtom;
             v.selected = this.selected;
+            v.sidechains = this.sidechains;
             v.selectedTraces = _lodash2.default.cloneDeep(this.selectedTraces);
             v.labels = _lodash2.default.cloneDeep(this.labels);
             v.distances = _lodash2.default.cloneDeep(this.distances);
@@ -80935,6 +80941,7 @@ var View = function () {
                 i_atom: this.iAtom,
                 labels: this.labels,
                 selected: this.selected,
+                sidechains: this.sidechains,
                 selected_traces: this.selectedTraces,
                 distances: this.distances,
                 camera: {
@@ -80966,6 +80973,10 @@ var View = function () {
 
             this.labels = flatDict.labels;
             this.selected = flatDict.selected;
+            this.sidechains = _lodash2.default.cloneDeep(flatDict.selected);
+            if (_lodash2.default.has(flatDict, "sidechains")) {
+                this.sidechains = flatDict.sidechains;
+            }
             this.distances = flatDict.distances;
 
             var _iteratorNormalCompletion = true;
@@ -81393,35 +81404,77 @@ var SoupView = function () {
             return newView;
         }
     }, {
-        key: 'saveCurrentView',
-        value: function saveCurrentView() {
+        key: 'getCurrentView',
+        value: function getCurrentView() {
             var newView = this.currentView.clone();
             newView.id = (0, _util.randomId)();
             newView.text = 'Click edit to change this text.';
             newView.pdbId = this.soup.structureIds[0];
             newView.selected = this.soup.makeSelectedResidueList();
+            newView.sidechains = this.soup.makeSidechainResidueList();
             newView.selectedTraces = _lodash2.default.cloneDeep(this.soup.selectedTraces);
-
+            return newView;
+        }
+    }, {
+        key: 'saveCurrentView',
+        value: function saveCurrentView() {
+            var newView = this.getCurrentView();
             var iNewView = this.iLastViewSelected + 1;
             this.insertView(iNewView, newView.id, newView);
             this.setTargetViewByViewId(newView.id);
             this.isChanged = true;
             this.isUpdateColors = true;
             console.log('Soupview.saveCurrentView', newView);
-
             return newView.id;
         }
     }, {
         key: 'setCurrentView',
         value: function setCurrentView(view) {
             var oldViewSelected = this.currentView.selected;
+            var oldViewSidechains = this.currentView.sidechains;
             this.currentView = view.clone();
             this.soup.selectedTraces = _lodash2.default.cloneDeep(view.selectedTraces);
             if (!_lodash2.default.isEqual(oldViewSelected.sort(), view.selected.sort())) {
-                this.soup.clearSidechainResidues();
-                this.soup.setSidechainOfResidues(view.selected, true);
+                this.soup.clearSelectedResidues();
+                this.soup.setSelectedOfResidues(view.selected, true);
                 this.isUpdateSidechain = true;
             }
+            if (!_lodash2.default.isEqual(oldViewSidechains.sort(), view.sidechains.sort())) {
+                this.soup.clearSidechainResidues();
+                this.soup.setSidechainOfResidues(view.sidechains, true);
+                this.isUpdateSidechain = true;
+            }
+
+            // use view.grid parameters to reset soup.grid
+            for (var elem in view.grid.isElem) {
+                if (elem in this.soup.grid.isElem) {
+                    if (view.grid.isElem[elem] !== this.soup.grid.isElem[elem]) {
+                        this.soup.grid.isElem[elem] = view.grid.isElem[elem];
+                        this.isUpdateObservers = true;
+                        this.soup.grid.isChanged = true;
+                    }
+                }
+            }
+            if (!_lodash2.default.isNil(view.grid.bCutoff)) {
+                if (this.soup.grid.bCutoff !== view.grid.bCutoff) {
+                    this.soup.grid.bCutoff = view.grid.bCutoff;
+                    this.isUpdateObservers = true;
+                    this.soup.grid.isChanged = true;
+                }
+            }
+
+            this.isChanged = true;
+        }
+    }, {
+        key: 'setHardCurrentView',
+        value: function setHardCurrentView(view) {
+            this.currentView = view.clone();
+            this.soup.selectedTraces = _lodash2.default.cloneDeep(view.selectedTraces);
+            this.soup.clearSelectedResidues();
+            this.soup.setSelectedOfResidues(view.selected, true);
+            this.soup.clearSidechainResidues();
+            this.soup.setSidechainOfResidues(view.sidechains, true);
+            this.isUpdateSidechain = true;
 
             // use view.grid parameters to reset soup.grid
             for (var elem in view.grid.isElem) {
@@ -82305,6 +82358,7 @@ var DistanceMeasuresWidget = function () {
 
                 distanceMeasure.line.geometry.vertices[0].copy(p1);
                 distanceMeasure.line.geometry.vertices[1].copy(p2);
+                distanceMeasure.line.geometry.verticesNeedUpdate = true;
 
                 if (!this.soupWidget.inZlab(m)) {
                     distanceMeasure.div.css('display', 'none');
@@ -84216,6 +84270,7 @@ var ToggleToolbarWidget = function () {
 }();
 
 exports.default = {
+    CanvasWidget: CanvasWidget,
     LineElement: LineElement,
     PopupText: PopupText,
     AtomLabelsWidget: AtomLabelsWidget,
@@ -91280,7 +91335,7 @@ var Soup = function () {
                     res.isPolymer = true;
                 } else {
                     res.isPolymer = false;
-                    if (res.resType === 'HOH') {
+                    if (_lodash2.default.includes(data.solventResTypes, res.resType)) {
                         // water
                         res.ss = 'W';
                     } else if (res.resType === 'XXX') {
@@ -92190,6 +92245,35 @@ var Soup = function () {
             }
         }
     }, {
+        key: 'setSelectedOfResidues',
+        value: function setSelectedOfResidues(residueIndices, isSelected) {
+            var residue = this.getResidueProxy();
+            var _iteratorNormalCompletion20 = true;
+            var _didIteratorError20 = false;
+            var _iteratorError20 = undefined;
+
+            try {
+                for (var _iterator20 = residueIndices[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+                    var iRes = _step20.value;
+
+                    residue.load(iRes).selected = isSelected;
+                }
+            } catch (err) {
+                _didIteratorError20 = true;
+                _iteratorError20 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion20 && _iterator20.return) {
+                        _iterator20.return();
+                    }
+                } finally {
+                    if (_didIteratorError20) {
+                        throw _iteratorError20;
+                    }
+                }
+            }
+        }
+    }, {
         key: 'getAtomsOfChainContainingResidue',
         value: function getAtomsOfChainContainingResidue(iRes) {
             var residue = this.getResidueProxy(iRes);
@@ -92227,29 +92311,29 @@ var Soup = function () {
             }
 
             var atomIndices0 = res0.getAtomIndices();
-            var _iteratorNormalCompletion20 = true;
-            var _didIteratorError20 = false;
-            var _iteratorError20 = undefined;
+            var _iteratorNormalCompletion21 = true;
+            var _didIteratorError21 = false;
+            var _iteratorError21 = undefined;
 
             try {
-                for (var _iterator20 = atomIndices0[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-                    var iAtom0 = _step20.value;
+                for (var _iterator21 = atomIndices0[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+                    var iAtom0 = _step21.value;
 
                     if (_v2.default.distance(atom0.load(iAtom0).pos, pos1) < 5) {
                         return true;
                     }
                 }
             } catch (err) {
-                _didIteratorError20 = true;
-                _iteratorError20 = err;
+                _didIteratorError21 = true;
+                _iteratorError21 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion20 && _iterator20.return) {
-                        _iterator20.return();
+                    if (!_iteratorNormalCompletion21 && _iterator21.return) {
+                        _iterator21.return();
                     }
                 } finally {
-                    if (_didIteratorError20) {
-                        throw _iteratorError20;
+                    if (_didIteratorError21) {
+                        throw _iteratorError21;
                     }
                 }
             }
@@ -92287,28 +92371,28 @@ var Soup = function () {
         key: 'setSecondaryStructureColorResidues',
         value: function setSecondaryStructureColorResidues() {
             var residue = this.getResidueProxy();
-            var _iteratorNormalCompletion21 = true;
-            var _didIteratorError21 = false;
-            var _iteratorError21 = undefined;
+            var _iteratorNormalCompletion22 = true;
+            var _didIteratorError22 = false;
+            var _iteratorError22 = undefined;
 
             try {
-                for (var _iterator21 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-                    var iRes = _step21.value;
+                for (var _iterator22 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+                    var iRes = _step22.value;
 
                     residue.iRes = iRes;
                     residue.customColor = data.getSsColor(residue.ss);
                 }
             } catch (err) {
-                _didIteratorError21 = true;
-                _iteratorError21 = err;
+                _didIteratorError22 = true;
+                _iteratorError22 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion21 && _iterator21.return) {
-                        _iterator21.return();
+                    if (!_iteratorNormalCompletion22 && _iterator22.return) {
+                        _iterator22.return();
                     }
                 } finally {
-                    if (_didIteratorError21) {
-                        throw _iteratorError21;
+                    if (_didIteratorError22) {
+                        throw _iteratorError22;
                     }
                 }
             }
@@ -92319,55 +92403,55 @@ var Soup = function () {
             var residue = this.getResidueProxy();
             var isGridActive = _lodash2.default.some(_lodash2.default.values(this.grid.isElem));
             if (isGridActive) {
-                var _iteratorNormalCompletion22 = true;
-                var _didIteratorError22 = false;
-                var _iteratorError22 = undefined;
+                var _iteratorNormalCompletion23 = true;
+                var _didIteratorError23 = false;
+                var _iteratorError23 = undefined;
 
                 try {
-                    for (var _iterator22 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-                        var iRes = _step22.value;
+                    for (var _iterator23 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+                        var iRes = _step23.value;
 
                         residue.iRes = iRes;
                         residue.color = data.darkGrey;
                     }
                 } catch (err) {
-                    _didIteratorError22 = true;
-                    _iteratorError22 = err;
+                    _didIteratorError23 = true;
+                    _iteratorError23 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion22 && _iterator22.return) {
-                            _iterator22.return();
+                        if (!_iteratorNormalCompletion23 && _iterator23.return) {
+                            _iterator23.return();
                         }
                     } finally {
-                        if (_didIteratorError22) {
-                            throw _iteratorError22;
+                        if (_didIteratorError23) {
+                            throw _iteratorError23;
                         }
                     }
                 }
             }
 
-            var _iteratorNormalCompletion23 = true;
-            var _didIteratorError23 = false;
-            var _iteratorError23 = undefined;
+            var _iteratorNormalCompletion24 = true;
+            var _didIteratorError24 = false;
+            var _iteratorError24 = undefined;
 
             try {
-                for (var _iterator23 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-                    var _iRes8 = _step23.value;
+                for (var _iterator24 = _lodash2.default.range(this.getResidueCount())[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
+                    var _iRes8 = _step24.value;
 
                     residue.iRes = _iRes8;
                     residue.color = isGridActive ? data.darkGrey : residue.customColor;
                 }
             } catch (err) {
-                _didIteratorError23 = true;
-                _iteratorError23 = err;
+                _didIteratorError24 = true;
+                _iteratorError24 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion23 && _iterator23.return) {
-                        _iterator23.return();
+                    if (!_iteratorNormalCompletion24 && _iterator24.return) {
+                        _iterator24.return();
                     }
                 } finally {
-                    if (_didIteratorError23) {
-                        throw _iteratorError23;
+                    if (_didIteratorError24) {
+                        throw _iteratorError24;
                     }
                 }
             }
@@ -92417,6 +92501,18 @@ var Soup = function () {
     }, {
         key: 'makeSelectedResidueList',
         value: function makeSelectedResidueList() {
+            var result = [];
+            var residue = this.getResidueProxy();
+            for (var i = 0; i < this.getResidueCount(); i += 1) {
+                if (residue.load(i).selected) {
+                    result.push(i);
+                }
+            }
+            return result;
+        }
+    }, {
+        key: 'makeSidechainResidueList',
+        value: function makeSidechainResidueList() {
             var result = [];
             var residue = this.getResidueProxy();
             for (var i = 0; i < this.getResidueCount(); i += 1) {
@@ -92995,7 +93091,7 @@ var SoupWidget = function (_WebglWidget) {
         _this.controller = controller;
 
         // screen atom radius
-        _this.atomRadius = 0.22;
+        _this.atomRadius = 0.3;
         _this.gridAtomRadius = 1.0;
 
         // Cross-hairs to identify centered atom
@@ -93412,7 +93508,7 @@ var SoupWidget = function (_WebglWidget) {
 
             this.setCameraParams(this.getCameraOfCurrentView());
 
-            // needs to be observers.updated before render
+            // needs to be updated before render
             // as lines must be placed in THREE.js scene
             this.distanceMeasuresWidget.drawFrame();
 
@@ -101599,7 +101695,7 @@ var WaterRepresentation = function (_AtomsRepresentation3) {
                 var iRes = _step25.value;
 
                 residue.iRes = iRes;
-                if (residue.resType === 'HOH') {
+                if (_lodash2.default.includes(data.solventResTypes, residue.resType)) {
                     _this7.atomIndices.push(residue.iAtom);
                 }
             }
@@ -102788,7 +102884,7 @@ var SoupController = function () {
         key: 'clearSidechainResidues',
         value: function clearSidechainResidues() {
             this.soup.clearSidechainResidues();
-            this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
+            this.soupView.currentView.sidechain = this.soup.makeSidechainResidueList();
             this.soupView.isUpdateSidechain = true;
             this.soupView.isChanged = true;
         }
@@ -103109,6 +103205,7 @@ var SoupController = function () {
             }
 
             this.soupView.currentView.selected = this.soup.makeSelectedResidueList();
+            this.soupView.currentView.sidechains = this.soup.makeSidechainResidueList();
             this.soupView.isChanged = true;
             this.soupView.isUpdateSidechain = true;
         }
