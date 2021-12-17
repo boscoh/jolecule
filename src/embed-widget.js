@@ -72,7 +72,7 @@ class EmbedJolecule {
         resizeFn()
     }
 
-    async asyncAddDataServer (dataServer) {
+    async asyncAddDataServer (dataServer, isRebuild=true) {
         while (this.isProcessing.flag) {
             await delay(100)
         }
@@ -107,11 +107,12 @@ class EmbedJolecule {
             })
         }
 
-        this.soupWidget.buildScene()
-
-        this.resize()
-
-        this.controller.zoomOut()
+        if (isRebuild) {
+            console.log('asyncAddDataServer rebuild', isRebuild)
+            this.soupWidget.buildScene(
+            this.resize())
+            this.controller.zoomOut()
+        }
 
         if (_.isNil(this.soupView.dataServer)) {
             await this.soupWidget.asyncSetMesssage('Preparing views...')
