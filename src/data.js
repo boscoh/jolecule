@@ -42,6 +42,7 @@ const purple = new THREE.Color(0x9578aa)
 const grey = new THREE.Color(0xbbbbbb)
 const red = new THREE.Color(0x993333)
 const darkGrey = new THREE.Color(0x999999)
+const white = new THREE.Color(0xFFFFFF)
 
 const solventResTypes = ['HOH', 'NA', 'CL']
 
@@ -211,6 +212,7 @@ export {
     grey,
     red,
     darkGrey,
+    white,
     solventResTypes,
     ElementColors,
     proteinResTypes,

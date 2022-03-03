@@ -6,6 +6,7 @@ import { SpaceHash } from './pairs.js'
 import Store from './store.js'
 import * as data from './data'
 import * as THREE from 'three'
+import chroma from 'chroma-js'
 
 function pushToListInDict (dict, key, value) {
     if (!(key in dict)) {
@@ -45,6 +46,14 @@ function intToChar (i) {
 
 function charToInt (c) {
     return c.charCodeAt(0)
+}
+
+function mixColors ( color1, color2, p) {
+    let q = 1 - p
+    let c1 = chroma.gl(color1.r, color1.g, color1.b)
+    let c2 = chroma.gl(color2.r, color2.g, color2.b)
+    let blend_gl = chroma.mix(c1, c2, p, 'lch').gl()
+    return new THREE.Color(blend_gl[0],blend_gl[1], blend_gl[2])
 }
 
 function getIndexColor (i) {
@@ -143,17 +152,16 @@ class AtomProxy {
         return _.range(iStart, iEnd)
     }
 
+
     get color () {
+
         let residue = this.soup.getResidueProxy(this.iRes)
         if (residue.isPolymer) {
             let resColor = residue.activeColor
             if (this.elem === 'C' || this.elem === 'H') {
                 return resColor
             } else if (this.elem in data.ElementColors) {
-                let elemColor = data.ElementColors[this.elem]
-                    .clone()
-                    .offsetHSL(0, -0.3, -0.3)
-                return new THREE.Color().addColors(resColor, elemColor)
+                return mixColors(resColor, data.ElementColors[this.elem], 0.3)
             }
         }
         if (this.elem in data.ElementColors) {
@@ -298,7 +306,8 @@ class ResidueProxy {
         let iColor = this.soup.residueStore.iColor[this.iRes]
         let color = this.soup.colorTable[iColor]
         if (this.selected) {
-            color = color.clone().offsetHSL(0, 0, +0.3)
+            // color = color.clone().offsetHSL(0, 0, +0.3)
+            color = mixColors(color, data.white, 0.8)
         }
         return color
     }

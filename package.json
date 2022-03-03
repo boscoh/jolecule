@@ -18,6 +18,7 @@
     "@koa/router": "^10.0.0",
     "@vue/eslint-config-prettier": "^6.0.0",
     "bootstrap": "^5.0.2",
+    "chroma-js": "^2.1.2",
     "fs": "0.0.1-security",
     "fs-extra": "^1.0.0",
     "jq": "^1.7.2",
