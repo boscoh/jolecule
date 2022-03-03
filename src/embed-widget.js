@@ -151,11 +151,11 @@ class EmbedJolecule {
             this.soupView.isUpdateObservers = true
         }
 
+
         this.soupWidget.cleanupMessage()
 
         this.isProcessing.flag = false
 
-        console.log('EmbedJolecule.asyncAddDataServer finished')
     }
 
     clear () {

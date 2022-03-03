@@ -507,7 +507,6 @@ class SoupWidget extends WebglWidget {
                 }
             }
             if (!event.metaKey && !event.shiftKey) {
-                console.log('Got here')
                 this.controller.triggerAtom(iAtomPressed)
             } else if (event.metaKey) {
                 this.controller.toggleSelectResidue(iResPressed)
@@ -524,7 +523,6 @@ class SoupWidget extends WebglWidget {
             this.controller.clearSelectedResidues()
             this.controller.clickBackground()
         }
-        console.log('clear press')
         this.iAtomFirstPressed = null
         this.iResFirstPressed = null
 
@@ -603,7 +601,6 @@ class SoupWidget extends WebglWidget {
 
                 // cancel any down/up motion
                 this.isClickInitiated = false
-                console.log('mousemove cancel click due to move')
 
                 if (rightMouse || event.metaKey) {
                     zRotationAngle = this.mouseT - this.saveMouseT

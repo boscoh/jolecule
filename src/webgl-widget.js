@@ -281,7 +281,7 @@ class WebglWidget {
     }
 
     setMesssage (message) {
-        console.log('SoupWidget.setMesssage:', message)
+        // console.log('SoupWidget.setMesssage:', message)
         this.messageDiv.html(message).show()
     }
 
