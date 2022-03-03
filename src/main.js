@@ -1,6 +1,7 @@
 import { EmbedJolecule, defaultArgs } from './embed-widget.js'
 import { FullPageWidget } from './full-page-widget.js'
 import { AquariaAlignment } from './aquaria.js'
+import widgets from './widgets'
 import _ from 'lodash'
 
 /**
@@ -185,4 +186,5 @@ export {
     makePdbDataServer,
     makeDataServer,
     AquariaAlignment,
+    widgets
 }
