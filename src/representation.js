@@ -660,21 +660,72 @@ class LigandRepresentation {
     }
 }
 
-class WaterRepresentation extends AtomsRepresentation {
+// class WaterRepresentation extends AtomsRepresentation {
+//     constructor (soup, radius) {
+//         super(soup, [], radius)
+//         this.name = 'water'
+//         this.atomIndices = []
+//         let residue = this.soup.getResidueProxy()
+//         for (let iRes of _.range(this.soup.getResidueCount())) {
+//             residue.iRes = iRes
+//             if (_.includes(data.solventResTypes, residue.resType)) {
+//                 for (let iAtom of residue.getAtomIndices()) {
+//                     this.atomIndices.push(iAtom)
+//                 }
+//             }
+//         }
+//         this.build()
+//     }
+// }
+
+
+class WaterRepresentation {
     constructor (soup, radius) {
-        super(soup, [], radius)
-        this.name = 'water'
-        this.atomIndices = []
-        let residue = this.soup.getResidueProxy()
-        for (let iRes of _.range(this.soup.getResidueCount())) {
-            residue.iRes = iRes
-            if (_.includes(data.solventResTypes, residue.resType)) {
-                this.atomIndices.push(residue.iAtom)
-            }
-        }
+        this.soup = soup
+        this.radius = radius
+        this.displayObj = new THREE.Object3D()
+        this.pickingObj = new THREE.Object3D()
         this.build()
     }
+
+    build () {
+        glgeom.clearObject3D(this.displayObj)
+        glgeom.clearObject3D(this.pickingObj)
+
+        let atomIndices = []
+        let bondIndices = []
+
+        let atom = this.soup.getAtomProxy()
+        let residue = this.soup.getResidueProxy()
+
+        for (let iRes of _.range(this.soup.getResidueCount())) {
+            residue.iRes = iRes
+            if (!_.includes(data.solventResTypes, residue.resType)) {
+                continue
+            }
+            for (let iAtom of residue.getAtomIndices()) {
+                atom.iAtom = iAtom
+                atomIndices.push(iAtom)
+                for (let iBond of atom.getBondIndices()) {
+                    bondIndices.push(iBond)
+                }
+            }
+        }
+
+        this.atomRepr = new AtomsRepresentation(
+            this.soup,
+            atomIndices,
+            this.radius
+        )
+        this.bondRepr = new BondRepresentation(this.soup, bondIndices)
+        if (atomIndices.length > 0) {
+            transferObjects(this.atomRepr.displayObj, this.displayObj)
+            transferObjects(this.bondRepr.displayObj, this.displayObj)
+            transferObjects(this.atomRepr.pickingObj, this.pickingObj)
+        }
+    }
 }
+
 
 class SidechainRepresentation {
     constructor (soup, radius) {
