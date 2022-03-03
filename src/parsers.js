@@ -56,7 +56,7 @@ class PdbParser {
                     y = parseFloat(line.substr(38, 7))
                     z = parseFloat(line.substr(46, 7))
                     bfactor = parseFloat(line.substr(60, 6))
-                    elem = deleteNumbers(_.trim(line.substr(76, 2)))
+                    elem = _.trim(line.substr(76, 2))
                 } catch (e) {
                     this.error = 'line ' + iLine
                     console.log(`parseAtomLines: "${line}"`)

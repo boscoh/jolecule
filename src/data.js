@@ -67,6 +67,37 @@ let ElementColors = {
     Rn: 0xe29ec5,
 }
 
+let paletteColors = [
+    0x023fa5,
+    0x7d87b9,
+    0xbec1d4,
+    0xd6bcc0,
+    0xbb7784,
+    0x8e063b,
+    0x4a6fe3,
+    0x8595e1,
+    0xb5bbe3,
+    0xe6afb9,
+    0xe07b91,
+    0xd33f6a,
+    0x11c638,
+    0x8dd593,
+    0xc6dec7,
+    0xead3c6,
+    0xf0b98d,
+    0xef9708,
+    0x0fcfc0,
+    0x9cded6,
+    0xd5eae7,
+    0xf3e1eb,
+    0xf6c4e1,
+    0xf79cd4
+]
+
+for (let i of _.range(paletteColors.length)) {
+    ElementColors[`${i+1}`] = paletteColors[i]
+}
+
 for (let [k, v] of _.toPairs(ElementColors)) {
     ElementColors[k] = new THREE.Color(v)
 }

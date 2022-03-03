@@ -1470,7 +1470,7 @@ class GridControlWidget extends CanvasWidget {
 
         this.buttonsDiv.empty()
 
-        let y = 10
+        let y = 5
         for (let elem of _.keys(this.soupView.soup.grid.isElem)) {
             this.makeElemButton(elem, y)
             y += this.buttonHeight
@@ -1493,7 +1493,7 @@ class GridControlWidget extends CanvasWidget {
             this.soupWidget,
             selector,
             elem,
-            50,
+            5,
             y,
             colorHexStr
         )

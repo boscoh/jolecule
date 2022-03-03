@@ -480,9 +480,12 @@ class GridRepresentation extends AtomsRepresentation {
         for (let iRes of _.range(this.soup.getResidueCount())) {
             residue.iRes = iRes
             if (residue.ss === 'G') {
-                atom.iAtom = residue.iAtom
-                if (atom.bfactor > grid.bCutoff && grid.isElem[atom.elem]) {
-                    this.atomIndices.push(atom.iAtom)
+                // atom.iAtom = residue.iAtom
+                for (let iAtom of residue.getAtomIndices()) {
+                    atom.iAtom = iAtom
+                    if (atom.bfactor > grid.bCutoff && grid.isElem[atom.elem]) {
+                        this.atomIndices.push(iAtom)
+                    }
                 }
             }
         }
