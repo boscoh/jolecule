@@ -386,6 +386,30 @@ class ResidueProxy {
             }
         }
 
+        if (
+            prevRes.resType === "ACE" &&
+            prevRes.checkAtomTypes(["C"]) &&
+            thisRes.checkAtomTypes(["N"])
+        ) {
+            let c = prevRes.getAtomProxy('C').pos
+            let n = thisRes.getAtomProxy('N').pos
+            if (v3.distance(c, n) < 2) {
+                return true
+            }
+        }
+
+        if (
+            prevRes.checkAtomTypes(["N"]) &&
+            thisRes.resType === "NME" &&
+            thisRes.checkAtomTypes(["C"])
+        ) {
+            let c = prevRes.getAtomProxy('C').pos
+            let n = thisRes.getAtomProxy('N').pos
+            if (v3.distance(c, n) < 2) {
+                return true
+            }
+        }
+
         return false
     }
 
@@ -1158,6 +1182,10 @@ class Soup {
                     atom.iAtom = residue.getIAtom('CA')
                 } else if (residue.getIAtom("C3'")) {
                     atom.iAtom = residue.getIAtom("C3'")
+                } else if (residue.resType === "ACE") {
+                    atom.iAtom = residue.getIAtom("C")
+                } else if (residue.resType === "NME") {
+                    atom.iAtom = residue.getIAtom("N")
                 } else {
                     atom.iAtom = residue.iAtom
                 }

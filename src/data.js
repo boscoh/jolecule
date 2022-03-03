@@ -7,6 +7,8 @@ import _ from 'lodash'
 import * as THREE from 'three'
 
 const proteinResTypes = [
+    'ACE',
+    'NME',
     'ALA',
     'CYS',
     'ASP',
@@ -104,6 +106,8 @@ const resToAa = {
     VAL: 'V',
     TRP: 'W',
     TYR: 'Y',
+    ACE: '<',
+    NME: '>',
     DA: 'A',
     DT: 'T',
     DG: 'G',
