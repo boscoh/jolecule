@@ -496,6 +496,8 @@ class SoupWidget extends WebglWidget {
                 }
             }
             this.isDraggingCentralAtom = false
+        } else {
+            this.controller.clickBackground()
         }
         this.iAtomFirstPressed = null
         this.iResFirstPressed = null
@@ -517,8 +519,10 @@ class SoupWidget extends WebglWidget {
             if (!event.metaKey && !event.shiftKey) {
                 this.controller.triggerAtom(iAtomPressed)
             } else if (event.metaKey) {
-                this.controller.toggleSelectResidue(iResPressed)
-                this.controller.zoomToSelection()
+                let select = this.controller.toggleSelectResidue(iResPressed)
+                if (select) {
+                    this.controller.zoomToSelection()
+                }
             } else if (event.shiftKey) {
                 this.controller.selectAdditionalRangeToResidue(
                     this.iResFirstPressed
@@ -528,8 +532,10 @@ class SoupWidget extends WebglWidget {
                 this.controller.selectAdditionalResidue(this.iResFirstPressed)
             }
         } else {
-            this.controller.clearSelectedResidues()
-            this.controller.clickBackground()
+            let selectedResidues = this.soup.makeSelectedResidueList()
+            if (selectedResidues.length) {
+                this.controller.clearSelectedResidues()
+            }
         }
         this.iAtomFirstPressed = null
         this.iResFirstPressed = null

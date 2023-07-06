@@ -241,6 +241,7 @@ class SoupController {
     toggleSelectResidue (iRes) {
         let value = !this.soup.getResidueProxy(iRes).selected
         this.selectResidue(iRes, value)
+        return value
     }
 
     selectTraceOfResidue (iRes) {
@@ -422,6 +423,8 @@ class SoupController {
         this.soupView.currentView.sidechains = this.soup.makeSidechainResidueList()
         this.soupView.isChanged = true
         this.soupView.isUpdateSidechain = true
+
+        this.zoomToSelection()
     }
 
     saveCurrentView () {
