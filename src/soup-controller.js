@@ -399,19 +399,6 @@ class SoupController {
             indices = this.soup.getNeighboursOfPoint(pos)
         }
 
-        // if (indices.length === 0) {
-        //   let iAtom = this.soupView.currentView.iAtom
-        //   let iRes = this.soup.getAtomProxy(iAtom).iRes
-        //   indices = _.concat(indices, this.soup.getNeighbours(iRes))
-        // }
-        // let nSidechain = 0
-        // for (let iRes of indices) {
-        //   if (residue.load(iRes).sidechain) {
-        //     nSidechain += 1
-        //   }
-        // }
-        // let isSidechain = nSidechain < indices.length
-
         let isSidechain = true
 
         this.soup.setSidechainOfResidues(indices, isSidechain)

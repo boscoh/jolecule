@@ -1411,6 +1411,7 @@ class Soup {
             }
         }
 
+        // console.log('colorResidues isGridActive', isGridActive)
         for (let iRes of _.range(this.getResidueCount())) {
             residue.iRes = iRes
             residue.color = isGridActive ? data.darkGrey : residue.customColor
