@@ -161,7 +161,16 @@ class AtomProxy {
             if (this.elem === 'C' || this.elem === 'H') {
                 return resColor
             } else if (this.elem in data.ElementColors) {
-                return mixColors(resColor, data.ElementColors[this.elem], 0.3)
+                let elemColor = data.ElementColors[this.elem]
+                if (residue.selected) {
+                    // color = color.clone().offsetHSL(0, 0, +0.3)
+                    elemColor = mixColors(elemColor, data.white, 0.8)
+                }
+                return elemColor
+                let resChromaColor = chroma.gl(resColor.r, resColor.g, resColor.b)
+                let elemChromaColor = chroma.gl(elemColor.r, elemColor.g, elemColor.b)
+                let blend_gl = elemChromaColor.set('lch.c', resChromaColor.get('lch.c')).gl()
+                return  new THREE.Color(blend_gl[0],blend_gl[1], blend_gl[2])
             }
         }
         if (this.elem in data.ElementColors) {
