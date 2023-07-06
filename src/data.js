@@ -11,11 +11,17 @@ const proteinResTypes = [
     'NME',
     'ALA',
     'CYS',
+    'CYM',
+    'CYX',
     'ASP',
     'GLU',
     'PHE',
     'GLY',
     'HIS',
+    'HID',
+    'HIE',
+    'HIP',
+    'HIN',
     'ILE',
     'LYS',
     'LEU',
@@ -44,7 +50,21 @@ const red = new THREE.Color(0x993333)
 const darkGrey = new THREE.Color(0x999999)
 const white = new THREE.Color(0xFFFFFF)
 
-const solventResTypes = ['HOH', 'NA', 'CL']
+const solventResTypes = [
+    'HOH',
+    'NA',
+    'CL',
+    "TIP3",
+    "TIP3P",
+    "SPCE",
+    "SPC",
+    "TIP4PEW",
+    "WAT",
+    "OH2",
+    "TIP",
+    "Na+",
+    "Cl-",
+]
 
 let ElementColors = {
     H: 0xcccccc,
@@ -120,10 +140,15 @@ function getSsColor (ss) {
 const resToAa = {
     ALA: 'A',
     CYS: 'C',
+    CYX: 'C',
+    CYM: 'C',
     ASP: 'D',
     GLU: 'E',
     PHE: 'F',
     GLY: 'G',
+    HIE: 'H',
+    HID: 'H',
+    HIP: 'H',
     HIS: 'H',
     ILE: 'I',
     LYS: 'K',
