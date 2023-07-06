@@ -545,7 +545,7 @@ class Soup {
             bMin: 0.4,
             changed: true,
             isElem: {},
-            convertB: b => -b.toFixed(2),
+            convertB: function(b) { return _.toNumber(b.toFixed(0))},
         }
     }
 

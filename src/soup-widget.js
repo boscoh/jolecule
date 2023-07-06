@@ -201,7 +201,7 @@ class SoupWidget extends WebglWidget {
         let label = atom.label
         let iAtom = atom.iAtom
         if (atom.resType === 'XXX') {
-            label += ':' + 'E=' + this.soup.grid.convertB(atom.bfactor)
+            label += ': ' + ' E=' + this.soup.grid.convertB(atom.bfactor)
         }
         let text = ''
         if (iAtom === this.soupView.getICenteredAtom()) {
