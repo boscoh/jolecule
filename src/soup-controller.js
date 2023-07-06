@@ -569,6 +569,47 @@ class SoupController {
         this.soupView.isUpdateColors = true
     }
 
+    selectOnlyGridElem (elem) {
+        let isAlreadySelected = true
+        for (let thisElem of _.keys(this.soup.grid.isElem)) {
+            if (thisElem === elem) {
+                if (!this.soup.grid.isElem[thisElem]) {
+                    isAlreadySelected = false
+                    break
+                }
+            } else if (this.soup.grid.isElem[thisElem]) {
+                isAlreadySelected = false
+            }
+        }
+        console.log(`selectOnlyGridElem`, isAlreadySelected)
+
+        if (isAlreadySelected) {
+            console.log(`selectOnlyGridElem select all`)
+            for (let thisElem of _.keys(this.soup.grid.isElem)) {
+                this.soup.grid.isElem[thisElem] = true
+            }
+        } else {
+            console.log(`selectOnlyGridElem`, elem)
+            for (let thisElem of _.keys(this.soup.grid.isElem)) {
+                if (thisElem === elem) {
+                    this.soup.grid.isElem[thisElem] = true
+                } else {
+                    this.soup.grid.isElem[thisElem] = false
+                }
+            }
+        }
+        this.soup.grid.isChanged = true
+
+        this.soupView.currentView.grid.isElem = _.cloneDeep(
+            this.soup.grid.isElem
+        )
+        this.soupView.isChanged = true
+
+        this.soupView.isUpdateObservers = true
+        this.soupView.isUpdateColors = true
+
+    }
+
     setGridCutoff (bCutoff) {
         this.soup.grid.bCutoff = bCutoff
         this.soup.grid.isChanged = true

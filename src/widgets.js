@@ -1407,6 +1407,10 @@ class GridToggleButtonWidget {
                 e.preventDefault()
                 this.toggle()
             })
+            .on('dblclick', e => {
+                e.preventDefault()
+                this.doubleClick()
+            })
         this.update()
         soupWidget.addObserver(this)
     }
@@ -1417,6 +1421,11 @@ class GridToggleButtonWidget {
 
     toggle () {
         this.controller.toggleGridElem(this.elem)
+        this.update()
+    }
+
+    doubleClick () {
+        this.controller.selectOnlyGridElem(this.elem)
         this.update()
     }
 
@@ -1891,10 +1900,6 @@ class ResidueSelectorWidget {
                 let startTime = new Date()
                 this.$select.val(newValue).trigger('change.select2')
                 let s = (new Date() - startTime) / 1000
-                console.log(
-                    `ResidueSelectorWidget.update ${oldValue} -> ${newValue}` +
-                        ` in ${s.toFixed(3)}s`
-                )
             }
         }
     }
