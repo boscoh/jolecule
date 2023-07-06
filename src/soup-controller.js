@@ -524,6 +524,9 @@ class SoupController {
     setShowOption (option, bool) {
         console.log('Controller.setShowOption', option, bool)
         this.soupView.currentView.show[option] = bool
+        if (option === "hydrogen") {
+            this.soupView.isUpdateHydrogen = true
+        }
         this.soupView.isUpdateObservers = true
         this.soupView.isChanged = true
     }

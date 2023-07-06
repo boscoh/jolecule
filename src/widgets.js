@@ -1970,6 +1970,13 @@ class GraphicsMenuWidget {
             'ligands'
         )
 
+        this.popOutPanelDiv.append($(`<div id="${this.divId}-hydrogen">`))
+        this.widget.ligand = new ToggleOptionWidget(
+            soupWidget,
+            `#${this.divId}-hydrogen`,
+            'hydrogen'
+        )
+
         this.soupWidget.addObserver(this)
         this.update()
     }

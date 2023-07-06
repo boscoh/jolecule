@@ -494,12 +494,19 @@ class GridRepresentation extends AtomsRepresentation {
 }
 
 class SphereRepresentation extends AtomsRepresentation {
-    constructor (soup) {
+    constructor (soup, isHydrogen=true) {
         super(soup, [], 1.7, true)
+        console.log(`SphereRepresentation.constructor hydrogen`, isHydrogen)
+        this.isHydrogen = !isHydrogen
     }
 
     build () {
         let grid = this.soup.grid
+        let isHideHydrogen = false
+        if (!_.isNull(this.isHydrogen)) {
+            isHideHydrogen = !this.isHydrogen
+        }
+        console.log(`SphereRepresentation.build hidehydrogen`, isHideHydrogen)
         this.atomIndices = []
         let residue = this.soup.getResidueProxy()
         let atom = this.soup.getAtomProxy()
@@ -508,6 +515,9 @@ class SphereRepresentation extends AtomsRepresentation {
             if (residue.isPolymer) {
                 for (let iAtom of residue.getAtomIndices()) {
                     atom.iAtom = iAtom
+                    if (isHideHydrogen && (atom.elem === 'H')) {
+                        continue
+                    }
                     this.atomIndices.push(iAtom)
                 }
             }

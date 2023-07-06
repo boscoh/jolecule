@@ -320,6 +320,9 @@ class SoupView {
         // indicates when colors need to be updated
         this.isUpdateColors = false
 
+        // indicates when hydrogens need to be rebuilt
+        this.isUpdateHydrogen = false
+
         // delayed flag to change rendering after
         // rotations have been done
         this.isStartTargetAfterRender = false

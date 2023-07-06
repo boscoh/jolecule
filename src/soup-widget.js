@@ -366,7 +366,7 @@ class SoupWidget extends WebglWidget {
         if (isNewTrigger('sphere', show.sphere)) {
             this.addRepresentation(
                 'sphere',
-                new representation.SphereRepresentation(this.soup)
+                new representation.SphereRepresentation(this.soup, show.hydrogen)
             )
         }
 
@@ -416,8 +416,16 @@ class SoupWidget extends WebglWidget {
             this.soupView.soup.grid.isChanged = false
         }
 
+        if (this.soupView.isUpdateHydrogen) {
+            if (this.representations.sphere) {
+                this.representations.sphere.isHydrogen = show.hydrogen
+                this.representations.sphere.build()
+            }
+            this.soupView.isUpdateHydrogen = false
+            this.updateMeshesInScene = true
+        }
+
         if (this.soupView.isUpdateSidechain) {
-            this.representations.sidechain.build()
             this.soupView.isUpdateSidechain = false
             this.updateMeshesInScene = true
         }
