@@ -109,8 +109,8 @@ class EmbedJolecule {
 
         if (isRebuild) {
             console.log('asyncAddDataServer rebuild', isRebuild)
-            this.soupWidget.buildScene(
-            this.resize())
+            this.soupWidget.buildScene()
+            this.resize()
             this.controller.zoomOut()
         }
 
