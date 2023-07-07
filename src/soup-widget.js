@@ -426,6 +426,7 @@ class SoupWidget extends WebglWidget {
         }
 
         if (this.soupView.isUpdateSidechain) {
+            this.representations.sidechain.build()
             this.soupView.isUpdateSidechain = false
             this.updateMeshesInScene = true
         }
